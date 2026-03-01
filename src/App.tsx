@@ -1,133 +1,117 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { ThemeProvider } from '@/components/theme-provider'
-import { AuthProvider, useAuth } from '@/components/auth-provider'
-import { AppStoreProvider } from '@/stores/main'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { Toaster } from '@/components/ui/toaster'
-import Layout from './components/Layout'
+import { AuthProvider, useAuth } from '@/hooks/useAuth'
+import { Toaster } from 'sonner'
+import Layout from '@/components/Layout'
 
-// Lazy loaded pages to optimize bundle size and page load time
-const Login = lazy(() => import('./pages/Login'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
-const Funnel = lazy(() => import('./pages/Funnel'))
-const Leads = lazy(() => import('./pages/Leads'))
-const MorningReport = lazy(() => import('./pages/MorningReport'))
-const GoalManagement = lazy(() => import('./pages/GoalManagement'))
-const Tarefas = lazy(() => import('./pages/Tarefas'))
-const Team = lazy(() => import('./pages/Team'))
-const CommissionRules = lazy(() => import('./pages/CommissionRules'))
-const SellerPerformance = lazy(() => import('./pages/SellerPerformance'))
-const SalesPerformance = lazy(() => import('./pages/SalesPerformance'))
-const CrossSalesReports = lazy(() => import('./pages/CrossSalesReports'))
-const AiDiagnostics = lazy(() => import('./pages/AiDiagnostics'))
-const Settings = lazy(() => import('./pages/Settings'))
-const Reports = lazy(() => import('./pages/Reports'))
-const Agenda = lazy(() => import('./pages/Agenda'))
-const Inventory = lazy(() => import('./pages/Inventory'))
-const Financeiro = lazy(() => import('./pages/Financeiro'))
-const Training = lazy(() => import('./pages/Training'))
-const Communication = lazy(() => import('./pages/Communication'))
-const Privacy = lazy(() => import('./pages/Privacy'))
-const Terms = lazy(() => import('./pages/Terms'))
-const NotFound = lazy(() => import('./pages/NotFound'))
+// Pages — Lazy loaded
+const Login = lazy(() => import('@/pages/Login'))
+const Privacy = lazy(() => import('@/pages/Privacy'))
+const Terms = lazy(() => import('@/pages/Terms'))
+const NotFound = lazy(() => import('@/pages/NotFound'))
+
+// Vendedor
+const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
+const Checkin = lazy(() => import('@/pages/Checkin'))
+const Historico = lazy(() => import('@/pages/Historico'))
+const Ranking = lazy(() => import('@/pages/Ranking'))
+const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
+const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
+const Notificacoes = lazy(() => import('@/pages/Notificacoes'))
+const Perfil = lazy(() => import('@/pages/Perfil'))
+
+// Gerente
+const DashboardLoja = lazy(() => import('@/pages/DashboardLoja'))
+const Equipe = lazy(() => import('@/pages/Equipe'))
+const GoalManagement = lazy(() => import('@/pages/GoalManagement'))
+const Funil = lazy(() => import('@/pages/Funil'))
+const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
+const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
+
+// Consultor
+const PainelConsultor = lazy(() => import('@/pages/PainelConsultor'))
+const Lojas = lazy(() => import('@/pages/Lojas'))
+const ConsultorTreinamentos = lazy(() => import('@/pages/ConsultorTreinamentos'))
+const ProdutosDigitais = lazy(() => import('@/pages/ProdutosDigitais'))
+const ConsultorNotificacoes = lazy(() => import('@/pages/ConsultorNotificacoes'))
+const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
+
+const Spinner = () => (
+  <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+  </div>
+)
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { profile, loading } = useAuth()
   const location = useLocation()
-
-  if (loading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
-  }
-
+  if (loading) return <div className="h-screen flex items-center justify-center bg-slate-950"><Spinner /></div>
+  if (!profile) return <Navigate to="/login" state={{ from: location }} replace />
   return <>{children}</>
+}
+
+function RoleRedirect() {
+  const { role } = useAuth()
+  if (role === 'consultor') return <Navigate to="/painel" replace />
+  if (role === 'gerente') return <Navigate to="/loja" replace />
+  return <Navigate to="/home" replace />
 }
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="autoperf-theme">
-      <AuthProvider>
-        <AppStoreProvider>
-          <TooltipProvider>
-            <Router>
-              <Routes>
-                <Route
-                  path="/login"
-                  element={
-                    <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-background"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-                      <Login />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/privacy"
-                  element={
-                    <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-background"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-                      <Privacy />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/terms"
-                  element={
-                    <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-background"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-                      <Terms />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Layout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route
-                    path="*"
-                    element={
-                      <Suspense fallback={<div className="w-full h-full min-h-[50vh] flex items-center justify-center bg-transparent"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-                        <Routes>
-                          <Route path="dashboard" element={<Dashboard />} />
-                          <Route path="relatorio-matinal" element={<MorningReport />} />
-                          <Route path="metas" element={<GoalManagement />} />
-                          <Route path="tarefas" element={<Tarefas />} />
-                          <Route path="leads" element={<Leads />} />
-                          <Route path="funnel" element={<Funnel />} />
-                          <Route path="agenda" element={<Agenda />} />
-                          <Route path="inventory" element={<Inventory />} />
-                          <Route path="financeiro" element={<Financeiro />} />
-                          <Route path="relatorios/performance-vendas" element={<SalesPerformance />} />
-                          <Route path="relatorios/vendas-cruzados" element={<CrossSalesReports />} />
-                          <Route path="relatorios/performance-vendedores" element={<SellerPerformance />} />
-                          <Route path="reports/stock" element={<Reports />} />
-                          <Route path="team" element={<Team />} />
-                          <Route path="configuracoes/comissoes" element={<CommissionRules />} />
-                          <Route path="training" element={<Training />} />
-                          <Route path="communication" element={<Communication />} />
-                          <Route path="ia-diagnostics" element={<AiDiagnostics />} />
-                          <Route path="settings" element={<Settings />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </Suspense>
-                    }
-                  />
-                </Route>
-              </Routes>
-            </Router>
-            <Toaster />
-          </TooltipProvider>
-        </AppStoreProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public */}
+          <Route path="/login" element={<Suspense fallback={<Spinner />}><Login /></Suspense>} />
+          <Route path="/privacy" element={<Suspense fallback={<Spinner />}><Privacy /></Suspense>} />
+          <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
+
+          {/* Protected */}
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<RoleRedirect />} />
+
+            {/* Vendedor */}
+            <Route path="home" element={<Suspense fallback={<Spinner />}><VendedorHome /></Suspense>} />
+            <Route path="checkin" element={<Suspense fallback={<Spinner />}><Checkin /></Suspense>} />
+            <Route path="historico" element={<Suspense fallback={<Spinner />}><Historico /></Suspense>} />
+            <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
+            <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<VendedorTreinamentos />} consultor={<ConsultorTreinamentos />} />
+            </Suspense>} />
+            <Route path="feedback" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} consultor={<GerenteFeedback />} />
+            </Suspense>} />
+            <Route path="notificacoes" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} consultor={<ConsultorNotificacoes />} />
+            </Suspense>} />
+            <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
+
+            {/* Gerente */}
+            <Route path="loja" element={<Suspense fallback={<Spinner />}><DashboardLoja /></Suspense>} />
+            <Route path="equipe" element={<Suspense fallback={<Spinner />}><Equipe /></Suspense>} />
+            <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
+            <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
+            <Route path="pdi" element={<Suspense fallback={<Spinner />}><GerentePDI /></Suspense>} />
+
+            {/* Consultor */}
+            <Route path="painel" element={<Suspense fallback={<Spinner />}><PainelConsultor /></Suspense>} />
+            <Route path="lojas" element={<Suspense fallback={<Spinner />}><Lojas /></Suspense>} />
+            <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
+            <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
+
+            <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
+          </Route>
+        </Routes>
+      </Router>
+      <Toaster richColors position="top-right" />
+    </AuthProvider>
   )
+}
+
+function RoleSwitch({ vendedor, gerente, consultor }: { vendedor: React.ReactNode; gerente: React.ReactNode; consultor: React.ReactNode }) {
+  const { role } = useAuth()
+  if (role === 'consultor') return <>{consultor}</>
+  if (role === 'gerente') return <>{gerente}</>
+  return <>{vendedor}</>
 }
