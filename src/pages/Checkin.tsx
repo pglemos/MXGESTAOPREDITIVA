@@ -4,8 +4,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCheckins } from '@/hooks/useCheckins'
 import { validarFunil, calcularTotais } from '@/lib/calculations'
 import { toast } from 'sonner'
-import { motion } from 'motion/react'
-import { CheckSquare, Users, Globe, Car, Eye, Send, Sparkles, MessageSquare, AlertTriangle } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
+import {
+    CheckSquare, Users, Globe, Car, Eye, Send, Sparkles,
+    MessageSquare, AlertTriangle, ChevronLeft, Minus, Plus, Zap,
+    ArrowLeft, Target, TrendingUp, Info
+} from 'lucide-react'
 
 const ZERO_REASONS = ['Folga', 'Treinamento', 'Feriado', 'Dia administrativo', 'Outro']
 
@@ -62,139 +66,246 @@ export default function Checkin() {
     const today = new Date()
     const dateStr = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
-    const NumberInput = ({ label, icon: Icon, field, color }: { label: string; icon: any; field: string; color: string }) => (
-        <div className="flex items-center justify-between bg-white rounded-xl p-3 border border-gray-100 shadow-sm transition-all hover:border-gray-200">
-            <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color.replace('bg-', 'bg-').replace('-600', '-100')}`}>
-                    <Icon size={16} className={color.replace('bg-', 'text-').replace('-600', '-600')} />
+    const NumberInput = ({ label, icon: Icon, field, color, bg }: { label: string; icon: any; field: string; color: string; bg: string }) => (
+        <div className="flex items-center justify-between p-4 bg-white rounded-3xl border border-gray-100/50 shadow-sm group/input hover:shadow-md transition-all">
+            <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${bg} ${color} shadow-sm group-hover/input:scale-110 transition-transform`}>
+                    <Icon size={20} />
                 </div>
-                <span className="text-[#1A1D20] font-bold text-sm tracking-tight">{label}</span>
+                <div className="flex flex-col">
+                    <span className="text-[#1A1D20] font-black text-[10px] uppercase tracking-widest opacity-40 group-hover/input:opacity-100 transition-opacity">{label}</span>
+                    <span className="text-xl font-black tabular-nums">{(form as any)[field]}</span>
+                </div>
             </div>
             <div className="flex items-center gap-2">
-                <button type="button" onClick={() => updateField(field, (form as any)[field] - 1)}
-                    className="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200 flex items-center justify-center text-lg font-bold transition-colors">−</button>
-                <input type="number" value={(form as any)[field]} min={0}
-                    onChange={e => updateField(field, parseInt(e.target.value) || 0)}
-                    className="w-14 text-center bg-gray-50 border border-gray-200 rounded-lg text-[#1A1D20] font-black py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all no-spinners" />
-                <button type="button" onClick={() => updateField(field, (form as any)[field] + 1)}
-                    className="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200 flex items-center justify-center text-lg font-bold transition-colors">+</button>
+                <button
+                    type="button"
+                    onClick={() => updateField(field, (form as any)[field] - 1)}
+                    className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-900 border border-gray-100 flex items-center justify-center transition-all active:scale-90"
+                >
+                    <Minus size={16} />
+                </button>
+                <button
+                    type="button"
+                    onClick={() => updateField(field, (form as any)[field] + 1)}
+                    className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-indigo-600 hover:text-white border border-gray-100 flex items-center justify-center transition-all active:scale-90"
+                >
+                    <Plus size={16} />
+                </button>
             </div>
         </div>
     )
 
     return (
-        <div className="max-w-xl mx-auto h-full pb-10">
-            {showConfetti && <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-8xl">🎉</motion.div>
-            </div>}
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-8 md:gap-12 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="soft-card p-6 sm:p-10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -z-10" />
-                <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -z-10" />
+            {showConfetti && (
+                <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+                    <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: [0, 1.2, 1], rotate: 0 }} className="text-9xl">🎉</motion.div>
+                </div>
+            )}
 
-                <div className="flex sm:items-center gap-4 sm:gap-6 mb-8 flex-col sm:flex-row">
-                    <div className="w-16 h-16 shrink-0 rounded-[1.5rem] bg-blue-100 flex items-center justify-center shadow-inner border border-blue-200">
-                        <CheckSquare size={32} className="text-blue-600" />
+            {/* Header / Toolbar */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 w-full shrink-0 border-b border-gray-50 pb-8">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-[#1A1D20] rounded-full" />
+                        <h1 className="text-[36px] font-black tracking-tighter leading-none">Ponto de Vendas</h1>
                     </div>
-                    <div>
-                        <h1 className="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#1A1D20] mb-1">Check-in do Dia</h1>
-                        <p className="text-gray-500 text-sm font-medium capitalize">{dateStr}</p>
+                    <div className="flex items-center gap-3 pl-6 mt-1">
+                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                            Registro de Performance • {dateStr}
+                        </p>
                     </div>
-                    {todayCheckin && <span className="sm:ml-auto self-start bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-amber-200 shadow-sm">Editando</span>}
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Prospecção */}
-                    <div className="inner-card p-5 sm:p-6 shadow-sm border border-gray-100">
-                        <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-md bg-violet-100 flex items-center justify-center"><Users size={14} className="text-violet-600" /></span> Prospecção
-                        </h3>
-                        <NumberInput label="Leads recebidos" icon={Users} field="leads" color="bg-violet-600" />
-                    </div>
-
-                    {/* Agendamentos */}
-                    <div className="inner-card p-5 sm:p-6 shadow-sm border border-gray-100">
-                        <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center"><Globe size={14} className="text-blue-600" /></span> Agendamentos
-                        </h3>
-                        <div className="space-y-3">
-                            <NumberInput label="AGD Carteira" icon={Users} field="agd_cart" color="bg-blue-600" />
-                            <NumberInput label="AGD Internet" icon={Globe} field="agd_net" color="bg-cyan-600" />
-                        </div>
-                        <div className="mt-4 flex justify-end">
-                            <span className="text-xs text-blue-700 font-extrabold bg-blue-100 border border-blue-200 px-4 py-1.5 rounded-full shadow-sm">
-                                Total AGD: {totals.agd_total}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Visitas */}
-                    <div className="inner-card p-5 sm:p-6 shadow-sm border border-gray-100">
-                        <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-md bg-amber-100 flex items-center justify-center"><Eye size={14} className="text-amber-600" /></span> Visitas
-                        </h3>
-                        <NumberInput label="Visitas realizadas" icon={Eye} field="visitas" color="bg-amber-600" />
-                    </div>
-
-                    {/* Vendas */}
-                    <div className="inner-card p-5 sm:p-6 shadow-sm border border-gray-100 bg-emerald-50/30">
-                        <h3 className="text-emerald-700 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center"><Car size={14} className="text-emerald-600" /></span> Vendas
-                        </h3>
-                        <div className="space-y-3">
-                            <NumberInput label="VND Porta (loja)" icon={Car} field="vnd_porta" color="bg-emerald-600" />
-                            <NumberInput label="VND Carteira" icon={Users} field="vnd_cart" color="bg-teal-600" />
-                            <NumberInput label="VND Internet" icon={Globe} field="vnd_net" color="bg-green-600" />
-                        </div>
-                        <div className="mt-4 flex justify-end">
-                            <span className="text-xs text-emerald-800 font-extrabold bg-emerald-200 border border-emerald-300 px-4 py-1.5 rounded-full shadow-sm">
-                                Total VND: {totals.vnd_total}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Funnel validation */}
-                    {funnelError && (
-                        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
-                            <div className="bg-red-100 p-2 rounded-full shrink-0"><AlertTriangle size={16} className="text-red-600" /></div>
-                            <p className="text-red-800 text-sm font-semibold leading-tight">{funnelError}</p>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/home')}
+                        className="flex items-center gap-3 px-6 py-3 rounded-full bg-gray-50 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 hover:text-[#1A1D20] transition-all"
+                    >
+                        <ArrowLeft size={16} /> Cancelar
+                    </button>
+                    {todayCheckin && (
+                        <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 px-5 py-2 rounded-full shadow-sm">
+                            <Sparkles size={14} className="text-amber-500" />
+                            <span className="text-[9px] font-black text-amber-900 uppercase tracking-widest">Modo Edição Ativo</span>
                         </div>
                     )}
+                </div>
+            </div>
 
-                    {/* Zero reason */}
-                    {allZero && (
-                        <div className="inner-card p-5 sm:p-6 shadow-sm border border-amber-200 bg-amber-50/50">
-                            <p className="text-amber-900 font-bold text-sm mb-3">Nenhuma atividade hoje? Selecione o motivo:</p>
-                            <select value={form.zero_reason} onChange={e => setForm(prev => ({ ...prev, zero_reason: e.target.value }))}
-                                className="w-full bg-white border border-amber-200 shadow-sm rounded-xl px-4 py-3 text-[#1A1D20] font-semibold text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all appearance-none cursor-pointer">
-                                <option value="">Selecione...</option>
-                                {ZERO_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
-                            </select>
+            <div className="flex-1 flex flex-col lg:flex-row gap-10 max-w-7xl mx-auto w-full">
+
+                {/* Form Column */}
+                <div className="flex-1 space-y-10 pb-20">
+                    <form onSubmit={handleSubmit} className="space-y-12">
+
+                        {/* Prospecção & Fluxo */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 px-2">
+                                <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                                    <Target size={16} className="text-indigo-600" />
+                                </div>
+                                <h3 className="text-[#1A1D20] text-xs font-black uppercase tracking-[0.2em]">Fluxo Diário</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <NumberInput label="Leads Atendidos" icon={Users} field="leads" bg="bg-indigo-600" color="text-white" />
+                                <NumberInput label="Vendas de Porta" icon={Car} field="vnd_porta" bg="bg-emerald-600" color="text-white" />
+                            </div>
                         </div>
-                    )}
 
-                    {/* Observação */}
-                    <div className="inner-card p-5 sm:p-6 shadow-sm border border-gray-100">
-                        <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center"><MessageSquare size={14} className="text-gray-600" /></span> Observação
-                        </h3>
-                        <textarea value={form.note} onChange={e => setForm(prev => ({ ...prev, note: e.target.value }))}
-                            maxLength={280} rows={2} placeholder="Ocorreu algo diferente no dia (opcional)"
-                            className="w-full bg-gray-50 border border-gray-200 shadow-sm rounded-xl px-4 py-3 text-[#1A1D20] font-medium text-sm placeholder-gray-400 resize-none focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" />
-                        <p className="text-right text-gray-400 font-bold text-xs mt-2">{form.note.length}/280</p>
+                        {/* Agendamentos */}
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between px-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                                        <Globe size={16} className="text-blue-600" />
+                                    </div>
+                                    <h3 className="text-[#1A1D20] text-xs font-black uppercase tracking-[0.2em]">Agendamentos no Showroom</h3>
+                                </div>
+                                <span className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
+                                    Total: {totals.agd_total}
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <NumberInput label="Da Carteira" icon={Users} field="agd_cart" bg="bg-blue-600" color="text-white" />
+                                <NumberInput label="Pelo Digital" icon={Globe} field="agd_net" bg="bg-cyan-500" color="text-white" />
+                            </div>
+                        </div>
+
+                        {/* Fechamentos */}
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between px-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                        <TrendingUp size={16} className="text-emerald-600" />
+                                    </div>
+                                    <h3 className="text-[#1A1D20] text-xs font-black uppercase tracking-[0.2em]">Fechamentos do Dia</h3>
+                                </div>
+                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
+                                    Total: {totals.vnd_total}
+                                </span>
+                            </div>
+                            <div className="inner-card p-8 bg-emerald-50/20 border-emerald-100/50 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500 opacity-5 rounded-full blur-3xl" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                                    <NumberInput label="Vendas Carteira" icon={Users} field="vnd_cart" bg="bg-teal-600" color="text-white" />
+                                    <NumberInput label="Vendas Digital" icon={Globe} field="vnd_net" bg="bg-emerald-500" color="text-white" />
+                                </div>
+                                <div className="mt-6 flex flex-col gap-2">
+                                    <NumberInput label="Fluxo de Loja (Visitas)" icon={Eye} field="visitas" bg="bg-amber-500" color="text-white" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Error Handling */}
+                        <AnimatePresence>
+                            {funnelError && (
+                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-red-50 border border-red-100 rounded-[2rem] p-8 flex items-center gap-6 shadow-xl shadow-red-500/10">
+                                    <div className="bg-red-600 p-4 rounded-2xl shadow-lg shadow-red-200"><AlertTriangle size={32} className="text-white" /></div>
+                                    <div>
+                                        <h4 className="font-black text-red-900 text-lg tracking-tight">Inconsistência de Dados</h4>
+                                        <p className="text-red-800/80 text-sm font-bold leading-relaxed">{funnelError}</p>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Zero States */}
+                        <AnimatePresence>
+                            {allZero && (
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inner-card p-10 bg-amber-50/50 border-amber-100 shadow-xl shadow-amber-500/5">
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-200">
+                                            <AlertTriangle size={24} />
+                                        </div>
+                                        <div>
+                                            <p className="text-amber-900 font-black text-lg tracking-tight leading-none">Movimento Zero</p>
+                                            <p className="text-amber-800 opacity-60 text-[10px] font-black underline uppercase tracking-widest mt-1">É obrigatório justificar ausência de dados</p>
+                                        </div>
+                                    </div>
+                                    <div className="relative group/select">
+                                        <select value={form.zero_reason} onChange={e => setForm(prev => ({ ...prev, zero_reason: e.target.value }))}
+                                            className="w-full bg-white border border-amber-200 rounded-[1.5rem] px-8 py-5 text-[#1A1D20] font-black text-sm focus:outline-none focus:border-amber-500 focus:ring-8 focus:ring-amber-500/5 transition-all appearance-none cursor-pointer shadow-sm">
+                                            <option value="">Selecione o motivo corporativo...</option>
+                                            {ZERO_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                                        </select>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Finalization */}
+                        <div className="pt-10 flex flex-col gap-6">
+                            <div className="space-y-4">
+                                <label className="flex items-center gap-2 px-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                    <MessageSquare size={14} /> Notas do Período
+                                </label>
+                                <textarea
+                                    value={form.note}
+                                    onChange={e => setForm(prev => ({ ...prev, note: e.target.value }))}
+                                    maxLength={280}
+                                    placeholder="Caso precise detalhar algum fechamento ou evento atípico..."
+                                    className="w-full bg-white border border-gray-100 rounded-[2rem] px-8 py-6 text-sm font-bold text-[#1A1D20] placeholder:text-gray-300 focus:outline-none focus:border-indigo-400 focus:shadow-2xl transition-all resize-none shadow-sm min-h-[120px]"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="w-full py-8 rounded-[3rem] bg-[#1A1D20] text-white font-black text-2xl flex items-center justify-center gap-4 hover:bg-black transition-all hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] hover:-translate-y-2 active:scale-[0.98] group relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                {saving ? (
+                                    <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <><Send size={32} /> <span>{todayCheckin ? 'ATUALIZAR DADOS' : 'LANÇAR NO SISTEMA'}</span></>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {/* Info Sidebar */}
+                <div className="lg:w-[380px] space-y-8 h-fit lg:sticky lg:top-10">
+                    <div className="inner-card p-10 bg-indigo-50/30 border-indigo-100/50">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+                                <Info size={20} />
+                            </div>
+                            <h4 className="font-black text-indigo-900 uppercase text-[10px] tracking-widest">Importante</h4>
+                        </div>
+                        <ul className="space-y-6 text-sm font-bold text-indigo-900/70 leading-relaxed">
+                            <li className="flex gap-3">
+                                <span className="text-indigo-600">•</span>
+                                <span>Certifique-se que o volume de agendamentos é condizente com as vendas registradas.</span>
+                            </li>
+                            <li className="flex gap-3">
+                                <span className="text-indigo-600">•</span>
+                                <span>Vendas de "Porta" representam o fluxo orgânico da loja física.</span>
+                            </li>
+                            <li className="flex gap-3">
+                                <span className="text-indigo-600">•</span>
+                                <span>O digital engloba todas as plataformas online (Zap, FB, IG, Site).</span>
+                            </li>
+                        </ul>
                     </div>
 
-                    {/* Submit */}
-                    <div className="pt-4">
-                        <button type="submit" disabled={saving}
-                            className="w-full py-5 rounded-[2rem] bg-[#1A1D20] text-white font-extrabold text-lg flex items-center justify-center gap-3 hover:bg-black transition-all disabled:opacity-50 shadow-[0_8px_30px_rgba(0,0,0,0.12)] active:scale-[0.98] group relative overflow-hidden">
-                            <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors" />
-                            {saving ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> :
-                                todayCheckin ? <><Send size={20} className="relative z-10" /> <span className="relative z-10">Atualizar Check-in</span></> : <><Sparkles size={20} className="relative z-10" /> <span className="relative z-10">Enviar Check-in</span></>}
-                        </button>
+                    <div className="inner-card p-10 bg-[#1A1D20] text-white relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent pointer-events-none" />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-40">Impacto Atual</h4>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-6xl font-black tracking-tighter">{totals.vnd_total}</span>
+                            <span className="text-sm font-black text-gray-400 uppercase tracking-widest">Unidades</span>
+                        </div>
+                        <p className="text-gray-400 text-xs font-bold leading-relaxed max-w-[200px]">
+                            Seu desempenho hoje representa <span className="text-white">{totals.vnd_total} vendas</span> acumuladas neste ciclo.
+                        </p>
                     </div>
-                </form>
-            </motion.div>
+                </div>
+
+            </div>
         </div>
     )
 }

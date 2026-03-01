@@ -2,11 +2,14 @@ import { Settings } from 'lucide-react'
 
 export default function Configuracoes() {
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 w-full shrink-0">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-[28px] font-extrabold tracking-tight text-[#1A1D20]">Configurações do Sistema</h1>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-gray-400 rounded-full shadow-[0_0_15px_rgba(156,163,175,0.5)]" />
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none">Configurações</h1>
+                    </div>
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 import { useTrainings } from '@/hooks/useData'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
-import { GraduationCap, Play, CheckCircle, ExternalLink } from 'lucide-react'
+import { GraduationCap, Play, CheckCircle, ExternalLink, Clock, Users, Target, BookOpen, ChevronRight, Sparkles } from 'lucide-react'
 
 const typeColors: Record<string, string> = {
     prospeccao: 'bg-violet-50 text-violet-700 border-violet-100',
@@ -14,6 +14,7 @@ const typeColors: Record<string, string> = {
 export default function VendedorTreinamentos() {
     const { trainings, loading, markWatched } = useTrainings()
     const watched = trainings.filter(t => t.watched).length
+    const progress = trainings.length > 0 ? (watched / trainings.length) * 100 : 0
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] soft-card h-full">
@@ -23,68 +24,104 @@ export default function VendedorTreinamentos() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
 
-            {/* Top Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 w-full shrink-0">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-[28px] font-extrabold tracking-tight text-[#1A1D20]">Treinamentos</h1>
-                    <span className="bg-white border border-gray-100 text-xs font-bold px-3 py-1 rounded-full text-gray-500">{watched}/{trainings.length} assistidos</span>
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-violet-600 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none">
+                            Minha Evolução
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-3 pl-6 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60 text-shadow-sm">Prepare-se para o Próximo Nível</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className="flex items-center gap-3 bg-white border border-gray-100 px-5 py-2.5 rounded-2xl shadow-sm">
+                        <GraduationCap size={18} className="text-violet-600" />
+                        <span className="text-sm font-black tracking-tight">{watched} / {trainings.length} Módulos</span>
+                        <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden ml-2 shadow-inner">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                className="h-full bg-violet-600 rounded-full"
+                            />
+                        </div>
+                        <span className="text-[10px] font-black text-violet-600 ml-2">{Math.round(progress)}%</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Progress bar */}
-            <div className="bg-gray-100/80 rounded-full h-2.5 overflow-hidden shadow-inner border border-gray-200/50 shrink-0">
-                <div className="bg-[#1A1D20] h-full rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${trainings.length > 0 ? (watched / trainings.length) * 100 : 0}%` }} />
-            </div>
-
             {/* Grid */}
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 shrink-0 pb-10">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-8 shrink-0 pb-10">
                 {trainings.map((t, i) => (
                     <motion.div
                         key={t.id}
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.05 }}
-                        className="bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-[2rem] p-6 flex flex-col justify-between group h-full relative overflow-hidden"
+                        className="inner-card p-8 flex flex-col justify-between hover:shadow-2xl hover:border-violet-100 transition-all border border-gray-100 bg-white relative overflow-hidden group h-full"
                     >
-                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-gray-50 rounded-full blur-2xl group-hover:bg-blue-50/50 transition-colors" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full blur-[80px] -mr-16 -mt-16 opacity-40 group-hover:bg-violet-50 transition-colors pointer-events-none" />
 
-                        <div className="flex items-start justify-between mb-4 relative z-10">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${t.watched ? 'bg-emerald-50 border-emerald-100' : 'bg-[#F8FAFC] border-gray-100 group-hover:bg-white group-hover:shadow-sm'}`}>
-                                {t.watched ? <CheckCircle size={20} className="text-emerald-500" /> : <Play size={20} className="text-gray-400 ml-0.5" />}
+                        <div className="relative z-10 flex flex-col h-full">
+                            <div className="flex items-start justify-between mb-8">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all shadow-sm ${t.watched ? 'bg-emerald-50 border-emerald-100' : 'bg-[#F8FAFC] border-gray-100 group-hover:scale-110 group-hover:bg-white group-hover:rotate-3'}`}>
+                                    {t.watched ? <CheckCircle size={24} className="text-emerald-500" /> : <Play size={24} className="text-[#1A1D20] ml-1" />}
+                                </div>
+                                <span className={`text-[9px] uppercase font-black tracking-widest px-4 py-2 rounded-full border shadow-sm ${typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                                    {t.type}
+                                </span>
                             </div>
-                            <span className={`text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full border ${typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
-                                {t.type}
-                            </span>
-                        </div>
 
-                        <div className="relative z-10 flex-1 mb-4">
-                            <h3 className="text-lg font-extrabold text-[#1A1D20] mb-1 leading-tight line-clamp-2">{t.title}</h3>
-                            {t.description && <p className="text-gray-500 text-sm font-medium line-clamp-2 leading-relaxed">{t.description}</p>}
-                        </div>
+                            <div className="flex-1 mb-8">
+                                <h3 className="text-xl font-black text-[#1A1D20] mb-3 leading-tight tracking-tight group-hover:text-violet-600 transition-colors line-clamp-2">{t.title}</h3>
+                                {t.description && (
+                                    <p className="text-gray-500 text-[13px] font-bold line-clamp-3 leading-relaxed opacity-80 mb-4">{t.description}</p>
+                                )}
+                                <div className="flex flex-wrap gap-2">
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest opacity-60">
+                                        <Clock size={12} /> 15 min
+                                    </div>
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest opacity-60">
+                                        <Sparkles size={12} /> +100 XP
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div className="mt-2 pt-4 border-t border-gray-100 relative z-10 flex gap-3">
-                            <a href={t.video_url} target="_blank" rel="noopener noreferrer"
-                                className="flex-1 py-3 rounded-xl bg-[#F8FAFC] border border-gray-200 text-[#1A1D20] text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
-                                <ExternalLink size={16} /> Assistir
-                            </a>
-                            {!t.watched && (
-                                <button onClick={async () => { await markWatched(t.id); toast.success('Marcado como assistido!') }}
-                                    className="flex-1 py-3 rounded-xl bg-[#1A1D20] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-black transition-all active:scale-95">
-                                    <CheckCircle size={16} /> Assistido
-                                </button>
-                            )}
+                            <div className="pt-6 border-t border-gray-50 flex gap-4">
+                                <a href={t.video_url} target="_blank" rel="noopener noreferrer"
+                                    className="flex-1 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white hover:shadow-xl transition-all active:scale-95">
+                                    <Play size={16} /> Assistir Aula
+                                </a>
+                                {!t.watched && (
+                                    <button onClick={async () => { await markWatched(t.id); toast.success('Conhecimento adquirido! +100 XP') }}
+                                        className="flex-1 py-4 rounded-2xl bg-[#1A1D20] text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black hover:shadow-2xl transition-all active:scale-95 shadow-lg shadow-gray-200">
+                                        <CheckCircle size={16} /> Concluir
+                                    </button>
+                                )}
+                                {t.watched && (
+                                    <div className="flex items-center justify-center px-4 py-4 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex-1 text-[10px] font-black uppercase tracking-widest">
+                                        <CheckCircle size={16} className="mr-2" /> Finalizado
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </motion.div>
                 ))}
 
                 {trainings.length === 0 && !loading && (
-                    <div className="col-span-full py-20 text-center inner-card flex flex-col items-center justify-center border-dashed">
-                        <GraduationCap size={48} className="text-gray-300 mb-4" />
-                        <h3 className="text-xl font-bold text-[#1A1D20] mb-2">Nenhum treinamento disponível</h3>
-                        <p className="text-gray-500 max-w-sm mx-auto">Os treinamentos aparecerão aqui quando forem cadastrados pelo consultor.</p>
+                    <div className="col-span-full py-32 flex flex-col items-center justify-center inner-card border-dashed bg-gray-50/50">
+                        <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mb-6 shadow-inner ring-8 ring-gray-100/50">
+                            <BookOpen size={40} className="text-gray-200" />
+                        </div>
+                        <h3 className="text-xl font-black text-gray-400 tracking-tight">Novos Módulos em Breve</h3>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Seu mentor está preparando novos conteúdos estratégicos</p>
                     </div>
                 )}
             </div>

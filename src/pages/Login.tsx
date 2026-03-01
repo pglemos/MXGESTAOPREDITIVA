@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { motion } from 'motion/react'
-import { Building2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
+import { Building2, ArrowRight, ShieldCheck, Zap, TrendingUp, Globe, Smartphone, Sparkles, User, Lock, Mail } from 'lucide-react'
 
 export default function Login() {
     const { signIn, profile } = useAuth()
@@ -28,96 +28,145 @@ export default function Login() {
         window.location.href = '/'
     }
 
+    const Feature = ({ icon: Icon, text }: { icon: any, text: string }) => (
+        <div className="flex items-center gap-4 text-white/60">
+            <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                <Icon size={18} />
+            </div>
+            <span className="text-[11px] font-black uppercase tracking-widest">{text}</span>
+        </div>
+    )
+
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 selection:bg-blue-100 selection:text-blue-900">
+        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 selection:bg-[#1A1D20] selection:text-white relative overflow-hidden">
+
+            {/* Background Decorations */}
+            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-indigo-50/50 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-emerald-50/30 rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
+
             <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                initial={{ opacity: 0, scale: 0.98, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-[1000px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.05)] rounded-[40px] overflow-hidden flex flex-col lg:flex-row relative z-10"
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-[1240px] bg-white ring-1 ring-gray-100 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] rounded-[3rem] md:rounded-[4rem] overflow-hidden flex flex-col lg:flex-row relative z-10"
             >
                 {/* Left Side: Brand / Marketing */}
-                <div className="hidden lg:flex lg:w-[45%] bg-slate-900 p-12 flex-col justify-between relative">
+                <div className="hidden lg:flex lg:w-[45%] bg-[#1A1D20] p-16 flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent z-0 pointer-events-none" />
+
                     <div className="relative z-10">
-                        <div className="flex items-center gap-3 font-extrabold text-xl text-white mb-12">
-                            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md">
-                                <Building2 size={20} className="text-white" />
+                        <div className="flex items-center gap-4 font-black text-2xl text-white mb-20">
+                            <div className="w-12 h-12 rounded-[1.5rem] bg-white text-[#1A1D20] flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                <Building2 size={24} />
                             </div>
-                            MX Gestão
+                            <span className="tracking-tighter">MX GESTÃO</span>
                         </div>
                     </div>
 
-                    <div className="relative z-10 max-w-sm">
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }}>
-                            <h1 className="text-4xl font-extrabold tracking-tight text-white mb-6 leading-tight">Gestão inteligente e preditiva.</h1>
-                            <p className="text-slate-400 text-base leading-relaxed font-medium">
-                                Acesso restrito ao sistema de acompanhamento corporativo. Monitore resultados e tome decisões baseadas em dados consolidados.
+                    <div className="relative z-10">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3, duration: 0.6 }}
+                            className="max-w-md"
+                        >
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-black uppercase tracking-widest mb-8">
+                                <Sparkles size={12} className="fill-indigo-400" /> Sistema Preditivo v2.0
+                            </div>
+                            <h1 className="text-6xl font-black tracking-tighter text-white mb-8 leading-[0.9]">
+                                Gestão que <br />
+                                <span className="text-indigo-400">antecipa</span> <br />
+                                resultados.
+                            </h1>
+                            <p className="text-gray-400 text-lg leading-relaxed font-bold mb-12 opacity-80">
+                                A sua central de inteligência para monitoramento de metas em tempo real e análise de performance corporativa.
                             </p>
                         </motion.div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            <Feature icon={Globe} text="Dashboard 100% Online" />
+                            <Feature icon={TrendingUp} text="Ranking Elitizado" />
+                            <Feature icon={Zap} text="Dados Preditivos" />
+                            <Feature icon={Smartphone} text="Mobile Optimized" />
+                        </div>
                     </div>
 
-                    <div className="relative z-10 flex flex-col gap-1 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                        <p>© {new Date().getFullYear()} MX Consultoria.</p>
+                    <div className="relative z-10 pt-16 border-t border-white/5 flex items-center justify-between">
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">© {new Date().getFullYear()} MX CONSULTORIA</p>
+                        <ShieldCheck size={20} className="text-gray-700 hover:text-indigo-400 transition-colors cursor-help" />
                     </div>
 
-                    {/* Decorative abstract elements */}
-                    <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/20 rounded-full blur-[80px]" />
-                    <div className="absolute top-10 -right-10 w-48 h-48 bg-purple-500/20 rounded-full blur-[60px]" />
+                    {/* Abstract elements */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
                 </div>
 
                 {/* Right Side: Login Form */}
-                <div className="w-full lg:w-[55%] flex items-center justify-center p-8 sm:p-16 relative bg-white">
-                    <div className="w-full max-w-sm">
-                        <div className="lg:hidden flex items-center justify-center gap-3 font-extrabold text-2xl mb-10 text-slate-800">
-                            <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-black/10">
-                                <Building2 size={20} className="text-white" />
+                <div className="w-full lg:w-[55%] flex items-center justify-center p-10 sm:p-24 relative bg-white">
+                    <div className="w-full max-w-md">
+                        <div className="lg:hidden flex items-center justify-center gap-4 font-black text-3xl mb-16 text-[#1A1D20]">
+                            <div className="w-12 h-12 rounded-2xl bg-[#1A1D20] text-white flex items-center justify-center shadow-2xl">
+                                <Building2 size={24} />
                             </div>
-                            MX Gestão
+                            <span className="tracking-tighter uppercase">MX Gestão</span>
                         </div>
 
-                        <div className="mb-10 text-center lg:text-left">
-                            <h2 className="text-[28px] font-extrabold tracking-tight text-slate-900 mb-2">Bem-vindo</h2>
-                            <p className="text-slate-500 text-sm font-medium">Faça login com sua credencial corporativa.</p>
+                        <div className="mb-12 text-center lg:text-left">
+                            <h2 className="text-4xl font-black tracking-tighter text-[#1A1D20] mb-4">Acesse sua Conta</h2>
+                            <p className="text-gray-400 text-base font-bold leading-relaxed opacity-60">Utilize suas credenciais corporativas para entrar na plataforma de gestão.</p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">E-mail</label>
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            <div className="space-y-6">
+                                <div className="space-y-3 group">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 group-focus-within:text-indigo-600 transition-colors">
+                                        <Mail size={12} /> E-mail Institucional
+                                    </label>
                                     <input
                                         type="email" value={email} onChange={e => setEmail(e.target.value)}
-                                        placeholder="nome@empresa.com.br" required autoFocus
-                                        className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl text-base font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-slate-400 focus:bg-white transition-all shadow-sm"
+                                        placeholder="seu@email.com.br" required autoFocus
+                                        className="w-full px-8 py-5 bg-[#F8FAFC] border border-gray-100 rounded-[2rem] text-base font-black text-[#1A1D20] placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Senha</label>
+                                <div className="space-y-3 group">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 group-focus-within:text-indigo-600 transition-colors">
+                                        <Lock size={12} /> Código de Acesso
+                                    </label>
                                     <input
                                         type="password" value={password} onChange={e => setPassword(e.target.value)}
                                         placeholder="••••••••" required
-                                        className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl text-base font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-slate-400 focus:bg-white transition-all shadow-sm"
+                                        className="w-full px-8 py-5 bg-[#F8FAFC] border border-gray-100 rounded-[2rem] text-base font-black text-[#1A1D20] placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
                                     />
                                 </div>
                             </div>
 
-                            {error && (
-                                <div className="px-5 py-4 bg-red-50/80 border border-red-100 text-red-600 text-sm rounded-2xl font-semibold flex items-center justify-center text-center">
-                                    {error}
-                                </div>
-                            )}
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="px-8 py-5 bg-red-50/50 border border-red-100 text-red-600 text-sm rounded-[2rem] font-black text-center shadow-lg shadow-red-500/5"
+                                    >
+                                        ⚠️ {error}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                            <div className="pt-2">
+                            <div className="pt-6">
                                 <button
                                     type="submit" disabled={loading}
-                                    className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-4 rounded-full text-base font-bold transition-all disabled:opacity-70 shadow-lg shadow-slate-900/20 active:scale-[0.98]"
+                                    className="w-full h-20 flex items-center justify-center gap-4 bg-[#1A1D20] hover:bg-black text-white rounded-[2.5rem] text-lg font-black uppercase tracking-widest transition-all hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] hover:-translate-y-2 active:scale-[0.98] disabled:opacity-50 group overflow-hidden relative"
                                 >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     {loading ? (
-                                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
                                     ) : (
-                                        "Acessar Plataforma"
+                                        <>Entrar na Plataforma <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" /></>
                                     )}
                                 </button>
+
+                                <p className="mt-10 text-center text-gray-400 text-[9px] font-black uppercase tracking-[0.4em] opacity-40">Acesso Restrito • MX CONSULTORIA LTDA</p>
                             </div>
                         </form>
                     </div>

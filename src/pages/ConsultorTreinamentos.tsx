@@ -1,7 +1,7 @@
 import { useTrainings } from '@/hooks/useData'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { GraduationCap, Plus, X, Save, ExternalLink, CheckCircle, Play } from 'lucide-react'
+import { GraduationCap, Plus, X, Save, ExternalLink, CheckCircle, Play, Filter, Sparkles, BookOpen, Clock, Target, Users, LayoutDashboard, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 
 const types = ['prospeccao', 'fechamento', 'atendimento', 'gestao', 'pre-vendas']
@@ -39,21 +39,34 @@ export default function ConsultorTreinamentos() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
 
-            {/* Top Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 w-full shrink-0">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-[28px] font-extrabold tracking-tight text-[#1A1D20]">Treinamentos</h1>
-                    <span className="bg-white border border-gray-100 text-xs font-bold px-3 py-1 rounded-full text-gray-500">{trainings.length} cadastrados</span>
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]" />
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none">
+                            Central de Treinamentos
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-3 pl-6 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60 text-shadow-sm">Educação e Desenvolvimento de Alta Performance</p>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
+                    <button className="flex items-center justify-center gap-2 px-6 py-5 rounded-[2rem] bg-white border border-gray-100 font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 hover:text-blue-600 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all shadow-sm active:scale-95 group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Filter size={16} /> Filtrar
+                    </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#1A1D20] text-white font-bold hover:bg-black transition-all shadow-md active:scale-95 text-sm"
+                        className="flex items-center justify-center gap-3 px-8 py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
                     >
-                        <Plus size={18} /> Novo Treinamento
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Conteúdo
                     </button>
                 </div>
             </div>
@@ -62,76 +75,83 @@ export default function ConsultorTreinamentos() {
             <AnimatePresence>
                 {showForm && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0, y: -20 }}
-                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, height: 'auto', scale: 1 }}
                         exit={{ opacity: 0, height: 0, scale: 0.95 }}
                         className="overflow-hidden shrink-0"
                     >
-                        <form onSubmit={handleSubmit} className="inner-card p-8 space-y-6 relative overflow-hidden">
-                            <div className="absolute -right-10 -top-10 w-40 h-40 bg-violet-50 rounded-full blur-3xl z-0" />
+                        <form onSubmit={handleSubmit} className="inner-card p-10 space-y-10 bg-white border-gray-100 shadow-2xl shadow-blue-100/30 relative overflow-hidden">
+                            <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-50/50 rounded-full blur-[100px] z-0 pointer-events-none" />
 
-                            <div className="flex items-center justify-between relative z-10 mb-6">
-                                <div>
-                                    <h3 className="text-xl font-extrabold text-[#1A1D20]">Novo Treinamento</h3>
-                                    <p className="text-gray-500 text-sm font-medium mt-1">Preencha as informações do treinamento.</p>
+                            <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#1A1D20] text-white flex items-center justify-center shadow-lg">
+                                        <GraduationCap size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-black tracking-tight">Expandir Base de Conhecimento</h3>
+                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1 opacity-60">Upload de Novos Módulos de Aprendizado</p>
+                                    </div>
                                 </div>
-                                <button type="button" onClick={() => setShowForm(false)} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">
+                                <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90">
                                     <X size={20} />
                                 </button>
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-6 relative z-10">
-                                <div>
-                                    <label className="block text-sm font-bold text-[#1A1D20] mb-2 ml-1">Título</label>
-                                    <input
-                                        value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                                        placeholder="Ex: Técnicas de fechamento" required autoFocus
-                                        className="w-full px-5 py-4 bg-[#F8FAFC] border border-gray-200 rounded-2xl text-base font-medium text-[#1A1D20] placeholder:text-gray-400 focus:outline-none focus:border-gray-400 focus:bg-white transition-all"
-                                    />
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 relative z-10">
+                                <div className="space-y-8">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">Título da Aula</label>
+                                        <input
+                                            value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+                                            placeholder="Ex: Masterizando o Script de Fechamento" required autoFocus
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-black text-sm focus:outline-none focus:border-blue-500/30 transition-all shadow-inner"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">Ementa / Descrição</label>
+                                        <textarea
+                                            value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+                                            placeholder="Descreva detalhadamente os objetivos desta aula..." rows={4}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-bold text-sm placeholder:text-gray-300 focus:outline-none focus:border-blue-500/30 focus:bg-white transition-all shadow-inner resize-none"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-[#1A1D20] mb-2 ml-1">URL do vídeo</label>
-                                    <input
-                                        value={form.video_url} onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))}
-                                        placeholder="https://youtube.com/..." required
-                                        className="w-full px-5 py-4 bg-[#F8FAFC] border border-gray-200 rounded-2xl text-base font-medium text-[#1A1D20] placeholder:text-gray-400 focus:outline-none focus:border-gray-400 focus:bg-white transition-all"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="relative z-10">
-                                <label className="block text-sm font-bold text-[#1A1D20] mb-2 ml-1">Descrição</label>
-                                <textarea
-                                    value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                                    placeholder="Descreva o conteúdo do treinamento" rows={3}
-                                    className="w-full px-5 py-4 bg-[#F8FAFC] border border-gray-200 rounded-2xl text-base font-medium text-[#1A1D20] placeholder:text-gray-400 focus:outline-none focus:border-gray-400 focus:bg-white transition-all resize-none"
-                                />
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-6 relative z-10">
-                                <div>
-                                    <label className="block text-sm font-bold text-[#1A1D20] mb-2 ml-1">Tipo</label>
-                                    <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-                                        className="w-full px-5 py-4 bg-[#F8FAFC] border border-gray-200 rounded-2xl text-base font-medium text-[#1A1D20] focus:outline-none focus:border-gray-400 focus:bg-white transition-all capitalize">
-                                        {types.map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
+                                <div className="space-y-8">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">URL do Material (Vídeo)</label>
+                                        <input
+                                            value={form.video_url} onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))}
+                                            placeholder="https://youtube.com/v/..." required
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-medium text-sm focus:outline-none focus:border-blue-500/30 transition-all shadow-inner"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">Pilar de Vendas</label>
+                                            <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-black text-sm focus:outline-none focus:border-blue-500/30 transition-all appearance-none cursor-pointer shadow-inner">
+                                                {types.map(t => <option key={t} value={t}>{t}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">Público Alvo</label>
+                                            <select value={form.target_audience} onChange={e => setForm(p => ({ ...p, target_audience: e.target.value }))}
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-black text-sm focus:outline-none focus:border-blue-500/30 transition-all appearance-none cursor-pointer shadow-inner">
+                                                {audiences.map(a => <option key={a} value={a}>{a}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 text-right">
+                                        <button
+                                            type="submit" disabled={saving}
+                                            className="w-full py-6 rounded-[2.5rem] bg-[#1A1D20] text-white font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-black hover:shadow-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                                        >
+                                            {saving ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={18} /> Publicar Treinamento</>}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-[#1A1D20] mb-2 ml-1">Público-alvo</label>
-                                    <select value={form.target_audience} onChange={e => setForm(p => ({ ...p, target_audience: e.target.value }))}
-                                        className="w-full px-5 py-4 bg-[#F8FAFC] border border-gray-200 rounded-2xl text-base font-medium text-[#1A1D20] focus:outline-none focus:border-gray-400 focus:bg-white transition-all capitalize">
-                                        {audiences.map(a => <option key={a} value={a}>{a}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="pt-4 relative z-10 flex justify-end">
-                                <button
-                                    type="submit" disabled={saving}
-                                    className="w-full md:w-auto px-8 py-4 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-all disabled:opacity-50 active:scale-95"
-                                >
-                                    {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={18} /> Criar Treinamento</>}
-                                </button>
                             </div>
                         </form>
                     </motion.div>
@@ -139,48 +159,72 @@ export default function ConsultorTreinamentos() {
             </AnimatePresence>
 
             {/* Grid */}
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 shrink-0 pb-10">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-8 shrink-0 pb-10">
                 {trainings.map((t, i) => (
                     <motion.div
                         key={t.id}
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.05 }}
-                        className="bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-[2rem] p-6 flex flex-col justify-between group h-full relative overflow-hidden"
+                        className="inner-card p-8 flex flex-col justify-between hover:shadow-2xl hover:border-blue-100 transition-all border border-gray-100 bg-white relative overflow-hidden group h-full"
                     >
-                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-gray-50 rounded-full blur-2xl group-hover:bg-violet-50/50 transition-colors" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full blur-[80px] -mr-16 -mt-16 opacity-40 group-hover:bg-blue-50 transition-colors pointer-events-none" />
 
-                        <div className="flex items-start justify-between mb-4 relative z-10">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${t.watched ? 'bg-emerald-50 border-emerald-100' : 'bg-[#F8FAFC] border-gray-100 group-hover:bg-white group-hover:shadow-sm'}`}>
-                                {t.watched ? <CheckCircle size={20} className="text-emerald-500" /> : <Play size={20} className="text-gray-400 ml-0.5" />}
+                        <div className="relative z-10 flex flex-col h-full">
+                            <div className="flex items-start justify-between mb-8">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all shadow-sm ${t.watched ? 'bg-emerald-50 border-emerald-100' : 'bg-[#F8FAFC] border-gray-100 group-hover:scale-110 group-hover:bg-white group-hover:rotate-3'}`}>
+                                    {t.watched ? <CheckCircle size={24} className="text-emerald-500" /> : <Play size={24} className="text-[#1A1D20] ml-1" />}
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
+                                    <span className={`text-[9px] uppercase font-black tracking-widest px-4 py-2 rounded-full border shadow-sm ${typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                                        {t.type}
+                                    </span>
+                                    {t.watched && <span className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">✔ Concluído</span>}
+                                </div>
                             </div>
-                            <span className={`text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full border ${typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
-                                {t.type}
-                            </span>
-                        </div>
 
-                        <div className="relative z-10 flex-1 mb-2">
-                            <h3 className="text-lg font-extrabold text-[#1A1D20] mb-1 leading-tight line-clamp-2">{t.title}</h3>
-                            {t.description && <p className="text-gray-500 text-sm font-medium line-clamp-2 leading-relaxed">{t.description}</p>}
-                            <div className="flex gap-2 mt-3">
-                                <span className="text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full bg-gray-50 text-gray-500 border border-gray-100">{t.target_audience}</span>
+                            <div className="flex-1 mb-6">
+                                <h3 className="text-xl font-black text-[#1A1D20] mb-3 leading-tight tracking-tight group-hover:text-blue-600 transition-colors line-clamp-2">{t.title}</h3>
+                                {t.description && (
+                                    <p className="text-gray-500 text-[13px] font-bold line-clamp-3 leading-relaxed opacity-80 mb-4">{t.description}</p>
+                                )}
+                                <div className="flex flex-wrap gap-2">
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest opacity-60">
+                                        <Users size={12} /> {t.target_audience}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest opacity-60">
+                                        <Clock size={12} /> 12 min
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="mt-4 pt-4 border-t border-gray-100 relative z-10 flex justify-end">
-                            <a href={t.video_url} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-                                <ExternalLink size={14} />
-                            </a>
+                            <div className="pt-6 border-t border-gray-50 flex items-center justify-between">
+                                <div className="flex -space-x-2">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-black">
+                                            {String.fromCharCode(64 + i)}
+                                        </div>
+                                    ))}
+                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-50 flex items-center justify-center text-[8px] font-black text-gray-400">
+                                        +12
+                                    </div>
+                                </div>
+                                <a href={t.video_url} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center justify-center w-12 h-12 rounded-2xl bg-[#1A1D20] text-white hover:bg-black hover:shadow-xl transition-all active:scale-95 group-hover:translate-x-1">
+                                    <ExternalLink size={20} />
+                                </a>
+                            </div>
                         </div>
                     </motion.div>
                 ))}
 
                 {trainings.length === 0 && !loading && (
-                    <div className="col-span-full py-20 text-center inner-card flex flex-col items-center justify-center border-dashed">
-                        <GraduationCap size={48} className="text-gray-300 mb-4" />
-                        <h3 className="text-xl font-bold text-[#1A1D20] mb-2">Nenhum treinamento cadastrado</h3>
-                        <p className="text-gray-500 max-w-sm mx-auto">Crie seu primeiro treinamento utilizando o botão no topo da página.</p>
+                    <div className="col-span-full py-32 flex flex-col items-center justify-center inner-card border-dashed bg-gray-50/50">
+                        <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mb-6 shadow-inner ring-8 ring-gray-100/50">
+                            <GraduationCap size={40} className="text-gray-200" />
+                        </div>
+                        <h3 className="text-xl font-black text-gray-400 tracking-tight">Academia Vazia</h3>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Comece a construir seu legado de conhecimento hoje</p>
                     </div>
                 )}
             </div>

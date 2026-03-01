@@ -1,20 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    background-color: #E8ECEF;
+    background-color: #F8FAFC;
     color: #1A1D20;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
   }
 }
 
 /* Minimalist clean scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -22,38 +22,101 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 12px;
+  background: #E2E8F0;
+  border-radius: 20px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #CBD5E1;
 }
 
 /* Base Soft UI Classes */
-@layer components {
+.soft-card {
+  background-color: white;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid white;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  border-radius: 1.5rem;
+}
+
+@media (min-width: 768px) {
   .soft-card {
-    @apply bg-[#F4F7F9] backdrop-blur-xl border border-white/80 shadow-[0_8px_30px_#00000005] rounded-3xl md:rounded-[2.5rem];
+    background-color: rgba(248, 250, 252, 0.5);
+    border-radius: 3rem;
   }
+}
 
+.inner-card {
+  background-color: white;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.04);
+  border-radius: 2rem;
+  border: 1px solid rgba(243, 244, 246, 0.5);
+}
+
+@media (min-width: 768px) {
   .inner-card {
-    @apply bg-white shadow-[0_4px_24px_#00000008] rounded-[1.5rem] md:rounded-[2rem] border border-gray-100;
+    border-radius: 2.5rem;
   }
+}
 
-  .soft-pill {
-    @apply bg-white shadow-[0_4px_15px_#0000000a] border border-gray-100/50 rounded-full;
-  }
+.soft-pill {
+  background-color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(243, 244, 246, 0.3);
+  border-radius: 9999px;
+}
 
-  .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_8px_40px_#00000005] rounded-[2.5rem];
-  }
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.03);
+  border-radius: 3rem;
+}
+
+.premium-input {
+  width: 100%;
+  background-color: #F8FAFC;
+  border: 1px solid #F3F4F6;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  color: #1A1D20;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.premium-input::placeholder {
+  color: #D1D5DB;
+}
+
+.premium-input:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  background-color: white;
+  border-color: #818CF8;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 2px rgba(99, 102, 241, 0.05);
+}
+
+/* Scale on Click */
+.active-shrink {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.active-shrink:active {
+  transform: scale(.95);
 }
 
 /* Animations */
 @keyframes slide-up {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(20px);
   }
 
   to {
@@ -63,7 +126,7 @@
 }
 
 .animate-slide-up {
-  animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fade-in {
@@ -77,25 +140,25 @@
 }
 
 .animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
+  animation: fade-in 0.6s ease-out forwards;
 }
 
-@keyframes soft-pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
+@keyframes float {
+  0% {
+    transform: translateY(0px);
   }
 
   50% {
-    opacity: 0.8;
-    transform: scale(0.98);
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
   }
 }
 
-.animate-soft-pulse {
-  animation: soft-pulse 4s ease-in-out infinite;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
 /* Utilities */

@@ -1,9 +1,7 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRanking } from '@/hooks/useRanking'
-import { motion } from 'motion/react'
-import { Trophy, TrendingUp, Target, Medal } from 'lucide-react'
-
-const medals = ['🥇', '🥈', '🥉']
+import { motion, AnimatePresence } from 'motion/react'
+import { Trophy, TrendingUp, Target, Medal, Star, Crown, ChevronRight, User, Award, Sparkles, Zap, Flame } from 'lucide-react'
 
 export default function Ranking() {
     const { profile } = useAuth()
@@ -12,97 +10,162 @@ export default function Ranking() {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] soft-card h-full">
             <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-            <p className="mt-4 text-slate-500 text-sm font-bold tracking-widest uppercase">Atualizando Ranking...</p>
+            <p className="mt-4 text-slate-500 text-sm font-black tracking-widest uppercase">Processando Metadados de Performance...</p>
         </div>
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
 
-            {/* Top Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 w-full shrink-0">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-[28px] font-extrabold tracking-tight text-[#1A1D20]">Ranking Oficial</h1>
-                    <span className="bg-amber-100 border border-amber-200 text-xs font-bold px-3 py-1 rounded-full text-amber-700">{ranking.length} na disputa</span>
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none">Hall da Fama</h1>
+                    </div>
+                    <div className="flex items-center gap-3 pl-6 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60 text-shadow-sm">Elite & Performance Intelligence</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-3 bg-white border border-gray-100 px-6 py-5 rounded-[2rem] shadow-sm">
+                        <Trophy size={18} className="text-amber-500" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">{ranking.length} Competitores Ativos</span>
+                    </div>
                 </div>
             </div>
 
             {ranking.length === 0 ? (
-                <div className="inner-card p-20 text-center flex flex-col items-center justify-center border-dashed">
-                    <Medal size={48} className="text-gray-300 mb-4" />
-                    <h3 className="text-xl font-bold text-[#1A1D20] mb-2">Nenhum dado de ranking</h3>
-                    <p className="text-gray-500 max-w-sm mx-auto">As vendas e check-ins deste ciclo ainda não foram processados pelo sistema.</p>
+                <div className="inner-card p-24 text-center flex flex-col items-center justify-center border-2 border-dashed border-gray-100 bg-gray-50/20 rounded-[4.5rem]">
+                    <div className="w-32 h-32 rounded-[2.5rem] bg-white flex items-center justify-center mb-8 shadow-2xl border border-gray-50 ring-8 ring-gray-100/30">
+                        <Medal size={50} className="text-gray-200" />
+                    </div>
+                    <h3 className="text-3xl font-black text-[#1A1D20] mb-3 tracking-tighter">Temporada em Análise</h3>
+                    <p className="text-gray-400 max-w-sm mx-auto font-black text-[10px] uppercase tracking-[0.2em] leading-loose opacity-60">O ranking será atualizado assim que os primeiros dados forem processados.</p>
                 </div>
             ) : (
-                <div className="space-y-4 shrink-0 pb-10">
-                    <div className="flex flex-col gap-4">
+                <div className="grid gap-8 shrink-0 pb-16">
+                    <AnimatePresence>
                         {ranking.map((r, i) => {
                             const isMe = r.user_id === profile?.id
                             const isTop3 = i < 3
 
-                            let cardStyle = 'bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-[2rem] p-6 hover:shadow-md transition-all'
-                            let rankBg = 'bg-[#F8FAFC] text-gray-500 border border-gray-100'
-
-                            if (isMe) {
-                                cardStyle = 'bg-blue-50/50 border-2 border-blue-200/60 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(59,130,246,0.1)] relative overflow-hidden transition-all hover:shadow-[0_15px_50px_rgba(59,130,246,0.15)] group'
-                            }
-
-                            if (i === 0) rankBg = 'bg-gradient-to-br from-amber-200 to-amber-500 text-white shadow-lg shadow-amber-500/30'
-                            else if (i === 1) rankBg = 'bg-gradient-to-br from-gray-200 to-gray-400 text-white shadow-lg shadow-gray-400/30'
-                            else if (i === 2) rankBg = 'bg-gradient-to-br from-orange-200 to-orange-400 text-white shadow-lg shadow-orange-500/20'
-
                             return (
                                 <motion.div
                                     key={r.user_id}
-                                    initial={{ opacity: 0, x: -10 }}
+                                    initial={{ opacity: 0, x: -30 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: i * 0.05 }}
-                                    className={cardStyle}
+                                    className={`inner-card p-8 sm:p-10 flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-12 transition-all relative group overflow-hidden border ${isMe ? 'border-indigo-500 bg-indigo-50/20 shadow-2xl shadow-indigo-500/10 z-20 ring-4 ring-indigo-500/5' :
+                                        isTop3 ? 'border-gray-100 bg-white hover:shadow-2xl hover:-translate-y-2' :
+                                            'border-gray-50 bg-white/50 hover:bg-white hover:shadow-xl'
+                                        }`}
                                 >
-                                    {isMe && <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-400/10 rounded-full blur-3xl z-0 pointer-events-none group-hover:bg-blue-400/20 transition-all" />}
+                                    {isTop3 && (
+                                        <div className={`absolute right-0 top-0 w-64 h-64 ${i === 0 ? 'bg-amber-100/30' : i === 1 ? 'bg-gray-100/30' : 'bg-orange-100/30'} rounded-full blur-[100px] pointer-events-none -mr-32 -mt-32`} />
+                                    )}
 
-                                    <div className={`flex items-center gap-6 relative z-10`}>
-                                        {/* Rank Badge */}
-                                        <div className="flex-shrink-0">
-                                            <div className={`w-14 h-14 flex items-center justify-center rounded-full font-extrabold text-xl ${rankBg}`}>
-                                                {isTop3 ? medals[i] : `${r.position}º`}
-                                            </div>
-                                        </div>
-
-                                        {/* User Info */}
-                                        <div className="flex-1 min-w-0 pr-4">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <p className="text-[#1A1D20] font-extrabold text-lg truncate tracking-tight">{r.user_name}</p>
-                                                {isMe && <span className="text-[10px] uppercase tracking-widest bg-blue-600 text-white px-2.5 py-1 rounded-full font-bold shadow-sm shadow-blue-500/30">Você</span>}
-                                            </div>
-                                            <div className="flex items-center gap-4 text-xs font-bold text-gray-500 uppercase tracking-widest mt-2 overflow-x-auto pb-1 no-scrollbar">
-                                                <span className="flex items-center gap-1.5 whitespace-nowrap bg-[#F8FAFC] border border-gray-100 px-3 py-1.5 rounded-full"><Target size={12} className="text-indigo-500" /> {r.leads} leads</span>
-                                                <span className="flex items-center gap-1.5 whitespace-nowrap bg-[#F8FAFC] border border-gray-100 px-3 py-1.5 rounded-full"><TrendingUp size={12} className="text-emerald-500" />  {r.agd_total} agd</span>
-                                                <span className="flex items-center gap-1.5 whitespace-nowrap bg-[#F8FAFC] border border-gray-100 px-3 py-1.5 rounded-full truncate"> {r.visitas} visitas</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Stats Right */}
-                                        <div className="flex items-center gap-4 sm:gap-8 shrink-0 pl-6 border-l border-gray-100">
-                                            <div className="text-right">
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Vendas Totais</p>
-                                                <p className="text-3xl font-black text-[#1A1D20] tracking-tighter leading-none">{r.vnd_total}</p>
-                                            </div>
-
-                                            {r.meta > 0 && (
-                                                <div className="text-right pl-4 sm:pl-8 border-l border-gray-100 hidden sm:block">
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Meta</p>
-                                                    <p className={`text-xl font-extrabold tracking-tight ${r.atingimento >= 100 ? 'text-emerald-500' : r.atingimento >= 60 ? 'text-amber-500' : 'text-red-500'}`}>
-                                                        {r.atingimento}%
-                                                    </p>
+                                    <div className="flex items-center gap-8 lg:gap-12 flex-1">
+                                        {/* Position Component */}
+                                        <div className="flex-shrink-0 flex flex-col items-center justify-center min-w-[100px] relative">
+                                            {i === 0 ? (
+                                                <div className="relative">
+                                                    <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/40 border-4 border-white group-hover:scale-110 transition-transform group-hover:rotate-3">
+                                                        <span className="text-4xl font-black text-white italic tracking-tighter">1º</span>
+                                                    </div>
+                                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-amber-500 drop-shadow-lg animate-bounce">
+                                                        <Crown size={32} className="fill-amber-500" />
+                                                    </div>
+                                                </div>
+                                            ) : i === 1 ? (
+                                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-tr from-gray-300 to-gray-500 flex items-center justify-center shadow-xl shadow-gray-400/30 border-4 border-white group-hover:scale-105 transition-transform">
+                                                    <span className="text-3xl font-black text-white italic tracking-tighter">2º</span>
+                                                </div>
+                                            ) : i === 2 ? (
+                                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-tr from-[#CD7F32] to-[#A0522D] flex items-center justify-center shadow-xl shadow-orange-500/20 border-4 border-white group-hover:scale-105 transition-transform">
+                                                    <span className="text-3xl font-black text-white italic tracking-tighter">3º</span>
+                                                </div>
+                                            ) : (
+                                                <div className={`w-16 h-16 rounded-[1.8rem] flex items-center justify-center font-black text-2xl border ${isMe ? 'bg-[#1A1D20] text-white border-transparent' : 'bg-gray-50 text-gray-300 border-gray-100 opacity-60'}`}>
+                                                    {r.position}
                                                 </div>
                                             )}
                                         </div>
+
+                                        {/* Detail Component */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                                                <h3 className={`text-3xl font-black tracking-tighter truncate leading-none ${isMe ? 'text-indigo-900' : 'text-[#1A1D20]'}`}>
+                                                    {r.user_name}
+                                                </h3>
+                                                {isMe && (
+                                                    <div className="flex items-center gap-2 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg shadow-indigo-600/30 self-start sm:self-auto">
+                                                        <Star size={12} className="fill-white" /> Seu Perfil
+                                                    </div>
+                                                )}
+                                                {i === 0 && (
+                                                    <div className="flex items-center gap-2 bg-amber-500 text-white text-[9px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg shadow-amber-500/20 self-start sm:self-auto">
+                                                        <Flame size={12} className="fill-white" /> On Fire
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                <div className="flex items-center gap-2 bg-gray-50/80 border border-gray-100 px-4 py-2 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest shadow-inner">
+                                                    <Zap size={14} className="text-indigo-500" /> {r.leads} Leads
+                                                </div>
+                                                <div className="flex items-center gap-2 bg-gray-50/80 border border-gray-100 px-4 py-2 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest shadow-inner">
+                                                    <TrendingUp size={14} className="text-emerald-500" /> {r.agd_total} Agd
+                                                </div>
+                                                <div className="flex items-center gap-2 bg-gray-50/80 border border-gray-100 px-4 py-2 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest shadow-inner">
+                                                    <Target size={14} className="text-amber-500" /> {r.visitas} Visitas
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Score Component */}
+                                    <div className="flex items-center justify-between lg:justify-end gap-12 pt-8 lg:pt-0 border-t lg:border-t-0 lg:border-l border-gray-50 lg:pl-12">
+                                        <div className="flex flex-col items-start lg:items-end">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-3 leading-none opacity-60">Resultados</p>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-left lg:text-right">
+                                                    <p className={`text-6xl font-black tracking-tighter leading-none ${isTop3 ? 'text-[#1A1D20]' : 'text-gray-400'}`}>
+                                                        {r.vnd_total}
+                                                    </p>
+                                                    <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1 opacity-60">Vendas Mes</p>
+                                                </div>
+                                                <ChevronRight size={32} className="text-gray-100 group-hover:text-indigo-100 transition-colors hidden xl:block" />
+                                            </div>
+                                        </div>
+
+                                        {r.meta > 0 && (
+                                            <div className="text-right flex flex-col items-end min-w-[120px]">
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4 leading-none opacity-60">Eficiência</p>
+                                                <div className="flex flex-col items-end gap-3">
+                                                    <div className="flex items-baseline gap-1">
+                                                        <span className={`text-3xl font-black tracking-tighter ${r.atingimento >= 100 ? 'text-emerald-500' : r.atingimento >= 60 ? 'text-amber-500' : 'text-red-500'}`}>
+                                                            {r.atingimento}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-24 h-2 bg-gray-50 rounded-full overflow-hidden border border-gray-100 shadow-inner">
+                                                        <motion.div
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${Math.min(r.atingimento, 100)}%` }}
+                                                            transition={{ duration: 1.5, ease: "circOut" }}
+                                                            className={`h-full rounded-full ${r.atingimento >= 100 ? 'bg-emerald-500' : r.atingimento >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             )
                         })}
-                    </div>
+                    </AnimatePresence>
                 </div>
             )}
         </div>
