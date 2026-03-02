@@ -27,6 +27,7 @@ const GoalManagement = lazy(() => import('@/pages/GoalManagement'))
 const Funil = lazy(() => import('@/pages/Funil'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
+const GerenteTreinamentos = lazy(() => import('@/pages/GerenteTreinamentos'))
 
 // Consultor
 const PainelConsultor = lazy(() => import('@/pages/PainelConsultor'))
@@ -77,7 +78,7 @@ export default function App() {
             <Route path="historico" element={<Suspense fallback={<Spinner />}><Historico /></Suspense>} />
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<VendedorTreinamentos />} consultor={<ConsultorTreinamentos />} />
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} consultor={<ConsultorTreinamentos />} />
             </Suspense>} />
             <Route path="feedback" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} consultor={<GerenteFeedback />} />

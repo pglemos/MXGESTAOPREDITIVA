@@ -158,3 +158,47 @@ export function useNotifications() {
     useEffect(() => { fetchNotifications() }, [fetchNotifications])
     return { notifications, unreadCount, loading, markRead, sendNotification, refetch: fetchNotifications }
 }
+
+// ============ TEAM TRAININGS (GERENTE) ============
+export function useTeamTrainings() {
+    const { storeId } = useAuth()
+    const [teamProgress, setTeamProgress] = useState<{ seller_id: string, seller_name: string, watched: string[], total_trainings: number, percentage: number }[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchProgress = useCallback(async () => {
+        if (!storeId) return
+        setLoading(true)
+
+        const { data: members } = await supabase.from('memberships').select('user_id, users(name)').eq('store_id', storeId).eq('role', 'vendedor')
+        const { data: trainings } = await supabase.from('trainings').select('id').eq('active', true).in('target_audience', ['todos', 'vendedor'])
+
+        const totalTrainings = trainings?.length || 0
+
+        if (members && members.length > 0) {
+            const userIds = members.map(m => m.user_id)
+            const { data: progress } = await supabase.from('training_progress').select('user_id, training_id').in('user_id', userIds)
+
+            const stats = members.map((m: any) => {
+                const p = (progress || []).filter(pr => pr.user_id === m.user_id)
+                const watchedCount = p.length
+                const percentage = totalTrainings > 0 ? (watchedCount / totalTrainings) * 100 : 0
+                return {
+                    seller_id: m.user_id,
+                    seller_name: m.users?.name || 'Vendedor',
+                    watched: p.map(pr => pr.training_id),
+                    total_trainings: totalTrainings,
+                    percentage
+                }
+            }).sort((a, b) => b.percentage - a.percentage)
+
+            setTeamProgress(stats)
+        } else {
+            setTeamProgress([])
+        }
+
+        setLoading(false)
+    }, [storeId])
+
+    useEffect(() => { fetchProgress() }, [fetchProgress])
+    return { teamProgress, loading, refetch: fetchProgress }
+}
