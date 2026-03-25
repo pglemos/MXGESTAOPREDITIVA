@@ -15,7 +15,12 @@ export function useGoals(storeIdOverride?: string) {
     const currentYear = now.getFullYear()
 
     const fetchGoals = useCallback(async () => {
-        if (!storeId) return
+        if (!storeId) {
+            setStoreGoal(null)
+            setSellerGoals([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
         const { data } = await supabase
             .from('goals')

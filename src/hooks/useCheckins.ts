@@ -14,7 +14,11 @@ export function useCheckins(storeIdOverride?: string) {
     const today = new Date().toISOString().split('T')[0]
 
     const fetchCheckins = useCallback(async (filters?: { startDate?: string; endDate?: string; userId?: string }) => {
-        if (!storeId) return
+        if (!storeId) {
+            setCheckins([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
 
         let query = supabase.from('daily_checkins').select('*').eq('store_id', storeId).order('date', { ascending: false })
@@ -32,7 +36,10 @@ export function useCheckins(storeIdOverride?: string) {
     }, [storeId])
 
     const fetchTodayCheckin = useCallback(async () => {
-        if (!profile || !storeId) return
+        if (!profile || !storeId) {
+            setTodayCheckin(null)
+            return
+        }
         const { data } = await supabase
             .from('daily_checkins')
             .select('*')
@@ -83,7 +90,11 @@ export function useMyCheckins() {
     const [loading, setLoading] = useState(true)
 
     const fetch = useCallback(async (filters?: { startDate?: string; endDate?: string }) => {
-        if (!profile || !storeId) return
+        if (!profile || !storeId) {
+            setCheckins([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
         let query = supabase.from('daily_checkins').select('*')
             .eq('user_id', profile.id).eq('store_id', storeId).order('date', { ascending: false })

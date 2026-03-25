@@ -19,10 +19,18 @@ const AuthContext = createContext<AuthState>({
     signIn: async () => ({ error: null }), signOut: async () => { },
 })
 
+function normalizeRole(rawRole: string | null | undefined): UserRole {
+    const role = (rawRole || '').toLowerCase()
+    if (role === 'consultor' || role === 'admin' || role === 'owner') return 'consultor'
+    if (role === 'gerente' || role === 'manager') return 'gerente'
+    return 'vendedor'
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
     const [profile, setProfile] = useState<AppUser | null>(null)
     const [membership, setMembership] = useState<(Membership & { store: Store }) | null>(null)
+    const [fallbackStoreId, setFallbackStoreId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
 
     const fetchProfile = useCallback(async (userId: string) => {
@@ -41,7 +49,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .maybeSingle()
         if (error) console.error('fetchMembership error:', error.message)
         if (data) setMembership(data as Membership & { store: Store })
+        else setMembership(null)
         return data
+    }, [])
+
+    const fetchFallbackStoreId = useCallback(async () => {
+        const { data, error } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('active', true)
+            .order('name')
+            .limit(1)
+            .maybeSingle()
+        if (error) {
+            console.error('fetchFallbackStoreId error:', error.message)
+            setFallbackStoreId(null)
+            return null
+        }
+        const storeId = data?.id || null
+        setFallbackStoreId(storeId)
+        return storeId
     }, [])
 
     useEffect(() => {
@@ -72,10 +99,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         async function loadUserData(userId: string) {
             try {
-                await Promise.all([
+                const [loadedProfile, loadedMembership] = await Promise.all([
                     fetchProfile(userId),
                     fetchMembership(userId)
                 ])
+                const normalizedRole = normalizeRole((loadedProfile as any)?.role)
+                if (!loadedMembership && normalizedRole === 'consultor') {
+                    await fetchFallbackStoreId()
+                } else {
+                    setFallbackStoreId(null)
+                }
             } catch (err) {
                 console.error("Error loading user data:", err)
             } finally {
@@ -91,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
             setProfile(null)
             setMembership(null)
+            setFallbackStoreId(null)
             setLoading(false)
         }
 
@@ -111,8 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setMembership(null)
     }
 
-    const role = profile?.role || null
-    const storeId = membership?.store_id || null
+    const role = profile ? normalizeRole((profile as any).role) : null
+    const storeId = membership?.store_id || fallbackStoreId || null
 
     return (
         <AuthContext.Provider value={{ supabaseUser, profile, membership, role, storeId, loading, signIn, signOut }}>

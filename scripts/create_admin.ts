@@ -56,26 +56,63 @@ async function createAdmin() {
 }
 
 async function ensureTeamRecord(userId: string, name: string) {
-    console.log(`Ensuring team record for ${userId}...`)
+    console.log(`Ensuring user record for ${userId}...`)
 
-    // 2. Add to team table
-    const { data: teamData, error: teamError } = await supabase
-        .from('team')
+    // 2. Add to public.users table
+    const { data: userData, error: userError } = await supabase
+        .from('users')
         .upsert({
             id: userId,
             name: name,
-            role: 'Admin',
-            conversion: 0,
-            execution: 100,
-            sales: 0,
-            avatar: 'admin'
+            email: 'admin@autogestao.com.br',
+            role: 'admin'
         })
         .select()
 
-    if (teamError) {
-        console.error('Error creating team record:', teamError.message)
+    if (userError) {
+        console.error('Error creating user record:', userError.message)
     } else {
-        console.log('Team record created/updated successfully:', teamData)
+        console.log('User record created/updated successfully:', userData)
+    }
+
+    // 3. Ensure a membership exists so manager/store-scoped pages can load
+    const { data: existingMemberships, error: membershipReadError } = await supabase
+        .from('memberships')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+    if (membershipReadError) {
+        console.error('Error reading memberships:', membershipReadError.message)
+        return
+    }
+
+    if (existingMemberships && existingMemberships.length > 0) {
+        console.log('Membership already exists.')
+        return
+    }
+
+    const { data: stores, error: storesError } = await supabase
+        .from('stores')
+        .select('id, name')
+        .eq('active', true)
+        .order('name')
+        .limit(1)
+    if (storesError) {
+        console.error('Error reading stores:', storesError.message)
+        return
+    }
+    if (!stores || stores.length === 0) {
+        console.warn('No active store found. Skipping membership creation.')
+        return
+    }
+
+    const { error: membershipInsertError } = await supabase
+        .from('memberships')
+        .insert({ user_id: userId, store_id: stores[0].id, role: 'gerente' })
+    if (membershipInsertError) {
+        console.error('Error creating membership:', membershipInsertError.message)
+    } else {
+        console.log(`Membership created in store ${stores[0].name} as gerente.`)
     }
 }
 

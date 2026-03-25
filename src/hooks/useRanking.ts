@@ -15,7 +15,11 @@ export function useRanking(storeIdOverride?: string) {
     const endOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`
 
     const fetchRanking = useCallback(async () => {
-        if (!storeId) return
+        if (!storeId) {
+            setRanking([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
 
         // Get checkins for the month

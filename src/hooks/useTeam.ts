@@ -12,7 +12,11 @@ export function useTeam(storeIdOverride?: string) {
     const today = new Date().toISOString().split('T')[0]
 
     const fetchTeam = useCallback(async () => {
-        if (!storeId) return
+        if (!storeId) {
+            setSellers([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
 
         const { data: members } = await supabase

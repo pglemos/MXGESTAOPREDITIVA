@@ -46,7 +46,11 @@ export function useFeedbacks(storeIdOverride?: string) {
     const [loading, setLoading] = useState(true)
 
     const fetchFeedbacks = useCallback(async () => {
-        if (!profile || !storeId) return
+        if (!profile || !storeId) {
+            setFeedbacks([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
         let query = supabase.from('feedbacks').select('*, seller:users!feedbacks_seller_id_fkey(name), manager:users!feedbacks_manager_id_fkey(name)')
         if (role === 'vendedor') query = query.eq('seller_id', profile.id)
@@ -84,7 +88,11 @@ export function usePDIs(storeIdOverride?: string) {
     const [loading, setLoading] = useState(true)
 
     const fetchPDIs = useCallback(async () => {
-        if (!profile || !storeId) return
+        if (!profile || !storeId) {
+            setPdis([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
         let query = supabase.from('pdis').select('*, seller:users!pdis_seller_id_fkey(name)')
         if (role === 'vendedor') query = query.eq('seller_id', profile.id)
@@ -166,7 +174,11 @@ export function useTeamTrainings() {
     const [loading, setLoading] = useState(true)
 
     const fetchProgress = useCallback(async () => {
-        if (!storeId) return
+        if (!storeId) {
+            setTeamProgress([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
 
         const { data: members } = await supabase.from('memberships').select('user_id, users(name)').eq('store_id', storeId).eq('role', 'vendedor')
