@@ -27,6 +27,10 @@ function normalizeRole(rawRole: string | null | undefined): UserRole {
     return 'vendedor'
 }
 
+function isTransientFetchError(error: { message?: string } | null) {
+    return error?.message?.includes('Failed to fetch') || false
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
     const [profile, setProfile] = useState<AppUser | null>(null)
@@ -36,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchProfile = useCallback(async (userId: string) => {
         const { data, error } = await supabase.from('users').select('*').eq('id', userId).single()
-        if (error) console.error('fetchProfile error:', error.message)
+        if (error && !isTransientFetchError(error)) console.error('fetchProfile error:', error.message)
         if (data) setProfile(data)
         return data
     }, [])
@@ -48,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('user_id', userId)
             .limit(1)
             .maybeSingle()
-        if (error) console.error('fetchMembership error:', error.message)
+        if (error && !isTransientFetchError(error)) console.error('fetchMembership error:', error.message)
         if (data) setMembership(data as Membership & { store: Store })
         else setMembership(null)
         return data
@@ -62,8 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .order('name')
             .limit(1)
             .maybeSingle()
-        if (error) {
+        if (error && !isTransientFetchError(error)) {
             console.error('fetchFallbackStoreId error:', error.message)
+        }
+        if (error) {
             setFallbackStoreId(null)
             return null
         }

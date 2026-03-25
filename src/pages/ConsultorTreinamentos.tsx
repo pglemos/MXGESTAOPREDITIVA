@@ -80,10 +80,10 @@ export default function ConsultorTreinamentos() {
                         exit={{ opacity: 0, height: 0, scale: 0.95 }}
                         className="overflow-hidden shrink-0"
                     >
-                        <form onSubmit={handleSubmit} className="inner-card p-10 space-y-10 bg-white border-gray-100 shadow-2xl shadow-blue-100/30 relative overflow-hidden">
+                        <form onSubmit={handleSubmit} className="inner-card p-6 sm:p-8 md:p-10 space-y-10 bg-white border-gray-100 shadow-2xl shadow-blue-100/30 relative overflow-hidden">
                             <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-50/50 rounded-full blur-[100px] z-0 pointer-events-none" />
 
-                            <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
+                            <div className="relative z-10 flex flex-col gap-4 border-b border-gray-50 pb-8 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-2xl bg-[#1A1D20] text-white flex items-center justify-center shadow-lg">
                                         <GraduationCap size={24} />
@@ -127,7 +127,7 @@ export default function ConsultorTreinamentos() {
                                             className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-medium text-sm focus:outline-none focus:border-blue-500/30 transition-all shadow-inner"
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">Pilar de Vendas</label>
                                             <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
@@ -159,7 +159,7 @@ export default function ConsultorTreinamentos() {
             </AnimatePresence>
 
             {/* Grid */}
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-8 shrink-0 pb-10">
+            <div className="grid grid-cols-1 gap-6 pb-10 shrink-0 sm:grid-cols-2 md:gap-8 xl:grid-cols-3">
                 {trainings.map((t, i) => (
                     <motion.div
                         key={t.id}

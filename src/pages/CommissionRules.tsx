@@ -66,7 +66,7 @@ export default function CommissionRules({ standalone = true }: { standalone?: bo
     }
 
     return (
-        <div className={cn("space-y-8 max-w-5xl mx-auto pb-12", !standalone && "max-w-none pb-0")}>
+        <div className={cn("space-y-8 max-w-5xl mx-auto pb-12 px-4 md:px-0", !standalone && "max-w-none pb-0")}>
             {standalone && (
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-8">
                     <div>
@@ -78,7 +78,7 @@ export default function CommissionRules({ standalone = true }: { standalone?: bo
                             Regras de <span className="text-electric-blue">Comissão</span>
                         </h1>
                     </div>
-                    <Button onClick={handleNew} className="rounded-full px-6 h-11 font-bold bg-pure-black text-white dark:bg-white dark:text-pure-black shadow-elevation hover:scale-105 transition-transform">
+                    <Button onClick={handleNew} className="rounded-full px-6 h-11 w-full sm:w-auto font-bold bg-pure-black text-white dark:bg-white dark:text-pure-black shadow-elevation hover:scale-105 transition-transform">
                         <Plus className="w-4 h-4 mr-2" /> Nova Regra
                     </Button>
                 </div>
@@ -148,15 +148,15 @@ export default function CommissionRules({ standalone = true }: { standalone?: bo
                         <div className="space-y-2"><Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground dark:text-off-white/60">Tipo de Veículo</Label>
                             <Select value={vehicleType} onValueChange={setVehicleType}><SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                                 <SelectContent className="rounded-xl"><SelectItem value="all">Todos</SelectItem><SelectItem value="Sedan">Sedan</SelectItem><SelectItem value="SUV">SUV</SelectItem><SelectItem value="Esportivo">Esportivo</SelectItem><SelectItem value="Utilitário">Utilitário</SelectItem></SelectContent></Select></div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div className="space-y-2"><Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground dark:text-off-white/60">Margem Mín. %</Label><Input type="number" value={marginMin} onChange={(e) => setMarginMin(e.target.value)} className="rounded-xl" /></div>
                             <div className="space-y-2"><Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground dark:text-off-white/60">Margem Máx. %</Label><Input type="number" value={marginMax} onChange={(e) => setMarginMax(e.target.value)} className="rounded-xl" /></div>
                         </div>
                         <div className="space-y-2"><Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground dark:text-off-white/60">Percentual de Comissão</Label><Input type="number" value={percentage} onChange={(e) => setPercentage(e.target.value)} className="rounded-xl" placeholder="Ex: 15" /></div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                        <Button onClick={handleSave} disabled={!percentage} className="rounded-xl font-bold bg-electric-blue text-white">Salvar Regra</Button>
+                    <DialogFooter className="flex-col gap-3 sm:flex-row">
+                        <Button variant="ghost" onClick={() => setOpen(false)} className="rounded-xl w-full sm:w-auto font-bold">Cancelar</Button>
+                        <Button onClick={handleSave} disabled={!percentage} className="rounded-xl w-full sm:w-auto font-bold bg-electric-blue text-white">Salvar Regra</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

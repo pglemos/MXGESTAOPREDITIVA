@@ -37,7 +37,7 @@ export default function Funil() {
     const maxValue = Math.max(funil.leads, 1)
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -54,12 +54,12 @@ export default function Funil() {
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
-                    <button className="flex items-center justify-center gap-2 px-6 py-5 rounded-[2rem] bg-white border border-gray-100 font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 hover:text-blue-600 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all shadow-sm active:scale-95 group relative overflow-hidden">
+                <div className="flex w-full flex-col gap-4 shrink-0 sm:w-auto sm:flex-row sm:items-stretch">
+                    <button className="flex w-full items-center justify-center gap-2 rounded-[2rem] bg-white px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 shadow-sm transition-all active:scale-95 hover:-translate-y-1 hover:text-blue-600 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 group relative overflow-hidden sm:w-auto">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Filter size={16} /> Período
                     </button>
-                    <button className="flex items-center justify-center w-14 h-14 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 group relative overflow-hidden">
+                    <button className="flex h-14 w-full items-center justify-center rounded-[2rem] bg-[#1A1D20] text-white font-black transition-all active:scale-95 hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] group relative overflow-hidden sm:w-14">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <BarChart3 size={20} className="group-hover:rotate-12 transition-transform" />
                     </button>
@@ -110,7 +110,7 @@ export default function Funil() {
 
                 {/* Funnel Visualization */}
                 <div className="lg:col-span-8 flex flex-col">
-                    <div className="inner-card p-10 bg-white border-gray-100 shadow-xl shadow-gray-100/50">
+                    <div className="inner-card p-6 sm:p-8 md:p-10 bg-white border-gray-100 shadow-xl shadow-gray-100/50">
                         <div className="space-y-12 relative">
                             {/* Connecting architecture line */}
                             <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-gray-50 -z-10 hidden sm:block" />
@@ -162,7 +162,7 @@ export default function Funil() {
             </div>
 
             {/* Performance by Channel */}
-            <div className="inner-card p-10 bg-white border-gray-100 shadow-xl shadow-gray-100/50 mb-10 overflow-hidden relative group">
+            <div className="inner-card p-6 sm:p-8 md:p-10 bg-white border-gray-100 shadow-xl shadow-gray-100/50 mb-10 overflow-hidden relative group">
                 <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-blue-50 rounded-full blur-[100px] z-0 opacity-40" />
 
                 <div className="flex items-center gap-3 mb-10 relative z-10">

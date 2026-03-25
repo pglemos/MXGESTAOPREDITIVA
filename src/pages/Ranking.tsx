@@ -15,7 +15,7 @@ export default function Ranking() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -29,10 +29,10 @@ export default function Ranking() {
                         <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60 text-shadow-sm">Elite & Performance Intelligence</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-4 shrink-0">
-                    <div className="flex items-center gap-3 bg-white border border-gray-100 px-6 py-5 rounded-[2rem] shadow-sm">
+                <div className="flex w-full items-center gap-4 shrink-0 lg:w-auto">
+                    <div className="flex w-full items-center justify-center gap-3 rounded-[2rem] border border-gray-100 bg-white px-6 py-5 shadow-sm lg:w-auto">
                         <Trophy size={18} className="text-amber-500" />
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">{ranking.length} Competitores Ativos</span>
+                        <span className="text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em]">{ranking.length} Competidores Ativos</span>
                     </div>
                 </div>
             </div>
@@ -67,9 +67,9 @@ export default function Ranking() {
                                         <div className={`absolute right-0 top-0 w-64 h-64 ${i === 0 ? 'bg-amber-100/30' : i === 1 ? 'bg-gray-100/30' : 'bg-orange-100/30'} rounded-full blur-[100px] pointer-events-none -mr-32 -mt-32`} />
                                     )}
 
-                                    <div className="flex items-center gap-8 lg:gap-12 flex-1">
+                                    <div className="flex min-w-0 flex-1 flex-col gap-8 sm:flex-row sm:items-center lg:gap-12">
                                         {/* Position Component */}
-                                        <div className="flex-shrink-0 flex flex-col items-center justify-center min-w-[100px] relative">
+                                        <div className="relative flex min-w-0 flex-shrink-0 flex-col items-center justify-center sm:min-w-[100px]">
                                             {i === 0 ? (
                                                 <div className="relative">
                                                     <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/40 border-4 border-white group-hover:scale-110 transition-transform group-hover:rotate-3">
@@ -96,8 +96,8 @@ export default function Ranking() {
 
                                         {/* Detail Component */}
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-                                                <h3 className={`text-3xl font-black tracking-tighter truncate leading-none ${isMe ? 'text-indigo-900' : 'text-[#1A1D20]'}`}>
+                                            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+                                                <h3 className={`break-words text-2xl font-black leading-none tracking-tighter sm:text-3xl ${isMe ? 'text-indigo-900' : 'text-[#1A1D20]'}`}>
                                                     {r.user_name}
                                                 </h3>
                                                 {isMe && (
@@ -127,12 +127,12 @@ export default function Ranking() {
                                     </div>
 
                                     {/* Score Component */}
-                                    <div className="flex items-center justify-between lg:justify-end gap-12 pt-8 lg:pt-0 border-t lg:border-t-0 lg:border-l border-gray-50 lg:pl-12">
+                                    <div className="flex w-full flex-col gap-8 border-t border-gray-50 pt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-12 lg:w-auto lg:justify-end lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
                                         <div className="flex flex-col items-start lg:items-end">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-3 leading-none opacity-60">Resultados</p>
                                             <div className="flex items-center gap-4">
                                                 <div className="text-left lg:text-right">
-                                                    <p className={`text-6xl font-black tracking-tighter leading-none ${isTop3 ? 'text-[#1A1D20]' : 'text-gray-400'}`}>
+                                                    <p className={`text-5xl font-black tracking-tighter leading-none sm:text-6xl ${isTop3 ? 'text-[#1A1D20]' : 'text-gray-400'}`}>
                                                         {r.vnd_total}
                                                     </p>
                                                     <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1 opacity-60">Vendas Mes</p>
@@ -142,7 +142,7 @@ export default function Ranking() {
                                         </div>
 
                                         {r.meta > 0 && (
-                                            <div className="text-right flex flex-col items-end min-w-[120px]">
+                                            <div className="flex min-w-0 flex-col items-start text-left sm:min-w-[120px] sm:items-end sm:text-right">
                                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4 leading-none opacity-60">Eficiência</p>
                                                 <div className="flex flex-col items-end gap-3">
                                                     <div className="flex items-baseline gap-1">

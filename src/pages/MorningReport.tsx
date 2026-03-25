@@ -32,13 +32,15 @@ export default function MorningReport() {
                 .select('ai_insight')
                 .order('created_at', { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle();
 
             if (error) {
                 console.error('Error fetching AI insight:', error);
             }
-            if (data) {
+            if (data?.ai_insight) {
                 setAiInsight(data.ai_insight);
+            } else {
+                setAiInsight(null);
             }
         } catch (e) {
             console.error('Error fetching AI insight:', e);
@@ -91,7 +93,7 @@ ${topSellers.map((t, i) => `· ${i + 1}º ${t.name}: ${t.sales} vendas (${t.conv
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-10 pb-20 animate-fade-in">
+        <div className="max-w-5xl mx-auto space-y-10 pb-20 animate-fade-in px-4 md:px-0">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 mb-3">
@@ -105,14 +107,14 @@ ${topSellers.map((t, i) => `· ${i + 1}º ${t.name}: ${t.sales} vendas (${t.conv
                     <p className="text-muted-foreground font-medium">Análise estratégica de vendas e leads para o seu dia.</p>
                 </div>
 
-                <div className="flex gap-3">
-                    <Button variant="outline" className="rounded-2xl h-12 font-bold bg-white/50 dark:bg-black/50 border-white/20">
+                <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
+                    <Button variant="outline" className="rounded-2xl h-12 w-full font-bold bg-white/50 dark:bg-black/50 border-white/20 sm:w-auto">
                         <Calendar className="w-4 h-4 mr-2" /> {new Date().toLocaleDateString('pt-BR')}
                     </Button>
                     <Button
                         onClick={generateReport}
                         disabled={isGenerating}
-                        className="rounded-2xl h-12 px-8 font-bold bg-pure-black text-white dark:bg-white dark:text-pure-black shadow-lg hover:shadow-electric-blue/20 transition-all hover:scale-[1.02]"
+                        className="rounded-2xl h-12 w-full px-8 font-bold bg-pure-black text-white dark:bg-white dark:text-pure-black shadow-lg hover:shadow-electric-blue/20 transition-all hover:scale-[1.02] sm:w-auto"
                     >
                         {isGenerating ? <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-current animate-bounce" /> Analisando...</div> : <div className="flex items-center gap-2"><Target className="w-4 h-4" /> Gerar Insights</div>}
                     </Button>
@@ -177,9 +179,9 @@ ${topSellers.map((t, i) => `· ${i + 1}º ${t.name}: ${t.sales} vendas (${t.conv
 
             {/* AI Insight Section */}
             {aiInsight && (
-                <Card className="hyper-glass rounded-[2.5rem] border-none bg-gradient-to-br from-electric-blue/10 via-transparent to-mars-orange/5 overflow-hidden relative group">
-                    <CardContent className="p-8">
-                        <div className="flex items-start gap-6">
+                <Card className="hyper-glass relative overflow-hidden rounded-[2.5rem] border-none bg-gradient-to-br from-electric-blue/10 via-transparent to-mars-orange/5 group">
+                    <CardContent className="p-6 sm:p-8">
+                        <div className="flex flex-col items-start gap-6 sm:flex-row">
                             <div className="p-4 rounded-2xl bg-electric-blue/10 border border-electric-blue/20">
                                 <BrainCircuit className="w-8 h-8 text-electric-blue" />
                             </div>
@@ -205,19 +207,19 @@ ${topSellers.map((t, i) => `· ${i + 1}º ${t.name}: ${t.sales} vendas (${t.conv
                         className="grid grid-cols-1 lg:grid-cols-2 gap-8"
                     >
                         <div className="space-y-6">
-                            <div className="p-10 hyper-glass rounded-[3rem] border border-white/20 relative overflow-hidden group">
+                            <div className="relative overflow-hidden rounded-[3rem] border border-white/20 p-6 sm:p-8 md:p-10 hyper-glass group">
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <Clock className="w-32 h-32 -mr-16 -mt-16" />
                                 </div>
                                 <div className="relative">
-                                    <div className="flex justify-between items-start mb-8">
-                                        <Badge className="bg-electric-blue text-white rounded-xl font-bold px-4 py-1">VERSÃO EXECUTIVA</Badge>
+                                    <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <Badge className="bg-electric-blue text-white rounded-xl font-bold px-4 py-1 self-start">VERSÃO EXECUTIVA</Badge>
                                         <Button variant="ghost" size="icon" onClick={copyReport} className="rounded-full hover:bg-electric-blue/10 text-electric-blue"><Clipboard className="w-5 h-5" /></Button>
                                     </div>
                                     <pre className="whitespace-pre-wrap text-base font-bold text-pure-black dark:text-off-white leading-relaxed font-sans">{report}</pre>
-                                    <div className="mt-10 pt-6 border-t border-black/5 dark:border-white/10 flex justify-between items-center">
+                                    <div className="mt-10 flex flex-col gap-4 border-t border-black/5 pt-6 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
                                         <span className="text-xs font-bold text-muted-foreground">Gerado em {new Date().toLocaleTimeString()}</span>
-                                        <Button className="rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 shadow-lg shadow-emerald-500/20">
+                                        <Button className="rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 shadow-lg shadow-emerald-500/20 w-full sm:w-auto">
                                             <Share2 className="w-4 h-4 mr-2" /> Enviar WhatsApp
                                         </Button>
                                     </div>

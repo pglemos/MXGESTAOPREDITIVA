@@ -24,7 +24,7 @@ export default function VendedorTreinamentos() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -41,24 +41,24 @@ export default function VendedorTreinamentos() {
                     </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="flex items-center gap-3 bg-white border border-gray-100 px-5 py-2.5 rounded-2xl shadow-sm">
+                <div className="flex w-full flex-col items-stretch gap-2 shrink-0 sm:items-end lg:w-auto">
+                    <div className="flex w-full flex-col gap-3 rounded-2xl border border-gray-100 bg-white px-5 py-3 shadow-sm sm:w-auto sm:flex-row sm:items-center">
                         <GraduationCap size={18} className="text-violet-600" />
                         <span className="text-sm font-black tracking-tight">{watched} / {trainings.length} Módulos</span>
-                        <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden ml-2 shadow-inner">
+                        <div className="h-2 w-full rounded-full bg-gray-100 shadow-inner sm:ml-2 sm:w-32">
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progress}%` }}
                                 className="h-full bg-violet-600 rounded-full"
                             />
                         </div>
-                        <span className="text-[10px] font-black text-violet-600 ml-2">{Math.round(progress)}%</span>
+                        <span className="text-[10px] font-black text-violet-600 sm:ml-2">{Math.round(progress)}%</span>
                     </div>
                 </div>
             </div>
 
             {/* Grid */}
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-8 shrink-0 pb-10">
+            <div className="grid grid-cols-1 gap-6 pb-10 shrink-0 sm:grid-cols-2 md:gap-8 xl:grid-cols-3">
                 {trainings.map((t, i) => (
                     <motion.div
                         key={t.id}
@@ -94,7 +94,7 @@ export default function VendedorTreinamentos() {
                                 </div>
                             </div>
 
-                            <div className="pt-6 border-t border-gray-50 flex gap-4">
+                            <div className="flex flex-col gap-4 border-t border-gray-50 pt-6 sm:flex-row">
                                 <a href={t.video_url} target="_blank" rel="noopener noreferrer"
                                     className="flex-1 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white hover:shadow-xl transition-all active:scale-95">
                                     <Play size={16} /> Assistir Aula

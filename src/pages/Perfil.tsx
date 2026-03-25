@@ -10,7 +10,7 @@ export default function Perfil() {
     const handleLogout = async () => { await signOut(); navigate('/login') }
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col items-center justify-center relative text-[#1A1D20] py-16 overflow-y-auto no-scrollbar">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col items-center justify-center relative text-[#1A1D20] py-12 sm:py-16 overflow-y-auto no-scrollbar px-4 md:px-10">
 
             {/* Background elements */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.03)_1px,transparent_1px)] bg-[length:24px_24px] pointer-events-none" />
@@ -22,7 +22,7 @@ export default function Perfil() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="w-40 h-40 rounded-[3rem] bg-gradient-to-tr from-indigo-500 via-indigo-600 to-blue-600 p-1 mx-auto mb-8 shadow-[0_30px_60px_-15px_rgba(79,70,229,0.3)] relative group"
+                        className="w-32 h-32 sm:w-40 sm:h-40 rounded-[3rem] bg-gradient-to-tr from-indigo-500 via-indigo-600 to-blue-600 p-1 mx-auto mb-8 shadow-[0_30px_60px_-15px_rgba(79,70,229,0.3)] relative group"
                     >
                         <div className="absolute -inset-4 bg-indigo-500 rounded-[3.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
                         <div className="w-full h-full rounded-[2.8rem] bg-white p-1.5 relative z-10">
@@ -42,8 +42,8 @@ export default function Perfil() {
                         transition={{ delay: 0.1 }}
                         className="flex flex-col items-center"
                     >
-                        <h1 className="text-[40px] font-black tracking-tighter text-[#1A1D20] mb-3 leading-none">{profile?.name}</h1>
-                        <div className="flex items-center justify-center gap-3">
+                        <h1 className="text-[34px] sm:text-[40px] font-black tracking-tighter text-[#1A1D20] mb-3 leading-none text-center">{profile?.name}</h1>
+                        <div className="flex flex-wrap items-center justify-center gap-3">
                             <span className="bg-[#1A1D20] text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-1.5 rounded-full shadow-lg shadow-black/10 flex items-center gap-2">
                                 <Zap size={12} className="text-indigo-400" /> {role}
                             </span>
@@ -64,15 +64,15 @@ export default function Perfil() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 + (idx * 0.1) }}
-                            className="inner-card p-6 bg-white border border-gray-100 hover:border-indigo-100/50 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all group cursor-default rounded-[2.5rem]"
+                            className="inner-card p-5 sm:p-6 bg-white border border-gray-100 hover:border-indigo-100/50 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all group cursor-default rounded-[2.5rem]"
                         >
-                            <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4 sm:gap-6">
                                 <div className={`w-16 h-16 rounded-[1.8rem] ${item.bg} flex items-center justify-center border border-white shadow-inner group-hover:bg-[#1A1D20] transition-colors`}>
                                     <item.icon size={24} className={`${item.color} group-hover:text-white transition-colors`} />
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0">
                                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1 opacity-60">{item.label}</p>
-                                    <p className="text-lg font-black text-[#1A1D20] tracking-tight">{item.value}</p>
+                                    <p className="text-base sm:text-lg font-black text-[#1A1D20] tracking-tight break-words">{item.value}</p>
                                 </div>
                                 <div className="w-12 h-12 rounded-[1.2rem] bg-[#F8FAFC] flex items-center justify-center text-gray-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
                                     <ChevronRight size={20} />

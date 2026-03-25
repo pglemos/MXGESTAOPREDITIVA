@@ -45,7 +45,7 @@ export default function ProdutosDigitais() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header / Toolbar */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -62,7 +62,7 @@ export default function ProdutosDigitais() {
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
+                <div className="flex flex-col items-stretch gap-4 shrink-0 sm:flex-row sm:items-center">
                     <div className="relative w-full sm:w-80 group">
                         <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1A1D20] transition-colors" />
                         <input
@@ -75,7 +75,7 @@ export default function ProdutosDigitais() {
                     </div>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex items-center justify-center gap-3 px-8 py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        className="flex w-full items-center justify-center gap-3 px-8 py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden sm:w-auto"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Produto
@@ -92,10 +92,10 @@ export default function ProdutosDigitais() {
                         exit={{ opacity: 0, scale: 0.98, y: -20 }}
                         className="shrink-0 z-20"
                     >
-                        <form onSubmit={handleCreate} className="inner-card p-10 space-y-8 relative overflow-hidden bg-white border border-gray-100 shadow-2xl">
+                        <form onSubmit={handleCreate} className="inner-card p-6 sm:p-8 md:p-10 space-y-8 relative overflow-hidden bg-white border border-gray-100 shadow-2xl">
                             <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-50/50 rounded-full blur-[100px] z-0 pointer-events-none" />
 
-                            <div className="flex items-center justify-between relative z-10 mb-4">
+                            <div className="flex flex-col gap-4 relative z-10 mb-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-2xl bg-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
                                         <Layers size={24} className="text-white" />
@@ -144,7 +144,7 @@ export default function ProdutosDigitais() {
                             <div className="relative z-10 flex justify-end pt-4 border-t border-gray-50">
                                 <button
                                     type="submit" disabled={saving}
-                                    className="w-full md:w-auto px-12 py-5 rounded-full bg-[#1A1D20] text-white font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-black hover:shadow-2xl transition-all disabled:opacity-50 active:scale-95 shadow-xl"
+                                    className="flex w-full items-center justify-center gap-3 rounded-full bg-[#1A1D20] px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-xl transition-all active:scale-95 hover:bg-black hover:shadow-2xl disabled:opacity-50 md:w-auto md:px-12"
                                 >
                                     {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={18} /> Ativar Produto na Rede</>}
                                 </button>
@@ -155,14 +155,14 @@ export default function ProdutosDigitais() {
             </AnimatePresence>
 
             {/* Grid */}
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 shrink-0 pb-16">
+            <div className="grid grid-cols-1 gap-6 pb-16 shrink-0 sm:grid-cols-2 md:gap-8 xl:grid-cols-3 2xl:grid-cols-4">
                 {filteredProducts.map((p, i) => (
                     <motion.div
                         key={p.id}
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        className="inner-card p-10 flex flex-col justify-between hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)] transition-all bg-white relative group overflow-hidden border border-gray-100 h-full cursor-pointer hover:-translate-y-3"
+                        className="inner-card relative flex h-full cursor-pointer flex-col justify-between overflow-hidden border border-gray-100 bg-white p-6 transition-all hover:-translate-y-3 hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)] sm:p-8 md:p-10 group"
                     >
                         <div className="absolute top-0 right-0 w-48 h-48 bg-gray-50 rounded-full blur-[80px] -mr-24 -mt-24 group-hover:bg-orange-50/50 transition-colors z-0 pointer-events-none" />
 
@@ -188,7 +188,7 @@ export default function ProdutosDigitais() {
                                 )}
                             </div>
 
-                            <div className="pt-8 border-t border-gray-50 flex items-center justify-between">
+                            <div className="flex flex-col gap-4 border-t border-gray-50 pt-8 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
                                         <Smartphone size={14} />
@@ -198,7 +198,7 @@ export default function ProdutosDigitais() {
                                     </div>
                                 </div>
                                 <a href={p.link} target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-3 px-6 py-3 rounded-full bg-gray-50 text-[#1A1D20] hover:bg-[#1A1D20] hover:text-white hover:shadow-2xl transition-all group-hover:scale-105 active:scale-95 border border-gray-100 shadow-sm">
+                                    className="flex w-full items-center justify-center gap-3 rounded-full border border-gray-100 bg-gray-50 px-6 py-3 text-[#1A1D20] shadow-sm transition-all active:scale-95 hover:bg-[#1A1D20] hover:text-white hover:shadow-2xl group-hover:scale-105 sm:w-auto">
                                     <span className="text-[10px] font-black uppercase tracking-widest">Acessar</span>
                                     <ExternalLink size={16} />
                                 </a>
@@ -214,7 +214,7 @@ export default function ProdutosDigitais() {
                         </div>
                         <h3 className="text-3xl font-black text-[#1A1D20] tracking-tighter mb-2">Catálogo Vazio</h3>
                         <p className="text-gray-400 font-black text-[10px] uppercase tracking-widest opacity-60 mb-8 max-w-sm text-center leading-loose">Sua unidade ainda não possui produtos ou ativos digitais configurados.</p>
-                        <button onClick={() => setShowForm(true)} className="flex items-center gap-3 px-10 py-4 rounded-full bg-[#1A1D20] text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl active:scale-95">
+                        <button onClick={() => setShowForm(true)} className="flex w-full items-center justify-center gap-3 rounded-full bg-[#1A1D20] px-10 py-4 text-[10px] font-black uppercase tracking-widest text-white shadow-xl transition-all active:scale-95 hover:bg-black sm:w-auto">
                             <Plus size={18} /> Adicionar Primeiro Produto
                         </button>
                     </div>

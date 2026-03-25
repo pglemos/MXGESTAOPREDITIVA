@@ -46,7 +46,7 @@ export function useCheckins(storeIdOverride?: string) {
             .eq('user_id', profile.id)
             .eq('store_id', storeId)
             .eq('date', today)
-            .single()
+            .maybeSingle()
         if (data) setTodayCheckin({ ...data, ...calcularTotais(data) })
         else setTodayCheckin(null)
     }, [profile, storeId, today])

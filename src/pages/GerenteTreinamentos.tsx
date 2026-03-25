@@ -32,7 +32,7 @@ export default function GerenteTreinamentos() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -49,9 +49,14 @@ export default function GerenteTreinamentos() {
                     </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-4 shrink-0">
-                    <div className="flex bg-[#F8FAFC] border border-gray-100 rounded-full p-1.5 shadow-sm overflow-hidden relative shrink-0">
-                        <div className="absolute inset-y-1.5 w-[calc(50%-6px)] bg-white rounded-full transition-transform duration-300 shadow-sm border border-gray-50" style={{ transform: `translateX(${tab === 'equipe' ? '6px' : 'calc(100% + 6px)'})` }} />
+                <div className="flex w-full flex-col items-stretch gap-4 shrink-0 sm:items-end lg:w-auto">
+                    <div className="relative flex w-full shrink-0 flex-col overflow-hidden rounded-[2rem] border border-gray-100 bg-[#F8FAFC] p-1.5 shadow-sm sm:flex-row sm:rounded-full">
+                        <div
+                            className={`absolute left-1.5 right-1.5 h-[calc(50%-6px)] rounded-[1.35rem] border border-gray-50 bg-white shadow-sm transition-transform duration-300 sm:inset-y-1.5 sm:left-auto sm:right-auto sm:h-auto sm:w-[calc(50%-6px)] sm:rounded-full ${tab === 'equipe'
+                                ? 'translate-y-[6px] sm:translate-x-[6px] sm:translate-y-0'
+                                : 'translate-y-[calc(100%+6px)] sm:translate-x-[calc(100%+6px)] sm:translate-y-0'
+                                }`}
+                        />
                         <button
                             onClick={() => setTab('equipe')}
                             className={`relative z-10 flex-1 px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 ${tab === 'equipe' ? 'text-violet-600' : 'text-gray-400 hover:text-[#1A1D20]'}`}
@@ -67,7 +72,7 @@ export default function GerenteTreinamentos() {
                     </div>
 
                     {tab === 'meus' && (
-                        <div className="flex items-center gap-3 bg-white border border-gray-100 px-5 py-2.5 rounded-2xl shadow-sm">
+                        <div className="flex w-full flex-col gap-3 rounded-2xl border border-gray-100 bg-white px-5 py-3 shadow-sm sm:w-auto sm:flex-row sm:items-center">
                             <span className="text-sm font-black tracking-tight">{watched} / {trainings.length} Módulos</span>
                             <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden ml-2 shadow-inner">
                                 <motion.div
@@ -92,7 +97,7 @@ export default function GerenteTreinamentos() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
                             transition={{ duration: 0.3 }}
-                            className="grid sm:grid-cols-2 xl:grid-cols-3 gap-8"
+                            className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 xl:grid-cols-3"
                         >
                             {trainings.map((t, i) => (
                                 <motion.div
@@ -155,7 +160,7 @@ export default function GerenteTreinamentos() {
                             className="space-y-6"
                         >
                             {/* Stats */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2 md:grid-cols-4">
                                 <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col gap-2">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Time Total</span>
                                     <span className="text-3xl font-black text-[#1A1D20] tracking-tighter leading-none">{teamProgress.length}</span>
@@ -167,7 +172,7 @@ export default function GerenteTreinamentos() {
                                 </div>
                             </div>
 
-                            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                                 {teamProgress.map((p, i) => (
                                     <motion.div
                                         key={p.seller_id}

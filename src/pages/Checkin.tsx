@@ -67,8 +67,8 @@ export default function Checkin() {
     const dateStr = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
     const NumberInput = ({ label, icon: Icon, field, color, bg }: { label: string; icon: any; field: string; color: string; bg: string }) => (
-        <div className="flex items-center justify-between p-4 bg-white rounded-3xl border border-gray-100/50 shadow-sm group/input hover:shadow-md transition-all">
-            <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 rounded-3xl border border-gray-100/50 bg-white p-4 shadow-sm transition-all group/input hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4 min-w-0">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${bg} ${color} shadow-sm group-hover/input:scale-110 transition-transform`}>
                     <Icon size={20} />
                 </div>
@@ -77,7 +77,7 @@ export default function Checkin() {
                     <span className="text-xl font-black tabular-nums">{(form as any)[field]}</span>
                 </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
                 <button
                     type="button"
                     onClick={() => updateField(field, (form as any)[field] - 1)}
@@ -97,7 +97,7 @@ export default function Checkin() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-8 md:gap-12 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-8 md:gap-12 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
@@ -119,15 +119,15 @@ export default function Checkin() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
                     <button
                         onClick={() => navigate('/home')}
-                        className="flex items-center gap-3 px-6 py-3 rounded-full bg-gray-50 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 hover:text-[#1A1D20] transition-all"
+                        className="flex w-full items-center justify-center gap-3 rounded-full bg-gray-50 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-all hover:bg-gray-100 hover:text-[#1A1D20] sm:w-auto"
                     >
                         <ArrowLeft size={16} /> Cancelar
                     </button>
                     {todayCheckin && (
-                        <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 px-5 py-2 rounded-full shadow-sm">
+                        <div className="flex items-center justify-center gap-2 rounded-full border border-amber-100 bg-amber-50 px-5 py-2 shadow-sm">
                             <Sparkles size={14} className="text-amber-500" />
                             <span className="text-[9px] font-black text-amber-900 uppercase tracking-widest">Modo Edição Ativo</span>
                         </div>
@@ -157,7 +157,7 @@ export default function Checkin() {
 
                         {/* Agendamentos */}
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between px-2">
+                            <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
                                         <Globe size={16} className="text-blue-600" />
@@ -176,7 +176,7 @@ export default function Checkin() {
 
                         {/* Fechamentos */}
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between px-2">
+                            <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
                                         <TrendingUp size={16} className="text-emerald-600" />
@@ -202,7 +202,7 @@ export default function Checkin() {
                         {/* Error Handling */}
                         <AnimatePresence>
                             {funnelError && (
-                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-red-50 border border-red-100 rounded-[2rem] p-8 flex items-center gap-6 shadow-xl shadow-red-500/10">
+                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex flex-col gap-6 rounded-[2rem] border border-red-100 bg-red-50 p-6 shadow-xl shadow-red-500/10 sm:flex-row sm:items-center sm:p-8">
                                     <div className="bg-red-600 p-4 rounded-2xl shadow-lg shadow-red-200"><AlertTriangle size={32} className="text-white" /></div>
                                     <div>
                                         <h4 className="font-black text-red-900 text-lg tracking-tight">Inconsistência de Dados</h4>
@@ -215,8 +215,8 @@ export default function Checkin() {
                         {/* Zero States */}
                         <AnimatePresence>
                             {allZero && (
-                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inner-card p-10 bg-amber-50/50 border-amber-100 shadow-xl shadow-amber-500/5">
-                                    <div className="flex items-center gap-4 mb-6">
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inner-card bg-amber-50/50 border-amber-100 p-6 shadow-xl shadow-amber-500/5 sm:p-8 md:p-10">
+                                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
                                         <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-200">
                                             <AlertTriangle size={24} />
                                         </div>
@@ -269,7 +269,7 @@ export default function Checkin() {
 
                 {/* Info Sidebar */}
                 <div className="lg:w-[380px] space-y-8 h-fit lg:sticky lg:top-10">
-                    <div className="inner-card p-10 bg-indigo-50/30 border-indigo-100/50">
+                    <div className="inner-card p-6 sm:p-8 md:p-10 bg-indigo-50/30 border-indigo-100/50">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
                                 <Info size={20} />
@@ -292,7 +292,7 @@ export default function Checkin() {
                         </ul>
                     </div>
 
-                    <div className="inner-card p-10 bg-[#1A1D20] text-white relative overflow-hidden group">
+                    <div className="inner-card p-6 sm:p-8 md:p-10 bg-[#1A1D20] text-white relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent pointer-events-none" />
                         <h4 className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-40">Impacto Atual</h4>
                         <div className="flex items-baseline gap-2 mb-2">

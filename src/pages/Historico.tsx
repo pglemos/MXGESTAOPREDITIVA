@@ -14,7 +14,7 @@ export default function Historico() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 w-full shrink-0">
@@ -53,7 +53,7 @@ export default function Historico() {
                                 transition={{ delay: i * 0.05 }}
                                 className="inner-card p-6 border border-gray-100 bg-white hover:shadow-2xl hover:border-indigo-100 transition-all group overflow-hidden"
                             >
-                                <div className="flex items-center justify-between mb-8">
+                                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100 group-hover:bg-indigo-600 transition-colors">
                                             <Calendar size={20} className="text-indigo-600 group-hover:text-white transition-colors" />
@@ -81,7 +81,7 @@ export default function Historico() {
                                     ) : null}
                                 </div>
 
-                                <div className="grid grid-cols-4 gap-4 mb-8">
+                                <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
                                     <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 hover:bg-white hover:shadow-md transition-all text-center">
                                         <Phone size={14} className="text-indigo-500 mx-auto mb-2" />
                                         <p className="text-2xl font-black text-[#1A1D20] tracking-tighter leading-none">{c.leads}</p>
@@ -104,8 +104,8 @@ export default function Historico() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between py-4 border-t border-gray-100 pt-6">
-                                    <div className="flex items-center gap-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                <div className="flex flex-col gap-4 border-t border-gray-100 py-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
                                         <span className="flex items-center gap-1.5"><Globe size={12} className="text-blue-400" /> Digital: {c.vnd_net}</span>
                                         <div className="w-1 h-1 rounded-full bg-gray-200" />
                                         <span className="flex items-center gap-1.5"><Users size={12} className="text-indigo-400" /> Salão: {c.vnd_porta}</span>
