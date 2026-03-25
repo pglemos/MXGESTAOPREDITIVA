@@ -53,6 +53,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function RoleRedirect() {
   const { role } = useAuth()
+  if (role === 'admin') return <Navigate to="/painel" replace />
   if (role === 'consultor') return <Navigate to="/painel" replace />
   if (role === 'gerente') return <Navigate to="/loja" replace />
   return <Navigate to="/home" replace />
@@ -71,6 +72,18 @@ export default function App() {
           {/* Protected */}
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<RoleRedirect />} />
+            <Route path="dashboard" element={<RoleRedirect />} />
+            <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
+            <Route path="funnel" element={<Navigate to="/funil" replace />} />
+            <Route path="team" element={<Navigate to="/equipe" replace />} />
+            <Route path="training" element={<Navigate to="/treinamentos" replace />} />
+            <Route path="communication" element={<Navigate to="/notificacoes" replace />} />
+            <Route path="leads" element={<Navigate to="/funil" replace />} />
+            <Route path="reports" element={<RoleRedirect />} />
+            <Route path="reports/stock" element={<RoleRedirect />} />
+            <Route path="relatorios/performance-vendas" element={<RoleRedirect />} />
+            <Route path="relatorios/vendas-cruzados" element={<RoleRedirect />} />
+            <Route path="relatorios/performance-vendedores" element={<RoleRedirect />} />
 
             {/* Vendedor */}
             <Route path="home" element={<Suspense fallback={<Spinner />}><VendedorHome /></Suspense>} />
@@ -78,13 +91,13 @@ export default function App() {
             <Route path="historico" element={<Suspense fallback={<Spinner />}><Historico /></Suspense>} />
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} consultor={<ConsultorTreinamentos />} />
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} consultor={<ConsultorTreinamentos />} admin={<ConsultorTreinamentos />} />
             </Suspense>} />
             <Route path="feedback" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} consultor={<GerenteFeedback />} />
+              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} consultor={<GerenteFeedback />} admin={<GerenteFeedback />} />
             </Suspense>} />
             <Route path="notificacoes" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} consultor={<ConsultorNotificacoes />} />
+              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} consultor={<ConsultorNotificacoes />} admin={<ConsultorNotificacoes />} />
             </Suspense>} />
             <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
 
@@ -110,8 +123,19 @@ export default function App() {
   )
 }
 
-function RoleSwitch({ vendedor, gerente, consultor }: { vendedor: React.ReactNode; gerente: React.ReactNode; consultor: React.ReactNode }) {
+function RoleSwitch({
+  vendedor,
+  gerente,
+  consultor,
+  admin,
+}: {
+  vendedor: React.ReactNode
+  gerente: React.ReactNode
+  consultor: React.ReactNode
+  admin?: React.ReactNode
+}) {
   const { role } = useAuth()
+  if (role === 'admin') return <>{admin || consultor}</>
   if (role === 'consultor') return <>{consultor}</>
   if (role === 'gerente') return <>{gerente}</>
   return <>{vendedor}</>

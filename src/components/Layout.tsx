@@ -5,18 +5,38 @@ import { useNotifications } from '@/hooks/useData'
 import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
-  Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search,
+  Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
   LogOut, Zap
 } from 'lucide-react'
 
 // Define the nav config based on user role with actual icons
 const navConfig: Record<string, { label: string; path: string; icon: React.ReactNode }[]> = {
+  admin: [
+    { label: 'Dashboard', path: '/painel', icon: <Grid size={22} /> },
+    { label: 'Lojas', path: '/lojas', icon: <Database size={22} /> },
+    { label: 'Loja', path: '/loja', icon: <Home size={22} /> },
+    { label: 'Equipe', path: '/equipe', icon: <Users size={22} /> },
+    { label: 'Metas', path: '/metas', icon: <Target size={22} /> },
+    { label: 'Funil', path: '/funil', icon: <CheckSquare size={22} /> },
+    { label: 'Check-in', path: '/checkin', icon: <CheckSquare size={22} /> },
+    { label: 'Histórico', path: '/historico', icon: <History size={22} /> },
+    { label: 'Ranking', path: '/ranking', icon: <Trophy size={22} /> },
+    { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={22} /> },
+    { label: 'Feedback', path: '/feedback', icon: <MessageSquare size={22} /> },
+    { label: 'Notificações', path: '/notificacoes', icon: <Bell size={22} /> },
+    { label: 'Produtos', path: '/produtos', icon: <LayoutDashboard size={22} /> },
+    { label: 'Configurações', path: '/configuracoes', icon: <Settings size={22} /> },
+    { label: 'Perfil', path: '/perfil', icon: <User size={22} /> }
+  ],
   consultor: [
     { label: 'Dashboard', path: '/painel', icon: <Grid size={22} /> },
     { label: 'Lojas', path: '/lojas', icon: <Database size={22} /> },
     { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={22} /> },
+    { label: 'Feedback', path: '/feedback', icon: <MessageSquare size={22} /> },
+    { label: 'Notificações', path: '/notificacoes', icon: <Bell size={22} /> },
     { label: 'Produtos', path: '/produtos', icon: <LayoutDashboard size={22} /> },
-    { label: 'Configurações', path: '/configuracoes', icon: <Settings size={22} /> }
+    { label: 'Configurações', path: '/configuracoes', icon: <Settings size={22} /> },
+    { label: 'Perfil', path: '/perfil', icon: <User size={22} /> }
   ],
   gerente: [
     { label: 'Home', path: '/loja', icon: <Home size={22} /> },
@@ -149,8 +169,8 @@ export default function Layout() {
       <div className="flex flex-1 overflow-hidden px-3 sm:px-4 md:px-10 pb-28 md:pb-10 gap-3 md:gap-10 relative">
 
         {/* Sidebar Mini (Desktop) */}
-        <aside className="hidden md:flex w-20 flex-col items-center py-6 gap-4 relative z-20 shrink-0">
-          <div className="flex flex-col gap-4 items-center w-full bg-white/50 backdrop-blur-3xl border border-white/50 rounded-[2.5rem] py-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.03)]">
+        <aside className="hidden md:flex w-20 flex-col items-center py-6 gap-4 relative z-20 shrink-0 min-h-0">
+          <div className="flex flex-col gap-4 items-center w-full bg-white/50 backdrop-blur-3xl border border-white/50 rounded-[2.5rem] py-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.03)] overflow-y-auto no-scrollbar">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path
               return (
@@ -193,14 +213,14 @@ export default function Layout() {
       </div>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 right-3 h-[72px] bg-[#1A1D20]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2rem] z-50 flex items-center justify-around px-2 border border-white/10">
-        {navItems.slice(0, 5).map((item) => {
+      <nav className="md:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 right-3 h-[72px] bg-[#1A1D20]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2rem] z-50 flex items-center justify-start px-2 border border-white/10 overflow-x-auto no-scrollbar gap-1">
+        {navItems.map((item) => {
           const isActive = location.pathname === item.path
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-[56px] rounded-2xl transition-all ${isActive ? 'text-white' : 'text-gray-500'}`}
+              className={`flex flex-col items-center justify-center gap-1.5 min-w-[72px] h-[56px] rounded-2xl transition-all ${isActive ? 'text-white' : 'text-gray-500'}`}
             >
               <div className={`transition-all duration-300 ${isActive ? 'scale-110 text-indigo-400' : 'scale-100'}`}>
                 {item.icon}

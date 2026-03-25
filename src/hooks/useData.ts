@@ -16,7 +16,9 @@ export function useTrainings() {
         const { data: progress } = await supabase.from('training_progress').select('training_id').eq('user_id', profile.id)
         const watchedSet = new Set((progress || []).map(p => p.training_id))
         if (all) {
-            const filtered = role === 'consultor' ? all : all.filter(t => t.target_audience === 'todos' || t.target_audience === role)
+            const filtered = role === 'consultor' || role === 'admin'
+                ? all
+                : all.filter(t => t.target_audience === 'todos' || t.target_audience === role)
             setTrainings(filtered.map(t => ({ ...t, watched: watchedSet.has(t.id) })))
         }
         setLoading(false)

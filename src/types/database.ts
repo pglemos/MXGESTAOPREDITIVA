@@ -2,7 +2,7 @@
 // MX Gestão Preditiva — Database Types
 // ============================================
 
-export type UserRole = 'consultor' | 'gerente' | 'vendedor'
+export type UserRole = 'admin' | 'consultor' | 'gerente' | 'vendedor'
 export type MembershipRole = 'gerente' | 'vendedor'
 export type PDIStatus = 'aberto' | 'em_andamento' | 'concluido'
 export type TrainingType = 'prospeccao' | 'fechamento' | 'atendimento' | 'gestao' | 'pre-vendas'

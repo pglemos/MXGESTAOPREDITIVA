@@ -42,7 +42,7 @@ async function fixAdminAccess(email: string) {
         id: userId,
         name: fallbackName,
         email,
-        role: 'consultor',
+        role: 'admin',
         active: true
     }, { onConflict: 'id' })
     if (usersUpsertError) throw new Error(`users upsert failed: ${usersUpsertError.message}`)

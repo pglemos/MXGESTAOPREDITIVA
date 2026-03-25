@@ -21,7 +21,8 @@ const AuthContext = createContext<AuthState>({
 
 function normalizeRole(rawRole: string | null | undefined): UserRole {
     const role = (rawRole || '').toLowerCase()
-    if (role === 'consultor' || role === 'admin' || role === 'owner') return 'consultor'
+    if (role === 'admin') return 'admin'
+    if (role === 'consultor' || role === 'owner') return 'consultor'
     if (role === 'gerente' || role === 'manager') return 'gerente'
     return 'vendedor'
 }
@@ -104,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     fetchMembership(userId)
                 ])
                 const normalizedRole = normalizeRole((loadedProfile as any)?.role)
-                if (!loadedMembership && normalizedRole === 'consultor') {
+                if (!loadedMembership && (normalizedRole === 'consultor' || normalizedRole === 'admin')) {
                     await fetchFallbackStoreId()
                 } else {
                     setFallbackStoreId(null)
