@@ -30,7 +30,7 @@ export default function Lojas() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -66,12 +66,12 @@ export default function Lojas() {
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="shrink-0 z-50 rounded-[3rem] p-1 bg-gradient-to-b from-indigo-50 to-white shadow-2xl shadow-indigo-500/10 mb-6"
                     >
-                        <form onSubmit={handleCreate} className="inner-card p-10 md:p-14 space-y-10 relative overflow-hidden bg-white border-none">
+                        <form onSubmit={handleCreate} className="inner-card p-6 sm:p-8 md:p-14 space-y-8 md:space-y-10 relative overflow-hidden bg-white border-none">
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.03)_1px,transparent_1px)] bg-[length:24px_24px] pointer-events-none" />
                             <div className="absolute -right-40 -top-40 w-96 h-96 bg-indigo-50 rounded-full blur-[100px] pointer-events-none" />
 
-                            <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
-                                <div className="flex items-center gap-6">
+                            <div className="flex flex-col gap-4 border-b border-gray-50 pb-8 sm:flex-row sm:items-center sm:justify-between relative z-10">
+                                <div className="flex items-center gap-4 sm:gap-6">
                                     <div className="w-16 h-16 rounded-[1.8rem] bg-[#1A1D20] text-white flex items-center justify-center shadow-2xl shadow-black/20 transform rotate-3">
                                         <Database size={28} className="fill-white/10" />
                                     </div>
@@ -131,7 +131,7 @@ export default function Lojas() {
                 )}
             </AnimatePresence>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 shrink-0 pb-20">
+            <div className="grid grid-cols-1 gap-6 pb-20 shrink-0 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
                 {stores.map((s, i) => (
                     <motion.div
                         key={s.id}

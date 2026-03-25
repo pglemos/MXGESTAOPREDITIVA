@@ -61,7 +61,7 @@ export default function DashboardLoja() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 w-full shrink-0 border-b border-gray-50 pb-8">
@@ -73,13 +73,13 @@ export default function DashboardLoja() {
                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em] pl-6 opacity-60">Intelligence & Performance Control</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 shrink-0">
-                    <div className="flex items-center gap-2 p-1.5 bg-gray-100/50 rounded-2xl border border-gray-200/50">
+                <div className="flex w-full flex-col gap-3 shrink-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 lg:w-auto">
+                    <div className="flex w-full items-center justify-between gap-2 rounded-2xl border border-gray-200/50 bg-gray-100/50 p-1.5 sm:w-auto sm:justify-start">
                         <button className="px-5 py-2.5 rounded-xl bg-white text-[#1A1D20] font-black text-[10px] uppercase tracking-widest shadow-sm">Mensal</button>
                         <button className="px-5 py-2.5 rounded-xl text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-[#1A1D20] transition-colors">Semanal</button>
                     </div>
                     <div className="hidden sm:block w-px h-10 bg-gray-200 mx-2" />
-                    <button className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-indigo-600 hover:shadow-xl transition-all shadow-sm active:scale-95">
+                    <button className="h-12 w-full rounded-2xl border border-gray-100 bg-white text-gray-400 shadow-sm transition-all active:scale-95 hover:text-indigo-600 hover:shadow-xl sm:w-12 flex items-center justify-center">
                         <Download size={20} />
                     </button>
                     <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-8 py-3.5 rounded-full bg-[#1A1D20] text-white font-black text-[10px] uppercase tracking-[0.1em] hover:bg-black hover:shadow-2xl transition-all shadow-xl active:scale-95">
@@ -141,7 +141,7 @@ export default function DashboardLoja() {
 
                     {/* Ranking Table */}
                     <div className="inner-card p-0 overflow-hidden bg-white border border-gray-100 flex flex-col shadow-xl shadow-gray-100/50">
-                        <div className="p-10 pb-6 flex items-center justify-between">
+                        <div className="flex flex-col gap-4 p-6 pb-6 sm:flex-row sm:items-center sm:justify-between sm:p-10">
                             <div>
                                 <h3 className="text-2xl font-black text-[#1A1D20] tracking-tight">Especialistas de Elite</h3>
                                 <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1.5 opacity-60">Performance Individual & KPI's</p>

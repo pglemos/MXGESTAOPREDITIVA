@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
-  LogOut, Zap
+  LogOut, Zap, CalendarDays, Bot, FileSignature, Wallet, Car, Briefcase, Activity,
+  Presentation, Medal, PhoneCall, Menu, X
 } from 'lucide-react'
 
 // Define the nav config based on user role with actual icons
@@ -15,13 +16,29 @@ const navConfig: Record<string, { label: string; path: string; icon: React.React
     { label: 'Dashboard', path: '/painel', icon: <Grid size={22} /> },
     { label: 'Lojas', path: '/lojas', icon: <Database size={22} /> },
     { label: 'Loja', path: '/loja', icon: <Home size={22} /> },
+    { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={22} /> },
+    { label: 'LeadOps', path: '/leadops', icon: <PhoneCall size={22} /> },
+    { label: 'Leads', path: '/leads', icon: <Users size={22} /> },
     { label: 'Equipe', path: '/equipe', icon: <Users size={22} /> },
+    { label: 'Tarefas', path: '/tarefas', icon: <CheckSquare size={22} /> },
     { label: 'Metas', path: '/metas', icon: <Target size={22} /> },
     { label: 'Funil', path: '/funil', icon: <CheckSquare size={22} /> },
     { label: 'Check-in', path: '/checkin', icon: <CheckSquare size={22} /> },
     { label: 'Histórico', path: '/historico', icon: <History size={22} /> },
     { label: 'Ranking', path: '/ranking', icon: <Trophy size={22} /> },
+    { label: 'Matinal', path: '/relatorio-matinal', icon: <Presentation size={22} /> },
+    { label: 'Financeiro', path: '/financeiro', icon: <Wallet size={22} /> },
+    { label: 'Estoque', path: '/inventory', icon: <Car size={22} /> },
+    { label: 'Comissões', path: '/configuracoes/comissoes', icon: <FileSignature size={22} /> },
     { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={22} /> },
+    { label: 'Comunicação', path: '/communication', icon: <MessageSquare size={22} /> },
+    { label: 'IA', path: '/ia-diagnostics', icon: <Bot size={22} /> },
+    { label: 'Perf. Vendas', path: '/relatorios/performance-vendas', icon: <Briefcase size={22} /> },
+    { label: 'Perf. Vendedores', path: '/relatorios/performance-vendedores', icon: <Medal size={22} /> },
+    { label: 'Vendas Cruzadas', path: '/relatorios/vendas-cruzados', icon: <Activity size={22} /> },
+    { label: 'Reports', path: '/reports/stock', icon: <LayoutDashboard size={22} /> },
+    { label: 'Activities', path: '/activities', icon: <Activity size={22} /> },
+    { label: 'Gamification', path: '/gamification', icon: <Zap size={22} /> },
     { label: 'Feedback', path: '/feedback', icon: <MessageSquare size={22} /> },
     { label: 'Notificações', path: '/notificacoes', icon: <Bell size={22} /> },
     { label: 'Produtos', path: '/produtos', icon: <LayoutDashboard size={22} /> },
@@ -60,14 +77,32 @@ export default function Layout() {
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   if (!profile || !role) return null
 
   const navItems = navConfig[role] || []
+  const showAdminModuleStrip = role === 'admin'
+  const mobileQuickNav = useMemo(() => {
+    if (role === 'admin') {
+      return [
+        navItems.find(item => item.path === '/painel'),
+        navItems.find(item => item.path === '/lojas'),
+        navItems.find(item => item.path === '/loja'),
+        navItems.find(item => item.path === '/perfil'),
+      ].filter(Boolean) as typeof navItems
+    }
+
+    return navItems.slice(0, 4)
+  }, [navItems, role])
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/login')
   }
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
 
   return (
     <div className="h-[100dvh] bg-[#F8FAFC] text-[#1A1D20] font-sans flex flex-col overflow-hidden selection:bg-[#1A1D20] selection:text-white">
@@ -97,34 +132,53 @@ export default function Layout() {
 
         {/* Center: Top Navigation (Desktop) */}
         <nav className="hidden lg:flex items-center gap-1 xl:gap-2 flex-1 justify-center px-4">
-          <AnimatePresence>
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={`relative text-[11px] font-black uppercase tracking-widest transition-all duration-300 px-6 py-3 rounded-full flex items-center gap-3 ${isActive
-                    ? 'text-[#1A1D20]'
-                    : 'text-gray-400 hover:text-[#1A1D20] hover:bg-white/50'
-                    }`}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="active-pill"
-                      className="absolute inset-0 bg-white shadow-xl shadow-black/[0.03] border border-gray-100 rounded-full z-0"
-                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
-                    />
-                  )}
-                  <span className="relative z-10">{item.label}</span>
-                </NavLink>
-              )
-            })}
-          </AnimatePresence>
+          {showAdminModuleStrip ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="inline-flex items-center gap-3 rounded-full bg-white/70 border border-gray-100 px-4 py-2 shadow-sm">
+                <LayoutDashboard size={16} className="text-indigo-600" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+                  Central de Modulos do Admin
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 xl:gap-2 flex-1 justify-center">
+              <AnimatePresence>
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.path
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={`relative text-[11px] font-black uppercase tracking-widest transition-all duration-300 px-6 py-3 rounded-full flex items-center gap-3 ${isActive
+                        ? 'text-[#1A1D20]'
+                        : 'text-gray-400 hover:text-[#1A1D20] hover:bg-white/50'
+                        }`}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="active-pill"
+                          className="absolute inset-0 bg-white shadow-xl shadow-black/[0.03] border border-gray-100 rounded-full z-0"
+                          transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                        />
+                      )}
+                      <span className="relative z-10">{item.label}</span>
+                    </NavLink>
+                  )
+                })}
+              </AnimatePresence>
+            </div>
+          )}
         </nav>
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2 md:gap-5 w-auto md:w-[320px] justify-end">
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="md:hidden w-10 h-10 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1A1D20]"
+          >
+            <Menu size={18} />
+          </button>
           <div className="hidden sm:flex items-center gap-2 mr-2">
             <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-300 shadow-sm border border-gray-100 hover:text-[#1A1D20] hover:shadow-xl transition-all active:scale-90">
               <Search size={18} strokeWidth={2.5} />
@@ -165,8 +219,33 @@ export default function Layout() {
         </div>
       </header>
 
+      {showAdminModuleStrip && (
+        <div className="hidden lg:block px-3 sm:px-4 md:px-10 pb-4 shrink-0">
+          <div className="rounded-[2rem] bg-white/70 border border-gray-100 shadow-sm px-3 py-3 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-2 min-w-max">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${isActive
+                      ? 'bg-[#1A1D20] text-white shadow-lg'
+                      : 'bg-[#F8FAFC] text-gray-500 hover:text-[#1A1D20] hover:bg-white border border-gray-100'
+                      }`}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </NavLink>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Layout Area */}
-      <div className="flex flex-1 overflow-hidden px-3 sm:px-4 md:px-10 pb-28 md:pb-10 gap-3 md:gap-10 relative">
+      <div className="flex flex-1 overflow-hidden px-3 sm:px-4 md:px-10 pb-24 md:pb-10 gap-3 md:gap-10 relative">
 
         {/* Sidebar Mini (Desktop) */}
         <aside className="hidden md:flex w-20 flex-col items-center py-6 gap-4 relative z-20 shrink-0 min-h-0">
@@ -213,14 +292,15 @@ export default function Layout() {
       </div>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 right-3 h-[72px] bg-[#1A1D20]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2rem] z-50 flex items-center justify-start px-2 border border-white/10 overflow-x-auto no-scrollbar gap-1">
-        {navItems.map((item) => {
+      <nav className="md:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 right-3 min-h-[72px] bg-[#1A1D20]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2rem] z-50 flex items-center px-2 border border-white/10">
+        <div className="grid w-full grid-cols-5 gap-1">
+        {mobileQuickNav.map((item) => {
           const isActive = location.pathname === item.path
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center gap-1.5 min-w-[72px] h-[56px] rounded-2xl transition-all ${isActive ? 'text-white' : 'text-gray-500'}`}
+              className={`flex flex-col items-center justify-center gap-1.5 h-[56px] rounded-2xl transition-all ${isActive ? 'text-white bg-white/8' : 'text-gray-500'}`}
             >
               <div className={`transition-all duration-300 ${isActive ? 'scale-110 text-indigo-400' : 'scale-100'}`}>
                 {item.icon}
@@ -231,7 +311,77 @@ export default function Layout() {
             </NavLink>
           )
         })}
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className={`flex flex-col items-center justify-center gap-1.5 h-[56px] rounded-2xl transition-all ${mobileMenuOpen ? 'text-white bg-white/8' : 'text-gray-500'}`}
+        >
+          <div className={`transition-all duration-300 ${mobileMenuOpen ? 'scale-110 text-indigo-400' : 'scale-100'}`}>
+            <Grid size={22} />
+          </div>
+          <span className={`text-[8px] uppercase tracking-[0.2em] font-black ${mobileMenuOpen ? 'text-white' : 'text-gray-600'}`}>
+            Modulos
+          </span>
+        </button>
+        </div>
       </nav>
+
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-[60] bg-[#1A1D20]/55 backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div className="absolute inset-x-0 bottom-0 max-h-[82vh] rounded-t-[2.25rem] bg-[#F8FAFC] border-t border-white/60 shadow-[0_-20px_60px_rgba(0,0,0,0.2)] overflow-hidden">
+            <div className="px-4 pt-4 pb-3 border-b border-gray-100" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Admin Navigation</p>
+                  <h2 className="text-2xl font-black tracking-tight text-[#1A1D20]">Todos os modulos</h2>
+                </div>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-11 h-11 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#1A1D20]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div
+              className="overflow-y-auto max-h-[calc(82vh-88px)] px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] no-scrollbar"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="grid grid-cols-2 gap-3">
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.path
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`rounded-[1.75rem] border p-4 min-h-[104px] flex flex-col justify-between transition-all ${
+                        isActive
+                          ? 'bg-[#1A1D20] text-white border-[#1A1D20] shadow-xl'
+                          : 'bg-white text-[#1A1D20] border-gray-100 shadow-sm'
+                      }`}
+                    >
+                      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
+                        isActive ? 'bg-white/10 text-indigo-300' : 'bg-[#F8FAFC] text-[#1A1D20]'
+                      }`}>
+                        {item.icon}
+                      </div>
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${
+                        isActive ? 'text-white' : 'text-gray-500'
+                      }`}>
+                        {item.label}
+                      </span>
+                    </NavLink>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

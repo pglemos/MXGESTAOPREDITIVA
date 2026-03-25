@@ -47,7 +47,7 @@ export default function GoalManagement() {
     const monthName = new Date(currentYear, currentMonth - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
 
             {/* Header Area */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -64,14 +64,14 @@ export default function GoalManagement() {
                     </div>
                 </div>
 
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4 shrink-0">
-                    <button className="flex items-center justify-center gap-3 px-8 py-5 rounded-[2rem] bg-white border border-gray-100 font-black text-[10px] uppercase tracking-[0.3em] text-gray-500 hover:text-[#1A1D20] hover:shadow-xl transition-all shadow-sm active:scale-95 group">
+                <div className="flex w-full flex-col gap-4 shrink-0 lg:w-auto lg:flex-row lg:items-center">
+                    <button className="flex w-full items-center justify-center gap-3 rounded-[2rem] border border-gray-100 bg-white px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 shadow-sm transition-all active:scale-95 hover:text-[#1A1D20] hover:shadow-xl group lg:w-auto">
                         <Calendar size={18} className="group-hover:rotate-12 transition-transform" /> Alterar Ciclo
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="flex items-center justify-center gap-3 px-10 py-5 rounded-[2rem] bg-indigo-600 text-white font-black text-[10px] uppercase tracking-[0.3em] hover:bg-indigo-700 hover:shadow-[0_20px_40px_-10px_rgba(79,70,229,0.5)] transition-all disabled:opacity-50 active:scale-95 group/btn"
+                        className="flex w-full items-center justify-center gap-3 rounded-[2rem] bg-indigo-600 px-10 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-white transition-all disabled:opacity-50 active:scale-95 hover:bg-indigo-700 hover:shadow-[0_20px_40px_-10px_rgba(79,70,229,0.5)] group/btn lg:w-auto"
                     >
                         {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={18} className="group-hover/btn:scale-110 transition-transform" /> Firmar Planejamento</>}
                     </button>
@@ -84,7 +84,7 @@ export default function GoalManagement() {
                 <div className="lg:col-span-5 flex flex-col gap-10">
 
                     {/* Store Target Input */}
-                    <div className="inner-card p-12 bg-white border-gray-100 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden group">
+                    <div className="inner-card p-6 sm:p-8 md:p-12 bg-white border-gray-100 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(79,70,229,0.03)_1px,transparent_1px)] bg-[length:24px_24px] pointer-events-none" />
                         <div className="absolute -right-32 -top-32 w-80 h-80 bg-indigo-50/50 rounded-full blur-[100px] z-0 pointer-events-none" />
 
@@ -106,7 +106,7 @@ export default function GoalManagement() {
                                     value={storeMeta || storeGoal?.target || 0}
                                     min={0}
                                     onChange={e => setStoreMeta(parseInt(e.target.value) || 0)}
-                                    className="w-full bg-[#F8FAFC] border border-gray-100 rounded-[3rem] px-8 py-16 text-8xl font-black text-[#1A1D20] focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-2xl focus:shadow-indigo-500/10 transition-all text-center tracking-tighter shadow-sm"
+                                    className="w-full bg-[#F8FAFC] border border-gray-100 rounded-[3rem] px-6 py-10 text-6xl font-black text-[#1A1D20] focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-2xl focus:shadow-indigo-500/10 transition-all text-center tracking-tighter shadow-sm sm:px-8 sm:py-16 sm:text-8xl"
                                 />
                                 <div className="absolute right-8 bottom-8 pointer-events-none">
                                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100/50 block shadow-sm">Target</span>

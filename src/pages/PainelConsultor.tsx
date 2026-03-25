@@ -170,7 +170,7 @@ export default function PainelConsultor() {
     }
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-8 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-8 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
             <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 border-b border-gray-50 pb-8">
                 <div>
                     <div className="flex items-center gap-3 mb-3">
@@ -228,7 +228,7 @@ export default function PainelConsultor() {
                     </div>
 
                     <div className="rounded-[2.5rem] border border-gray-100 bg-white shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
-                        <div className="p-8 border-b border-gray-50 flex items-center justify-between gap-4">
+                        <div className="p-6 sm:p-8 border-b border-gray-50 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">Run-rate da rede</p>
                                 <h2 className="text-2xl font-black tracking-tight">Lojas, meta, pacing e projeção</h2>
@@ -311,14 +311,14 @@ export default function PainelConsultor() {
                 </div>
 
                 <div className="xl:col-span-4 flex flex-col gap-8">
-                    <div className="rounded-[2.5rem] bg-[#1A1D20] text-white p-8 shadow-2xl shadow-indigo-500/20">
-                        <div className="flex items-center justify-between mb-8">
+                    <div className="rounded-[2.5rem] bg-[#1A1D20] text-white p-6 sm:p-8 shadow-2xl shadow-indigo-500/20">
+                        <div className="flex items-center justify-between gap-4 mb-8">
                             <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
                                 <Activity size={24} className="text-indigo-300" />
                             </div>
                             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Saude da operacao</span>
                         </div>
-                        <p className="text-6xl font-black tracking-tighter leading-none">{globalPacing}%</p>
+                        <p className="text-5xl sm:text-6xl font-black tracking-tighter leading-none">{globalPacing}%</p>
                         <p className="mt-3 text-sm font-bold text-white/60">Pacing consolidado da rede com base nas metas mensais configuradas.</p>
                         <div className="mt-6 h-3.5 w-full rounded-full bg-white/10 p-0.5">
                             <motion.div
@@ -379,7 +379,7 @@ export default function PainelConsultor() {
 
                             <div className="space-y-4">
                                 {ranking.slice(0, 5).map((item, index) => (
-                                    <div key={item.user_id} className="flex items-center justify-between rounded-[1.8rem] bg-[#F8FAFC] border border-gray-100 px-5 py-4">
+                                    <div key={item.user_id} className="flex flex-col gap-4 rounded-[1.8rem] bg-[#F8FAFC] border border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="flex items-center gap-4 min-w-0">
                                             <div className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center font-black text-sm">
                                                 {index + 1}
@@ -426,7 +426,7 @@ function AlertItem({ title, count, description }: { title: string; count: number
     const tone = count > 0 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
 
     return (
-        <div className="flex items-center justify-between gap-4 rounded-[1.8rem] border border-gray-100 bg-[#F8FAFC] px-5 py-4">
+        <div className="flex flex-col gap-4 rounded-[1.8rem] border border-gray-100 bg-[#F8FAFC] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p className="font-black text-sm text-[#1A1D20]">{title}</p>
                 <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mt-1">{description}</p>
