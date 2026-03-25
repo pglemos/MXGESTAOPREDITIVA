@@ -50,7 +50,7 @@ export default function Lojas() {
                 <div className="flex items-center gap-4 shrink-0">
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex items-center justify-center gap-3 px-8 py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Implementar Node
@@ -115,13 +115,13 @@ export default function Lojas() {
                             <div className="pt-8 relative z-10 flex flex-col-reverse sm:flex-row justify-end gap-4 border-t border-gray-50">
                                 <button
                                     type="button" onClick={() => setShowForm(false)}
-                                    className="px-10 py-5 rounded-[2.5rem] text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#1A1D20] hover:bg-gray-50 transition-all"
+                                    className="w-full sm:w-auto px-4 sm:px-10 py-3 sm:py-5 rounded-[2.5rem] text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-gray-400 hover:text-[#1A1D20] hover:bg-gray-50 transition-all"
                                 >
                                     Abortar Registro
                                 </button>
                                 <button
                                     type="submit" disabled={saving}
-                                    className="px-12 py-5 rounded-[2.5rem] bg-indigo-600 text-white font-black flex items-center justify-center gap-3 hover:bg-indigo-700 hover:shadow-[0_20px_40px_-10px_rgba(79,70,229,0.5)] transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
+                                    className="w-full sm:w-auto px-4 sm:px-12 py-3 sm:py-5 rounded-[2.5rem] bg-indigo-600 text-white font-black flex items-center justify-center gap-3 hover:bg-indigo-700 hover:shadow-[0_20px_40px_-10px_rgba(79,70,229,0.5)] transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] group/btn"
                                 >
                                     {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Implantar Node <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" /></>}
                                 </button>

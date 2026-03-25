@@ -73,16 +73,16 @@ export default function DashboardLoja() {
                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em] pl-6 opacity-60">Intelligence & Performance Control</p>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 shrink-0">
                     <div className="flex items-center gap-2 p-1.5 bg-gray-100/50 rounded-2xl border border-gray-200/50">
                         <button className="px-5 py-2.5 rounded-xl bg-white text-[#1A1D20] font-black text-[10px] uppercase tracking-widest shadow-sm">Mensal</button>
                         <button className="px-5 py-2.5 rounded-xl text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-[#1A1D20] transition-colors">Semanal</button>
                     </div>
-                    <div className="w-px h-10 bg-gray-200 mx-2" />
+                    <div className="hidden sm:block w-px h-10 bg-gray-200 mx-2" />
                     <button className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-indigo-600 hover:shadow-xl transition-all shadow-sm active:scale-95">
                         <Download size={20} />
                     </button>
-                    <button className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-[#1A1D20] text-white font-black text-[10px] uppercase tracking-[0.1em] hover:bg-black hover:shadow-2xl transition-all shadow-xl active:scale-95">
+                    <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-8 py-3.5 rounded-full bg-[#1A1D20] text-white font-black text-[10px] uppercase tracking-[0.1em] hover:bg-black hover:shadow-2xl transition-all shadow-xl active:scale-95">
                         <Share2 size={16} /> Relatórios
                     </button>
                 </div>

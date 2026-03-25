@@ -61,7 +61,7 @@ export default function PainelConsultor() {
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
-                    <div className="flex items-center -space-x-4 mr-6">
+                    <div className="hidden sm:flex items-center -space-x-4 mr-2 md:mr-6">
                         {stores.slice(0, 4).map((s, i) => (
                             <div key={s.id} className="w-12 h-12 rounded-full border-4 border-white bg-[#F8FAFC] flex items-center justify-center text-[10px] font-black text-gray-400 shadow-sm relative z-50 hover:z-50 hover:-translate-y-2 transition-all group cursor-default">
                                 {s.name.charAt(0)}
@@ -77,7 +77,7 @@ export default function PainelConsultor() {
                             </div>
                         )}
                     </div>
-                    <button className="flex items-center justify-center gap-3 px-8 py-5 rounded-[2rem] bg-white border border-gray-100 font-black text-[10px] uppercase tracking-[0.3em] text-gray-500 hover:text-[#1A1D20] hover:shadow-xl transition-all shadow-sm active:scale-95 group">
+                    <button className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-[2rem] bg-white border border-gray-100 font-black text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-gray-500 hover:text-[#1A1D20] hover:shadow-xl transition-all shadow-sm active:scale-95 group">
                         <LayoutDashboard size={18} className="group-hover:scale-110 transition-transform" /> Ver Relatório
                     </button>
                 </div>

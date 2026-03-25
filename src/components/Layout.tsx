@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
 import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
-  Bell, User, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, Mail,
-  LogOut, Menu, X, Sparkles, Shield, ChevronRight, Zap
+  Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search,
+  LogOut, Zap
 } from 'lucide-react'
 
 // Define the nav config based on user role with actual icons
@@ -40,8 +40,6 @@ export default function Layout() {
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const location = useLocation()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
   if (!profile || !role) return null
 
   const navItems = navConfig[role] || []
@@ -52,13 +50,13 @@ export default function Layout() {
   }
 
   return (
-    <div className="h-screen bg-[#F8FAFC] text-[#1A1D20] font-sans flex flex-col overflow-hidden selection:bg-[#1A1D20] selection:text-white">
+    <div className="h-[100dvh] bg-[#F8FAFC] text-[#1A1D20] font-sans flex flex-col overflow-hidden selection:bg-[#1A1D20] selection:text-white">
 
       {/* Top Header */}
-      <header className="h-[72px] md:h-[96px] w-full px-4 md:px-10 flex items-center justify-between z-40 bg-transparent shrink-0">
+      <header className="h-[72px] md:h-[96px] w-full px-3 sm:px-4 md:px-10 flex items-center justify-between z-40 bg-transparent shrink-0">
 
         {/* Left: Logo & Context */}
-        <div className="flex items-center gap-5 w-auto md:w-[320px]">
+        <div className="flex items-center gap-3 md:gap-5 min-w-0 w-auto md:w-[320px]">
           <motion.div
             whileHover={{ rotate: 5, scale: 1.05 }}
             className="w-12 h-12 rounded-[1.2rem] bg-[#1A1D20] flex items-center justify-center shadow-xl shadow-black/10 group cursor-pointer"
@@ -66,11 +64,11 @@ export default function Layout() {
           >
             <Zap size={24} className="text-white fill-white/10 group-hover:fill-white/40 transition-all" />
           </motion.div>
-          <div className="flex flex-col">
-            <span className="font-black text-xl md:text-2xl tracking-tighter leading-none text-[#1A1D20] whitespace-nowrap">
-              MX <span className="text-gray-400 font-bold">Gestão Preditiva</span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-black text-base sm:text-lg md:text-2xl tracking-tight leading-none text-[#1A1D20] whitespace-nowrap truncate max-w-[180px] sm:max-w-none">
+              MX <span className="text-gray-400 font-bold hidden sm:inline">Gestão Preditiva</span>
             </span>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="hidden sm:flex items-center gap-1.5 mt-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Node Cluster 01 • Active</span>
             </div>
@@ -106,7 +104,7 @@ export default function Layout() {
         </nav>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-3 md:gap-5 w-auto md:w-[320px] justify-end">
+        <div className="flex items-center gap-2 md:gap-5 w-auto md:w-[320px] justify-end">
           <div className="hidden sm:flex items-center gap-2 mr-2">
             <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-300 shadow-sm border border-gray-100 hover:text-[#1A1D20] hover:shadow-xl transition-all active:scale-90">
               <Search size={18} strokeWidth={2.5} />
@@ -123,14 +121,14 @@ export default function Layout() {
           </div>
 
           {/* Profile & Name */}
-          <div className="flex items-center gap-4 pl-4 border-l border-gray-100 lg:pl-6">
+          <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-4 border-l border-gray-100 lg:pl-6">
             <div className="hidden lg:flex flex-col items-end">
               <span className="text-[11px] font-black text-[#1A1D20] tracking-tight leading-none mb-1">{profile.name}</span>
               <span className="text-[8px] font-black uppercase tracking-widest text-[#1A1D20]/40 bg-gray-100 px-2 py-0.5 rounded-full">{role} access</span>
             </div>
             <button
               onClick={handleSignOut}
-              className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:ring-4 ring-indigo-500/10 transition-all p-1 bg-white border border-gray-100 relative group"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:ring-4 ring-indigo-500/10 transition-all p-1 bg-white border border-gray-100 relative group"
             >
               <div className="w-full h-full rounded-xl bg-gradient-to-tr from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-600 font-black uppercase overflow-hidden text-sm">
                 {profile.avatar_url ? (
@@ -148,7 +146,7 @@ export default function Layout() {
       </header>
 
       {/* Main Layout Area */}
-      <div className="flex flex-1 overflow-hidden px-4 md:px-10 pb-24 md:pb-10 gap-4 md:gap-10 relative">
+      <div className="flex flex-1 overflow-hidden px-3 sm:px-4 md:px-10 pb-28 md:pb-10 gap-3 md:gap-10 relative">
 
         {/* Sidebar Mini (Desktop) */}
         <aside className="hidden md:flex w-20 flex-col items-center py-6 gap-4 relative z-20 shrink-0">
@@ -195,7 +193,7 @@ export default function Layout() {
       </div>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-[76px] bg-[#1A1D20]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2.5rem] z-50 flex items-center justify-around px-4 border border-white/10">
+      <nav className="md:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 right-3 h-[72px] bg-[#1A1D20]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2rem] z-50 flex items-center justify-around px-2 border border-white/10">
         {navItems.slice(0, 5).map((item) => {
           const isActive = location.pathname === item.path
           return (

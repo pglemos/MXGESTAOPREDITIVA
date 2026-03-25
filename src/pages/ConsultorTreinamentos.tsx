@@ -56,14 +56,14 @@ export default function ConsultorTreinamentos() {
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
-                    <button className="flex items-center justify-center gap-2 px-6 py-5 rounded-[2rem] bg-white border border-gray-100 font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 hover:text-blue-600 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all shadow-sm active:scale-95 group relative overflow-hidden">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0 w-full sm:w-auto">
+                    <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-5 rounded-[2rem] bg-white border border-gray-100 font-black text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-gray-400 hover:text-blue-600 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all shadow-sm active:scale-95 group relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Filter size={16} /> Filtrar
                     </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex items-center justify-center gap-3 px-8 py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Conteúdo

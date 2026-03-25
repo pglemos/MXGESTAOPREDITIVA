@@ -9,6 +9,11 @@
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
+
+  #root {
+    height: 100dvh;
+    width: 100%;
+  }
 }
 
 /* Minimalist clean scrollbar */
@@ -173,4 +178,47 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@media (max-width: 640px) {
+  .text-\[38px\],
+  .text-\[36px\] {
+    font-size: 1.8rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .tracking-\[0\.4em\] {
+    letter-spacing: 0.22em !important;
+  }
+
+  .tracking-\[0\.3em\] {
+    letter-spacing: 0.18em !important;
+  }
+
+  .rounded-\[4rem\] {
+    border-radius: 2rem !important;
+  }
+
+  .rounded-\[3rem\] {
+    border-radius: 1.75rem !important;
+  }
+
+  .rounded-\[2\.5rem\] {
+    border-radius: 1.5rem !important;
+  }
+
+  .rounded-\[2rem\] {
+    border-radius: 1.25rem !important;
+  }
+
+  .px-10,
+  .px-12 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  button[class*="tracking-[0.3em]"] {
+    white-space: normal;
+    text-align: center;
+  }
 }
