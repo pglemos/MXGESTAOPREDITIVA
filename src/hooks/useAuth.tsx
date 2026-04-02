@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, createContext, useContext, useRef, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User as AppUser, UserRole, Membership, Store } from '@/types/database'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
 interface AuthState {
+    initialized: boolean
     supabaseUser: SupabaseUser | null
     profile: AppUser | null
     membership: (Membership & { store: Store }) | null
@@ -15,7 +16,7 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState>({
-    supabaseUser: null, profile: null, membership: null, role: null, storeId: null, loading: true,
+    supabaseUser: null, profile: null, membership: null, role: null, storeId: null, initialized: false, loading: true,
     signIn: async () => ({ error: null }), signOut: async () => { },
 })
 
@@ -37,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [membership, setMembership] = useState<(Membership & { store: Store }) | null>(null)
     const [fallbackStoreId, setFallbackStoreId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
+    const [initialized, setInitialized] = useState(false)
+    const authBootstrapCompleteRef = useRef(false)
 
     const fetchProfile = useCallback(async (userId: string) => {
         const { data, error } = await supabase.from('users').select('*').eq('id', userId).single()
@@ -81,17 +84,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let mounted = true;
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (mounted) {
-                setSupabaseUser(session?.user || null)
-                if (!session?.user) setLoading(false)
+        async function bootstrapAuth() {
+            authBootstrapCompleteRef.current = false
+            setInitialized(false)
+            setLoading(true)
+
+            const { data: { session } } = await supabase.auth.getSession()
+            let nextUser = session?.user || null
+
+            // Hard reloads can briefly miss the stored session. Double-check the user
+            // before allowing protected routes to redirect to /login.
+            if (!nextUser) {
+                const { data, error } = await supabase.auth.getUser()
+                if (!error) nextUser = data.user || null
             }
-        })
+
+            if (!mounted) return
+
+            setSupabaseUser(nextUser)
+            authBootstrapCompleteRef.current = true
+            setInitialized(true)
+            if (!nextUser) setLoading(false)
+        }
+
+        bootstrapAuth()
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (mounted) {
                 setSupabaseUser(session?.user || null)
-                if (!session?.user) setLoading(false)
+                if (session?.user) {
+                    setInitialized(true)
+                    setLoading(true)
+                } else if (authBootstrapCompleteRef.current) {
+                    setLoading(false)
+                }
             }
         })
 
@@ -128,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (supabaseUser) {
             setLoading(true) // ensure we show spinner while loading profile
             loadUserData(supabaseUser.id)
-        } else {
+        } else if (initialized) {
             setProfile(null)
             setMembership(null)
             setFallbackStoreId(null)
@@ -138,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             mounted = false;
         }
-    }, [supabaseUser, fetchProfile, fetchMembership])
+    }, [supabaseUser, initialized, fetchProfile, fetchMembership])
 
     const signIn = async (email: string, password: string) => {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -156,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storeId = membership?.store_id || fallbackStoreId || null
 
     return (
-        <AuthContext.Provider value={{ supabaseUser, profile, membership, role, storeId, loading, signIn, signOut }}>
+        <AuthContext.Provider value={{ supabaseUser, profile, membership, role, storeId, initialized, loading, signIn, signOut }}>
             {children}
         </AuthContext.Provider>
     )

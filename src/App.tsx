@@ -65,9 +65,9 @@ const withLegacyShell = (node: React.ReactNode) => (
 )
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading } = useAuth()
+  const { profile, loading, initialized } = useAuth()
   const location = useLocation()
-  if (loading) return <div className="h-screen flex items-center justify-center bg-slate-950"><Spinner /></div>
+  if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-slate-950"><Spinner /></div>
   if (!profile) return <Navigate to="/login" state={{ from: location }} replace />
   return <>{children}</>
 }

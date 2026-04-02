@@ -1,0 +1,467 @@
+[
+  {
+    "route": "/painel",
+    "buttons": 12,
+    "inputs": 0,
+    "links": 6,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/lojas",
+    "buttons": 14,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/loja",
+    "buttons": 18,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/agenda",
+    "buttons": 24,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/leadops",
+    "buttons": 29,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/leads",
+    "buttons": 17,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/equipe",
+    "buttons": 13,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/tarefas",
+    "buttons": 24,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/metas",
+    "buttons": 14,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/funil",
+    "buttons": 14,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/checkin",
+    "buttons": 28,
+    "inputs": 2,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/historico",
+    "buttons": 12,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/ranking",
+    "buttons": 12,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/relatorio-matinal",
+    "buttons": 14,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/financeiro",
+    "buttons": 15,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/inventory",
+    "buttons": 17,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/configuracoes/comissoes",
+    "buttons": 17,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/treinamentos",
+    "buttons": 14,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/communication",
+    "buttons": 14,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/ia-diagnostics",
+    "buttons": 18,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/relatorios/performance-vendas",
+    "buttons": 14,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/relatorios/performance-vendedores",
+    "buttons": 14,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/relatorios/vendas-cruzados",
+    "buttons": 15,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/reports/stock",
+    "buttons": 14,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/activities",
+    "buttons": 19,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/gamification",
+    "buttons": 15,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/feedback",
+    "buttons": 14,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/notificacoes",
+    "buttons": 13,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/produtos",
+    "buttons": 14,
+    "inputs": 1,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/configuracoes",
+    "buttons": 12,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  },
+  {
+    "route": "/perfil",
+    "buttons": 13,
+    "inputs": 0,
+    "links": 0,
+    "designTokens": {
+      "bodyFont": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "bodyBg": "rgb(248, 250, 252)",
+      "h1Font": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "h1Color": "rgb(26, 29, 32)",
+      "primaryBtnBg": "rgb(255, 255, 255)",
+      "primaryBtnRadius": "3.35544e+07px"
+    },
+    "issues": []
+  }
+]

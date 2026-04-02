@@ -38,8 +38,10 @@ export default function ProdutosDigitais() {
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
     if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] soft-card h-full">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        <div className="flex h-full min-h-[60vh] flex-col items-center justify-center soft-card px-6 text-center">
+            <h1 className="text-3xl font-black tracking-tighter text-[#1A1D20]">Vitrine Digital</h1>
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Catalogo em carregamento</p>
+            <div className="mt-6 w-12 h-12 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
             <p className="mt-4 text-slate-500 text-sm font-black tracking-widest uppercase">Indexando catálogo digital...</p>
         </div>
     )
