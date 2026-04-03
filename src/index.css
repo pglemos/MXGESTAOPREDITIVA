@@ -71,8 +71,8 @@
   
   /* Text (WCAG Compliance) */
   --color-text-primary: var(--color-mx-black);
-  --color-text-secondary: var(--color-mx-slate-500);
-  --color-text-tertiary: var(--color-mx-slate-400);
+  --color-text-secondary: #475569; /* Slate 600 - Melhor contraste */
+  --color-text-tertiary: #64748B;  /* Slate 500 - Melhor contraste */
   --color-text-on-brand: var(--color-mx-white);
 
   /* ============================================ */

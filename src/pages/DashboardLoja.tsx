@@ -122,7 +122,7 @@ export default function DashboardLoja() {
                                         <Badge variant="outline" className={cn("text-[9px] font-black border-none px-2 h-6", ch.bg, ch.color)}>{ch.pct}%</Badge>
                                     </div>
                                     <p className="text-4xl font-black text-text-primary tracking-tighter font-mono-numbers leading-none mb-2">{ch.value}</p>
-                                    <p className="mx-text-caption !text-[9px] uppercase tracking-widest opacity-40">{ch.label}</p>
+                                    <p className="mx-text-caption !text-[9px] uppercase tracking-widest text-text-secondary font-black">{ch.label}</p>
                                 </div>
                             ))}
                         </div>
