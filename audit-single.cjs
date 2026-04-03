@@ -6,17 +6,24 @@ const path = require('path');
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
 
-  console.log('Realizando login para auditoria...');
+  page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
+
+  console.log('Tentando acessar /painel...');
   await page.goto('https://autogestao.vercel.app/login');
   await page.fill('input[type="email"]', 'admin@autogestao.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   await page.click('button[type="submit"]');
-  await page.waitForURL('**/painel');
-  await page.waitForTimeout(3000);
-
-  const filePath = path.join(__dirname, 'audit_painel.png');
-  await page.screenshot({ path: filePath, fullPage: true });
-  console.log('📸 Screenshot do /painel salvo em:', filePath);
+  
+  try {
+    await page.waitForURL('**/painel', { timeout: 10000 });
+    await page.waitForTimeout(5000);
+    const filePath = path.join(__dirname, 'audit_painel_error.png');
+    await page.screenshot({ path: filePath, fullPage: true });
+    console.log('📸 Screenshot salvo em:', filePath);
+  } catch (e) {
+    console.log('❌ Timeout ou Erro de Navegação:', e.message);
+  }
   
   await browser.close();
 })();

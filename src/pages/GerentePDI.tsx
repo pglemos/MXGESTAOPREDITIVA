@@ -4,7 +4,8 @@ import { useState, useCallback, useMemo } from 'react'
 import { Plus, Target, CheckCircle2, Calendar, User, TrendingUp, Search, Briefcase, X, MessageSquare, AlertCircle, Clock, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge"
 
 const statusCfg = {
     aberto: { color: 'bg-rose-50 text-rose-600 border-rose-100', label: 'Aberto' },

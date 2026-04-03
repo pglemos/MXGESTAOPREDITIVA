@@ -6,6 +6,7 @@ import { Package, Plus, X, Save, ExternalLink, Search, MoreHorizontal, Sparkles,
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { Badge } from '@/components/ui/badge'
 import { z } from 'zod'
 
 const productSchema = z.object({

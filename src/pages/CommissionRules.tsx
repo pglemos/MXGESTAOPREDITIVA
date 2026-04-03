@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { Plus, Trash2, FileSignature, RefreshCw, AlertTriangle, CheckCircle2, X, ChevronRight, Settings } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -16,6 +16,54 @@ export default function CommissionRules() {
     const [open, setOpen] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
     const [editingRuleId, setEditingRuleId] = useState<string | null>(null)
+    const undoRef = useRef<(() => void) | null>(null)
+
+    // Atalho Global Ctrl+Z / Cmd+Z
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                if (undoRef.current) {
+                    e.preventDefault()
+                    undoRef.current()
+                    undoRef.current = null
+                }
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
+
+    const handleDelete = (id: string) => {
+        const ruleToDelete = commissionRules.find(r => r.id === id);
+        if (!ruleToDelete) return;
+
+        let wasCanceled = false;
+
+        const cancelAction = () => {
+            wasCanceled = true;
+            undoRef.current = null;
+            toast.success("Diretriz de incentivo preservada!", {
+                icon: <RefreshCw size={14} className="animate-spin text-brand-primary" />
+            });
+        };
+
+        undoRef.current = cancelAction;
+
+        toast.warning(`Removendo diretriz estratégica`, {
+            description: "Pressione Ctrl+Z para desfazer agora.",
+            action: {
+                label: "DESFAZER",
+                onClick: cancelAction
+            },
+            onAutoClose: () => {
+                if (!wasCanceled) {
+                    deleteCommissionRule(id);
+                    if (undoRef.current === cancelAction) undoRef.current = null;
+                }
+            },
+            duration: 5000,
+        });
+    }
     
     const [form, setForm] = useState({ sellerId: 'all', vehicleType: 'all', marginMin: '', marginMax: '', percentage: '' })
 
@@ -80,7 +128,7 @@ export default function CommissionRules() {
                                     <td className="py-4"><Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest">{rule.vehicleType || 'Todos'}</Badge></td>
                                     <td className="py-4 text-center font-mono-numbers font-bold text-xs text-text-tertiary">{rule.marginMin || 0}% → {rule.marginMax || '∞'}%</td>
                                     <td className="py-4 text-center"><div className="inline-flex items-center px-mx-sm py-1.5 rounded-mx-md bg-brand-primary-surface text-brand-primary font-black text-sm shadow-mx-sm">{rule.percentage}%</div></td>
-                                    <td className="pr-mx-lg py-4 text-right"><div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleEdit(rule)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-brand-primary transition-all flex items-center justify-center"><FileSignature size={16} /></button><button onClick={() => deleteCommissionRule(rule.id)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-status-error transition-all flex items-center justify-center"><Trash2 size={16} /></button></div></td>
+                                    <td className="pr-mx-lg py-4 text-right"><div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleEdit(rule)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-brand-primary transition-all flex items-center justify-center"><FileSignature size={16} /></button><button onClick={() => handleDelete(rule.id)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-status-error transition-all flex items-center justify-center"><Trash2 size={16} /></button></div></td>
                                 </tr>
                             ))}
                         </tbody>

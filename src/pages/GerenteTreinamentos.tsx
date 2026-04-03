@@ -2,7 +2,8 @@ import { useTrainings, useTeamTrainings } from '@/hooks/useData'
 import { motion, AnimatePresence } from 'motion/react'
 import { useState, useMemo, useCallback } from 'react'
 import { GraduationCap, Play, CheckCircle, Clock, Users, Target, BookOpen, ChevronRight, Sparkles, RefreshCw, Search, X, Filter } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge"
 import { toast } from 'sonner'
 
 const typeColors: Record<string, string> = {

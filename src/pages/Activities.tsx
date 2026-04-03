@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { AlertTriangle, Calendar, Car, CheckCircle, Clock, FileText, PhoneCall, XCircle, Search, RefreshCw, X, MoreVertical, Trash2, MapPin, UserCheck, Send, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
@@ -32,6 +32,22 @@ export default function Activities() {
   const [selectedLeadId, setSelectedLeadId] = useState(leads[0]?.id || '')
   const [isRefetching, setIsRefetching] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const undoRef = useRef<(() => void) | null>(null)
+
+  // Atalho Global Ctrl+Z / Cmd+Z
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (undoRef.current) {
+          e.preventDefault()
+          undoRef.current()
+          undoRef.current = null
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // 3. UI Failure: Dynamic progress width
   const executionRate = useMemo(() => {
@@ -67,10 +83,35 @@ export default function Activities() {
   }
 
   const deleteActivity = (id: string) => {
-    if (window.confirm("Remover este registro da timeline?")) {
-      setActivities(prev => prev.filter(a => a.id !== id))
-      toast.info('Registro removido.')
-    }
+    const actToDelete = activities.find(a => a.id === id);
+    if (!actToDelete) return;
+
+    let wasCanceled = false;
+
+    const cancelAction = () => {
+      wasCanceled = true;
+      undoRef.current = null;
+      toast.success(`Registro "${actToDelete.label}" preservado!`, {
+        icon: <RefreshCw size={14} className="animate-spin text-indigo-600" />
+      });
+    };
+
+    undoRef.current = cancelAction;
+
+    toast.warning(`Removendo: ${actToDelete.label}`, {
+      description: "Pressione Ctrl+Z para desfazer agora.",
+      action: {
+        label: "DESFAZER",
+        onClick: cancelAction
+      },
+      onAutoClose: () => {
+        if (!wasCanceled) {
+          setActivities(prev => prev.filter(a => a.id !== id));
+          if (undoRef.current === cancelAction) undoRef.current = null;
+        }
+      },
+      duration: 5000,
+    });
   }
 
   const filteredActivities = useMemo(() => {

@@ -1,4 +1,5 @@
-import { useNotifications } from '@/hooks/useData'
+import { useNotifications } from '@/hooks/useData';
+import { Badge } from '@/components/ui/badge'
 import { useStores } from '@/hooks/useTeam'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'

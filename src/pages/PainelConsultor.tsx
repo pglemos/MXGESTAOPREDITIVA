@@ -24,6 +24,7 @@ import { useGlobalRanking } from '@/hooks/useRanking'
 import { useNotifications } from '@/hooks/useData'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 type StoreSales = { total: number; porta: number; cart: number; net: number }
 

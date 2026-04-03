@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { AlertCircle, CheckCircle2, Clock, Filter, MessageSquare, MoreVertical, Phone, Search, Sparkles, TrendingUp, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { Badge } from '@/components/ui/badge'
 
 const INITIAL_LEADS = [
   { id: 1, name: 'Carlos Silva', phone: '11987654321', vehicle: 'Jeep Compass 2022', source: 'Meta Ads', status: 'Novo', sla: 'estourado', time: '15m', owner: 'Joao', score: 92, aiSuggestion: 'Alta intenção de compra. Ligue imediatamente e ofereça test-drive.' },
