@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { CalendarDays, Plus, ChevronLeft, ChevronRight, Clock, MapPin, User, MoreVertical, CheckCircle2, AlertCircle, Search, RefreshCw, X } from 'lucide-react'
+import { CalendarDays, Plus, ChevronLeft, ChevronRight, Clock, MapPin, User, MoreVertical, CheckCircle2, AlertTriangle, Search, RefreshCw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
