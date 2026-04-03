@@ -87,16 +87,18 @@ export default function Reports() {
                     </ResponsiveContainer>
                 </div></Card></div>
 
-                <div className="lg:col-span-4"><Card className="h-full flex flex-col"><CardHeader><CardTitle>Distribuição de Idade</CardTitle><CardDescription>Aging Operacional</CardDescription></CardHeader><div className="p-mx-lg flex-1 flex flex-col items-center justify-center">
-                    <ResponsiveContainer width="100%" height={240}>
-                        <PieChart>
-                            <Pie data={stockAgingData} innerRadius={70} outerRadius={95} paddingAngle={8} dataKey="value" stroke="none">
-                                {stockAgingData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
-                            </Pie>
-                            <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px' }} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                    <div className="w-full mt-mx-lg space-y-2">
+                <div className="lg:col-span-4"><Card className="h-full flex flex-col"><CardHeader><CardTitle>Distribuição de Idade</CardTitle><CardDescription>Aging Operacional</CardDescription></CardHeader><div className="p-mx-lg flex-1 flex flex-col items-center">
+                    <div className="h-[180px] w-full mb-mx-md">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie data={stockAgingData} innerRadius={60} outerRadius={80} paddingAngle={8} dataKey="value" stroke="none">
+                                    {stockAgingData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
+                                </Pie>
+                                <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px' }} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="w-full space-y-2">
                         {stockAgingData.map((item, i) => (
                             <div key={i} className="flex items-center justify-between p-3 rounded-mx-md bg-mx-slate-50 border border-border-subtle hover:bg-white transition-all">
                                 <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} /><span className="text-[10px] font-black uppercase tracking-tight">{item.name}</span></div>
