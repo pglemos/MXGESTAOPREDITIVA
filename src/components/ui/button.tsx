@@ -4,22 +4,23 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-mx-indigo-500/10 disabled:pointer-events-none disabled:opacity-30 [&_svg]:pointer-events-none [&_svg]:shrink-0 active:scale-95 font-black uppercase tracking-[0.2em]',
     {
         variants: {
             variant: {
-                default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90 relative z-10',
-                destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 relative z-10',
-                outline: 'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground relative z-10',
-                secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 relative z-10',
-                ghost: 'hover:bg-accent hover:text-accent-foreground relative z-10',
-                link: 'text-primary underline-offset-4 hover:underline relative z-10',
+                default: 'bg-brand-secondary text-mx-white shadow-mx-md hover:bg-brand-secondary-hover hover:shadow-mx-lg',
+                primary: 'bg-brand-primary text-mx-white shadow-mx-md hover:bg-brand-primary-hover hover:shadow-mx-lg',
+                destructive: 'bg-status-error text-mx-white shadow-mx-sm hover:opacity-90',
+                outline: 'border-2 border-border-strong bg-transparent text-text-primary hover:bg-mx-slate-50',
+                secondary: 'bg-brand-primary-surface text-brand-primary border border-mx-indigo-100 hover:bg-mx-indigo-100',
+                ghost: 'text-text-secondary hover:bg-mx-slate-50 hover:text-text-primary',
+                link: 'text-brand-primary underline-offset-4 hover:underline',
             },
             size: {
-                default: 'h-9 px-4 py-2',
-                sm: 'h-8 rounded-md px-3 text-xs',
-                lg: 'h-10 rounded-md px-8',
-                icon: 'h-9 w-9',
+                default: 'h-14 px-8 text-[10px] rounded-full',
+                sm: 'h-10 px-6 text-[9px] rounded-xl',
+                lg: 'h-20 px-12 text-xs rounded-full',
+                icon: 'h-12 w-12 rounded-2xl',
             },
         },
         defaultVariants: { variant: 'default', size: 'default' },
