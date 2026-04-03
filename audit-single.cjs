@@ -17,9 +17,9 @@ const path = require('path');
   
   try {
     await page.waitForURL('**/painel', { timeout: 10000 });
-    await page.goto('https://autogestao.vercel.app/reports/stock');
+    await page.goto('https://autogestao.vercel.app/relatorio-matinal');
     await page.waitForTimeout(5000);
-    const filePath = path.join(__dirname, 'audit_report_stock.png');
+    const filePath = path.join(__dirname, 'audit_matinal.png');
     await page.screenshot({ path: filePath, fullPage: true });
     console.log('📸 Screenshot salvo em:', filePath);
   } catch (e) {

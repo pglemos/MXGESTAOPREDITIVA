@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Presentation, TrendingUp, Target, Zap, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw, X, Download, Coffee, MessageCircle, BarChart3, Bot, Sparkles, Filter, Users, Star } from 'lucide-react'
+import { Presentation, TrendingUp, Target, Zap, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw, X, Download, Coffee, MessageCircle, BarChart3, Bot, Sparkles, Filter, Users, Star, ShieldCheck, Calendar } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
