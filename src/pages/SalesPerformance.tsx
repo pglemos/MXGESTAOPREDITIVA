@@ -64,9 +64,9 @@ export default function SalesPerformance() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0 pb-mx-3xl">
-                <div className="lg:col-span-8"><Card className="h-full"><CardHeader className="flex-row items-center justify-between"><div><CardTitle>Evolução de Sellout</CardTitle><CardDescription>Volume Consolidado Mensal</CardDescription></div><Badge className="bg-brand-primary-surface text-brand-primary border-none">LIVE MATRIX</Badge></CardHeader><div className="p-mx-lg h-[420px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={mockYearlySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <div className="lg:col-span-8"><Card className="h-full"><CardHeader className="flex-row items-center justify-between"><div><CardTitle>Evolução de Sellout</CardTitle><CardDescription>Volume Consolidado Mensal</CardDescription></div><Badge className="bg-brand-primary-surface text-brand-primary border-none">LIVE MATRIX</Badge></CardHeader><div className="p-mx-lg flex items-center justify-center min-h-[420px]">
+                    <ResponsiveContainer width="100%" height={380}>
+                        <AreaChart data={mockYearlySales} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                             <defs><linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2} /><stop offset="95%" stopColor="#4f46e5" stopOpacity={0} /></linearGradient></defs>
                             <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 800 }} />
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />

@@ -77,9 +77,9 @@ export default function SellerPerformance() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg shrink-0">
-                <Card><CardHeader className="flex-row items-center justify-between"><div><CardTitle className="!text-lg">Ritmo Operacional</CardTitle><CardDescription>Realizado vs Meta Projetada</CardDescription></div><TrendingUp size={24} className="text-brand-primary" /></CardHeader><div className="p-mx-lg h-[380px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <Card><CardHeader className="flex-row items-center justify-between"><div><CardTitle className="!text-lg">Ritmo Operacional</CardTitle><CardDescription>Realizado vs Meta Projetada</CardDescription></div><TrendingUp size={24} className="text-brand-primary" /></CardHeader><div className="p-mx-lg flex items-center justify-center min-h-[380px]">
+                    <ResponsiveContainer width="100%" height={340}>
+                        <AreaChart data={monthlyData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                             <defs><linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2} /><stop offset="95%" stopColor="#4f46e5" stopOpacity={0} /></linearGradient></defs>
                             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontWeight: 800, fontSize: 10, fill: '#94a3b8' }} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fontWeight: 800, fontSize: 10, fill: '#94a3b8' }} />

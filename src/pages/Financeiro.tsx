@@ -82,9 +82,9 @@ export default function Financeiro() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0">
-                <div className="lg:col-span-7"><Card className="h-full overflow-hidden"><CardHeader className="flex-row items-center justify-between"><div><CardTitle>Fluxo de Distribuição</CardTitle><CardDescription>Entradas vs Saídas de Margem</CardDescription></div><div className="flex items-center gap-2 bg-white border border-border-default px-mx-sm py-1.5 rounded-mx-md shadow-mx-sm mx-text-caption !text-[8px] uppercase animate-pulse"><Activity size={12} className="text-status-success" /> Live Matrix</div></CardHeader><div className="p-mx-lg" style={{ height: '350px', minHeight: '350px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={fluxData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <div className="lg:col-span-7"><Card className="h-full overflow-hidden"><CardHeader className="flex-row items-center justify-between"><div><CardTitle>Fluxo de Distribuição</CardTitle><CardDescription>Entradas vs Saídas de Margem</CardDescription></div><div className="flex items-center gap-2 bg-white border border-border-default px-mx-sm py-1.5 rounded-mx-md shadow-mx-sm mx-text-caption !text-[8px] uppercase animate-pulse"><Activity size={12} className="text-status-success" /> Live Matrix</div></CardHeader><div className="p-mx-lg flex items-center justify-center min-h-[350px]">
+                    <ResponsiveContainer width="100%" height={300}>
+                        <AreaChart data={fluxData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                             <defs><linearGradient id="colorEntrada" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.2} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient></defs>
                             <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 800 }} />
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
