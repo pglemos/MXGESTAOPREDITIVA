@@ -87,7 +87,7 @@ export default function SalesPerformance() {
                 </div></Card></div>
 
                 <div className="lg:col-span-4"><Card className="h-full flex flex-col"><CardHeader><CardTitle>Mix por Categoria</CardTitle><CardDescription>Distribuição de Ativos</CardDescription></CardHeader><div className="p-mx-lg flex-1 flex flex-col items-center">
-                    <div className="h-[200px] w-full mb-mx-md">
+                    <div className="h-[160px] w-full mb-mx-md">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={categoryStats} layout="vertical" margin={{ left: -20, right: 30 }}>
                                 <XAxis type="number" hide />
