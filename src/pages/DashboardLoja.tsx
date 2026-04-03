@@ -36,7 +36,7 @@ const Stat = ({ icon: Icon, label, value, sub, bg, color, trend, delay = 0 }: St
             )}
         </div>
         <div className="relative z-10">
-            <p className="mx-text-caption mb-1 !text-[9px] uppercase tracking-[0.2em] opacity-40">{label}</p>
+            <p className="mx-text-caption mb-1 !text-[10px] uppercase tracking-[0.2em] text-text-secondary font-black">{label}</p>
             <div className="flex items-baseline gap-2">
                 <p className="text-3xl font-black text-text-primary tracking-tighter leading-none font-mono-numbers">{value}</p>
                 {sub && <span className="text-[10px] font-black text-text-tertiary bg-mx-slate-50 px-2 py-0.5 rounded uppercase tracking-widest">{sub}</span>}
@@ -107,7 +107,7 @@ export default function DashboardLoja() {
                     {/* Canal Analysis - Unified Shapes */}
                     <div className="mx-card overflow-hidden border-none shadow-mx-lg rounded-[2.5rem]">
                         <div className="p-mx-lg border-b border-border-subtle flex items-center justify-between bg-mx-slate-50/30">
-                            <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Canais de Conversão</h3><p className="mx-text-caption !text-[9px]">Mix Operacional do Ciclo</p></div>
+                            <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Canais de Conversão</h3><p className="mx-text-caption !text-[9px] text-text-secondary font-black">Mix Operacional do Ciclo</p></div>
                             <BarChart3 size={24} className="text-text-tertiary" />
                         </div>
                         <div className="p-mx-lg grid grid-cols-1 sm:grid-cols-3 gap-mx-lg">
@@ -146,7 +146,7 @@ export default function DashboardLoja() {
                                 </thead>
                                 <tbody className="divide-y divide-border-subtle">
                                     {(ranking || []).slice(0, 5).map((r, i) => (
-                                        <tr key={r.user_id} className="hover:bg-mx-slate-50/30 transition-colors group h-20">
+                                        <tr key={r.user_id} className="hover:bg-mx-slate-50/30 transition-colors h-20 group">
                                             <td className="px-mx-xl py-4 text-center font-black text-xs text-text-tertiary">{(i + 1).toString().padStart(2, '0')}</td>
                                             <td className="py-4">
                                                 <div className="flex items-center gap-mx-md">
@@ -160,7 +160,7 @@ export default function DashboardLoja() {
                                             </td>
                                         </tr>
                                     ))}
-                                    {(ranking || []).length === 0 && <tr><td colSpan={4} className="py-20 text-center mx-text-caption opacity-40 uppercase">Aguardando dados de performance...</td></tr>}
+                                    {(ranking || []).length === 0 && <tr><td colSpan={4} className="py-20 text-center mx-text-caption opacity-40 uppercase text-text-secondary font-black">Aguardando dados de performance...</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -181,7 +181,7 @@ export default function DashboardLoja() {
                                 ].map((step, i) => (
                                     <div key={step.label} className="space-y-3 group/step">
                                         <div className="flex justify-between items-end">
-                                            <span className="mx-text-caption !text-[9px] font-black uppercase opacity-40">{step.label}</span>
+                                            <span className="mx-text-caption !text-[10px] font-black uppercase text-text-secondary">{step.label}</span>
                                             <span className="text-4xl font-black text-text-primary tracking-tighter font-mono-numbers leading-none">{step.value}</span>
                                         </div>
                                         <div className="h-2 bg-mx-slate-50 rounded-full overflow-hidden border border-border-subtle p-px shadow-inner relative">
@@ -192,7 +192,7 @@ export default function DashboardLoja() {
                             </div>
                         </div>
                         <div className="pt-mx-xl relative z-10 border-t border-border-subtle mt-mx-xl">
-                            <p className="text-[10px] font-bold text-text-tertiary uppercase leading-relaxed italic">"Otimize o tempo de visita para aumentar a taxa de fechamento em 12%."</p>
+                            <p className="text-[10px] font-bold text-text-secondary uppercase leading-relaxed italic font-black">"Otimize o tempo de visita para aumentar a taxa de fechamento em 12%."</p>
                         </div>
                     </div>
                 </div>

@@ -141,7 +141,7 @@
   }
 
   .mx-text-caption {
-    @apply text-[10px] font-black uppercase tracking-[0.3em] text-mx-slate-400;
+    @apply text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary;
   }
 
   .mx-button-primary {
