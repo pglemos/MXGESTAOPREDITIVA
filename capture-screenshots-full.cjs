@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 
 const TARGET_DIR = '/Users/pedroguilherme/Desktop/CONTEUDO MX GESTÃO PREDITIVA';
 
@@ -9,100 +9,67 @@ if (!fs.existsSync(TARGET_DIR)) {
 }
 
 const routes = [
-  '/painel', '/lojas', '/loja', '/agenda', '/leadops', '/leads', '/equipe', '/tarefas', '/metas',
-  '/funil', '/checkin', '/historico', '/ranking', '/relatorio-matinal', '/financeiro', '/inventory',
-  '/configuracoes/comissoes', '/treinamentos', '/communication', '/ia-diagnostics',
-  '/relatorios/performance-vendas', '/relatorios/performance-vendedores', '/relatorios/vendas-cruzados',
-  '/reports/stock', '/activities', '/gamification', '/feedback', '/notificacoes', '/produtos',
-  '/configuracoes', '/perfil'
+  '/painel', '/lojas', '/loja', '/ranking', '/leadops', '/leads', '/funil', '/agenda',
+  '/equipe', '/tarefas', '/metas', '/checkin', '/historico', '/relatorio-matinal',
+  '/financeiro', '/inventory', '/produtos', '/configuracoes/comissoes',
+  '/relatorios/performance-vendas', '/relatorios/performance-vendedores',
+  '/relatorios/vendas-cruzados', '/reports/stock', '/ia-diagnostics',
+  '/gamification', '/activities', '/treinamentos', '/communication',
+  '/feedback', '/configuracoes', '/notificacoes', '/perfil'
 ];
 
-const baseUrl = 'https://autogestao.vercel.app';
-
 (async () => {
-  console.log('📸 Iniciando captura RIGOROSA de screenshots Full Page...');
   const browser = await chromium.launch({ headless: true });
-  // Set a large height initially to help trigger lazy loading if any
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1080 } });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
 
-  console.log('Capturando tela de Login...');
-  await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle', timeout: 15000 });
-  await page.screenshot({ path: path.join(TARGET_DIR, '00_login.png'), fullPage: true });
-
-  console.log('Realizando login...');
+  console.log('🚀 Iniciando Captura de Elite (Full Capture)...');
+  
+  // Login
+  await page.goto('https://autogestao.vercel.app/login');
   await page.fill('input[type="email"]', 'admin@autogestao.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   await page.click('button[type="submit"]');
-  await page.waitForURL('**/painel', { timeout: 15000 });
+  await page.waitForURL('**/painel');
+  console.log('✅ Login realizado.');
 
   for (let i = 0; i < routes.length; i++) {
     const route = routes[i];
-    const safeFilename = route.replace(/\//g, '_').replace(/^_/, '');
-    const paddedIndex = String(i + 1).padStart(2, '0');
-    const fileName = `${paddedIndex}_${safeFilename}.png`;
+    const fileName = `${(i + 1).toString().padStart(2, '0')}_${route.replace(/\//g, '_').replace(/\?/g, '_')}.png`;
     const filePath = path.join(TARGET_DIR, fileName);
 
-    console.log(`[${paddedIndex}/${routes.length}] Expandindo e Capturando ${route}...`);
+    console.log(`[${i + 1}/${routes.length}] Capturando: ${route}`);
+
     try {
-      await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle', timeout: 15000 });
-      await page.waitForTimeout(2000); // Wait for animations/data
-      
-      // CRITICAL: SPA (Single Page Apps) usually lock the body height and use internal scrolling (overflow-y-auto).
-      // We must inject CSS to force the internal scrollable containers to expand to their true full height,
-      // breaking the 'h-screen' locks, so Playwright's fullPage screenshot works correctly.
+      await page.goto(`https://autogestao.vercel.app${route}`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(4000); // Tempo para animações estabilizarem
+
+      // INJEÇÃO DE ELITE PARA NÃO CORTAR NADA
       await page.evaluate(() => {
-        // 1. Unlock root wrappers
-        document.documentElement.style.height = 'auto';
-        document.documentElement.style.overflow = 'visible';
-        document.body.style.height = 'auto';
-        document.body.style.overflow = 'visible';
-        
-        const root = document.getElementById('root');
-        if (root) {
-          root.style.height = 'auto';
-          root.style.overflow = 'visible';
-        }
-
-        // 2. Find all elements that might be restricting height and scrolling internally
-        const elements = document.querySelectorAll('*');
-        for (const el of elements) {
-          const style = window.getComputedStyle(el);
-          // If the element has internal scrolling, release it
-          if (style.overflowY === 'auto' || style.overflowY === 'scroll' || style.overflow === 'auto' || style.overflow === 'scroll' || style.overflow === 'hidden') {
-            el.style.overflow = 'visible';
-            el.style.overflowY = 'visible';
-            el.style.maxHeight = 'none';
-            // Only force height to auto if it was restricted
-            if (style.height !== 'auto' && style.height.includes('px')) {
-              el.style.height = 'auto';
-            }
+        // Expandir todos os containers de scroll
+        const style = document.createElement('style');
+        style.innerHTML = `
+          html, body, #root, [class*="h-[100dvh]"], main, aside, .overflow-y-auto {
+            height: auto !important;
+            overflow: visible !important;
+            max-height: none !important;
+            min-height: auto !important;
           }
-          // Remove tailwind h-screen limitations dynamically
-          if (el.classList.contains('h-screen') || el.classList.contains('max-h-screen')) {
-            el.classList.remove('h-screen', 'max-h-screen');
-            el.style.height = 'auto';
-            el.style.maxHeight = 'none';
+          .fixed, .sticky {
+            position: absolute !important;
           }
-        }
-        
-        // Ensure main content tag is explicitly expanded
-        const main = document.querySelector('main');
-        if (main) {
-          main.style.height = 'auto';
-          main.style.overflow = 'visible';
-        }
+          /* Esconder barras de navegação que podem flutuar na captura */
+          nav.fixed { display: none !important; }
+        `;
+        document.head.appendChild(style);
       });
-
-      // Small wait to allow the browser to reflow the layout with the new unrestricted heights
-      await page.waitForTimeout(1000); 
 
       await page.screenshot({ path: filePath, fullPage: true });
     } catch (e) {
-      console.log(`❌ Erro ao capturar ${route}: ${e.message}`);
+      console.log(`❌ Erro em ${route}: ${e.message}`);
     }
   }
 
-  console.log('✅ Re-Captura de screenshots (Full Page Verdadeiro) concluída!');
+  console.log('🎯 Operação Concluída. Todos os prints salvos em:', TARGET_DIR);
   await browser.close();
 })();
