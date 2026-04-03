@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { motion, AnimatePresence } from 'motion/react'
-import { Building2, ArrowRight, ShieldCheck, Zap, TrendingUp, Globe, Smartphone, Sparkles, User, Lock, Mail } from 'lucide-react'
+import { Building2, ArrowRight, ShieldCheck, Zap, TrendingUp, Globe, Smartphone, Sparkles, User, Lock, Mail, RefreshCw } from 'lucide-react'
 
 export default function Login() {
-    const { signIn, profile } = useAuth()
+    const { signIn, profile, loading: authLoading } = useAuth()
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -21,11 +21,17 @@ export default function Login() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (loading) return
         setError('')
         setLoading(true)
         const { error: err } = await signIn(email, password)
-        if (err) { setError(err); setLoading(false); return }
-        window.location.href = '/'
+        if (err) { 
+            setError(err)
+            setLoading(false)
+            return 
+        }
+        // Use navigate instead of window.location for SPA consistency
+        navigate('/', { replace: true })
     }
 
     const Feature = ({ icon: Icon, text }: { icon: any, text: string }) => (
@@ -36,6 +42,14 @@ export default function Login() {
             <span className="text-[11px] font-black uppercase tracking-widest">{text}</span>
         </div>
     )
+
+    if (authLoading && !profile) {
+        return (
+            <div className="min-h-screen bg-off-white flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-electric-blue/10 border-t-electric-blue rounded-full animate-spin"></div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 selection:bg-[#1A1D20] selection:text-white relative overflow-hidden">

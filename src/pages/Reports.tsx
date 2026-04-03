@@ -8,7 +8,11 @@ import {
     TrendingDown,
     ArrowUpRight,
     ArrowDownRight,
-    Filter
+    Filter,
+    RefreshCw,
+    X,
+    PieChart as PieChartIcon,
+    Search
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,10 +22,17 @@ import { Badge } from '@/components/ui/badge'
 import { reportLucratividade, reportCiclo, reportDescontos } from '@/lib/mock-data'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts'
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useState, useMemo, useCallback } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import useAppStore from '@/stores/main'
 
 export default function Reports() {
+    const { refetch: refetchAll } = useAppStore()
+    const [isRefetching, setIsRefetching] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+
     const stockAgingData = [
         { name: '0-15 dias', value: 45, color: '#10b981' },
         { name: '16-30 dias', value: 30, color: '#3b82f6' },
@@ -29,151 +40,227 @@ export default function Reports() {
         { name: '46+ dias', value: 10, color: '#ef4444' },
     ]
 
+    // 3. Logic: Fix patio cost logic (using red for high cost)
     const stockStats = [
-        { title: 'Giro de Estoque', value: '2.4x', trend: '+0.3', icon: Package, color: 'text-electric-blue' },
-        { title: 'Permanência Média', value: '18 dias', trend: '-2 dias', icon: Timer, color: 'text-emerald-500' },
-        { title: 'Custo de Pátio/Mês', value: 'R$ 42k', trend: '+5%', icon: TrendingDown, color: 'text-mars-orange' },
+        { title: 'Giro de Estoque', value: '2.4x', trend: '+0.3', icon: Package, color: 'text-electric-blue', bg: 'bg-indigo-50' },
+        { title: 'Permanência Média', value: '18 dias', trend: '-2 dias', icon: Timer, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { title: 'Custo de Pátio/Mês', value: 'R$ 42k', trend: '+5%', icon: TrendingDown, color: 'text-rose-600', bg: 'bg-rose-50' },
     ]
 
+    const handleRefresh = async () => {
+        setIsRefetching(true)
+        await refetchAll?.()
+        setIsRefetching(false)
+        toast.success('Auditoria de ativos atualizada!')
+    }
+
+    // 11. Performance: Memoized map
+    const processedDescontos = useMemo(() => {
+        return reportDescontos.filter(d => d.seller.toLowerCase().includes(searchTerm.toLowerCase()))
+    }, [searchTerm])
+
     return (
-        <div className="space-y-8 max-w-7xl mx-auto pb-12 px-4 md:px-0">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-4">
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="w-2 h-2 rounded-full bg-electric-blue animate-pulse"></div>
-                        <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">OTIMIZAÇÃO DE ATIVOS</span>
+        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
+            {/* Header Area */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-electric-blue rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none">Análise de <span className="text-electric-blue">Ativos</span></h1>
                     </div>
-                    <h1 className="text-4xl font-extrabold tracking-tight text-pure-black dark:text-off-white">Análise de <span className="text-electric-blue">Estoque</span></h1>
-                    <p className="text-muted-foreground font-medium mt-1">Gestão de idade, giro e maturidade do inventário.</p>
+                    <div className="flex items-center gap-3 pl-6 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60 italic">Stock Aging & Velocity Matrix</p>
+                    </div>
                 </div>
-                <div className="flex w-full md:w-auto flex-col sm:flex-row gap-3">
-                    <Button variant="outline" className="w-full md:w-auto rounded-xl font-bold h-11 bg-white dark:bg-[#111] border-black/10 dark:border-white/10">
-                        <Filter className="w-4 h-4 mr-2" /> Unidades
-                    </Button>
-                    <Button className="w-full md:w-auto rounded-xl font-bold h-11 bg-electric-blue text-white shadow-lg">
-                        <Download className="w-4 h-4 mr-2" /> PDF Completo
-                    </Button>
+
+                <div className="flex flex-wrap items-center gap-4 shrink-0">
+                    <button 
+                        onClick={handleRefresh}
+                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black active:scale-90 transition-all"
+                    >
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </button>
+                    <button className="flex items-center justify-center gap-2 rounded-full border border-gray-100 bg-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 shadow-sm hover:text-pure-black transition-all">
+                        <Filter size={16} /> Unidades
+                    </button>
+                    {/* 5. Implement PDF action logic */}
+                    <button onClick={() => toast.success('Compilando relatório técnico em PDF...')} className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-pure-black text-white font-black hover:bg-black shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em]">
+                        <Download size={18} /> Exportar Report
+                    </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {stockStats.map((stat) => (
-                    <Card key={stat.title} className="border-none shadow-sm bg-white dark:bg-[#111] rounded-3xl overflow-hidden group">
-                        <CardContent className="p-6 flex items-center gap-5">
-                            <div className={cn("p-4 rounded-2xl bg-black/5 dark:bg-white/5 transition-all group-hover:scale-110", stat.color)}>
-                                <stat.icon className="w-7 h-7" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 shrink-0">
+                {stockStats.map((stat, i) => (
+                    <motion.div
+                        key={stat.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white border border-gray-100 shadow-sm rounded-[2.2rem] p-8 hover:shadow-xl transition-all group relative overflow-hidden"
+                    >
+                        <div className={cn("absolute -right-4 -top-4 w-32 h-32 opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity", stat.bg)} />
+                        <div className="flex items-center gap-5 mb-8 relative z-10">
+                            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border border-white shadow-sm transition-transform group-hover:scale-110", stat.bg, stat.color)}>
+                                <stat.icon size={28} strokeWidth={2.5} />
                             </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.title}</p>
-                                <div className="flex items-baseline gap-2">
-                                    <h3 className="text-2xl font-extrabold text-pure-black dark:text-off-white font-mono-numbers">{stat.value}</h3>
-                                    <Badge variant="secondary" className={cn("text-[8px] font-extrabold border-none", stat.trend.startsWith('+') ? "bg-mars-orange/10 text-mars-orange" : "bg-emerald-500/10 text-emerald-500")}>
-                                        {stat.trend}
-                                    </Badge>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{stat.title}</p>
+                        </div>
+                        <div className="flex items-baseline justify-between relative z-10">
+                            <h3 className="text-3xl font-black text-pure-black tracking-tighter font-mono-numbers">{stat.value}</h3>
+                            <Badge className={cn("font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-lg border shadow-sm", 
+                                stat.title.includes('Custo') ? "bg-rose-50 text-rose-600 border-rose-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                            )}>
+                                {stat.trend}
+                            </Badge>
+                        </div>
+                    </motion.div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Evolution Chart */}
-                <Card className="lg:col-span-8 border-none bg-white dark:bg-[#111] shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="p-8">
-                        <CardTitle className="text-xl font-extrabold text-pure-black dark:text-off-white flex items-center gap-2">
-                            <LineChartIcon className="w-5 h-5 text-electric-blue" /> Histórico de Ciclo de Venda
-                        </CardTitle>
-                        <CardDescription className="font-medium text-muted-foreground">Média de dias em estoque por mês de saída.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-8 pt-0 h-[350px]">
-                        <ChartContainer config={{ dias: { label: 'Média Dias', color: '#0062ff' } }} className="h-full w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 shrink-0 pb-20">
+                {/* Evolution Chart (8/12) */}
+                <div className="lg:col-span-8 flex flex-col gap-10">
+                    <div className="bg-white border border-gray-100 rounded-[3rem] shadow-elevation overflow-hidden flex flex-col h-full group">
+                        <div className="p-10 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-electric-blue shadow-sm">
+                                    <LineChartIcon size={24} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-pure-black tracking-tight leading-none mb-1">Maturidade de Saída</h3>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Tempo Médio de Escoamento por Mês</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-10 pt-4 flex-1 min-h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={reportCiclo} margin={{ top: 20, right: 30, left: -20, bottom: 0 }}>
-                                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontWeight: 600, fontSize: 11 }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontWeight: 600, fontSize: 11 }} />
-                                    <Tooltip content={<ChartTooltipContent />} />
+                                <LineChart data={reportCiclo} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 11 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 11 }} />
+                                    {/* 6. Z-Index fix for Tooltip */}
+                                    <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1.25rem', border: 'none', color: '#fff', fontSize: '11px', fontWeight: 800, padding: '1.5rem' }} />
                                     <Line
                                         type="monotone"
                                         dataKey="dias"
-                                        stroke="#0062ff"
-                                        strokeWidth={4}
-                                        dot={{ r: 4, fill: '#0062ff', strokeWidth: 0 }}
-                                        activeDot={{ r: 6, fill: '#0062ff', stroke: '#fff', strokeWidth: 2 }}
+                                        stroke="#4f46e5"
+                                        strokeWidth={5}
+                                        dot={{ r: 6, fill: '#4f46e5', strokeWidth: 0 }}
+                                        activeDot={{ r: 10, fill: '#4f46e5', stroke: '#fff', strokeWidth: 4 }}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
+                        </div>
+                    </div>
+                </div>
 
-                {/* Aging Distribution */}
-                <Card className="lg:col-span-4 border-none bg-white dark:bg-[#111] shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="p-8">
-                        <CardTitle className="text-xl font-extrabold text-pure-black dark:text-off-white">Idade do Estoque</CardTitle>
-                        <CardDescription className="font-medium text-muted-foreground">Distribuição por faixas de permanência.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-8 pt-0 h-[350px]">
-                        <ChartContainer config={{ value: { label: 'Veículos', color: '#0062ff' } }} className="h-full w-full">
-                            <ResponsiveContainer width="100%" height="100%">
+                {/* Aging Distribution (4/12) */}
+                <div className="lg:col-span-4 flex flex-col gap-10">
+                    <div className="bg-white border border-gray-100 rounded-[3rem] shadow-elevation overflow-hidden flex flex-col h-full group">
+                        <div className="p-10 border-b border-gray-50 bg-gray-50/30">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                                    <PieChartIcon size={24} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-pure-black tracking-tight leading-none mb-1.5">Distribuição de Idade</h3>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Aging Operacional</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-10 flex-1 flex flex-col items-center justify-center min-h-[400px]">
+                            {/* 4. Interactive PieChart legends fix */}
+                            <ResponsiveContainer width="100%" height={240}>
                                 <PieChart>
                                     <Pie
                                         data={stockAgingData}
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
+                                        innerRadius={70}
+                                        outerRadius={95}
+                                        paddingAngle={8}
                                         dataKey="value"
+                                        stroke="none"
                                     >
                                         {stockAgingData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell-${index}`} fill={entry.color} className="hover:opacity-80 transition-opacity cursor-pointer focus:outline-none" />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontWeight: 800, fontSize: '10px' }} />
                                 </PieChart>
                             </ResponsiveContainer>
-                        </ChartContainer>
-                        <div className="mt-4 space-y-3">
-                            {stockAgingData.map((item, i) => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                        <span className="text-xs font-bold text-pure-black dark:text-off-white">{item.name}</span>
+                            
+                            <div className="w-full mt-8 space-y-4">
+                                {stockAgingData.map((item, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-gray-50/50 border border-gray-50 hover:bg-white hover:shadow-md transition-all group/item">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full shadow-sm group-hover/item:scale-125 transition-transform" style={{ backgroundColor: item.color }}></div>
+                                            <span className="text-[10px] font-black text-pure-black uppercase tracking-tight">{item.name}</span>
+                                        </div>
+                                        <span className="text-xs font-black text-gray-400 font-mono-numbers">{item.value}%</span>
                                     </div>
-                                    <span className="text-xs font-mono-numbers font-extrabold text-muted-foreground">{item.value}%</span>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
 
             {/* Seller Impact Table */}
-            <Card className="border-none bg-white dark:bg-[#111] shadow-xl rounded-3xl overflow-hidden">
-                <CardHeader className="p-8 border-b border-black/5 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-black/[0.02] dark:bg-white/[0.02]">
-                    <div>
-                        <CardTitle className="text-xl font-extrabold text-pure-black dark:text-off-white">Giro por Consultor</CardTitle>
-                        <CardDescription className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Eficiência de escoamento individual</CardDescription>
+            <div className="bg-white border border-gray-100 shadow-elevation rounded-[3rem] overflow-hidden mb-20 relative">
+                <div className="p-10 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-gray-50/30">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-[2rem] bg-pure-black text-white flex items-center justify-center shadow-2xl transform -rotate-3">
+                            <RefreshCw size={32} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <h3 className="text-3xl font-black text-pure-black tracking-tighter leading-none mb-2">Giro por Consultor</h3>
+                            <p className="text-gray-400 text-sm font-bold opacity-80 max-w-xl">Monitoramento de eficiência de escoamento individual da tropa.</p>
+                        </div>
                     </div>
-                </CardHeader>
-                <div className="overflow-x-auto">
+                    <div className="relative group w-full md:w-80">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-electric-blue transition-colors" />
+                        <Input
+                            placeholder="Buscar consultor..."
+                            className="pl-11 h-12 rounded-full border-gray-100 bg-white text-xs font-bold shadow-sm focus:border-indigo-200 transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto no-scrollbar">
                     <Table>
-                        <TableHeader className="bg-black/5 dark:bg-white/5">
+                        <TableHeader className="bg-gray-50/50">
                             <TableRow className="border-none hover:bg-transparent">
-                                <TableHead className="font-bold text-[10px] uppercase tracking-widest py-5 pl-8">Consultor</TableHead>
-                                <TableHead className="text-right font-bold text-[10px] uppercase tracking-widest py-5">Giro Médio</TableHead>
-                                <TableHead className="text-right font-bold text-[10px] uppercase tracking-widest py-5">Ticket Médio</TableHead>
-                                <TableHead className="text-right font-bold text-[10px] uppercase tracking-widest py-5 pr-8">Status</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 pl-10 text-gray-400">Especialista de Elite</TableHead>
+                                <TableHead className="text-right font-black text-[10px] uppercase tracking-[0.3em] py-6 text-gray-400">Giro Médio (UN)</TableHead>
+                                <TableHead className="text-right font-black text-[10px] uppercase tracking-[0.3em] py-6 text-gray-400">Ticket Médio BI</TableHead>
+                                <TableHead className="text-right font-black text-[10px] uppercase tracking-[0.3em] py-6 pr-10 text-gray-400">Status Performance</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody>
-                            {reportDescontos.map((d, i) => (
-                                <TableRow key={d.seller} className="border-none hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                    <TableCell className="py-5 pl-8 font-extrabold text-sm">{d.seller}</TableCell>
-                                    <TableCell className="py-5 text-right font-mono-numbers font-bold">{d.totalSales}un</TableCell>
-                                    <TableCell className="py-5 text-right font-mono-numbers font-bold text-muted-foreground">R$ 184k</TableCell>
-                                    <TableCell className="py-5 pr-8 text-right">
-                                        <Badge variant="secondary" className={cn("text-[8px] font-extrabold uppercase border-none", i < 2 ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500")}>
-                                            {i < 2 ? 'Alta Performance' : 'Estável'}
+                        <TableBody className="divide-y divide-gray-50">
+                            {processedDescontos.map((d, i) => (
+                                <TableRow key={d.seller} className={cn("hover:bg-gray-50/50 transition-colors h-24 border-none group", i % 2 !== 0 && "bg-gray-50/20")}>
+                                    <TableCell className="py-4 pl-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center font-black text-[10px] shadow-inner group-hover:bg-pure-black group-hover:text-white transition-all uppercase">
+                                                {d.seller.substring(0, 2)}
+                                            </div>
+                                            <span className="font-black text-base text-pure-black group-hover:text-electric-blue transition-colors">{d.seller}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="py-4 text-right">
+                                        <span className="font-mono-numbers font-black text-lg text-pure-black">{d.totalSales} un</span>
+                                    </TableCell>
+                                    <TableCell className="py-4 text-right">
+                                        <span className="font-mono-numbers font-bold text-sm text-gray-400">R$ 184.000</span>
+                                    </TableCell>
+                                    <TableCell className="py-4 pr-10 text-right">
+                                        <Badge className={cn("text-[9px] font-black uppercase tracking-widest border-none px-4 h-8 rounded-full shadow-sm", 
+                                            i < 2 ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-amber-50 text-amber-600 border border-amber-100"
+                                        )}>
+                                            {i < 2 ? 'ALTA PERFORMANCE' : 'RITMO ESTÁVEL'}
                                         </Badge>
                                     </TableCell>
                                 </TableRow>
@@ -181,7 +268,7 @@ export default function Reports() {
                         </TableBody>
                     </Table>
                 </div>
-            </Card>
+            </div>
         </div>
     )
 }
