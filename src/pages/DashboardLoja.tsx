@@ -65,7 +65,8 @@ export default function DashboardLoja() {
         const projecao = calcularProjecao(vendasMes, dias.decorridos, dias.total)
         const faltaX = calcularFaltaX(meta, vendasMes)
         const checkedInCount = sellers.filter(s => s.checkin_today).length
-        return { meta, vendasMes, porCanal, atingimento, projecao, faltaX, checkedInCount, storeName: membership?.store?.name || 'Unidade' }
+        const funil = calcularFunil(checkins)
+        return { meta, vendasMes, porCanal, atingimento, projecao, faltaX, checkedInCount, funil, storeName: membership?.store?.name || 'Unidade' }
     }, [checkins, storeGoal, sellers, membership])
 
     const handleRefresh = useCallback(async () => {
