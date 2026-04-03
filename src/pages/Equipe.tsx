@@ -1,206 +1,111 @@
 import { useTeam } from '@/hooks/useTeam'
-import { motion, AnimatePresence } from 'motion/react'
-import { 
-    Users, 
-    CheckCircle, 
-    XCircle, 
-    Mail, 
-    MapPin, 
-    ArrowRight, 
-    UserPlus, 
-    Search, 
-    Phone, 
-    Shield, 
-    Target, 
-    Award, 
-    Sparkles, 
-    Filter, 
-    ChevronRight, 
-    MoreHorizontal,
-    RefreshCw,
-    X,
-    LayoutDashboard
-} from 'lucide-react'
-import { useState, useMemo, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useMemo } from 'react'
+import { Users, UserPlus, Search, Mail, Phone, Shield, BadgeCheck, MoreVertical, RefreshCw, X, ChevronRight, Star, TrendingUp, Zap, Filter } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 
-export default function Equipe() {
-    const { sellers, loading, refetch, updateSeller } = useTeam()
-    const [searchTerm, setSearchTerm] = useState('')
-    const [isRefetching, setIsRefetching] = useState(false)
+export default function Team() {
+  const { sellers, loading, refetch } = useTeam()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isRefetching, setIsRefetching] = useState(false)
 
-    // 1. Memoized search filter with 9. trim()
-    const filteredSellers = useMemo(() => {
-        const term = searchTerm.trim().toLowerCase()
-        if (!term) return sellers
-        return sellers.filter(s => 
-            s.name?.toLowerCase().includes(term) || 
-            s.email?.toLowerCase().includes(term) ||
-            s.role?.toLowerCase().includes(term)
-        )
-    }, [sellers, searchTerm])
+  const teamList = sellers || []
+  const filteredTeam = useMemo(() => {
+    return teamList.filter(s => s.name?.toLowerCase().includes(searchTerm.toLowerCase()) || s.role?.toLowerCase().includes(searchTerm.toLowerCase()))
+  }, [teamList, searchTerm])
 
-    const handleRefresh = useCallback(async () => {
-        setIsRefetching(true)
-        await refetch()
-        setIsRefetching(false)
-        toast.success('Lista de especialistas atualizada!')
-    }, [refetch])
+  const stats = useMemo(() => [
+    { label: 'Efetivo Total', value: teamList.length, icon: Users, tone: 'bg-brand-primary-surface text-brand-primary' },
+    { label: 'Online Agora', value: teamList.filter(s => s.checkin_today).length, icon: Zap, tone: 'bg-status-success-surface text-status-success' },
+    { label: 'Elite Tier', value: '08', icon: Star, tone: 'bg-status-warning-surface text-status-warning' },
+    { label: 'Vagas Ativas', value: '02', icon: UserPlus, tone: 'bg-mx-slate-50 text-text-tertiary' },
+  ], [teamList])
 
-    if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
-            <div className="w-16 h-16 border-4 border-electric-blue/10 border-t-electric-blue rounded-full animate-spin shadow-xl"></div>
-            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Sincronizando Tropa...</p>
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-surface-alt/50 backdrop-blur-xl">
+      <div className="w-16 h-16 border-4 border-brand-primary/10 border-t-brand-primary rounded-full animate-spin"></div>
+      <p className="mt-mx-md mx-text-caption animate-pulse uppercase">Escaneando Hierarquia de Elite...</p>
+    </div>
+  )
+
+  return (
+    <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl text-text-primary">
+      {/* Header Area */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-mx-xs">
+            <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
+            <h1 className="mx-heading-hero">Time de <span className="text-brand-primary">Elite</span></h1>
+          </div>
+          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Gestão de Tropa & Hierarquia</p>
         </div>
-    )
 
-    return (
-        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
-            {/* Header / 18. text-[38px] replaced with 4xl token */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-gray-100 pb-10 relative z-10">
-                <div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-2 h-10 bg-electric-blue rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Gestão de Capital Humano</span>
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none mb-4">Time de <span className="text-electric-blue">Elite</span></h1>
-                    <p className="text-sm font-bold text-gray-500 max-w-2xl leading-relaxed">
-                        Monitoramento de atividade, conversão e desempenho técnico da força de vendas.
-                    </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="relative group w-full sm:w-64">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-electric-blue transition-colors" />
-                        <input 
-                            type="text"
-                            placeholder="Buscar especialista..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white border border-gray-100 rounded-full pl-11 pr-10 py-3 text-xs font-bold focus:outline-none focus:border-indigo-200 shadow-sm transition-all"
-                        />
-                        {searchTerm && (
-                            <button onClick={() => setSearchTerm('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-red-500">
-                                <X size={14} />
-                            </button>
-                        )}
-                    </div>
-                    
-                    <button 
-                        onClick={handleRefresh}
-                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all active:scale-90"
-                    >
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
-                    </button>
-
-                    <button 
-                        onClick={() => toast.info('Módulo de convite em manutenção operacional.')}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-pure-black text-white font-black hover:bg-black shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group"
-                    >
-                        <UserPlus size={18} className="group-hover:scale-110 transition-transform" /> Novo Acesso
-                    </button>
-                </div>
-            </div>
-
-            {/* 2. & 11. Responsive Grid improvement */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 pb-24">
-                <AnimatePresence mode="popLayout">
-                    {filteredSellers.map((seller, i) => (
-                        <motion.div
-                            key={seller.id}
-                            layout
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ delay: i * 0.03 }}
-                            className="bg-white border border-gray-100 rounded-[2.2rem] p-6 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col"
-                        >
-                            {/* 13. Z-Index fix for gradient */}
-                            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/30 rounded-full blur-[60px] -mr-24 -mt-24 pointer-events-none z-0" />
-                            
-                            <div className="flex items-start justify-between mb-8 relative z-10">
-                                <div className="relative group/avatar">
-                                    <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shadow-inner group-hover:rotate-3 transition-transform">
-                                        {seller.avatar_url ? (
-                                            <img 
-                                                src={seller.avatar_url} 
-                                                alt={seller.name} 
-                                                className="w-full h-full object-cover"
-                                                // 5. Avatar fallback
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.name)}&background=f8fafc&color=1a1d20&bold=true`
-                                                }}
-                                            />
-                                        ) : (
-                                            <span className="text-xl font-black text-pure-black uppercase">{seller.name?.charAt(0)}</span>
-                                        )}
-                                    </div>
-                                    {/* 20. Realtime Check-in Indicator */}
-                                    <div className={cn(
-                                        "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white shadow-sm",
-                                        seller.checkin_today ? "bg-emerald-500 animate-pulse" : "bg-gray-200"
-                                    )} title={seller.checkin_today ? "Online" : "Offline"} />
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    {/* 12. Hitbox action button */}
-                                    <button className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-pure-black hover:text-white transition-all shadow-sm">
-                                        <MoreHorizontal size={18} strokeWidth={2.5} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="space-y-1 mb-8 relative z-10 flex-1">
-                                <h3 className="text-lg font-black text-pure-black tracking-tight leading-tight group-hover:text-electric-blue transition-colors line-clamp-1">{seller.name}</h3>
-                                {/* 14. Contrast fix for role */}
-                                <div className="flex items-center gap-2">
-                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">{seller.role || 'ESPECIALISTA'}</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 pt-6 border-t border-gray-50 relative z-10">
-                                <div className="flex items-center justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    <span>Conversão Final</span>
-                                    <span className="text-pure-black font-mono-numbers">{seller.conversion || '0.0'}%</span>
-                                </div>
-                                <div className="h-1.5 bg-gray-50 rounded-full overflow-hidden shadow-inner">
-                                    <div 
-                                        className="h-full bg-electric-blue shadow-[0_0_8px_rgba(79,70,229,0.4)]" 
-                                        style={{ width: `${Math.min(seller.conversion || 0, 100)}%` }} 
-                                    />
-                                </div>
-                                
-                                {/* 16. Button is now a proper Link for SEO/UX */}
-                                <Link 
-                                    to={`/relatorios/performance-vendedores?id=${seller.id}`}
-                                    className="w-full py-3.5 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:bg-pure-black hover:text-white hover:border-pure-black transition-all group/btn"
-                                >
-                                    Abrir Painel <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                                </Link>
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-
-                {/* 8. Empty State standard radius */}
-                {filteredSellers.length === 0 && !loading && (
-                    <div className="col-span-full py-32 rounded-[2.5rem] text-center border-dashed border-2 border-gray-200 bg-gray-50/30 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(26,29,32,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
-                        <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center mb-8 border border-gray-100 group-hover:rotate-12 transition-transform duration-500">
-                            <Users size={40} className="text-gray-200" />
-                        </div>
-                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter">Vácuo de Tropa</h3>
-                        <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">
-                            Nenhum especialista "{searchTerm}" localizado na topologia atual do cluster.
-                        </p>
-                        <button onClick={() => setSearchTerm('')} className="px-10 py-4 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-3xl transition-all active:scale-95">
-                            Limpar Busca
-                        </button>
-                    </div>
-                )}
-            </div>
+        <div className="flex items-center gap-mx-sm shrink-0">
+          <button onClick={() => {setIsRefetching(true); refetch().then(() => setIsRefetching(false))}} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
+          <div className="relative group w-48 hidden sm:block">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+            <input type="text" placeholder="Buscar especialista..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+          </div>
+          <button className="mx-button-primary bg-brand-secondary"><UserPlus size={18} /> Novo Recruta</button>
         </div>
-    )
+      </div>
+
+      {/* Stats Grid - Deve aparecer SEMPRE */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-sm shrink-0">
+        {stats.map((item) => (
+          <div key={item.label} className="mx-card p-mx-md flex flex-col justify-between group relative overflow-hidden">
+            <div className="flex items-center justify-between gap-mx-xs relative z-10">
+              <div><p className="mx-text-caption mb-1">{item.label}</p><p className="text-3xl font-black tracking-tighter font-mono-numbers leading-none">{item.value}</p></div>
+              <div className={cn('h-10 w-10 rounded-mx-md flex items-center justify-center border shadow-sm', item.tone)}><item.icon size={18} /></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Content Area - Condicional */}
+      <div className="flex-1 min-h-0 pb-mx-3xl">
+        {filteredTeam.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
+            {filteredTeam.map((member, i) => (
+              <motion.div key={member.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="mx-card flex flex-col group hover:shadow-mx-xl hover:-translate-y-1 relative overflow-hidden">
+                <div className="p-mx-lg border-b border-border-subtle bg-mx-slate-50/30 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={cn("w-2 h-2 rounded-full", member.checkin_today ? "bg-status-success shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-mx-slate-300")} />
+                    <span className="text-[8px] font-black uppercase tracking-widest text-text-tertiary">{member.checkin_today ? 'Operacional' : 'Offline'}</span>
+                  </div>
+                  <button className="w-8 h-8 rounded-mx-md text-mx-slate-300 hover:text-text-primary transition-all flex items-center justify-center"><MoreVertical size={16} /></button>
+                </div>
+                <div className="p-mx-lg flex flex-col items-center text-center flex-1">
+                  <div className="w-20 h-20 rounded-mx-2xl border-4 border-white shadow-mx-lg overflow-hidden bg-mx-slate-50 mb-mx-md group-hover:scale-105 transition-transform">
+                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || '')}&background=4f46e5&color=fff&bold=true`} className="w-full h-full object-cover" />
+                  </div>
+                  <h3 className="text-lg font-black text-text-primary uppercase tracking-tight leading-none mb-1 group-hover:text-brand-primary transition-colors">{member.name}</h3>
+                  <p className="mx-text-caption !text-[8px] opacity-60 uppercase">{member.role || 'Especialista'}</p>
+                  
+                  <div className="w-full mt-mx-lg grid grid-cols-2 gap-2">
+                    <div className="bg-mx-slate-50 p-2 rounded-mx-lg border border-border-subtle"><p className="text-[8px] font-black text-text-tertiary uppercase mb-0.5">Vendas</p><p className="font-black text-sm font-mono-numbers">12</p></div>
+                    <div className="bg-mx-slate-50 p-2 rounded-mx-lg border border-border-subtle"><p className="text-[8px] font-black text-text-tertiary uppercase mb-0.5">Agend</p><p className="font-black text-sm font-mono-numbers">45</p></div>
+                  </div>
+                </div>
+                <div className="p-mx-md border-t border-border-subtle bg-mx-slate-50/30 flex gap-2">
+                  <button className="flex-1 h-10 rounded-mx-lg bg-white border border-border-default text-text-tertiary hover:text-brand-primary transition-all flex items-center justify-center shadow-mx-sm"><Mail size={16} /></button>
+                  <button className="flex-1 h-10 rounded-mx-lg bg-white border border-border-default text-text-tertiary hover:text-status-success transition-all flex items-center justify-center shadow-mx-sm"><Phone size={16} /></button>
+                  <button className="flex-1 h-10 rounded-mx-lg bg-brand-secondary text-white flex items-center justify-center shadow-mx-md hover:shadow-mx-lg transition-all"><ChevronRight size={18} /></button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-mx-slate-50/20 border-2 border-dashed border-border-default rounded-[3rem]">
+            <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-lg flex items-center justify-center mb-mx-lg"><Users size={48} className="text-mx-slate-200" /></div>
+            <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Vácuo de Tropa</h3>
+            <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhum especialista localizado na topologia atual do cluster.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
