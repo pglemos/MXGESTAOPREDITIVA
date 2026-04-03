@@ -1,18 +1,21 @@
 import type { PropsWithChildren } from 'react'
+import { cn } from '@/lib/utils'
 
 export default function LegacyModuleShell({ children }: PropsWithChildren) {
   return (
-    <div className="w-full h-full overflow-y-auto no-scrollbar relative text-[#1A1D20]">
-      {/* Background Ornaments (standardized opacity to reduce visual noise) */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/30 via-white/5 to-transparent z-0" />
-      <div className="pointer-events-none absolute -right-16 top-12 h-44 w-44 rounded-full bg-indigo-100/40 blur-3xl z-0" />
-      <div className="pointer-events-none absolute -left-12 bottom-10 h-36 w-36 rounded-full bg-orange-100/30 blur-3xl z-0" />
+    <div className="w-full h-full overflow-y-auto no-scrollbar relative text-[#1A1D20] bg-off-white/50">
+      {/* Dynamic Background Ornaments */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white/80 via-white/20 to-transparent z-0" />
+      <div className="pointer-events-none absolute -right-24 top-12 h-64 w-64 rounded-full bg-electric-blue/5 blur-[100px] z-0 animate-float" />
+      <div className="pointer-events-none absolute -left-24 bottom-20 h-64 w-64 rounded-full bg-mars-orange/5 blur-[100px] z-0 animate-float" style={{ animationDelay: '2s' }} />
       
-      {/* Main Content Wrapper (Using the same standard paddings as other pages) */}
-      <div className="relative z-10 w-full h-full">
-        {/* We remove padding constraints because the parent main tag already provides responsive padding implicitly or pages control it themselves.
-            If pages depend on shell padding, we standardize it here without 'soft-card' which bloated background layers unexpectedly. */}
-        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
+      {/* Content Layer */}
+      <div className="relative z-10 w-full min-h-full">
+        <div className={cn(
+          "p-4 sm:p-6 md:p-8 lg:p-10",
+          "max-w-7xl mx-auto w-full",
+          "transition-all duration-500 ease-in-out"
+        )}>
           {children}
         </div>
       </div>

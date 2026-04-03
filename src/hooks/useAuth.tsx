@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, createContext, useContext, useRef, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User as AppUser, UserRole, Membership, Store } from '@/types/database'
-import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface AuthState {
     initialized: boolean
@@ -16,8 +16,15 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState>({
-    supabaseUser: null, profile: null, membership: null, role: null, storeId: null, initialized: false, loading: true,
-    signIn: async () => ({ error: null }), signOut: async () => { },
+    supabaseUser: null, 
+    profile: null, 
+    membership: null, 
+    role: null, 
+    storeId: null, 
+    initialized: false, 
+    loading: true,
+    signIn: async () => ({ error: null }), 
+    signOut: async () => { },
 })
 
 function normalizeRole(rawRole: string | null | undefined): UserRole {
@@ -41,24 +48,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [initialized, setInitialized] = useState(false)
     const authBootstrapCompleteRef = useRef(false)
 
-    const fetchProfile = useCallback(async (userId: string) => {
+    const fetchProfile = useCallback(async (userId: string): Promise<AppUser | null> => {
         const { data, error } = await supabase.from('users').select('*').eq('id', userId).single()
-        if (error && !isTransientFetchError(error)) console.error('fetchProfile error:', error.message)
-        if (data) setProfile(data)
-        return data
+        if (error && !isTransientFetchError(error)) {
+            console.error('Audit Error [useAuth]: fetchProfile fail ->', error.message)
+        }
+        if (data) setProfile(data as AppUser)
+        return (data as AppUser) || null
     }, [])
 
-    const fetchMembership = useCallback(async (userId: string) => {
+    const fetchMembership = useCallback(async (userId: string): Promise<(Membership & { store: Store }) | null> => {
         const { data, error } = await supabase
             .from('memberships')
             .select('*, store:stores(*)')
             .eq('user_id', userId)
             .limit(1)
             .maybeSingle()
-        if (error && !isTransientFetchError(error)) console.error('fetchMembership error:', error.message)
-        if (data) setMembership(data as Membership & { store: Store })
-        else setMembership(null)
-        return data
+        
+        if (error && !isTransientFetchError(error)) {
+            console.error('Audit Error [useAuth]: fetchMembership fail ->', error.message)
+        }
+        
+        const result = data as (Membership & { store: Store }) | null
+        setMembership(result)
+        return result
     }, [])
 
     const fetchFallbackStoreId = useCallback(async () => {
@@ -69,13 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .order('name')
             .limit(1)
             .maybeSingle()
+            
         if (error && !isTransientFetchError(error)) {
-            console.error('fetchFallbackStoreId error:', error.message)
+            console.error('Audit Error [useAuth]: fetchFallbackStoreId fail ->', error.message)
         }
-        if (error) {
-            setFallbackStoreId(null)
-            return null
-        }
+        
         const storeId = data?.id || null
         setFallbackStoreId(storeId)
         return storeId
@@ -92,8 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { data: { session } } = await supabase.auth.getSession()
             let nextUser = session?.user || null
 
-            // Hard reloads can briefly miss the stored session. Double-check the user
-            // before allowing protected routes to redirect to /login.
             if (!nextUser) {
                 const { data, error } = await supabase.auth.getUser()
                 if (!error) nextUser = data.user || null
@@ -111,11 +120,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (mounted) {
-                setSupabaseUser(session?.user || null)
-                if (session?.user) {
+                const nextUser = session?.user || null
+                setSupabaseUser(nextUser)
+                if (nextUser) {
                     setInitialized(true)
                     setLoading(true)
                 } else if (authBootstrapCompleteRef.current) {
+                    // Force state cleanup on logout
+                    setProfile(null)
+                    setMembership(null)
+                    setFallbackStoreId(null)
                     setLoading(false)
                 }
             }
@@ -136,14 +150,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     fetchProfile(userId),
                     fetchMembership(userId)
                 ])
-                const normalizedRole = normalizeRole((loadedProfile as any)?.role)
-                if (!loadedMembership && (normalizedRole === 'consultor' || normalizedRole === 'admin')) {
+                
+                const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+                
+                if (!loadedMembership && (currentRole === 'consultor' || currentRole === 'admin')) {
                     await fetchFallbackStoreId()
                 } else {
                     setFallbackStoreId(null)
                 }
             } catch (err) {
-                console.error("Error loading user data:", err)
+                console.error("Audit Error [useAuth]: loadUserData fail ->", err)
             } finally {
                 if (mounted) {
                     setLoading(false)
@@ -152,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (supabaseUser) {
-            setLoading(true) // ensure we show spinner while loading profile
+            setLoading(true)
             loadUserData(supabaseUser.id)
         } else if (initialized) {
             setProfile(null)
@@ -164,10 +180,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             mounted = false;
         }
-    }, [supabaseUser, initialized, fetchProfile, fetchMembership])
+    }, [supabaseUser, initialized, fetchProfile, fetchMembership, fetchFallbackStoreId])
 
     const signIn = async (email: string, password: string) => {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
         return { error: error?.message || null }
     }
 
@@ -176,13 +192,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSupabaseUser(null)
         setProfile(null)
         setMembership(null)
+        setFallbackStoreId(null)
     }
 
-    const role = profile ? normalizeRole((profile as any).role) : null
+    const role = profile ? normalizeRole(profile.role) : null
     const storeId = membership?.store_id || fallbackStoreId || null
 
     return (
-        <AuthContext.Provider value={{ supabaseUser, profile, membership, role, storeId, initialized, loading, signIn, signOut }}>
+        <AuthContext.Provider value={{ 
+            supabaseUser, 
+            profile, 
+            membership, 
+            role, 
+            storeId, 
+            initialized, 
+            loading, 
+            signIn, 
+            signOut 
+        }}>
             {children}
         </AuthContext.Provider>
     )

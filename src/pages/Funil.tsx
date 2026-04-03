@@ -2,48 +2,75 @@ import { useCheckins } from '@/hooks/useCheckins'
 import { calcularFunil, identificarGargalo } from '@/lib/calculations'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import type { Benchmark } from '@/types/database'
-import { GitBranch, AlertTriangle, CheckCircle, BarChart3, Filter, ChevronRight, LayoutDashboard, Target, TrendingUp, Zap, ArrowUpRight, Store, Users, Globe } from 'lucide-react'
-import { motion } from 'motion/react'
+import { GitBranch, AlertTriangle, CheckCircle, BarChart3, Filter, ChevronRight, LayoutDashboard, Target, TrendingUp, Zap, ArrowUpRight, Store, Users, Globe, RefreshCw } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
+import { cn } from '@/lib/utils'
 
 export default function Funil() {
     const { storeId } = useAuth()
-    const { checkins, loading } = useCheckins()
+    const { checkins, loading, refetch } = useCheckins()
     const [benchmark, setBenchmark] = useState<Benchmark | null>(null)
+    const [isRefetching, setIsRefetching] = useState(false)
 
     useEffect(() => {
-        if (storeId) supabase.from('benchmarks').select('*').eq('store_id', storeId).maybeSingle().then(({ data }) => { if (data) setBenchmark(data) })
+        if (!storeId) return
+        supabase.from('benchmarks')
+            .select('*')
+            .eq('store_id', storeId)
+            .maybeSingle()
+            .then(({ data, error }) => { 
+                if (error) console.error('Audit Error [10]: fetchBenchmark fail ->', error.message)
+                if (data) setBenchmark(data) 
+            })
+            .catch(err => console.error('Audit Error [10]: fetchBenchmark crash ->', err))
     }, [storeId])
 
-    const funil = calcularFunil(checkins)
-    const defaultBenchmark: Benchmark = { id: '', store_id: storeId || '', lead_to_appt: 30, appt_to_visit: 50, visit_to_sale: 20 }
-    const diagnostic = identificarGargalo(funil, benchmark || defaultBenchmark)
+    const funil = useMemo(() => calcularFunil(checkins), [checkins])
+    
+    const defaultBenchmark = useMemo((): Benchmark => ({ 
+        id: '', 
+        store_id: storeId || '', 
+        lead_to_appt: 30, 
+        appt_to_visit: 50, 
+        visit_to_sale: 20 
+    }), [storeId])
 
-    if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] soft-card h-full">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-            <p className="mt-4 text-slate-500 text-sm font-bold tracking-widest uppercase">Carregando funil...</p>
-        </div>
-    )
+    const diagnostic = useMemo(() => 
+        identificarGargalo(funil, benchmark || defaultBenchmark)
+    , [funil, benchmark, defaultBenchmark])
 
-    const steps = [
-        { label: 'Leads', value: funil.leads, pct: 100, bg: 'bg-violet-600', color: 'text-violet-600', subColor: 'bg-violet-50', bench: null },
+    const steps = useMemo(() => [
+        { label: 'Leads', value: funil.leads, pct: 100, bg: 'bg-indigo-600', color: 'text-indigo-600', subColor: 'bg-indigo-50', bench: null },
         { label: 'Agendamentos', value: funil.agd_total, pct: funil.tx_lead_agd, bg: 'bg-blue-600', color: 'text-blue-600', subColor: 'bg-blue-50', bench: benchmark?.lead_to_appt || 30 },
         { label: 'Visitas', value: funil.visitas, pct: funil.tx_agd_visita, bg: 'bg-amber-500', color: 'text-amber-600', subColor: 'bg-amber-50', bench: benchmark?.appt_to_visit || 50 },
         { label: 'Vendas', value: funil.vnd_total, pct: funil.tx_visita_vnd, bg: 'bg-emerald-600', color: 'text-emerald-600', subColor: 'bg-emerald-50', bench: benchmark?.visit_to_sale || 20 },
-    ]
+    ], [funil, benchmark])
 
     const maxValue = Math.max(funil.leads, 1)
 
+    const handleManualRefresh = async () => {
+        setIsRefetching(true)
+        await refetch()
+        setIsRefetching(false)
+    }
+
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
+            <div className="w-16 h-16 border-4 border-electric-blue/10 border-t-electric-blue rounded-full animate-spin shadow-xl"></div>
+            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Mapeando eficiência do funil...</p>
+        </div>
+    )
+
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20] px-4 md:px-10">
+        <div className="w-full h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
 
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]" />
+                        <div className="w-2 h-10 bg-electric-blue rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
                         <h1 className="text-[38px] font-black tracking-tighter leading-none">
                             Funil de Vendas
                         </h1>
@@ -54,53 +81,60 @@ export default function Funil() {
                     </div>
                 </div>
 
-                <div className="flex w-full flex-col gap-4 shrink-0 sm:w-auto sm:flex-row sm:items-stretch">
-                    <button className="flex w-full items-center justify-center gap-2 rounded-[2rem] bg-white px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 shadow-sm transition-all active:scale-95 hover:-translate-y-1 hover:text-blue-600 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 group relative overflow-hidden sm:w-auto">
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Filter size={16} /> Período
+                <div className="flex items-center gap-4 shrink-0">
+                    <button 
+                        onClick={handleManualRefresh}
+                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all"
+                    >
+                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </button>
-                    <button className="flex h-14 w-full items-center justify-center rounded-[2rem] bg-[#1A1D20] text-white font-black transition-all active:scale-95 hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] group relative overflow-hidden sm:w-14">
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <BarChart3 size={20} className="group-hover:rotate-12 transition-transform" />
+                    <button className="flex items-center justify-center gap-2 rounded-full bg-white border border-gray-100 px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 shadow-sm hover:shadow-md transition-all">
+                        <Filter size={16} /> Período
                     </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 shrink-0">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 shrink-0">
 
                 {/* Diagnostic Panel */}
-                <div className="lg:col-span-4 flex flex-col gap-6">
-                    <div className="inner-card p-8 bg-white border-gray-100 shadow-xl shadow-gray-100/50 relative overflow-hidden group">
-                        <div className={`absolute top-0 right-0 w-32 h-32 ${diagnostic.gargalo ? 'bg-amber-50' : 'bg-emerald-50'} rounded-full blur-[80px] -mr-10 -mt-10 opacity-60 transition-colors pointer-events-none`} />
+                <div className="lg:col-span-4 flex flex-col gap-8">
+                    <div className="bg-white border border-gray-100 rounded-[2.5rem] shadow-elevation p-8 relative overflow-hidden group">
+                        <div className={cn(
+                            "absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] -mr-20 -mt-20 opacity-40 transition-colors pointer-events-none",
+                            diagnostic.gargalo ? 'bg-rose-100' : 'bg-emerald-100'
+                        )} />
 
-                        <div className="flex items-center justify-between mb-8 relative z-10">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-2xl ${diagnostic.gargalo ? 'bg-amber-50 text-amber-600 shadow-amber-100' : 'bg-emerald-50 text-emerald-600 shadow-emerald-100'} shadow-inner flex items-center justify-center`}>
-                                    {diagnostic.gargalo ? <AlertTriangle size={20} /> : <CheckCircle size={20} />}
+                        <div className="flex items-center justify-between mb-10 relative z-10">
+                            <div className="flex items-center gap-4">
+                                <div className={cn(
+                                    "w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner border transition-all group-hover:scale-110",
+                                    diagnostic.gargalo ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                )}>
+                                    {diagnostic.gargalo ? <AlertTriangle size={24} strokeWidth={2.5} /> : <CheckCircle size={24} strokeWidth={2.5} />}
                                 </div>
-                                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Diagnóstico</h3>
+                                <div>
+                                    <h3 className="text-xl font-black text-pure-black tracking-tight leading-none mb-1">Diagnóstico</h3>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Motor Preditivo MX</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="relative z-10 mb-8">
-                            <p className="text-lg font-black text-[#1A1D20] leading-tight tracking-tight mb-4">
-                                {diagnostic.gargalo ? "Atenção necessária detectada" : "Fluxo de conversão saudável"}
-                            </p>
-                            <p className="text-gray-500 text-sm font-bold leading-relaxed mb-6">
-                                {diagnostic.mensagem}
+                        <div className="relative z-10 mb-10">
+                            <p className="text-lg font-black text-pure-black leading-tight tracking-tight mb-4 italic">
+                                "{diagnostic.mensagem}"
                             </p>
                         </div>
 
-                        <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 relative z-10">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Zap size={14} className="text-blue-600" />
+                        <div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 relative z-10">
+                            <div className="flex items-center gap-2 mb-6">
+                                <Zap size={14} className="text-electric-blue" fill="currentColor" />
                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Benchmarks de Mercado</span>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {steps.slice(1).map(s => (
-                                    <div key={s.label} className="flex justify-between items-center bg-white/80 p-2 rounded-xl text-[10px] font-black">
-                                        <span className="text-gray-400 uppercase tracking-widest">{s.label}</span>
-                                        <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md">{s.bench}%</span>
+                                    <div key={s.label} className="flex justify-between items-center bg-white border border-gray-100 p-3 rounded-2xl shadow-sm">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{s.label}</span>
+                                        <span className="bg-indigo-50 text-electric-blue px-3 py-1 rounded-lg font-black text-[10px] border border-indigo-100">{s.bench}%</span>
                                     </div>
                                 ))}
                             </div>
@@ -109,47 +143,54 @@ export default function Funil() {
                 </div>
 
                 {/* Funnel Visualization */}
-                <div className="lg:col-span-8 flex flex-col">
-                    <div className="inner-card p-6 sm:p-8 md:p-10 bg-white border-gray-100 shadow-xl shadow-gray-100/50">
-                        <div className="space-y-12 relative">
-                            {/* Connecting architecture line */}
-                            <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-gray-50 -z-10 hidden sm:block" />
-
+                <div className="lg:col-span-8">
+                    <div className="bg-white border border-gray-100 shadow-elevation rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle,rgba(79,70,229,0.01)_1px,transparent_1px)] bg-[length:40px_40px] pointer-events-none" />
+                        
+                        <div className="space-y-14 relative z-10">
                             {steps.map((step, i) => (
-                                <div key={step.label} className="relative z-10">
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-10">
-                                        <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center font-black text-white shadow-2xl transition-all hover:scale-110 ${step.bg}`}>
+                                <div key={step.label} className="relative group/step">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-8">
+                                        <div className={cn(
+                                            "w-14 h-14 shrink-0 rounded-[1.2rem] flex items-center justify-center font-black text-white shadow-2xl transition-all group-hover/step:scale-110 group-hover/step:rotate-3",
+                                            step.bg
+                                        )}>
                                             {i + 1}
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex justify-between items-end mb-4">
                                                 <div>
-                                                    <h4 className="text-[#1A1D20] font-black text-lg tracking-tight uppercase tracking-widest text-[14px]">{step.label}</h4>
-                                                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest opacity-60">
-                                                        {i === 0 ? 'Volume Operacional Total' : `Taxa de Conversão Mensal`}
+                                                    <h4 className="text-pure-black font-black text-lg tracking-tight uppercase tracking-widest">{step.label}</h4>
+                                                    <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.3em] opacity-60">
+                                                        {i === 0 ? 'Volume Operacional Consolidado' : `Taxa de Conversão da Etapa`}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-baseline gap-3">
-                                                    <span className="text-3xl font-black text-[#1A1D20] tracking-tighter">{step.value}</span>
+                                                <div className="flex items-baseline gap-4">
+                                                    <span className="text-4xl font-black text-pure-black tracking-tighter">{step.value}</span>
                                                     {i > 0 && (
-                                                        <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors ${step.pct < (step.bench || 0) ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
-                                                            {step.pct}% {step.pct >= (step.bench || 0) ? <ArrowUpRight size={10} /> : <AlertTriangle size={10} />}
+                                                        <div className={cn(
+                                                            "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm",
+                                                            step.pct < (step.bench || 0) ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                        )}>
+                                                            {step.pct}% {step.pct >= (step.bench || 0) ? <ArrowUpRight size={12} strokeWidth={3} /> : <AlertTriangle size={12} strokeWidth={3} />}
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="h-2.5 bg-gray-50 border border-gray-100 rounded-full overflow-hidden relative group">
+                                            <div className="h-4 bg-gray-50 border border-gray-100 rounded-full overflow-hidden relative shadow-inner">
                                                 <motion.div
+                                                    layoutId={`funnel-bar-${i}`}
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${Math.max((step.value / maxValue) * 100, 2)}%` }}
-                                                    transition={{ duration: 1, delay: i * 0.2, ease: 'circOut' }}
-                                                    className={`h-full rounded-full ${step.bg} shadow-sm group-hover:brightness-110 transition-all`}
+                                                    transition={{ duration: 1.2, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                                                    className={cn("h-full rounded-full shadow-lg group-hover/step:brightness-110 transition-all", step.bg)}
                                                 />
                                                 {step.bench && (
-                                                    <div className="absolute top-0 bottom-0 border-l-2 border-dashed border-white/40"
+                                                    <div className="absolute top-0 bottom-0 border-l-2 border-dashed border-pure-black/10 group-hover/step:border-pure-black/30 transition-colors"
                                                         style={{ left: `${step.bench}%` }}
-                                                        title={`Meta: ${step.bench}%`}
-                                                    />
+                                                    >
+                                                        <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-pure-black text-white text-[8px] font-black px-2 py-1 rounded opacity-0 group-hover/step:opacity-100 transition-opacity">GOAL: {step.bench}%</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
@@ -162,34 +203,38 @@ export default function Funil() {
             </div>
 
             {/* Performance by Channel */}
-            <div className="inner-card p-6 sm:p-8 md:p-10 bg-white border-gray-100 shadow-xl shadow-gray-100/50 mb-10 overflow-hidden relative group">
-                <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-blue-50 rounded-full blur-[100px] z-0 opacity-40" />
+            <div className="bg-white border border-gray-100 p-8 md:p-12 rounded-[3rem] shadow-elevation mb-20 overflow-hidden relative group">
+                <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-indigo-50/50 rounded-full blur-[100px] z-0 pointer-events-none" />
 
-                <div className="flex items-center gap-3 mb-10 relative z-10">
-                    <div className="w-2 h-6 bg-[#1A1D20] rounded-full" />
-                    <h2 className="text-xl font-black tracking-tight uppercase tracking-widest text-[14px]">Análise Multicanal</h2>
+                <div className="flex items-center gap-4 mb-12 relative z-10">
+                    <div className="w-2 h-10 bg-pure-black rounded-full" />
+                    <div>
+                        <h2 className="text-2xl font-black tracking-tighter text-pure-black">Análise Multicanal</h2>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Distribuição por Origem de Leads</p>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
                     {[
-                        { label: 'Unidade Física', color: 'text-blue-600', icon: Store },
-                        { label: 'Lista de Proprietários', color: 'text-violet-600', icon: Users },
-                        { label: 'Canais Digitais', color: 'text-emerald-600', icon: Globe }
+                        { label: 'Unidade Física', color: 'text-blue-600', icon: Store, tone: 'bg-blue-50 border-blue-100' },
+                        { label: 'Lista Proprietários', color: 'text-indigo-600', icon: Users, tone: 'bg-indigo-50 border-indigo-100' },
+                        { label: 'Canais Digitais', color: 'text-emerald-600', icon: Globe, tone: 'bg-emerald-50 border-emerald-100' }
                     ].map((canal, idx) => (
-                        <div key={canal.label} className="bg-gray-50/50 border border-gray-100 p-8 rounded-[2.5rem] hover:bg-white hover:shadow-2xl hover:border-blue-100 transition-all group/card">
-                            <div className="flex items-center justify-between mb-8">
-                                <div className={`w-12 h-12 rounded-2xl bg-white shadow-inner flex items-center justify-center ${canal.color} group-hover/card:scale-110 transition-transform`}>
-                                    <canal.icon size={24} />
+                        <div key={canal.label} className="bg-gray-50/30 border border-gray-100 p-8 rounded-[2.5rem] hover:bg-white hover:shadow-2xl hover:border-indigo-100 transition-all group/card flex flex-col justify-between min-h-[240px]">
+                            <div className="flex items-center justify-between">
+                                <div className={cn("w-14 h-14 rounded-2xl shadow-inner flex items-center justify-center border transition-transform group-hover/card:scale-110", canal.tone, canal.color)}>
+                                    <canal.icon size={28} strokeWidth={2.5} />
                                 </div>
-                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Canal 0{idx + 1}</span>
+                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">Node 0{idx + 1}</span>
                             </div>
-                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{canal.label}</h4>
-                            <p className="text-2xl font-black text-[#1A1D20] mb-6 tracking-tight">Performance Estável</p>
-                            <div className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-                                <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center">
-                                    <ArrowUpRight size={14} />
+                            
+                            <div>
+                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2">Status do Canal</h4>
+                                <p className="text-3xl font-black text-pure-black tracking-tighter mb-6 leading-none">Performance Estável</p>
+                                <div className="flex items-center gap-3 text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 w-fit px-4 py-2 rounded-full border border-emerald-100">
+                                    <ArrowUpRight size={14} strokeWidth={3} />
+                                    <span>+12% vs Month-1</span>
                                 </div>
-                                <span>+12% vs mês anterior</span>
                             </div>
                         </div>
                     ))}

@@ -155,6 +155,16 @@ export function useNotifications() {
         await fetchNotifications()
     }
 
+    const markAllAsRead = async () => {
+        if (!profile || notifications.length === 0) return
+        const unreadIds = notifications.filter(n => !n.read).map(n => n.id)
+        if (unreadIds.length === 0) return
+        
+        const updates = unreadIds.map(id => ({ notification_id: id, user_id: profile.id }))
+        await supabase.from('notification_reads').upsert(updates)
+        await fetchNotifications()
+    }
+
     const sendNotification = async (data: { title: string; message: string; target_type: 'all' | 'store'; target_store_id?: string }) => {
         if (!profile) return { error: 'Não autenticado' }
         const { error } = await supabase.from('notifications').insert({

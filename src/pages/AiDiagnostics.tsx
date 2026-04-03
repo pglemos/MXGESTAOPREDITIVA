@@ -1,29 +1,46 @@
-import { useState } from 'react'
-import { Bot, Sparkles, ClipboardList, ShieldAlert, ArrowRight, Thermometer, FileText, History, Download, Filter } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Bot, Sparkles, ClipboardList, ShieldAlert, ArrowRight, Thermometer, FileText, History, Download, Filter, RefreshCw, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { mockAuditLogs } from '@/lib/mock-data'
 import useAppStore from '@/stores/main'
 import { cn } from '@/lib/utils'
 
 export default function AiDiagnostics() {
     const { team } = useAppStore()
+    const location = useLocation()
+    const navigate = useNavigate()
+    
+    // URL Persistence for Tabs
+    const queryParams = new URLSearchParams(location.search)
+    const initialTab = queryParams.get('tab') || 'engine'
+    
     const [isGenerating, setIsGenerating] = useState(false)
     const [diagnostic, setDiagnostic] = useState<{ text: string; actions: string[]; message: string } | null>(null)
     const [selectedSeller, setSelectedSeller] = useState('team')
-    const [activeTab, setActiveTab] = useState('engine')
+    const [activeTab, setActiveTab] = useState(initialTab)
     const [diagnosticHistory, setDiagnosticHistory] = useState<any[]>([])
 
+    useEffect(() => {
+        const params = new URLSearchParams(location.search)
+        params.set('tab', activeTab)
+        navigate({ search: params.toString() }, { replace: true })
+    }, [activeTab, location.search, navigate])
+
     const generateDiagnostic = () => {
+        if (isGenerating) return
         setIsGenerating(true)
+        
+        // Simulating AI Analysis
         setTimeout(() => {
             const newDiagnostic = {
-                id: Math.random().toString(),
+                id: crypto.randomUUID(),
                 date: new Date().toLocaleString('pt-BR'),
                 target: selectedSeller === 'team' ? 'Toda Equipe' : team.find(t => t.id === selectedSeller)?.name || selectedSeller,
                 text: 'A equipe apresenta uma taxa de conversão saudável em visitas, mas há um acúmulo de leads "Sem Contato" no início do funil (gargalo de D0). A margem média está 2% abaixo da meta estipulada.',
@@ -36,185 +53,253 @@ export default function AiDiagnostics() {
             setDiagnostic(newDiagnostic)
             setDiagnosticHistory(prev => [newDiagnostic, ...prev])
             setIsGenerating(false)
-            toast({ title: 'Diagnóstico Gerado', description: 'O AI Sales Analyst concluiu a análise.' })
-        }, 1500)
+            toast.success('Diagnóstico Preditivo Gerado!')
+        }, 2000)
     }
 
     const copyMessage = () => {
         if (diagnostic) {
             navigator.clipboard.writeText(diagnostic.message)
-            toast({ title: 'Copiado para a área de transferência', description: 'A mensagem está pronta para uso.' })
+            toast.success('Mensagem copiada para uso!')
         }
     }
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto pb-12 px-4 md:px-0">
-            <div className="mb-8">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-electric-blue"></div>
-                    <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">INTELIGÊNCIA ARTIFICIAL</span>
+        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
+            {/* Header */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 border-b border-gray-100 pb-10">
+                <div>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-2 h-10 bg-electric-blue rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Inteligência Operacional</span>
+                    </div>
+                    <h1 className="text-[42px] font-black tracking-tighter leading-none mb-4">Sales <span className="text-electric-blue">Analyst</span></h1>
+                    <p className="text-sm font-bold text-gray-500 max-w-2xl leading-relaxed">
+                        Motor de diagnóstico baseado em padrões comportamentais e análise de faturamento em tempo real.
+                    </p>
                 </div>
-                <h1 className="text-4xl font-extrabold tracking-tight text-pure-black dark:text-off-white">Sales <span className="text-electric-blue">Analyst</span></h1>
             </div>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="bg-white/50 dark:bg-black/50 p-1 rounded-2xl border border-white/30 dark:border-white/5 mb-8 w-full flex flex-wrap h-auto">
-                    <TabsTrigger value="engine" className="rounded-xl font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-[#111] px-6"><Sparkles className="w-4 h-4 mr-2" />Análise</TabsTrigger>
-                    <TabsTrigger value="history" className="rounded-xl font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-[#111] px-6"><History className="w-4 h-4 mr-2" />Histórico</TabsTrigger>
-                    <TabsTrigger value="audit" className="rounded-xl font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-[#111] px-6"><ClipboardList className="w-4 h-4 mr-2" />Auditoria</TabsTrigger>
-                </TabsList>
 
-                <TabsContent value="engine">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div className="space-y-6">
-                            <Card className="hyper-glass border-[0.5px] border-white/40 dark:border-white/10 rounded-3xl overflow-hidden relative min-h-[400px]">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-electric-blue/10 rounded-full blur-[60px] pointer-events-none -mt-32 -mr-32"></div>
-                                <CardHeader className="pb-6 relative z-10">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-electric-blue/10 rounded-xl"><Bot className="h-5 w-5 text-electric-blue" /></div>
-                                            <div>
-                                                <CardTitle className="text-xl font-extrabold text-pure-black dark:text-off-white">Motor de Diagnóstico</CardTitle>
-                                                <CardDescription className="font-semibold text-muted-foreground mt-1">Prompt Mestre de análise comportamental e funil.</CardDescription>
-                                            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
+                    <TabsList className="bg-gray-100/50 p-1 rounded-2xl border border-gray-100 flex-1 sm:flex-none">
+                        <TabsTrigger value="engine" className="rounded-xl font-black text-[10px] uppercase tracking-widest px-6 h-10 data-[state=active]:bg-white data-[state=active]:shadow-sm"><Sparkles className="w-3.5 h-3.5 mr-2" />Análise</TabsTrigger>
+                        <TabsTrigger value="history" className="rounded-xl font-black text-[10px] uppercase tracking-widest px-6 h-10 data-[state=active]:bg-white data-[state=active]:shadow-sm"><History className="w-3.5 h-3.5 mr-2" />Histórico</TabsTrigger>
+                        <TabsTrigger value="audit" className="rounded-xl font-black text-[10px] uppercase tracking-widest px-6 h-10 data-[state=active]:bg-white data-[state=active]:shadow-sm"><ClipboardList className="w-3.5 h-3.5 mr-2" />Auditoria</TabsTrigger>
+                    </TabsList>
+                    
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" size="sm" className="rounded-full font-black text-[9px] uppercase tracking-widest border-gray-100 bg-white shadow-sm hover:shadow-md h-10 px-5">
+                            <Download className="w-3.5 h-3.5 mr-2" /> Exportar Report
+                        </Button>
+                    </div>
+                </div>
+
+                <TabsContent value="engine" className="mt-0 focus-visible:outline-none">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-7 space-y-6">
+                            <div className="bg-white border border-gray-100 rounded-[2.5rem] shadow-elevation overflow-hidden relative min-h-[500px] flex flex-col group">
+                                <div className="absolute top-0 right-0 w-80 h-80 bg-electric-blue/5 rounded-full blur-[80px] pointer-events-none -mt-40 -mr-40 transition-all group-hover:bg-electric-blue/10" />
+                                
+                                <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/30 relative z-10">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-pure-black text-white flex items-center justify-center shadow-2xl">
+                                            <Bot className="h-6 w-6" />
                                         </div>
-                                        <Badge variant="secondary" className="font-mono-numbers bg-black/5 dark:bg-white/10 text-muted-foreground border-none"><Thermometer className="w-3 h-3 mr-1" /> Temp: 0.3</Badge>
+                                        <div>
+                                            <h3 className="text-xl font-black text-pure-black tracking-tight leading-none mb-1">Motor de Diagnóstico</h3>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Análise Preditiva de Funil</p>
+                                        </div>
                                     </div>
-                                </CardHeader>
-                                <CardContent className="relative z-10 space-y-6">
-                                    <div className="space-y-3">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Alvo da Análise</label>
-                                        <div className="flex flex-col sm:flex-row gap-3">
+                                    <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest bg-white border border-gray-100 px-3 py-1.5 rounded-lg shadow-sm text-gray-400">
+                                        <Thermometer className="w-3 h-3 text-electric-blue" /> Temp: 0.3
+                                    </span>
+                                </div>
+
+                                <div className="p-8 relative z-10 flex-1 flex flex-col space-y-8">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 ml-2">Contexto da Operação</label>
+                                        <div className="flex flex-col sm:flex-row gap-4">
                                             <Select value={selectedSeller} onValueChange={setSelectedSeller}>
-                                                <SelectTrigger className="w-full rounded-xl bg-white/50 dark:bg-black/50 border-white/20 font-bold h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                                                <SelectContent className="rounded-xl">
-                                                    <SelectItem value="team">Visão Geral (Equipe)</SelectItem>
+                                                <SelectTrigger className="flex-1 rounded-2xl bg-white border-gray-100 font-bold h-14 shadow-sm focus:ring-2 focus:ring-electric-blue/20">
+                                                    <SelectValue placeholder="Alvo da Análise" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-2xl border-gray-100 shadow-3xl">
+                                                    <SelectItem value="team">Visão Consolidada (Cluster)</SelectItem>
                                                     {team.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
-                                            <Button onClick={generateDiagnostic} disabled={isGenerating} className="h-12 px-6 rounded-xl font-bold bg-pure-black text-white hover:bg-pure-black/80 dark:bg-white dark:text-pure-black shadow-elevation shrink-0 transition-transform active:scale-95 w-full sm:w-auto">
-                                                {isGenerating ? <span className="animate-pulse flex items-center gap-2">Analisando...</span> : <span className="flex items-center gap-2"><Sparkles className="w-4 h-4" /> Gerar</span>}
-                                            </Button>
+                                            <button 
+                                                onClick={generateDiagnostic} 
+                                                disabled={isGenerating} 
+                                                className="h-14 px-10 rounded-full font-black text-[10px] uppercase tracking-[0.3em] bg-pure-black text-white hover:bg-black shadow-3xl disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-3"
+                                            >
+                                                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                                {isGenerating ? 'Processando...' : 'Iniciar Análise'}
+                                            </button>
                                         </div>
                                     </div>
-                                    {diagnostic && (
-                                        <div className="p-5 bg-white/60 dark:bg-black/60 border border-white/30 dark:border-white/10 rounded-2xl shadow-sm animate-fade-in space-y-5">
-                                            <div><h4 className="text-[10px] font-bold uppercase tracking-widest text-electric-blue mb-2">1. Diagnóstico</h4><p className="text-sm font-semibold text-pure-black dark:text-off-white leading-relaxed">{diagnostic.text}</p></div>
-                                            <div><h4 className="text-[10px] font-bold uppercase tracking-widest text-electric-blue mb-2">2. Ações Prioritárias</h4>
-                                                <ul className="space-y-2">{diagnostic.actions.map((act, i) => (<li key={i} className="flex items-start gap-2 text-sm font-semibold text-pure-black dark:text-off-white"><ArrowRight className="w-4 h-4 text-electric-blue shrink-0 mt-0.5" /><span>{act}</span></li>))}</ul></div>
-                                            <div>
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-electric-blue">3. Mensagem Sugerida</h4>
-                                                    <Button variant="ghost" size="sm" onClick={copyMessage} className="h-6 px-2 text-[10px] font-bold rounded-md bg-electric-blue/10 text-electric-blue hover:bg-electric-blue/20"><FileText className="w-3 h-3 mr-1" /> Copiar</Button>
+
+                                    {diagnostic ? (
+                                        <div className="space-y-8 animate-fade-in">
+                                            <div className="p-6 bg-indigo-50/30 border border-indigo-100/50 rounded-3xl space-y-4">
+                                                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-electric-blue">1. Diagnóstico Identificado</h4>
+                                                <p className="text-base font-bold text-gray-600 leading-relaxed italic">"{diagnostic.text}"</p>
+                                            </div>
+                                            
+                                            <div className="grid sm:grid-cols-2 gap-6">
+                                                <div className="space-y-4">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-600">2. Ações Recomendadas</h4>
+                                                    <ul className="space-y-3">
+                                                        {diagnostic.actions.map((act, i) => (
+                                                            <li key={i} className="flex items-start gap-3 text-xs font-bold text-gray-500">
+                                                                <ArrowRight className="w-4 h-4 text-emerald-500 shrink-0" />
+                                                                <span>{act}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
                                                 </div>
-                                                <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl text-sm font-medium text-muted-foreground italic border border-black/5 dark:border-white/5">"{diagnostic.message}"</div>
+                                                
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-600">3. Draft de Contato</h4>
+                                                        <button onClick={copyMessage} className="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition-colors shadow-sm">
+                                                            <FileText size={14} strokeWidth={3} />
+                                                        </button>
+                                                    </div>
+                                                    <div className="p-4 bg-white border border-amber-100 rounded-2xl text-xs font-bold text-gray-400 leading-relaxed italic shadow-inner">
+                                                        "{diagnostic.message}"
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    )}
-                                    {!diagnostic && !isGenerating && (
-                                        <div className="h-48 flex flex-col items-center justify-center text-center p-8">
-                                            <Sparkles className="h-12 w-12 text-muted-foreground/20 mb-4" />
-                                            <p className="text-sm font-bold text-muted-foreground">Clique em gerar para iniciar a análise por IA.</p>
+                                    ) : !isGenerating && (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-center p-10">
+                                            <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center mb-6 border border-gray-100">
+                                                <Sparkles className="h-8 w-8 text-gray-200" />
+                                            </div>
+                                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest max-w-[200px]">Selecione o alvo e dispare o motor preditivo.</p>
                                         </div>
                                     )}
-                                </CardContent>
-                            </Card>
-                        </div>
-                        <div className="flex items-center justify-center p-12 border-2 border-dashed border-white/10 rounded-3xl">
-                            <div className="text-center space-y-4">
-                                <div className="p-4 bg-electric-blue/5 rounded-full inline-block mb-2">
-                                    <Bot className="h-8 w-8 text-electric-blue" />
                                 </div>
-                                <h3 className="font-extrabold text-lg text-pure-black dark:text-off-white">Insights Comportamentais</h3>
-                                <p className="text-sm font-semibold text-muted-foreground max-w-xs mx-auto">Nossa IA analisa padrões de comunicação no WhatsApp para prever a probabilidade de fechamento.</p>
-                                <Button variant="outline" className="rounded-xl font-bold border-white/10">Saiba Mais</Button>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-5">
+                            <div className="h-full flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/20 group hover:bg-gray-50/50 transition-colors">
+                                <div className="text-center space-y-6">
+                                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-2xl border border-gray-100 group-hover:rotate-12 transition-transform duration-500">
+                                        <Bot className="h-10 w-10 text-electric-blue" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-black text-2xl text-pure-black tracking-tight mb-3">Insights de NLP</h3>
+                                        <p className="text-sm font-bold text-gray-400 max-w-xs mx-auto leading-relaxed">Nossa IA está em fase de treinamento para analisar transcrições de áudio e texto do WhatsApp.</p>
+                                    </div>
+                                    <button className="px-8 py-3 rounded-full border border-gray-200 bg-white text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-pure-black hover:border-gray-300 transition-all">Ver Roadmap IA</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </TabsContent>
 
-                <TabsContent value="history">
-                    <Card className="border-none bg-white dark:bg-[#111] shadow-sm rounded-3xl overflow-hidden">
-                        <CardHeader className="flex flex-row items-center justify-between border-b border-black/5 dark:border-white/5">
+                <TabsContent value="history" className="mt-0 focus-visible:outline-none pb-20">
+                    <div className="bg-white border border-gray-100 shadow-elevation rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
                             <div>
-                                <CardTitle className="text-lg font-extrabold">Histórico de Diagnósticos</CardTitle>
-                                <CardDescription className="font-semibold text-muted-foreground">Log de análises geradas anteriormente.</CardDescription>
+                                <h2 className="text-2xl font-black text-pure-black tracking-tight">Histórico de Inteligência</h2>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-1">Snapshot das últimas 50 análises</p>
                             </div>
-                            <Button variant="outline" size="sm" className="rounded-xl font-bold border-white/10">
-                                <Download className="w-4 h-4 mr-2" /> Exportar PDF
-                            </Button>
-                        </CardHeader>
-                        <div className="overflow-x-auto">
+                        </div>
+                        <div className="overflow-x-auto no-scrollbar">
                             <Table>
-                                <TableHeader className="bg-black/5 dark:bg-white/5 border-none">
+                                <TableHeader className="bg-gray-50/50 border-none">
                                     <TableRow className="hover:bg-transparent border-none">
-                                        <TableHead className="font-bold text-[10px] uppercase tracking-widest py-4 pl-6">Data</TableHead>
-                                        <TableHead className="font-bold text-[10px] uppercase tracking-widest py-4">Alvo</TableHead>
-                                        <TableHead className="font-bold text-[10px] uppercase tracking-widest py-4">Status</TableHead>
-                                        <TableHead className="font-bold text-[10px] uppercase tracking-widest py-4 pr-6">Ações</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 pl-8 text-gray-400">Data/Hora</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 text-gray-400">Alvo</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 text-gray-400">Status</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 pr-8 text-right text-gray-400">Ações</TableHead>
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody>
+                                <TableBody className="divide-y divide-gray-50">
                                     {diagnosticHistory.map((h) => (
-                                        <TableRow key={h.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-none">
-                                            <TableCell className="font-bold text-xs py-4 pl-6">{h.date}</TableCell>
-                                            <TableCell className="font-extrabold text-sm py-4">{h.target}</TableCell>
-                                            <TableCell className="py-4"><Badge className="bg-green-500/10 text-green-600 border-none font-bold">Concluído</Badge></TableCell>
-                                            <TableCell className="py-4 pr-6">
-                                                <Button variant="ghost" size="sm" onClick={() => setDiagnostic(h)} className="h-8 px-3 font-bold text-xs rounded-lg bg-electric-blue/10 text-electric-blue hover:bg-electric-blue/20">Revisar</Button>
+                                        <TableRow key={h.id} className="hover:bg-gray-50/50 transition-colors border-none group">
+                                            <TableCell className="font-bold text-xs py-6 pl-8 text-gray-500">{h.date}</TableCell>
+                                            <TableCell className="font-black text-sm py-6 text-pure-black">{h.target}</TableCell>
+                                            <TableCell className="py-6">
+                                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black text-[8px] uppercase tracking-widest rounded-lg">Sucesso</Badge>
+                                            </TableCell>
+                                            <TableCell className="py-6 pr-8 text-right">
+                                                <button onClick={() => {setDiagnostic(h); setActiveTab('engine')}} className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-electric-blue hover:underline">
+                                                    Abrir Snapshot <ArrowRight size={14} />
+                                                </button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                     {diagnosticHistory.length === 0 && (
-                                        <TableRow><TableCell colSpan={4} className="p-12 text-center text-muted-foreground font-bold">Nenhum diagnóstico no histórico.</TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={4} className="py-32 text-center text-gray-300 font-black uppercase tracking-widest text-[10px] italic">Banco de memórias vazio</TableCell></TableRow>
                                     )}
                                 </TableBody>
                             </Table>
                         </div>
-                    </Card>
+                    </div>
                 </TabsContent>
 
-                <TabsContent value="audit">
-                    <Card className="border-none bg-white dark:bg-[#111] shadow-sm rounded-3xl overflow-hidden h-full flex flex-col">
-                        <CardHeader className="border-b border-black/5 dark:border-white/5 pb-5 flex flex-row items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-mars-orange/10 rounded-xl"><ClipboardList className="h-5 w-5 text-mars-orange" /></div>
+                <TabsContent value="audit" className="mt-0 focus-visible:outline-none pb-20">
+                    <div className="bg-white border border-gray-100 shadow-elevation rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                                    <ClipboardList size={24} />
+                                </div>
                                 <div>
-                                    <CardTitle className="text-lg font-extrabold text-pure-black dark:text-off-white">Trilha de Auditoria (Data Audit)</CardTitle>
-                                    <CardDescription className="font-semibold text-muted-foreground mt-1">Prevenção contra manipulação de KPIs e burla de regras.</CardDescription>
+                                    <h2 className="text-2xl font-black text-pure-black tracking-tight leading-none mb-1">Trilha de Auditoria</h2>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Integridade de Dados & KPIs</p>
                                 </div>
                             </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="rounded-xl font-bold border-white/10"><Filter className="w-4 h-4 mr-2" /> Filtrar</Button>
-                                <Button variant="outline" size="sm" className="rounded-xl font-bold border-white/10"><Download className="w-4 h-4 mr-2" /> Exportar CSV</Button>
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <div className="relative flex-1 sm:w-64 group">
+                                    <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input type="text" placeholder="Filtrar Log..." className="w-full bg-white border border-gray-100 rounded-full pl-10 pr-4 py-2.5 text-xs font-bold focus:outline-none focus:border-electric-blue/30 transition-all" />
+                                </div>
+                                <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-gray-100 bg-white"><Filter size={16} /></Button>
                             </div>
-                        </CardHeader>
-                        <div className="overflow-x-auto flex-1">
+                        </div>
+                        <div className="overflow-x-auto no-scrollbar">
                             <Table>
-                                <TableHeader className="bg-black/5 dark:bg-white/5 border-none">
+                                <TableHeader className="bg-gray-50/50">
                                     <TableRow className="hover:bg-transparent border-none">
-                                        <TableHead className="font-bold text-[10px] uppercase tracking-widest py-4 text-pure-black dark:text-off-white pl-6">Data/Hora</TableHead>
-                                        <TableHead className="font-bold text-[10px] uppercase tracking-widest py-4 text-pure-black dark:text-off-white">Usuário</TableHead>
-                                        <TableHead className="font-bold text-[10px] uppercase tracking-widest py-4 text-pure-black dark:text-off-white pr-6">Ação Registrada</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 pl-8 text-gray-400 w-48">Timestamp</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 text-gray-400 w-64">Responsável</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.3em] py-6 text-gray-400 pr-8">Evento Sistêmico</TableHead>
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody>
+                                <TableBody className="divide-y divide-gray-50">
                                     {mockAuditLogs.map((log, index) => (
-                                        <TableRow key={log.id} className={cn('hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-none', index % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]')}>
-                                            <TableCell className="font-bold text-xs text-muted-foreground py-4 pl-6 whitespace-nowrap">{log.date}</TableCell>
-                                            <TableCell className="font-extrabold text-sm text-pure-black dark:text-off-white py-4 whitespace-nowrap">{log.user}</TableCell>
-                                            <TableCell className="py-4 pr-6">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    {log.action.includes('Bloqueado') || log.action.includes('Alerta') ? <ShieldAlert className="w-3.5 h-3.5 text-mars-orange shrink-0" /> : <div className="w-1.5 h-1.5 rounded-full bg-electric-blue shrink-0"></div>}
-                                                    <span className={cn('font-bold text-xs', log.action.includes('Bloqueado') || log.action.includes('Alerta') ? 'text-mars-orange' : 'text-pure-black dark:text-off-white')}>{log.action}</span>
+                                        <TableRow key={log.id} className="hover:bg-gray-50/50 transition-colors border-none group">
+                                            <TableCell className="font-bold text-xs text-gray-400 py-6 pl-8 whitespace-nowrap">{log.date}</TableCell>
+                                            <TableCell className="py-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center font-black text-[10px] text-pure-black">
+                                                        {log.user.charAt(0)}
+                                                    </div>
+                                                    <span className="font-black text-sm text-pure-black whitespace-nowrap">{log.user}</span>
                                                 </div>
-                                                <p className="text-xs text-muted-foreground font-medium leading-tight">{log.detail}</p>
+                                            </TableCell>
+                                            <TableCell className="py-6 pr-8">
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    {log.action.includes('Bloqueado') || log.action.includes('Alerta') 
+                                                        ? <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0" /> 
+                                                        : <div className="w-1.5 h-1.5 rounded-full bg-electric-blue shrink-0 shadow-[0_0_8px_rgba(79,70,229,0.5)]"></div>}
+                                                    <span className={cn('font-black text-sm', log.action.includes('Bloqueado') || log.action.includes('Alerta') ? 'text-rose-600' : 'text-pure-black')}>{log.action}</span>
+                                                </div>
+                                                <p className="text-xs font-bold text-gray-400 leading-relaxed max-w-2xl">{log.detail}</p>
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </div>
-                    </Card>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>
