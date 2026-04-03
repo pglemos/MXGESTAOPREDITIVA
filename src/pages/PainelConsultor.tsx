@@ -6,12 +6,9 @@ import {
     AlertTriangle,
     ArrowRight,
     Award,
-    Bell,
     Building2,
     Car,
-    CheckCircle2,
     ChevronRight,
-    Globe,
     LayoutDashboard,
     Settings,
     Target,
@@ -67,25 +64,14 @@ export default function PainelConsultor() {
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
 
             const [
-                { data: monthCheckins, error: checkinsErr },
-                { data: sellerMemberships, error: membersErr },
-                { data: todayCheckins, error: todayErr },
+                { data: monthCheckins },
+                { data: sellerMemberships },
+                { data: todayCheckins },
             ] = await Promise.all([
-                supabase
-                    .from('daily_checkins')
-                    .select('store_id, user_id, vnd_porta, vnd_cart, vnd_net')
-                    .gte('date', monthStart),
-                supabase
-                    .from('memberships')
-                    .select('store_id, user_id')
-                    .eq('role', 'vendedor'),
-                supabase
-                    .from('daily_checkins')
-                    .select('store_id, user_id')
-                    .eq('date', today),
+                supabase.from('daily_checkins').select('store_id, user_id, vnd_porta, vnd_cart, vnd_net').gte('date', monthStart),
+                supabase.from('memberships').select('store_id, user_id').eq('role', 'vendedor'),
+                supabase.from('daily_checkins').select('store_id, user_id').eq('date', today),
             ])
-
-            if (checkinsErr || membersErr || todayErr) throw new Error('Sync fail')
 
             const salesMap: Record<string, StoreSales> = {}
             for (const checkin of monthCheckins || []) {
@@ -128,7 +114,7 @@ export default function PainelConsultor() {
             setStoreSales(salesMap)
             setDiagnostics(diagnosticsMap)
         } catch (err) {
-            console.error('Audit Error [01]:', err)
+            console.error('Audit Error:', err)
         } finally {
             setNetworkLoading(false)
             setIsRefetching(false)
@@ -136,9 +122,7 @@ export default function PainelConsultor() {
     }, [stores, goals])
 
     useEffect(() => {
-        let isMounted = true
-        if (!storesLoading && !goalsLoading && isMounted) { fetchNetworkSnapshot() }
-        return () => { isMounted = false }
+        if (!storesLoading && !goalsLoading) fetchNetworkSnapshot()
     }, [storesLoading, goalsLoading, fetchNetworkSnapshot])
 
     const stats = useMemo(() => {
@@ -147,136 +131,108 @@ export default function PainelConsultor() {
         const gPacing = tGoal > 0 ? Math.round((tSales / tGoal) * 100) : 0
         const unread = notifications.filter(item => !item.read).length
         
-        const sByChannel = Object.values(storeSales).reduce((acc, item) => ({
-            porta: acc.porta + item.porta, cart: acc.cart + item.cart, net: acc.net + item.net,
-        }), { porta: 0, cart: 0, net: 0 })
-
         const tStores = [...stores].map(store => ({
             ...store, metrics: diagnostics[store.id] || { id: store.id, name: store.name, sales: 0, goal: 0, pacing: 0, projection: 0, sellers: 0, checkedInToday: 0, hasGoal: false }
         })).sort((a, b) => b.metrics.sales - a.metrics.sales)
 
-        return { totalSales: tSales, globalPacing: gPacing, unread, salesByChannel: sByChannel, topStores: tStores }
+        return { totalSales: tSales, globalPacing: gPacing, unread, topStores: tStores }
     }, [storeSales, goals, notifications, stores, diagnostics])
 
     if (storesLoading || goalsLoading || networkLoading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-surface-alt/50 backdrop-blur-xl">
-            <div className="w-16 h-16 border-4 border-brand-primary/10 border-t-brand-primary rounded-full animate-spin shadow-mx-lg"></div>
-            <p className="mt-mx-md mx-text-caption animate-pulse">Sincronizando cockpit de rede...</p>
+        <div className="flex items-center justify-center h-full w-full bg-white">
+            <div className="w-12 h-12 border-4 border-brand-primary/10 border-t-brand-primary rounded-full animate-spin"></div>
         </div>
     )
 
     return (
-        <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl">
-            {/* Header - Tokenized Spacing & Typography */}
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg">
+        <div className="w-full h-full flex flex-col gap-mx-md p-mx-md sm:p-mx-lg overflow-y-auto no-scrollbar">
+            
+            {/* Header - Melhor alinhamento e peso visual */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md mb-mx-sm">
                 <div>
-                    <div className="flex items-center gap-mx-xs mb-mx-sm">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-                        <span className="mx-text-caption">Operações em Tempo Real</span>
-                    </div>
-                    <h1 className="mx-heading-hero mb-mx-sm">Cockpit de Gestão</h1>
-                    <p className="text-sm font-bold text-text-secondary max-w-2xl leading-relaxed">Interface unificada para monitoramento de run-rate e saúde da tropa.</p>
+                    <span className="mx-text-caption text-brand-primary mb-1 block">Gestão de Cluster • Live</span>
+                    <h1 className="text-3xl md:text-4xl font-black text-text-primary tracking-tighter uppercase">Painel de Controle</h1>
                 </div>
-
                 <div className="flex items-center gap-mx-sm">
-                    <button onClick={() => fetchNetworkSnapshot(true)} className="w-14 h-14 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all active:scale-90 disabled:opacity-50">
+                    <button onClick={() => fetchNetworkSnapshot(true)} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </button>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-mx-xs">
+                    <div className="grid grid-cols-4 gap-mx-xs">
                         {[
-                            { label: 'Lojas', value: stores.length, icon: Building2, tone: 'bg-mx-indigo-50 text-mx-indigo-600 border-mx-indigo-100' },
-                            { label: 'Vendas', value: stats.totalSales, icon: Car, tone: 'bg-status-success-surface text-status-success border-mx-emerald-100' },
-                            { label: 'Pacing', value: `${stats.globalPacing}%`, icon: Target, tone: 'bg-status-warning-surface text-status-warning border-mx-amber-100' },
-                            { label: 'Alertas', value: stats.unread, icon: Bell, tone: 'bg-status-error-surface text-status-error border-mx-rose-100' },
+                            { label: 'Nodes', value: stores.length, icon: Building2, tone: 'bg-mx-indigo-50 text-mx-indigo-600' },
+                            { label: 'Vendas', value: stats.totalSales, icon: Car, tone: 'bg-status-success-surface text-status-success' },
+                            { label: 'Pacing', value: `${stats.globalPacing}%`, icon: Target, tone: 'bg-status-warning-surface text-status-warning' },
+                            { label: 'Inbox', value: stats.unread, icon: Zap, tone: 'bg-status-error-surface text-status-error' },
                         ].map(item => (
-                            <div key={item.label} className="rounded-mx-lg border border-border-default bg-white p-mx-sm shadow-mx-sm">
-                                <div className={cn("w-10 h-10 rounded-mx-md flex items-center justify-center mb-mx-xs border", item.tone)}>
-                                    <item.icon size={18} />
-                                </div>
-                                <p className="text-2xl font-black tracking-tighter text-text-primary">{item.value}</p>
-                                <p className="text-[8px] font-black uppercase tracking-widest text-text-tertiary">{item.label}</p>
+                            <div key={item.label} className="flex flex-col items-center justify-center w-20 h-20 rounded-mx-xl bg-white border border-border-default shadow-mx-sm">
+                                <item.icon size={16} className={cn("mb-1", item.tone.split(' ')[1])} />
+                                <span className="text-lg font-black tracking-tighter leading-none">{item.value}</span>
+                                <span className="text-[7px] font-black uppercase opacity-40">{item.label}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-mx-3xl">
-                {/* Main Stats (8/12) */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-mx-2xl">
+                
+                {/* Ações Rápidas - Normalizados */}
                 <div className="xl:col-span-8 flex flex-col gap-mx-lg">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-mx-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-md">
                         {[
-                            { to: '/lojas', label: 'Unidades', icon: Building2, note: 'Rede' },
-                            { to: '/funil', label: 'Funil', icon: TrendingUp, note: 'Conversão' },
-                            { to: '/notificacoes', label: 'Inbox', icon: Bell, note: 'Central' },
-                            { to: '/configuracoes', label: 'Ajustes', icon: Settings, note: 'Global' },
+                            { to: '/lojas', label: 'Unidades', desc: 'Gerenciar Nodes', icon: Building2 },
+                            { to: '/funil', label: 'Funil', desc: 'Conversão Real', icon: TrendingUp },
+                            { to: '/notificacoes', label: 'Inbox', desc: 'Alertas Ativos', icon: Zap },
+                            { to: '/configuracoes', label: 'Ajustes', desc: 'System Core', icon: Settings },
                         ].map(action => (
-                            <Link key={action.to} to={action.to} className="mx-card p-mx-md mx-card-hover group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-mx-slate-50 rounded-full blur-3xl -mr-mx-md -mt-mx-md group-hover:bg-brand-primary-surface transition-colors" />
-                                <div className="flex items-center justify-between mb-mx-lg relative z-10">
-                                    <div className="w-12 h-12 rounded-mx-md bg-mx-slate-50 border border-border-default flex items-center justify-center text-text-primary group-hover:bg-brand-secondary group-hover:text-white transition-colors">
-                                        <action.icon size={20} />
-                                    </div>
-                                    <ArrowRight size={18} className="text-text-tertiary group-hover:text-brand-primary group-hover:translate-x-1 transition-all" />
+                            <Link key={action.to} to={action.to} className="mx-card p-mx-lg hover:-translate-y-1 group">
+                                <div className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 flex items-center justify-center text-text-tertiary group-hover:bg-brand-secondary group-hover:text-white transition-all mb-mx-md">
+                                    <action.icon size={22} />
                                 </div>
-                                <p className="text-lg font-black text-text-primary tracking-tight relative z-10">{action.label}</p>
-                                <p className="mx-text-caption mt-1 relative z-10">{action.note}</p>
+                                <h3 className="text-lg font-black text-text-primary leading-none mb-1">{action.label}</h3>
+                                <p className="text-[10px] font-bold text-text-tertiary uppercase">{action.desc}</p>
                             </Link>
                         ))}
                     </div>
 
-                    <Card>
-                        <CardHeader className="flex-row items-center justify-between">
+                    {/* Tabela de Run-rate - Alinhamento Cirúrgico */}
+                    <Card className="flex-1">
+                        <CardHeader className="flex-row items-center justify-between border-b border-border-subtle bg-mx-slate-50/20">
                             <div>
-                                <CardDescription>Performance por Unidade</CardDescription>
-                                <CardTitle>Run-rate Detalhado</CardTitle>
+                                <CardTitle className="!text-xl uppercase">Run-rate por Unidade</CardTitle>
+                                <CardDescription>Performance consolidada do ciclo atual.</CardDescription>
                             </div>
-                            <Link to="/lojas">
-                                <button className="mx-button-primary !h-10 !px-6">Ver Todas</button>
-                            </Link>
+                            <Link to="/lojas"><button className="mx-button-primary !h-10 !px-6">Ver Rede</button></Link>
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left min-w-[800px]">
-                                <thead>
-                                    <tr className="bg-mx-slate-50/50 mx-text-caption border-b border-border-default">
-                                        <th className="pl-mx-lg py-mx-md">Loja</th>
-                                        <th className="py-mx-md text-center">Vendas</th>
-                                        <th className="py-mx-md text-center">Meta</th>
-                                        <th className="py-mx-md text-center">Pacing</th>
-                                        <th className="py-mx-md text-center">Check-in</th>
-                                        <th className="pr-mx-lg py-mx-md text-right">Ação</th>
+                            <table className="w-full text-left">
+                                <thead className="bg-mx-slate-50/50 border-b border-border-default">
+                                    <tr className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">
+                                        <th className="px-mx-lg py-mx-md">Unidade</th>
+                                        <th className="px-mx-md py-mx-md text-center">Vendas</th>
+                                        <th className="px-mx-md py-mx-md text-center">Pacing</th>
+                                        <th className="px-mx-md py-mx-md text-center">Tropa</th>
+                                        <th className="px-mx-lg py-mx-md text-right">Gestão</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-subtle">
                                     {stats.topStores.map(store => (
-                                        <tr key={store.id} className="hover:bg-mx-slate-50/50 transition-colors group">
-                                            <td className="pl-mx-lg py-mx-md">
+                                        <tr key={store.id} className="hover:bg-mx-slate-50/30 transition-colors group h-20">
+                                            <td className="px-mx-lg py-4">
                                                 <div className="flex items-center gap-mx-sm">
-                                                    <div className="w-11 h-11 rounded-mx-md bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all">{store.name.charAt(0)}</div>
-                                                    <div>
-                                                        <p className="font-black text-sm text-text-primary">{store.name}</p>
-                                                        <p className="text-[8px] font-black text-text-tertiary uppercase tracking-widest">Node 0{store.id.slice(0,1)}</p>
-                                                    </div>
+                                                    <div className="w-10 h-10 rounded-mx-md bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all uppercase">{store.name.charAt(0)}</div>
+                                                    <div><p className="font-black text-sm text-text-primary leading-none mb-1 uppercase">{store.name}</p><p className="text-[8px] font-black text-text-tertiary uppercase">Node 0{store.id.slice(0,1)}</p></div>
                                                 </div>
                                             </td>
-                                            <td className="py-mx-md text-center font-black text-sm">{store.metrics.sales}</td>
-                                            <td className="py-mx-md text-center font-black text-xs text-text-tertiary">{store.metrics.goal || '-'}</td>
-                                            <td className="py-mx-md text-center">
-                                                <span className={cn(
-                                                    "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border",
-                                                    store.metrics.pacing >= 100 ? 'bg-status-success-surface text-status-success border-mx-emerald-100' :
-                                                    store.metrics.pacing >= 70 ? 'bg-status-warning-surface text-status-warning border-mx-amber-100' :
-                                                    'bg-status-error-surface text-status-error border-mx-rose-100'
-                                                )}>{store.metrics.pacing}%</span>
+                                            <td className="px-mx-md py-4 text-center font-black text-lg font-mono-numbers">{store.metrics.sales}</td>
+                                            <td className="px-mx-md py-4 text-center">
+                                                <Badge className={cn("text-[9px] font-black", store.metrics.pacing >= 100 ? "bg-status-success-surface text-status-success" : "bg-status-warning-surface text-status-warning")}>
+                                                    {store.metrics.pacing}%
+                                                </Badge>
                                             </td>
-                                            <td className="py-mx-md text-center">
-                                                <div className="flex items-center justify-center gap-1.5">
-                                                    <div className={cn("w-1.5 h-1.5 rounded-full", store.metrics.checkedInToday >= store.metrics.sellers ? "bg-status-success" : "bg-status-error")} />
-                                                    <span className="text-xs font-black text-text-tertiary">{store.metrics.checkedInToday}/{store.metrics.sellers}</span>
-                                                </div>
-                                            </td>
-                                            <td className="pr-mx-lg py-mx-md text-right">
-                                                <Link to={`/loja?id=${store.id}`} className="inline-flex items-center gap-1 mx-text-caption text-brand-primary hover:underline">Abrir <ChevronRight size={14} /></Link>
+                                            <td className="px-mx-md py-4 text-center font-black text-xs text-text-tertiary">{store.metrics.checkedInToday}/{store.metrics.sellers}</td>
+                                            <td className="px-mx-lg py-4 text-right">
+                                                <Link to={`/loja?id=${store.id}`} className="text-brand-primary hover:underline font-black text-[10px] uppercase flex items-center justify-end gap-1">Auditar <ChevronRight size={14} /></Link>
                                             </td>
                                         </tr>
                                     ))}
@@ -286,44 +242,37 @@ export default function PainelConsultor() {
                     </Card>
                 </div>
 
-                {/* Sidebar (4/12) */}
+                {/* Sidebar Metrics */}
                 <div className="xl:col-span-4 flex flex-col gap-mx-lg">
-                    <div className="rounded-mx-3xl bg-brand-secondary text-white p-mx-lg shadow-mx-elite relative overflow-hidden group">
-                        <div className="absolute -right-mx-md -top-mx-md w-40 h-40 bg-brand-primary/20 rounded-full blur-3xl group-hover:bg-brand-primary/30 transition-colors" />
-                        <div className="flex items-center justify-between mb-mx-xl relative z-10">
-                            <div className="w-14 h-14 rounded-mx-lg bg-white/10 border border-white/10 flex items-center justify-center backdrop-blur-xl">
-                                <Activity size={24} className="text-brand-primary" />
-                            </div>
-                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Saude do Cluster</span>
+                    <div className="bg-brand-secondary rounded-mx-3xl p-mx-xl text-white shadow-mx-elite relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 via-transparent to-transparent pointer-events-none" />
+                        <div className="relative z-10 flex items-center justify-between mb-mx-xl">
+                            <div className="w-14 h-14 rounded-mx-lg bg-white/10 border border-white/10 flex items-center justify-center backdrop-blur-xl"><Activity size={28} className="text-brand-primary" /></div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Network Health</span>
                         </div>
-                        <div className="relative z-10 mb-mx-md">
-                            <p className="text-6xl font-black tracking-tighter leading-none mb-mx-sm">{stats.globalPacing}%</p>
-                            <p className="text-sm font-bold text-white/50 leading-relaxed italic">Run-rate consolidado contra o target do node.</p>
+                        <div className="relative z-10 mb-mx-lg">
+                            <p className="text-7xl font-black tracking-tighter leading-none mb-2">{stats.globalPacing}%</p>
+                            <p className="text-sm font-bold text-white/50 italic leading-tight">Run-rate médio do cluster contra o objetivo estratégico.</p>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-white/5 p-0.5 border border-white/5 relative z-10 overflow-hidden">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(stats.globalPacing, 100)}%` }} className="h-full rounded-full bg-brand-primary shadow-mx-md" />
+                        <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-px shadow-inner relative z-10">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(stats.globalPacing, 100)}%` }} transition={{ duration: 1.5 }} className="h-full bg-brand-primary rounded-full shadow-[0_0_12px_rgba(79,70,229,0.6)]" />
                         </div>
                     </div>
 
-                    <div className="mx-card p-mx-lg">
-                        <div className="flex items-center gap-mx-sm mb-mx-lg">
-                            <div className="w-12 h-12 rounded-mx-lg bg-status-error-surface text-status-error border border-mx-rose-100 flex items-center justify-center shadow-inner"><AlertTriangle size={20} strokeWidth={2.5} /></div>
-                            <div>
-                                <h2 className="text-xl font-black text-text-primary leading-none mb-1">Audit Log</h2>
-                                <p className="mx-text-caption">Gaps Operacionais</p>
-                            </div>
-                        </div>
-                        <div className="space-y-mx-sm">
-                            <div className="flex items-center justify-between p-mx-sm rounded-mx-md border border-border-default bg-mx-slate-50/50">
-                                <div><p className="font-black text-sm text-text-primary">Metas Pendentes</p><p className="text-[8px] font-black text-text-tertiary uppercase tracking-widest">Ação Necessária</p></div>
-                                <div className="w-10 h-10 rounded-mx-md bg-status-error text-white flex items-center justify-center font-black text-sm">3</div>
-                            </div>
-                            <div className="flex items-center justify-between p-mx-sm rounded-mx-md border border-border-default bg-mx-slate-50/50">
-                                <div><p className="font-black text-sm text-text-primary">Check-ins D0</p><p className="text-[8px] font-black text-text-tertiary uppercase tracking-widest">Aguardando Registro</p></div>
-                                <div className="w-10 h-10 rounded-mx-md bg-status-warning text-white flex items-center justify-center font-black text-sm">5</div>
-                            </div>
-                        </div>
-                    </div>
+                    <Card>
+                        <CardHeader className="bg-mx-slate-50/20 border-b border-border-subtle"><div className="flex items-center gap-mx-sm"><div className="w-10 h-10 rounded-mx-md bg-status-error-surface text-status-error flex items-center justify-center border border-mx-rose-100 shadow-inner"><AlertTriangle size={20} /></div><div><CardTitle className="!text-lg uppercase">Audit Log</CardTitle><p className="mx-text-caption !text-[8px]">Inconsistências Detectadas</p></div></div></CardHeader>
+                        <CardContent className="p-mx-lg space-y-mx-md">
+                            {[
+                                { label: 'Metas Pendentes', val: 3, tone: 'bg-status-error text-white' },
+                                { label: 'Check-ins Atrasados', val: 5, tone: 'bg-status-warning text-white' },
+                            ].map(log => (
+                                <div key={log.label} className="flex items-center justify-between p-mx-md rounded-mx-xl bg-mx-slate-50/50 border border-border-subtle hover:bg-white transition-all">
+                                    <span className="text-xs font-black text-text-primary uppercase tracking-tight">{log.label}</span>
+                                    <div className={cn("w-10 h-10 rounded-mx-lg flex items-center justify-center font-black text-sm shadow-mx-sm", log.tone)}>{log.val}</div>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>
