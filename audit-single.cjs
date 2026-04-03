@@ -17,8 +17,12 @@ const path = require('path');
   
   try {
     await page.waitForURL('**/painel', { timeout: 10000 });
+    await page.goto('https://autogestao.vercel.app/lojas');
+    await page.waitForTimeout(3000);
+    // Clicar no botão de seta do primeiro card de loja
+    await page.click('a[href*="/loja?id="]');
     await page.waitForTimeout(5000);
-    const filePath = path.join(__dirname, 'audit_painel_error.png');
+    const filePath = path.join(__dirname, 'audit_loja_detalhe.png');
     await page.screenshot({ path: filePath, fullPage: true });
     console.log('📸 Screenshot salvo em:', filePath);
   } catch (e) {

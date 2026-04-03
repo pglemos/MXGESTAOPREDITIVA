@@ -14,6 +14,7 @@ import { useMemo, useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 interface StatProps {
     icon: any; label: string; value: string | number; sub?: string; bg: string; color: string; trend?: string; delay?: number
