@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
-import { TrendingUp, Target, Zap, AlertTriangle, CheckCircle2, RefreshCw, MessageCircle, BarChart3, Mail, Clock, UserX, Users } from 'lucide-react'
+import { TrendingUp, Target, Zap, AlertTriangle, CheckCircle2, RefreshCw, MessageCircle, BarChart3, Mail, Clock, UserX, Users, FileDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useCheckins } from '@/hooks/useCheckins'
@@ -14,7 +15,7 @@ import { ptBR } from 'date-fns/locale'
 import { calcularProjecao, getDiasInfo, calcularAtingimento, somarVendas } from '@/lib/calculations'
 
 export default function MorningReport() {
-  const { profile } = useAuth()
+  const { profile, membership } = useAuth()
   const { leads } = useAppStore()
   const { checkins, loading: loadingCheckins } = useCheckins()
   const { storeGoal, loading: loadingGoals } = useGoals()
@@ -57,25 +58,80 @@ export default function MorningReport() {
   }
 
   const handleWhatsAppShare = () => {
+    const currentSales = metrics.currentSales
+    const teamGoal = metrics.teamGoal
+    const projection = metrics.projection
+    const gap = metrics.gap
+    const reaching = metrics.reaching
+    
+    // Top 3 sellers by sales
+    const sellerSales = (sellers || []).map(s => ({
+      name: s.name,
+      sales: checkins.filter(c => c.seller_id === s.id && c.type === 'venda').length
+    })).sort((a, b) => b.sales - a.sales).slice(0, 3)
+
+    const top3Text = sellerSales.map((s, i) => `${i + 1}º ${s.name} - ${s.sales}v`).join('\n')
+
     const text = encodeURIComponent(
-      `*RELATÓRIO MATINAL MX*\n` +
-      `📅 Data: ${format(new Date(), 'dd/MM/yyyy')}\n\n` +
-      `📈 *Vendas Atuais:* ${metrics.currentSales}\n` +
-      `🎯 *Meta:* ${metrics.teamGoal}\n` +
-      `🔮 *Projeção:* ${metrics.projection}\n` +
-      `🚩 *Gap:* ${metrics.gap}\n\n` +
-      `Ritmo: ${metrics.projectedReaching >= 100 ? '✅ NO RITMO' : '⚠️ ABAIXO DO RITMO'}`
+      `*📊 MATINAL MX - ${membership?.store?.name || 'Loja'}*\n` +
+      `📅 Ref: ${format(new Date(), 'dd/MM/yyyy')}\n\n` +
+      `🎯 Meta: ${teamGoal}\n` +
+      `🔥 Vendido: ${currentSales} (${reaching}%)\n` +
+      `📈 Projeção: ${projection}\n` +
+      `🚨 Faltam: ${gap}\n\n` +
+      `🏆 *Top 3*\n${top3Text}`
     )
     window.open(`https://wa.me/?text=${text}`, '_blank')
     toast.success('Resumo formatado para WhatsApp!')
   }
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     setIsSendingEmail(true)
-    setTimeout(() => {
-      setIsSendingEmail(false)
+    try {
+      const { error } = await supabase.functions.invoke('relatorio-matinal')
+      if (error) throw error
       toast.success('Relatório Matinal enviado com sucesso para a diretoria!')
-    }, 1500)
+    } catch (err: any) {
+      console.error('Erro ao enviar e-mail:', err)
+      toast.error('Erro ao disparar e-mail matinal. Tente novamente.')
+    } finally {
+      setIsSendingEmail(false)
+    }
+  }
+
+  const handleExportCSV = () => {
+    const header = ['Nome', 'AGD', 'VIS', 'VND', 'Status Registro']
+    const rows = (sellers || []).map(seller => {
+      const sellerCheckins = checkins.filter(c => c.seller_id === seller.id)
+      const sales = sellerCheckins.filter(c => c.type === 'venda').length
+      const visits = sellerCheckins.filter(c => c.type === 'visita').length
+      const appointments = sellerCheckins.filter(c => c.type === 'agendamento').length
+      const status = seller.checkin_today ? 'OK' : 'FALTA'
+      
+      return [
+        seller.name,
+        appointments,
+        visits,
+        sales,
+        status
+      ]
+    })
+
+    const csvContent = [
+      header.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `matinal_mx_${format(new Date(), 'yyyy-MM-dd')}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success('CSV exportado com sucesso!')
   }
 
   if (loadingCheckins || loadingGoals || loadingTeam) return (
@@ -106,6 +162,12 @@ export default function MorningReport() {
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
+          <button 
+            onClick={handleExportCSV}
+            className="mx-button-primary bg-white border border-gray-200 text-slate-950 hover:bg-gray-50 flex items-center gap-2 h-12 px-6 rounded-xl shadow-sm transition-all"
+          >
+            <FileDown size={18} /> Exportar Planilha
+          </button>
           <button 
             onClick={handleWhatsAppShare}
             className="mx-button-primary bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 h-12 px-6 rounded-xl shadow-lg transition-all"
@@ -171,6 +233,63 @@ export default function MorningReport() {
                   <p className="text-[10px] font-black text-white/60 mt-6 uppercase tracking-widest bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg inline-block w-fit relative z-10">ESTIMADO DIA {daysInfo.total}</p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-mx-lg md:p-mx-xl shadow-sm">
+            <div className="flex items-center justify-between mb-mx-xl">
+              <div>
+                <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Detalhamento por Especialista</h3>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Performance individual consolidada</p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Especialista</th>
+                    <th className="text-center py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">AGD</th>
+                    <th className="text-center py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">VIS</th>
+                    <th className="text-center py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">VND</th>
+                    <th className="text-right py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Registro</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {sellers.map((seller) => {
+                    const sellerCheckins = checkins.filter(c => c.seller_id === seller.id)
+                    const sales = sellerCheckins.filter(c => c.type === 'venda').length
+                    const visits = sellerCheckins.filter(c => c.type === 'visita').length
+                    const appointments = sellerCheckins.filter(c => c.type === 'agendamento').length
+
+                    return (
+                      <tr key={seller.id} className="group hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-black uppercase">
+                              {seller.name.substring(0, 2)}
+                            </div>
+                            <span className="text-sm font-black text-slate-900 uppercase tracking-tight">{seller.name}</span>
+                          </div>
+                        </td>
+                        <td className="text-center py-4 font-black text-slate-600">{appointments}</td>
+                        <td className="text-center py-4 font-black text-slate-600">{visits}</td>
+                        <td className="text-center py-4 font-black text-indigo-600">{sales}</td>
+                        <td className="text-right py-4">
+                          <Badge className={cn(
+                            "font-black text-[9px] uppercase tracking-widest px-3 py-1",
+                            seller.checkin_today 
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                              : "bg-rose-50 text-rose-600 border-rose-100"
+                          )} variant="outline">
+                            {seller.checkin_today ? 'OK' : 'FALTA'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 
