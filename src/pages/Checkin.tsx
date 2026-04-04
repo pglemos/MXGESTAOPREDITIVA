@@ -8,7 +8,8 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
     CheckSquare, Users, Globe, Car, Eye, Send, Sparkles,
     MessageSquare, AlertTriangle, ChevronLeft, Minus, Plus, Zap,
-    ArrowLeft, Target, TrendingUp, Info, RefreshCw, Trash2
+    ArrowLeft, Target, TrendingUp, Info, RefreshCw, Trash2,
+    X, History, CalendarDays
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'

@@ -29,6 +29,7 @@ const Funil = lazy(() => import('@/pages/Funil'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
 const GerenteTreinamentos = lazy(() => import('@/pages/GerenteTreinamentos'))
+const RotinaGerente = lazy(() => import('@/pages/RotinaGerente'))
 
 // Consultor
 const PainelConsultor = lazy(() => import('@/pages/PainelConsultor'))
