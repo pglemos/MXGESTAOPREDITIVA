@@ -69,7 +69,7 @@ export default function Activities() {
     if (!lead) { toast.error('Selecione um alvo válido.'); return }
 
     const newAct = {
-      id: Math.random().toString(),
+      id: crypto.randomUUID(),
       type: 'manual',
       label: actionLabel,
       icon: QUICK_ACTIONS.find(a => a.label === actionLabel)?.icon || FileText,

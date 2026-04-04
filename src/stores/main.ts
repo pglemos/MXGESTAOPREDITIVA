@@ -107,7 +107,7 @@ function snapshot() {
 }
 
 function id(prefix: string) {
-    return `${prefix}-${Math.random().toString(36).slice(2, 8)}`
+    return `${prefix}-${crypto.randomUUID()}`
 }
 
 function createTask(data: Omit<Task, 'id' | 'status'> & { status?: TaskStatus }): Task {
