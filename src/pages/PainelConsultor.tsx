@@ -144,7 +144,7 @@ export default function PainelConsultor() {
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-slate-950 rounded-full shadow-mx-md" />
-                        <h1 className="text-[38px] font-black text-slate-950 tracking-tighter uppercase leading-none">Consolidação de Rede</h1>
+                        <h1 className="text-[38px] font-black text-slate-950 tracking-tighter uppercase leading-none">Visão Geral da Rede</h1>
                     </div>
                     <div className="flex items-center gap-4 pl-6">
                         <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-100 px-3 py-1 font-black text-[10px] tracking-widest uppercase">
@@ -168,14 +168,14 @@ export default function PainelConsultor() {
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
                         >
-                            {isTriggering === 'semanal' ? '...' : 'Semanal'}
+                            {isTriggering === 'semanal' ? '...' : 'Feedback'}
                         </button>
                         <button 
                             onClick={() => triggerReport('mensal')} 
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
                         >
-                            {isTriggering === 'mensal' ? '...' : 'Mensal'}
+                            {isTriggering === 'mensal' ? '...' : 'Fechamento'}
                         </button>
                     </div>
 
@@ -192,12 +192,12 @@ export default function PainelConsultor() {
                     <Card className="flex-1 overflow-hidden border border-gray-100 shadow-sm rounded-[2.5rem]">
                         <CardHeader className="flex-row items-center justify-between border-b border-gray-50 bg-gray-50/30 p-8">
                             <div>
-                                <CardTitle className="text-2xl font-black uppercase tracking-tight">Raio-X da Operação (Unidades)</CardTitle>
-                                <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest mt-1">Mapeamento bruto do escoamento de funil por loja.</CardDescription>
+                                <CardTitle className="text-2xl font-black uppercase tracking-tight">Performance por Loja</CardTitle>
+                                <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest mt-1">Mapeamento bruto do escoamento de funil por unidade.</CardDescription>
                             </div>
                             <div className="flex items-center gap-4">
                                 <Link to="/configuracoes/reprocessamento"><button className="text-[10px] font-black uppercase tracking-widest bg-white border border-gray-200 px-6 h-12 rounded-xl hover:bg-slate-50 transition-all shadow-sm">Reprocessar Base</button></Link>
-                                <Link to="/lojas"><button className="mx-button-primary !h-12 !px-8 bg-slate-950 text-white rounded-xl">GERENCIAR REDE</button></Link>
+                                <Link to="/lojas"><button className="mx-button-primary !h-12 !px-8 bg-slate-950 text-white rounded-xl">GERENCIAR UNIDADES</button></Link>
                             </div>
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">
@@ -212,7 +212,7 @@ export default function PainelConsultor() {
                                         <th className="px-4 py-6 text-center">Meta</th>
                                         <th className="px-4 py-6 text-center text-rose-600">Gap</th>
                                         <th className="px-4 py-6 text-center text-indigo-600">Projeção</th>
-                                        <th className="px-4 py-6 text-center">Status Atual</th>
+                                        <th className="px-4 py-6 text-center">Atingimento</th>
                                         <th className="pr-10 py-6 text-center">Disciplina</th>
                                     </tr>
                                 </thead>
@@ -226,7 +226,7 @@ export default function PainelConsultor() {
                                                         <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center font-black text-slate-950 text-lg group-hover/item:bg-slate-950 group-hover/item:text-white transition-all shadow-sm">{store.name.charAt(0)}</div>
                                                         <div>
                                                             <p className="font-black text-base text-slate-950 uppercase leading-none mb-1 group-hover/item:text-indigo-600 transition-colors">{store.name}</p>
-                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID: {store.id.slice(0, 4)}</p>
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">UNIDADE OPERACIONAL</p>
                                                         </div>
                                                     </Link>
                                                 </td>
@@ -239,7 +239,7 @@ export default function PainelConsultor() {
                                                 <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-indigo-600">{store.proj}</td>
                                                 <td className="px-4 py-2 text-center">
                                                     <Badge className={cn("text-[9px] font-black px-4 py-2 rounded-full uppercase tracking-widest border-none shadow-sm", status.color)}>
-                                                        {status.label}
+                                                        {status.label === 'NO RITMO' ? 'NO ALVO' : status.label}
                                                     </Badge>
                                                 </td>
                                                 <td className="pr-10 py-2 text-center">

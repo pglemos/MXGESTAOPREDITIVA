@@ -90,8 +90,8 @@ export default function Financeiro() {
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 10 }} />
                             <YAxis hide />
-                            <Area type="monotone" dataKey="entrada" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorEntrada)" />
-                            <Area type="monotone" dataKey="saida" stroke="#f97316" strokeWidth={2} fill="transparent" strokeDasharray="10 10" />
+                            <Area type="monotone" dataKey="entrada" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorEntrada)" />
+                            <Area type="monotone" dataKey="saida" stroke="#f97316" strokeWidth={2.5} fill="transparent" strokeDasharray="10 10" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div></Card></div>

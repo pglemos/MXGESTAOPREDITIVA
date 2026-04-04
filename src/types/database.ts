@@ -7,6 +7,7 @@ export type MembershipRole = 'gerente' | 'vendedor'
 export type PDIStatus = 'aberto' | 'em_andamento' | 'concluido'
 export type TrainingType = 'prospeccao' | 'fechamento' | 'atendimento' | 'gestao' | 'pre-vendas'
 export type TargetAudience = 'vendedor' | 'gerente' | 'todos'
+export type CheckinScope = 'daily' | 'adjustment' | 'historical'
 
 export interface User {
     id: string
@@ -14,6 +15,7 @@ export interface User {
     email: string
     role: UserRole
     avatar_url: string | null
+    is_venda_loja: boolean
     active: boolean
     created_at: string
 }
@@ -24,6 +26,19 @@ export interface Store {
     manager_email: string | null
     active: boolean
     created_at: string
+}
+
+export interface StoreMetaRules {
+    store_id: string
+    monthly_goal: number
+    individual_goal_mode: 'even' | 'custom' | 'proportional'
+    include_venda_loja_in_store_total: boolean
+    include_venda_loja_in_individual_goal: boolean
+    bench_lead_agd: number
+    bench_agd_visita: number
+    bench_visita_vnd: number
+    updated_by: string | null
+    updated_at: string
 }
 
 export interface Membership {
@@ -60,7 +75,10 @@ export interface DailyCheckin {
     store_id: string
     reference_date: string
     submitted_at: string
+    metric_scope: CheckinScope
     leads_prev_day: number
+    agd_cart_prev_day: number
+    agd_net_prev_day: number
     agd_cart_today: number
     agd_net_today: number
     vnd_porta_prev_day: number
@@ -221,6 +239,7 @@ export interface RankingEntry {
     user_id: string
     user_name: string
     store_name?: string
+    is_venda_loja: boolean
     vnd_total: number
     leads: number
     agd_total: number
@@ -252,6 +271,8 @@ export interface FunnelDiagnostic {
 
 export interface CheckinFormData {
     leads: number
+    agd_cart_prev: number
+    agd_net_prev: number
     agd_cart: number
     agd_net: number
     vnd_porta: number

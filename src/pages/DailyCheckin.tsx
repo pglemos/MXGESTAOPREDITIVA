@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { CheckSquare, Clock, Calendar, Zap, TrendingUp, RefreshCw, ChevronRight, User, Target, Car, ClipboardCheck, Sparkles, MessageCircle, MapPin, Globe, AlertTriangle } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { CheckSquare, Clock, Calendar, Zap, RefreshCw, ChevronRight, User, Target, Car, ClipboardCheck, Sparkles, MessageCircle, MapPin, Globe, AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckins } from '@/hooks/useCheckins'
@@ -17,6 +17,8 @@ export default function DailyCheckin() {
   
   const [form, setForm] = useState<CheckinFormData>({
     leads: 0,
+    agd_cart_prev: 0,
+    agd_net_prev: 0,
     agd_cart: 0,
     agd_net: 0,
     vnd_porta: 0,
@@ -27,6 +29,25 @@ export default function DailyCheckin() {
     zero_reason: ''
   })
 
+  // Sincronizar form com todayCheckin se já existir
+  useEffect(() => {
+    if (todayCheckin) {
+      setForm({
+        leads: todayCheckin.leads_prev_day,
+        agd_cart_prev: todayCheckin.agd_cart_prev_day,
+        agd_net_prev: todayCheckin.agd_net_prev_day,
+        agd_cart: todayCheckin.agd_cart_today,
+        agd_net: todayCheckin.agd_net_today,
+        vnd_porta: todayCheckin.vnd_porta_prev_day,
+        vnd_cart: todayCheckin.vnd_cart_prev_day,
+        vnd_net: todayCheckin.vnd_net_prev_day,
+        visitas: todayCheckin.visit_prev_day,
+        note: todayCheckin.note || '',
+        zero_reason: todayCheckin.zero_reason || ''
+      })
+    }
+  }, [todayCheckin])
+
   const stats = useMemo(() => [
     { label: 'Referência', value: format(parseISO(referenceDate), 'dd/MM'), icon: Calendar, tone: 'bg-indigo-50 text-indigo-600' },
     { label: 'Status', value: todayCheckin ? 'Enviado' : 'Pendente', icon: CheckSquare, tone: todayCheckin ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' },
@@ -35,7 +56,6 @@ export default function DailyCheckin() {
   ], [referenceDate, todayCheckin, form])
 
   const handleSave = async () => {
-    // Validação de Regra de Negócio MX
     const error = validarFunil(form)
     if (error) {
       toast.error(error, {
@@ -55,7 +75,7 @@ export default function DailyCheckin() {
   }
 
   const updateField = (field: keyof CheckinFormData, value: string | number) => {
-    setForm(prev => ({ ...prev, [field]: value }))
+    setForm(prev => ({ ...prev, [field]: Number(value) }))
   }
 
   const increment = (field: keyof CheckinFormData) => {
@@ -164,15 +184,15 @@ export default function DailyCheckin() {
               </div>
 
               {/* Flow Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-gray-100 pt-10">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 border-t border-gray-100 pt-10">
                 <div className="flex items-center justify-between p-6 rounded-2xl bg-gray-50 border border-gray-100">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 shadow-inner">
                       <Sparkles size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Leads Recebidos</p>
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total de Ontem</p>
+                      <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Leads</p>
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Ontem</p>
                     </div>
                   </div>
                   <input 
@@ -186,12 +206,37 @@ export default function DailyCheckin() {
 
                 <div className="flex items-center justify-between p-6 rounded-2xl bg-gray-50 border border-gray-100">
                   <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shadow-inner">
+                      <Clock size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Agend. Ontem</p>
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Meta de Ontem</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 items-end">
+                    <input 
+                      type="text" 
+                      inputMode="numeric" 
+                      value={form.agd_cart_prev + form.agd_net_prev} 
+                      readOnly
+                      className="w-16 bg-transparent text-3xl font-black font-mono-numbers text-slate-950 text-right focus:outline-none opacity-50" 
+                    />
+                    <div className="flex gap-2">
+                      <input placeholder="C" value={form.agd_cart_prev} onChange={e => updateField('agd_cart_prev', e.target.value.replace(/\D/g, ''))} className="w-8 text-[10px] font-black text-right border-b border-gray-200 focus:outline-none" />
+                      <input placeholder="I" value={form.agd_net_prev} onChange={e => updateField('agd_net_prev', e.target.value.replace(/\D/g, ''))} className="w-8 text-[10px] font-black text-right border-b border-gray-200 focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                  <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-inner">
                       <User size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Visitas Efetivas</p>
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Comparecimento Ontem</p>
+                      <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Visitas</p>
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Showroom Ontem</p>
                     </div>
                   </div>
                   <input 

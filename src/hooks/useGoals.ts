@@ -55,22 +55,44 @@ export function useGoals(storeIdOverride?: string) {
 
 export function useAllStoreGoals() {
     const [goals, setGoals] = useState<(Goal & { store_name?: string })[]>([])
+    const [benchmarks, setBenchmarks] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const now = new Date()
 
-    useEffect(() => {
-        async function fetch() {
-            const { data } = await supabase
-                .from('goals')
-                .select('*, stores(name)')
-                .is('user_id', null)
-                .eq('month', now.getMonth() + 1)
-                .eq('year', now.getFullYear())
-            if (data) setGoals(data.map((g: any) => ({ ...g, store_name: g.stores?.name })))
-            setLoading(false)
-        }
-        fetch()
-    }, [])
+    const fetchData = useCallback(async () => {
+        setLoading(true)
+        const [goalsRes, benchRes] = await Promise.all([
+            supabase.from('goals').select('*, stores(name)').is('user_id', null).eq('month', now.getMonth() + 1).eq('year', now.getFullYear()),
+            supabase.from('store_benchmarks').select('*')
+        ])
+        
+        if (goalsRes.data) setGoals(goalsRes.data.map((g: any) => ({ ...g, store_name: g.stores?.name })))
+        if (benchRes.data) setBenchmarks(benchRes.data)
+        setLoading(false)
+    }, [now.getMonth(), now.getFullYear()])
 
-    return { goals, loading }
+    const updateGoal = async (storeId: string, target: number) => {
+        const { error } = await supabase.from('goals').upsert({
+            store_id: storeId,
+            user_id: null,
+            month: now.getMonth() + 1,
+            year: now.getFullYear(),
+            target
+        }, { onConflict: 'store_id,user_id,month,year' })
+        if (!error) await fetchData()
+        return { error: error?.message || null }
+    }
+
+    const updateBenchmark = async (storeId: string, data: any) => {
+        const { error } = await supabase.from('store_benchmarks').upsert({
+            store_id: storeId,
+            ...data
+        }, { onConflict: 'store_id' })
+        if (!error) await fetchData()
+        return { error: error?.message || null }
+    }
+
+    useEffect(() => { fetchData() }, [fetchData])
+
+    return { goals, benchmarks, loading, updateGoal, updateBenchmark, refetch: fetchData }
 }

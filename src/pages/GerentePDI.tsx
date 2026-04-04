@@ -15,10 +15,11 @@ const statusCfg = {
 }
 
 export default function GerentePDI() {
-    const { pdis, loading, createPDI, updateStatus, refetch } = usePDIs()
+    const { pdis, reviews, loading, createPDI, updateStatus, createReview, fetchReviews, refetch } = usePDIs()
     const { sellers } = useTeam()
     const navigate = useNavigate()
     const [showForm, setShowForm] = useState(false)
+    const [showReviewForm, setShowReviewForm] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
@@ -45,6 +46,30 @@ export default function GerentePDI() {
         action_5: '',
         due_date: ''
     })
+
+    const [reviewForm, setReviewForm] = useState({
+        evolution: '',
+        difficulties: '',
+        adjustments: '',
+        next_review_date: ''
+    })
+
+    const handleReviewSubmit = async (pdiId: string) => {
+        if (!reviewForm.evolution || !reviewForm.next_review_date) {
+            toast.error('Preencha a evolução e a próxima data.')
+            return
+        }
+        setSaving(true)
+        const { error } = await createReview(pdiId, reviewForm)
+        setSaving(false)
+        if (error) {
+            toast.error(error.message)
+        } else {
+            toast.success('Revisão mensal registrada!')
+            setShowReviewForm(null)
+            setReviewForm({ evolution: '', difficulties: '', adjustments: '', next_review_date: '' })
+        }
+    }
 
     // 1. & 11. Performance: Memoized search and normalization
     const filteredPDIs = useMemo(() => {
@@ -168,17 +193,24 @@ export default function GerentePDI() {
                                             required
                                             className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-pure-black font-black text-sm focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-xl transition-all appearance-none cursor-pointer shadow-inner"
                                         >
-                                            <option value="">Selecione o especialista...</option>
+                                            <option value="">Selecione o vendedor...</option>
                                             {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
                                     </div>
 
-                                    {/* Radar de Competências */}
-                                    <div className="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100 space-y-6">
-                                        <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
-                                            <Award size={14} /> Radar de Capacidade (0 a 10)
-                                        </h4>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    {/* Radar de Competências - Versão Auditoria de Gaps */}
+                                    <div className="bg-slate-950 p-8 md:p-10 rounded-[3rem] text-white space-y-10 shadow-2xl relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+                                        
+                                        <div className="flex items-center justify-between relative z-10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                                                <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.4em]">Radar de Capacidade MX</h4>
+                                            </div>
+                                            <Badge variant="outline" className="border-white/10 text-white/40 font-black text-[8px] tracking-widest uppercase">Escala 0 a 10</Badge>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-8 relative z-10">
                                             {[
                                                 { id: 'comp_prospeccao', label: 'Prospecção' },
                                                 { id: 'comp_abordagem', label: 'Abordagem' },
@@ -191,20 +223,31 @@ export default function GerentePDI() {
                                                 { id: 'comp_negociacao', label: 'Negociação' },
                                                 { id: 'comp_produto', label: 'Prod. Técnico' }
                                             ].map(comp => (
-                                                <div key={comp.id} className="space-y-2">
-                                                    <div className="flex justify-between items-center px-1">
-                                                        <span className="text-[9px] font-black text-gray-400 uppercase">{comp.label}</span>
-                                                        <span className="text-xs font-black text-indigo-600">{(form as any)[comp.id]}</span>
+                                                <div key={comp.id} className="space-y-3">
+                                                    <div className="flex justify-between items-end px-1">
+                                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{comp.label}</span>
+                                                        <div className="flex items-baseline gap-2">
+                                                            <span className="text-2xl font-black tabular-nums tracking-tighter text-indigo-400">{(form as any)[comp.id]}</span>
+                                                            <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">/ 10</span>
+                                                        </div>
                                                     </div>
-                                                    <input 
-                                                        type="range" min="0" max="10" step="1"
-                                                        value={(form as any)[comp.id]}
-                                                        onChange={e => setForm(p => ({ ...p, [comp.id]: Number(e.target.value) }))}
-                                                        className="w-full accent-indigo-600"
-                                                    />
+                                                    <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                                        <motion.div 
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${(form as any)[comp.id] * 10}%` }}
+                                                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]"
+                                                        />
+                                                        <input 
+                                                            type="range" min="0" max="10" step="1"
+                                                            value={(form as any)[comp.id]}
+                                                            onChange={e => setForm(p => ({ ...p, [comp.id]: Number(e.target.value) }))}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                                                        />
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
+                                        <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest text-center pt-4 italic">Arraste as barras para auditar o nível técnico atual.</p>
                                     </div>
 
                                     <div className="space-y-4">
@@ -323,17 +366,70 @@ export default function GerentePDI() {
 
                                 <div className="space-y-6 flex-1 relative z-10 mb-8">
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none">
-                                            <Target size={12} /> Horizonte 6 Meses
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none">
+                                                <Target size={12} /> Horizonte 6 Meses
+                                            </div>
+                                            <button 
+                                                onClick={() => setShowReviewForm(showReviewForm === p.id ? null : p.id)}
+                                                className="text-[8px] font-black text-amber-600 uppercase tracking-widest hover:underline"
+                                            >
+                                                {showReviewForm === p.id ? 'Cancelar' : 'Registrar Evolução'}
+                                            </button>
                                         </div>
                                         <h3 className="text-xl font-black text-pure-black leading-tight uppercase tracking-tight line-clamp-2">{(p as any).meta_6m || (p as any).objective || 'PDI Desatualizado'}</h3>
                                     </div>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
-                                            <TrendingUp size={12} /> Ação Primária
-                                        </div>
-                                        <p className="text-sm font-bold text-gray-500 line-clamp-4 leading-relaxed opacity-80">{(p as any).action_1 || (p as any).action || 'Sem ação definida'}</p>
+
+                                    {/* Mini Radar de Capacidade - Visão Rápida */}
+                                    <div className="grid grid-cols-5 gap-1.5 h-8 items-end px-1 border-b border-gray-50 pb-2">
+                                        {[
+                                            { val: p.comp_prospeccao, label: 'PR' },
+                                            { val: p.comp_abordagem, label: 'AB' },
+                                            { val: p.comp_demonstracao, label: 'DM' },
+                                            { val: p.comp_fechamento, label: 'FC' },
+                                            { val: p.comp_crm, label: 'CR' }
+                                        ].map((c, idx) => (
+                                            <div key={idx} className="flex flex-col gap-1">
+                                                <div className="w-full bg-slate-100 rounded-sm h-6 relative overflow-hidden">
+                                                    <div className={cn("absolute bottom-0 w-full rounded-sm transition-all", c.val < 5 ? "bg-rose-400" : "bg-indigo-400")} style={{ height: `${c.val * 10}%` }} />
+                                                </div>
+                                                <span className="text-[6px] font-black text-gray-300 text-center uppercase">{c.label}</span>
+                                            </div>
+                                        ))}
                                     </div>
+
+                                    {showReviewForm === p.id ? (
+                                        <div className="space-y-4 bg-gray-50 p-6 rounded-2xl border border-gray-100 animate-in fade-in slide-in-from-top-2">
+                                            <textarea 
+                                                placeholder="Descreva a evolução do mês..."
+                                                value={reviewForm.evolution}
+                                                onChange={e => setReviewForm(prev => ({ ...prev, evolution: e.target.value }))}
+                                                className="w-full text-[11px] font-bold p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-indigo-300 min-h-[80px]"
+                                            />
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <input 
+                                                    type="date"
+                                                    value={reviewForm.next_review_date}
+                                                    onChange={e => setReviewForm(prev => ({ ...prev, next_review_date: e.target.value }))}
+                                                    className="text-[10px] font-black p-3 rounded-xl border border-gray-200 focus:outline-none"
+                                                />
+                                                <button 
+                                                    onClick={() => handleReviewSubmit(p.id)}
+                                                    disabled={saving}
+                                                    className="bg-slate-950 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-black transition-all"
+                                                >
+                                                    {saving ? '...' : 'Salvar'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
+                                                <TrendingUp size={12} /> Ação Primária
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-500 line-clamp-4 leading-relaxed opacity-80">{(p as any).action_1 || (p as any).action || 'Sem ação definida'}</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="pt-6 border-t border-gray-50 flex items-center justify-between mt-auto relative z-10">
@@ -352,11 +448,11 @@ export default function GerentePDI() {
                                     </div>
                                     {p.acknowledged ? (
                                         <div className="flex items-center gap-1.5 text-emerald-600 text-[9px] font-black uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
-                                            <CheckCircle2 size={10} strokeWidth={3} /> Acordo Firmado
+                                            <CheckCircle2 size={10} strokeWidth={2.5} /> Acordo Firmado
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-1.5 text-gray-300 text-[9px] font-black uppercase tracking-widest">
-                                            <Clock size={10} strokeWidth={3} /> Pendente Ciência
+                                            <Clock size={10} strokeWidth={2.5} /> Pendente Ciência
                                         </div>
                                     )}
                                 </div>

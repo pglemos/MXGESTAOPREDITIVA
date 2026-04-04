@@ -108,7 +108,7 @@ export default function CrossSalesReports() {
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="mx-card p-mx-lg hover:shadow-mx-lg transition-all group relative overflow-hidden">
                         <div className="flex justify-between items-start mb-mx-lg relative z-10">
                             <div className="w-14 h-14 rounded-mx-lg bg-mx-indigo-50 text-brand-primary border border-mx-indigo-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"><card.icon size={24} strokeWidth={2.5} /></div>
-                            <div className="flex items-center gap-1.5 text-[9px] font-black text-status-success bg-status-success-surface px-mx-sm py-1.5 rounded-full border border-mx-emerald-100 uppercase tracking-widest shadow-mx-sm"><TrendingUp size={12} strokeWidth={3} /> {card.trend}</div>
+                            <div className="flex items-center gap-1.5 text-[9px] font-black text-status-success bg-status-success-surface px-mx-sm py-1.5 rounded-full border border-mx-emerald-100 uppercase tracking-widest shadow-mx-sm"><TrendingUp size={12} strokeWidth={2.5} /> {card.trend}</div>
                         </div>
                         <div className="relative z-10">
                             <p className="mx-text-caption mb-1">{card.title}</p>

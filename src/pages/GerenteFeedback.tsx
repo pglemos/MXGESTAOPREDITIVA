@@ -3,12 +3,13 @@ import { useTeam } from '@/hooks/useTeam'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
-import { MessageSquare, Plus, X, Send, CheckCircle, Clock, User, Award, AlertCircle, Zap, ChevronRight, LayoutDashboard, Target, TrendingUp, Sparkles, Filter, RefreshCw, Search } from 'lucide-react'
+import { MessageSquare, Plus, X, Send, CheckCircle, Clock, User, Award, AlertCircle, Zap, ChevronRight, LayoutDashboard, Target, TrendingUp, Sparkles, Filter, RefreshCw, Search, History } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { format, startOfWeek } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS } from '@/lib/calculations'
 import type { FunnelData, FeedbackFormData } from '@/types/database'
+import { Badge } from '@/components/ui/badge'
 
 export default function GerenteFeedback() {
     const { feedbacks, loading, createFeedback, refetch } = useFeedbacks()
@@ -37,6 +38,9 @@ export default function GerenteFeedback() {
     })
 
     const [weeklySnapshot, setWeeklySnapshot] = useState<FunnelData | null>(null)
+    
+    // Instância dedicada para histórico do vendedor selecionado
+    const { feedbacks: sellerHistory, refetch: refetchHistory } = useFeedbacks({ sellerId: form.seller_id })
 
     // Carregar dados da semana e gerar diagnóstico ao selecionar vendedor
     useEffect(() => {
@@ -62,8 +66,9 @@ export default function GerenteFeedback() {
                 attention_points: diagnostico.diagnostico,
                 action: diagnostico.sugestao
             }))
+            refetchHistory()
         }
-    }, [form.seller_id, checkins])
+    }, [form.seller_id, checkins, refetchHistory])
 
     const filteredFeedbacks = useMemo(() => {
         return feedbacks.filter(f => 
@@ -116,6 +121,38 @@ export default function GerenteFeedback() {
             <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Sincronizando Feedbacks...</p>
         </div>
     )
+
+    const SellerHistory = () => {
+        if (!form.seller_id || sellerHistory.length === 0) return null
+        return (
+            <div className="space-y-6 pt-8 border-t border-white/10">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10"><History size={16} className="text-indigo-400" /></div>
+                    <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Histórico de Auditoria (Últimas Semanas)</h4>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                    {sellerHistory.slice(0, 3).map((h) => (
+                        <div key={h.id} className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[10px] font-black text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20 uppercase tracking-widest">Semana {format(new Date(h.week_reference), 'dd/MM')}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-tighter">Meta: {h.meta_compromisso}</span>
+                                    {h.acknowledged ? <Badge className="bg-emerald-500/20 text-emerald-400 text-[7px] border-none px-2 h-4 rounded-full">CIENTE</Badge> : <Badge className="bg-amber-500/20 text-amber-400 text-[7px] border-none px-2 h-4 rounded-full">PENDENTE</Badge>}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-[11px] font-bold text-white/60 leading-relaxed line-clamp-2 italic">"{h.attention_points}"</p>
+                                <div className="flex items-center gap-2 pt-2">
+                                    <Zap size={10} className="text-indigo-400" />
+                                    <p className="text-[10px] font-black text-white/80 uppercase tracking-tight truncate">{h.action}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
@@ -199,41 +236,55 @@ export default function GerenteFeedback() {
 
                                     {/* Dashboard de Performance In-Form */}
                                     {weeklySnapshot && (
-                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-8 bg-slate-950 rounded-[2.5rem] text-white space-y-8 shadow-2xl relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-colors" />
-                                            <div className="flex items-center justify-between relative z-10">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-                                                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Raio-X Técnico (Semana)</span>
-                                                </div>
-                                                <Badge variant="outline" className="border-white/10 text-white/40 font-black text-[8px] tracking-widest uppercase py-1">Critério MX 20/60/33</Badge>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 gap-6 relative z-10">
-                                                {[
-                                                    { label: 'Lead → Agendamento', val: weeklySnapshot.tx_lead_agd, bench: MX_BENCHMARKS.lead_agd, avg: Math.round(checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) / (checkins.reduce((s, c) => s + (c.leads_prev_day || 0), 0) || 1) * 100) },
-                                                    { label: 'Agendamento → Visita', val: weeklySnapshot.tx_agd_visita, bench: MX_BENCHMARKS.agd_visita, avg: Math.round(checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) || 1) * 100) },
-                                                    { label: 'Visita → Venda', val: weeklySnapshot.tx_visita_vnd, bench: MX_BENCHMARKS.visita_vnd, avg: Math.round(checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) || 1) * 100) },
-                                                ].map(metric => (
-                                                    <div key={metric.label} className="space-y-3">
-                                                        <div className="flex justify-between items-end">
-                                                            <div className="flex flex-col gap-1">
-                                                                <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{metric.label}</span>
-                                                                <span className="text-[8px] font-bold text-indigo-400/60 uppercase tracking-tighter">Média Unidade: {metric.avg}%</span>
-                                                            </div>
-                                                            <div className="flex flex-col items-end gap-1">
-                                                                <span className={cn("text-2xl font-black tabular-nums tracking-tighter leading-none", metric.val < metric.bench ? "text-rose-400" : "text-emerald-400")}>{metric.val}%</span>
-                                                                <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Alvo: {metric.bench}%</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                                            <div className={cn("h-full transition-all duration-1000", metric.val < metric.bench ? "bg-gradient-to-r from-rose-600 to-rose-400" : "bg-gradient-to-r from-emerald-600 to-emerald-400")} style={{ width: `${Math.min(metric.val, 100)}%` }} />
-                                                        </div>
+                                        <div className="space-y-8">
+                                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-8 bg-slate-950 rounded-[2.5rem] text-white space-y-8 shadow-2xl relative overflow-hidden group">
+                                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-colors" />
+                                                <div className="flex items-center justify-between relative z-10">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                                                        <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Auditoria Técnica (Semana)</span>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </motion.div>
+                                                    <Badge variant="outline" className="border-white/10 text-white/40 font-black text-[8px] tracking-widest uppercase py-1">Critério MX 20/60/33</Badge>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-6 relative z-10">
+                                                    {[
+                                                        { label: 'Lead → Agendamento', val: weeklySnapshot.tx_lead_agd, bench: MX_BENCHMARKS.lead_agd, avg: Math.round(checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) / (checkins.reduce((s, c) => s + (c.leads_prev_day || 0), 0) || 1) * 100) },
+                                                        { label: 'Agendamento → Visita', val: weeklySnapshot.tx_agd_visita, bench: MX_BENCHMARKS.agd_visita, avg: Math.round(checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) || 1) * 100) },
+                                                        { label: 'Visita → Venda', val: weeklySnapshot.tx_visita_vnd, bench: MX_BENCHMARKS.visita_vnd, avg: Math.round(checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) || 1) * 100) },
+                                                    ].map(metric => {
+                                                        const isAboveAvg = metric.val >= metric.avg
+                                                        return (
+                                                            <div key={metric.label} className="space-y-3">
+                                                                <div className="flex justify-between items-end">
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{metric.label}</span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-[8px] font-bold text-indigo-400/60 uppercase tracking-tighter">Média Loja: {metric.avg}%</span>
+                                                                            <Badge className={cn("text-[7px] font-black h-4 px-1.5 border-none", isAboveAvg ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400")}>
+                                                                                {isAboveAvg ? 'SUPERIOR' : 'ABAIXO DA MÉDIA'}
+                                                                            </Badge>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex flex-col items-end gap-1">
+                                                                        <span className={cn("text-2xl font-black tabular-nums tracking-tighter leading-none", metric.val < metric.bench ? "text-rose-400" : "text-emerald-400")}>{metric.val}%</span>
+                                                                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Ideal: {metric.bench}%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                                                    <div className={cn("h-full transition-all duration-1000 p-0.5", metric.val < metric.bench ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" : "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]")} style={{ width: `${Math.min(metric.val, 100)}%` }} />
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </motion.div>
+                                            
+                                            {/* Histórico do Vendedor */}
+                                            <SellerHistory />
+                                        </div>
                                     )}
+
 
                                     <div className="space-y-4">
                                         <label className="flex items-center gap-2 text-[10px] font-black text-amber-600 uppercase tracking-widest ml-2 leading-none">
@@ -242,7 +293,7 @@ export default function GerenteFeedback() {
                                         <input
                                             type="number"
                                             value={form.meta_compromisso}
-                                            onChange={e => setForm(p => ({ ...p, meta_compromisso: e.target.value }))}
+                                            onChange={e => setForm(p => ({ ...p, meta_compromisso: Number(e.target.value) }))}
                                             required
                                             placeholder="Sugerido: Média dos últimos 15 dias..."
                                             className="mx-input"
@@ -251,7 +302,7 @@ export default function GerenteFeedback() {
 
                                     <div className="space-y-4">
                                         <label className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-2 leading-none">
-                                            <Award size={14} /> Vitórias & Superação
+                                            <Award size={14} /> Pontos Positivos
                                         </label>
                                         <textarea
                                             value={form.positives}
@@ -266,7 +317,7 @@ export default function GerenteFeedback() {
                                 <div className="space-y-8">
                                     <div className="space-y-4">
                                         <label className="flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase tracking-widest ml-2 leading-none">
-                                            <AlertCircle size={14} /> Gaps Operacionais
+                                            <AlertCircle size={14} /> Diagnóstico de Performance (Automático)
                                         </label>
                                         <textarea
                                             value={form.attention_points}
@@ -279,7 +330,7 @@ export default function GerenteFeedback() {
 
                                     <div className="space-y-4">
                                         <label className="flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest ml-2 leading-none">
-                                            <Zap size={14} /> Próxima Ação Mandatória
+                                            <Zap size={14} /> Orientação de Ação
                                         </label>
                                         <textarea
                                             value={form.action}

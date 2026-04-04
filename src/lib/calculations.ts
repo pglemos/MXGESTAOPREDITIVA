@@ -2,7 +2,7 @@
 // MX Gestão Preditiva — Business Calculations
 // ============================================
 
-import type { DailyCheckin, CheckinTotals, FunnelData, FunnelDiagnostic, Benchmark, CheckinFormData } from '@/types/database'
+import type { DailyCheckin, CheckinTotals, FunnelData, FunnelDiagnostic, Benchmark, CheckinFormData, StoreMetaRules } from '@/types/database'
 
 /** Calculate check-in totals (agd_total, vnd_total) */
 export function calcularTotais(c: Partial<DailyCheckin> | CheckinFormData): CheckinTotals {
@@ -59,7 +59,8 @@ export function getDiasInfo(date?: Date): { total: number; decorridos: number; r
 /** Calculate funnel data from aggregated checkins */
 export function calcularFunil(checkins: DailyCheckin[]): FunnelData {
     const leads = checkins.reduce((s, c) => s + (c.leads_prev_day || 0), 0)
-    const agd_total = checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0)
+    // Para o Funil de Performance (Auditoria), usamos os agendamentos que eram para o dia de referência (ontem)
+    const agd_total = checkins.reduce((s, c) => s + (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0), 0)
     const visitas = checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0)
     const vnd_total = checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
 
@@ -82,30 +83,44 @@ export const MX_BENCHMARKS = {
     visita_vnd: 33   // 33% de Visitas devem virar Vendas
 }
 
-/** Gera diagnóstico rígido baseado no critério 20/60/33 */
-export function gerarDiagnosticoMX(funil: FunnelData): { 
+/** Gera diagnóstico rígido baseado no critério 20/60/33 ou configurado por loja */
+export function gerarDiagnosticoMX(funil: FunnelData, isVendaLoja = false, rules?: StoreMetaRules): { 
     gargalo: string | null, 
     diagnostico: string, 
     sugestao: string 
 } {
-    if (funil.tx_lead_agd < MX_BENCHMARKS.lead_agd) {
+    if (isVendaLoja) {
+        return {
+            gargalo: 'SISTEMICO',
+            diagnostico: "Registro de Venda Loja (Saldo da Unidade).",
+            sugestao: "Este item não possui funil individual e serve apenas para conciliação do total da loja."
+        }
+    }
+
+    const bench = {
+        lead_agd: rules?.bench_lead_agd ?? MX_BENCHMARKS.lead_agd,
+        agd_visita: rules?.bench_agd_visita ?? MX_BENCHMARKS.agd_visita,
+        visita_vnd: rules?.bench_visita_vnd ?? MX_BENCHMARKS.visita_vnd
+    }
+
+    if (funil.tx_lead_agd < bench.lead_agd) {
         return {
             gargalo: 'LEAD_AGD',
-            diagnostico: `Baixa conversão de Leads para Agendamentos (${funil.tx_lead_agd}% vs ${MX_BENCHMARKS.lead_agd}% ideal).`,
+            diagnostico: `Baixa conversão de Leads para Agendamentos (${funil.tx_lead_agd}% vs ${bench.lead_agd}% ideal).`,
             sugestao: "Focar em velocidade de primeiro contato e qualidade da abordagem inicial (script de agendamento)."
         }
     }
-    if (funil.tx_agd_visita < MX_BENCHMARKS.agd_visita) {
+    if (funil.tx_agd_visita < bench.agd_visita) {
         return {
             gargalo: 'AGD_VISITA',
-            diagnostico: `Baixa taxa de comparecimento (${funil.tx_agd_visita}% vs ${MX_BENCHMARKS.agd_visita}% ideal).`,
+            diagnostico: `Baixa taxa de comparecimento (${funil.tx_agd_visita}% vs ${bench.agd_visita}% ideal).`,
             sugestao: "Melhorar a confirmação de agendamentos e o 'valor percebido' criado durante a ligação."
         }
     }
-    if (funil.tx_visita_vnd < MX_BENCHMARKS.visita_vnd) {
+    if (funil.tx_visita_vnd < bench.visita_vnd) {
         return {
             gargalo: 'VISITA_VND',
-            diagnostico: `Baixo fechamento em loja (${funil.tx_visita_vnd}% vs ${MX_BENCHMARKS.visita_vnd}% ideal).`,
+            diagnostico: `Baixo fechamento em loja (${funil.tx_visita_vnd}% vs ${bench.visita_vnd}% ideal).`,
             sugestao: "Revisar etapas de demonstração de produto e contorno de objeções no momento do fechamento."
         }
     }
@@ -118,18 +133,36 @@ export function gerarDiagnosticoMX(funil: FunnelData): {
 }
 
 
-/** Validate funnel logic: vnd_total <= visitas <= agd_total */
-export function validarFunil(data: { agd_cart: number; agd_net: number; vnd_porta: number; vnd_cart: number; vnd_net: number; visitas: number }): string | null {
-    const agd_total = data.agd_cart + data.agd_net
-    const vnd_total = data.vnd_porta + data.vnd_cart + data.vnd_net
+/** Validate funnel logic: vnd_total <= visitas <= agd_total (referring to yesterday) */
+export function validarFunil(data: CheckinFormData): string | null {
+    const agd_prev_total = (data.agd_cart_prev || 0) + (data.agd_net_prev || 0)
+    const vnd_total = (data.vnd_porta || 0) + (data.vnd_cart || 0) + (data.vnd_net || 0)
 
-    if (vnd_total > data.visitas) {
-        return `Total de vendas (${vnd_total}) não pode ser maior que visitas (${data.visitas})`
+    if (vnd_total > (data.visitas || 0)) {
+        return `Total de vendas de ontem (${vnd_total}) não pode ser maior que visitas de ontem (${data.visitas || 0})`
     }
-    if (data.visitas > agd_total && agd_total > 0) {
-        return `Visitas (${data.visitas}) não pode ser maior que total de agendamentos (${agd_total})`
+    if ((data.visitas || 0) > agd_prev_total && agd_prev_total > 0) {
+        return `Visitas de ontem (${data.visitas || 0}) não podem ser maiores que agendamentos previstos para ontem (${agd_prev_total})`
     }
     return null
+}
+
+/** Calculate MX Score (High Performance Indicator) */
+export function calcularScoreMX(vendas: number, meta: number, funil: FunnelData, checkinCount: number, daysElapsed: number): number {
+    // 1. Base Score from Sales (up to 1000 pts)
+    const salesScore = Math.min(calcularAtingimento(vendas, meta) * 10, 1000)
+    
+    // 2. Conversion Bonuses (up to 500 pts)
+    let conversionBonus = 0
+    if (funil.tx_lead_agd >= MX_BENCHMARKS.lead_agd) conversionBonus += 150
+    if (funil.tx_agd_visita >= MX_BENCHMARKS.agd_visita) conversionBonus += 150
+    if (funil.tx_visita_vnd >= MX_BENCHMARKS.visita_vnd) conversionBonus += 200
+    
+    // 3. Discipline Multiplier (0.5x to 1.2x)
+    const disciplineRate = daysElapsed > 0 ? (checkinCount / daysElapsed) : 1
+    const disciplineMultiplier = disciplineRate >= 1 ? 1.2 : disciplineRate < 0.8 ? 0.5 : 1.0
+    
+    return Math.round((salesScore + conversionBonus) * disciplineMultiplier)
 }
 
 /** Get status operacional baseado no pacing e disciplina */

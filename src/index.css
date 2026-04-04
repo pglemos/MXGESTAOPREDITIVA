@@ -57,6 +57,8 @@
   
   --color-status-error: var(--color-mx-rose-500);
   --color-status-error-surface: var(--color-mx-rose-50);
+  --color-border-error: var(--color-mx-rose-200);
+  --color-border-error-strong: var(--color-mx-rose-500);
   
   --color-status-info: var(--color-mx-indigo-500);
   --color-status-info-surface: var(--color-mx-indigo-50);
@@ -159,15 +161,15 @@
   }
 
   .mx-text-caption {
-    @apply text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary;
+    @apply text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary antialiased;
   }
 
   .mx-button-primary {
-    @apply bg-brand-secondary text-text-on-brand rounded-full px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-secondary-hover transition-all active:scale-95 shadow-mx-lg;
+    @apply bg-brand-secondary text-text-on-brand rounded-full px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-secondary-hover transition-all active:scale-95 active:bg-brand-secondary/90 shadow-mx-lg;
   }
 
   .mx-input {
-    @apply w-full bg-white border border-mx-slate-100 rounded-full px-6 py-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all shadow-mx-sm;
+    @apply w-full bg-mx-slate-50 border border-mx-slate-100 rounded-full px-6 py-4 text-sm font-bold placeholder:text-mx-slate-400 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all shadow-mx-sm;
   }
 }
 

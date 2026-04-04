@@ -125,7 +125,7 @@ export default function VendedorFeedback() {
                                                 <div className={cn("text-[9px] font-black px-5 py-2.5 rounded-full uppercase tracking-[0.3em] flex items-center gap-2 border shadow-sm shrink-0 self-start sm:self-auto", 
                                                     f.acknowledged ? 'bg-gray-50 text-gray-400 border-gray-100' : 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse'
                                                 )}>
-                                                    {f.acknowledged ? <CheckCircle size={12} strokeWidth={3} /> : <AlertCircle size={12} strokeWidth={3} />}
+                                                    {f.acknowledged ? <CheckCircle size={12} strokeWidth={2.5} /> : <AlertCircle size={12} strokeWidth={2.5} />}
                                                     {f.acknowledged ? 'CIÊNCIA CONFIRMADA' : 'PENDENTE DE LEITURA'}
                                                 </div>
                                             </div>
@@ -159,19 +159,19 @@ export default function VendedorFeedback() {
 
                                                 <div className="bg-emerald-50/30 rounded-[2rem] p-8 border border-emerald-100/50 space-y-4 hover:bg-white transition-all hover:shadow-lg">
                                                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] flex items-center gap-2">
-                                                        <Check size={14} strokeWidth={3} /> Pontos Positivos
+                                                        <Check size={14} strokeWidth={2.5} /> Pontos Positivos
                                                     </span>
                                                     <p className="text-base font-bold text-gray-600 leading-relaxed italic">"{f.positives}"</p>
                                                 </div>
                                                 <div className="bg-amber-50/30 rounded-[2rem] p-8 border border-amber-100/50 space-y-4 hover:bg-white transition-all hover:shadow-lg">
                                                     <span className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] flex items-center gap-2">
-                                                        <AlertCircle size={14} strokeWidth={3} /> Diagnóstico Técnico (Gaps)
+                                                        <AlertCircle size={14} strokeWidth={2.5} /> Diagnóstico de Performance
                                                     </span>
                                                     <p className="text-base font-bold text-gray-600 leading-relaxed italic">"{f.attention_points}"</p>
                                                 </div>
                                                 <div className="bg-indigo-50/30 rounded-[2rem] p-8 border border-indigo-100/50 space-y-4 md:col-span-2 hover:bg-white transition-all hover:shadow-lg">
                                                     <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] flex items-center gap-2">
-                                                        <TrendingUp size={14} strokeWidth={3} /> Plano de Ação Mandatório
+                                                        <Zap size={14} strokeWidth={2.5} /> Orientação de Ação
                                                     </span>
                                                     <div className="flex items-center justify-between">
                                                         <p className="text-base font-black text-pure-black leading-relaxed">{f.action}</p>
@@ -189,7 +189,7 @@ export default function VendedorFeedback() {
                                                         onClick={async () => { await ackFb(f.id); toast.success('Ciência Confirmada! Snapshot movido para o histórico.') }}
                                                         className="w-full sm:w-auto px-12 py-5 rounded-full bg-pure-black text-white font-black flex items-center justify-center gap-4 hover:bg-brand-secondary-hover hover:shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
                                                     >
-                                                        Confirmar Ciência <Check size={20} strokeWidth={3} className="group-hover/btn:scale-110 transition-transform" />
+                                                        Confirmar Ciência <Check size={20} strokeWidth={2.5} className="group-hover/btn:scale-110 transition-transform" />
                                                     </button>
                                                 </div>
                                             )}
@@ -250,7 +250,7 @@ export default function VendedorFeedback() {
                                                     <div className={cn("text-[9px] font-black px-5 py-2.5 rounded-full uppercase tracking-[0.3em] flex items-center gap-2 border shadow-sm shrink-0 self-start sm:self-auto", 
                                                         statusColor[p.status as keyof typeof statusColor] || 'bg-gray-50 text-gray-400 border-gray-100'
                                                     )}>
-                                                        <AlertCircle size={12} strokeWidth={3} />
+                                                        <AlertCircle size={12} strokeWidth={2.5} />
                                                         {statusLabel[p.status as keyof typeof statusLabel]}
                                                     </div>
                                                 </div>
@@ -312,7 +312,7 @@ export default function VendedorFeedback() {
                                                 {/* 5 Ações Mandatórias */}
                                                 <div className="bg-white rounded-[2rem] p-8 border border-gray-100 space-y-6 md:col-span-2 shadow-sm">
                                                     <span className="text-[10px] font-black text-rose-600 uppercase tracking-[0.3em] flex items-center gap-2">
-                                                        <Zap size={14} strokeWidth={3} /> 5 Ações de Desenvolvimento (Obrigatórias)
+                                                        <Zap size={14} strokeWidth={2.5} /> 5 Ações de Desenvolvimento (Obrigatórias)
                                                     </span>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                         {[p.action_1, p.action_2, p.action_3, p.action_4, p.action_5].map((act, idx) => act && (
@@ -377,7 +377,7 @@ export default function VendedorFeedback() {
                                                         onClick={async () => { await ackPdi(p.id); toast.success('Compromisso de PDI Ativado! ✨') }}
                                                         className="w-full sm:w-auto px-12 py-5 rounded-full bg-pure-black text-white font-black flex items-center justify-center gap-4 hover:bg-brand-secondary-hover hover:shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
                                                     >
-                                                        Firmar Acordo <Check size={20} strokeWidth={3} className="group-hover/btn:scale-110 transition-transform" />
+                                                        Firmar Acordo <Check size={20} strokeWidth={2.5} className="group-hover/btn:scale-110 transition-transform" />
                                                     </button>
                                                 </div>
                                             )}

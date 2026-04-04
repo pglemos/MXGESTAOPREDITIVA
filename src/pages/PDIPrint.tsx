@@ -87,7 +87,7 @@ export default function PDIPrint() {
                                     stroke="#4f46e5"
                                     fill="#4f46e5"
                                     fillOpacity={0.15}
-                                    strokeWidth={4}
+                                    strokeWidth={2.5}
                                 />
                             </RadarChart>
                         </ResponsiveContainer>

@@ -2,7 +2,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useRanking } from '@/hooks/useRanking'
 import { motion, AnimatePresence } from 'motion/react'
 import { 
-    Trophy, Medal, Star, Crown, ChevronRight, User, Award, Zap, RefreshCw, TrendingUp, Target, Flame
+    Trophy, Medal, Star, Crown, ChevronRight, User, Award, Zap, RefreshCw, TrendingUp, Target, Flame, Building2
 } from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
@@ -21,6 +21,7 @@ export default function Ranking() {
 
     const sortedRanking = useMemo(() => {
         return [...(ranking || [])].sort((a, b) => {
+            // Venda Loja sempre pro final se empatar, ou segue a regra de volume
             if (b.vnd_total !== a.vnd_total) return b.vnd_total - a.vnd_total
             return b.visitas - a.visitas
         })
@@ -44,7 +45,7 @@ export default function Ranking() {
                     </button>
                     <div className="flex items-center justify-center gap-3 rounded-full border border-border-default bg-white px-8 py-4 shadow-mx-sm">
                         <Trophy size={20} className="text-status-warning" />
-                        <span className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">{sortedRanking.length} Especialistas Ativos</span>
+                        <span className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">{sortedRanking.filter(r => !r.is_venda_loja).length} Vendedores em Arena</span>
                     </div>
                 </div>
             </div>
@@ -55,37 +56,49 @@ export default function Ranking() {
                         <AnimatePresence mode="popLayout">
                             {sortedRanking.map((r, i) => {
                                 const isMe = r.user_id === profile?.id
-                                const isTop3 = i < 3
+                                const isVendaLoja = r.is_venda_loja
                                 return (
                                     <motion.div
                                         key={r.user_id} layout
                                         initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
                                         className={cn(
                                             "p-mx-lg flex flex-col lg:flex-row lg:items-center gap-mx-lg transition-all relative overflow-hidden border rounded-mx-3xl",
-                                            isMe ? "border-brand-primary bg-brand-primary-surface shadow-mx-lg" : "bg-white border-border-subtle hover:shadow-mx-md"
+                                            isMe ? "border-brand-primary bg-brand-primary-surface shadow-mx-lg" : 
+                                            isVendaLoja ? "border-slate-200 bg-slate-50/50" : "bg-white border-border-subtle hover:shadow-mx-md"
                                         )}
                                     >
                                         <div className="flex items-center gap-mx-xl flex-1 min-w-0">
-                                            <div className="w-14 h-14 rounded-mx-xl bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-2xl text-text-primary shadow-inner">
-                                                {i + 1}
+                                            <div className={cn(
+                                                "w-14 h-14 rounded-mx-xl border flex items-center justify-center font-black text-2xl shadow-inner",
+                                                isVendaLoja ? "bg-slate-200 border-slate-300 text-slate-600" : "bg-mx-slate-50 border-border-default text-text-primary"
+                                            )}>
+                                                {isVendaLoja ? <Building2 size={24} /> : i + 1}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <h3 className="text-2xl font-black text-text-primary tracking-tight uppercase truncate">{r.user_name}</h3>
-                                                <div className="flex items-center gap-mx-md mt-2">
-                                                    <span className="mx-text-caption !text-[8px] text-text-secondary">{r.leads} Leads</span>
-                                                    <div className="w-1 h-1 rounded-full bg-mx-slate-300" />
-                                                    <span className="mx-text-caption !text-[8px] text-text-secondary">{r.visitas} Visitas</span>
-                                                </div>
+                                                <h3 className={cn("text-2xl font-black tracking-tight uppercase truncate", isVendaLoja ? "text-slate-500" : "text-text-primary")}>
+                                                    {r.user_name}
+                                                </h3>
+                                                {!isVendaLoja ? (
+                                                    <div className="flex items-center gap-mx-md mt-2">
+                                                        <span className="mx-text-caption !text-[8px] text-text-secondary">{r.leads} Leads</span>
+                                                        <div className="w-1 h-1 rounded-full bg-mx-slate-300" />
+                                                        <span className="mx-text-caption !text-[8px] text-text-secondary">{r.visitas} Visitas</span>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Saldo Consolidado da Unidade</p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-mx-xl border-t lg:border-t-0 lg:border-l border-border-subtle pt-mx-lg lg:pt-0 lg:pl-mx-xl">
                                             <div className="text-right">
                                                 <p className="mx-text-caption !text-[8px] text-text-tertiary mb-1">UNIDADES</p>
-                                                <p className="text-4xl font-black text-text-primary font-mono-numbers leading-none">{r.vnd_total}</p>
+                                                <p className={cn("text-4xl font-black font-mono-numbers leading-none", isVendaLoja ? "text-slate-400" : "text-text-primary")}>{r.vnd_total}</p>
                                             </div>
-                                            <Link to={`/relatorios/performance-vendedores?id=${r.user_id}`} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:bg-brand-secondary hover:text-white transition-all flex items-center justify-center shadow-sm">
-                                                <ChevronRight size={22} />
-                                            </Link>
+                                            {!isVendaLoja && (
+                                                <Link to={`/relatorios/performance-vendedores?id=${r.user_id}`} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:bg-brand-secondary hover:text-white transition-all flex items-center justify-center shadow-sm">
+                                                    <ChevronRight size={22} />
+                                                </Link>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )

@@ -149,7 +149,7 @@ export default function VendedorTreinamentos() {
                                     onClick={() => window.open(gapAnalysis.recommended?.video_url, '_blank')}
                                     className="w-full md:w-auto px-10 py-5 rounded-full bg-slate-950 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all active:scale-95 shadow-lg"
                                 >
-                                    <Play size={16} strokeWidth={3} /> Iniciar Correção
+                                    <Play size={16} strokeWidth={2.5} /> Iniciar Correção
                                 </button>
                             </div>
                         </div>
@@ -185,7 +185,7 @@ export default function VendedorTreinamentos() {
                                         </Badge>
                                         {t.watched && (
                                             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
-                                                <CheckCircle size={10} strokeWidth={3} /> Concluído
+                                                <CheckCircle size={10} strokeWidth={2.5} /> Concluído
                                             </span>
                                         )}
                                     </div>
@@ -214,18 +214,18 @@ export default function VendedorTreinamentos() {
                                         }}
                                         className="flex-1 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-pure-black text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white hover:shadow-lg transition-all active:scale-95 shadow-sm group/btn"
                                     >
-                                        <Play size={16} strokeWidth={3} className="group-hover/btn:scale-110" /> Assistir Aula
+                                        <Play size={16} strokeWidth={2.5} className="group-hover/btn:scale-110" /> Assistir Aula
                                     </button>
                                     {!t.watched ? (
                                         <button
                                             onClick={async () => { await markWatched(t.id); toast.success('Evolução Registrada! +100 XP ✨') }}
                                             className="flex-1 py-4 rounded-2xl bg-pure-black text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-brand-secondary-hover hover:shadow-2xl transition-all active:scale-95 shadow-lg shadow-gray-200"
                                         >
-                                            <CheckCircle size={16} strokeWidth={3} /> Concluir
+                                            <CheckCircle size={16} strokeWidth={2.5} /> Concluir
                                         </button>
                                     ) : (
                                         <div className="flex-1 py-4 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                            <CheckCircle size={16} strokeWidth={3} /> Validado
+                                            <CheckCircle size={16} strokeWidth={2.5} /> Validado
                                         </div>
                                     )}
                                 </div>

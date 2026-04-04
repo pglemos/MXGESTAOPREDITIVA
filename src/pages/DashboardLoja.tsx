@@ -185,6 +185,7 @@ export default function DashboardLoja() {
                             <div className="space-y-mx-xl relative z-10">
                                 {[
                                     { label: 'Leads', value: metrics.funil.leads, pct: 100, color: 'bg-brand-primary' },
+                                    { label: 'Agendamentos', value: metrics.funil.agd_total, pct: metrics.funil.tx_lead_agd, color: 'bg-mx-indigo-600' },
                                     { label: 'Visitas', value: metrics.funil.visitas, pct: metrics.funil.tx_agd_visita, color: 'bg-status-warning' },
                                     { label: 'Vendas', value: metrics.funil.vnd_total, pct: metrics.funil.tx_visita_vnd, color: 'bg-status-success' },
                                 ].map((step, i) => (

@@ -54,7 +54,7 @@ export default function LeadOps() {
 
         <div className="flex flex-wrap gap-mx-sm shrink-0">
           <button className="mx-button-primary !bg-white !text-text-primary border border-border-default shadow-mx-sm hover:!bg-mx-slate-50 flex items-center gap-2">
-            <Filter size={14} strokeWidth={3} /> Filtros
+            <Filter size={14} strokeWidth={2.5} /> Filtros
           </button>
           <button className="mx-button-primary bg-brand-secondary">Distribuir Manual</button>
         </div>
@@ -93,7 +93,7 @@ export default function LeadOps() {
             />
           </div>
           <div className="flex items-center gap-mx-xs mx-text-caption">
-            <TrendingUp size={14} className="text-brand-primary" strokeWidth={3} /> Prioridade Inteligente
+            <TrendingUp size={14} className="text-brand-primary" strokeWidth={2.5} /> Prioridade Inteligente
           </div>
         </div>
 

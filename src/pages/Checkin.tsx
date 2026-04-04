@@ -144,14 +144,14 @@ export default function Checkin() {
                     onClick={() => updateField(field, (form[field] as number) - 1)}
                     className="w-12 h-12 rounded-xl bg-gray-50 text-gray-400 hover:bg-rose-50 hover:text-rose-600 border border-gray-100 flex items-center justify-center transition-all active:scale-90"
                 >
-                    <Minus size={20} strokeWidth={3} />
+                    <Minus size={20} strokeWidth={2.5} />
                 </button>
                 <button
                     type="button"
                     onClick={() => updateField(field, (form[field] as number) + 1)}
                     className="w-12 h-12 rounded-xl bg-gray-50 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 border border-gray-100 flex items-center justify-center transition-all active:scale-90"
                 >
-                    <Plus size={20} strokeWidth={3} />
+                    <Plus size={20} strokeWidth={2.5} />
                 </button>
             </div>
         </div>
@@ -230,60 +230,67 @@ export default function Checkin() {
                 <div className="flex-1 space-y-12">
                     <form onSubmit={handleSubmit} className="space-y-14">
 
-                        {/* Produção do Dia Anterior */}
+                        {/* RETROSPECTIVA: Produção do Dia Anterior */}
                         <div className="space-y-8">
                             <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-inner">
-                                        <History size={20} className="text-emerald-600" strokeWidth={2.5} />
+                                    <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg transform -rotate-3">
+                                        <History size={24} strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Produção (Ontem)</h3>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Dados consolidados do dia anterior</p>
+                                        <h3 className="text-pure-black text-xl font-black uppercase tracking-tighter leading-none">Retrospectiva MX</h3>
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mt-1 italic">Produção Consolidada: Ontem</p>
                                     </div>
                                 </div>
-                                <span className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200">
-                                    Vendas Totais: {totals.vnd_total}
-                                </span>
+                                <div className="flex flex-col items-end">
+                                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm">
+                                        Vendas Totais: {totals.vnd_total}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="bg-gray-50/30 border border-gray-100 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+                            <div className="bg-emerald-50/20 border border-emerald-100/50 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/30 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                                    <NumberInput label="Leads Recebidos (Ontem)" icon={Users} field="leads" bg="bg-indigo-50" color="text-indigo-600" />
-                                    <NumberInput label="Visitas Realizadas (Ontem)" icon={Eye} field="visitas" bg="bg-amber-50" color="text-amber-600" />
-                                    <NumberInput label="Vendas Porta (Ontem)" icon={Car} field="vnd_porta" bg="bg-emerald-50" color="text-emerald-600" />
-                                    <NumberInput label="Vendas Carteira (Ontem)" icon={Users} field="vnd_cart" bg="bg-emerald-50" color="text-emerald-600" />
-                                    <NumberInput label="Vendas Digital (Ontem)" icon={Globe} field="vnd_net" bg="bg-emerald-50" color="text-emerald-600" />
+                                    <NumberInput label="Leads Recebidos (Ontem)" icon={Users} field="leads" bg="bg-white" color="text-indigo-600" />
+                                    <NumberInput label="Visitas Realizadas (Ontem)" icon={Eye} field="visitas" bg="bg-white" color="text-amber-600" />
+                                    <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-emerald-100/50">
+                                        <NumberInput label="Vendas Porta" icon={Car} field="vnd_porta" bg="bg-white" color="text-emerald-600" />
+                                        <NumberInput label="Vendas Carteira" icon={Users} field="vnd_cart" bg="bg-white" color="text-emerald-600" />
+                                        <NumberInput label="Vendas Digital" icon={Globe} field="vnd_net" bg="bg-white" color="text-emerald-600" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Agenda do Dia Atual */}
-                        <div className="space-y-8 mt-14">
+                        {/* AGENDA: Compromissos do Dia Atual */}
+                        <div className="space-y-8 mt-20">
                             <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-inner">
-                                        <CalendarDays size={20} className="text-blue-600" strokeWidth={2.5} />
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg transform rotate-3">
+                                        <CalendarDays size={24} strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Compromissos (Hoje)</h3>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Agendamentos para o dia atual</p>
+                                        <h3 className="text-pure-black text-xl font-black uppercase tracking-tighter leading-none">Agenda Operacional</h3>
+                                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mt-1 italic">Compromissos Firmados: Hoje</p>
                                     </div>
                                 </div>
-                                <span className="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200">
+                                <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm">
                                     Total Agendado: {totals.agd_total}
                                 </span>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <NumberInput label="Agendamentos Carteira (Hoje)" icon={Users} field="agd_cart" bg="bg-blue-50" color="text-blue-600" />
-                                <NumberInput label="Agendamentos Digital (Hoje)" icon={Globe} field="agd_net" bg="bg-cyan-50" color="text-cyan-600" />
+                            <div className="bg-indigo-50/20 border border-indigo-100/50 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/30 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                                    <NumberInput label="Agendamentos Carteira (Hoje)" icon={Users} field="agd_cart" bg="bg-white" color="text-indigo-600" />
+                                    <NumberInput label="Agendamentos Digital (Hoje)" icon={Globe} field="agd_net" bg="bg-indigo-600" color="text-white" />
+                                </div>
                             </div>
                         </div>
 
                         {/* Error Handling */}
                         <AnimatePresence mode="popLayout">
                             {funnelError && (
-                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex flex-col gap-6 rounded-[2.5rem] border-2 border-rose-100 bg-rose-50/50 p-8 shadow-xl shadow-rose-500/5 sm:flex-row sm:items-center">
+                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex flex-col gap-6 rounded-[2.5rem] border-2 border-border-error bg-rose-50/50 p-8 shadow-xl shadow-rose-500/5 sm:flex-row sm:items-center">
                                     <div className="bg-rose-500 p-5 rounded-2xl shadow-lg shadow-rose-200 shrink-0 transform -rotate-3"><AlertTriangle size={32} className="text-white" strokeWidth={2.5} /></div>
                                     <div>
                                         <h4 className="font-black text-rose-900 text-xl tracking-tight leading-none mb-2">Inconsistência Operacional</h4>
@@ -342,13 +349,13 @@ export default function Checkin() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full py-10 rounded-full bg-slate-950 text-white font-black text-3xl tracking-tighter flex items-center justify-center gap-6 hover:bg-brand-secondary-hover transition-all hover:shadow-3xl hover:-translate-y-2 active:scale-[0.98] group relative overflow-hidden disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="w-full py-10 rounded-[3rem] bg-slate-950 text-white font-black text-3xl tracking-tighter flex items-center justify-center gap-6 hover:bg-brand-secondary-hover transition-all hover:shadow-3xl hover:-translate-y-2 active:scale-[0.98] group relative overflow-hidden disabled:opacity-30 disabled:cursor-not-allowed"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-electric-blue/20 via-transparent to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-transparent to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                 {saving ? (
                                     <RefreshCw className="w-12 h-12 animate-spin text-electric-blue" />
                                 ) : (
-                                    <><Send size={40} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" /> <span>{todayCheckin ? 'ATUALIZAR REGISTRO' : 'SALVAR PRODUÇÃO'}</span></>
+                                    <><Send size={40} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" /> <span>{todayCheckin ? 'ATUALIZAR RITUAL' : 'CONGELAR PERFORMANCE'}</span></>
                                 )}
                             </button>
                         </div>
@@ -358,22 +365,46 @@ export default function Checkin() {
 
                 {/* Info Sidebar */}
                 <div className="lg:w-[420px] space-y-10">
-                    <div className="bg-indigo-50/30 border border-indigo-100 rounded-[2.5rem] p-10 relative overflow-hidden group">
+                    <div className="bg-emerald-50/30 border border-emerald-100 rounded-[2.5rem] p-10 relative overflow-hidden group">
                         <div className="flex items-center gap-4 mb-10">
-                            <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                                <Info size={28} strokeWidth={2.5} />
+                            <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+                                <History size={28} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <h4 className="font-black text-indigo-900 uppercase text-[10px] tracking-[0.4em] leading-none mb-1">Protocolo MX</h4>
-                                <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Integridade de Dados</p>
+                                <h4 className="font-black text-emerald-900 uppercase text-[10px] tracking-[0.4em] leading-none mb-1">Ritual de Ontem</h4>
+                                <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Auditoria de Resultados</p>
                             </div>
                         </div>
                         <ul className="space-y-8 relative z-10">
                             {[
-                                "Volume de agendamentos deve ser condizente com leads.",
-                                "Vendas de Porta refletem fluxo orgânico da unidade.",
-                                "O Digital engloba WhatsApp, Meta, Google e Site.",
-                                "Justificativa obrigatória para dias sem atividade."
+                                "Declare leads recebidos com precisão forense.",
+                                "Visitas refletem a taxa de conversão do showroom.",
+                                "As vendas são imutáveis após o fechamento do dia.",
+                                "Justificativa MX obrigatória para produção zero."
+                            ].map((text, i) => (
+                                <li key={i} className="flex gap-4 items-start">
+                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5 font-black text-[10px] text-emerald-600 shadow-sm border border-white">{i+1}</div>
+                                    <span className="text-sm font-bold text-emerald-900/60 leading-relaxed group-hover:text-emerald-900 transition-colors">{text}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="bg-indigo-50/30 border border-indigo-100 rounded-[2.5rem] p-10 relative overflow-hidden group">
+                        <div className="flex items-center gap-4 mb-10">
+                            <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                                <CalendarDays size={28} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-indigo-900 uppercase text-[10px] tracking-[0.4em] leading-none mb-1">Agenda de Hoje</h4>
+                                <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Planejamento Operacional</p>
+                            </div>
+                        </div>
+                        <ul className="space-y-8 relative z-10">
+                            {[
+                                "Agendamentos garantem o escoamento do funil.",
+                                "O Digital exige velocidade de resposta (SLR).",
+                                "Sua agenda de hoje é o resultado de amanhã."
                             ].map((text, i) => (
                                 <li key={i} className="flex gap-4 items-start">
                                     <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5 font-black text-[10px] text-indigo-600 shadow-sm border border-white">{i+1}</div>

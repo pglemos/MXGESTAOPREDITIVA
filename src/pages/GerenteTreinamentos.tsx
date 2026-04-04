@@ -167,7 +167,7 @@ export default function GerenteTreinamentos() {
                                             }}
                                             className="flex-1 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-pure-black text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white hover:shadow-lg transition-all active:scale-95 shadow-sm group/btn"
                                         >
-                                            <Play size={16} strokeWidth={3} className="group-hover/btn:scale-110" /> Assistir
+                                            <Play size={16} strokeWidth={2.5} className="group-hover/btn:scale-110" /> Assistir
                                         </button>
                                         {!t.watched && (
                                             <button

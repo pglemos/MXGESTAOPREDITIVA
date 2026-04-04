@@ -46,10 +46,9 @@ export default function Team() {
         <div className="flex items-center gap-mx-sm shrink-0">
           <button onClick={() => {setIsRefetching(true); refetch().then(() => setIsRefetching(false))}} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
           <div className="relative group w-48 hidden sm:block">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-            <input type="text" placeholder="Buscar especialista..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-          </div>
-          <button className="mx-button-primary bg-brand-secondary"><UserPlus size={18} /> Novo Recruta</button>
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+          <input type="text" placeholder="Buscar vendedor..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+          </div>          <button className="mx-button-primary bg-brand-secondary"><UserPlus size={18} /> Novo Recruta</button>
         </div>
       </div>
 

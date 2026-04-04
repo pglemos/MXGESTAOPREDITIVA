@@ -108,7 +108,7 @@ export default function Funil() {
                                                     <span className="text-4xl font-black text-text-primary tracking-tighter font-mono-numbers">{step.value}</span>
                                                     {i > 0 && (
                                                         <div className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black border shadow-mx-sm", step.pct < (step.bench || 0) ? 'bg-status-error-surface text-status-error border-mx-rose-100' : 'bg-status-success-surface text-status-success border-mx-emerald-100')}>
-                                                            {step.pct}% {step.pct >= (step.bench || 0) ? <ArrowUpRight size={12} strokeWidth={3} /> : <AlertTriangle size={12} strokeWidth={3} />}
+                                                            {step.pct}% {step.pct >= (step.bench || 0) ? <ArrowUpRight size={12} strokeWidth={2.5} /> : <AlertTriangle size={12} strokeWidth={2.5} />}
                                                         </div>
                                                     )}
                                                 </div>

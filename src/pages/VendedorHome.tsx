@@ -39,14 +39,25 @@ export default function VendedorHome() {
         const faltaX = calcularFaltaX(meta, vendasMes)
         const myRank = ranking.find(r => r.user_id === profile?.id)
 
+        // Dados de Ontem (D-1)
+        const yesterdayStr = new Date(); yesterdayStr.setDate(yesterdayStr.getDate() - 1)
+        const yesterdayFormatted = yesterdayStr.toISOString().split('T')[0]
+        const checkinOntem = myCheckins.find(c => c.reference_date === yesterdayFormatted)
+        
+        const vendasOntem = checkinOntem ? (checkinOntem.vnd_porta_prev_day || 0) + (checkinOntem.vnd_cart_prev_day || 0) + (checkinOntem.vnd_net_prev_day || 0) : 0
+        const agendamentosHoje = todayCheckin ? (todayCheckin.agd_cart_today || 0) + (todayCheckin.agd_net_today || 0) : 0
+
         const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7)
         const weekStr = weekAgo.toISOString().split('T')[0]
         const vendasSemana = somarVendas(myCheckins.filter(c => c.reference_date >= weekStr))
 
         const leadsMes = myCheckins.reduce((s, c) => s + (c.leads_prev_day || 0), 0)
 
-        return { vendasMes, porCanal, dias, meta, atingimento, projecao, faltaX, myRank, vendasSemana, leadsMes }
-    }, [checkins, profile, sellerGoals, storeGoal, ranking])
+        return { 
+            vendasMes, porCanal, dias, meta, atingimento, projecao, faltaX, myRank, 
+            leadsMes, vendasOntem, agendamentosHoje, vendasSemana 
+        }
+    }, [checkins, profile, sellerGoals, storeGoal, ranking, todayCheckin])
 
 
     if (checkisLoading || goalsLoading || rankingLoading) return (
@@ -70,7 +81,7 @@ export default function VendedorHome() {
                 </div>
                 {trend && (
                     <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest shadow-sm">
-                        <ArrowUpRight size={14} strokeWidth={3} /> {trend}
+                        <ArrowUpRight size={14} strokeWidth={2.5} /> {trend}
                     </div>
                 )}
             </div>
@@ -142,14 +153,14 @@ export default function VendedorHome() {
                                 <div className="max-w-2xl">
                                     <h2 className="font-black text-white text-4xl tracking-tighter leading-none mb-4 uppercase">Status Pendente</h2>
                                     <p className="text-white/60 text-lg font-bold leading-relaxed max-w-xl">
-                                        Seu fluxo operacional de hoje ainda não foi indexado. Registre suas métricas para sustentar seu run-rate.
+                                        Sua produção de ontem ainda não foi indexada. Acesse o terminal para consolidar seu run-rate.
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-6 group/btn">
-                                <span className="text-xs font-black uppercase tracking-[0.4em] text-white/40 group-hover/btn:text-white transition-colors">Abrir Terminal</span>
+                                <span className="text-xs font-black uppercase tracking-[0.4em] text-white/40 group-hover/btn:text-white transition-colors">Consolidar Ontem</span>
                                 <div className="w-16 h-16 rounded-full bg-white text-pure-black flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                                    <ArrowRight size={28} strokeWidth={3} />
+                                    <ArrowRight size={28} strokeWidth={2.5} />
                                 </div>
                             </div>
                         </div>
@@ -170,15 +181,15 @@ export default function VendedorHome() {
                                 </div>
                             </div>
                             <div>
-                                <h3 className="font-black text-emerald-900 text-2xl tracking-tighter leading-none mb-2 uppercase">Performance Indexada</h3>
-                                <p className="text-emerald-700/60 text-[10px] font-black uppercase tracking-widest bg-emerald-100/50 px-4 py-1 rounded-lg inline-block">Sincronização Ativa • 100% OK</p>
+                                <h3 className="font-black text-emerald-900 text-2xl tracking-tighter leading-none mb-2 uppercase">Produção Consolidada</h3>
+                                <p className="text-emerald-700/60 text-[10px] font-black uppercase tracking-widest bg-emerald-100/50 px-4 py-1 rounded-lg inline-block">Indexação de Ontem Concluída • 100% OK</p>
                             </div>
                         </div>
                         <button
                             onClick={() => navigate('/checkin')}
                             className="text-[10px] font-black uppercase tracking-[0.3em] bg-white text-pure-black border-2 border-emerald-100 px-10 py-4 rounded-full hover:bg-pure-black hover:text-white transition-all active:scale-95 shadow-sm"
                         >
-                            Atualizar Métricas
+                            Retificar Lançamento
                         </button>
                     </motion.div>
                 )}
@@ -186,10 +197,10 @@ export default function VendedorHome() {
 
             {/* Stats grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 shrink-0">
-                <StatCard index={0} icon={Target} label="Sua Meta" value={metrics.meta || '--'} sub={`${metrics.atingimento}% atg`} bg="bg-indigo-50" color="text-indigo-600" trend="Tracking" />
-                <StatCard index={1} icon={Car} label="Fechamentos" value={metrics.vendasMes} sub={`Faltam ${metrics.faltaX}`} bg="bg-emerald-50" color="text-emerald-600" />
+                <StatCard index={0} icon={Car} label="Produção Ontem (D-1)" value={metrics.vendasOntem} sub="Consolidado" bg="bg-indigo-50" color="text-indigo-600" trend="Realizado" />
+                <StatCard index={1} icon={Clock} label="Agenda de Hoje (D-0)" value={metrics.agendamentosHoje} sub="Compromissos" bg="bg-amber-50" color="text-amber-600" />
                 <StatCard index={2} icon={TrendingUp} label="Projeção IA" value={metrics.projecao} sub="Predictive" bg="bg-blue-50" color="text-blue-600" />
-                <StatCard index={3} icon={Phone} label="Leads Acumulados" value={metrics.leadsMes} bg="bg-amber-50" color="text-amber-600" sub="Volume" />
+                <StatCard index={3} icon={Target} label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% atg`} bg="bg-emerald-50" color="text-emerald-600" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 shrink-0 pb-20">
@@ -217,7 +228,7 @@ export default function VendedorHome() {
                                 <div key={ch.label} className={cn(ch.bg, "border-2 rounded-[2.5rem] p-8 transition-all hover:bg-white hover:shadow-2xl hover:scale-[1.03] group/item")}>
                                     <div className="flex justify-between items-start mb-10">
                                         <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg border border-gray-50 group-hover/item:rotate-6 transition-transform">
-                                            <ch.icon size={22} className={ch.color} strokeWidth={3} />
+                                            <ch.icon size={22} className={ch.color} strokeWidth={2.5} />
                                         </div>
                                         <div className={cn("text-[9px] font-black bg-white border border-gray-100 px-2.5 py-1 rounded-full shadow-sm", ch.color)}>{ch.pct}%</div>
                                     </div>

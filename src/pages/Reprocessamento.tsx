@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Database, RefreshCw, ShieldAlert, CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
-import { motion } from 'motion/react'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { ArrowLeft, Database, RefreshCw, ShieldAlert, CheckCircle2, AlertTriangle, Clock, Upload, FileType, Table, Download, ShieldCheck, TrendingUp } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { useStores } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { parseCSV, validateHeaders, MANDATORY_HEADERS, ParsedCSVRow } from '@/lib/csv-parser'
+import { format } from 'date-fns'
 
 type ReprocessLog = {
     id: string
@@ -17,6 +19,9 @@ type ReprocessLog = {
     status: 'pending' | 'processing' | 'completed' | 'failed'
     started_at: string
     finished_at: string | null
+    rows_processed: number
+    warnings: string[] | null
+    error_log: any[] | null
     store?: { name: string }
 }
 
@@ -27,6 +32,10 @@ export default function Reprocessamento() {
     const [loading, setLoading] = useState(true)
     const [executing, setExecuting] = useState(false)
     const [selectedStore, setSelectedStore] = useState<string>('all')
+    const [importData, setImportData] = useState<ParsedCSVRow[]>([])
+    const [headers, setHeaders] = useState<string[]>([])
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const navigate = useNavigate()
 
     const fetchLogs = async () => {
         setLoading(true)
@@ -46,25 +55,75 @@ export default function Reprocessamento() {
         fetchLogs()
     }, [])
 
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = (event) => {
+            const text = event.target?.result as string
+            const rows = parseCSV(text)
+            if (rows.length > 0) {
+                const fileHeaders = Object.keys(rows[0])
+                const validation = validateHeaders(fileHeaders)
+
+                if (!validation.valid) {
+                    toast.error(`Cabeçalhos ausentes: ${validation.missing.join(', ')}`)
+                    return
+                }
+
+                setHeaders(fileHeaders)
+                setImportData(rows)
+                toast.success(`${rows.length} registros carregados e validados!`)
+            }
+        }
+        reader.readAsText(file)
+    }
+
     const handleReprocess = async () => {
-        if (!window.confirm("Você está prestes a forçar a reconstrução da base oficial. Isso pode sobrescrever dados derivados manuais. Confirma a operação?")) return
+        if (!window.confirm("Atenção: Esta operação irá reconstruir a base oficial a partir dos dados fornecidos. Confirma a purga e reconstrução?")) return
 
         setExecuting(true)
         try {
-            const payload = {
-                p_store_id: selectedStore === 'all' ? null : selectedStore,
-                p_source_type: 'manual_admin_trigger',
-                p_triggered_by: profile?.id
+            // 1. Criar o Log
+            const { data: logData, error: logError } = await supabase
+                .from('reprocess_logs')
+                .insert({
+                    store_id: selectedStore === 'all' ? null : selectedStore,
+                    source_type: importData.length > 0 ? 'bulk_csv_import' : 'manual_rebuild',
+                    triggered_by: profile?.id,
+                    status: 'pending'
+                })
+                .select()
+                .single()
+
+            if (logError) throw logError
+
+            // 2. Se houver dados de importação, subir para raw_imports
+            if (importData.length > 0) {
+                const chunks = []
+                for (let i = 0; i < importData.length; i += 100) {
+                    chunks.push(importData.slice(i, i + 100))
+                }
+
+                for (const chunk of chunks) {
+                    const { error: insError } = await supabase.from('raw_imports').insert(
+                        chunk.map(row => ({ log_id: logData.id, raw_data: row }))
+                    )
+                    if (insError) throw insError
+                }
             }
 
-            const { error } = await supabase.rpc('request_reprocess', payload)
-            
-            if (error) throw error
+            // 3. Chamar o motor de processamento no banco
+            const { error: rpcError } = await supabase.rpc('process_import_data', { p_log_id: logData.id })
+            if (rpcError) throw rpcError
 
-            toast.success('Comando de reconstrução despachado para a fila de processamento!')
+            toast.success('Processamento concluído com sucesso!')
+            setImportData([])
+            setHeaders([])
             fetchLogs()
         } catch (error: any) {
-            toast.error(`Falha no comando: ${error.message}`)
+            toast.error(`Falha Crítica: ${error.message}`)
         } finally {
             setExecuting(false)
         }
@@ -72,128 +131,159 @@ export default function Reprocessamento() {
 
     const getStatusConfig = (status: string) => {
         switch (status) {
-            case 'completed': return { icon: CheckCircle2, color: 'text-status-success', bg: 'bg-status-success-surface', label: 'Concluído' }
-            case 'pending': return { icon: Clock, color: 'text-status-warning', bg: 'bg-status-warning-surface', label: 'Aguardando' }
-            case 'processing': return { icon: RefreshCw, color: 'text-brand-primary', bg: 'bg-brand-primary-surface', label: 'Processando' }
-            case 'failed': return { icon: AlertTriangle, color: 'text-status-error', bg: 'bg-status-error-surface', label: 'Falha Crítica' }
+            case 'completed': return { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Sucesso' }
+            case 'pending': return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', label: 'Aguardando' }
+            case 'processing': return { icon: RefreshCw, color: 'text-indigo-600', bg: 'bg-indigo-50', label: 'Processando' }
+            case 'failed': return { icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-50', label: 'Erro Base' }
             default: return { icon: Clock, color: 'text-gray-400', bg: 'bg-gray-100', label: status }
         }
     }
 
     return (
         <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10 bg-white">
-            
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 relative z-10 w-full shrink-0 border-b border-border-default pb-10">
+
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-rose-600 rounded-full shadow-[0_0_15px_rgba(225,29,72,0.4)]" />
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none uppercase text-text-primary">
-                            Base <span className="text-rose-600">Canônica</span>
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase text-slate-950">
+                            Motor de <span className="text-rose-600">Reprocessamento</span>
                         </h1>
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-status-warning shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Operações de Reparo & Backfill</p>
+                        <div className="w-2 h-2 rounded-full bg-amber-500 shadow-lg animate-pulse" />
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Operações Forenses & Reparo de Base</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
-                    <Link to="/configuracoes" className="w-12 h-12 rounded-2xl bg-white border border-border-default shadow-sm flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all active:scale-90">
+                    <Link to="/configuracoes" className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all active:scale-90">
                         <ArrowLeft size={20} />
                     </Link>
-                    <button onClick={fetchLogs} className="w-12 h-12 rounded-2xl bg-white border border-border-default shadow-sm flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all active:scale-90">
+                    <button onClick={fetchLogs} className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all active:scale-90">
                         <RefreshCw size={20} className={cn(loading && "animate-spin")} />
                     </button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-32">
-                
-                {/* Control Panel */}
-                <div className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <div className="mx-card p-8 bg-rose-50 border-rose-100 relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 opacity-5 transform translate-x-4 -translate-y-4"><ShieldAlert size={150} /></div>
-                        <h3 className="text-sm font-black uppercase tracking-tight text-rose-900 mb-6 relative z-10 flex items-center gap-2">
-                            <Database size={16} /> Central de Disparo
-                        </h3>
-                        
-                        <div className="space-y-6 relative z-10">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-rose-700 uppercase tracking-widest">Escopo de Reprocessamento</label>
+
+                {/* Administrative Terminal */}
+                <div className="lg:col-span-5 flex flex-col gap-mx-lg">
+                    <div className="bg-slate-950 rounded-[2.5rem] p-10 text-white space-y-10 relative overflow-hidden shadow-2xl">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] -mr-32 -mt-32" />
+
+                        <div className="space-y-2 relative z-10">
+                            <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                                <Database size={24} className="text-rose-500" /> Terminal de Reparo
+                            </h3>
+                            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                                Use esta ferramenta para corrigir inconsistências históricas ou importar dados em massa seguindo a metodologia MX.
+                            </p>
+                        </div>
+
+                        <div className="space-y-8 relative z-10">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-2">Origem dos Dados</label>
+                                <div 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className={cn(
+                                        "border-2 border-dashed rounded-[2rem] p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group",
+                                        importData.length > 0 ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/10 hover:border-rose-500/50 hover:bg-white/5"
+                                    )}
+                                >
+                                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv" className="hidden" />
+                                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all", importData.length > 0 ? "bg-emerald-500 text-white" : "bg-white/5 text-white/20 group-hover:text-rose-500")}>
+                                        {importData.length > 0 ? <ShieldCheck size={28} /> : <Upload size={28} />}
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-xs font-black uppercase tracking-widest">{importData.length > 0 ? 'Arquivo Validado' : 'Carregar Planilha CSV'}</p>
+                                        <p className="text-[9px] font-bold text-white/30 uppercase mt-1">Headers mandatórios: {MANDATORY_HEADERS.join(', ')}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-2">Escopo do Reparo</label>
                                 <select 
                                     value={selectedStore}
                                     onChange={(e) => setSelectedStore(e.target.value)}
-                                    className="w-full bg-white border border-rose-200 rounded-xl px-4 py-3 text-sm font-bold text-rose-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white focus:outline-none focus:border-rose-500 transition-all appearance-none cursor-pointer"
                                 >
-                                    <option value="all">TODAS AS LOJAS (Global)</option>
-                                    {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                                    <option value="all">TODAS AS UNIDADES OPERACIONAIS</option>
+                                    {stores.map(s => <option key={s.id} value={s.id} className="text-slate-900">{s.name.toUpperCase()}</option>)}
                                 </select>
                             </div>
 
                             <button 
                                 onClick={handleReprocess}
-                                disabled={executing}
-                                className="w-full py-4 rounded-xl bg-rose-600 text-white font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-50"
+                                disabled={executing || (importData.length === 0 && selectedStore === 'all')}
+                                className="w-full py-6 rounded-full bg-rose-600 text-white font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-30 shadow-xl"
                             >
-                                {executing ? <RefreshCw size={16} className="animate-spin" /> : <><ShieldAlert size={16} /> Forçar Reconstrução</>}
+                                {executing ? <RefreshCw size={20} className="animate-spin" /> : <><ShieldAlert size={20} strokeWidth={2.5} /> Executar Reconstrução Bruta</>}
                             </button>
-                            <p className="text-[9px] font-bold text-rose-600/70 text-center uppercase tracking-widest leading-relaxed">
-                                Atenção: Jobs enfileirados serão executados em background para preservar a resiliência do core.
-                            </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Audit Logs */}
-                <div className="lg:col-span-8 flex flex-col gap-mx-lg">
-                    <Card className="border-none shadow-mx-lg rounded-[2.5rem] overflow-hidden flex-1">
-                        <CardHeader className="bg-mx-slate-50/30 border-b border-border-subtle p-mx-lg flex-row items-center justify-between">
-                            <div>
-                                <CardTitle className="text-xl font-black uppercase tracking-tight">Trilha de Auditoria</CardTitle>
-                                <CardDescription className="font-bold text-text-tertiary">Histórico de reconstrução de base oficial.</CardDescription>
+                {/* Historical Audit Trail */}
+                <div className="lg:col-span-7 flex flex-col gap-mx-lg">
+                    <Card className="border-gray-100 shadow-sm rounded-[2.5rem] overflow-hidden flex-1 flex flex-col">
+                        <CardHeader className="bg-gray-50/30 border-b border-gray-100 p-8 flex-row items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-slate-400 shadow-sm"><Table size={24} /></div>
+                                <div>
+                                    <CardTitle className="text-2xl font-black uppercase tracking-tight text-slate-950">Trilha de Auditoria</CardTitle>
+                                    <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest mt-1">Log de operações forenses na base canônica.</CardDescription>
+                                </div>
                             </div>
                         </CardHeader>
-                        <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left">
-                                <thead className="bg-mx-slate-50/50 border-b border-border-default">
-                                    <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
-                                        <th className="px-mx-xl py-mx-md">Gatilho</th>
-                                        <th className="px-mx-md py-mx-md text-center">Escopo</th>
-                                        <th className="px-mx-md py-mx-md text-center">Data/Hora</th>
-                                        <th className="px-mx-xl py-mx-md text-right">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border-subtle">
-                                    {logs.map(log => {
-                                        const st = getStatusConfig(log.status)
-                                        return (
-                                            <tr key={log.id} className="hover:bg-mx-slate-50/30 transition-colors h-16 group">
-                                                <td className="px-mx-xl py-3 font-bold text-xs text-text-secondary uppercase tracking-tight">
-                                                    {log.source_type}
-                                                </td>
-                                                <td className="px-mx-md py-3 text-center">
-                                                    <span className="text-[10px] font-black bg-mx-slate-100 text-text-tertiary px-2 py-1 rounded uppercase tracking-widest">
-                                                        {log.store?.name || 'GLOBAL'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-mx-md py-3 text-center font-mono-numbers text-xs text-text-tertiary font-bold">
-                                                    {new Date(log.started_at).toLocaleString('pt-BR')}
-                                                </td>
-                                                <td className="px-mx-xl py-3 text-right">
-                                                    <Badge className={cn("text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest border-none gap-1", st.bg, st.color)}>
-                                                        <st.icon size={10} strokeWidth={3} className={cn(log.status === 'processing' && "animate-spin")} /> {st.label}
-                                                    </Badge>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                    {logs.length === 0 && !loading && (
-                                        <tr><td colSpan={4} className="py-20 text-center mx-text-caption opacity-40 uppercase text-text-secondary font-black">Nenhum evento de reprocessamento auditado.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                        <CardContent className="p-0 flex-1">
+                            <div className="overflow-x-auto no-scrollbar">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50/50 border-b border-gray-100">
+                                        <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                            <th className="pl-8 py-6">Operação</th>
+                                            <th className="px-4 py-6 text-center">Unidade</th>
+                                            <th className="px-4 py-6 text-center">Registros</th>
+                                            <th className="pr-8 py-6 text-right">Resultado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50 bg-white">
+                                        {logs.map(log => {
+                                            const st = getStatusConfig(log.status)
+                                            return (
+                                                <tr key={log.id} className="hover:bg-slate-50/50 transition-colors h-24 group">
+                                                    <td className="pl-8 py-2">
+                                                        <p className="font-black text-xs text-slate-950 uppercase tracking-tight">{log.source_type === 'bulk_csv_import' ? 'Importação Planilha' : 'Reconstrução Manual'}</p>
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{new Date(log.started_at).toLocaleString('pt-BR')}</p>
+                                                    </td>
+                                                    <td className="px-4 py-2 text-center">
+                                                        <Badge variant="outline" className="text-[8px] font-black text-slate-400 border-gray-200 uppercase tracking-widest">
+                                                            {log.store?.name || 'REDE TODA'}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-4 py-2 text-center">
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-base font-black font-mono-numbers text-slate-950">{log.rows_processed || 0}</span>
+                                                            {log.warnings && log.warnings.length > 0 && <span className="text-[8px] font-black text-rose-500 uppercase tracking-tighter">-{log.warnings.length} alertas</span>}
+                                                        </div>
+                                                    </td>
+                                                    <td className="pr-8 py-2 text-right">
+                                                        <Badge className={cn("text-[9px] font-black px-4 py-2 rounded-full uppercase tracking-widest border-none shadow-sm gap-2", st.bg, st.color)}>
+                                                            <st.icon size={12} strokeWidth={3} className={cn(log.status === 'processing' && "animate-spin")} /> {st.label}
+                                                        </Badge>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                        {logs.length === 0 && !loading && (
+                                            <tr><td colSpan={4} className="py-20 text-center mx-text-caption opacity-40 uppercase text-slate-300 font-black tracking-[0.4em]">Audit Trail Vazio</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
                     </Card>
                 </div>
             </div>

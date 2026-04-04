@@ -84,8 +84,8 @@ export default function SellerPerformance() {
                             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontWeight: 800, fontSize: 10, fill: '#94a3b8' }} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fontWeight: 800, fontSize: 10, fill: '#94a3b8' }} />
                             <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px' }} />
-                            <Area type="monotone" dataKey="vendas" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" activeDot={{ r: 8, fill: '#4f46e5', stroke: '#fff', strokeWidth: 4 }} />
-                            <Area type="monotone" dataKey="meta" stroke="#94a3b8" strokeWidth={2} strokeDasharray="8 8" fill="none" />
+                            <Area type="monotone" dataKey="vendas" stroke="#4f46e5" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSales)" activeDot={{ r: 8, fill: '#4f46e5', stroke: '#fff', strokeWidth: 4 }} />
+                            <Area type="monotone" dataKey="meta" stroke="#94a3b8" strokeWidth={2.5} strokeDasharray="8 8" fill="none" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div></Card>
@@ -105,7 +105,7 @@ export default function SellerPerformance() {
             </div>
 
             <Card className="mb-mx-3xl overflow-hidden"><CardHeader className="flex-col md:flex-row md:items-center justify-between gap-mx-lg bg-mx-slate-50/30">
-                <div className="flex items-center gap-mx-md"><div className="w-12 h-12 rounded-mx-md bg-status-info text-white flex items-center justify-center shadow-mx-lg transform -rotate-3"><Medal size={24} /></div><div><CardTitle className="!text-xl">Logs de Comissionamento</CardTitle><p className="mx-text-caption !text-[8px]">Auditoria de Conversões do Especialista</p></div></div>
+                <div className="flex items-center gap-mx-md"><div className="w-12 h-12 rounded-mx-md bg-status-info text-white flex items-center justify-center shadow-mx-lg transform -rotate-3"><Medal size={24} /></div><div><CardTitle className="!text-xl">Logs de Comissionamento</CardTitle><p className="mx-text-caption !text-[8px]">Auditoria de Conversões do Vendedor</p></div></div>
                 <div className="relative group w-full md:w-80"><Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" /><input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar ativo..." className="mx-input !h-11 !pl-11 !text-[10px]" /></div>
             </CardHeader><div className="overflow-x-auto no-scrollbar"><table className="w-full text-left min-w-[800px]">
                 <thead><tr className="bg-mx-slate-50/50 mx-text-caption border-b border-border-default"><th className="pl-mx-lg py-mx-md uppercase tracking-[0.3em]">Ativo Comercial</th><th className="py-mx-md uppercase tracking-[0.3em]">Data Registro</th><th className="py-mx-md uppercase tracking-[0.3em] text-center">Margem BI</th><th className="pr-mx-lg py-mx-md uppercase tracking-[0.3em] text-right">Líquido Creditado</th></tr></thead>
