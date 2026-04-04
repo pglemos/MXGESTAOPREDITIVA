@@ -78,7 +78,7 @@ export default function Notificacoes() {
             <h3 className="text-xl font-black text-text-primary tracking-tight leading-none uppercase mb-mx-sm">Filtro Tático</h3>
             <div className="relative group"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" /><input type="text" placeholder="Filtrar alertas..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="mx-input !h-11 !pl-11 !text-[10px]" /></div>
             <div className="space-y-2 flex-1">
-              {['Prioridade Máxima', 'Alertas de Lead', 'Metas & Performance', 'Comunicados'].map(f => (
+              {['Sem Registro (Atrasos)', 'Feedback Não Lido', 'PDI Pendente de Assinatura', 'Comunicados da Rede'].map(f => (
                 <button key={f} className="w-full p-mx-md rounded-mx-lg border border-border-subtle bg-mx-slate-50/50 hover:bg-white hover:border-brand-primary/30 transition-all text-left flex items-center justify-between group/f">
                   <span className="text-[10px] font-black text-text-primary uppercase tracking-widest">{f}</span>
                   <ChevronRight size={14} className="text-mx-slate-200 group-hover/f:text-brand-primary transition-all" />

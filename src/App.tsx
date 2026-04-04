@@ -37,6 +37,7 @@ const ConsultorTreinamentos = lazy(() => import('@/pages/ConsultorTreinamentos')
 const ProdutosDigitais = lazy(() => import('@/pages/ProdutosDigitais'))
 const ConsultorNotificacoes = lazy(() => import('@/pages/ConsultorNotificacoes'))
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
+const Reprocessamento = lazy(() => import('@/pages/Reprocessamento'))
 const Agenda = lazy(() => import('@/pages/Agenda'))
 const AiDiagnostics = lazy(() => import('@/pages/AiDiagnostics'))
 const CommissionRules = lazy(() => import('@/pages/CommissionRules'))
@@ -128,6 +129,7 @@ export default function App() {
             <Route path="lojas" element={<Suspense fallback={<Spinner />}><Lojas /></Suspense>} />
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
+            <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}><Reprocessamento /></Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
 
             {/* Módulos Legados Isolados */}

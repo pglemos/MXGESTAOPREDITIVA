@@ -65,15 +65,28 @@ export default function Configuracoes() {
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-60">Regras de Performance</p>
                     </Link>
 
+                    {/* EPIC-11: Reprocessamento */}
+                    <Link to="/configuracoes/reprocessamento" className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-rose-50 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-rose-100 transition-colors" />
+                        <div className="flex items-center justify-between mb-8 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform">
+                                <Database size={22} strokeWidth={2.5} />
+                            </div>
+                            <ChevronRight size={18} className="text-gray-300 group-hover:text-pure-black group-hover:translate-x-1 transition-all" />
+                        </div>
+                        <h4 className="text-xl font-black text-pure-black tracking-tight mb-1">Reprocessamento</h4>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-60">Reparo & Backfill da Base</p>
+                    </Link>
+
                     <div className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm opacity-50 cursor-not-allowed">
                         <div className="flex items-center justify-between mb-8">
                             <div className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-300 border border-gray-100 flex items-center justify-center">
-                                <Database size={22} strokeWidth={2.5} />
+                                <Zap size={22} strokeWidth={2.5} />
                             </div>
                             <span className="text-[8px] font-black bg-gray-100 text-gray-400 px-2 py-1 rounded">EM BREVE</span>
                         </div>
-                        <h4 className="text-xl font-black text-gray-300 tracking-tight mb-1">Fontes de Dados</h4>
-                        <p className="text-[10px] font-black text-gray-200 uppercase tracking-widest">Integrações de CRM</p>
+                        <h4 className="text-xl font-black text-gray-300 tracking-tight mb-1">Integrações</h4>
+                        <p className="text-[10px] font-black text-gray-200 uppercase tracking-widest">APIs Externas</p>
                     </div>
                 </div>
 

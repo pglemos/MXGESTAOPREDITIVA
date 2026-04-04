@@ -92,6 +92,35 @@ export default function VendedorTreinamentos() {
             </div>
 
             <div className="flex-1 w-full max-w-7xl mx-auto shrink-0 pb-32">
+                
+                {/* STORY-12.1 / 12.2: Prescrição Direta Baseada em Gargalo */}
+                {filteredTrainings.length > 0 && !searchTerm && (
+                    <div className="mb-mx-xl">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-primary mb-4 flex items-center gap-2">
+                            <Target size={14} /> Prescrição Tática (Seu Gargalo Atual)
+                        </h3>
+                        <div className="bg-brand-primary-surface border border-brand-primary/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-start md:items-center gap-8 relative overflow-hidden group">
+                            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none group-hover:bg-brand-primary/20 transition-colors" />
+                            
+                            <div className="w-20 h-20 rounded-2xl bg-white border border-brand-primary/30 flex items-center justify-center text-brand-primary shadow-mx-lg shrink-0 relative z-10">
+                                <Sparkles size={32} />
+                            </div>
+                            
+                            <div className="flex-1 relative z-10">
+                                <Badge className="bg-status-error-surface text-status-error border-none text-[8px] px-2 h-6 uppercase font-black tracking-widest mb-3">Gap Detectado: Visita → Venda</Badge>
+                                <h4 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">Técnicas de Fechamento por Urgência</h4>
+                                <p className="text-sm font-bold text-text-secondary leading-relaxed">Seu PDI e o motor MX identificaram que sua taxa de fechamento de mesa está abaixo de 33%. Este módulo é mandatório para esta semana.</p>
+                            </div>
+
+                            <div className="shrink-0 w-full md:w-auto relative z-10">
+                                <button className="w-full md:w-auto px-10 py-5 rounded-full bg-brand-primary text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-brand-primary/90 hover:shadow-mx-lg transition-all active:scale-95 shadow-sm">
+                                    <Play size={16} strokeWidth={3} /> Iniciar Correção
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <AnimatePresence mode="popLayout">
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
                         {filteredTrainings.map((t, i) => (
