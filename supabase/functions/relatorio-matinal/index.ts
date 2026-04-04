@@ -1,9 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@3";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const resendApiKey = Deno.env.get("RESEND_API_KEY");
 const supabase = createClient(supabaseUrl, serviceKey);
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 Deno.serve(async (_req: Request) => {
     try {
@@ -37,17 +40,21 @@ Deno.serve(async (_req: Request) => {
                 continue;
             }
 
-            // Puxando vendedores ativos da nova tabela canônica
+            // Puxando regras de entrega para destinatários de e-mail
+            const { data: deliveryRules } = await supabase.from("store_delivery_rules").select("matinal_recipients").eq("store_id", store.id).single();
+            const recipients = deliveryRules?.matinal_recipients || [];
+
+            // Puxando vendedores ativos
             const { data: sellers } = await supabase.from("store_sellers").select("seller_user_id, is_active, users:seller_user_id(name, email)").eq("store_id", store.id).eq("is_active", true);
 
             // Produção acumulada do mês usando reference_date
             const { data: checkins } = await supabase.from("daily_checkins").select("*").eq("store_id", store.id).gte("reference_date", startOfMonth).lte("reference_date", yesterday);
 
-            // Meta da loja do novo schema
+            // Meta da loja
             const { data: metaData } = await supabase.from("store_meta_rules").select("monthly_goal").eq("store_id", store.id).single();
             const storeGoal = metaData?.monthly_goal || 0;
 
-            // Check-ins de ontem para saber quem está "Sem Registro"
+            // Check-ins de ontem (Sem Registro)
             const { data: yCheckins } = await supabase.from("daily_checkins").select("seller_user_id").eq("store_id", store.id).eq("reference_date", yesterday);
             const checkedY = new Set((yCheckins || []).map((c: any) => c.seller_user_id));
 
@@ -91,11 +98,39 @@ Deno.serve(async (_req: Request) => {
             // Gerar HTML oficial MX
             const html = generateHTML(store.name, yesterdayDate, tv, storeGoal, pct, proj, falta, daysRemaining, ranking, semRegistroNomes, year);
 
-            // Logar disparo (Idempotência)
-            await supabase.from("reprocess_logs").insert({ store_id: store.id, source_type: idempotencyKey, status: 'completed' });
+            // Enviar e-mail via Resend se configurado
+            let emailStatus = "not_sent";
+            if (resend && recipients.length > 0) {
+                try {
+                    const { error } = await resend.emails.send({
+                        from: "MX Relatórios <relatorios@mxgestaopreditiva.com.br>",
+                        to: recipients,
+                        subject: `📊 Matinal MX: ${store.name} - ${yesterdayDate.toLocaleDateString("pt-BR")}`,
+                        html: html,
+                    });
+                    if (error) {
+                        console.error(`[Matinal] Error sending email for ${store.name}:`, error);
+                        emailStatus = "failed";
+                    } else {
+                        emailStatus = "sent";
+                    }
+                } catch (err) {
+                    console.error(`[Matinal] Critical error sending email for ${store.name}:`, err);
+                    emailStatus = "failed";
+                }
+            }
 
-            reports.push({ store: store.name, total_vendas: tv, pct, sem_registro: semRegistroNomes.length });
-            console.log(`[Matinal] Disparado para ${store.name} com sucesso.`);
+            // Logar disparo (Idempotência) com status do e-mail
+            await supabase.from("reprocess_logs").insert({ 
+                store_id: store.id, 
+                source_type: idempotencyKey, 
+                status: 'completed',
+                rows_processed: ranking.length,
+                warnings: emailStatus === "failed" ? ["Falha no disparo do e-mail"] : emailStatus === "not_sent" ? ["Nenhum destinatário configurado ou Resend desativado"] : []
+            });
+
+            reports.push({ store: store.name, total_vendas: tv, pct, sem_registro: semRegistroNomes.length, email: emailStatus });
+            console.log(`[Matinal] Disparado para ${store.name} com sucesso. Status E-mail: ${emailStatus}`);
         }
 
         return new Response(JSON.stringify({ message: `Processamento matinal concluído`, reports }), { headers: { "Content-Type": "application/json" } });

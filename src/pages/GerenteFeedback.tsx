@@ -1,19 +1,69 @@
 import { useFeedbacks } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
-import { useState, useCallback, useMemo } from 'react'
+import { useCheckins } from '@/hooks/useCheckins'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
 import { MessageSquare, Plus, X, Send, CheckCircle, Clock, User, Award, AlertCircle, Zap, ChevronRight, LayoutDashboard, Target, TrendingUp, Sparkles, Filter, RefreshCw, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { format, startOfWeek } from 'date-fns'
+import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS } from '@/lib/calculations'
+import type { FunnelData, FeedbackFormData } from '@/types/database'
 
 export default function GerenteFeedback() {
     const { feedbacks, loading, createFeedback, refetch } = useFeedbacks()
     const { sellers } = useTeam()
+    const { checkins } = useCheckins()
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
-    const [form, setForm] = useState({ seller_id: '', meta_compromisso: '', positives: '', attention_points: '', action: '', notes: '' })
     const [saving, setSaving] = useState(false)
+
+    const [form, setForm] = useState<FeedbackFormData>({ 
+        seller_id: '', 
+        week_reference: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+        leads_week: 0,
+        agd_week: 0,
+        visit_week: 0,
+        vnd_week: 0,
+        tx_lead_agd: 0,
+        tx_agd_visita: 0,
+        tx_visita_vnd: 0,
+        meta_compromisso: 0, 
+        positives: '', 
+        attention_points: '', 
+        action: '', 
+        notes: '' 
+    })
+
+    const [weeklySnapshot, setWeeklySnapshot] = useState<FunnelData | null>(null)
+
+    // Carregar dados da semana e gerar diagnóstico ao selecionar vendedor
+    useEffect(() => {
+        if (form.seller_id) {
+            const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+            const sellerCheckins = checkins.filter(c => 
+                c.seller_user_id === form.seller_id && 
+                new Date(c.reference_date) >= weekStart
+            )
+            const funil = calcularFunil(sellerCheckins)
+            const diagnostico = gerarDiagnosticoMX(funil)
+            
+            setWeeklySnapshot(funil)
+            setForm(p => ({
+                ...p,
+                leads_week: funil.leads,
+                agd_week: funil.agd_total,
+                visit_week: funil.visitas,
+                vnd_week: funil.vnd_total,
+                tx_lead_agd: funil.tx_lead_agd,
+                tx_agd_visita: funil.tx_agd_visita,
+                tx_visita_vnd: funil.tx_visita_vnd,
+                attention_points: diagnostico.diagnostico,
+                action: diagnostico.sugestao
+            }))
+        }
+    }, [form.seller_id, checkins])
 
     const filteredFeedbacks = useMemo(() => {
         return feedbacks.filter(f => 
@@ -42,13 +92,28 @@ export default function GerenteFeedback() {
         if (error) { toast.error(error); return }
         toast.success('Feedback enviado para o cockpit do vendedor!')
         setShowForm(false)
-        setForm({ seller_id: '', meta_compromisso: '', positives: '', attention_points: '', action: '', notes: '' })
+        setForm({ 
+            seller_id: '', 
+            week_reference: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+            leads_week: 0,
+            agd_week: 0,
+            visit_week: 0,
+            vnd_week: 0,
+            tx_lead_agd: 0,
+            tx_agd_visita: 0,
+            tx_visita_vnd: 0,
+            meta_compromisso: 0, 
+            positives: '', 
+            attention_points: '', 
+            action: '', 
+            notes: '' 
+        })
     }
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
-            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin shadow-xl"></div>
-            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Sincronizando Mentoria...</p>
+            <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin shadow-xl"></div>
+            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Sincronizando Feedbacks...</p>
         </div>
     )
 
@@ -58,14 +123,14 @@ export default function GerenteFeedback() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
-                            Ciclo de <span className="text-indigo-600">Mentoria</span>
+                        <div className="w-2 h-10 bg-slate-950 rounded-full shadow-mx-md" />
+                        <h1 className="text-4xl md:text-[38px] font-black tracking-tighter leading-none uppercase">
+                            Feedback <span className="text-indigo-600">Estruturado</span>
                         </h1>
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Performance & Desenvolvimento</p>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Rotina Semanal Mandatória • Critério 20/60/33</p>
                     </div>
                 </div>
 
@@ -77,7 +142,7 @@ export default function GerenteFeedback() {
                             placeholder="Buscar por vendedor ou tema..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white border border-gray-100 rounded-full pl-11 pr-10 py-3 text-xs font-bold focus:outline-none focus:border-indigo-200 shadow-sm transition-all"
+                            className="mx-input !py-3"
                         />
                     </div>
                     <button 
@@ -88,7 +153,7 @@ export default function GerenteFeedback() {
                     </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-pure-black text-white font-black hover:bg-black shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        className="mx-button-primary !px-8 !py-4 hover:bg-brand-secondary-hover shadow-3xl group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Feedback
@@ -99,7 +164,7 @@ export default function GerenteFeedback() {
             <AnimatePresence>
                 {showForm && (
                     <motion.div initial={{ opacity: 0, y: -20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 z-50 rounded-[3rem] p-1 bg-gradient-to-b from-indigo-50 to-white shadow-3xl mb-10">
-                        <form onSubmit={handleSubmit} className="inner-card p-10 md:p-14 space-y-10 relative overflow-hidden bg-white border-none">
+                        <form onSubmit={handleSubmit} className="mx-card !border-none p-10 md:p-14 space-y-10 relative overflow-hidden bg-white">
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
 
                             <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
@@ -108,8 +173,8 @@ export default function GerenteFeedback() {
                                         <Sparkles size={24} className="text-indigo-400" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Registrar Mentoria</h3>
-                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Documentação de Desempenho Regional</p>
+                                        <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Feedback Estruturado MX</h3>
+                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Auditoria de Performance Operacional</p>
                                     </div>
                                 </div>
                                 <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
@@ -120,17 +185,55 @@ export default function GerenteFeedback() {
                             <div className="grid lg:grid-cols-2 gap-12 relative z-10">
                                 <div className="space-y-8">
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 leading-none">Consultor Alvo</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 leading-none">Vendedor Analisado</label>
                                         <select
                                             value={form.seller_id}
                                             onChange={e => setForm(p => ({ ...p, seller_id: e.target.value }))}
                                             required
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-pure-black font-black text-sm focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-xl transition-all appearance-none cursor-pointer shadow-inner"
+                                            className="mx-input appearance-none cursor-pointer"
                                         >
-                                            <option value="">Selecione o especialista...</option>
+                                            <option value="">Selecione o vendedor...</option>
                                             {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
                                     </div>
+
+                                    {/* Dashboard de Performance In-Form */}
+                                    {weeklySnapshot && (
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-8 bg-slate-950 rounded-[2.5rem] text-white space-y-8 shadow-2xl relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-colors" />
+                                            <div className="flex items-center justify-between relative z-10">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                                                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Raio-X Técnico (Semana)</span>
+                                                </div>
+                                                <Badge variant="outline" className="border-white/10 text-white/40 font-black text-[8px] tracking-widest uppercase py-1">Critério MX 20/60/33</Badge>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 gap-6 relative z-10">
+                                                {[
+                                                    { label: 'Lead → Agendamento', val: weeklySnapshot.tx_lead_agd, bench: MX_BENCHMARKS.lead_agd, avg: Math.round(checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) / (checkins.reduce((s, c) => s + (c.leads_prev_day || 0), 0) || 1) * 100) },
+                                                    { label: 'Agendamento → Visita', val: weeklySnapshot.tx_agd_visita, bench: MX_BENCHMARKS.agd_visita, avg: Math.round(checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) || 1) * 100) },
+                                                    { label: 'Visita → Venda', val: weeklySnapshot.tx_visita_vnd, bench: MX_BENCHMARKS.visita_vnd, avg: Math.round(checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) || 1) * 100) },
+                                                ].map(metric => (
+                                                    <div key={metric.label} className="space-y-3">
+                                                        <div className="flex justify-between items-end">
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{metric.label}</span>
+                                                                <span className="text-[8px] font-bold text-indigo-400/60 uppercase tracking-tighter">Média Unidade: {metric.avg}%</span>
+                                                            </div>
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <span className={cn("text-2xl font-black tabular-nums tracking-tighter leading-none", metric.val < metric.bench ? "text-rose-400" : "text-emerald-400")}>{metric.val}%</span>
+                                                                <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Alvo: {metric.bench}%</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                                            <div className={cn("h-full transition-all duration-1000", metric.val < metric.bench ? "bg-gradient-to-r from-rose-600 to-rose-400" : "bg-gradient-to-r from-emerald-600 to-emerald-400")} style={{ width: `${Math.min(metric.val, 100)}%` }} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
 
                                     <div className="space-y-4">
                                         <label className="flex items-center gap-2 text-[10px] font-black text-amber-600 uppercase tracking-widest ml-2 leading-none">
@@ -142,7 +245,7 @@ export default function GerenteFeedback() {
                                             onChange={e => setForm(p => ({ ...p, meta_compromisso: e.target.value }))}
                                             required
                                             placeholder="Sugerido: Média dos últimos 15 dias..."
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-pure-black font-black text-sm focus:outline-none focus:bg-white focus:border-amber-400 focus:shadow-xl transition-all shadow-inner"
+                                            className="mx-input"
                                         />
                                     </div>
 
@@ -155,7 +258,7 @@ export default function GerenteFeedback() {
                                             onChange={e => setForm(p => ({ ...p, positives: e.target.value }))}
                                             rows={3} required
                                             placeholder="Descreva resultados acima da média ou conquistas..."
-                                            className="premium-input !rounded-[2rem] h-32 resize-none py-6"
+                                            className="mx-input !rounded-[2rem] h-32 resize-none py-6"
                                         />
                                     </div>
                                 </div>
@@ -170,7 +273,7 @@ export default function GerenteFeedback() {
                                             onChange={e => setForm(p => ({ ...p, attention_points: e.target.value }))}
                                             rows={3} required
                                             placeholder="Quais indicadores ou comportamentos precisam de ajuste?"
-                                            className="premium-input !rounded-[2rem] h-32 resize-none py-6"
+                                            className="mx-input !rounded-[2rem] h-32 resize-none py-6"
                                         />
                                     </div>
 
@@ -183,7 +286,7 @@ export default function GerenteFeedback() {
                                             onChange={e => setForm(p => ({ ...p, action: e.target.value }))}
                                             rows={3} required
                                             placeholder="Qual o plano tático imediato para este vendedor?"
-                                            className="premium-input !rounded-[2rem] h-32 resize-none py-6"
+                                            className="mx-input !rounded-[2rem] h-32 resize-none py-6"
                                         />
                                     </div>
                                 </div>
@@ -192,7 +295,7 @@ export default function GerenteFeedback() {
                             <div className="pt-8 border-t border-gray-50 flex justify-end">
                                 <button
                                     type="submit" disabled={saving}
-                                    className="w-full sm:w-auto px-12 py-5 rounded-full bg-pure-black text-white font-black flex items-center justify-center gap-4 hover:bg-black hover:shadow-elevation transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
+                                    className="mx-button-primary hover:bg-brand-secondary-hover disabled:opacity-50 group/btn"
                                 >
                                     {saving ? <RefreshCw className="w-6 h-6 animate-spin text-indigo-400" /> : <><Send size={18} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" /> Enviar Feedback Oficial</>}
                                 </button>
@@ -268,12 +371,12 @@ export default function GerenteFeedback() {
                         <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center mb-8 border border-gray-100 group-hover:rotate-12 transition-transform duration-500">
                             <MessageSquare size={40} className="text-gray-200" />
                         </div>
-                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter uppercase">Diário de Mentoria Vazio</h3>
-                        <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">
-                            Nenhum registro de feedback localizado para "{searchTerm}" na loja atual.
+                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter uppercase">Sem Feedbacks Registrados</h3>
+                        <p className="text-gray-400 text-sm font-bold max-w-sm mx-auto mb-8">
+                            Nenhum registro de feedback localizado para "{searchTerm}" na unidade atual.
                         </p>
-                        <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="px-10 py-4 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-3xl transition-all active:scale-95">
-                            Iniciar Primeira Mentoria
+                        <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="mx-button-primary hover:bg-brand-secondary-hover px-10 py-4 shadow-3xl">
+                            Iniciar Primeiro Feedback
                         </button>
                     </div>
                 )}

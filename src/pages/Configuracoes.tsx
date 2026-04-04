@@ -111,7 +111,7 @@ export default function Configuracoes() {
                                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">Deseja priorizar uma funcionalidade?</p>
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <input placeholder="Sua sugestão..." className="flex-1 bg-gray-50 border border-gray-100 rounded-full px-6 py-3 text-xs font-bold focus:outline-none focus:bg-white focus:border-indigo-200 transition-all" />
-                                    <button className="px-8 py-3 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-lg">Solicitar</button>
+                                    <button className="px-8 py-3 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-brand-secondary-hover transition-all active:scale-95 shadow-lg">Solicitar</button>
                                 </div>
                             </div>
                         </div>

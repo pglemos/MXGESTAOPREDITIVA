@@ -274,6 +274,10 @@ export default function GerentePDI() {
                 <AnimatePresence mode="popLayout">
                     {filteredPDIs.map((p, i) => {
                         const status = statusCfg[p.status as keyof typeof statusCfg] || statusCfg.aberto
+                        const isExpired = p.due_date && new Date(p.due_date) < new Date()
+                        const isNearing = p.due_date && (new Date(p.due_date).getTime() - new Date().getTime()) < (7 * 24 * 60 * 60 * 1000)
+                        const needsRevision = isExpired || isNearing
+
                         return (
                             <motion.div
                                 key={p.id}
@@ -282,7 +286,10 @@ export default function GerentePDI() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ delay: i * 0.03 }}
-                                className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-elevation transition-all group relative overflow-hidden flex flex-col h-full"
+                                className={cn(
+                                    "bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-elevation transition-all group relative overflow-hidden flex flex-col h-full",
+                                    needsRevision && "border-amber-200 bg-amber-50/10"
+                                )}
                             >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
@@ -292,8 +299,10 @@ export default function GerentePDI() {
                                             {(p as any).seller_name?.charAt(0) || 'U'}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-base font-black text-pure-black truncate uppercase tracking-tight group-hover:text-indigo-600 transition-colors">{(p as any).seller_name}</p>
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest opacity-60">Consultor de Vendas</p>
+                                            <p className="font-black text-base text-slate-950 uppercase leading-none mb-1">{(p as any).seller_name}</p>
+                                            {needsRevision && (
+                                                <span className="text-[7px] font-black bg-amber-500 text-white px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">Revisão Pendente</span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2 shrink-0">

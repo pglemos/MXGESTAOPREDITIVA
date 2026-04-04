@@ -128,6 +128,7 @@ export interface Feedback {
     acknowledged: boolean
     created_at: string
 }
+
 export interface PDI {
     id: string
     store_id: string
@@ -169,29 +170,6 @@ export interface PDIReview {
     adjustments: string | null
     next_review_date: string | null
     created_at: string
-}
-
-export interface PDIFormData {
-    seller_id: string
-    meta_6m: string
-    meta_12m: string
-    meta_24m: string
-    comp_prospeccao: number
-    comp_abordagem: number
-    comp_demonstracao: number
-    comp_fechamento: number
-    comp_crm: number
-    comp_digital: number
-    comp_disciplina: number
-    comp_organizacao: number
-    comp_negociacao: number
-    comp_produto: number
-    action_1: string
-    action_2: string
-    action_3: string
-    action_4: string
-    action_5: string
-    due_date: string
 }
 
 export type NotificationType = 'discipline' | 'alert' | 'performance' | 'system'
@@ -311,8 +289,24 @@ export interface FeedbackFormData {
 
 export interface PDIFormData {
     seller_id: string
-    objective: string
-    action: string
+    meta_6m: string
+    meta_12m: string
+    meta_24m: string
+    comp_prospeccao: number
+    comp_abordagem: number
+    comp_demonstracao: number
+    comp_fechamento: number
+    comp_crm: number
+    comp_digital: number
+    comp_disciplina: number
+    comp_organizacao: number
+    comp_negociacao: number
+    comp_produto: number
+    action_1: string
+    action_2: string
+    action_3: string
+    action_4: string
+    action_5: string
     due_date: string
 }
 

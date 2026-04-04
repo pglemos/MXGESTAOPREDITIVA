@@ -94,10 +94,10 @@ export default function SellerPerformance() {
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={[...team].sort((a,b) => (b.conversion || 0) - (a.conversion || 0))} layout="vertical" margin={{ left: -30, right: 30 }}>
                             <XAxis type="number" hide />
-                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontWeight: 900, fontSize: 10, fill: '#1A1D20' }} width={100} />
-                            <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px' }} />
+                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontWeight: 900, fontSize: 10, fill: 'var(--color-mx-black)' }} width={100} />
+                            <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px' }} />
                             <Bar dataKey="conversion" radius={[0, 8, 8, 0]} barSize={24}>
-                                {team.map((_, i) => (<Cell key={i} fill={i === 0 ? '#4f46e5' : i === 1 ? '#6366f1' : '#818cf8'} />))}
+                                {team.map((_, i) => (<Cell key={i} fill={i === 0 ? 'var(--color-brand-primary)' : i === 1 ? 'var(--color-mx-indigo-500)' : 'var(--color-mx-indigo-400)'} />))}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>

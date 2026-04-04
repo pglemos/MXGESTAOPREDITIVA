@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -45,6 +46,7 @@
   
   --color-brand-secondary: var(--color-mx-black);
   --color-brand-secondary-hover: #000000;
+  --color-pure-black: var(--color-mx-black);
   
   /* Status */
   --color-status-success: var(--color-mx-emerald-500);
@@ -71,8 +73,8 @@
   
   /* Text (WCAG Compliance) */
   --color-text-primary: var(--color-mx-black);
-  --color-text-secondary: #475569; /* Slate 600 - Melhor contraste */
-  --color-text-tertiary: #64748B;  /* Slate 500 - Melhor contraste */
+  --color-text-secondary: var(--color-mx-slate-500);
+  --color-text-tertiary: var(--color-mx-slate-400);
   --color-text-on-brand: var(--color-mx-white);
 
   /* ============================================ */
@@ -106,6 +108,22 @@
   --shadow-mx-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
   --shadow-mx-xl: 0 20px 45px -18px rgba(15, 23, 42, 0.22);
   --shadow-mx-elite: 0 35px 70px -15px rgba(0, 0, 0, 0.3);
+  --shadow-mx-focus: 0 0 0 4px rgba(79, 70, 229, 0.15);
+
+  /* Elevation System (Z-Index) */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-overlay: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-toast: 700;
+  --z-max: 999;
+
+  /* Ring System */
+  --ring-brand: var(--color-brand-primary);
+  --ring-offset: var(--color-mx-white);
 
   /* Typography */
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -137,7 +155,7 @@
   }
 
   .mx-heading-hero {
-    @apply text-4xl md:text-5xl font-black tracking-tighter leading-none text-mx-black;
+    @apply text-4xl md:text-5xl font-black tracking-tighter leading-none text-text-primary;
   }
 
   .mx-text-caption {
@@ -145,11 +163,11 @@
   }
 
   .mx-button-primary {
-    @apply bg-mx-black text-white rounded-full px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-black transition-all active:scale-95 shadow-mx-lg;
+    @apply bg-brand-secondary text-text-on-brand rounded-full px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-secondary-hover transition-all active:scale-95 shadow-mx-lg;
   }
 
   .mx-input {
-    @apply w-full bg-white border border-mx-slate-100 rounded-full px-6 py-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-mx-indigo-500/10 focus:border-mx-indigo-500/30 transition-all shadow-mx-sm;
+    @apply w-full bg-white border border-mx-slate-100 rounded-full px-6 py-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all shadow-mx-sm;
   }
 }
 

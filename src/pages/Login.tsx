@@ -8,6 +8,7 @@ export default function Login() {
     const { signIn, profile, loading: authLoading } = useAuth()
     const navigate = useNavigate()
 
+    // 1. Unified Design System Audit - V2
     useEffect(() => {
         if (profile) {
             navigate('/', { replace: true })
@@ -170,9 +171,9 @@ export default function Login() {
                             <div className="pt-6">
                                 <button
                                     type="submit" disabled={loading}
-                                    className="w-full h-20 flex items-center justify-center gap-4 bg-[#1A1D20] hover:bg-black text-white rounded-[2.5rem] text-lg font-black uppercase tracking-widest transition-all hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] hover:-translate-y-2 active:scale-[0.98] disabled:opacity-50 group overflow-hidden relative"
+                                    className="mx-button-primary w-full !h-20 !text-lg !tracking-widest relative overflow-hidden group"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     {loading ? (
                                         <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
                                     ) : (

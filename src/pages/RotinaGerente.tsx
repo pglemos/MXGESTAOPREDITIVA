@@ -3,9 +3,10 @@ import { useTeam } from '@/hooks/useTeam'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
+import { useNotifications } from '@/hooks/useData'
 import { somarVendas, calcularAtingimento } from '@/lib/calculations'
 import { motion } from 'motion/react'
-import { CheckCircle2, Clock, Users, ArrowRight, Activity, CalendarDays, Zap, FileCheck } from 'lucide-react'
+import { CheckCircle2, Clock, Users, ArrowRight, Activity, CalendarDays, Zap, FileCheck, BellRing } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
@@ -14,14 +15,15 @@ export default function RotinaGerente() {
     const { sellers } = useTeam()
     const { checkins } = useCheckins()
     const { storeGoal } = useGoals()
-    const { ranking } = useRanking()
+    const { sendNotification } = useNotifications()
     const [executing, setExecuting] = useState(false)
     const [isDone, setIsDone] = useState(false)
+    const [cobrando, setCobrando] = useState(false)
 
     // Derived State
     const pendingSellers = (sellers || []).filter(s => !s.checkin_today)
     const activeSellers = (sellers || []).filter(s => s.checkin_today)
-    const totalAgendamentosHoje = checkins.reduce((acc, c) => acc + (c.agd_cart || 0) + (c.agd_net || 0), 0)
+    const totalAgendamentosHoje = checkins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0)
     const totalVendasOntem = somarVendas(checkins) // Simplified for the routine view
     const atingimento = calcularAtingimento(totalVendasOntem, storeGoal?.target || 0)
 
@@ -32,6 +34,26 @@ export default function RotinaGerente() {
         setExecuting(false)
         setIsDone(true)
         toast.success('Rotina Matinal registrada e auditada com sucesso!')
+    }
+
+    const handleCobrarCheckin = async () => {
+        if (pendingSellers.length === 0) return
+        setCobrando(true)
+        
+        // Disparar notificação para cada vendedor pendente
+        const promises = pendingSellers.map(s => sendNotification({
+            recipient_id: s.id,
+            store_id: s.store_id || '',
+            title: 'ALERTA: Check-in Pendente',
+            message: 'Seu registro de produção está atrasado (Prazo: 09:30). Lance seus dados agora para evitar impacto no ranking.',
+            type: 'discipline',
+            priority: 'high',
+            link: '/checkin'
+        }))
+
+        await Promise.all(promises)
+        setCobrando(false)
+        toast.success(`Cobrança disciplinar disparada para ${pendingSellers.length} vendedores!`)
     }
 
     return (
@@ -61,7 +83,19 @@ export default function RotinaGerente() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
                         <div className="mx-card p-8 bg-status-warning-surface border border-status-warning/20 relative overflow-hidden group">
                             <div className="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4"><Clock size={120} /></div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-status-warning mb-2 relative z-10">Pendentes (Sem Registro)</h3>
+                            <div className="flex items-center justify-between mb-4 relative z-10">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-status-warning leading-none">Pendentes (Sem Registro)</h3>
+                                {pendingSellers.length > 0 && (
+                                    <button 
+                                        onClick={handleCobrarCheckin}
+                                        disabled={cobrando}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-status-warning text-white text-[8px] font-black uppercase tracking-widest hover:bg-status-warning/90 transition-all shadow-sm disabled:opacity-50"
+                                    >
+                                        {cobrando ? <Activity size={10} className="animate-spin" /> : <BellRing size={10} />}
+                                        COBRAR TROPA
+                                    </button>
+                                )}
+                            </div>
                             <p className="text-5xl font-black font-mono-numbers text-status-warning mb-6 relative z-10">{pendingSellers.length}</p>
                             <div className="flex flex-col gap-2 relative z-10">
                                 {pendingSellers.map(s => <span key={s.id} className="text-sm font-bold text-status-warning/80 uppercase">{s.name}</span>)}

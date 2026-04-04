@@ -31,7 +31,7 @@ interface CheckinForm {
 
 export default function Checkin() {
     const { profile } = useAuth()
-    const { todayCheckin, saveCheckin, loading: hookLoading } = useCheckins()
+    const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate } = useCheckins()
     const navigate = useNavigate()
     const [saving, setSaving] = useState(false)
     const [showConfetti, setShowConfetti] = useState(false)
@@ -47,9 +47,15 @@ export default function Checkin() {
     useEffect(() => {
         if (todayCheckin) {
             setForm({
-                leads: todayCheckin.leads, agd_cart: todayCheckin.agd_cart, agd_net: todayCheckin.agd_net,
-                vnd_porta: todayCheckin.vnd_porta, vnd_cart: todayCheckin.vnd_cart, vnd_net: todayCheckin.vnd_net,
-                visitas: todayCheckin.visitas, note: todayCheckin.note || '', zero_reason: todayCheckin.zero_reason || '',
+                leads: todayCheckin.leads_prev_day || 0,
+                agd_cart: todayCheckin.agd_cart_today || 0,
+                agd_net: todayCheckin.agd_net_today || 0,
+                vnd_porta: todayCheckin.vnd_porta_prev_day || 0,
+                vnd_cart: todayCheckin.vnd_cart_prev_day || 0,
+                vnd_net: todayCheckin.vnd_net_prev_day || 0,
+                visitas: todayCheckin.visit_prev_day || 0,
+                note: todayCheckin.note || '',
+                zero_reason: todayCheckin.zero_reason || '',
             })
         }
     }, [todayCheckin])
@@ -60,6 +66,11 @@ export default function Checkin() {
     useEffect(() => {
         return () => { if (timerRef.current) clearTimeout(timerRef.current) }
     }, [])
+
+    const now = new Date()
+    const hours = now.getHours()
+    const minutes = now.getMinutes()
+    const isLate = (hours > 9) || (hours === 9 && minutes > 30)
 
     const allZero = useMemo(() => 
         form.leads === 0 && totals.agd_total === 0 && form.visitas === 0 && totals.vnd_total === 0
@@ -105,13 +116,13 @@ export default function Checkin() {
             toast.success(`🎉 Vitória! ${totals.vnd_total} venda${totals.vnd_total > 1 ? 's' : ''} registrada${totals.vnd_total > 1 ? 's' : ''}!`)
             timerRef.current = setTimeout(() => navigate('/home'), 2500)
         } else {
-            toast.success('Performance sincronizada com sucesso!')
+            toast.success('Check-in MX sincronizado com sucesso!')
             navigate('/home')
         }
     }
 
-    const today = new Date()
-    const dateStr = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    const todayDisplay = new Date(referenceDate + 'T12:00:00')
+    const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
     const NumberInput = ({ label, icon: Icon, field, color, bg }: { label: string; icon: any; field: keyof CheckinForm; color: string; bg: string }) => (
         <div className={cn(
@@ -149,12 +160,12 @@ export default function Checkin() {
     if (hookLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
             <div className="w-16 h-16 border-4 border-electric-blue/10 border-t-electric-blue rounded-full animate-spin shadow-xl"></div>
-            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase animate-pulse">Sincronizando Terminal de Vendas...</p>
+            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase animate-pulse">Sincronizando Terminal MX...</p>
         </div>
     )
 
     return (
-        <div className="w-full h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
+        <div className="w-full h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-pure-black p-mx-md sm:p-mx-lg md:p-mx-xl">
 
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center bg-white/20 backdrop-blur-sm">
@@ -166,20 +177,26 @@ export default function Checkin() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-pure-black rounded-full shadow-[0_0_15px_rgba(0,0,0,0.2)]" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none">Terminal de Registro</h1>
+                        <div className="w-2 h-10 bg-slate-950 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.2)]" />
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Check-in Diário MX</h1>
                     </div>
                     <div className="flex flex-col gap-2 pl-6 mt-2">
                         <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
+                            <div className={cn("w-2 h-2 rounded-full shadow-lg animate-pulse", isLate ? "bg-rose-500 shadow-rose-500/50" : "bg-emerald-500 shadow-emerald-500/50")} />
                             <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">
-                                Data de Referência: {dateStr} • Prazo Operacional: 09:30
+                                Produção de Referência: {dateStr}
                             </p>
                         </div>
                         <div className="inline-flex mt-1">
-                            <p className="text-rose-600 text-[9px] font-black uppercase tracking-widest bg-rose-50 border border-rose-100 px-3 py-1 rounded-full">
-                                Atrasos geram status de SEM REGISTRO na rede
-                            </p>
+                            {isLate ? (
+                                <p className="text-white text-[9px] font-black uppercase tracking-widest bg-rose-600 border border-rose-700 px-3 py-1 rounded-full shadow-lg animate-bounce">
+                                    REGISTRO EM ATRASO: IMPACTO NO RANKING E MATINAL
+                                </p>
+                            ) : (
+                                <p className="text-emerald-600 text-[9px] font-black uppercase tracking-widest bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
+                                    Prazo Operacional: 09:30 (No Horário)
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -201,7 +218,7 @@ export default function Checkin() {
                     {todayCheckin && (
                         <div className="hidden sm:flex items-center justify-center gap-2 rounded-full border border-amber-100 bg-amber-50 px-5 py-3 shadow-sm">
                             <Sparkles size={14} className="text-amber-500" />
-                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">Update Mode</span>
+                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">Edição de Registro</span>
                         </div>
                     )}
                 </div>
@@ -221,12 +238,12 @@ export default function Checkin() {
                                         <History size={20} className="text-emerald-600" strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Produção do Dia Anterior</h3>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">O que aconteceu ontem</p>
+                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Produção (Ontem)</h3>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Dados consolidados do dia anterior</p>
                                     </div>
                                 </div>
                                 <span className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200">
-                                    Vendas Totais (Ontem): {totals.vnd_total}
+                                    Vendas Totais: {totals.vnd_total}
                                 </span>
                             </div>
                             <div className="bg-gray-50/30 border border-gray-100 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
@@ -249,12 +266,12 @@ export default function Checkin() {
                                         <CalendarDays size={20} className="text-blue-600" strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Agenda do Dia Atual</h3>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">O que vai acontecer hoje</p>
+                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Compromissos (Hoje)</h3>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Agendamentos para o dia atual</p>
                                     </div>
                                 </div>
                                 <span className="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200">
-                                    Compromissos (Hoje): {totals.agd_total}
+                                    Total Agendado: {totals.agd_total}
                                 </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -269,7 +286,7 @@ export default function Checkin() {
                                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex flex-col gap-6 rounded-[2.5rem] border-2 border-rose-100 bg-rose-50/50 p-8 shadow-xl shadow-rose-500/5 sm:flex-row sm:items-center">
                                     <div className="bg-rose-500 p-5 rounded-2xl shadow-lg shadow-rose-200 shrink-0 transform -rotate-3"><AlertTriangle size={32} className="text-white" strokeWidth={2.5} /></div>
                                     <div>
-                                        <h4 className="font-black text-rose-900 text-xl tracking-tight leading-none mb-2">Inconsistência de Dados</h4>
+                                        <h4 className="font-black text-rose-900 text-xl tracking-tight leading-none mb-2">Inconsistência Operacional</h4>
                                         <p className="text-rose-800/70 text-sm font-bold leading-relaxed">{funnelError}</p>
                                     </div>
                                 </motion.div>
@@ -286,15 +303,14 @@ export default function Checkin() {
                                             <AlertTriangle size={28} strokeWidth={2.5} />
                                         </div>
                                         <div>
-                                            <p className="text-amber-900 font-black text-2xl tracking-tighter leading-none mb-1">Movimento Zero</p>
-                                            <p className="text-amber-800/60 text-[10px] font-black uppercase tracking-[0.2em]">Justificativa de ausência de dados obrigatória</p>
+                                            <p className="text-amber-900 font-black text-2xl tracking-tighter leading-none mb-1">Produção Zero</p>
+                                            <p className="text-amber-800/60 text-[10px] font-black uppercase tracking-[0.2em]">Justificativa obrigatória pela Metodologia MX</p>
                                         </div>
                                     </div>
                                     <div className="relative z-10">
-                                        {/* 13. Replaced with custom styling select */}
                                         <Select value={form.zero_reason} onValueChange={v => updateField('zero_reason', v)}>
                                             <SelectTrigger className="w-full bg-white border-amber-200 rounded-2xl h-16 px-8 text-pure-black font-black shadow-sm focus:ring-8 focus:ring-amber-500/5 transition-all">
-                                                <SelectValue placeholder="Selecione o motivo corporativo..." />
+                                                <SelectValue placeholder="Selecione o motivo da ausência..." />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-2xl border-amber-100 shadow-3xl">
                                                 {ZERO_REASONS.map(r => <SelectItem key={r} value={r} className="font-bold py-4">{r}</SelectItem>)}
@@ -309,13 +325,13 @@ export default function Checkin() {
                         <div className="pt-10 flex flex-col gap-8">
                             <div className="space-y-4">
                                 <label className="flex items-center gap-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
-                                    <MessageSquare size={14} className="text-electric-blue" /> Observações do Plantão
+                                    <MessageSquare size={14} className="text-electric-blue" /> Observações Operacionais
                                 </label>
                                 <textarea
                                     value={form.note}
                                     onChange={e => updateField('note', e.target.value)}
                                     maxLength={280}
-                                    placeholder="Detalhamento de eventos atípicos ou fechamentos estratégicos..."
+                                    placeholder="Detalhamento de eventos ou fechamentos estratégicos..."
                                     className="w-full bg-white border border-gray-100 rounded-[2.5rem] px-8 py-8 text-base font-bold text-pure-black placeholder:text-gray-200 focus:outline-none focus:border-electric-blue/30 focus:shadow-2xl transition-all resize-none shadow-sm min-h-[160px]"
                                 />
                                 <div className="flex justify-end pr-4">
@@ -326,18 +342,19 @@ export default function Checkin() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full py-10 rounded-full bg-pure-black text-white font-black text-3xl tracking-tighter flex items-center justify-center gap-6 hover:bg-black transition-all hover:shadow-3xl hover:-translate-y-2 active:scale-[0.98] group relative overflow-hidden disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="w-full py-10 rounded-full bg-slate-950 text-white font-black text-3xl tracking-tighter flex items-center justify-center gap-6 hover:bg-brand-secondary-hover transition-all hover:shadow-3xl hover:-translate-y-2 active:scale-[0.98] group relative overflow-hidden disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-electric-blue/20 via-transparent to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                 {saving ? (
                                     <RefreshCw className="w-12 h-12 animate-spin text-electric-blue" />
                                 ) : (
-                                    <><Send size={40} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" /> <span>{todayCheckin ? 'ATUALIZAR REGISTRO' : 'LANÇAR PERFORMANCE'}</span></>
+                                    <><Send size={40} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" /> <span>{todayCheckin ? 'ATUALIZAR REGISTRO' : 'SALVAR PRODUÇÃO'}</span></>
                                 )}
                             </button>
                         </div>
                     </form>
                 </div>
+
 
                 {/* Info Sidebar */}
                 <div className="lg:w-[420px] space-y-10">
@@ -366,13 +383,13 @@ export default function Checkin() {
                         </ul>
                     </div>
 
-                    <div className="bg-pure-black rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-3xl">
+                    <div className="bg-slate-950 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-3xl">
                         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent pointer-events-none z-0" />
                         <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none group-hover:rotate-12 transition-transform duration-700">
                             <Zap size={200} fill="currentColor" />
                         </div>
                         <div className="relative z-10">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] mb-10 opacity-40">Impacto Consolidado</h4>
+                            <h4 className="text-[10px] font-black text-white/70 uppercase tracking-[0.4em] mb-10">Impacto Consolidado</h4>
                             <div className="flex items-baseline gap-3 mb-4">
                                 <span className="text-8xl font-black tracking-tighter leading-none">{totals.vnd_total}</span>
                                 <span className="text-sm font-black text-indigo-400 uppercase tracking-[0.2em]">Unidades</span>

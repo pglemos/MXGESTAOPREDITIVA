@@ -33,14 +33,14 @@ export default function Treinamentos() {
             <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
             <h1 className="mx-heading-hero">Academia <span className="text-brand-primary">MX</span></h1>
           </div>
-          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Centro de Mentoria & Desenvolvimento</p>
+          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Centro de Capacitação & Desenvolvimento</p>
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
           <button onClick={() => {setIsRefetching(true); setTimeout(() => setIsRefetching(false), 800)}} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
           <div className="relative group w-48 hidden sm:block">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-            <input type="text" placeholder="Buscar mentoria..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+            <input type="text" placeholder="Buscar treinamento..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
           </div>
           <button className="mx-button-primary bg-brand-secondary">Minha Jornada</button>
         </div>

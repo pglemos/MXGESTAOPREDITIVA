@@ -2,15 +2,24 @@
 // MX Gestão Preditiva — Business Calculations
 // ============================================
 
-import type { DailyCheckin, CheckinTotals, FunnelData, FunnelDiagnostic, Benchmark } from '@/types/database'
+import type { DailyCheckin, CheckinTotals, FunnelData, FunnelDiagnostic, Benchmark, CheckinFormData } from '@/types/database'
 
 /** Calculate check-in totals (agd_total, vnd_total) */
-export function calcularTotais(c: Pick<DailyCheckin, 'agd_cart' | 'agd_net' | 'vnd_porta' | 'vnd_cart' | 'vnd_net'>): CheckinTotals {
+export function calcularTotais(c: Partial<DailyCheckin> | CheckinFormData): CheckinTotals {
+    // Se for FormData (nomes simples)
+    if ('leads' in c) {
+        return {
+            agd_total: (c.agd_cart || 0) + (c.agd_net || 0),
+            vnd_total: (c.vnd_porta || 0) + (c.vnd_cart || 0) + (c.vnd_net || 0),
+        }
+    }
+    // Se for DailyCheckin (nomes canônicos)
     return {
-        agd_total: (c.agd_cart || 0) + (c.agd_net || 0),
-        vnd_total: (c.vnd_porta || 0) + (c.vnd_cart || 0) + (c.vnd_net || 0),
+        agd_total: (c.agd_cart_today || 0) + (c.agd_net_today || 0),
+        vnd_total: (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0),
     }
 }
+
 
 /** % atingimento = vendas / meta × 100 */
 export function calcularAtingimento(vendas: number, meta: number): number {
@@ -49,10 +58,10 @@ export function getDiasInfo(date?: Date): { total: number; decorridos: number; r
 
 /** Calculate funnel data from aggregated checkins */
 export function calcularFunil(checkins: DailyCheckin[]): FunnelData {
-    const leads = checkins.reduce((s, c) => s + (c.leads || 0), 0)
-    const agd_total = checkins.reduce((s, c) => s + (c.agd_cart || 0) + (c.agd_net || 0), 0)
-    const visitas = checkins.reduce((s, c) => s + (c.visitas || 0), 0)
-    const vnd_total = checkins.reduce((s, c) => s + (c.vnd_porta || 0) + (c.vnd_cart || 0) + (c.vnd_net || 0), 0)
+    const leads = checkins.reduce((s, c) => s + (c.leads_prev_day || 0), 0)
+    const agd_total = checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0)
+    const visitas = checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0)
+    const vnd_total = checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
 
     return {
         leads,
@@ -65,46 +74,49 @@ export function calcularFunil(checkins: DailyCheckin[]): FunnelData {
     }
 }
 
-/** Identify funnel bottleneck */
-export function identificarGargalo(funil: FunnelData, benchmark: Benchmark): FunnelDiagnostic {
-    const gaps = [
-        {
-            etapa: 'lead_agd' as const,
-            real: funil.tx_lead_agd,
-            esperado: benchmark.lead_to_appt,
-            nome: 'Lead → Agendamento',
-        },
-        {
-            etapa: 'agd_visita' as const,
-            real: funil.tx_agd_visita,
-            esperado: benchmark.appt_to_visit,
-            nome: 'Agendamento → Visita',
-        },
-        {
-            etapa: 'visita_vnd' as const,
-            real: funil.tx_visita_vnd,
-            esperado: benchmark.visit_to_sale,
-            nome: 'Visita → Venda',
-        },
-    ]
 
-    const problemas = gaps.filter(g => g.real < g.esperado).sort((a, b) => {
-        const gapA = a.esperado - a.real
-        const gapB = b.esperado - b.real
-        return gapB - gapA
-    })
+/** Benchmarks Oficiais Metodologia MX */
+export const MX_BENCHMARKS = {
+    lead_agd: 20,    // 20% de Leads devem virar Agendamentos
+    agd_visita: 60,  // 60% de Agendamentos devem virar Visitas
+    visita_vnd: 33   // 33% de Visitas devem virar Vendas
+}
 
-    if (problemas.length === 0) {
-        return { gargalo: null, mensagem: '✅ Funil saudável! Todas as taxas acima do benchmark.', etapa_problema: null }
+/** Gera diagnóstico rígido baseado no critério 20/60/33 */
+export function gerarDiagnosticoMX(funil: FunnelData): { 
+    gargalo: string | null, 
+    diagnostico: string, 
+    sugestao: string 
+} {
+    if (funil.tx_lead_agd < MX_BENCHMARKS.lead_agd) {
+        return {
+            gargalo: 'LEAD_AGD',
+            diagnostico: `Baixa conversão de Leads para Agendamentos (${funil.tx_lead_agd}% vs ${MX_BENCHMARKS.lead_agd}% ideal).`,
+            sugestao: "Focar em velocidade de primeiro contato e qualidade da abordagem inicial (script de agendamento)."
+        }
+    }
+    if (funil.tx_agd_visita < MX_BENCHMARKS.agd_visita) {
+        return {
+            gargalo: 'AGD_VISITA',
+            diagnostico: `Baixa taxa de comparecimento (${funil.tx_agd_visita}% vs ${MX_BENCHMARKS.agd_visita}% ideal).`,
+            sugestao: "Melhorar a confirmação de agendamentos e o 'valor percebido' criado durante a ligação."
+        }
+    }
+    if (funil.tx_visita_vnd < MX_BENCHMARKS.visita_vnd) {
+        return {
+            gargalo: 'VISITA_VND',
+            diagnostico: `Baixo fechamento em loja (${funil.tx_visita_vnd}% vs ${MX_BENCHMARKS.visita_vnd}% ideal).`,
+            sugestao: "Revisar etapas de demonstração de produto e contorno de objeções no momento do fechamento."
+        }
     }
 
-    const pior = problemas[0]
     return {
-        gargalo: pior.nome,
-        mensagem: `⚠️ Gargalo em "${pior.nome}": taxa real ${pior.real}% vs benchmark ${pior.esperado}%. Foco em melhorar esta etapa.`,
-        etapa_problema: pior.etapa,
+        gargalo: null,
+        diagnostico: "Funil equilibrado e dentro dos padrões de eficiência MX.",
+        sugestao: "Manter o ritmo e focar em aumento de volume de leads para escala."
     }
 }
+
 
 /** Validate funnel logic: vnd_total <= visitas <= agd_total */
 export function validarFunil(data: { agd_cart: number; agd_net: number; vnd_porta: number; vnd_cart: number; vnd_net: number; visitas: number }): string | null {
@@ -120,16 +132,26 @@ export function validarFunil(data: { agd_cart: number; agd_net: number; vnd_port
     return null
 }
 
+/** Get status operacional baseado no pacing e disciplina */
+export function getOperationalStatus(pacing: number, disciplinePct: number): { label: string; color: string } {
+    if (disciplinePct < 80) return { label: 'INDISCIPLINA', color: 'bg-rose-600 text-white' }
+    if (pacing < 30) return { label: 'CRÍTICO', color: 'bg-rose-600 text-white' }
+    if (pacing < 70) return { label: 'ATENÇÃO', color: 'bg-amber-500 text-white' }
+    if (pacing < 100) return { label: 'NO RITMO', color: 'bg-emerald-600 text-white' }
+    return { label: 'EXCELÊNCIA', color: 'bg-indigo-600 text-white' }
+}
+
 /** Sum total vendas from checkins array */
 export function somarVendas(checkins: DailyCheckin[]): number {
-    return checkins.reduce((s, c) => s + (c.vnd_porta || 0) + (c.vnd_cart || 0) + (c.vnd_net || 0), 0)
+    return checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
 }
 
 /** Sum vendas by channel */
 export function somarVendasPorCanal(checkins: DailyCheckin[]) {
     return {
-        porta: checkins.reduce((s, c) => s + (c.vnd_porta || 0), 0),
-        carteira: checkins.reduce((s, c) => s + (c.vnd_cart || 0), 0),
-        internet: checkins.reduce((s, c) => s + (c.vnd_net || 0), 0),
+        porta: checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0), 0),
+        carteira: checkins.reduce((s, c) => s + (c.vnd_cart_prev_day || 0), 0),
+        internet: checkins.reduce((s, c) => s + (c.vnd_net_prev_day || 0), 0),
     }
 }
+

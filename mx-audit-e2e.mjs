@@ -65,7 +65,15 @@ import { chromium } from 'playwright';
     await page.goto(`${BASE_URL}/pdi`, { waitUntil: 'networkidle' });
     
     console.log('Abrindo formulário de Novo PDI...');
-    await page.locator('button:has-text("Novo PDI")').click();
+    const btnNovoPDI = page.locator('button', { hasText: /Novo PDI/i }).first();
+    const btnFixarPrimeiro = page.locator('button', { hasText: /Fixar Primeiro PDI/i }).first();
+    
+    if (await btnFixarPrimeiro.count() > 0) {
+        await btnFixarPrimeiro.click();
+    } else {
+        await btnNovoPDI.click();
+    }
+    
     await page.waitForSelector('text=Meta Estratégica (6 Meses)');
     
     console.log('Preenchendo horizontes táticos...');

@@ -229,6 +229,24 @@ export default function GerenteTreinamentos() {
                                                     className={cn("h-full rounded-full shadow-sm", p.percentage === 100 ? 'bg-emerald-500' : 'bg-violet-600')}
                                                 />
                                             </div>
+                                            
+                                            {/* Diagnóstico de Gargalo Real no Painel do Gerente */}
+                                            {p.current_gap && (
+                                                <div className={cn("mt-4 p-4 rounded-2xl border flex flex-col gap-2", 
+                                                    p.gap_training_completed ? "bg-emerald-50 border-emerald-100" : "bg-rose-50 border-rose-100 animate-pulse shadow-lg shadow-rose-100"
+                                                )}>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Gargalo Atual</span>
+                                                        <Badge className={cn("text-[7px] border-none font-black uppercase", p.gap_training_completed ? "bg-emerald-500" : "bg-rose-600")}>
+                                                            {p.current_gap}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className={cn("text-[10px] font-bold uppercase tracking-tight", p.gap_training_completed ? "text-emerald-700" : "text-rose-700")}>
+                                                        {p.gap_training_completed ? "✅ Correção Concluída" : "⚠️ Correção Pendente"}
+                                                    </p>
+                                                </div>
+                                            )}
+
                                             <p className="text-[9px] uppercase font-black tracking-widest text-gray-400 text-center bg-gray-50 py-2 rounded-lg border border-gray-100">
                                                 {p.watched.length} de {p.total_trainings} Concluídos
                                             </p>

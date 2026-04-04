@@ -1,42 +1,69 @@
-import { useState, useEffect, useCallback } from 'react'
-import { CheckSquare, Save, Clock, Calendar, Zap, TrendingUp, RefreshCw, X, ChevronRight, User, Target, Car, FileText, ClipboardCheck, Sparkles, MessageCircle } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useState, useMemo } from 'react'
+import { CheckSquare, Clock, Calendar, Zap, TrendingUp, RefreshCw, ChevronRight, User, Target, Car, ClipboardCheck, Sparkles, MessageCircle, MapPin, Globe, AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckins } from '@/hooks/useCheckins'
 import { cn } from '@/lib/utils'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { validarFunil } from '@/lib/calculations'
+import type { CheckinFormData } from '@/types/database'
 
-export default function TerminalCheckin() {
+export default function DailyCheckin() {
   const { profile } = useAuth()
-  const { saveCheckin, loading: saving, checkins } = useCheckins()
+  const { saveCheckin, loading: saving, todayCheckin, referenceDate } = useCheckins()
   
-  const [porta, setPorta] = useState('0')
-  const [cart, setCart] = useState('0')
-  const [net, setNet] = useState('0')
-  const [agd, setAgd] = useState('0')
-  const [vis, setVis] = useState('0')
-  const [leads, setLeads] = useState('0')
+  const [form, setForm] = useState<CheckinFormData>({
+    leads: 0,
+    agd_cart: 0,
+    agd_net: 0,
+    vnd_porta: 0,
+    vnd_cart: 0,
+    vnd_net: 0,
+    visitas: 0,
+    note: '',
+    zero_reason: ''
+  })
 
-  const stats = [
-    { label: 'Sua Meta', value: '25', icon: Target, tone: 'bg-brand-primary-surface text-brand-primary' },
-    { label: 'Realizado', value: '18', icon: CheckSquare, tone: 'bg-status-success-surface text-status-success' },
-    { label: 'Pacing', value: '72%', icon: TrendingUp, tone: 'bg-status-warning-surface text-status-warning' },
-    { label: 'Dias Rest.', value: '12', icon: Clock, tone: 'bg-mx-slate-50 text-text-tertiary' },
-  ]
+  const stats = useMemo(() => [
+    { label: 'Referência', value: format(parseISO(referenceDate), 'dd/MM'), icon: Calendar, tone: 'bg-indigo-50 text-indigo-600' },
+    { label: 'Status', value: todayCheckin ? 'Enviado' : 'Pendente', icon: CheckSquare, tone: todayCheckin ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' },
+    { label: 'Vendas Ontem', value: (form.vnd_porta + form.vnd_cart + form.vnd_net).toString(), icon: Car, tone: 'bg-slate-50 text-slate-600' },
+    { label: 'Agend. Hoje', value: (form.agd_cart + form.agd_net).toString(), icon: Clock, tone: 'bg-amber-50 text-amber-600' },
+  ], [referenceDate, todayCheckin, form])
 
   const handleSave = async () => {
-    try {
-      await saveCheckin({
-        vnd_porta: Number(porta), vnd_cart: Number(cart), vnd_net: Number(net),
-        agd_total: Number(agd), visitas: Number(vis), leads: Number(leads),
-        date: new Date().toISOString().split('T')[0]
+    // Validação de Regra de Negócio MX
+    const error = validarFunil(form)
+    if (error) {
+      toast.error(error, {
+        icon: <AlertTriangle className="text-rose-600" />,
+        className: "bg-rose-50 border-rose-100 text-rose-900 font-bold"
       })
-      toast.success('Check-in Consolidado na Rede!')
-    } catch (e) { toast.error('Falha na sincronização.') }
+      return
+    }
+
+    try {
+      const { error: saveError } = await saveCheckin(form)
+      if (saveError) throw new Error(saveError)
+      toast.success('Check-in Consolidado na Rede Oficial MX!')
+    } catch (e: any) { 
+      toast.error(e.message || 'Falha na sincronização.') 
+    }
+  }
+
+  const updateField = (field: keyof CheckinFormData, value: string | number) => {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const increment = (field: keyof CheckinFormData) => {
+    setForm(prev => ({ ...prev, [field]: (prev[field] as number) + 1 }))
+  }
+
+  const decrement = (field: keyof CheckinFormData) => {
+    setForm(prev => ({ ...prev, [field]: Math.max(0, (prev[field] as number) - 1) }))
   }
 
   return (
@@ -45,83 +72,228 @@ export default function TerminalCheckin() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-mx-xs">
-            <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-            <h1 className="mx-heading-hero">Terminal de <span className="text-brand-primary">Check-in</span></h1>
+            <div className="w-2 h-10 bg-slate-950 rounded-full shadow-mx-md" />
+            <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Terminal <span className="text-indigo-600">Check-in</span></h1>
           </div>
-          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Input de Resultados D0</p>
+          <div className="flex items-center gap-3 pl-mx-md">
+            <Badge variant="outline" className="bg-indigo-50 text-indigo-600 border-indigo-100 font-black text-[10px] tracking-widest uppercase">
+              Operação: {format(parseISO(referenceDate), "dd 'de' MMMM", { locale: ptBR })}
+            </Badge>
+            <p className="mx-text-caption opacity-60 uppercase tracking-[0.3em] font-black text-[9px]">Input de Resultados • Metodologia MX</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
-          <div className="flex items-center gap-2 px-mx-md py-4 rounded-full border border-border-default bg-white shadow-mx-sm"><Calendar size={18} className="text-brand-primary" /><span className="mx-text-caption text-text-primary uppercase tracking-widest">Operação: {format(new Date(), 'dd MMMM yyyy', { locale: ptBR })}</span></div>
-          <button onClick={handleSave} disabled={saving} className="mx-button-primary bg-brand-secondary">{saving ? <RefreshCw className="animate-spin" /> : <><ClipboardCheck size={18} /> Consolidar Dia</>}</button>
+          <div className="hidden md:flex flex-col items-end mr-4">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Enviado em</span>
+            <span className="text-[10px] font-bold text-slate-950 uppercase">{todayCheckin ? format(parseISO(todayCheckin.submitted_at), 'HH:mm:ss') : '--:--:--'}</span>
+          </div>
+          <button 
+            onClick={handleSave} 
+            disabled={saving || !!todayCheckin} 
+            className={cn(
+              "mx-button-primary h-12 px-8 flex items-center gap-3 shadow-lg transition-all",
+              todayCheckin ? "bg-emerald-600 hover:bg-emerald-600 opacity-80" : "bg-slate-950 hover:bg-black"
+            )}
+          >
+            {saving ? <RefreshCw className="animate-spin" /> : todayCheckin ? <><CheckSquare size={18} /> Consolidado</> : <><ClipboardCheck size={18} /> Consolidar Dia</>}
+          </button>
         </div>
       </div>
 
+      {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-sm shrink-0">
         {stats.map((item) => (
-          <div key={item.label} className="mx-card p-mx-md flex flex-col justify-between group relative overflow-hidden">
+          <div key={item.label} className="bg-white border border-gray-100 p-6 rounded-[2rem] flex flex-col justify-between group relative overflow-hidden shadow-sm">
             <div className="flex items-center justify-between gap-mx-xs relative z-10">
-              <div><p className="mx-text-caption mb-1">{item.label}</p><p className="text-3xl font-black tracking-tighter font-mono-numbers leading-none">{item.value}</p></div>
-              <div className={cn('h-10 w-10 rounded-mx-md flex items-center justify-center border shadow-sm', item.tone)}><item.icon size={18} /></div>
+              <div>
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{item.label}</p>
+                <p className="text-2xl font-black tracking-tighter font-mono-numbers leading-none text-slate-950">{item.value}</p>
+              </div>
+              <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center border shadow-inner', item.tone)}>
+                <item.icon size={18} />
+              </div>
             </div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-mx-3xl">
-        <div className="lg:col-span-8">
-          <div className="mx-card h-full flex flex-col overflow-hidden group">
-            <div className="p-mx-lg border-b border-border-subtle bg-mx-slate-50/30 flex items-center gap-mx-sm">
-              <div className="w-12 h-12 rounded-mx-lg bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><Car size={24} /></div>
-              <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Conversões Realizadas</h3><p className="mx-text-caption">Contagem de Ativos Diretos</p></div>
+        {/* Main Input Section */}
+        <div className="lg:col-span-8 space-y-mx-lg">
+          
+          {/* SECTION 1: PRODUÇÃO DE ONTEM (D-1) */}
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div className="p-mx-lg border-b border-border-subtle bg-gray-50/30 flex items-center justify-between">
+              <div className="flex items-center gap-mx-sm">
+                <div className="w-12 h-12 rounded-2xl bg-slate-950 text-white flex items-center justify-center shadow-lg"><Car size={24} /></div>
+                <div>
+                  <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Produção de Ontem</h3>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Vendas e Fluxo Realizado (D-1)</p>
+                </div>
+              </div>
+              <Badge className="bg-indigo-600 text-white border-none text-[8px] font-black tracking-widest">MÉTRICAS RETROATIVAS</Badge>
             </div>
-            <div className="p-mx-lg md:p-mx-xl grid grid-cols-1 sm:grid-cols-3 gap-mx-lg">
-              {[
-                { label: 'Porta / Showroom', val: porta, set: setPorta, icon: MapPin },
-                { label: 'Carteira / CRM', val: cart, set: setCart, icon: User },
-                { label: 'Internet / Digital', val: net, set: setNet, icon: Globe },
-              ].map((input, i) => (
-                <div key={i} className="flex flex-col gap-mx-md p-mx-lg bg-mx-slate-50/50 border border-border-subtle rounded-mx-3xl group/input hover:bg-white hover:shadow-mx-lg transition-all">
-                  <div className="flex items-center gap-2 text-brand-primary"><input.icon size={16} /><span className="text-[10px] font-black uppercase tracking-widest">{input.label}</span></div>
-                  <input type="text" inputMode="numeric" value={input.val} onChange={e => input.set(e.target.value.replace(/\D/g, ''))} className="w-full bg-transparent text-6xl font-black font-mono-numbers text-text-primary text-center focus:outline-none tracking-tighter" />
-                  <div className="flex justify-center gap-2">
-                    <button onClick={() => input.set(String(Math.max(0, Number(input.val) - 1)))} className="w-10 h-10 rounded-mx-md bg-white border border-border-default flex items-center justify-center text-text-tertiary hover:text-status-error transition-all">-</button>
-                    <button onClick={() => input.set(String(Number(input.val) + 1))} className="w-10 h-10 rounded-mx-md bg-white border border-border-default flex items-center justify-center text-text-tertiary hover:text-status-success transition-all">+</button>
+
+            <div className="p-8 md:p-10 space-y-10">
+              {/* Sales Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                {[
+                  { label: 'Porta / Showroom', field: 'vnd_porta', icon: MapPin },
+                  { label: 'Carteira / CRM', field: 'vnd_cart', icon: User },
+                  { label: 'Internet / Digital', field: 'vnd_net', icon: Globe },
+                ].map((input) => (
+                  <div key={input.field} className="flex flex-col gap-4 p-8 bg-gray-50/50 border border-gray-100 rounded-[2rem] group/input hover:bg-white hover:shadow-xl transition-all">
+                    <div className="flex items-center gap-2 text-indigo-600">
+                      <input.icon size={14} />
+                      <span className="text-[9px] font-black uppercase tracking-widest">{input.label}</span>
+                    </div>
+                    <input 
+                      type="text" 
+                      inputMode="numeric" 
+                      value={form[input.field as keyof CheckinFormData]} 
+                      onChange={e => updateField(input.field as keyof CheckinFormData, e.target.value.replace(/\D/g, ''))} 
+                      className="w-full bg-transparent text-6xl font-black font-mono-numbers text-slate-950 text-center focus:outline-none tracking-tighter" 
+                    />
+                    <div className="flex justify-center gap-3">
+                      <button onClick={() => decrement(input.field as keyof CheckinFormData)} className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-100 transition-all shadow-sm">-</button>
+                      <button onClick={() => increment(input.field as keyof CheckinFormData)} className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-100 transition-all shadow-sm">+</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Flow Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 border-t border-gray-100 pt-10">
+                <div className="flex items-center justify-between p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 shadow-inner">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Leads Recebidos</p>
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total de Ontem</p>
+                    </div>
+                  </div>
+                  <input 
+                    type="text" 
+                    inputMode="numeric" 
+                    value={form.leads} 
+                    onChange={e => updateField('leads', e.target.value.replace(/\D/g, ''))} 
+                    className="w-16 bg-transparent text-3xl font-black font-mono-numbers text-slate-950 text-right focus:outline-none" 
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-inner">
+                      <User size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Visitas Efetivas</p>
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Comparecimento Ontem</p>
+                    </div>
+                  </div>
+                  <input 
+                    type="text" 
+                    inputMode="numeric" 
+                    value={form.visitas} 
+                    onChange={e => updateField('visitas', e.target.value.replace(/\D/g, ''))} 
+                    className="w-16 bg-transparent text-3xl font-black font-mono-numbers text-slate-950 text-right focus:outline-none" 
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: AGENDAMENTOS DE HOJE (D-0) */}
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div className="p-mx-lg border-b border-border-subtle bg-amber-50/30 flex items-center justify-between">
+              <div className="flex items-center gap-mx-sm">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg"><Clock size={24} /></div>
+                <div>
+                  <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Agendamentos de Hoje</h3>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Compromissos Agendados para D-0</p>
+                </div>
+              </div>
+              <Badge className="bg-amber-500 text-white border-none text-[8px] font-black tracking-widest">PRÓXIMAS HORAS</Badge>
+            </div>
+
+            <div className="p-8 md:p-10 grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="flex items-center justify-between p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 text-amber-600 flex items-center justify-center shadow-sm">
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Carteira / CRM</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Base de Clientes</p>
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="p-mx-lg md:p-mx-xl border-t border-border-subtle grid grid-cols-1 sm:grid-cols-3 gap-mx-lg bg-mx-slate-50/10">
-              {[
-                { label: 'Leads Recebidos', val: leads, set: setLeads, icon: Sparkles, color: 'text-brand-primary' },
-                { label: 'Agendamentos', val: agd, set: setAgd, icon: Clock, color: 'text-status-warning' },
-                { label: 'Visitas Efetivas', val: vis, set: setVis, icon: User, color: 'text-status-info' },
-              ].map((input, i) => (
-                <div key={i} className="flex items-center justify-between p-mx-md rounded-mx-xl border border-border-subtle bg-white shadow-mx-sm">
-                  <div className="flex items-center gap-3"><div className={cn("w-10 h-10 rounded-mx-md flex items-center justify-center shadow-inner", input.color.replace('text', 'bg') + '-surface', input.color)}><input.icon size={18} /></div><span className="text-[9px] font-black uppercase tracking-widest text-text-tertiary">{input.label}</span></div>
-                  <input type="text" inputMode="numeric" value={input.val} onChange={e => input.set(e.target.value.replace(/\D/g, ''))} className="w-12 bg-transparent text-2xl font-black font-mono-numbers text-text-primary text-right focus:outline-none" />
+                <input 
+                  type="text" 
+                  inputMode="numeric" 
+                  value={form.agd_cart} 
+                  onChange={e => updateField('agd_cart', e.target.value.replace(/\D/g, ''))} 
+                  className="w-16 bg-transparent text-3xl font-black font-mono-numbers text-slate-950 text-right focus:outline-none" 
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 text-amber-600 flex items-center justify-center shadow-sm">
+                    <Globe size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-slate-950 uppercase tracking-tight">Internet / Digital</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Novos Leads</p>
+                  </div>
                 </div>
-              ))}
+                <input 
+                  type="text" 
+                  inputMode="numeric" 
+                  value={form.agd_net} 
+                  onChange={e => updateField('agd_net', e.target.value.replace(/\D/g, ''))} 
+                  className="w-16 bg-transparent text-3xl font-black font-mono-numbers text-slate-950 text-right focus:outline-none" 
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-4 flex flex-col gap-mx-lg">
-          <div className="mx-card p-mx-lg bg-brand-secondary text-white shadow-mx-elite relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-brand-primary/20 rounded-full blur-[60px] -mr-24 -mt-24" />
+        {/* Sidebar Info */}
+        <div className="lg:col-span-4 space-y-mx-lg">
+          <div className="bg-slate-950 p-10 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-[60px] -mr-24 -mt-24" />
             <div className="relative z-10">
-              <div className="flex items-center gap-mx-sm mb-mx-xl">
-                <div className="w-12 h-12 rounded-mx-lg bg-white/10 border border-white/10 flex items-center justify-center"><MessageCircle size={24} className="text-status-warning" /></div>
-                <h3 className="text-xl font-black uppercase tracking-tight">Pitch do Dia</h3>
+              <div className="flex items-center gap-mx-sm mb-8">
+                <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center shadow-inner"><MessageCircle size={24} className="text-amber-400" /></div>
+                <h3 className="text-xl font-black uppercase tracking-tight">Pitch de Ativação</h3>
               </div>
-              <p className="text-sm font-bold text-white/60 leading-relaxed italic mb-mx-xl">"Foque na avaliação do usado como diferencial competitivo para os leads Webmotors de hoje."</p>
-              <button className="mx-button-primary !bg-white/10 !text-white border border-white/10 w-full flex items-center justify-center gap-2 group/btn">Ver Script Completo <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" /></button>
+              <p className="text-lg font-bold text-white/80 leading-relaxed italic mb-10">"O foco de hoje deve ser o valor da avaliação do usado. É o nosso maior fechador de vendas no momento."</p>
+              <button className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+                Ver Scripts MX <ChevronRight size={16} />
+              </button>
             </div>
           </div>
-          <div className="h-full border-2 border-dashed border-border-default rounded-mx-3xl bg-mx-slate-50/30 flex flex-col items-center justify-center p-mx-xl text-center group hover:bg-mx-slate-50 transition-all">
-            <FileText size={48} className="text-mx-slate-200 mb-mx-lg group-hover:text-brand-primary transition-colors" />
-            <h3 className="text-2xl font-black text-text-primary tracking-tighter mb-mx-sm uppercase leading-none">Matinal Pendente</h3>
-            <p className="text-xs font-bold text-text-tertiary leading-relaxed max-w-[200px]">Complete seu check-in para desbloquear o relatório de hoje.</p>
+
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 space-y-8 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-slate-400">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h4 className="text-lg font-black text-slate-950 uppercase tracking-tight">Observações</h4>
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Justificativas e Notas</p>
+              </div>
+            </div>
+            
+            <textarea 
+              value={form.note}
+              onChange={e => updateField('note', e.target.value)}
+              placeholder="Descreva observações relevantes do dia anterior ou justificativa para números zerados..."
+              className="w-full h-40 bg-gray-50 border border-gray-100 rounded-2xl p-6 text-sm font-bold text-slate-600 focus:outline-none focus:border-indigo-200 transition-all resize-none"
+            />
           </div>
         </div>
       </div>

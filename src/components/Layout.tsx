@@ -7,7 +7,7 @@ import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
   LogOut, Zap, CalendarDays, Bot, FileSignature, Wallet, Car, Briefcase, Activity,
-  Presentation, Medal, PhoneCall, Menu, X, ChevronRight, Folder
+  Presentation, Medal, PhoneCall, Menu, X, ChevronRight, Folder, Building2, TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,47 +17,65 @@ type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
 const navConfig: Record<string, NavCategory[]> = {
   admin: [
     {
-      category: 'Consultoria', icon: <Grid size={22} />,
+      category: 'Estratégico', icon: <Grid size={22} />,
       items: [
-        { label: 'Visão Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
-        { label: 'Lojas', path: '/lojas', icon: <Database size={16} /> },
-        { label: 'Equipes', path: '/equipe', icon: <Users size={16} /> },
+        { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
+        { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
+        { label: 'Visão Geral', path: '/visao-geral', icon: <Activity size={16} /> },
       ]
     },
     {
-      category: 'Metodologia', icon: <Target size={22} />,
+      category: 'Rituais MX', icon: <Target size={22} />,
       items: [
-        { label: 'Matinal', path: '/relatorio-matinal', icon: <Presentation size={16} /> },
-        { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
+        { label: 'Relatório Matinal', path: '/relatorio-matinal', icon: <Presentation size={16} /> },
+        { label: 'Feedback Semanal', path: '/gerente/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
       ]
     },
     {
       category: 'Sistema', icon: <Settings size={22} />,
       items: [
+        { label: 'Notificações', path: '/notificacoes', icon: <Bell size={16} /> },
         { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }
   ],
   gerente: [
     {
-      category: 'Minha Loja', icon: <Home size={22} />,
+      category: 'Operação Loja', icon: <Home size={22} />,
       items: [
-        { label: 'Rotina Diária', path: '/rotina', icon: <CheckSquare size={16} /> },
         { label: 'Painel da Loja', path: '/loja', icon: <LayoutDashboard size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Check-ins', path: '/checkin', icon: <CheckSquare size={16} /> },
         { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
       ]
+    },
+    {
+      category: 'Gestão de Gente', icon: <User size={22} />,
+      items: [
+        { label: 'Feedback Estruturado', path: '/gerente/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'PDI', path: '/gerente/pdi', icon: <TrendingUp size={16} /> },
+        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+      ]
     }
   ],
   vendedor: [
     {
-      category: 'Operação', icon: <Home size={22} />,
+      category: 'Meu Ritual', icon: <Home size={22} />,
       items: [
-        { label: 'Lançamento', path: '/checkin', icon: <CheckSquare size={16} /> },
+        { label: 'Home', path: '/home', icon: <Home size={16} /> },
+        { label: 'Lançamento Diário', path: '/checkin', icon: <CheckSquare size={16} /> },
         { label: 'Histórico', path: '/historico', icon: <History size={16} /> },
         { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
+      ]
+    },
+    {
+      category: 'Evolução', icon: <TrendingUp size={22} />,
+      items: [
+        { label: 'Feedback', path: '/vendedor/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'PDI', path: '/vendedor/pdi', icon: <TrendingUp size={16} /> },
+        { label: 'Treinamentos', path: '/vendedor/treinamentos', icon: <GraduationCap size={16} /> },
       ]
     }
   ]

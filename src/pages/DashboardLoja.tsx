@@ -169,7 +169,7 @@ export default function DashboardLoja() {
                                             </td>
                                         </tr>
                                     )})}
-                                    {(ranking || []).length === 0 && <tr><td colSpan={5} className="py-20 text-center mx-text-caption opacity-40 uppercase text-text-secondary font-black">Aguardando dados de performance...</td></tr>}
+                                    {(ranking || []).length === 0 && <tr><td colSpan={5} className="py-20 text-center mx-text-caption uppercase text-text-secondary font-black">Aguardando dados de performance...</td></tr>}
                                 </tbody>
                             </table>
                         </div>

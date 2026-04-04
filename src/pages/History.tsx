@@ -10,16 +10,16 @@ import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 
 export default function Historico() {
-  const { checkins, loading, refetch } = useCheckins()
+  const { checkins, loading, fetchCheckins: refetch } = useCheckins()
   const [searchTerm, setSearchTerm] = useState('')
   const [isRefetching, setIsRefetching] = useState(false)
 
   const filteredCheckins = useMemo(() => {
-    return [...checkins].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return [...checkins].sort((a, b) => new Date(b.reference_date).getTime() - new Date(a.reference_date).getTime())
   }, [checkins])
 
   const stats = useMemo(() => {
-    const total = checkins.reduce((acc, c) => acc + (c.vnd_porta || 0) + (c.vnd_cart || 0) + (c.vnd_net || 0), 0)
+    const total = checkins.reduce((acc, c) => acc + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
     const avg = checkins.length > 0 ? total / checkins.length : 0
     return [
       { label: 'Volume Acumulado', value: total, icon: TrendingUp, tone: 'bg-brand-primary-surface text-brand-primary' },
@@ -72,11 +72,11 @@ export default function Historico() {
             <tbody className="divide-y divide-border-subtle bg-white">
               {filteredCheckins.map((c, i) => (
                 <tr key={c.id} className={cn("hover:bg-mx-slate-50/50 transition-colors h-20 group border-none", i % 2 !== 0 && "bg-mx-slate-50/20")}>
-                  <td className="pl-mx-lg py-4"><span className="font-black text-sm text-text-primary uppercase tracking-tight group-hover:text-brand-primary transition-colors">{format(parseISO(c.date), "dd 'de' MMMM", { locale: ptBR })}</span><p className="mx-text-caption !text-[8px] opacity-60 uppercase">Check-in Consolidado</p></td>
-                  <td className="py-4 text-center font-black text-lg font-mono-numbers text-text-primary">{c.vnd_porta || 0}</td>
-                  <td className="py-4 text-center font-black text-lg font-mono-numbers text-text-primary">{c.vnd_cart || 0}</td>
-                  <td className="py-4 text-center font-black text-lg font-mono-numbers text-text-primary">{c.vnd_net || 0}</td>
-                  <td className="py-4 text-center"><div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-mx-slate-100 border border-border-default"><span className="text-[10px] font-black text-brand-primary">{c.leads || 0}</span><div className="w-1 h-1 rounded-full bg-mx-slate-300" /><span className="text-[10px] font-black text-status-warning">{c.agd_total || 0}</span><div className="w-1 h-1 rounded-full bg-mx-slate-300" /><span className="text-[10px] font-black text-status-success">{c.visitas || 0}</span></div></td>
+                  <td className="pl-mx-lg py-4"><span className="font-black text-sm text-text-primary uppercase tracking-tight group-hover:text-brand-primary transition-colors">{format(parseISO(c.reference_date), "dd 'de' MMMM", { locale: ptBR })}</span><p className="mx-text-caption !text-[8px] opacity-60 uppercase">Check-in Consolidado</p></td>
+                  <td className="py-4 text-center font-black text-lg font-mono-numbers text-text-primary">{c.vnd_porta_prev_day || 0}</td>
+                  <td className="py-4 text-center font-black text-lg font-mono-numbers text-text-primary">{c.vnd_cart_prev_day || 0}</td>
+                  <td className="py-4 text-center font-black text-lg font-mono-numbers text-text-primary">{c.vnd_net_prev_day || 0}</td>
+                  <td className="py-4 text-center"><div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-mx-slate-100 border border-border-default"><span className="text-[10px] font-black text-brand-primary">{c.leads_prev_day || 0}</span><div className="w-1 h-1 rounded-full bg-mx-slate-300" /><span className="text-[10px] font-black text-status-warning">{c.agd_total || 0}</span><div className="w-1 h-1 rounded-full bg-mx-slate-300" /><span className="text-[10px] font-black text-status-success">{c.visit_prev_day || 0}</span></div></td>
                   <td className="pr-mx-lg py-4 text-right"><Badge className="bg-status-success-surface text-status-success border-none text-[8px] px-3 h-7 rounded-full shadow-sm">VERIFICADO</Badge></td>
                 </tr>
               ))}

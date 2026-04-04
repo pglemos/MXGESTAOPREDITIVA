@@ -4,6 +4,22 @@ import { useAuth } from '@/hooks/useAuth'
 import type { DailyCheckin, CheckinFormData, CheckinWithTotals } from '@/types/database'
 import { calcularTotais } from '@/lib/calculations'
 
+// Regra MX: Se for antes das 09:45, a produção refere-se ao dia útil anterior.
+// Caso contrário, refere-se ao dia atual (embora agendamentos sejam sempre 'hoje').
+export function calculateReferenceDate(): string {
+    const now = new Date()
+    const hours = now.getHours()
+    const minutes = now.getMinutes()
+    const currentTime = hours * 60 + minutes
+    const threshold = 9 * 60 + 45 // 09:45 em minutos
+
+    const refDate = new Date(now)
+    if (currentTime < threshold) {
+        refDate.setDate(now.getDate() - 1)
+    }
+    return refDate.toISOString().split('T')[0]
+}
+
 export function useCheckins(storeIdOverride?: string) {
     const { profile, storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
@@ -11,7 +27,7 @@ export function useCheckins(storeIdOverride?: string) {
     const [loading, setLoading] = useState(true)
     const [todayCheckin, setTodayCheckin] = useState<CheckinWithTotals | null>(null)
 
-    const today = new Date().toISOString().split('T')[0]
+    const referenceDate = calculateReferenceDate()
 
     const fetchCheckins = useCallback(async (filters?: { startDate?: string; endDate?: string; userId?: string }) => {
         if (!storeId) {
@@ -21,11 +37,14 @@ export function useCheckins(storeIdOverride?: string) {
         }
         setLoading(true)
 
-        let query = supabase.from('daily_checkins').select('*').eq('store_id', storeId).order('date', { ascending: false })
+        let query = supabase.from('daily_checkins')
+            .select('*')
+            .eq('store_id', storeId)
+            .order('reference_date', { ascending: false })
 
-        if (filters?.startDate) query = query.gte('date', filters.startDate)
-        if (filters?.endDate) query = query.lte('date', filters.endDate)
-        if (filters?.userId) query = query.eq('user_id', filters.userId)
+        if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
+        if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
+        if (filters?.userId) query = query.eq('seller_user_id', filters.userId)
 
         const { data, error } = await query
         if (!error && data) {
@@ -43,30 +62,32 @@ export function useCheckins(storeIdOverride?: string) {
         const { data } = await supabase
             .from('daily_checkins')
             .select('*')
-            .eq('user_id', profile.id)
+            .eq('seller_user_id', profile.id)
             .eq('store_id', storeId)
-            .eq('date', today)
+            .eq('reference_date', referenceDate)
             .maybeSingle()
+        
         if (data) setTodayCheckin({ ...data, ...calcularTotais(data) })
         else setTodayCheckin(null)
-    }, [profile, storeId, today])
+    }, [profile, storeId, referenceDate])
 
     const saveCheckin = async (formData: CheckinFormData): Promise<{ error: string | null }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
 
         const payload = {
-            user_id: profile.id,
+            seller_user_id: profile.id,
             store_id: storeId,
-            date: today,
-            leads: formData.leads,
-            agd_cart: formData.agd_cart,
-            agd_net: formData.agd_net,
-            vnd_porta: formData.vnd_porta,
-            vnd_cart: formData.vnd_cart,
-            vnd_net: formData.vnd_net,
-            visitas: formData.visitas,
-            note: formData.note || null,
+            reference_date: referenceDate,
+            submitted_at: new Date().toISOString(),
+            leads_prev_day: formData.leads,
+            agd_cart_today: formData.agd_cart,
+            agd_net_today: formData.agd_net,
+            vnd_porta_prev_day: formData.vnd_porta,
+            vnd_cart_prev_day: formData.vnd_cart,
+            vnd_net_prev_day: formData.vnd_net,
+            visit_prev_day: formData.visitas,
             zero_reason: formData.zero_reason || null,
+            note: formData.note || null,
         }
 
         const { error } = todayCheckin
@@ -81,8 +102,9 @@ export function useCheckins(storeIdOverride?: string) {
     useEffect(() => { fetchCheckins() }, [fetchCheckins])
     useEffect(() => { fetchTodayCheckin() }, [fetchTodayCheckin])
 
-    return { checkins, todayCheckin, loading, fetchCheckins, fetchTodayCheckin, saveCheckin }
+    return { checkins, todayCheckin, loading, fetchCheckins, fetchTodayCheckin, saveCheckin, referenceDate }
 }
+
 
 export function useMyCheckins() {
     const { profile, storeId } = useAuth()

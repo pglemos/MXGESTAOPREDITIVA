@@ -11,8 +11,12 @@ import { useNotifications } from '@/hooks/useData'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { getOperationalStatus } from '@/lib/calculations'
 
-type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; pacing: number; sellers: number; checkedInToday: number }
+type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; pacing: number; sellers: number; checkedInToday: number; disciplinePct: number }
 
 export default function PainelConsultor() {
     const { stores, loading: storesLoading } = useStores()
@@ -23,6 +27,32 @@ export default function PainelConsultor() {
     const [networkLoading, setNetworkLoading] = useState(true)
     const [isRefetching, setIsRefetching] = useState(false)
 
+    const [isTriggering, setIsTriggering] = useState<string | null>(null)
+
+    const triggerReport = async (type: 'matinal' | 'semanal' | 'mensal') => {
+        setIsTriggering(type)
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/relatorio-${type}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session?.access_token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            if (response.ok) {
+                toast.success(`Relatório ${type} disparado com sucesso!`)
+            } else {
+                const err = await response.json()
+                toast.error(`Falha ao disparar: ${err.error || response.statusText}`)
+            }
+        } catch (err) {
+            toast.error('Erro de conexão com o servidor de automação.')
+        } finally {
+            setIsTriggering(null)
+        }
+    }
+
     const fetchNetworkSnapshot = useCallback(async (isManual = false) => {
         if (isManual) setIsRefetching(true)
         else setNetworkLoading(true)
@@ -30,11 +60,6 @@ export default function PainelConsultor() {
         try {
             const now = new Date()
             const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-            // Na Metodologia MX, o "hoje" pro checkin de ontem é a data de ontem para fins de volume
-            // Mas o status disciplinar do checkin é a data de hoje.
-            const todayDate = new Date()
-            const today = todayDate.toISOString().split('T')[0]
-            
             const yesterdayDate = new Date(now)
             yesterdayDate.setDate(yesterdayDate.getDate() - 1)
             const yesterday = yesterdayDate.toISOString().split('T')[0]
@@ -44,7 +69,6 @@ export default function PainelConsultor() {
                 { data: sellers },
                 { data: todayCheckins },
             ] = await Promise.all([
-                // Usando a nomenclatura canônica do EPIC-01
                 supabase.from('daily_checkins').select('*').gte('reference_date', monthStart),
                 supabase.from('store_sellers').select('*').eq('is_active', true),
                 supabase.from('daily_checkins').select('store_id, seller_user_id').eq('reference_date', yesterday),
@@ -73,6 +97,9 @@ export default function PainelConsultor() {
                 const s = salesMap[store.id] || { total: 0, leads: 0, agd: 0, vis: 0 }
                 const goal = goals.find(item => item.store_id === store.id)?.target || 0
                 const proj = daysElapsed > 0 ? Math.round((s.total / daysElapsed) * totalDays) : 0
+                const numSellers = sellerMap.get(store.id) || 0
+                const numCheckedIn = checkedInMap.get(store.id) || 0
+                
                 diagnosticsMap[store.id] = {
                     id: store.id, name: store.name, 
                     sales: s.total, leads: s.leads, agd: s.agd, vis: s.vis,
@@ -80,8 +107,9 @@ export default function PainelConsultor() {
                     gap: Math.max(goal - s.total, 0),
                     proj,
                     pacing: goal > 0 ? Math.round((s.total / goal) * 100) : 0,
-                    sellers: sellerMap.get(store.id) || 0,
-                    checkedInToday: checkedInMap.get(store.id) || 0,
+                    sellers: numSellers,
+                    checkedInToday: numCheckedIn,
+                    disciplinePct: numSellers > 0 ? (numCheckedIn / numSellers) * 100 : 100
                 }
             }
             setDiagnostics(diagnosticsMap)
@@ -94,156 +122,140 @@ export default function PainelConsultor() {
         const dVals = Object.values(diagnostics)
         const totalSales = dVals.reduce((sum, item) => sum + item.sales, 0)
         const totalGoal = dVals.reduce((sum, item) => sum + item.goal, 0)
+        const totalGap = dVals.reduce((sum, item) => sum + item.gap, 0)
+        
         return {
-            totalSales, globalPacing: totalGoal > 0 ? Math.round((totalSales / totalGoal) * 100) : 0,
+            totalSales, 
+            totalGoal,
+            totalGap,
+            globalPacing: totalGoal > 0 ? Math.round((totalSales / totalGoal) * 100) : 0,
             unread: notifications.filter(item => !item.read).length,
             topStores: dVals.sort((a, b) => b.sales - a.sales)
         }
-    }, [diagnostics, goals, notifications])
+    }, [diagnostics, notifications])
 
     if (storesLoading || goalsLoading || networkLoading) return <div className="h-full w-full flex items-center justify-center bg-white"><RefreshCw className="animate-spin text-brand-primary" /></div>
 
     return (
         <div className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-white">
             
-            {/* Header - Fixed Grid 8pts */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-mx-md mb-2">
-                <div>
-                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">VISÃO GERAL MULTI-LOJA • REDE</span>
-                    <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">Painel de Controle</h1>
-                </div>
-                <div className="flex items-center gap-mx-md">
-                    <button onClick={() => fetchNetworkSnapshot(true)} className="w-14 h-14 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-brand-primary transition-all active:scale-95">
-                        <RefreshCw size={24} className={cn(isRefetching && "animate-spin")} />
-                    </button>
-                    <div className="grid grid-cols-4 gap-mx-sm">
-                        {[
-                            { label: 'LOJAS', value: stores.length, icon: Building2, tone: 'text-mx-indigo-600' },
-                            { label: 'VENDAS', value: stats.totalSales, icon: Car, tone: 'text-status-success' },
-                            { label: 'ATINGIMENTO', value: `${stats.globalPacing}%`, icon: Target, tone: 'text-status-warning' },
-                            { label: 'INBOX', value: stats.unread, icon: Zap, tone: 'text-status-error' },
-                        ].map(item => (
-                            <div key={item.label} className="flex flex-col items-center justify-center w-24 h-24 rounded-mx-2xl bg-white border border-border-default shadow-mx-sm group hover:border-brand-primary transition-all">
-                                <item.icon size={20} className={cn("mb-1 opacity-40 group-hover:opacity-100 transition-opacity", item.tone)} />
-                                <span className="text-2xl font-black tracking-tighter leading-none text-text-primary">{item.value}</span>
-                                <span className="text-[8px] font-black uppercase tracking-widest text-text-tertiary mt-1">{item.label}</span>
-                            </div>
-                        ))}
+            {/* Header Operacional - MX Style */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md mb-2 border-b border-gray-100 pb-10">
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-slate-950 rounded-full shadow-mx-md" />
+                        <h1 className="text-[38px] font-black text-slate-950 tracking-tighter uppercase leading-none">Consolidação de Rede</h1>
                     </div>
+                    <div className="flex items-center gap-4 pl-6">
+                        <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-100 px-3 py-1 font-black text-[10px] tracking-widest uppercase">
+                           Gap da Rede: {stats.totalGap} UNIDADES
+                        </Badge>
+                        <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.4em] opacity-60">Metodologia MX • Raio-X Operacional</p>
+                    </div>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-100 mr-4">
+                        <button 
+                            onClick={() => triggerReport('matinal')} 
+                            disabled={isTriggering !== null}
+                            className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
+                        >
+                            {isTriggering === 'matinal' ? '...' : 'Matinal'}
+                        </button>
+                        <button 
+                            onClick={() => triggerReport('semanal')} 
+                            disabled={isTriggering !== null}
+                            className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
+                        >
+                            {isTriggering === 'semanal' ? '...' : 'Semanal'}
+                        </button>
+                        <button 
+                            onClick={() => triggerReport('mensal')} 
+                            disabled={isTriggering !== null}
+                            className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
+                        >
+                            {isTriggering === 'mensal' ? '...' : 'Mensal'}
+                        </button>
+                    </div>
+
+                    <button onClick={() => fetchNetworkSnapshot(true)} className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-all active:scale-95">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-mx-xl">
+            <div className="flex flex-col gap-mx-lg pb-mx-xl">
                 
-                <div className="xl:col-span-8 flex flex-col gap-mx-lg">
-                    {/* Action Cards - Uniform Size */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-md">
-                        {[
-                            { to: '/lojas', label: 'Unidades', desc: 'Gerenciar Lojas', icon: Building2 },
-                            { to: '/relatorio-matinal', label: 'Matinal', desc: 'Motor Operacional', icon: TrendingUp },
-                            { to: '/notificacoes', label: 'Inbox', desc: 'Alertas Ativos', icon: Zap },
-                            { to: '/configuracoes', label: 'Ajustes', desc: 'System Core', icon: Settings },
-                        ].map(action => (
-                            <Link key={action.to} to={action.to} className="mx-card p-mx-lg mx-card-hover group flex flex-col h-48 justify-between">
-                                <div className="w-14 h-14 rounded-mx-xl bg-mx-slate-50 flex items-center justify-center text-text-tertiary group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner">
-                                    <action.icon size={28} />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">{action.label}</h3>
-                                    <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest opacity-60">{action.desc}</p>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-
-                    {/* Run-rate Table - Semantic Align */}
-                    <Card className="flex-1 overflow-hidden border-none shadow-mx-lg rounded-[2.5rem]">
-                        <CardHeader className="flex-row items-center justify-between border-b border-border-subtle bg-mx-slate-50/30 p-mx-lg">
-                            <div><CardTitle className="text-2xl font-black uppercase tracking-tight">Raio-X da Rede MX</CardTitle><CardDescription className="font-bold text-text-tertiary">Mapeamento em tempo real do funil e escoamento.</CardDescription></div>
-                            <Link to="/lojas"><button className="mx-button-primary !h-12 !px-8">VER LOJAS</button></Link>
+                {/* Tabela de Lojas - Centro Operacional MX */}
+                <div className="flex flex-col gap-mx-lg">
+                    <Card className="flex-1 overflow-hidden border border-gray-100 shadow-sm rounded-[2.5rem]">
+                        <CardHeader className="flex-row items-center justify-between border-b border-gray-50 bg-gray-50/30 p-8">
+                            <div>
+                                <CardTitle className="text-2xl font-black uppercase tracking-tight">Raio-X da Operação (Unidades)</CardTitle>
+                                <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest mt-1">Mapeamento bruto do escoamento de funil por loja.</CardDescription>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <Link to="/configuracoes/reprocessamento"><button className="text-[10px] font-black uppercase tracking-widest bg-white border border-gray-200 px-6 h-12 rounded-xl hover:bg-slate-50 transition-all shadow-sm">Reprocessar Base</button></Link>
+                                <Link to="/lojas"><button className="mx-button-primary !h-12 !px-8 bg-slate-950 text-white rounded-xl">GERENCIAR REDE</button></Link>
+                            </div>
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left min-w-[900px]">
-                                <thead className="bg-mx-slate-50/50 border-b border-border-default">
-                                    <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
-                                        <th className="px-mx-xl py-mx-lg">Unidade</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Leads</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Agd</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Vis</th>
-                                        <th className="px-mx-md py-mx-lg text-center text-brand-primary">VND</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Meta</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Gap</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Proj</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Status</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Disciplina</th>
+                            <table className="w-full text-left min-w-[1200px]">
+                                <thead className="bg-gray-50/50 border-b border-gray-100">
+                                    <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                        <th className="pl-10 py-6">Loja</th>
+                                        <th className="px-4 py-6 text-center">Leads</th>
+                                        <th className="px-4 py-6 text-center">Agend.</th>
+                                        <th className="px-4 py-6 text-center">Visitas</th>
+                                        <th className="px-4 py-6 text-center text-indigo-600 font-black">Vendas</th>
+                                        <th className="px-4 py-6 text-center">Meta</th>
+                                        <th className="px-4 py-6 text-center text-rose-600">Gap</th>
+                                        <th className="px-4 py-6 text-center text-indigo-600">Projeção</th>
+                                        <th className="px-4 py-6 text-center">Status Atual</th>
+                                        <th className="pr-10 py-6 text-center">Disciplina</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-border-subtle">
-                                    {stats.topStores.map(store => (
-                                        <tr key={store.id} className="hover:bg-mx-slate-50/30 transition-colors group h-20">
-                                            <td className="px-mx-xl py-2">
-                                                <div className="flex items-center gap-mx-md">
-                                                    <div className="w-10 h-10 rounded-mx-lg bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-sm">{store.name.charAt(0)}</div>
-                                                    <div><p className="font-black text-sm text-text-primary uppercase leading-none mb-1">{store.name}</p></div>
-                                                </div>
-                                            </td>
-                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.leads}</td>
-                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.agd}</td>
-                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.vis}</td>
-                                            <td className="px-mx-md py-2 text-center font-black text-lg font-mono-numbers text-brand-primary">{store.sales}</td>
-                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.goal}</td>
-                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-status-error">{store.gap}</td>
-                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-status-info">{store.proj}</td>
-                                            <td className="px-mx-md py-2 text-center">
-                                                <Badge className={cn("text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest", store.pacing >= 100 ? "bg-status-success-surface text-status-success" : "bg-status-warning-surface text-status-warning")}>
-                                                    {store.pacing}%
-                                                </Badge>
-                                            </td>
-                                            <td className="px-mx-md py-2 text-center font-black text-xs text-text-tertiary font-mono-numbers">{store.checkedInToday}/{store.sellers}</td>
-                                        </tr>
-                                    ))}
+                                <tbody className="divide-y divide-gray-50 bg-white">
+                                    {stats.topStores.map(store => {
+                                        const status = getOperationalStatus(store.pacing, store.disciplinePct)
+                                        return (
+                                            <tr key={store.id} className="hover:bg-slate-50/50 transition-colors group h-24">
+                                                <td className="pl-10 py-2">
+                                                    <Link to={`/loja?id=${store.id}`} className="flex items-center gap-4 group/item">
+                                                        <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center font-black text-slate-950 text-lg group-hover/item:bg-slate-950 group-hover/item:text-white transition-all shadow-sm">{store.name.charAt(0)}</div>
+                                                        <div>
+                                                            <p className="font-black text-base text-slate-950 uppercase leading-none mb-1 group-hover/item:text-indigo-600 transition-colors">{store.name}</p>
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID: {store.id.slice(0, 4)}</p>
+                                                        </div>
+                                                    </Link>
+                                                </td>
+                                                <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-slate-950">{store.leads}</td>
+                                                <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-slate-950">{store.agd}</td>
+                                                <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-slate-950">{store.vis}</td>
+                                                <td className="px-4 py-2 text-center font-black text-2xl font-mono-numbers text-indigo-600">{store.sales}</td>
+                                                <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-slate-950">{store.goal}</td>
+                                                <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-rose-600">-{store.gap}</td>
+                                                <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-indigo-600">{store.proj}</td>
+                                                <td className="px-4 py-2 text-center">
+                                                    <Badge className={cn("text-[9px] font-black px-4 py-2 rounded-full uppercase tracking-widest border-none shadow-sm", status.color)}>
+                                                        {status.label}
+                                                    </Badge>
+                                                </td>
+                                                <td className="pr-10 py-2 text-center">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className={cn("font-black text-xs font-mono-numbers", store.checkedInToday < store.sellers ? "text-rose-600" : "text-emerald-600")}>
+                                                            {store.checkedInToday}/{store.sellers}
+                                                        </span>
+                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Check-ins</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
                             </table>
                         </div>
-                    </Card>
-                </div>
-
-                <div className="xl:col-span-4 flex flex-col gap-mx-lg">
-                    {/* Health Card - High Visibility */}
-                    <div className="bg-brand-secondary rounded-[3rem] p-mx-xl text-white shadow-mx-elite relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/30 via-transparent to-transparent pointer-events-none" />
-                        <div className="relative z-10 flex items-center justify-between mb-mx-xl">
-                            <div className="w-16 h-16 rounded-mx-2xl bg-white/10 border border-white/10 flex items-center justify-center backdrop-blur-xl shadow-mx-lg"><Activity size={32} className="text-brand-primary" /></div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">SAÚDE DA OPERAÇÃO</span>
-                        </div>
-                        <div className="relative z-10 mb-mx-xl">
-                            <p className="text-8xl font-black tracking-tighter leading-none mb-4">{stats.globalPacing}%</p>
-                            <p className="text-sm font-bold text-white/50 italic leading-snug">Projeção média da rede contra o objetivo tático mensal oficial.</p>
-                        </div>
-                        <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-1 shadow-inner relative z-10 border border-white/5">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(stats.globalPacing, 100)}%` }} transition={{ duration: 2 }} className="h-full bg-brand-primary rounded-full shadow-[0_0_20px_rgba(79,70,229,0.8)]" />
-                        </div>
-                    </div>
-
-                    {/* Audit Log - Clean & Semantic */}
-                    <Card className="rounded-[2.5rem] border-none shadow-mx-lg overflow-hidden flex-1">
-                        <CardHeader className="bg-mx-slate-50/20 border-b border-border-subtle p-mx-lg">
-                            <div className="flex items-center gap-mx-md">
-                                <div className="w-12 h-12 rounded-mx-xl bg-status-error-surface text-status-error flex items-center justify-center border border-mx-rose-100 shadow-inner"><AlertTriangle size={24} /></div>
-                                <div><CardTitle className="text-xl font-black uppercase tracking-tight">Audit Log</CardTitle><p className="text-[9px] font-black text-text-tertiary uppercase tracking-widest">Inconsistências Detectadas</p></div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-mx-lg space-y-mx-md">
-                            {[
-                                { label: 'METAS NÃO DEFINIDAS', val: 3, tone: 'bg-status-error' },
-                                { label: 'VENDEDORES SEM REGISTRO', val: 5, tone: 'bg-status-warning' },
-                            ].map(log => (
-                                <div key={log.label} className="flex items-center justify-between p-mx-lg rounded-mx-2xl bg-mx-slate-50/50 border border-border-subtle group hover:bg-white hover:shadow-mx-md transition-all cursor-pointer">
-                                    <span className="text-[10px] font-black text-text-primary tracking-widest">{log.label}</span>
-                                    <div className={cn("w-12 h-12 rounded-mx-lg flex items-center justify-center font-black text-lg text-white shadow-mx-md", log.tone)}>{log.val}</div>
-                                </div>
-                            ))}
-                        </CardContent>
                     </Card>
                 </div>
             </div>

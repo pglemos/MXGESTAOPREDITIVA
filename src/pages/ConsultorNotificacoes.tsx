@@ -11,7 +11,13 @@ export default function ConsultorNotificacoes() {
     const { notifications, loading, sendNotification, refetch } = useNotifications()
     const { stores } = useStores()
     const [showForm, setShowForm] = useState(false)
-    const [form, setForm] = useState({ title: '', message: '', target_type: 'all' as 'all' | 'store', target_store_id: '' })
+    const [form, setForm] = useState({ 
+        title: '', 
+        message: '', 
+        target_type: 'all' as 'all' | 'store', 
+        target_store_id: '',
+        target_role: 'todos' as 'todos' | 'gerente' | 'vendedor'
+    })
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
 
@@ -19,12 +25,21 @@ export default function ConsultorNotificacoes() {
         e.preventDefault()
         if (!form.title || !form.message) { toast.error('Preencha título e mensagem corporativa'); return }
         setSaving(true)
-        const { error } = await sendNotification({ ...form, target_store_id: form.target_type === 'store' ? form.target_store_id : undefined })
+        
+        const { error } = await sendNotification({ 
+            store_id: form.target_type === 'store' ? form.target_store_id : undefined,
+            target_role: form.target_role,
+            title: form.title,
+            message: form.message,
+            type: 'system',
+            priority: 'medium'
+        })
+        
         setSaving(false)
         if (error) { toast.error(error); return }
-        toast.success('Comunicado disparado para a rede!')
+        toast.success('Comunicado disparado para os canais selecionados!')
         setShowForm(false)
-        setForm({ title: '', message: '', target_type: 'all', target_store_id: '' })
+        setForm({ title: '', message: '', target_type: 'all', target_store_id: '', target_role: 'todos' })
     }
 
     const handleRefresh = useCallback(async () => {
@@ -48,11 +63,11 @@ export default function ConsultorNotificacoes() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-rose-600 rounded-full shadow-[0_0_20px_rgba(225,29,72,0.4)]" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none">Broadcast <span className="text-rose-600">Center</span></h1>
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Central de <span className="text-rose-600">Mensagens MX</span></h1>
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Comunicação de Rede • {notifications.length} Alertas</p>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Comunicação de Rede • {notifications.length} Alertas Ativos</p>
                     </div>
                 </div>
 
@@ -65,7 +80,7 @@ export default function ConsultorNotificacoes() {
                     </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-10 py-4 rounded-full bg-pure-black text-white font-black hover:bg-black shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-10 py-4 rounded-full bg-pure-black text-white font-black hover:bg-brand-secondary-hover shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-rose-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Disparar Alerta
@@ -146,8 +161,27 @@ export default function ConsultorNotificacoes() {
                                             <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-sm", form.target_type === 'store' ? 'bg-amber-500 text-white' : 'bg-gray-50 text-gray-300')}>
                                                 <Building2 size={24} />
                                             </div>
-                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", form.target_type === 'store' ? 'text-amber-900' : 'text-gray-400')}>Node Unit</span>
+                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", form.target_type === 'store' ? 'text-amber-900' : 'text-gray-400')}>Unidade Específica</span>
                                         </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Filtro por Papel (Role)</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {['todos', 'gerente', 'vendedor'].map(role => (
+                                                <button
+                                                    key={role}
+                                                    type="button"
+                                                    onClick={() => setForm(p => ({ ...p, target_role: role as any }))}
+                                                    className={cn(
+                                                        "py-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all",
+                                                        form.target_role === role ? 'bg-slate-950 text-white border-slate-950' : 'bg-gray-50 text-gray-400 border-gray-100 hover:bg-white'
+                                                    )}
+                                                >
+                                                    {role}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     <AnimatePresence>
@@ -210,7 +244,7 @@ export default function ConsultorNotificacoes() {
                                     "font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm",
                                     n.target_type === 'all' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
                                 )}>
-                                    {n.target_type === 'all' ? 'GLOBAL' : 'NODE UNIT'}
+                                    {n.target_type === 'all' ? 'REDE TODA' : 'UNIDADE'}
                                 </Badge>
                             </div>
 

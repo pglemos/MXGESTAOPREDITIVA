@@ -12,8 +12,8 @@ import { toast } from 'sonner'
 
 export default function VendedorHome() {
     const { profile } = useAuth()
-    const { checkins, todayCheckin, loading: checkisLoading, refetch: refetchCheckins } = useCheckins()
-    const { storeGoal, sellerGoals, loading: goalsLoading, refetch: refetchGoals } = useGoals()
+    const { checkins, todayCheckin, loading: checkisLoading, fetchCheckins: refetchCheckins } = useCheckins()
+    const { storeGoal, sellerGoals, loading: goalsLoading, fetchGoals: refetchGoals } = useGoals()
     const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
     const [isRefetching, setIsRefetching] = useState(false)
     const navigate = useNavigate()
@@ -27,7 +27,7 @@ export default function VendedorHome() {
 
     // 1. & 11. Performance: Memoized metrics
     const metrics = useMemo(() => {
-        const myCheckins = checkins.filter(c => c.user_id === profile?.id)
+        const myCheckins = checkins.filter(c => c.seller_user_id === profile?.id)
         const vendasMes = somarVendas(myCheckins)
         const porCanal = somarVendasPorCanal(myCheckins)
         const dias = getDiasInfo()
@@ -41,10 +41,13 @@ export default function VendedorHome() {
 
         const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7)
         const weekStr = weekAgo.toISOString().split('T')[0]
-        const vendasSemana = somarVendas(myCheckins.filter(c => c.date >= weekStr))
+        const vendasSemana = somarVendas(myCheckins.filter(c => c.reference_date >= weekStr))
 
-        return { vendasMes, porCanal, dias, meta, atingimento, projecao, faltaX, myRank, vendasSemana }
+        const leadsMes = myCheckins.reduce((s, c) => s + (c.leads_prev_day || 0), 0)
+
+        return { vendasMes, porCanal, dias, meta, atingimento, projecao, faltaX, myRank, vendasSemana, leadsMes }
     }, [checkins, profile, sellerGoals, storeGoal, ranking])
+
 
     if (checkisLoading || goalsLoading || rankingLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
@@ -186,7 +189,7 @@ export default function VendedorHome() {
                 <StatCard index={0} icon={Target} label="Sua Meta" value={metrics.meta || '--'} sub={`${metrics.atingimento}% atg`} bg="bg-indigo-50" color="text-indigo-600" trend="Tracking" />
                 <StatCard index={1} icon={Car} label="Fechamentos" value={metrics.vendasMes} sub={`Faltam ${metrics.faltaX}`} bg="bg-emerald-50" color="text-emerald-600" />
                 <StatCard index={2} icon={TrendingUp} label="Projeção IA" value={metrics.projecao} sub="Predictive" bg="bg-blue-50" color="text-blue-600" />
-                <StatCard index={3} icon={Phone} label="Leads Acumulados" value={metrics.porCanal.porta + metrics.porCanal.internet + metrics.porCanal.carteira} bg="bg-amber-50" color="text-amber-600" sub="Volume" />
+                <StatCard index={3} icon={Phone} label="Leads Acumulados" value={metrics.leadsMes} bg="bg-amber-50" color="text-amber-600" sub="Volume" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 shrink-0 pb-20">

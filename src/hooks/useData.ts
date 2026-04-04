@@ -43,9 +43,9 @@ export function useTrainings() {
 }
 
 // ============ FEEDBACKS ============
-export function useFeedbacks(storeIdOverride?: string) {
+export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
     const { profile, storeId: authStoreId, role } = useAuth()
-    const storeId = storeIdOverride || authStoreId
+    const storeId = filters?.storeId || authStoreId
     const [feedbacks, setFeedbacks] = useState<(Feedback & { seller_name?: string; manager_name?: string })[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -57,12 +57,20 @@ export function useFeedbacks(storeIdOverride?: string) {
         }
         setLoading(true)
         let query = supabase.from('feedbacks').select('*, seller:users!feedbacks_seller_id_fkey(name), manager:users!feedbacks_manager_id_fkey(name)')
-        if (role === 'vendedor') query = query.eq('seller_id', profile.id)
-        else if (role === 'gerente') query = query.eq('store_id', storeId)
+        
+        if (role === 'vendedor') {
+            query = query.eq('seller_id', profile.id)
+        } else if (role === 'gerente' || role === 'consultor' || role === 'admin') {
+            query = query.eq('store_id', storeId)
+            if (filters?.sellerId) {
+                query = query.eq('seller_id', filters.sellerId)
+            }
+        }
+
         const { data } = await query.order('created_at', { ascending: false })
         if (data) setFeedbacks(data.map((f: any) => ({ ...f, seller_name: f.seller?.name, manager_name: f.manager?.name })))
         setLoading(false)
-    }, [profile, storeId, role])
+    }, [profile, storeId, role, filters?.sellerId])
 
     const createFeedback = async (data: FeedbackFormData) => {
         if (!profile || !storeId) return { error: 'Não autenticado' }

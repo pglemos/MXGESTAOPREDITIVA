@@ -63,7 +63,7 @@ export default function ConsultorTreinamentos() {
                     </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] group relative overflow-hidden"
+                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-brand-secondary-hover hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Conteúdo
@@ -146,7 +146,7 @@ export default function ConsultorTreinamentos() {
                                     <div className="pt-2 text-right">
                                         <button
                                             type="submit" disabled={saving}
-                                            className="w-full py-6 rounded-[2.5rem] bg-[#1A1D20] text-white font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-black hover:shadow-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                                            className="w-full py-6 rounded-[2.5rem] bg-[#1A1D20] text-white font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-brand-secondary-hover hover:shadow-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50"
                                         >
                                             {saving ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={18} /> Publicar Treinamento</>}
                                         </button>
@@ -210,7 +210,7 @@ export default function ConsultorTreinamentos() {
                                     </div>
                                 </div>
                                 <a href={t.video_url} target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center justify-center w-12 h-12 rounded-2xl bg-[#1A1D20] text-white hover:bg-black hover:shadow-xl transition-all active:scale-95 group-hover:translate-x-1">
+                                    className="flex items-center justify-center w-12 h-12 rounded-2xl bg-[#1A1D20] text-white hover:bg-brand-secondary-hover hover:shadow-xl transition-all active:scale-95 group-hover:translate-x-1">
                                     <ExternalLink size={20} />
                                 </a>
                             </div>
