@@ -43,11 +43,11 @@ export default function Historico() {
             ...c,
             totals: calcularTotais(c),
             // 1. Safe date parsing
-            parsedDate: parseISO(c.date)
+            parsedDate: parseISO(c.reference_date)
         }))
 
         if (filterType === 'vendas') result = result.filter(c => c.totals.vnd_total > 0)
-        if (filterType === 'leads') result = result.filter(c => c.leads > 0)
+        if (filterType === 'leads') result = result.filter(c => c.leads_prev_day > 0)
 
         if (searchTerm) {
             const term = searchTerm.toLowerCase()
@@ -188,23 +188,23 @@ export default function Historico() {
                                 </div>
 
                                 <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4 relative z-10">
-                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat">
-                                        <Phone size={16} className="text-indigo-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" title="Leads Captados" />
-                                        <p className="text-3xl font-black text-pure-black tracking-tighter leading-none font-mono-numbers">{c.leads}</p>
+                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat" title="Leads Captados">
+                                        <Phone size={16} className="text-indigo-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" />
+                                        <p className="text-3xl font-black text-pure-black tracking-tighter leading-none font-mono-numbers">{c.leads_prev_day}</p>
                                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Leads</p>
                                     </div>
-                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat">
-                                        <CalendarDays size={16} className="text-blue-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" title="Agendamentos" />
+                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat" title="Agendamentos">
+                                        <CalendarDays size={16} className="text-blue-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" />
                                         <p className="text-3xl font-black text-pure-black tracking-tighter leading-none font-mono-numbers">{c.totals.agd_total}</p>
                                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Agd</p>
                                     </div>
-                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat">
-                                        <Eye size={16} className="text-amber-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" title="Visitas Realizadas" />
-                                        <p className="text-3xl font-black text-pure-black tracking-tighter leading-none font-mono-numbers">{c.visitas}</p>
+                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat" title="Visitas Realizadas">
+                                        <Eye size={16} className="text-amber-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" />
+                                        <p className="text-3xl font-black text-pure-black tracking-tighter leading-none font-mono-numbers">{c.visit_prev_day}</p>
                                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Visitas</p>
                                     </div>
-                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat">
-                                        <Car size={16} className="text-emerald-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" title="Fechamentos" />
+                                    <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-white hover:shadow-lg transition-all text-center group/stat" title="Fechamentos">
+                                        <Car size={16} className="text-emerald-500 mx-auto mb-3 transition-transform group-hover/stat:scale-110" />
                                         <p className="text-3xl font-black text-pure-black tracking-tighter leading-none font-mono-numbers">{c.totals.vnd_total}</p>
                                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Vendas</p>
                                     </div>
@@ -212,9 +212,9 @@ export default function Historico() {
 
                                 <div className="mt-auto flex flex-col gap-6 border-t border-gray-50 pt-8 sm:flex-row sm:items-center sm:justify-between relative z-10">
                                     <div className="flex flex-wrap items-center gap-5 text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span className="flex items-center gap-2"><Globe size={14} className="text-blue-400" /> Digital: {c.vnd_net}</span>
+                                        <span className="flex items-center gap-2"><Globe size={14} className="text-blue-400" /> Digital: {c.vnd_net_prev_day}</span>
                                         <div className="w-1 h-1 rounded-full bg-gray-200" />
-                                        <span className="flex items-center gap-2"><Users size={14} className="text-indigo-400" /> Porta: {c.vnd_porta}</span>
+                                        <span className="flex items-center gap-2"><Users size={14} className="text-indigo-400" /> Porta: {c.vnd_porta_prev_day}</span>
                                     </div>
                                     
                                     {c.note && (

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { Training, TrainingProgress, Feedback, FeedbackFormData, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin } from '@/types/database'
+import type { Training, TrainingProgress, Feedback, FeedbackFormData, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin, Commission } from '@/types/database'
 import { startOfWeek } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 
@@ -32,20 +32,14 @@ export function useTrainings() {
         await fetchTrainings()
     }
 
-    const createTraining = async (data: { title: string; description: string; type: string; video_url: string; target_audience: string }) => {
-        const { error } = await supabase.from('trainings').insert(data)
-        if (!error) await fetchTrainings()
-        return { error: error?.message || null }
-    }
-
     useEffect(() => { fetchTrainings() }, [fetchTrainings])
-    return { trainings, loading, markWatched, createTraining, refetch: fetchTrainings }
+    return { trainings, loading, markWatched, refetch: fetchTrainings }
 }
 
 // ============ FEEDBACKS ============
-export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
+export function useFeedbacks(storeIdOverride?: string) {
     const { profile, storeId: authStoreId, role } = useAuth()
-    const storeId = filters?.storeId || authStoreId
+    const storeId = storeIdOverride || authStoreId
     const [feedbacks, setFeedbacks] = useState<(Feedback & { seller_name?: string; manager_name?: string })[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -57,20 +51,12 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         }
         setLoading(true)
         let query = supabase.from('feedbacks').select('*, seller:users!feedbacks_seller_id_fkey(name), manager:users!feedbacks_manager_id_fkey(name)')
-        
-        if (role === 'vendedor') {
-            query = query.eq('seller_id', profile.id)
-        } else if (role === 'gerente' || role === 'consultor' || role === 'admin') {
-            query = query.eq('store_id', storeId)
-            if (filters?.sellerId) {
-                query = query.eq('seller_id', filters.sellerId)
-            }
-        }
-
+        if (role === 'vendedor') query = query.eq('seller_id', profile.id)
+        else if (role === 'gerente') query = query.eq('store_id', storeId)
         const { data } = await query.order('created_at', { ascending: false })
         if (data) setFeedbacks(data.map((f: any) => ({ ...f, seller_name: f.seller?.name, manager_name: f.manager?.name })))
         setLoading(false)
-    }, [profile, storeId, role, filters?.sellerId])
+    }, [profile, storeId, role])
 
     const createFeedback = async (data: FeedbackFormData) => {
         if (!profile || !storeId) return { error: 'Não autenticado' }
@@ -85,20 +71,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
             positives: data.positives, attention_points: data.attention_points,
             action: data.action, notes: data.notes || null,
         })
-        
-        if (!error) {
-            // Gatilho: Notificar Vendedor
-            await supabase.from('notifications').insert({
-                recipient_id: data.seller_id,
-                store_id: storeId,
-                title: 'Novo Feedback Estruturado',
-                message: `Seu gestor ${profile.name} enviou o feedback da semana. Clique para revisar seu diagnóstico 20/60/33.`,
-                type: 'performance',
-                priority: 'medium',
-                link: '/vendedor/feedback'
-            })
-            await fetchFeedbacks()
-        }
+        if (!error) await fetchFeedbacks()
         return { error: error?.message || null }
     }
 
@@ -139,12 +112,6 @@ export function usePDIs(storeIdOverride?: string) {
         if (data) setReviews(prev => ({ ...prev, [pdiId]: data }))
     }
 
-    const createReview = async (pdiId: string, data: Partial<PDIReview>) => {
-        const { error } = await supabase.from('pdi_reviews').insert({ ...data, pdi_id: pdiId })
-        if (!error) await fetchReviews(pdiId)
-        return { error }
-    }
-
     const createPDI = async (data: PDIFormData) => {
         if (!profile || !storeId) return { error: 'Não autenticado' }
         const { error } = await supabase.from('pdis').insert({
@@ -160,26 +127,8 @@ export function usePDIs(storeIdOverride?: string) {
             action_5: data.action_5 || null,
             due_date: data.due_date || null,
         })
-        
-        if (!error) {
-            // Gatilho: Notificar Vendedor
-            await supabase.from('notifications').insert({
-                recipient_id: data.seller_id,
-                store_id: storeId,
-                title: 'Novo Plano de Carreira (PDI)',
-                message: `Seu PDI Oficial MX foi atualizado por ${profile.name}. Clique para assinar o compromisso.`,
-                type: 'performance',
-                priority: 'high',
-                link: '/vendedor/pdi'
-            })
-            await fetchPDIs()
-        }
+        if (!error) await fetchPDIs()
         return { error: error?.message || null }
-    }
-
-    const updateStatus = async (id: string, status: string) => {
-        await supabase.from('pdis').update({ status }).eq('id', id)
-        await fetchPDIs()
     }
 
     const acknowledge = async (id: string) => {
@@ -187,11 +136,23 @@ export function usePDIs(storeIdOverride?: string) {
         await fetchPDIs()
     }
 
-    useEffect(() => { fetchPDIs() }, [fetchPDIs])
-
-    return { pdis, reviews, loading, createPDI, updateStatus, acknowledge, fetchReviews, createReview, refetch: fetchPDIs }
+    const updateStatus = async (id: string, status: string) => {
+        await supabase.from('pdis').update({ status }).eq('id', id)
+        await fetchPDIs()
     }
 
+    const createReview = async (pdiId: string, data: any) => {
+        const { error } = await supabase.from('pdi_reviews').insert({ pdi_id: pdiId, ...data })
+        if (!error) {
+            await fetchPDIs()
+            await fetchReviews(pdiId)
+        }
+        return { error }
+    }
+
+    useEffect(() => { fetchPDIs() }, [fetchPDIs])
+    return { pdis, reviews, loading, createPDI, updateStatus, acknowledge, createReview, fetchReviews, refetch: fetchPDIs }
+}
 
 // ============ NOTIFICATIONS ============
 export function useNotifications() {
@@ -203,15 +164,7 @@ export function useNotifications() {
     const fetchNotifications = useCallback(async () => {
         if (!profile) return
         setLoading(true)
-        
-        const { data, error } = await supabase
-            .from('notifications')
-            .select('*')
-            .eq('recipient_id', profile.id)
-            .order('priority', { ascending: false }) // High first
-            .order('created_at', { ascending: false })
-            .limit(50)
-
+        const { data, error } = await supabase.from('notifications').select('*').eq('recipient_id', profile.id).order('priority', { ascending: false }).order('created_at', { ascending: false }).limit(50)
         if (!error && data) {
             setNotifications(data)
             setUnreadCount(data.filter(n => !n.read).length)
@@ -221,97 +174,39 @@ export function useNotifications() {
 
     const markRead = async (notificationId: string) => {
         if (!profile) return
-        const { error } = await supabase
-            .from('notifications')
-            .update({ read: true })
-            .eq('id', notificationId)
-            .eq('recipient_id', profile.id)
-        
-        if (!error) await fetchNotifications()
+        await supabase.from('notifications').update({ read: true }).eq('id', notificationId).eq('recipient_id', profile.id)
+        await fetchNotifications()
     }
 
     const markAllAsRead = async () => {
-        if (!profile || notifications.length === 0) return
-        const { error } = await supabase
-            .from('notifications')
-            .update({ read: true })
-            .eq('recipient_id', profile.id)
-            .eq('read', false)
-        
-        if (!error) await fetchNotifications()
-    }
-
-    const sendNotification = async (data: { 
-        recipient_id?: string; 
-        store_id?: string;
-        target_role?: 'todos' | 'gerente' | 'vendedor';
-        title: string; 
-        message: string; 
-        type: 'discipline' | 'alert' | 'performance' | 'system';
-        priority: 'high' | 'medium' | 'low';
-        link?: string;
-    }) => {
-        if (!profile) return { error: 'Não autenticado' }
-
-        // Se houver um recipient_id específico, envia direto
-        if (data.recipient_id) {
-            const { error } = await supabase.from('notifications').insert({
-                recipient_id: data.recipient_id,
-                store_id: data.store_id || null,
-                title: data.title,
-                message: data.message,
-                type: data.type,
-                priority: data.priority,
-                link: data.link || null,
-                read: false
-            })
-            if (!error) await fetchNotifications()
-            return { error: error?.message || null }
-        }
-
-        // Lógica de Broadcast (Simplificada para o MVP)
-        let query = supabase.from('memberships').select('user_id')
-        if (data.store_id) query = query.eq('store_id', data.store_id)
-        if (data.target_role && data.target_role !== 'todos') query = query.eq('role', data.target_role)
-        
-        const { data: members, error: mError } = await query
-        if (mError) return { error: mError.message }
-
-        if (members && members.length > 0) {
-            const batch = members.map(m => ({
-                recipient_id: m.user_id,
-                store_id: data.store_id || null,
-                title: data.title,
-                message: data.message,
-                type: data.type,
-                priority: data.priority,
-                link: data.link || null,
-                read: false
-            }))
-            const { error } = await supabase.from('notifications').insert(batch)
-            if (!error) await fetchNotifications()
-            return { error: error?.message || null }
-        }
-
-        return { error: 'Nenhum destinatário localizado.' }
+        if (!profile) return
+        await supabase.from('notifications').update({ read: true }).eq('recipient_id', profile.id)
+        await fetchNotifications()
     }
 
     const deleteNotification = async (id: string) => {
         if (!profile) return
-        const { error } = await supabase
-            .from('notifications')
-            .delete()
-            .eq('id', id)
-            .eq('recipient_id', profile.id)
-        
+        await supabase.from('notifications').delete().eq('id', id).eq('recipient_id', profile.id)
+        await fetchNotifications()
+    }
+
+    const sendNotification = async (data: any) => {
+        if (!profile) return { error: 'Não autenticado' }
+        const { error } = await supabase.from('notifications').insert({ ...data, read: false })
         if (!error) await fetchNotifications()
+        return { error: error?.message || null }
     }
 
     useEffect(() => { fetchNotifications() }, [fetchNotifications])
-    
     return { 
-        notifications, unreadCount, loading, 
-        markRead, markAllAsRead, deleteNotification, sendNotification,
+        notifications, 
+        unreadCount, 
+        loading, 
+        markRead, 
+        markAllAsRead, 
+        deleteNotification, 
+        sendNotification, 
+        fetchNotifications,
         refetch: fetchNotifications 
     }
 }
@@ -319,15 +214,7 @@ export function useNotifications() {
 // ============ TEAM TRAININGS (GERENTE) ============
 export function useTeamTrainings() {
     const { storeId } = useAuth()
-    const [teamProgress, setTeamProgress] = useState<{ 
-        seller_id: string, 
-        seller_name: string, 
-        watched: string[], 
-        total_trainings: number, 
-        percentage: number,
-        current_gap: string | null,
-        gap_training_completed: boolean
-    }[]>([])
+    const [teamProgress, setTeamProgress] = useState<{ seller_id: string, seller_name: string, watched: string[], total_trainings: number, percentage: number, current_gap: string | null, gap_training_completed: boolean }[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchProgress = useCallback(async () => {
@@ -337,64 +224,55 @@ export function useTeamTrainings() {
             return
         }
         setLoading(true)
-
         const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString().split('T')[0]
-
-        const [
-            { data: members }, 
-            { data: trainings },
-            { data: checkins }
-        ] = await Promise.all([
+        const [ { data: members }, { data: trainings }, { data: checkins } ] = await Promise.all([
             supabase.from('memberships').select('user_id, users(name)').eq('store_id', storeId).eq('role', 'vendedor'),
             supabase.from('trainings').select('*').eq('active', true).in('target_audience', ['todos', 'vendedor']),
             supabase.from('daily_checkins').select('*').eq('store_id', storeId).gte('reference_date', weekStart)
         ])
-
         const totalTrainings = trainings?.length || 0
-
         if (members && members.length > 0) {
             const userIds = members.map(m => m.user_id)
             const { data: progress } = await supabase.from('training_progress').select('user_id, training_id').in('user_id', userIds)
-
             const stats = members.map((m: any) => {
                 const p = (progress || []).filter(pr => pr.user_id === m.user_id)
                 const watchedIds = p.map(pr => pr.training_id)
-                const watchedCount = p.length
-                const percentage = totalTrainings > 0 ? (watchedCount / totalTrainings) * 100 : 0
-                
-                // Análise de Gap em tempo real para o gerente
+                const percentage = totalTrainings > 0 ? (p.length / totalTrainings) * 100 : 0
                 const sellerCheckins = (checkins || []).filter(c => c.seller_user_id === m.user_id) as DailyCheckin[]
                 const funil = calcularFunil(sellerCheckins)
                 const diag = gerarDiagnosticoMX(funil)
-                
-                const categoryMap: Record<string, string> = {
-                    'LEAD_AGD': 'prospeccao',
-                    'AGD_VISITA': 'atendimento',
-                    'VISITA_VND': 'fechamento'
-                }
+                const categoryMap: any = { 'LEAD_AGD': 'prospeccao', 'AGD_VISITA': 'atendimento', 'VISITA_VND': 'fechamento' }
                 const gapCategory = diag.gargalo ? categoryMap[diag.gargalo] : null
                 const gapTrainings = (trainings || []).filter(t => t.type === gapCategory)
                 const gapCompleted = gapTrainings.length > 0 ? gapTrainings.every(t => watchedIds.includes(t.id)) : true
-
-                return {
-                    seller_id: m.user_id,
-                    seller_name: m.users?.name || 'Vendedor',
-                    watched: watchedIds,
-                    total_trainings: totalTrainings,
-                    percentage,
-                    current_gap: diag.gargalo,
-                    gap_training_completed: gapCompleted
-                }
+                return { seller_id: m.user_id, seller_name: m.users?.name || 'Vendedor', watched: watchedIds, total_trainings: totalTrainings, percentage, current_gap: diag.gargalo, gap_training_completed: gapCompleted }
             }).sort((a, b) => b.percentage - a.percentage)
-
             setTeamProgress(stats)
-        } else {
-            setTeamProgress([])
         }
-
         setLoading(false)
     }, [storeId])
 
     useEffect(() => { fetchProgress() }, [fetchProgress])
     return { teamProgress, loading, refetch: fetchProgress }
+}
+
+// ============ COMMISSIONS ============
+export function useCommissions() {
+    const { storeId, role, profile } = useAuth()
+    const [commissions, setCommissions] = useState<Commission[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchCommissions = useCallback(async () => {
+        if (!storeId || !profile) return
+        setLoading(true)
+        let query = supabase.from('commissions').select('*, seller:users!commissions_seller_id_fkey(name)')
+        if (role === 'vendedor') query = query.eq('seller_id', profile.id)
+        else if (role === 'gerente') query = query.eq('store_id', storeId)
+        const { data } = await query.order('sale_date', { ascending: false })
+        if (data) setCommissions(data.map((c: any) => ({ ...c, seller_name: c.seller?.name || 'Vendedor' })))
+        setLoading(false)
+    }, [storeId, role, profile])
+
+    useEffect(() => { fetchCommissions() }, [fetchCommissions])
+    return { commissions, loading, refetch: fetchCommissions }
 }

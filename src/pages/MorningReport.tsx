@@ -67,7 +67,9 @@ export default function MorningReport() {
     // Top 3 sellers by sales
     const sellerSales = (sellers || []).map(s => ({
       name: s.name,
-      sales: checkins.filter(c => c.seller_id === s.id && c.type === 'venda').length
+      sales: checkins
+        .filter(c => c.seller_user_id === s.id)
+        .reduce((sum, c) => sum + (c.vnd_total || 0), 0)
     })).sort((a, b) => b.sales - a.sales).slice(0, 3)
 
     const top3Text = sellerSales.map((s, i) => `${i + 1}º ${s.name} - ${s.sales}v`).join('\n')
@@ -102,10 +104,10 @@ export default function MorningReport() {
   const handleExportCSV = () => {
     const header = ['Nome', 'AGD', 'VIS', 'VND', 'Status Registro']
     const rows = (sellers || []).map(seller => {
-      const sellerCheckins = checkins.filter(c => c.seller_id === seller.id)
-      const sales = sellerCheckins.filter(c => c.type === 'venda').length
-      const visits = sellerCheckins.filter(c => c.type === 'visita').length
-      const appointments = sellerCheckins.filter(c => c.type === 'agendamento').length
+      const sellerCheckins = checkins.filter(c => c.seller_user_id === seller.id)
+      const sales = sellerCheckins.reduce((sum, c) => sum + (c.vnd_total || 0), 0)
+      const visits = sellerCheckins.reduce((sum, c) => sum + (c.visit_prev_day || 0), 0)
+      const appointments = sellerCheckins.reduce((sum, c) => sum + (c.agd_total || 0), 0)
       const status = seller.checkin_today ? 'OK' : 'FALTA'
       
       return [
@@ -257,10 +259,10 @@ export default function MorningReport() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {sellers.map((seller) => {
-                    const sellerCheckins = checkins.filter(c => c.seller_id === seller.id)
-                    const sales = sellerCheckins.filter(c => c.type === 'venda').length
-                    const visits = sellerCheckins.filter(c => c.type === 'visita').length
-                    const appointments = sellerCheckins.filter(c => c.type === 'agendamento').length
+                    const sellerCheckins = checkins.filter(c => c.seller_user_id === seller.id)
+                    const sales = sellerCheckins.reduce((sum, c) => sum + (c.vnd_total || 0), 0)
+                    const visits = sellerCheckins.reduce((sum, c) => sum + (c.visit_prev_day || 0), 0)
+                    const appointments = sellerCheckins.reduce((sum, c) => sum + (c.agd_total || 0), 0)
 
                     return (
                       <tr key={seller.id} className="group hover:bg-gray-50/50 transition-colors">

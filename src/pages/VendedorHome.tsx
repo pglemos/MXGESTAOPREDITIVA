@@ -38,6 +38,11 @@ export default function VendedorHome() {
         const projecao = calcularProjecao(vendasMes, dias.decorridos, dias.total)
         const faltaX = calcularFaltaX(meta, vendasMes)
         const myRank = ranking.find(r => r.user_id === profile?.id)
+        const myRankIndex = ranking.findIndex(r => r.user_id === profile?.id)
+        const competitors = {
+            above: myRankIndex > 0 ? ranking[myRankIndex - 1] : null,
+            below: myRankIndex < ranking.length - 1 ? ranking[myRankIndex + 1] : null
+        }
 
         // Dados de Ontem (D-1)
         const yesterdayStr = new Date(); yesterdayStr.setDate(yesterdayStr.getDate() - 1)
@@ -195,12 +200,96 @@ export default function VendedorHome() {
                 )}
             </div>
 
-            {/* Stats grid */}
+            {/* Stats grid - Cockpit Mode */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 shrink-0">
-                <StatCard index={0} icon={Car} label="Produção Ontem (D-1)" value={metrics.vendasOntem} sub="Consolidado" bg="bg-indigo-50" color="text-indigo-600" trend="Realizado" />
-                <StatCard index={1} icon={Clock} label="Agenda de Hoje (D-0)" value={metrics.agendamentosHoje} sub="Compromissos" bg="bg-amber-50" color="text-amber-600" />
-                <StatCard index={2} icon={TrendingUp} label="Projeção IA" value={metrics.projecao} sub="Predictive" bg="bg-blue-50" color="text-blue-600" />
-                <StatCard index={3} icon={Target} label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% atg`} bg="bg-emerald-50" color="text-emerald-600" />
+                <StatCard index={0} icon={History} label="Produção Ontem" value={metrics.vendasOntem} sub="Consolidado" bg="bg-emerald-50" color="text-emerald-600" trend="Realizado" />
+                <StatCard index={1} icon={CalendarDays} label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="Compromissos" bg="bg-blue-50" color="text-blue-600" />
+                <StatCard index={2} icon={Zap} label="Projeção MX" value={metrics.projecao} sub="Predictive" bg="bg-slate-950" color="text-indigo-400" />
+                <StatCard index={3} icon={Target} label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% atg`} bg="bg-rose-50" color="text-rose-600" />
+            </div>
+
+            {/* Arena de Elite - Meritocracia Real-time */}
+            <div className="bg-gray-50/50 border border-gray-100 rounded-[3rem] p-10 md:p-12 relative overflow-hidden group">
+                <div className="flex items-center justify-between mb-10 relative z-10">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg"><Trophy size={24} /></div>
+                        <div>
+                            <h3 className="text-2xl font-black text-pure-black tracking-tighter uppercase leading-none">Arena de Elite</h3>
+                            <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.3em] mt-1">Sua Posição no Campo de Batalha</p>
+                        </div>
+                    </div>
+                    <Link to="/ranking" className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">Ver Arena Completa</Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                    {/* Quem você está caçando */}
+                    <div className={cn("p-8 rounded-[2rem] border-2 border-dashed transition-all", metrics.competitors.above ? "bg-white border-amber-200 shadow-xl" : "bg-gray-100/50 border-gray-200 opacity-40")}>
+                        {metrics.competitors.above ? (
+                            <>
+                                <p className="text-[8px] font-black text-amber-600 uppercase tracking-[0.3em] mb-4">Próximo Alvo</p>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black text-lg border border-amber-100">{metrics.myRank?.position ? metrics.myRank.position - 1 : '--'}º</div>
+                                    <div>
+                                        <p className="font-black text-slate-950 uppercase tracking-tight">{metrics.competitors.above.user_name}</p>
+                                        <p className="text-[10px] font-bold text-gray-400">{metrics.competitors.above.vnd_total} Vendas</p>
+                                    </div>
+                                </div>
+                                <div className="bg-amber-50 rounded-xl p-3 text-center">
+                                    <p className="text-[9px] font-black text-amber-700 uppercase">Gap: {metrics.competitors.above.vnd_total - metrics.vendasMes} Vendas para superar</p>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-center">
+                                <Crown size={32} className="text-amber-500 mb-2" />
+                                <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">VOCÊ É O TOPO DA ARENA</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Sua Posição Central */}
+                    <div className="p-8 rounded-[2rem] bg-slate-950 text-white shadow-2xl transform md:scale-110 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl" />
+                        <p className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4 relative z-10 text-center">Seu Status Atual</p>
+                        <div className="text-center relative z-10">
+                            <p className="text-7xl font-black tracking-tighter leading-none mb-2 font-mono-numbers">{metrics.myRank?.position || '--'}º</p>
+                            <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Na Unidade</p>
+                        </div>
+                        <div className="mt-8 pt-6 border-t border-white/10 flex justify-between items-center relative z-10">
+                            <div className="text-left">
+                                <p className="text-[7px] font-black text-white/40 uppercase">Vendido</p>
+                                <p className="text-lg font-black">{metrics.vendasMes}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[7px] font-black text-white/40 uppercase">Eficiência</p>
+                                <p className="text-lg font-black text-emerald-400">{metrics.atingimento}%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quem está na sua cola */}
+                    <div className={cn("p-8 rounded-[2rem] border-2 border-dashed transition-all", metrics.competitors.below ? "bg-white border-rose-100" : "bg-gray-100/50 border-gray-200 opacity-40")}>
+                        {metrics.competitors.below ? (
+                            <>
+                                <p className="text-[8px] font-black text-rose-400 uppercase tracking-[0.3em] mb-4">Na sua retaguarda</p>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-lg border border-rose-100">{metrics.myRank?.position ? metrics.myRank.position + 1 : '--'}º</div>
+                                    <div>
+                                        <p className="font-black text-slate-950 uppercase tracking-tight">{metrics.competitors.below.user_name}</p>
+                                        <p className="text-[10px] font-bold text-gray-400">{metrics.competitors.below.vnd_total} Vendas</p>
+                                    </div>
+                                </div>
+                                <div className="bg-rose-50 rounded-xl p-3 text-center">
+                                    <p className="text-[9px] font-black text-rose-700 uppercase">Vantagem: {metrics.vendasMes - metrics.competitors.below.vnd_total} Vendas</p>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-center">
+                                <Flame size={32} className="text-rose-400 mb-2" />
+                                <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">MANTENHA A DISTÂNCIA</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 shrink-0 pb-20">

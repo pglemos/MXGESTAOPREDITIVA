@@ -1,5 +1,5 @@
 import { useCheckins } from '@/hooks/useCheckins'
-import { calcularFunil, identificarGargalo } from '@/lib/calculations'
+import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useEffect, useState, useMemo } from 'react'
@@ -26,7 +26,14 @@ export default function Funil() {
         id: '', store_id: storeId || '', lead_to_appt: 30, appt_to_visit: 50, visit_to_sale: 20 
     }), [storeId])
 
-    const diagnostic = useMemo(() => identificarGargalo(funil, benchmark || defaultBenchmark), [funil, benchmark, defaultBenchmark])
+    const diagnostic = useMemo(() => {
+        const rules = {
+            bench_lead_agd: benchmark?.lead_to_appt || 20,
+            bench_agd_visita: benchmark?.appt_to_visit || 60,
+            bench_visita_vnd: benchmark?.visit_to_sale || 33
+        } as any
+        return gerarDiagnosticoMX(funil, false, rules)
+    }, [funil, benchmark])
 
     const steps = useMemo(() => [
         { label: 'Leads', value: funil.leads, pct: 100, bg: 'bg-brand-primary', color: 'text-brand-primary', subColor: 'bg-brand-primary-surface', bench: null },

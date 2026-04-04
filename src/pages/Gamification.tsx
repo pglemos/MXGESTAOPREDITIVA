@@ -1,4 +1,4 @@
-import { Award, Medal, Star, Target, TrendingUp, Trophy, Zap, RefreshCw, ChevronRight, Crown, Flame, Search, ShieldCheck, Clock, BarChart3, Users } from 'lucide-react'
+import { Award, Medal, Star, Target, TrendingUp, Trophy, Zap, RefreshCw, ChevronRight, Crown, Flame, Search, ShieldCheck, Clock, BarChart3, Users, Car } from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'

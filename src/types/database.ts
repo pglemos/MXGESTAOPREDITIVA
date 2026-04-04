@@ -216,6 +216,28 @@ export interface AuditLog {
     created_at: string
 }
 
+export interface Commission {
+    id: string
+    seller_id: string
+    store_id: string
+    car: string
+    sale_date: string
+    margin: string
+    commission_amount: number
+    created_at: string
+    seller_name?: string
+}
+
+export interface CommissionRule {
+    id: string
+    store_id: string
+    seller_id: string | null
+    vehicle_type: string
+    margin_min: number
+    margin_max: number
+    percentage: number
+}
+
 // ============================================
 // Derived Types
 // ============================================
@@ -225,7 +247,10 @@ export interface CheckinTotals {
     vnd_total: number
 }
 
-export interface CheckinWithTotals extends DailyCheckin, CheckinTotals { }
+export interface CheckinWithTotals extends DailyCheckin, CheckinTotals {
+    seller_id: string
+    type: 'daily' | 'venda' | 'visita' | 'agendamento'
+}
 
 export interface StoreWithStats extends Store {
     vendedores_count: number
