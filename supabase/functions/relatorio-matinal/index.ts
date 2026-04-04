@@ -98,6 +98,10 @@ Deno.serve(async (_req: Request) => {
             // Gerar HTML oficial MX
             const html = generateHTML(store.name, yesterdayDate, tv, storeGoal, pct, proj, falta, daysRemaining, ranking, semRegistroNomes, year);
 
+            // Gerar CSV para anexo
+            const csvBase64 = generateCSV(ranking);
+            const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${today}.csv`;
+
             // Enviar e-mail via Resend se configurado
             let emailStatus = "not_sent";
             if (resend && recipients.length > 0) {
@@ -107,6 +111,12 @@ Deno.serve(async (_req: Request) => {
                         to: recipients,
                         subject: `📊 Matinal MX: ${store.name} - ${yesterdayDate.toLocaleDateString("pt-BR")}`,
                         html: html,
+                        attachments: [
+                            {
+                                filename: fileName,
+                                content: csvBase64,
+                            }
+                        ]
                     });
                     if (error) {
                         console.error(`[Matinal] Error sending email for ${store.name}:`, error);
@@ -139,40 +149,61 @@ Deno.serve(async (_req: Request) => {
     }
 });
 
+function generateCSV(ranking: any[]) {
+    const headers = ["Vendedor", "Leads", "Agendamentos", "Visitas", "Vendas", "Status Registro"];
+    const rows = ranking.map(r => [
+        `"${r.name}"`,
+        r.leads,
+        r.at,
+        r.vis,
+        r.vt,
+        r.sem_registro ? '"Sem Registro"' : '"OK"'
+    ]);
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    
+    // In Deno, we can use btoa for simple strings, but for universal UTF-8 support:
+    const encoder = new TextEncoder();
+    const data = encoder.encode(csvContent);
+    const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
+    return btoa(binString);
+}
+
 function generateHTML(storeName: string, date: Date, tv: number, meta: number, pct: number, proj: number, falta: number, dr: number, ranking: any[], semRegistro: string[], year: number) {
-    const clr = (v: number, t: number) => t > 0 ? ((v / t) * 100 >= 100 ? "color:#10b981" : (v / t) * 100 >= 80 ? "color:#34d399" : "color:#f87171") : "";
+    const clr = (v: number, t: number) => t > 0 ? ((v / t) * 100 >= 100 ? "color:#10b981" : (v / t) * 100 >= 80 ? "color:#4f46e5" : "color:#f43f5e") : "color:#4f46e5";
     const wppText = encodeURIComponent(`*📊 MATINAL MX - ${storeName}*\n📅 Ref: ${date.toLocaleDateString("pt-BR")}\n\n🎯 Meta: ${meta}\n🔥 Vendido: ${tv} (${pct}%)\n📈 Projeção: ${proj}\n🚨 Faltam: ${falta}\n\n🏆 *Top 3*\n${ranking.slice(0,3).map((r,i) => `${i+1}º ${r.name} - ${r.vt}v`).join('\n')}\n\n${semRegistro.length > 0 ? `⚠️ *SEM REGISTRO HOJE:*\n${semRegistro.join(', ')}` : '✅ Todos registraram hoje!'}`);
     
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:20px}
-.c{max-width:680px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 4px 20px rgba(0,0,0,0.05);overflow:hidden}
-.h{background:#0f172a;padding:32px;text-align:center}
-.h h1{color:#fff;margin:0 0 8px;font-size:24px;text-transform:uppercase;letter-spacing:1px}.h p{color:#94a3b8;margin:0;font-size:12px;text-transform:uppercase;letter-spacing:2px}
-.content{padding:32px}
-.sr{background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:12px;margin-bottom:24px;color:#991b1b;font-weight:bold;font-size:13px}
-.ss{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
-.s{background:#f1f5f9;border-radius:16px;padding:20px;text-align:center}
-.sv{font-size:32px;font-weight:900;color:#0f172a;line-height:1}.sl{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
-.alert{text-align:center;padding:16px;background:#f8fafc;border-radius:12px;font-size:13px;font-weight:bold;margin-bottom:32px}
-table{width:100%;border-collapse:collapse;margin-bottom:32px}
-th{background:#f8fafc;padding:12px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e2e8f0}
-td{padding:16px 12px;border-bottom:1px solid #f1f5f9;font-size:14px;font-weight:600}
-.btn{display:block;width:100%;background:#25D366;color:#fff;text-align:center;padding:16px;border-radius:12px;text-decoration:none;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
-.f{text-align:center;padding:20px;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #f1f5f9}
+    return `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:20px;line-height:1.5}
+.c{max-width:680px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 10px 30px -10px rgba(0,0,0,0.1);overflow:hidden}
+.h{background:#0f172a;padding:48px 32px;text-align:center;border-bottom:4px solid #4f46e5}
+.h h1{color:#fff;margin:0 0 12px;font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.h p{color:#94a3b8;margin:0;font-size:14px;text-transform:uppercase;letter-spacing:3px}
+.content{padding:40px 32px}
+.sr{background:#fff1f2;border-left:4px solid #f43f5e;padding:20px;border-radius:12px;margin-bottom:32px;color:#9f1239;font-weight:600;font-size:14px}
+.ss{display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;margin-bottom:32px}
+.s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:24px;text-align:center;transition:all 0.3s}
+.sv{font-size:36px;font-weight:900;color:#0f172a;line-height:1;margin-bottom:8px}.sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+.alert{text-align:center;padding:20px;background:#f1f5f9;border-radius:16px;font-size:14px;font-weight:700;color:#334155;margin-bottom:40px;border:1px dashed #cbd5e1}
+table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:40px}
+th{background:#fff;padding:16px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #0f172a;font-weight:700}
+td{padding:18px 12px;border-bottom:1px solid #f1f5f9;font-size:14px;font-weight:600;color:#334155}
+.btn{display:block;width:100%;background:#4f46e5;color:#fff;text-align:center;padding:20px;border-radius:14px;text-decoration:none;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;box-shadow:0 4px 14px 0 rgba(79,70,229,0.39)}
+.f{text-align:center;padding:32px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:2px;border-top:1px solid #f1f5f9;background:#fcfcfc}
 </style></head><body><div class="c">
-<div class="h"><h1>📊 Matinal Oficial</h1><p>${storeName} • ${date.toLocaleDateString("pt-BR")}</p></div>
+<div class="h"><h1>📊 Matinal MX</h1><p>${storeName} • ${date.toLocaleDateString("pt-BR")}</p></div>
 <div class="content">
 ${semRegistro.length > 0 ? `<div class="sr">⚠️ Atenção: ${semRegistro.join(', ')} estão SEM REGISTRO no fechamento de ontem.</div>` : ''}
 <div class="ss">
 <div class="s"><div class="sv" style="${clr(tv, meta)}">${tv}</div><div class="sl">Vendido</div></div>
-<div class="s"><div class="sv">${meta}</div><div class="sl">Meta do Mês</div></div>
-<div class="s"><div class="sv">${proj}</div><div class="sl">Projeção Oficial</div></div>
+<div class="s"><div class="sv">${meta}</div><div class="sl">Meta</div></div>
+<div class="s"><div class="sv">${proj}</div><div class="sl">Projeção</div></div>
 <div class="s"><div class="sv" style="${clr(tv, meta)}">${pct}%</div><div class="sl">Atingimento</div></div>
 </div>
 <div class="alert">📌 Faltam ${falta} vendas em ${dr} dias (${dr > 0 ? (falta / dr).toFixed(1) : 0}/dia)</div>
 <table><thead><tr><th>Consultor</th><th>AGD</th><th>Vis</th><th>VND</th><th>Ontem</th></tr></thead>
-<tbody>${ranking.map((r: any) => `<tr><td>${r.name}</td><td>${r.at}</td><td>${r.vis}</td><td>${r.vt}</td><td>${r.sem_registro ? "❌" : "✅"}</td></tr>`).join("")}</tbody></table>
-<a href="https://api.whatsapp.com/send?text=${wppText}" class="btn">COMPARTILHAR NO WHATSAPP</a>
+<tbody>${ranking.map((r: any) => `<tr><td>${r.name}</td><td>${r.at}</td><td>${r.vis}</td><td>${r.vt}</td><td>${r.sem_registro ? '<span style="color:#f43f5e">❌</span>' : '<span style="color:#10b981">✅</span>'}</td></tr>`).join("")}</tbody></table>
+<a href="https://api.whatsapp.com/send?text=${wppText}" class="btn">ENVIAR FEEDBACK VIA WHATSAPP</a>
 </div>
 <div class="f">MX Gestão Preditiva © ${year}</div>
 </div></body></html>`;
