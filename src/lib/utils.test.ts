@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { cn } from './utils'
+import { cn, toCamelCase, toSnakeCase } from './utils'
 
 describe('cn utility', () => {
   it('should merge class names correctly', () => {
@@ -34,5 +34,138 @@ describe('cn utility', () => {
 
   it('should handle empty inputs', () => {
     expect(cn()).toBe('')
+  })
+})
+
+
+describe('toCamelCase utility', () => {
+  it('should return primitive values unchanged', () => {
+    expect(toCamelCase(null)).toBeNull()
+    expect(toCamelCase(undefined)).toBeUndefined()
+    expect(toCamelCase(123)).toBe(123)
+    expect(toCamelCase('string_value')).toBe('string_value')
+    expect(toCamelCase(true)).toBe(true)
+  })
+
+  it('should convert snake_case keys to camelCase', () => {
+    expect(toCamelCase({ first_name: 'John', last_name: 'Doe' })).toEqual({ firstName: 'John', lastName: 'Doe' })
+  })
+
+  it('should convert kebab-case keys to camelCase', () => {
+    expect(toCamelCase({ 'first-name': 'John', 'last-name': 'Doe' })).toEqual({ firstName: 'John', lastName: 'Doe' })
+  })
+
+  it('should handle nested objects', () => {
+    const input = {
+      user_profile: {
+        first_name: 'John',
+        address_info: {
+          zip_code: '12345'
+        }
+      }
+    }
+    const expected = {
+      userProfile: {
+        firstName: 'John',
+        addressInfo: {
+          zipCode: '12345'
+        }
+      }
+    }
+    expect(toCamelCase(input)).toEqual(expected)
+  })
+
+  it('should handle arrays', () => {
+    const input = [
+      { first_name: 'John' },
+      { last_name: 'Doe' }
+    ]
+    const expected = [
+      { firstName: 'John' },
+      { lastName: 'Doe' }
+    ]
+    expect(toCamelCase(input)).toEqual(expected)
+  })
+
+  it('should handle mixed arrays and nested objects', () => {
+    const input = {
+      user_list: [
+        { user_details: { first_name: 'John' } },
+        'simple_string',
+        null
+      ]
+    }
+    const expected = {
+      userList: [
+        { userDetails: { firstName: 'John' } },
+        'simple_string',
+        null
+      ]
+    }
+    expect(toCamelCase(input)).toEqual(expected)
+  })
+})
+
+describe('toSnakeCase utility', () => {
+  it('should return primitive values unchanged', () => {
+    expect(toSnakeCase(null)).toBeNull()
+    expect(toSnakeCase(undefined)).toBeUndefined()
+    expect(toSnakeCase(123)).toBe(123)
+    expect(toSnakeCase('stringValue')).toBe('stringValue')
+    expect(toSnakeCase(true)).toBe(true)
+  })
+
+  it('should convert camelCase keys to snake_case', () => {
+    expect(toSnakeCase({ firstName: 'John', lastName: 'Doe' })).toEqual({ first_name: 'John', last_name: 'Doe' })
+  })
+
+  it('should handle nested objects', () => {
+    const input = {
+      userProfile: {
+        firstName: 'John',
+        addressInfo: {
+          zipCode: '12345'
+        }
+      }
+    }
+    const expected = {
+      user_profile: {
+        first_name: 'John',
+        address_info: {
+          zip_code: '12345'
+        }
+      }
+    }
+    expect(toSnakeCase(input)).toEqual(expected)
+  })
+
+  it('should handle arrays', () => {
+    const input = [
+      { firstName: 'John' },
+      { lastName: 'Doe' }
+    ]
+    const expected = [
+      { first_name: 'John' },
+      { last_name: 'Doe' }
+    ]
+    expect(toSnakeCase(input)).toEqual(expected)
+  })
+
+  it('should handle mixed arrays and nested objects', () => {
+    const input = {
+      userList: [
+        { userDetails: { firstName: 'John' } },
+        'simpleString',
+        null
+      ]
+    }
+    const expected = {
+      user_list: [
+        { user_details: { first_name: 'John' } },
+        'simpleString',
+        null
+      ]
+    }
+    expect(toSnakeCase(input)).toEqual(expected)
   })
 })
