@@ -50,6 +50,12 @@ export default function Tarefas() {
         setEditMode(false); setSelectedId(null)
     }, [])
 
+    const leadMap = useMemo(() => {
+        const map = new Map();
+        leads.forEach(l => map.set(l.id, l));
+        return map;
+    }, [leads]);
+
     const taskGroups = useMemo(() => {
         const filtered = tasks.filter(t => !searchTerm || t.title.toLowerCase().includes(searchTerm.toLowerCase()))
         return {
@@ -66,6 +72,11 @@ export default function Tarefas() {
             else await addTask({ ...form })
             setOpen(false); resetForm(); toast.success('Operação registrada!')
         } catch (e) { toast.error('Falha no registro.') }
+    }
+
+    const handleEdit = (task: Task) => {
+        setForm({ title: task.title, description: task.description || '', priority: task.priority, leadId: task.leadId || '', dueDate: new Date(task.dueDate).toISOString().split('T')[0] })
+        setEditMode(true); setSelectedId(task.id); setOpen(true)
     }
 
     const handleDelete = (id: string) => {
@@ -150,7 +161,7 @@ export default function Tarefas() {
                                                 <h4 className={cn("font-black text-sm text-text-primary mb-1 uppercase tracking-tight", task.status === 'Concluída' && "line-through opacity-40")}>{task.title}</h4>
                                                 <p className="text-[10px] font-bold text-text-tertiary line-clamp-2 leading-relaxed italic">"{task.description || 'Sem briefing'}"</p>
                                                 <div className="pt-mx-md border-t border-border-subtle flex items-center justify-between mt-mx-md">
-                                                    <div className="flex items-center gap-1.5 text-[8px] font-black text-text-tertiary uppercase tracking-widest"><User size={10} className="text-brand-primary" /> {leads.find(l => l.id === task.leadId)?.name || 'S/ Alvo'}</div>
+                                                    <div className="flex items-center gap-1.5 text-[8px] font-black text-text-tertiary uppercase tracking-widest"><User size={10} className="text-brand-primary" /> {leadMap.get(task.leadId)?.name || 'S/ Alvo'}</div>
                                                     <span className="text-[8px] font-black text-text-tertiary font-mono-numbers">{format(new Date(task.dueDate), 'dd/MM')}</span>
                                                 </div>
                                             </div>
@@ -168,7 +179,7 @@ export default function Tarefas() {
                                     <tr key={task.id} className="hover:bg-mx-slate-50/50 transition-colors group cursor-pointer" onClick={() => handleEdit(task)}>
                                         <td className="pl-mx-lg py-mx-md text-center"><Circle size={18} className={cn(task.status === 'Concluída' ? "text-status-success fill-status-success/20" : "text-text-tertiary")} /></td>
                                         <td className="py-mx-md"><p className={cn("font-black text-sm text-text-primary", task.status === 'Concluída' && "line-through opacity-40")}>{task.title}</p></td>
-                                        <td className="py-mx-md"><span className="mx-text-caption opacity-70">{leads.find(l => l.id === task.leadId)?.name || '-'}</span></td>
+                                        <td className="py-mx-md"><span className="mx-text-caption opacity-70">{leadMap.get(task.leadId)?.name || '-'}</span></td>
                                         <td className="py-mx-md text-center"><Badge variant="outline" className={cn("text-[8px] font-black", priorityConfig[task.priority].style)}>{task.priority}</Badge></td>
                                         <td className="pr-mx-lg py-mx-md text-right font-mono-numbers font-black text-xs text-text-tertiary">{format(new Date(task.dueDate), 'dd/MM/yyyy')}</td>
                                     </tr>
