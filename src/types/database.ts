@@ -56,19 +56,19 @@ export interface GoalLog {
 
 export interface DailyCheckin {
     id: string
-    user_id: string
+    seller_user_id: string
     store_id: string
-    date: string
-    leads: number
-    agd_cart: number
-    agd_net: number
-    vnd_porta: number
-    vnd_cart: number
-    vnd_net: number
-    visitas: number
-    note: string | null
+    reference_date: string
+    submitted_at: string
+    leads_prev_day: number
+    agd_cart_today: number
+    agd_net_today: number
+    vnd_porta_prev_day: number
+    vnd_cart_prev_day: number
+    vnd_net_prev_day: number
+    visit_prev_day: number
     zero_reason: string | null
-    created_at: string
+    note: string | null
     updated_at: string
 }
 
@@ -112,6 +112,15 @@ export interface Feedback {
     store_id: string
     manager_id: string
     seller_id: string
+    week_reference: string
+    leads_week: number
+    agd_week: number
+    visit_week: number
+    vnd_week: number
+    tx_lead_agd: number
+    tx_agd_visita: number
+    tx_visita_vnd: number
+    meta_compromisso: number
     positives: string
     attention_points: string
     action: string
@@ -119,14 +128,32 @@ export interface Feedback {
     acknowledged: boolean
     created_at: string
 }
-
 export interface PDI {
     id: string
     store_id: string
     manager_id: string
     seller_id: string
-    objective: string
-    action: string
+    // Radar de Competências (0-10)
+    comp_prospeccao: number
+    comp_abordagem: number
+    comp_demonstracao: number
+    comp_fechamento: number
+    comp_crm: number
+    comp_digital: number
+    comp_disciplina: number
+    comp_organizacao: number
+    comp_negociacao: number
+    comp_produto: number
+    // Horizontes
+    meta_6m: string
+    meta_12m: string
+    meta_24m: string
+    // 5 Ações Mandatórias
+    action_1: string
+    action_2: string | null
+    action_3: string | null
+    action_4: string | null
+    action_5: string | null
     due_date: string | null
     status: PDIStatus
     acknowledged: boolean
@@ -134,22 +161,53 @@ export interface PDI {
     updated_at: string
 }
 
-export interface Notification {
+export interface PDIReview {
     id: string
-    sender_id: string
-    title: string
-    message: string
-    target_type: 'all' | 'store'
-    target_store_id: string | null
-    target_role: string | null
-    sent_at: string
+    pdi_id: string
+    evolution: string
+    difficulties: string | null
+    adjustments: string | null
+    next_review_date: string | null
+    created_at: string
 }
 
-export interface NotificationRead {
+export interface PDIFormData {
+    seller_id: string
+    meta_6m: string
+    meta_12m: string
+    meta_24m: string
+    comp_prospeccao: number
+    comp_abordagem: number
+    comp_demonstracao: number
+    comp_fechamento: number
+    comp_crm: number
+    comp_digital: number
+    comp_disciplina: number
+    comp_organizacao: number
+    comp_negociacao: number
+    comp_produto: number
+    action_1: string
+    action_2: string
+    action_3: string
+    action_4: string
+    action_5: string
+    due_date: string
+}
+
+export type NotificationType = 'discipline' | 'alert' | 'performance' | 'system'
+export type NotificationPriority = 'high' | 'medium' | 'low'
+
+export interface Notification {
     id: string
-    notification_id: string
-    user_id: string
-    read_at: string
+    recipient_id: string
+    store_id: string
+    title: string
+    message: string
+    type: NotificationType
+    priority: NotificationPriority
+    link: string | null
+    read: boolean
+    created_at: string
 }
 
 export interface AuditLog {
@@ -236,6 +294,15 @@ export interface GoalFormData {
 
 export interface FeedbackFormData {
     seller_id: string
+    week_reference: string
+    leads_week: number
+    agd_week: number
+    visit_week: number
+    vnd_week: number
+    tx_lead_agd: number
+    tx_agd_visita: number
+    tx_visita_vnd: number
+    meta_compromisso: number
     positives: string
     attention_points: string
     action: string
