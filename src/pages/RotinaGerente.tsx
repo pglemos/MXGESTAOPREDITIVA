@@ -99,7 +99,7 @@ export default function RotinaGerente() {
 
                 {/* Resumo & Atalhos */}
                 <div className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <div className="mx-card p-8 bg-pure-black text-white relative overflow-hidden shadow-mx-xl">
+                    <div className="mx-card p-8 bg-brand-secondary text-white relative overflow-hidden shadow-mx-xl">
                         <div className="absolute right-0 bottom-0 opacity-10"><Zap size={150} /></div>
                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 relative z-10">Resumo de Ontem</h3>
                         <div className="flex items-end gap-3 mb-2 relative z-10">
