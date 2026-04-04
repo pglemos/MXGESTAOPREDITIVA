@@ -2,7 +2,7 @@ import { useFeedbacks } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { MessageSquare, Plus, X, Send, CheckCircle, Clock, User, Award, AlertCircle, Zap, ChevronRight, LayoutDashboard, Target, TrendingUp, Sparkles, Filter, RefreshCw, Search } from 'lucide-react'
+import { MessageSquare, Plus, X, Send, Award, AlertCircle, Zap, Target, Sparkles, RefreshCw, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 
