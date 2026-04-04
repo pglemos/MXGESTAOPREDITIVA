@@ -146,3 +146,24 @@ td:last-child{border-radius:0 12px 12px 0;text-align:right}
 <div class="f">MX Gestão Preditiva © ${year}</div>
 </div></body></html>`;
 }
+
+function generateCSV(ranking: any[]) {
+    const headers = ["Vendedor", "Leads", "Agendamentos", "Visitas", "Vendas Porta", "Vendas Cartão", "Vendas Net", "Total Vendas"];
+    const rows = ranking.map(r => [
+        `"${r.name}"`,
+        r.leads,
+        r.agd,
+        r.vis,
+        r.vp,
+        r.vc,
+        r.vn,
+        r.vt
+    ]);
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    
+    const encoder = new TextEncoder();
+    const data = encoder.encode(csvContent);
+    const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
+    return btoa(binString);
+}
+
