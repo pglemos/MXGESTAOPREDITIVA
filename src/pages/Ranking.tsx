@@ -35,7 +35,7 @@ export default function Ranking() {
                 <div>
                     <span className="mx-text-caption text-status-warning mb-2 block font-black tracking-[0.3em]">MERITOCRACIA REAL-TIME</span>
                     <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">Arena de Performance</h1>
-                    <p className="text-sm font-bold text-text-secondary mt-4 uppercase tracking-wide">Snapshot Nacional do Cluster Hub</p>
+                    <p className="text-sm font-bold text-text-secondary mt-4 uppercase tracking-wide">Snapshot Nacional da Rede MX</p>
                 </div>
 
                 <div className="flex items-center gap-mx-sm shrink-0">

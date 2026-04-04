@@ -23,8 +23,10 @@ export default function GerentePDI() {
     
     const [form, setForm] = useState({
         seller_id: '',
-        objective: '',
-        action: '',
+        meta_6m: '',
+        meta_12m: '',
+        meta_24m: '',
+        action_1: '',
         due_date: ''
     })
 
@@ -32,7 +34,7 @@ export default function GerentePDI() {
     const filteredPDIs = useMemo(() => {
         const term = searchTerm.toLowerCase()
         return (pdis || []).filter(p =>
-            p.objective.toLowerCase().includes(term) ||
+            p.meta_6m?.toLowerCase().includes(term) ||
             (p as any).seller_name?.toLowerCase().includes(term)
         )
     }, [pdis, searchTerm])
@@ -46,8 +48,8 @@ export default function GerentePDI() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!form.seller_id || !form.objective || !form.action) {
-            toast.error('Preencha as diretrizes mandatórias do PDI.')
+        if (!form.seller_id || !form.meta_6m || !form.meta_12m || !form.action_1) {
+            toast.error('Preencha as diretrizes mandatórias do PDI MX.')
             return
         }
         setSaving(true)
@@ -56,9 +58,9 @@ export default function GerentePDI() {
         if (error) {
             toast.error(error)
         } else {
-            toast.success('Plano de Desenvolvimento ativado!')
+            toast.success('Plano de Desenvolvimento ativado com horizontes MX!')
             setShowForm(false)
-            setForm({ seller_id: '', objective: '', action: '', due_date: '' })
+            setForm({ seller_id: '', meta_6m: '', meta_12m: '', meta_24m: '', action_1: '', due_date: '' })
         }
     }
 
@@ -151,19 +153,22 @@ export default function GerentePDI() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Objetivo de Desenvolvimento</label>
-                                        <input
-                                            type="text"
-                                            value={form.objective}
-                                            onChange={e => setForm(p => ({ ...p, objective: e.target.value }))}
-                                            required
-                                            placeholder="Ex: Domínio de técnica de fechamento por urgência"
-                                            className="premium-input !rounded-[1.5rem]"
-                                        />
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Meta Estratégica (6 Meses)</label>
+                                        <input type="text" value={form.meta_6m} onChange={e => setForm(p => ({ ...p, meta_6m: e.target.value }))} required placeholder="Qual o primeiro marco operacional?" className="premium-input !rounded-[1.5rem]" />
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Data Limite (Deadline)</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Meta Tática (12 Meses)</label>
+                                        <input type="text" value={form.meta_12m} onChange={e => setForm(p => ({ ...p, meta_12m: e.target.value }))} required placeholder="Objetivo de consolidação no ano." className="premium-input !rounded-[1.5rem]" />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Visão de Longo Prazo (24 Meses)</label>
+                                        <input type="text" value={form.meta_24m} onChange={e => setForm(p => ({ ...p, meta_24m: e.target.value }))} placeholder="Ponto de chegada na rede." className="premium-input !rounded-[1.5rem]" />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Data da Primeira Revisão</label>
                                         <div className="relative group">
                                             <Calendar size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-indigo-500 transition-colors" />
                                             <input
@@ -178,10 +183,10 @@ export default function GerentePDI() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Plano de Ação Detalhado</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Ação de Desenvolvimento (Mandatória)</label>
                                     <textarea
-                                        value={form.action}
-                                        onChange={e => setForm(p => ({ ...p, action: e.target.value }))}
+                                        value={form.action_1}
+                                        onChange={e => setForm(p => ({ ...p, action_1: e.target.value }))}
                                         rows={8} required
                                         placeholder="Descreva as etapas, treinamentos e mudanças de comportamento mandatórias..."
                                         className="premium-input !rounded-[2rem] resize-none py-6 h-full min-h-[240px]"
@@ -247,15 +252,15 @@ export default function GerentePDI() {
                                 <div className="space-y-6 flex-1 relative z-10 mb-8">
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none">
-                                            <Target size={12} /> Objetivo Estratégico
+                                            <Target size={12} /> Horizonte 6 Meses
                                         </div>
-                                        <h3 className="text-xl font-black text-pure-black leading-tight uppercase tracking-tight line-clamp-2">{p.objective}</h3>
+                                        <h3 className="text-xl font-black text-pure-black leading-tight uppercase tracking-tight line-clamp-2">{(p as any).meta_6m || (p as any).objective || 'PDI Desatualizado'}</h3>
                                     </div>
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
-                                            <TrendingUp size={12} /> Plano de Ação
+                                            <TrendingUp size={12} /> Ação Primária
                                         </div>
-                                        <p className="text-sm font-bold text-gray-500 line-clamp-4 leading-relaxed opacity-80">{p.action}</p>
+                                        <p className="text-sm font-bold text-gray-500 line-clamp-4 leading-relaxed opacity-80">{(p as any).action_1 || (p as any).action || 'Sem ação definida'}</p>
                                     </div>
                                 </div>
 
@@ -287,7 +292,7 @@ export default function GerentePDI() {
                         </div>
                         <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter uppercase">Matriz de Evolução Limpa</h3>
                         <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">
-                            Não localizamos planos de desenvolvimento ativos para "{searchTerm}" no cluster atual.
+                            Não localizamos planos de desenvolvimento ativos para "{searchTerm}" na loja atual.
                         </p>
                         <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="px-10 py-4 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-3xl transition-all active:scale-95">
                             Fixar Primeiro PDI

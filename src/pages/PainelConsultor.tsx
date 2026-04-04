@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'motion/react'
 import {
-    Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw
+    Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useStores } from '@/hooks/useTeam'
@@ -12,17 +12,13 @@ import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
-type StoreSales = { total: number; porta: number; cart: number; net: number }
-type StoreDiagnostic = { id: string; name: string; sales: number; goal: number; pacing: number; sellers: number; checkedInToday: number }
-
-const EMPTY_SALES: StoreSales = { total: 0, porta: 0, cart: 0, net: 0 }
+type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; pacing: number; sellers: number; checkedInToday: number }
 
 export default function PainelConsultor() {
     const { stores, loading: storesLoading } = useStores()
     const { goals, loading: goalsLoading } = useAllStoreGoals()
     const { notifications } = useNotifications()
     
-    const [storeSales, setStoreSales] = useState<Record<string, StoreSales>>({})
     const [diagnostics, setDiagnostics] = useState<Record<string, StoreDiagnostic>>({})
     const [networkLoading, setNetworkLoading] = useState(true)
     const [isRefetching, setIsRefetching] = useState(false)
@@ -34,56 +30,76 @@ export default function PainelConsultor() {
         try {
             const now = new Date()
             const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-            const today = now.toISOString().split('T')[0]
+            // Na Metodologia MX, o "hoje" pro checkin de ontem é a data de ontem para fins de volume
+            // Mas o status disciplinar do checkin é a data de hoje.
+            const todayDate = new Date()
+            const today = todayDate.toISOString().split('T')[0]
+            
+            const yesterdayDate = new Date(now)
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1)
+            const yesterday = yesterdayDate.toISOString().split('T')[0]
 
             const [
                 { data: monthCheckins },
-                { data: sellerMemberships },
+                { data: sellers },
                 { data: todayCheckins },
             ] = await Promise.all([
-                supabase.from('daily_checkins').select('store_id, user_id, vnd_porta, vnd_cart, vnd_net').gte('date', monthStart),
-                supabase.from('memberships').select('store_id, user_id').eq('role', 'vendedor'),
-                supabase.from('daily_checkins').select('store_id, user_id').eq('date', today),
+                // Usando a nomenclatura canônica do EPIC-01
+                supabase.from('daily_checkins').select('*').gte('reference_date', monthStart),
+                supabase.from('store_sellers').select('*').eq('is_active', true),
+                supabase.from('daily_checkins').select('store_id, seller_user_id').eq('reference_date', yesterday),
             ])
 
-            const salesMap: Record<string, StoreSales> = {}
+            const salesMap: Record<string, any> = {}
             for (const checkin of monthCheckins || []) {
-                if (!salesMap[checkin.store_id]) salesMap[checkin.store_id] = { ...EMPTY_SALES }
-                salesMap[checkin.store_id].total += (checkin.vnd_porta || 0) + (checkin.vnd_cart || 0) + (checkin.vnd_net || 0)
+                if (!salesMap[checkin.store_id]) salesMap[checkin.store_id] = { total: 0, leads: 0, agd: 0, vis: 0 }
+                salesMap[checkin.store_id].total += (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0)
+                salesMap[checkin.store_id].leads += (checkin.leads_prev_day || 0)
+                salesMap[checkin.store_id].agd += (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0)
+                salesMap[checkin.store_id].vis += (checkin.visit_prev_day || 0)
             }
 
             const sellerMap = new Map<string, number>()
-            for (const m of sellerMemberships || []) sellerMap.set(m.store_id, (sellerMap.get(m.store_id) || 0) + 1)
+            for (const m of sellers || []) sellerMap.set(m.store_id, (sellerMap.get(m.store_id) || 0) + 1)
 
             const checkedInMap = new Map<string, number>()
             for (const c of todayCheckins || []) checkedInMap.set(c.store_id, (checkedInMap.get(c.store_id) || 0) + 1)
 
             const diagnosticsMap: Record<string, StoreDiagnostic> = {}
+            const daysElapsed = now.getDate()
+            const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+
             for (const store of stores) {
-                const sales = salesMap[store.id]?.total || 0
+                const s = salesMap[store.id] || { total: 0, leads: 0, agd: 0, vis: 0 }
                 const goal = goals.find(item => item.store_id === store.id)?.target || 0
+                const proj = daysElapsed > 0 ? Math.round((s.total / daysElapsed) * totalDays) : 0
                 diagnosticsMap[store.id] = {
-                    id: store.id, name: store.name, sales, goal,
-                    pacing: goal > 0 ? Math.round((sales / goal) * 100) : 0,
+                    id: store.id, name: store.name, 
+                    sales: s.total, leads: s.leads, agd: s.agd, vis: s.vis,
+                    goal, 
+                    gap: Math.max(goal - s.total, 0),
+                    proj,
+                    pacing: goal > 0 ? Math.round((s.total / goal) * 100) : 0,
                     sellers: sellerMap.get(store.id) || 0,
                     checkedInToday: checkedInMap.get(store.id) || 0,
                 }
             }
-            setStoreSales(salesMap); setDiagnostics(diagnosticsMap)
+            setDiagnostics(diagnosticsMap)
         } finally { setNetworkLoading(false); setIsRefetching(false) }
     }, [stores, goals])
 
     useEffect(() => { if (!storesLoading && !goalsLoading) fetchNetworkSnapshot() }, [storesLoading, goalsLoading, fetchNetworkSnapshot])
 
     const stats = useMemo(() => {
-        const totalSales = Object.values(storeSales).reduce((sum, item) => sum + item.total, 0)
-        const totalGoal = goals.reduce((sum, item) => sum + item.target, 0)
+        const dVals = Object.values(diagnostics)
+        const totalSales = dVals.reduce((sum, item) => sum + item.sales, 0)
+        const totalGoal = dVals.reduce((sum, item) => sum + item.goal, 0)
         return {
             totalSales, globalPacing: totalGoal > 0 ? Math.round((totalSales / totalGoal) * 100) : 0,
             unread: notifications.filter(item => !item.read).length,
-            topStores: [...stores].map(s => diagnostics[s.id] || { id: s.id, name: s.name, sales: 0, goal: 0, pacing: 0, sellers: 0, checkedInToday: 0 }).sort((a, b) => b.sales - a.sales)
+            topStores: dVals.sort((a, b) => b.sales - a.sales)
         }
-    }, [storeSales, goals, notifications, stores, diagnostics])
+    }, [diagnostics, goals, notifications])
 
     if (storesLoading || goalsLoading || networkLoading) return <div className="h-full w-full flex items-center justify-center bg-white"><RefreshCw className="animate-spin text-brand-primary" /></div>
 
@@ -93,7 +109,7 @@ export default function PainelConsultor() {
             {/* Header - Fixed Grid 8pts */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-mx-md mb-2">
                 <div>
-                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">GESTÃO DE CLUSTER • LIVE</span>
+                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">VISÃO GERAL MULTI-LOJA • REDE</span>
                     <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">Painel de Controle</h1>
                 </div>
                 <div className="flex items-center gap-mx-md">
@@ -102,9 +118,9 @@ export default function PainelConsultor() {
                     </button>
                     <div className="grid grid-cols-4 gap-mx-sm">
                         {[
-                            { label: 'NODES', value: stores.length, icon: Building2, tone: 'text-mx-indigo-600' },
+                            { label: 'LOJAS', value: stores.length, icon: Building2, tone: 'text-mx-indigo-600' },
                             { label: 'VENDAS', value: stats.totalSales, icon: Car, tone: 'text-status-success' },
-                            { label: 'PACING', value: `${stats.globalPacing}%`, icon: Target, tone: 'text-status-warning' },
+                            { label: 'ATINGIMENTO', value: `${stats.globalPacing}%`, icon: Target, tone: 'text-status-warning' },
                             { label: 'INBOX', value: stats.unread, icon: Zap, tone: 'text-status-error' },
                         ].map(item => (
                             <div key={item.label} className="flex flex-col items-center justify-center w-24 h-24 rounded-mx-2xl bg-white border border-border-default shadow-mx-sm group hover:border-brand-primary transition-all">
@@ -123,8 +139,8 @@ export default function PainelConsultor() {
                     {/* Action Cards - Uniform Size */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-md">
                         {[
-                            { to: '/lojas', label: 'Unidades', desc: 'Gerenciar Nodes', icon: Building2 },
-                            { to: '/funil', label: 'Funil', desc: 'Conversão Real', icon: TrendingUp },
+                            { to: '/lojas', label: 'Unidades', desc: 'Gerenciar Lojas', icon: Building2 },
+                            { to: '/relatorio-matinal', label: 'Matinal', desc: 'Motor Operacional', icon: TrendingUp },
                             { to: '/notificacoes', label: 'Inbox', desc: 'Alertas Ativos', icon: Zap },
                             { to: '/configuracoes', label: 'Ajustes', desc: 'System Core', icon: Settings },
                         ].map(action => (
@@ -143,39 +159,47 @@ export default function PainelConsultor() {
                     {/* Run-rate Table - Semantic Align */}
                     <Card className="flex-1 overflow-hidden border-none shadow-mx-lg rounded-[2.5rem]">
                         <CardHeader className="flex-row items-center justify-between border-b border-border-subtle bg-mx-slate-50/30 p-mx-lg">
-                            <div><CardTitle className="text-2xl font-black uppercase tracking-tight">Run-rate por Unidade</CardTitle><CardDescription className="font-bold text-text-tertiary">Mapeamento em tempo real do escoamento.</CardDescription></div>
-                            <Link to="/lojas"><button className="mx-button-primary !h-12 !px-8">VER REDE</button></Link>
+                            <div><CardTitle className="text-2xl font-black uppercase tracking-tight">Raio-X da Rede MX</CardTitle><CardDescription className="font-bold text-text-tertiary">Mapeamento em tempo real do funil e escoamento.</CardDescription></div>
+                            <Link to="/lojas"><button className="mx-button-primary !h-12 !px-8">VER LOJAS</button></Link>
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left">
+                            <table className="w-full text-left min-w-[900px]">
                                 <thead className="bg-mx-slate-50/50 border-b border-border-default">
                                     <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
-                                        <th className="px-mx-xl py-mx-lg">Unidade Operacional</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Volume</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Pacing</th>
-                                        <th className="px-mx-md py-mx-lg text-center">Tropa</th>
-                                        <th className="px-mx-xl py-mx-lg text-right">Ação</th>
+                                        <th className="px-mx-xl py-mx-lg">Unidade</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Leads</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Agd</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Vis</th>
+                                        <th className="px-mx-md py-mx-lg text-center text-brand-primary">VND</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Meta</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Gap</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Proj</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Status</th>
+                                        <th className="px-mx-md py-mx-lg text-center">Disciplina</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-subtle">
                                     {stats.topStores.map(store => (
-                                        <tr key={store.id} className="hover:bg-mx-slate-50/30 transition-colors group h-24">
-                                            <td className="px-mx-xl py-4">
+                                        <tr key={store.id} className="hover:bg-mx-slate-50/30 transition-colors group h-20">
+                                            <td className="px-mx-xl py-2">
                                                 <div className="flex items-center gap-mx-md">
-                                                    <div className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-lg group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-sm">{store.name.charAt(0)}</div>
-                                                    <div><p className="font-black text-base text-text-primary uppercase leading-none mb-1">{store.name}</p><p className="text-[9px] font-black text-text-tertiary uppercase tracking-widest">Node ID {store.id.slice(0,4)}</p></div>
+                                                    <div className="w-10 h-10 rounded-mx-lg bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-sm">{store.name.charAt(0)}</div>
+                                                    <div><p className="font-black text-sm text-text-primary uppercase leading-none mb-1">{store.name}</p></div>
                                                 </div>
                                             </td>
-                                            <td className="px-mx-md py-4 text-center font-black text-xl font-mono-numbers text-text-primary">{store.sales}</td>
-                                            <td className="px-mx-md py-4 text-center">
-                                                <Badge className={cn("text-[10px] font-black px-3 py-1 rounded-full", store.pacing >= 100 ? "bg-status-success-surface text-status-success" : "bg-status-warning-surface text-status-warning")}>
+                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.leads}</td>
+                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.agd}</td>
+                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.vis}</td>
+                                            <td className="px-mx-md py-2 text-center font-black text-lg font-mono-numbers text-brand-primary">{store.sales}</td>
+                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-text-secondary">{store.goal}</td>
+                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-status-error">{store.gap}</td>
+                                            <td className="px-mx-md py-2 text-center font-black text-sm font-mono-numbers text-status-info">{store.proj}</td>
+                                            <td className="px-mx-md py-2 text-center">
+                                                <Badge className={cn("text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest", store.pacing >= 100 ? "bg-status-success-surface text-status-success" : "bg-status-warning-surface text-status-warning")}>
                                                     {store.pacing}%
                                                 </Badge>
                                             </td>
-                                            <td className="px-mx-md py-4 text-center font-black text-sm text-text-tertiary font-mono-numbers">{store.checkedInToday}/{store.sellers}</td>
-                                            <td className="px-mx-xl py-4 text-right">
-                                                <Link to={`/loja?id=${store.id}`} className="inline-flex items-center gap-1 font-black text-[10px] text-brand-primary uppercase hover:underline">Auditar <ChevronRight size={14} /></Link>
-                                            </td>
+                                            <td className="px-mx-md py-2 text-center font-black text-xs text-text-tertiary font-mono-numbers">{store.checkedInToday}/{store.sellers}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -190,11 +214,11 @@ export default function PainelConsultor() {
                         <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/30 via-transparent to-transparent pointer-events-none" />
                         <div className="relative z-10 flex items-center justify-between mb-mx-xl">
                             <div className="w-16 h-16 rounded-mx-2xl bg-white/10 border border-white/10 flex items-center justify-center backdrop-blur-xl shadow-mx-lg"><Activity size={32} className="text-brand-primary" /></div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">NETWORK HEALTH</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">SAÚDE DA OPERAÇÃO</span>
                         </div>
                         <div className="relative z-10 mb-mx-xl">
                             <p className="text-8xl font-black tracking-tighter leading-none mb-4">{stats.globalPacing}%</p>
-                            <p className="text-sm font-bold text-white/50 italic leading-snug">Run-rate médio do cluster contra o objetivo tático mensal.</p>
+                            <p className="text-sm font-bold text-white/50 italic leading-snug">Projeção média da rede contra o objetivo tático mensal oficial.</p>
                         </div>
                         <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-1 shadow-inner relative z-10 border border-white/5">
                             <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(stats.globalPacing, 100)}%` }} transition={{ duration: 2 }} className="h-full bg-brand-primary rounded-full shadow-[0_0_20px_rgba(79,70,229,0.8)]" />
@@ -211,8 +235,8 @@ export default function PainelConsultor() {
                         </CardHeader>
                         <CardContent className="p-mx-lg space-y-mx-md">
                             {[
-                                { label: 'METAS PENDENTES', val: 3, tone: 'bg-status-error' },
-                                { label: 'CHECK-INS ATRASADOS', val: 5, tone: 'bg-status-warning' },
+                                { label: 'METAS NÃO DEFINIDAS', val: 3, tone: 'bg-status-error' },
+                                { label: 'VENDEDORES SEM REGISTRO', val: 5, tone: 'bg-status-warning' },
                             ].map(log => (
                                 <div key={log.label} className="flex items-center justify-between p-mx-lg rounded-mx-2xl bg-mx-slate-50/50 border border-border-subtle group hover:bg-white hover:shadow-mx-md transition-all cursor-pointer">
                                     <span className="text-[10px] font-black text-text-primary tracking-widest">{log.label}</span>

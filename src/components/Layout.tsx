@@ -17,57 +17,47 @@ type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
 const navConfig: Record<string, NavCategory[]> = {
   admin: [
     {
-      category: 'Cockpit', icon: <Grid size={22} />,
+      category: 'Consultoria', icon: <Grid size={22} />,
       items: [
-        { label: 'Dashboard', path: '/painel', icon: <LayoutDashboard size={16} /> },
+        { label: 'Visão Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
         { label: 'Lojas', path: '/lojas', icon: <Database size={16} /> },
+        { label: 'Equipes', path: '/equipe', icon: <Users size={16} /> },
+        { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
+      ]
+    },
+    {
+      category: 'Metodologia', icon: <Target size={22} />,
+      items: [
+        { label: 'Matinal', path: '/relatorio-matinal', icon: <Presentation size={16} /> },
         { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
       ]
     },
     {
-      category: 'Vendas', icon: <PhoneCall size={22} />,
+      category: 'Sistema', icon: <Settings size={22} />,
       items: [
-        { label: 'LeadOps', path: '/leadops', icon: <PhoneCall size={16} /> },
-        { label: 'Leads', path: '/leads', icon: <Users size={16} /> },
-        { label: 'Funil', path: '/funil', icon: <CheckSquare size={16} /> },
-        { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
+        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
-    },
+    }
+  ],
+  gerente: [
     {
-      category: 'Operação', icon: <Target size={22} />,
+      category: 'Minha Loja', icon: <Home size={22} />,
       items: [
+        { label: 'Rotina Diária', path: '/rotina', icon: <CheckSquare size={16} /> },
+        { label: 'Painel da Loja', path: '/loja', icon: <LayoutDashboard size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
-        { label: 'Tarefas', path: '/tarefas', icon: <CheckSquare size={16} /> },
-        { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
-        { label: 'Check-in', path: '/checkin', icon: <CheckSquare size={16} /> },
-        { label: 'Matinal', path: '/relatorio-matinal', icon: <Presentation size={16} /> },
-      ]
-    },
-    {
-      category: 'Ativos', icon: <Briefcase size={22} />,
-      items: [
-        { label: 'Financeiro', path: '/financeiro', icon: <Wallet size={16} /> },
-        { label: 'Estoque', path: '/inventory', icon: <Car size={16} /> },
-        { label: 'Produtos', path: '/produtos', icon: <Folder size={16} /> },
-        { label: 'Comissões', path: '/configuracoes/comissoes', icon: <FileSignature size={16} /> },
-      ]
-    },
-    {
-      category: 'BI', icon: <Activity size={22} />,
-      items: [
-        { label: 'Performance', path: '/relatorios/performance-vendas', icon: <Briefcase size={16} /> },
-        { label: 'Vendedores', path: '/relatorios/performance-vendedores', icon: <Medal size={16} /> },
-        { label: 'IA Diagnostics', path: '/ia-diagnostics', icon: <Bot size={16} /> },
+        { label: 'Check-ins', path: '/checkin', icon: <CheckSquare size={16} /> },
+        { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
       ]
     }
   ],
   vendedor: [
     {
-      category: 'Minha Loja', icon: <Home size={22} />,
+      category: 'Operação', icon: <Home size={22} />,
       items: [
-        { label: 'Check-in', path: '/checkin' },
-        { label: 'Histórico', path: '/historico' },
-        { label: 'Ranking', path: '/ranking' },
+        { label: 'Lançamento', path: '/checkin', icon: <CheckSquare size={16} /> },
+        { label: 'Histórico', path: '/historico', icon: <History size={16} /> },
+        { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
       ]
     }
   ]
@@ -201,7 +191,7 @@ export default function Layout() {
           <NavLink to="/painel" className="text-white/40 [&.active]:text-white transition-colors"><LayoutDashboard size={24} /></NavLink>
           <NavLink to="/lojas" className="text-white/40 [&.active]:text-white transition-colors"><Database size={24} /></NavLink>
           <button onClick={() => setMobileMenuOpen(true)} className="w-12 h-12 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg"><Menu size={24} /></button>
-          <NavLink to="/leadops" className="text-white/40 [&.active]:text-white transition-colors"><PhoneCall size={24} /></NavLink>
+          <NavLink to="/ranking" className="text-white/40 [&.active]:text-white transition-colors"><Trophy size={24} /></NavLink>
           <NavLink to="/perfil" className="text-white/40 [&.active]:text-white transition-colors"><User size={24} /></NavLink>
         </div>
       </nav>

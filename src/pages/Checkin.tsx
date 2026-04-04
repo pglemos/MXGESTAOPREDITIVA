@@ -168,11 +168,18 @@ export default function Checkin() {
                         <div className="w-2 h-10 bg-pure-black rounded-full shadow-[0_0_15px_rgba(0,0,0,0.2)]" />
                         <h1 className="text-[38px] font-black tracking-tighter leading-none">Terminal de Registro</h1>
                     </div>
-                    <div className="flex items-center gap-3 pl-6 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60 uppercase">
-                            Performance de Hoje • {dateStr}
-                        </p>
+                    <div className="flex flex-col gap-2 pl-6 mt-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
+                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">
+                                Data de Referência: {dateStr} • Prazo Operacional: 09:30
+                            </p>
+                        </div>
+                        <div className="inline-flex mt-1">
+                            <p className="text-rose-600 text-[9px] font-black uppercase tracking-widest bg-rose-50 border border-rose-100 px-3 py-1 rounded-full">
+                                Atrasos geram status de SEM REGISTRO na rede
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -205,70 +212,53 @@ export default function Checkin() {
                 <div className="flex-1 space-y-12">
                     <form onSubmit={handleSubmit} className="space-y-14">
 
-                        {/* Prospecção & Fluxo */}
-                        <div className="space-y-8">
-                            <div className="flex items-center gap-4 px-2">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center border border-indigo-100 shadow-inner">
-                                    <Target size={20} className="text-indigo-600" strokeWidth={2.5} />
-                                </div>
-                                <div>
-                                    <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Captação & Entrada</h3>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Primeiro contato do dia</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <NumberInput label="Leads Acumulados" icon={Users} field="leads" bg="bg-indigo-50" color="text-indigo-600" />
-                                <NumberInput label="Entradas de Porta" icon={Car} field="vnd_porta" bg="bg-emerald-50" color="text-emerald-600" />
-                            </div>
-                        </div>
-
-                        {/* Agendamentos */}
-                        <div className="space-y-8">
-                            <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-inner">
-                                        <Globe size={20} className="text-blue-600" strokeWidth={2.5} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Agendamentos Ativos</h3>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Follow-ups operacionais</p>
-                                    </div>
-                                </div>
-                                <span className="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200">
-                                    Compromissos: {totals.agd_total}
-                                </span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <NumberInput label="Pela Carteira" icon={Users} field="agd_cart" bg="bg-blue-50" color="text-blue-600" />
-                                <NumberInput label="Pelo Digital" icon={Globe} field="agd_net" bg="bg-cyan-50" color="text-cyan-600" />
-                            </div>
-                        </div>
-
-                        {/* Fechamentos */}
+                        {/* Produção do Dia Anterior */}
                         <div className="space-y-8">
                             <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-inner">
-                                        <TrendingUp size={20} className="text-emerald-600" strokeWidth={2.5} />
+                                        <History size={20} className="text-emerald-600" strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Performace de Fechamento</h3>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Sucesso operacional</p>
+                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Produção do Dia Anterior</h3>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">O que aconteceu ontem</p>
                                     </div>
                                 </div>
                                 <span className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200">
-                                    Vendas Totais: {totals.vnd_total}
+                                    Vendas Totais (Ontem): {totals.vnd_total}
                                 </span>
                             </div>
                             <div className="bg-gray-50/30 border border-gray-100 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                                    <NumberInput label="Vendas Carteira" icon={Users} field="vnd_cart" bg="bg-emerald-50" color="text-emerald-600" />
-                                    <NumberInput label="Vendas Digital" icon={Globe} field="vnd_net" bg="bg-emerald-50" color="text-emerald-600" />
+                                    <NumberInput label="Leads Recebidos (Ontem)" icon={Users} field="leads" bg="bg-indigo-50" color="text-indigo-600" />
+                                    <NumberInput label="Visitas Realizadas (Ontem)" icon={Eye} field="visitas" bg="bg-amber-50" color="text-amber-600" />
+                                    <NumberInput label="Vendas Porta (Ontem)" icon={Car} field="vnd_porta" bg="bg-emerald-50" color="text-emerald-600" />
+                                    <NumberInput label="Vendas Carteira (Ontem)" icon={Users} field="vnd_cart" bg="bg-emerald-50" color="text-emerald-600" />
+                                    <NumberInput label="Vendas Digital (Ontem)" icon={Globe} field="vnd_net" bg="bg-emerald-50" color="text-emerald-600" />
                                 </div>
-                                <div className="mt-8 relative z-10">
-                                    <NumberInput label="Visitas Realizadas (Fluxo)" icon={Eye} field="visitas" bg="bg-amber-50" color="text-amber-600" />
+                            </div>
+                        </div>
+
+                        {/* Agenda do Dia Atual */}
+                        <div className="space-y-8 mt-14">
+                            <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-inner">
+                                        <CalendarDays size={20} className="text-blue-600" strokeWidth={2.5} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-pure-black text-sm font-black uppercase tracking-[0.2em] leading-none">Agenda do Dia Atual</h3>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">O que vai acontecer hoje</p>
+                                    </div>
                                 </div>
+                                <span className="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200">
+                                    Compromissos (Hoje): {totals.agd_total}
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <NumberInput label="Agendamentos Carteira (Hoje)" icon={Users} field="agd_cart" bg="bg-blue-50" color="text-blue-600" />
+                                <NumberInput label="Agendamentos Digital (Hoje)" icon={Globe} field="agd_net" bg="bg-cyan-50" color="text-cyan-600" />
                             </div>
                         </div>
 
@@ -387,7 +377,7 @@ export default function Checkin() {
                                 <span className="text-sm font-black text-indigo-400 uppercase tracking-[0.2em]">Unidades</span>
                             </div>
                             <p className="text-gray-400 text-sm font-bold leading-relaxed max-w-[240px]">
-                                Sua contribuição hoje representa <span className="text-white font-black">{totals.vnd_total} fechamentos</span> reportados ao cluster central.
+                                Sua contribuição hoje representa <span className="text-white font-black">{totals.vnd_total} fechamentos</span> reportados à rede.
                             </p>
                         </div>
                     </div>

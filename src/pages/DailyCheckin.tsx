@@ -35,7 +35,7 @@ export default function TerminalCheckin() {
         agd_total: Number(agd), visitas: Number(vis), leads: Number(leads),
         date: new Date().toISOString().split('T')[0]
       })
-      toast.success('Check-in Consolidado no Cluster!')
+      toast.success('Check-in Consolidado na Rede!')
     } catch (e) { toast.error('Falha na sincronização.') }
   }
 

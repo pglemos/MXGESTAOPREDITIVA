@@ -96,10 +96,10 @@ export default function DashboardLoja() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
-                <Stat icon={Target} label="Meta Mensal" value={metrics.meta} sub={`${metrics.atingimento}%`} bg="bg-mx-indigo-50" color="text-mx-indigo-600" trend="TRACKING" delay={0.1} />
-                <Stat icon={Car} label="Fechamentos" value={metrics.vendasMes} sub={`FALTAM ${metrics.faltaX}`} bg="bg-status-success-surface" color="text-status-success" delay={0.2} />
-                <Stat icon={TrendingUp} label="Projeção IA" value={metrics.projecao} bg="bg-status-info-surface" color="text-status-info" sub="PREDICTIVE" delay={0.3} />
-                <Stat icon={Users} label="Check-in Team" value={`${metrics.checkedInCount}/${(sellers || []).length}`} bg="bg-status-warning-surface" color="text-status-warning" sub="ONLINE" delay={0.4} />
+                <Stat icon={Target} label="Meta Oficial" value={metrics.meta} sub={`${metrics.atingimento}% Atingido`} bg="bg-mx-indigo-50" color="text-mx-indigo-600" trend="ALVO" delay={0.1} />
+                <Stat icon={Car} label="Acumulado (Vendido)" value={metrics.vendasMes} sub={`Faltam ${metrics.faltaX}`} bg="bg-status-success-surface" color="text-status-success" trend="REALIZADO" delay={0.2} />
+                <Stat icon={TrendingUp} label="Projeção" value={metrics.projecao} bg="bg-status-info-surface" color="text-status-info" sub={metrics.projecao >= metrics.meta ? 'Ritmo Saudável' : 'Ritmo Abaixo'} trend="ESTIMADO" delay={0.3} />
+                <Stat icon={Users} label="Check-ins" value={`${metrics.checkedInCount}/${(sellers || []).length}`} bg="bg-status-warning-surface" color="text-status-warning" sub={`${(sellers || []).length - metrics.checkedInCount} Sem Registro`} trend="OPERAÇÃO" delay={0.4} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0 pb-mx-2xl">
@@ -140,12 +140,16 @@ export default function DashboardLoja() {
                                     <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
                                         <th className="px-mx-xl py-mx-md w-16 text-center">#</th>
                                         <th className="py-mx-md">Consultor</th>
+                                        <th className="py-mx-md text-center">Status</th>
                                         <th className="py-mx-md text-center">Vendas</th>
                                         <th className="px-mx-xl py-mx-md text-right">Eficiência</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-subtle">
-                                    {(ranking || []).slice(0, 5).map((r, i) => (
+                                    {(ranking || []).slice(0, 5).map((r, i) => {
+                                        const seller = sellers?.find(s => s.id === r.user_id)
+                                        const isCheckedIn = seller?.checkin_today
+                                        return (
                                         <tr key={r.user_id} className="hover:bg-mx-slate-50/30 transition-colors h-20 group">
                                             <td className="px-mx-xl py-4 text-center font-black text-xs text-text-tertiary">{(i + 1).toString().padStart(2, '0')}</td>
                                             <td className="py-4">
@@ -154,13 +158,18 @@ export default function DashboardLoja() {
                                                     <p className="font-black text-sm text-text-primary uppercase tracking-tight">{r.user_name}</p>
                                                 </div>
                                             </td>
+                                            <td className="py-4 text-center">
+                                                <Badge variant="outline" className={cn("text-[9px] font-black tracking-widest uppercase border-none", isCheckedIn ? "bg-status-success-surface text-status-success" : "bg-status-error-surface text-status-error")}>
+                                                    {isCheckedIn ? 'Registrado' : 'Sem Registro'}
+                                                </Badge>
+                                            </td>
                                             <td className="py-4 text-center font-black text-lg font-mono-numbers text-text-primary">{r.vnd_total}</td>
                                             <td className="px-mx-xl py-4 text-right">
                                                 <span className={cn("font-mono-numbers font-black text-base", r.atingimento >= 100 ? 'text-status-success' : 'text-status-warning')}>{r.atingimento}%</span>
                                             </td>
                                         </tr>
-                                    ))}
-                                    {(ranking || []).length === 0 && <tr><td colSpan={4} className="py-20 text-center mx-text-caption opacity-40 uppercase text-text-secondary font-black">Aguardando dados de performance...</td></tr>}
+                                    )})}
+                                    {(ranking || []).length === 0 && <tr><td colSpan={5} className="py-20 text-center mx-text-caption opacity-40 uppercase text-text-secondary font-black">Aguardando dados de performance...</td></tr>}
                                 </tbody>
                             </table>
                         </div>

@@ -12,10 +12,9 @@ export default function GerenteFeedback() {
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
-    const [form, setForm] = useState({ seller_id: '', positives: '', attention_points: '', action: '', notes: '' })
+    const [form, setForm] = useState({ seller_id: '', meta_compromisso: '', positives: '', attention_points: '', action: '', notes: '' })
     const [saving, setSaving] = useState(false)
 
-    // 1. & 11. Search Filter & Performance
     const filteredFeedbacks = useMemo(() => {
         return feedbacks.filter(f => 
             (f as any).seller_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -33,7 +32,7 @@ export default function GerenteFeedback() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!form.seller_id || !form.positives || !form.attention_points || !form.action) {
+        if (!form.seller_id || !form.meta_compromisso || !form.positives || !form.attention_points || !form.action) {
             toast.error('Preencha os campos mandatórios de mentoria.')
             return
         }
@@ -43,7 +42,7 @@ export default function GerenteFeedback() {
         if (error) { toast.error(error); return }
         toast.success('Feedback enviado para o cockpit do vendedor!')
         setShowForm(false)
-        setForm({ seller_id: '', positives: '', attention_points: '', action: '', notes: '' })
+        setForm({ seller_id: '', meta_compromisso: '', positives: '', attention_points: '', action: '', notes: '' })
     }
 
     if (loading) return (
@@ -56,7 +55,6 @@ export default function GerenteFeedback() {
     return (
         <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
 
-            {/* Header / 10. Typography fixed */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
@@ -132,6 +130,20 @@ export default function GerenteFeedback() {
                                             <option value="">Selecione o especialista...</option>
                                             {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="flex items-center gap-2 text-[10px] font-black text-amber-600 uppercase tracking-widest ml-2 leading-none">
+                                            <Target size={14} /> Meta Compromisso Semanal
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={form.meta_compromisso}
+                                            onChange={e => setForm(p => ({ ...p, meta_compromisso: e.target.value }))}
+                                            required
+                                            placeholder="Sugerido: Média dos últimos 15 dias..."
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-pure-black font-black text-sm focus:outline-none focus:bg-white focus:border-amber-400 focus:shadow-xl transition-all shadow-inner"
+                                        />
                                     </div>
 
                                     <div className="space-y-4">
@@ -235,8 +247,13 @@ export default function GerenteFeedback() {
                                     <p className="text-sm font-bold text-gray-500 line-clamp-2 leading-relaxed italic">"{f.attention_points}"</p>
                                 </div>
                                 <div className="pt-6 border-t border-gray-50">
-                                    <div className="flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-3">
-                                        <Target size={14} strokeWidth={2.5} /> Missão Definida
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">
+                                            <Target size={14} strokeWidth={2.5} /> Missão Definida
+                                        </div>
+                                        <div className="text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                                            Meta: {(f as any).meta_compromisso || 0}
+                                        </div>
                                     </div>
                                     <p className="text-base font-black text-pure-black leading-tight uppercase tracking-tight">{f.action}</p>
                                 </div>
@@ -253,7 +270,7 @@ export default function GerenteFeedback() {
                         </div>
                         <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter uppercase">Diário de Mentoria Vazio</h3>
                         <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">
-                            Nenhum registro de feedback localizado para "{searchTerm}" no cluster atual.
+                            Nenhum registro de feedback localizado para "{searchTerm}" na loja atual.
                         </p>
                         <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="px-10 py-4 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-3xl transition-all active:scale-95">
                             Iniciar Primeira Mentoria

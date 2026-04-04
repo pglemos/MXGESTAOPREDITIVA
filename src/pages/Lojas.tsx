@@ -39,7 +39,7 @@ export default function Lojas() {
         
         if (error) { toast.error(`Falha na implantação: ${error}`); return }
         
-        toast.success('Node operacional ativado no cluster!')
+        toast.success('Loja operacional ativada na rede!')
         setShowForm(false)
         setName(''); setEmail('')
     }
@@ -63,7 +63,7 @@ export default function Lojas() {
                     <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">Gestão de Unidades</h1>
                     <div className="flex items-center gap-2 mt-4">
                         <div className="w-2 h-2 rounded-full bg-status-success animate-pulse" />
-                        <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{stores.length} Nodes Ativos no Cluster</p>
+                        <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{stores.length} Lojas Ativas na Rede</p>
                     </div>
                 </div>
 
@@ -155,8 +155,8 @@ export default function Lojas() {
                 ) : (
                     <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-mx-slate-50/20 border-2 border-dashed border-border-default rounded-[3rem]">
                         <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-lg flex items-center justify-center mb-mx-lg"><Building2 size={48} className="text-mx-slate-200" /></div>
-                        <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Vácuo de Nodes</h3>
-                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhuma unidade operacional localizada na topologia do cluster.</p>
+                        <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Nenhuma Loja</h3>
+                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhuma unidade operacional localizada na rede atual.</p>
                     </div>
                 )}
             </div>

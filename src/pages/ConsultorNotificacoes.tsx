@@ -22,7 +22,7 @@ export default function ConsultorNotificacoes() {
         const { error } = await sendNotification({ ...form, target_store_id: form.target_type === 'store' ? form.target_store_id : undefined })
         setSaving(false)
         if (error) { toast.error(error); return }
-        toast.success('Broadcast disparado para o cluster!')
+        toast.success('Comunicado disparado para a rede!')
         setShowForm(false)
         setForm({ title: '', message: '', target_type: 'all', target_store_id: '' })
     }
@@ -173,7 +173,7 @@ export default function ConsultorNotificacoes() {
                                     type="submit" disabled={saving}
                                     className="w-full sm:w-auto px-12 py-5 rounded-full bg-rose-600 text-white font-black flex items-center justify-center gap-4 hover:bg-rose-700 hover:shadow-elevation transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
                                 >
-                                    {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <>Disparar no Cluster <Send size={18} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" /></>}
+                                    {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <>Disparar na Rede <Send size={18} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" /></>}
                                 </button>
                             </div>
                         </form>

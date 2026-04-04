@@ -14,9 +14,9 @@ export default function MorningReport() {
   const [isRefetching, setIsRefetching] = useState(false)
 
   const diagnostics = [
-    { title: 'Ritmo de Rede', value: 'Saudável', icon: CheckCircle2, color: 'text-status-success', bg: 'bg-status-success-surface', text: 'Cluster operando em 104% do pacing projetado.' },
+    { title: 'Ritmo de Rede', value: 'Saudável', icon: CheckCircle2, color: 'text-status-success', bg: 'bg-status-success-surface', text: 'Rede operando em 104% da projeção oficial.' },
     { title: 'Gargalo D0', value: 'Webmotors', icon: AlertTriangle, color: 'text-status-error', bg: 'bg-status-error-surface', text: 'Tempo de resposta médio subiu para 18 minutos.' },
-    { title: 'Top Performer', value: 'João Silva', icon: Star, color: 'text-status-warning', bg: 'bg-status-warning-surface', text: 'Conversão de leads quentes acima da média do cluster.' },
+    { title: 'Top Performer', value: 'João Silva', icon: Star, color: 'text-status-warning', bg: 'bg-status-warning-surface', text: 'Conversão de leads quentes acima da média da rede.' },
   ]
 
   return (

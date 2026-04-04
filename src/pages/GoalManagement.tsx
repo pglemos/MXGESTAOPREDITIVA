@@ -85,7 +85,7 @@ export default function GoalManagement() {
                         <div className="relative z-10">
                             <div className="flex items-center gap-mx-sm mb-mx-xl">
                                 <div className="w-14 h-14 rounded-mx-lg bg-brand-primary-surface text-brand-primary flex items-center justify-center shadow-inner border border-mx-indigo-100 transition-transform group-hover:scale-110 group-hover:rotate-3"><Target size={28} strokeWidth={2.5} /></div>
-                                <div><h3 className="text-xl font-black text-text-primary tracking-tighter leading-none mb-1">Meta Global</h3><p className="mx-text-caption !text-[8px]">Objetivo do Cluster</p></div>
+                                <div><h3 className="text-xl font-black text-text-primary tracking-tighter leading-none mb-1">Meta Global</h3><p className="mx-text-caption !text-[8px]">Objetivo da Rede</p></div>
                             </div>
                             <div className="mb-mx-xl relative">
                                 <div className="absolute left-8 top-1/2 -translate-y-1/2 pointer-events-none"><span className="text-2xl font-black text-mx-slate-200">R$</span></div>

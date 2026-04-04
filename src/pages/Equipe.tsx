@@ -102,7 +102,7 @@ export default function Team() {
           <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-mx-slate-50/20 border-2 border-dashed border-border-default rounded-[3rem]">
             <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-lg flex items-center justify-center mb-mx-lg"><Users size={48} className="text-mx-slate-200" /></div>
             <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Vácuo de Tropa</h3>
-            <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhum especialista localizado na topologia atual do cluster.</p>
+            <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhum especialista localizado na loja.</p>
           </div>
         )}
       </div>

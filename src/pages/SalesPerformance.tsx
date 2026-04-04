@@ -43,7 +43,7 @@ export default function SalesPerformance() {
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
                         <h1 className="mx-heading-hero">Análise de <span className="text-brand-primary">Performance</span></h1>
                     </div>
-                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Business Intelligence • Cluster Hub</p>
+                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Business Intelligence • Rede MX</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">

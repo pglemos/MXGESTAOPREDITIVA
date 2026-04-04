@@ -115,7 +115,7 @@ export default function CommissionRules() {
                 <CardHeader className="bg-mx-slate-50/30">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-10 h-10 rounded-mx-md bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><FileSignature size={20} /></div>
-                        <div><CardTitle className="!text-lg">Motor Financeiro</CardTitle><p className="mx-text-caption !text-[8px]">Diretrizes de Performance do Cluster</p></div>
+                        <div><CardTitle className="!text-lg">Motor Financeiro</CardTitle><p className="mx-text-caption !text-[8px]">Diretrizes de Performance da Rede</p></div>
                     </div>
                 </CardHeader>
                 <div className="overflow-x-auto no-scrollbar">

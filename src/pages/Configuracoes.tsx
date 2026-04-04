@@ -16,7 +16,7 @@ export default function Configuracoes() {
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-10 text-center">
                 <ShieldCheck size={48} className="text-gray-200 mb-6" />
                 <h3 className="text-2xl font-black text-pure-black tracking-tight mb-2">Acesso Restrito</h3>
-                <p className="text-gray-400 text-sm font-bold max-w-xs mx-auto">Este cockpit de configuração é exclusivo para administradores do cluster.</p>
+                <p className="text-gray-400 text-sm font-bold max-w-xs mx-auto">Este cockpit de configuração é exclusivo para administradores da rede.</p>
             </div>
         )
     }
@@ -43,7 +43,7 @@ export default function Configuracoes() {
                         <LayoutDashboard size={20} />
                     </Link>
                     <div className="flex items-center justify-center gap-3 px-8 py-4 rounded-full border border-gray-100 bg-white text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 shadow-sm">
-                        Node Cluster 01
+                        Loja Matriz
                     </div>
                 </div>
             </div>
@@ -91,7 +91,7 @@ export default function Configuracoes() {
                                 <h3 className="text-3xl font-black text-pure-black tracking-tighter mb-4 uppercase">Expansão de Nucleo</h3>
                                 {/* 6. Contrast fix */}
                                 <p className="text-gray-500 font-bold text-sm leading-relaxed">
-                                    Configurações avançadas de benchmarks, automações de SDR e regras de IA estão sendo recalibradas para a próxima wave do cluster.
+                                    Configurações avançadas de benchmarks e automações estão sendo recalibradas para o próximo ciclo da rede.
                                 </p>
                             </div>
                             <div className="pt-8 border-t border-gray-50">

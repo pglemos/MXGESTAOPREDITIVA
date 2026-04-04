@@ -121,29 +121,34 @@ export default function App() {
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
             <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}><GerentePDI /></Suspense>} />
+            <Route path="rotina" element={<Suspense fallback={<Spinner />}><RotinaGerente /></Suspense>} />
 
-            {/* Consultor */}
+            {/* Consultor / Admin Core */}
             <Route path="painel" element={<Suspense fallback={<Spinner />}><PainelConsultor /></Suspense>} />
             <Route path="lojas" element={<Suspense fallback={<Spinner />}><Lojas /></Suspense>} />
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
-            <Route path="agenda" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Agenda />)}</Suspense>} />
-            <Route path="ia-diagnostics" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<AiDiagnostics />)}</Suspense>} />
-            <Route path="configuracoes/comissoes" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CommissionRules />)}</Suspense>} />
-            <Route path="communication" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Communication />)}</Suspense>} />
-            <Route path="relatorios/vendas-cruzados" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CrossSalesReports />)}</Suspense>} />
-            <Route path="financeiro" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Financeiro />)}</Suspense>} />
-            <Route path="inventory" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Inventory />)}</Suspense>} />
-            <Route path="leadops" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<LeadOps />)}</Suspense>} />
-            <Route path="leads" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Leads />)}</Suspense>} />
-            <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<MorningReport />)}</Suspense>} />
-            <Route path="reports" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
-            <Route path="reports/stock" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
-            <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SalesPerformance />)}</Suspense>} />
-            <Route path="relatorios/performance-vendedores" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SellerPerformance />)}</Suspense>} />
-            <Route path="tarefas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Tarefas />)}</Suspense>} />
-            <Route path="gamification" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Gamification />)}</Suspense>} />
-            <Route path="activities" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Activities />)}</Suspense>} />
+            <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
+
+            {/* Módulos Legados Isolados */}
+            <Route path="legacy">
+              <Route path="agenda" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Agenda />)}</Suspense>} />
+              <Route path="ia-diagnostics" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<AiDiagnostics />)}</Suspense>} />
+              <Route path="configuracoes/comissoes" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CommissionRules />)}</Suspense>} />
+              <Route path="communication" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Communication />)}</Suspense>} />
+              <Route path="relatorios/vendas-cruzados" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CrossSalesReports />)}</Suspense>} />
+              <Route path="financeiro" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Financeiro />)}</Suspense>} />
+              <Route path="inventory" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Inventory />)}</Suspense>} />
+              <Route path="leadops" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<LeadOps />)}</Suspense>} />
+              <Route path="leads" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Leads />)}</Suspense>} />
+              <Route path="reports" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
+              <Route path="reports/stock" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
+              <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SalesPerformance />)}</Suspense>} />
+              <Route path="relatorios/performance-vendedores" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SellerPerformance />)}</Suspense>} />
+              <Route path="tarefas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Tarefas />)}</Suspense>} />
+              <Route path="gamification" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Gamification />)}</Suspense>} />
+              <Route path="activities" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Activities />)}</Suspense>} />
+            </Route>
 
             <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
           </Route>
