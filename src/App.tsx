@@ -28,6 +28,7 @@ const GoalManagement = lazy(() => import('@/pages/GoalManagement'))
 const Funil = lazy(() => import('@/pages/Funil'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
+const PDIPrint = lazy(() => import('@/pages/PDIPrint'))
 const GerenteTreinamentos = lazy(() => import('@/pages/GerenteTreinamentos'))
 const RotinaGerente = lazy(() => import('@/pages/RotinaGerente'))
 
@@ -123,6 +124,7 @@ export default function App() {
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
             <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}><GerentePDI /></Suspense>} />
+            <Route path="pdi/:id/print" element={<Suspense fallback={<Spinner />}><PDIPrint /></Suspense>} />
             <Route path="rotina" element={<Suspense fallback={<Spinner />}><RotinaGerente /></Suspense>} />
 
             {/* Consultor / Admin Core */}

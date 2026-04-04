@@ -1,8 +1,9 @@
 import { usePDIs } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
 import { useState, useCallback, useMemo } from 'react'
-import { Plus, Target, CheckCircle2, Calendar, User, TrendingUp, Search, Briefcase, X, MessageSquare, AlertCircle, Clock, RefreshCw } from 'lucide-react'
+import { Plus, Target, CheckCircle2, Calendar, User, TrendingUp, Search, Briefcase, X, MessageSquare, AlertCircle, Clock, RefreshCw, Printer, Award, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +17,7 @@ const statusCfg = {
 export default function GerentePDI() {
     const { pdis, loading, createPDI, updateStatus, refetch } = usePDIs()
     const { sellers } = useTeam()
+    const navigate = useNavigate()
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [saving, setSaving] = useState(false)
@@ -26,7 +28,21 @@ export default function GerentePDI() {
         meta_6m: '',
         meta_12m: '',
         meta_24m: '',
+        comp_prospeccao: 5,
+        comp_abordagem: 5,
+        comp_demonstracao: 5,
+        comp_fechamento: 5,
+        comp_crm: 5,
+        comp_digital: 5,
+        comp_disciplina: 5,
+        comp_organizacao: 5,
+        comp_negociacao: 5,
+        comp_produto: 5,
         action_1: '',
+        action_2: '',
+        action_3: '',
+        action_4: '',
+        action_5: '',
         due_date: ''
     })
 
@@ -34,7 +50,7 @@ export default function GerentePDI() {
     const filteredPDIs = useMemo(() => {
         const term = searchTerm.toLowerCase()
         return (pdis || []).filter(p =>
-            p.meta_6m?.toLowerCase().includes(term) ||
+            (p as any).meta_6m?.toLowerCase().includes(term) ||
             (p as any).seller_name?.toLowerCase().includes(term)
         )
     }, [pdis, searchTerm])
@@ -48,19 +64,24 @@ export default function GerentePDI() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!form.seller_id || !form.meta_6m || !form.meta_12m || !form.action_1) {
+        if (!form.seller_id || !form.meta_6m || !form.action_1) {
             toast.error('Preencha as diretrizes mandatórias do PDI MX.')
             return
         }
         setSaving(true)
-        const { error } = await createPDI(form)
+        const { error } = await createPDI(form as any)
         setSaving(false)
         if (error) {
             toast.error(error)
         } else {
-            toast.success('Plano de Desenvolvimento ativado com horizontes MX!')
+            toast.success('PDI Oficial MX ativado com sucesso!')
             setShowForm(false)
-            setForm({ seller_id: '', meta_6m: '', meta_12m: '', meta_24m: '', action_1: '', due_date: '' })
+            setForm({
+                seller_id: '', meta_6m: '', meta_12m: '', meta_24m: '',
+                comp_prospeccao: 5, comp_abordagem: 5, comp_demonstracao: 5, comp_fechamento: 5, comp_crm: 5,
+                comp_digital: 5, comp_disciplina: 5, comp_organizacao: 5, comp_negociacao: 5, comp_produto: 5,
+                action_1: '', action_2: '', action_3: '', action_4: '', action_5: '', due_date: ''
+            })
         }
     }
 
@@ -108,7 +129,7 @@ export default function GerentePDI() {
                     </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-pure-black text-white font-black hover:bg-black shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-pure-black text-white font-black hover:bg-brand-secondary-hover shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo PDI
@@ -118,8 +139,8 @@ export default function GerentePDI() {
 
             <AnimatePresence>
                 {showForm && (
-                    <motion.div initial={{ opacity: 0, y: -20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 z-50 rounded-[3rem] p-1 bg-gradient-to-b from-indigo-50 to-white shadow-3xl mb-10">
-                        <form onSubmit={handleCreate} className="inner-card p-10 md:p-14 space-y-10 relative overflow-hidden bg-white border-none">
+                    <motion.div initial={{ opacity: 0, y: -20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 z-50 rounded-mx-3xl p-1 bg-gradient-to-b from-indigo-50 to-white shadow-mx-elite mb-10">
+                        <form onSubmit={handleCreate} className="mx-card !border-none p-mx-lg md:p-mx-xl relative overflow-hidden bg-white">
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
 
                             <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
@@ -152,9 +173,43 @@ export default function GerentePDI() {
                                         </select>
                                     </div>
 
+                                    {/* Radar de Competências */}
+                                    <div className="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100 space-y-6">
+                                        <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                                            <Award size={14} /> Radar de Capacidade (0 a 10)
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                            {[
+                                                { id: 'comp_prospeccao', label: 'Prospecção' },
+                                                { id: 'comp_abordagem', label: 'Abordagem' },
+                                                { id: 'comp_demonstracao', label: 'Demonstração' },
+                                                { id: 'comp_fechamento', label: 'Fechamento' },
+                                                { id: 'comp_crm', label: 'Gestão CRM' },
+                                                { id: 'comp_digital', label: 'Venda Digital' },
+                                                { id: 'comp_disciplina', label: 'Disciplina' },
+                                                { id: 'comp_organizacao', label: 'Organização' },
+                                                { id: 'comp_negociacao', label: 'Negociação' },
+                                                { id: 'comp_produto', label: 'Prod. Técnico' }
+                                            ].map(comp => (
+                                                <div key={comp.id} className="space-y-2">
+                                                    <div className="flex justify-between items-center px-1">
+                                                        <span className="text-[9px] font-black text-gray-400 uppercase">{comp.label}</span>
+                                                        <span className="text-xs font-black text-indigo-600">{(form as any)[comp.id]}</span>
+                                                    </div>
+                                                    <input 
+                                                        type="range" min="0" max="10" step="1"
+                                                        value={(form as any)[comp.id]}
+                                                        onChange={e => setForm(p => ({ ...p, [comp.id]: Number(e.target.value) }))}
+                                                        className="w-full accent-indigo-600"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Meta Estratégica (6 Meses)</label>
-                                        <input type="text" value={form.meta_6m} onChange={e => setForm(p => ({ ...p, meta_6m: e.target.value }))} required placeholder="Qual o primeiro marco operacional?" className="premium-input !rounded-[1.5rem]" />
+                                        <input type="text" value={form.meta_6m} onChange={e => setForm(p => ({ ...p, meta_6m: e.target.value }))} required placeholder="Ex: Assumir liderança de equipe ou atingir 120% da meta constante." className="premium-input !rounded-[1.5rem]" />
                                     </div>
 
                                     <div className="space-y-4">
@@ -164,11 +219,30 @@ export default function GerentePDI() {
 
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Visão de Longo Prazo (24 Meses)</label>
-                                        <input type="text" value={form.meta_24m} onChange={e => setForm(p => ({ ...p, meta_24m: e.target.value }))} placeholder="Ponto de chegada na rede." className="premium-input !rounded-[1.5rem]" />
+                                        <input type="text" value={form.meta_24m} onChange={e => setForm(p => ({ ...p, meta_24m: e.target.value }))} placeholder="Ponto de chegada na rede (ex: Gerência Regional)." className="premium-input !rounded-[1.5rem]" />
                                     </div>
+                                </div>
 
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Data da Primeira Revisão</label>
+                                <div className="space-y-6">
+                                    <h4 className="text-[10px] font-black text-rose-600 uppercase tracking-widest flex items-center gap-2 ml-2">
+                                        <Zap size={14} /> 5 Ações de Desenvolvimento (Mandatórias)
+                                    </h4>
+                                    {[1, 2, 3, 4, 5].map(num => (
+                                        <div key={num} className="space-y-2">
+                                            <label className="text-[8px] font-black text-gray-400 uppercase ml-2">Ação #{num}</label>
+                                            <input 
+                                                type="text" 
+                                                value={(form as any)[`action_${num}`]} 
+                                                onChange={e => setForm(p => ({ ...p, [`action_${num}`]: e.target.value }))}
+                                                required={num === 1}
+                                                placeholder={`Descreva a ação ${num}...`}
+                                                className="premium-input !rounded-xl py-4"
+                                            />
+                                        </div>
+                                    ))}
+
+                                    <div className="space-y-4 pt-4">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Data da Próxima Revisão</label>
                                         <div className="relative group">
                                             <Calendar size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-indigo-500 transition-colors" />
                                             <input
@@ -176,28 +250,17 @@ export default function GerentePDI() {
                                                 value={form.due_date}
                                                 onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))}
                                                 required
-                                                className="premium-input !pl-16 !rounded-[1.5rem] font-mono-numbers"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-[1.5rem] pl-16 pr-6 py-5 text-pure-black font-black text-sm focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-xl transition-all shadow-inner font-mono-numbers"
                                             />
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Ação de Desenvolvimento (Mandatória)</label>
-                                    <textarea
-                                        value={form.action_1}
-                                        onChange={e => setForm(p => ({ ...p, action_1: e.target.value }))}
-                                        rows={8} required
-                                        placeholder="Descreva as etapas, treinamentos e mudanças de comportamento mandatórias..."
-                                        className="premium-input !rounded-[2rem] resize-none py-6 h-full min-h-[240px]"
-                                    />
                                 </div>
                             </div>
 
                             <div className="pt-8 border-t border-gray-50 flex justify-end">
                                 <button
                                     type="submit" disabled={saving}
-                                    className="w-full sm:w-auto px-12 py-5 rounded-full bg-pure-black text-white font-black flex items-center justify-center gap-4 hover:bg-black hover:shadow-elevation transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
+                                    className="w-full sm:w-auto px-12 py-5 rounded-full bg-pure-black text-white font-black flex items-center justify-center gap-4 hover:bg-brand-secondary-hover hover:shadow-elevation transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
                                 >
                                     {saving ? <RefreshCw className="w-6 h-6 animate-spin text-indigo-400" /> : <><CheckCircle2 size={18} className="group-hover/btn:scale-110 transition-transform" /> Ativar Plano de Desenvolvimento</>}
                                 </button>
@@ -265,9 +328,18 @@ export default function GerentePDI() {
                                 </div>
 
                                 <div className="pt-6 border-t border-gray-50 flex items-center justify-between mt-auto relative z-10">
-                                    <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                        <Calendar size={14} className="text-indigo-400" /> 
-                                        {p.due_date ? new Date(p.due_date).toLocaleDateString('pt-BR') : 'Sem Prazo'}
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                            <Calendar size={14} className="text-indigo-400" /> 
+                                            {p.due_date ? new Date(p.due_date).toLocaleDateString('pt-BR') : 'Sem Prazo'}
+                                        </div>
+                                        <button 
+                                            onClick={() => navigate(`/pdi/${p.id}/print`)}
+                                            className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                                            title="Imprimir PDI"
+                                        >
+                                            <Printer size={14} />
+                                        </button>
                                     </div>
                                     {p.acknowledged ? (
                                         <div className="flex items-center gap-1.5 text-emerald-600 text-[9px] font-black uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
