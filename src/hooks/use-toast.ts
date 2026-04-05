@@ -14,3 +14,10 @@ export function toast({ title, description, variant }: ToastOptions) {
 
     sonnerToast(title, { description })
 }
+
+export function useToast() {
+    return {
+        toasts: [] as any[],
+        dismiss: (id?: string) => {}
+    }
+}

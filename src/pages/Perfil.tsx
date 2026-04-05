@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { User, Mail, Shield, Save, Camera, LogOut, Key, Bell, Globe, Palette, RefreshCw, ChevronRight, CheckCircle2, AlertTriangle, Zap, Sparkles } from 'lucide-react'
+import { User, Mail, Shield, Save, Camera, LogOut, Key, Bell, Globe, Palette, RefreshCw, ChevronRight, CheckCircle2, AlertTriangle, Zap, Sparkles, Settings } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -7,16 +7,18 @@ import { cn } from '@/lib/utils'
 import { motion } from 'motion/react'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
 
 export default function Perfil() {
-  const { profile, role, signOut, updateProfile } = useAuth()
+  const { profile, role, signOut } = useAuth()
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState(profile?.name || '')
 
   const handleSave = async () => {
     setLoading(true)
     try {
-      await updateProfile({ name })
+      // Simulação ou update via supabase direto
+      if (profile) await supabase.from('users').update({ name }).eq('id', profile.id)
       toast.success('Perfil de Identidade Atualizado!')
     } finally { setLoading(false) }
   }

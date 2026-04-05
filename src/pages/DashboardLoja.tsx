@@ -47,8 +47,8 @@ const Stat = ({ icon: Icon, label, value, sub, bg, color, trend, delay = 0 }: St
 
 export default function DashboardLoja() {
     const { membership } = useAuth()
-    const { checkins, loading, refetch: refetchCheckins } = useCheckins()
-    const { storeGoal, refetch: refetchGoals } = useGoals()
+    const { checkins, loading, fetchCheckins: refetchCheckins } = useCheckins()
+    const { storeGoal, fetchGoals: refetchGoals } = useGoals()
     const { sellers, refetch: refetchTeam } = useTeam()
     const { ranking, refetch: refetchRanking } = useRanking()
     const [isRefetching, setIsRefetching] = useState(false)

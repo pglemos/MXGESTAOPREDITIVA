@@ -40,7 +40,7 @@ export default function GerenteFeedback() {
     const [weeklySnapshot, setWeeklySnapshot] = useState<FunnelData | null>(null)
     
     // Instância dedicada para histórico do vendedor selecionado
-    const { feedbacks: sellerHistory, refetch: refetchHistory } = useFeedbacks({ sellerId: form.seller_id })
+    const { feedbacks: sellerHistory, refetch: refetchHistory } = useFeedbacks({ sellerId: form.seller_id || undefined })
 
     // Carregar dados da semana e gerar diagnóstico ao selecionar vendedor
     useEffect(() => {

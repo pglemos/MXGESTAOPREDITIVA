@@ -45,6 +45,7 @@ export interface Lead {
     stagnantDays?: number
     sellerId?: string
     agencyId?: string
+    phone?: string
 }
 
 export interface InventoryItem {
@@ -78,13 +79,13 @@ type StoreState = {
 }
 
 const storeState: StoreState = {
-    tasks: [...mockTasks],
+    tasks: [...mockTasks] as any[],
     commissions: [...mockCommissions],
     commissionRules: [...mockCommissionRules],
-    goals: [...mockGoals],
+    goals: [...mockGoals] as any[],
     team: [...mockTeam],
-    leads: [...mockLeads],
-    inventory: [...mockInventory],
+    leads: [...mockLeads] as any[],
+    inventory: [...mockInventory] as any[],
     agencies: [...mockAgencies],
     auditLogs: [...mockAuditLogs],
     activeAgencyId: mockAgencies[0]?.id || null,
@@ -113,9 +114,9 @@ function id(prefix: string) {
 function createTask(data: Omit<Task, 'id' | 'status'> & { status?: TaskStatus }): Task {
     return {
         id: id('task'),
-        status: data.status || 'Pendente',
+        status: data.status || 'pendente',
         ...data,
-    }
+    } as any
 }
 
 function createCommissionRule(data: Omit<CommissionRule, 'id'>): CommissionRule {
@@ -131,16 +132,17 @@ function createCommission(data: Omit<Commission, 'id'>): Commission {
 }
 
 function createLead(data: Omit<Lead, 'id'>): Lead {
-    return { id: id('lead'), ...data }
+    return { id: id('lead'), ...data } as any
 }
 
 const actions = {
+    refetch: async () => {},
     addTask(data: Omit<Task, 'id' | 'status'> & { status?: TaskStatus }) {
         storeState.tasks = [createTask(data), ...storeState.tasks]
         emit()
     },
     updateTask(idValue: string, updates: Partial<Task>) {
-        storeState.tasks = storeState.tasks.map(task => task.id === idValue ? { ...task, ...updates } : task)
+        storeState.tasks = storeState.tasks.map(task => task.id === idValue ? { ...task, ...updates } : task) as any[]
         emit()
     },
     deleteTask(idValue: string) {
@@ -151,10 +153,15 @@ const actions = {
         storeState.commissionRules = [createCommissionRule(data), ...storeState.commissionRules]
         emit()
     },
+    updateCommissionRule(idValue: string, updates: Partial<CommissionRule>) {
+        storeState.commissionRules = storeState.commissionRules.map(rule => rule.id === idValue ? { ...rule, ...updates } : rule)
+        emit()
+    },
     deleteCommissionRule(idValue: string) {
         storeState.commissionRules = storeState.commissionRules.filter(rule => rule.id !== idValue)
         emit()
     },
+
     setGoal(goal: Omit<Goal, 'id'> & { id?: string }) {
         if (goal.id) {
             storeState.goals = storeState.goals.map(item => item.id === goal.id ? { ...item, ...goal } : item)
@@ -221,7 +228,9 @@ export function useFinance() {
         commissionRules: state.commissionRules,
         goals: state.goals,
         addCommissionRule: state.addCommissionRule,
+        updateCommissionRule: state.updateCommissionRule,
         deleteCommissionRule: state.deleteCommissionRule,
+        refetch: state.refetch
     }
 }
 

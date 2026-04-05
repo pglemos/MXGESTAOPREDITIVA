@@ -7,6 +7,7 @@ import {
 import { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
 export default function Ranking() {
     const { profile } = useAuth()
@@ -56,47 +57,89 @@ export default function Ranking() {
                         <AnimatePresence mode="popLayout">
                             {sortedRanking.map((r, i) => {
                                 const isMe = r.user_id === profile?.id
-                                const isVendaLoja = r.is_venda_loja
+                                const isVendaLoja = (r as any).is_venda_loja
+                                const isTop1 = i === 0 && !isVendaLoja
+                                const isTop2 = i === 1 && !isVendaLoja
+                                const isTop3 = i === 2 && !isVendaLoja
+                                
                                 return (
                                     <motion.div
                                         key={r.user_id} layout
-                                        initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                                         className={cn(
-                                            "p-mx-lg flex flex-col lg:flex-row lg:items-center gap-mx-lg transition-all relative overflow-hidden border rounded-mx-3xl",
-                                            isMe ? "border-brand-primary bg-brand-primary-surface shadow-mx-lg" : 
-                                            isVendaLoja ? "border-slate-200 bg-slate-50/50" : "bg-white border-border-subtle hover:shadow-mx-md"
+                                            "p-8 flex flex-col lg:flex-row lg:items-center gap-10 transition-all relative overflow-hidden border rounded-[2.5rem]",
+                                            isTop1 ? "bg-slate-950 border-amber-400/50 shadow-[0_20px_50px_rgba(245,158,11,0.15)] ring-2 ring-amber-400/20" : 
+                                            isTop2 ? "bg-white border-slate-300 shadow-xl shadow-slate-200/50" :
+                                            isTop3 ? "bg-white border-orange-200 shadow-xl shadow-orange-100/50" :
+                                            isMe ? "border-indigo-600 bg-indigo-50/30 shadow-mx-lg" : 
+                                            isVendaLoja ? "border-slate-200 bg-slate-50/50" : "bg-white border-gray-100 hover:shadow-mx-md"
                                         )}
                                     >
-                                        <div className="flex items-center gap-mx-xl flex-1 min-w-0">
+                                        {/* Efeitos de Fundo para o Top 1 */}
+                                        {isTop1 && (
+                                            <>
+                                                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-[100px] -mr-32 -mt-32 animate-pulse" />
+                                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-[60px] -ml-16 -mb-16" />
+                                            </>
+                                        )}
+
+                                        <div className="flex items-center gap-8 flex-1 min-w-0 relative z-10">
                                             <div className={cn(
-                                                "w-14 h-14 rounded-mx-xl border flex items-center justify-center font-black text-2xl shadow-inner",
-                                                isVendaLoja ? "bg-slate-200 border-slate-300 text-slate-600" : "bg-mx-slate-50 border-border-default text-text-primary"
+                                                "w-20 h-20 rounded-[2rem] border-4 flex items-center justify-center font-black text-3xl shadow-2xl transition-transform group-hover:scale-110",
+                                                isTop1 ? "bg-amber-400 border-amber-300 text-slate-950 rotate-3" : 
+                                                isTop2 ? "bg-slate-200 border-slate-100 text-slate-600 -rotate-2" :
+                                                isTop3 ? "bg-orange-100 border-orange-50 text-orange-700 rotate-1" :
+                                                isVendaLoja ? "bg-slate-100 border-slate-200 text-slate-400" : "bg-gray-50 border-white text-slate-950"
                                             )}>
-                                                {isVendaLoja ? <Building2 size={24} /> : i + 1}
+                                                {isTop1 ? <Crown size={36} fill="currentColor" /> : 
+                                                 isTop2 ? <Medal size={36} /> :
+                                                 isTop3 ? <Award size={36} /> :
+                                                 isVendaLoja ? <Building2 size={32} /> : i + 1}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <h3 className={cn("text-2xl font-black tracking-tight uppercase truncate", isVendaLoja ? "text-slate-500" : "text-text-primary")}>
-                                                    {r.user_name}
-                                                </h3>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <h3 className={cn("text-3xl font-black tracking-tighter uppercase truncate", isTop1 ? "text-white" : "text-slate-950")}>
+                                                        {r.user_name}
+                                                    </h3>
+                                                    {isTop1 && <Badge className="bg-amber-400 text-slate-950 font-black text-[8px] tracking-[0.2em] border-none shadow-lg">LÍDER ABSOLUTO</Badge>}
+                                                </div>
                                                 {!isVendaLoja ? (
-                                                    <div className="flex items-center gap-mx-md mt-2">
-                                                        <span className="mx-text-caption !text-[8px] text-text-secondary">{r.leads} Leads</span>
-                                                        <div className="w-1 h-1 rounded-full bg-mx-slate-300" />
-                                                        <span className="mx-text-caption !text-[8px] text-text-secondary">{r.visitas} Visitas</span>
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="flex flex-col">
+                                                            <span className={cn("text-[8px] font-black uppercase tracking-widest", isTop1 ? "text-amber-400/60" : "text-gray-400")}>Leads</span>
+                                                            <span className={cn("text-sm font-bold font-mono-numbers", isTop1 ? "text-white" : "text-slate-600")}>{r.leads}</span>
+                                                        </div>
+                                                        <div className="w-px h-6 bg-gray-100/20" />
+                                                        <div className="flex flex-col">
+                                                            <span className={cn("text-[8px] font-black uppercase tracking-widest", isTop1 ? "text-amber-400/60" : "text-gray-400")}>Visitas</span>
+                                                            <span className={cn("text-sm font-bold font-mono-numbers", isTop1 ? "text-white" : "text-slate-600")}>{r.visitas}</span>
+                                                        </div>
+                                                        <div className="w-px h-6 bg-gray-100/20" />
+                                                        <div className="flex flex-col">
+                                                            <span className={cn("text-[8px] font-black uppercase tracking-widest", isTop1 ? "text-amber-400/60" : "text-gray-400")}>Eficiência</span>
+                                                            <span className={cn("text-sm font-bold font-mono-numbers text-emerald-500")}>{r.atingimento}%</span>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Saldo Consolidado da Unidade</p>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-mx-xl border-t lg:border-t-0 lg:border-l border-border-subtle pt-mx-lg lg:pt-0 lg:pl-mx-xl">
+
+                                        <div className={cn(
+                                            "flex items-center gap-10 border-t lg:border-t-0 lg:border-l pt-8 lg:pt-0 lg:pl-10 relative z-10",
+                                            isTop1 ? "border-white/10" : "border-gray-50"
+                                        )}>
                                             <div className="text-right">
-                                                <p className="mx-text-caption !text-[8px] text-text-tertiary mb-1">UNIDADES</p>
-                                                <p className={cn("text-4xl font-black font-mono-numbers leading-none", isVendaLoja ? "text-slate-400" : "text-text-primary")}>{r.vnd_total}</p>
+                                                <p className={cn("text-[9px] font-black uppercase tracking-widest mb-1", isTop1 ? "text-amber-400" : "text-indigo-600")}>VENDAS</p>
+                                                <p className={cn("text-6xl font-black font-mono-numbers leading-none tracking-tighter", isTop1 ? "text-white" : "text-slate-950")}>{r.vnd_total}</p>
                                             </div>
                                             {!isVendaLoja && (
-                                                <Link to={`/relatorios/performance-vendedores?id=${r.user_id}`} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:bg-brand-secondary hover:text-white transition-all flex items-center justify-center shadow-sm">
-                                                    <ChevronRight size={22} />
+                                                <Link to={`/relatorios/performance-vendedores?id=${r.user_id}`} className={cn(
+                                                    "w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all shadow-xl hover:scale-110 active:scale-95",
+                                                    isTop1 ? "bg-amber-400 text-slate-950" : "bg-slate-950 text-white"
+                                                )}>
+                                                    <ChevronRight size={32} strokeWidth={3} />
                                                 </Link>
                                             )}
                                         </div>

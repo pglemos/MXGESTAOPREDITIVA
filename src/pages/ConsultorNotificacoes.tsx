@@ -242,9 +242,9 @@ export default function ConsultorNotificacoes() {
                                 </div>
                                 <Badge className={cn(
                                     "font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm",
-                                    n.target_type === 'all' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                                    !n.store_id ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
                                 )}>
-                                    {n.target_type === 'all' ? 'REDE TODA' : 'UNIDADE'}
+                                    {!n.store_id ? 'REDE TODA' : 'UNIDADE'}
                                 </Badge>
                             </div>
 
@@ -255,9 +255,9 @@ export default function ConsultorNotificacoes() {
 
                             <div className="pt-6 border-t border-gray-50 flex items-center justify-between mt-auto relative z-10">
                                 <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                    <Calendar size={14} className="text-rose-500" /> {new Date(n.sent_at).toLocaleDateString('pt-BR')}
+                                    <Calendar size={14} className="text-rose-500" /> {new Date(n.created_at).toLocaleDateString('pt-BR')}
                                 </div>
-                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{new Date(n.sent_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{new Date(n.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
                         </motion.div>
                     ))

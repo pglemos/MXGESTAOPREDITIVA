@@ -107,7 +107,12 @@ export default function Checkin() {
         if (funnelError) { toast.error(funnelError); return }
 
         setSaving(true)
-        const { error } = await saveCheckin(form)
+        const formDataToSave = {
+            ...form,
+            agd_cart_prev: form.agd_cart_prev || 0,
+            agd_net_prev: form.agd_net_prev || 0
+        }
+        const { error } = await saveCheckin(formDataToSave)
         
         if (error) { 
             setSaving(false)

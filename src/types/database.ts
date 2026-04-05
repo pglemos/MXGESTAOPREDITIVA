@@ -18,6 +18,8 @@ export interface User {
     is_venda_loja: boolean
     active: boolean
     created_at: string
+    phone?: string
+    store_id?: string
 }
 
 export interface Store {

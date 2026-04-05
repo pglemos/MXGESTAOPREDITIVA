@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 export default function Funil() {
     const { storeId } = useAuth()
-    const { checkins, loading, refetch } = useCheckins()
+    const { checkins, loading, fetchCheckins: refetch } = useCheckins()
     const [benchmark, setBenchmark] = useState<Benchmark | null>(null)
     const [isRefetching, setIsRefetching] = useState(false)
 
@@ -82,7 +82,7 @@ export default function Funil() {
                             </div>
                             <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1">Diagnóstico</h3><p className="mx-text-caption !text-[8px]">Motor Preditivo MX</p></div>
                         </div>
-                        <p className="text-lg font-black text-text-primary leading-tight italic mb-mx-lg relative z-10">"{diagnostic.mensagem}"</p>
+                        <p className="text-lg font-black text-text-primary leading-tight italic mb-mx-lg relative z-10">"{diagnostic.diagnostico}"</p>
                         <div className="bg-mx-slate-50/50 rounded-mx-xl p-mx-md border border-border-default relative z-10">
                             <div className="flex items-center gap-2 mb-mx-sm"><Zap size={14} className="text-brand-primary" fill="currentColor" /><span className="mx-text-caption">Benchmarks Ativos</span></div>
                             <div className="space-y-2">

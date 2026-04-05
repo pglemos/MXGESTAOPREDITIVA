@@ -4,8 +4,8 @@ import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { calcularAtingimento, calcularProjecao, calcularFaltaX, getDiasInfo, somarVendas, somarVendasPorCanal } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
-import { Target, TrendingUp, Trophy, CheckSquare, Car, Users, Globe, BarChart3, AlertTriangle, ArrowRight, Star, ArrowUpRight, Zap, Sparkles, LayoutDashboard, Crown, Flame, RefreshCw, Phone } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Target, TrendingUp, Trophy, CheckSquare, Car, Users, Globe, BarChart3, AlertTriangle, ArrowRight, Star, ArrowUpRight, Zap, Sparkles, LayoutDashboard, Crown, Flame, RefreshCw, Phone, CalendarDays, History } from 'lucide-react'
 import { useMemo, useCallback, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -60,7 +60,7 @@ export default function VendedorHome() {
 
         return { 
             vendasMes, porCanal, dias, meta, atingimento, projecao, faltaX, myRank, 
-            leadsMes, vendasOntem, agendamentosHoje, vendasSemana 
+            leadsMes, vendasOntem, agendamentosHoje, vendasSemana, competitors 
         }
     }, [checkins, profile, sellerGoals, storeGoal, ranking, todayCheckin])
 

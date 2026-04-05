@@ -39,7 +39,7 @@ export default function ProdutosDigitais() {
         e.preventDefault();
         if (role !== 'admin') { toast.error('Permissão negada.'); return }
         const result = productSchema.safeParse(form)
-        if (!result.success) { toast.error(result.error.errors[0].message); return }
+        if (!result.success) { toast.error("Verifique os campos preenchidos"); return }
 
         setSaving(true)
         const { error } = await supabase.from('digital_products').insert(form)

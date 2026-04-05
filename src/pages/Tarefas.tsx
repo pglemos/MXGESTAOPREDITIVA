@@ -140,7 +140,7 @@ export default function Tarefas() {
                                     </div>
                                     <ScrollArea className="flex-1 no-scrollbar pr-2 space-y-mx-sm pb-mx-3xl">
                                         {taskGroups[status].map((task) => (
-                                            <div key={task.id} onClick={() => { setSelectedId(task.id); handleEdit(task) }} className="mx-card p-mx-md mx-card-hover group cursor-pointer relative overflow-hidden">
+                                            <div key={task.id} onClick={() => { setSelectedId(task.id) }} className="mx-card p-mx-md mx-card-hover group cursor-pointer relative overflow-hidden">
                                                 <div className="flex justify-between items-start mb-mx-md">
                                                     <div className={cn("px-2 py-0.5 rounded-mx-sm text-[8px] font-black uppercase tracking-widest border flex items-center gap-1.5", priorityConfig[task.priority].style)}>
                                                         {priorityConfig[task.priority].icon} {task.priority}
@@ -165,7 +165,7 @@ export default function Tarefas() {
                             <thead><tr className="bg-mx-slate-50/50 mx-text-caption border-b border-border-default"><th className="pl-mx-lg py-mx-md w-16 text-center">Status</th><th className="py-mx-md">Missão</th><th className="py-mx-md">Lead Alvo</th><th className="py-mx-md text-center">Nível</th><th className="pr-mx-lg py-mx-md text-right">Timeline</th></tr></thead>
                             <tbody className="divide-y divide-border-subtle bg-white">
                                 {tasks.map((task) => (
-                                    <tr key={task.id} className="hover:bg-mx-slate-50/50 transition-colors group cursor-pointer" onClick={() => handleEdit(task)}>
+                                    <tr key={task.id} className="hover:bg-mx-slate-50/50 transition-colors group cursor-pointer" onClick={() => {}}>
                                         <td className="pl-mx-lg py-mx-md text-center"><Circle size={18} className={cn(task.status === 'Concluída' ? "text-status-success fill-status-success/20" : "text-text-tertiary")} /></td>
                                         <td className="py-mx-md"><p className={cn("font-black text-sm text-text-primary", task.status === 'Concluída' && "line-through opacity-40")}>{task.title}</p></td>
                                         <td className="py-mx-md"><span className="mx-text-caption opacity-70">{leads.find(l => l.id === task.leadId)?.name || '-'}</span></td>

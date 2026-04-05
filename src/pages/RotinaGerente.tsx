@@ -9,7 +9,7 @@ import {
     CheckCircle2, Clock, Users, ArrowRight, Activity, CalendarDays, 
     Zap, FileCheck, BellRing, Target, TrendingUp, AlertTriangle, 
     MessageSquare, Award, ChevronRight, Mail, LayoutDashboard, Search,
-    BarChart3, RefreshCw, User
+    BarChart3, RefreshCw, User, X, ShieldCheck
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -41,6 +41,27 @@ export default function RotinaGerente() {
     const pendingSellers = useMemo(() => (sellers || []).filter(s => !s.checkin_today), [sellers])
     const totalAgendamentosHoje = useMemo(() => checkins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0), [checkins])
     
+    // Agendamentos do dia por vendedor
+    const todayAgendas = useMemo(() => {
+        const usersMap = new Map()
+        checkins.forEach(c => {
+            if ((c.agd_cart_today || 0) > 0 || (c.agd_net_today || 0) > 0) {
+                if (!usersMap.has(c.seller_user_id)) {
+                    usersMap.set(c.seller_user_id, {
+                        id: c.seller_user_id,
+                        seller_name: sellers?.find(s => s.id === c.seller_user_id)?.name || 'Vendedor',
+                        agd_cart_today: 0,
+                        agd_net_today: 0
+                    })
+                }
+                const entry = usersMap.get(c.seller_user_id)
+                entry.agd_cart_today += (c.agd_cart_today || 0)
+                entry.agd_net_today += (c.agd_net_today || 0)
+            }
+        })
+        return Array.from(usersMap.values())
+    }, [checkins, sellers])
+
     const canTriggerMatinal = useMemo(() => {
         return reuniaoDone && agendaValidated && pendingSellers.length === 0
     }, [reuniaoDone, agendaValidated, pendingSellers])
