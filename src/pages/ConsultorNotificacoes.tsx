@@ -106,7 +106,7 @@ export default function ConsultorNotificacoes() {
                                     </div>
                                     <div>
                                         <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2">Compor Mensagem</h3>
-                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Network Intelligence Broadcast</p>
+                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Comunicado de Inteligência da Rede</p>
                                     </div>
                                 </div>
                                 <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
@@ -120,7 +120,7 @@ export default function ConsultorNotificacoes() {
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Assunto Estratégico</label>
                                         <input
                                             value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                                            placeholder="Ex: Alerta de Pacing Semanal" required autoFocus
+                                            placeholder="Ex: Alerta de Ritmo Semanal" required autoFocus
                                             className="premium-input !rounded-[1.5rem]"
                                         />
                                     </div>
@@ -222,7 +222,7 @@ export default function ConsultorNotificacoes() {
                         <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center mb-8 border border-gray-100 group-hover:rotate-12 transition-transform duration-500">
                             <Bell size={40} className="text-gray-200" />
                         </div>
-                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter">Zero Broadcasts</h3>
+                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter">Zero Comunicados</h3>
                         <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto">Nenhum alerta disparado pelo seu usuário no histórico atual.</p>
                     </div>
                 ) : (

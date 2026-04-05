@@ -19,6 +19,8 @@ const MAX_INPUT_VALUE = 999 // 5. Added max limit
 
 interface CheckinForm {
     leads: number
+    agd_cart_prev: number
+    agd_net_prev: number
     agd_cart: number
     agd_net: number
     vnd_porta: number
@@ -38,7 +40,7 @@ export default function Checkin() {
     const timerRef = useRef<NodeJS.Timeout | null>(null)
 
     const [form, setForm] = useState<CheckinForm>({
-        leads: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '',
+        leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '',
     })
 
     // 16. Track changes for highlight
@@ -48,6 +50,8 @@ export default function Checkin() {
         if (todayCheckin) {
             setForm({
                 leads: todayCheckin.leads_prev_day || 0,
+                agd_cart_prev: todayCheckin.agd_cart_prev_day || 0,
+                agd_net_prev: todayCheckin.agd_net_prev_day || 0,
                 agd_cart: todayCheckin.agd_cart_today || 0,
                 agd_net: todayCheckin.agd_net_today || 0,
                 vnd_porta: todayCheckin.vnd_porta_prev_day || 0,
@@ -91,7 +95,7 @@ export default function Checkin() {
 
     const resetForm = () => {
         if (window.confirm("Zerar todos os dados do formulário?")) {
-            setForm({ leads: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '' })
+            setForm({ leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '' })
             setChangedFields(new Set())
         }
     }

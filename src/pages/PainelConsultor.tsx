@@ -16,7 +16,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { getOperationalStatus } from '@/lib/calculations'
 
-type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; pacing: number; sellers: number; checkedInToday: number; disciplinePct: number }
+type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; ritmo: number; sellers: number; checkedInToday: number; disciplinePct: number }
 
 export default function PainelConsultor() {
     const { stores, loading: storesLoading } = useStores()
@@ -106,7 +106,7 @@ export default function PainelConsultor() {
                     goal, 
                     gap: Math.max(goal - s.total, 0),
                     proj,
-                    pacing: goal > 0 ? Math.round((s.total / goal) * 100) : 0,
+                    ritmo: goal > 0 ? Math.round((s.total / goal) * 100) : 0,
                     sellers: numSellers,
                     checkedInToday: numCheckedIn,
                     disciplinePct: numSellers > 0 ? (numCheckedIn / numSellers) * 100 : 100
@@ -128,7 +128,7 @@ export default function PainelConsultor() {
             totalSales, 
             totalGoal,
             totalGap,
-            globalPacing: totalGoal > 0 ? Math.round((totalSales / totalGoal) * 100) : 0,
+            globalRitmo: totalGoal > 0 ? Math.round((totalSales / totalGoal) * 100) : 0,
             unread: notifications.filter(item => !item.read).length,
             topStores: dVals.sort((a, b) => b.sales - a.sales)
         }
@@ -218,7 +218,7 @@ export default function PainelConsultor() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 bg-white">
                                     {stats.topStores.map(store => {
-                                        const status = getOperationalStatus(store.pacing, store.disciplinePct)
+                                        const status = getOperationalStatus(store.ritmo, store.disciplinePct)
                                         return (
                                             <tr key={store.id} className="hover:bg-slate-50/50 transition-colors group h-24">
                                                 <td className="pl-10 py-2">

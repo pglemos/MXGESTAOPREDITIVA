@@ -20,7 +20,7 @@ export default function Communication() {
   const [isRefetching, setIsRefetching] = useState(false)
 
   const stats = [
-    { label: 'Broadcasts', value: '12', icon: Megaphone, tone: 'bg-brand-primary-surface text-brand-primary' },
+    { label: 'Avisos da Rede', value: '12', icon: Megaphone, tone: 'bg-brand-primary-surface text-brand-primary' },
     { label: 'Engajamento', value: '94%', icon: Zap, tone: 'bg-status-success-surface text-status-success' },
     { label: 'Não Lidas', value: '03', icon: MessageSquare, tone: 'bg-status-error-surface text-status-error' },
     { label: 'Alcance', value: '48', icon: Users, tone: 'bg-mx-slate-50 text-text-tertiary' },
@@ -35,7 +35,7 @@ export default function Communication() {
             <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
             <h1 className="mx-heading-hero">Hub de <span className="text-brand-primary">Comunicação</span></h1>
           </div>
-          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Broadcast & Alinhamento Tático</p>
+          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Informativos & Alinhamento Tático</p>
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
@@ -44,7 +44,7 @@ export default function Communication() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
             <input type="text" placeholder="Buscar informe..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
           </div>
-          <button className="mx-button-primary bg-brand-secondary flex items-center gap-2"><Plus size={18} /> Novo Broadcast</button>
+          <button className="mx-button-primary bg-brand-secondary flex items-center gap-2"><Plus size={18} /> Novo Aviso</button>
         </div>
       </div>
 
@@ -65,7 +65,7 @@ export default function Communication() {
             <div className="p-mx-lg border-b border-border-subtle bg-mx-slate-50/30 flex items-center justify-between">
               <div className="flex items-center gap-mx-sm">
                 <div className="w-12 h-12 rounded-mx-lg bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><Megaphone size={24} /></div>
-                <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Broadcast Ativo</h3><p className="mx-text-caption">Mural de Avisos Prioritários</p></div>
+                <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Aviso Ativo</h3><p className="mx-text-caption">Mural de Avisos Prioritários</p></div>
               </div>
               <Badge className="bg-status-success-surface text-status-success border-none">SISTEMA ONLINE</Badge>
             </div>

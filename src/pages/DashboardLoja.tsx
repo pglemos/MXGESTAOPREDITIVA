@@ -184,10 +184,10 @@ export default function DashboardLoja() {
                             <h3 className="text-xl font-black text-text-primary tracking-tight mb-mx-xl relative z-10 uppercase">Fluxo Ativo</h3>
                             <div className="space-y-mx-xl relative z-10">
                                 {[
-                                    { label: 'Leads', value: metrics.funil.leads, pct: 100, color: 'bg-brand-primary' },
-                                    { label: 'Agendamentos', value: metrics.funil.agd_total, pct: metrics.funil.tx_lead_agd, color: 'bg-mx-indigo-600' },
-                                    { label: 'Visitas', value: metrics.funil.visitas, pct: metrics.funil.tx_agd_visita, color: 'bg-status-warning' },
-                                    { label: 'Vendas', value: metrics.funil.vnd_total, pct: metrics.funil.tx_visita_vnd, color: 'bg-status-success' },
+                                    { label: 'Leads (D-1)', value: metrics.funil.leads, pct: 100, color: 'bg-brand-primary' },
+                                    { label: 'Agendamentos (D-1)', value: metrics.funil.agd_total, pct: metrics.funil.tx_lead_agd, color: 'bg-mx-indigo-600' },
+                                    { label: 'Visitas (D-1)', value: metrics.funil.visitas, pct: metrics.funil.tx_agd_visita, color: 'bg-status-warning' },
+                                    { label: 'Vendas (D-1)', value: metrics.funil.vnd_total, pct: metrics.funil.tx_visita_vnd, color: 'bg-status-success' },
                                 ].map((step, i) => (
                                     <div key={step.label} className="space-y-3 group/step">
                                         <div className="flex justify-between items-end">

@@ -134,11 +134,13 @@ export default function App() {
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
             <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}><Reprocessamento /></Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
+            <Route path="auditoria" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} consultor={<AiDiagnostics />} admin={<AiDiagnostics />} />
+            </Suspense>} />
 
             {/* Módulos Legados Isolados */}
             <Route path="legacy">
               <Route path="agenda" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Agenda />)}</Suspense>} />
-              <Route path="ia-diagnostics" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<AiDiagnostics />)}</Suspense>} />
               <Route path="configuracoes/comissoes" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CommissionRules />)}</Suspense>} />
               <Route path="communication" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Communication />)}</Suspense>} />
               <Route path="relatorios/vendas-cruzados" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CrossSalesReports />)}</Suspense>} />

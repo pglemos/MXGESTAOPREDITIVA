@@ -1,4 +1,4 @@
-import { Settings, FileSignature, Database, ShieldCheck, Zap, ArrowRight, MessageSquare, Plus, RefreshCw, LayoutDashboard, ChevronRight } from 'lucide-react'
+import { Settings, FileSignature, Database, ShieldCheck, Zap, ArrowRight, MessageSquare, Plus, RefreshCw, LayoutDashboard, ChevronRight, Target, ShieldAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback } from 'react'
@@ -22,7 +22,7 @@ export default function Configuracoes() {
     }
 
     return (
-        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
+        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10 bg-white">
             {/* Header / 10. Typography standardization */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
@@ -32,13 +32,11 @@ export default function Configuracoes() {
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        {/* 14. Unit Inconsistency fix: added build info */}
                         <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Build 2026.03 • Core Configuration</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
-                    {/* 19. Broken Link fix: Home button */}
                     <Link to="/painel" className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all">
                         <LayoutDashboard size={20} />
                     </Link>
@@ -51,21 +49,32 @@ export default function Configuracoes() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 shrink-0 pb-32">
                 {/* 2. UX Gap: Links to sub-configs */}
                 <div className="lg:col-span-4 flex flex-col gap-6">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em] pl-2 mb-2">Módulos Configuráveis</h3>
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em] pl-2 mb-2">Governança MX</h3>
                     
-                    <Link to="/configuracoes/comissoes" className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
+                    <Link to="/metas" className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
                         <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-50 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-indigo-100 transition-colors" />
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform">
-                                <FileSignature size={22} strokeWidth={2.5} />
+                                <Target size={22} strokeWidth={2.5} />
                             </div>
                             <ChevronRight size={18} className="text-gray-300 group-hover:text-pure-black group-hover:translate-x-1 transition-all" />
                         </div>
-                        <h4 className="text-xl font-black text-pure-black tracking-tight mb-1">Comissões</h4>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-60">Regras de Performance</p>
+                        <h4 className="text-xl font-black text-pure-black tracking-tight mb-1">Metas & Benchmarks</h4>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-60">Regras de Negócio (20/60/33)</p>
                     </Link>
 
-                    {/* EPIC-11: Reprocessamento */}
+                    <Link to="/auditoria" className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-amber-50 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-amber-100 transition-colors" />
+                        <div className="flex items-center justify-between mb-8 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform">
+                                <ShieldAlert size={22} strokeWidth={2.5} />
+                            </div>
+                            <ChevronRight size={18} className="text-gray-300 group-hover:text-pure-black group-hover:translate-x-1 transition-all" />
+                        </div>
+                        <h4 className="text-xl font-black text-pure-black tracking-tight mb-1">Auditoria IA Forense</h4>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-60">Motor de Diagnóstico de Gaps</p>
+                    </Link>
+
                     <Link to="/configuracoes/reprocessamento" className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
                         <div className="absolute right-0 top-0 w-24 h-24 bg-rose-50 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-rose-100 transition-colors" />
                         <div className="flex items-center justify-between mb-8 relative z-10">
@@ -78,16 +87,17 @@ export default function Configuracoes() {
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-60">Reparo & Backfill da Base</p>
                     </Link>
 
-                    <div className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm opacity-50 cursor-not-allowed">
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-300 border border-gray-100 flex items-center justify-center">
-                                <Zap size={22} strokeWidth={2.5} />
+                    <Link to="/legacy/configuracoes/comissoes" className="group bg-white border border-gray-100 p-8 rounded-[2.2rem] shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-50 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-indigo-100 transition-colors" />
+                        <div className="flex items-center justify-between mb-8 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform">
+                                <FileSignature size={22} strokeWidth={2.5} />
                             </div>
-                            <span className="text-[8px] font-black bg-gray-100 text-gray-400 px-2 py-1 rounded">EM BREVE</span>
+                            <ChevronRight size={18} className="text-gray-300 group-hover:text-pure-black group-hover:translate-x-1 transition-all" />
                         </div>
-                        <h4 className="text-xl font-black text-gray-300 tracking-tight mb-1">Integrações</h4>
-                        <p className="text-[10px] font-black text-gray-200 uppercase tracking-widest">APIs Externas</p>
-                    </div>
+                        <h4 className="text-xl font-black text-pure-black tracking-tight mb-1">Comissões</h4>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-60">Regras de Performance</p>
+                    </Link>
                 </div>
 
                 {/* 12. Empty State: Feature request form */}
@@ -98,20 +108,19 @@ export default function Configuracoes() {
                         <div className="relative z-10 max-w-md mx-auto space-y-8">
                             {/* 16. Spin animation fixed */}
                             <div className="w-24 h-24 rounded-[2rem] bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto shadow-inner group-hover:rotate-[120deg] transition-transform duration-1000">
-                                <Settings size={48} className="text-gray-200 group-hover:text-electric-blue transition-colors" />
+                                <Settings size={48} className="text-gray-200 group-hover:text-indigo-600 transition-colors" />
                             </div>
                             <div>
                                 <h3 className="text-3xl font-black text-pure-black tracking-tighter mb-4 uppercase">Expansão de Nucleo</h3>
-                                {/* 6. Contrast fix */}
                                 <p className="text-gray-500 font-bold text-sm leading-relaxed">
-                                    Configurações avançadas de benchmarks e automações estão sendo recalibradas para o próximo ciclo da rede.
+                                    Configurações avançadas de automação e integrações externas estão sendo recalibradas para o próximo ciclo da rede.
                                 </p>
                             </div>
                             <div className="pt-8 border-t border-gray-50">
                                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">Deseja priorizar uma funcionalidade?</p>
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <input placeholder="Sua sugestão..." className="flex-1 bg-gray-50 border border-gray-100 rounded-full px-6 py-3 text-xs font-bold focus:outline-none focus:bg-white focus:border-indigo-200 transition-all" />
-                                    <button className="px-8 py-3 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-brand-secondary-hover transition-all active:scale-95 shadow-lg">Solicitar</button>
+                                    <button className="px-8 py-3 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-lg">Solicitar</button>
                                 </div>
                             </div>
                         </div>

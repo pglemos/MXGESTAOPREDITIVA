@@ -17,7 +17,7 @@ type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
 const navConfig: Record<string, NavCategory[]> = {
   admin: [
     {
-      category: 'Estratégico', icon: <Grid size={22} />,
+      category: 'Gestão Geral', icon: <Grid size={22} />,
       items: [
         { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
@@ -29,15 +29,8 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'Rituais MX', icon: <Target size={22} />,
       items: [
         { label: 'Relatório Matinal', path: '/relatorio-matinal', icon: <Presentation size={16} /> },
-        { label: 'Feedback Semanal', path: '/gerente/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'Feedback Semanal', path: '/feedback', icon: <MessageSquare size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-      ]
-    },
-    {
-      category: 'Sistema', icon: <Settings size={22} />,
-      items: [
-        { label: 'Notificações', path: '/notificacoes', icon: <Bell size={16} /> },
-        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }
   ],
@@ -54,8 +47,8 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Gestão de Gente', icon: <User size={22} />,
       items: [
-        { label: 'Feedback Estruturado', path: '/gerente/feedback', icon: <MessageSquare size={16} /> },
-        { label: 'PDI', path: '/gerente/pdi', icon: <TrendingUp size={16} /> },
+        { label: 'Feedback Estruturado', path: '/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
       ]
     }
@@ -73,9 +66,9 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Evolução', icon: <TrendingUp size={22} />,
       items: [
-        { label: 'Feedback', path: '/vendedor/feedback', icon: <MessageSquare size={16} /> },
-        { label: 'PDI', path: '/vendedor/pdi', icon: <TrendingUp size={16} /> },
-        { label: 'Treinamentos', path: '/vendedor/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Feedback', path: '/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
+        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
       ]
     }
   ]

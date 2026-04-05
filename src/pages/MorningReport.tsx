@@ -153,11 +153,8 @@ export default function MorningReport() {
             <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Relatório Matinal Oficial</h1>
           </div>
           <div className="flex items-center gap-2 pl-mx-md">
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-100 flex items-center gap-1 py-1 font-black text-[10px] tracking-widest uppercase">
-              <CheckCircle2 size={12} /> STATUS: PRONTO PARA ENVIO
-            </Badge>
-            <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-100 flex items-center gap-1 py-1 font-black text-[10px] tracking-widest">
-              <Clock size={12} /> PROGRAMADO: 10:30
+            <Badge className={cn("text-white border-none font-black text-[10px] px-4 py-2 rounded-full shadow-lg", metrics.projectedReaching >= 100 ? "bg-emerald-600" : "bg-rose-600 animate-pulse")}>
+              {metrics.projectedReaching >= 100 ? '✅ NO RITMO' : '⚠️ ABAIXO DO RITMO'}
             </Badge>
             <p className="mx-text-caption opacity-60 uppercase tracking-[0.3em] font-black text-[9px]">Metodologia MX • Unidade Operacional</p>
           </div>
@@ -195,7 +192,7 @@ export default function MorningReport() {
               <div className="flex items-center gap-mx-sm">
                 <div className="w-12 h-12 rounded-2xl bg-slate-950 text-white flex items-center justify-center shadow-lg transform -rotate-2"><BarChart3 size={24} /></div>
                 <div>
-                  <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Métricas de Performance</h3>
+                  <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Projeção Matemática MX</h3>
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ritmo de Vendas Acumulado</p>
                 </div>
               </div>
@@ -216,13 +213,11 @@ export default function MorningReport() {
                 
                 <div className="p-8 bg-gray-50/50 border border-gray-100 rounded-[2rem] flex flex-col justify-between">
                   <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">Atingimento</p>
-                    <h5 className={cn("font-black text-6xl tracking-tighter leading-none", metrics.reaching >= 100 ? "text-emerald-600" : "text-slate-950")}>
-                      {metrics.reaching}%
-                    </h5>
+                    <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] mb-2 leading-none">Falta X (GAP)</p>
+                    <h5 className="font-black text-6xl text-rose-600 tracking-tighter leading-none">{metrics.gap}</h5>
                   </div>
                   <div className="w-full h-2 bg-gray-200 rounded-full mt-6 overflow-hidden">
-                    <div className={cn("h-full transition-all", metrics.reaching >= 100 ? "bg-emerald-500" : "bg-slate-950")} style={{ width: `${Math.min(metrics.reaching, 100)}%` }} />
+                    <div className="h-full bg-rose-500 transition-all" style={{ width: `${Math.min((metrics.gap / metrics.teamGoal) * 100, 100)}%` }} />
                   </div>
                 </div>
 
@@ -241,7 +236,7 @@ export default function MorningReport() {
           <div className="bg-white border border-gray-100 rounded-[2.5rem] p-mx-lg md:p-mx-xl shadow-sm">
             <div className="flex items-center justify-between mb-mx-xl">
               <div>
-                <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Detalhamento por Especialista</h3>
+                <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Auditoria por Vendedor</h3>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Performance individual consolidada</p>
               </div>
             </div>
