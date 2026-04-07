@@ -260,7 +260,24 @@ export function useNotifications() {
 
     const sendNotification = async (data: any) => {
         if (!profile) return { error: 'Não autenticado' }
-        const { error } = await supabase.from('notifications').insert({ ...data, read: false })
+        
+        // Se não houver destinatário direto, é um broadcast
+        if (!data.recipient_id && (data.target_role || data.store_id || !data.store_id)) {
+            const { error } = await supabase.rpc('send_broadcast_notification', {
+                p_title: data.title,
+                p_message: data.message,
+                p_type: data.type || 'system',
+                p_priority: data.priority || 'medium',
+                p_store_id: data.store_id || null,
+                p_target_role: data.target_role || 'todos',
+                p_link: data.link || null,
+                p_sender_id: profile.id
+            })
+            if (!error) await fetchNotifications()
+            return { error: error?.message || null }
+        }
+
+        const { error } = await supabase.from('notifications').insert({ ...data, sender_id: profile.id, read: false })
         if (!error) await fetchNotifications()
         return { error: error?.message || null }
     }
@@ -277,6 +294,40 @@ export function useNotifications() {
         fetchNotifications,
         refetch: fetchNotifications 
     }
+}
+
+export function useSystemBroadcasts() {
+    const { profile, role } = useAuth()
+    const [broadcasts, setBroadcasts] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchBroadcasts = useCallback(async () => {
+        if (!profile || role !== 'admin') {
+            setBroadcasts([])
+            setLoading(false)
+            return
+        }
+        setLoading(true)
+        // Busca notificações únicas por broadcast_id enviadas pelo sistema ou admins
+        const { data, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .not('broadcast_id', 'is', null)
+            .order('created_at', { ascending: false })
+        
+        if (!error && data) {
+            // Agrupar por broadcast_id no client-side para simplicidade
+            const unique = new Map()
+            data.forEach(n => {
+                if (!unique.has(n.broadcast_id)) unique.set(n.broadcast_id, n)
+            })
+            setBroadcasts(Array.from(unique.values()))
+        }
+        setLoading(false)
+    }, [profile, role])
+
+    useEffect(() => { fetchBroadcasts() }, [fetchBroadcasts])
+    return { broadcasts, loading, refetch: fetchBroadcasts }
 }
 
 // ============ TEAM TRAININGS (GERENTE) ============

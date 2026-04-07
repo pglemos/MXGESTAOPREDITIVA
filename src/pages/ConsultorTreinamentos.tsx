@@ -15,13 +15,10 @@ const typeColors: Record<string, string> = {
 }
 
 export default function ConsultorTreinamentos() {
-    const { trainings, loading } = useTrainings()
+    const { trainings, loading, createTraining } = useTrainings()
     const [showForm, setShowForm] = useState(false)
     const [form, setForm] = useState({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos' })
     const [saving, setSaving] = useState(false)
-
-    // Fallback function for compilation
-    const createTraining = async (data: any) => { return { error: null } }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

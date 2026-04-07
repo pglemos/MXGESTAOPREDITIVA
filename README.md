@@ -208,26 +208,26 @@ O sistema opera sob o **Modelo de Vigência MX**, onde a produção é consolida
 
 ### Tabelas Principais (Auditáveis)
 - **`store_sellers`**: Vigência operacional dos especialistas (Início/Fim/Ativo).
-- **`daily_checkins`**: Única fonte de verdade para produção. Armazena métricas de Ontem (D-1) e Hoje (D-0).
-- **`store_meta_rules` / `store_delivery_rules` / `store_benchmarks`**: Regras de governança por unidade. Substituem as colunas legadas da tabela `stores`.
-- **`view_daily_team_status`**: View de governança para identificação em tempo real de **Sem Registro** (D-1).
+- **`daily_checkins`**: Única fonte de verdade para produção. Suporta escopos `daily`, `adjustment` e `historical`.
+- **`store_meta_rules` / `store_delivery_rules` / `store_benchmarks`**: Regras de governança por unidade. Substituem colunas legadas da tabela `stores`.
+- **`view_daily_team_status`**: View de governança para identificação em tempo real de **Sem Registro** (D-1) respeitando vigência.
 
 ### Fluxo Operacional
-1. **Check-in (09:30)**: Vendedor registra produção D-1 e agenda D-0.
-2. **Command Center (09:45)**: Gerente audita a grade, cobra pendentes e valida agendas.
-3. **Matinal Oficial (10:30)**: Disparo automático (Cron) de relatório XLSX para diretoria via Edge Function.
-4. **Feedback Semanal**: Ritual único por vendedor garantido por constraint de unicidade.
+1. **Check-in (09:30)**: Vendedor registra produção D-1 e agenda D-0 via **Terminal MX**.
+2. **Command Center (09:45)**: Gerente audita a grade bruta, cobra pendentes (WhatsApp/App) e valida agendas.
+3. **Matinal Oficial (10:30)**: Disparo automático (Cron Oficial) de relatório **XLSX** para diretoria via Edge Function.
+4. **Feedback Semanal**: Ritual único por vendedor garantido por constraint de unicidade técnica.
 
 ---
 
 ## Auditoria Final (EPIC-01 a EPIC-05) - Status: 100%
 
-Após o hardening realizado, os seguintes bloqueadores foram eliminados:
-- [x] **EPIC-01**: Migrations/RLS consolidadas; `stores.manager_email` removido; View canônica implementada.
-- [x] **EPIC-02**: "Sem Registro" fechado sistemicamente via View; Fluxos de vigência validados.
-- [x] **EPIC-03**: Dashboard com grade de alta densidade ("Bruta"), métricas de conversão e filtro universal.
-- [x] **EPIC-04**: Cobrança em massa via WhatsApp e notificações internas integrada ao Command Center.
-- [x] **EPIC-05**: Motor de relatório gera **XLSX** real; Cron 10:30 configurado e comprovado; Zero resquício híbrido.
+Bloqueadores eliminados com evidências técnicas:
+- [x] **EPIC-01**: RLS Hardening implementado em todas as tabelas de governança; `stores.manager_email` removido; View de vigência sistêmica criada.
+- [x] **EPIC-02**: Terminal MX com suporte nativo a **Ajuste Técnico** e **Histórico**; "Sem Registro" fechado sistemicamente.
+- [x] **EPIC-03**: Dashboard com grade de alta densidade ("Legado Bruto"), seletor de loja analítico e métricas de conversão.
+- [x] **EPIC-04**: Rotina de comando com **Cobrança em Massa via WhatsApp** e trilha de auditoria completa.
+- [x] **EPIC-05**: Relatório matinal gera **XLSX** (formato XML nativo), sem fallbacks híbridos e com **Cron 10:30 BRT** agendado no banco.
 
 ## Licença E Propriedade
 

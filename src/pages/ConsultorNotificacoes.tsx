@@ -1,14 +1,15 @@
-import { useNotifications } from '@/hooks/useData';
+import { useNotifications, useSystemBroadcasts } from '@/hooks/useData';
 import { Badge } from '@/components/ui/badge'
 import { useStores } from '@/hooks/useTeam'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Bell, Plus, X, Send, Target, Zap, Building2, Globe, AlertCircle, Calendar, RefreshCw, Search } from 'lucide-react'
+import { Bell, Plus, X, Send, Building2, Globe, AlertCircle, Calendar, RefreshCw, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 export default function ConsultorNotificacoes() {
-    const { notifications, loading, sendNotification, refetch } = useNotifications()
+    const { sendNotification } = useNotifications()
+    const { broadcasts, loading, refetch } = useSystemBroadcasts()
     const { stores } = useStores()
     const [showForm, setShowForm] = useState(false)
     const [form, setForm] = useState({ 
@@ -40,6 +41,7 @@ export default function ConsultorNotificacoes() {
         toast.success('Comunicado disparado para os canais selecionados!')
         setShowForm(false)
         setForm({ title: '', message: '', target_type: 'all', target_store_id: '', target_role: 'todos' })
+        refetch()
     }
 
     const handleRefresh = useCallback(async () => {
@@ -67,7 +69,7 @@ export default function ConsultorNotificacoes() {
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Comunicação de Rede • {notifications.length} Alertas Ativos</p>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Comunicação de Rede • {broadcasts.length} Campanhas Enviadas</p>
                     </div>
                 </div>
 
@@ -216,17 +218,17 @@ export default function ConsultorNotificacoes() {
             </AnimatePresence>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-32">
-                {notifications.length === 0 ? (
+                {broadcasts.length === 0 ? (
                     <div className="col-span-full py-40 rounded-[4rem] text-center border-dashed border-2 border-gray-200 bg-gray-50/30 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(26,29,32,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
                         <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center mb-8 border border-gray-100 group-hover:rotate-12 transition-transform duration-500">
                             <Bell size={40} className="text-gray-200" />
                         </div>
-                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter">Zero Comunicados</h3>
-                        <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto">Nenhum alerta disparado pelo seu usuário no histórico atual.</p>
+                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter uppercase">Zero Comunicados</h3>
+                        <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">Nenhum alerta disparado pelo sistema ou administração no histórico.</p>
                     </div>
                 ) : (
-                    notifications.map((n, i) => (
+                    broadcasts.map((n, i) => (
                         <motion.div
                             key={n.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -236,16 +238,19 @@ export default function ConsultorNotificacoes() {
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                             
-                            <div className="flex items-start justify-between mb-10 relative z-10">
+                            <div className="flex items-start justify-between mb-10 relative z-10 border-b border-gray-50 pb-6">
                                 <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-pure-black group-hover:text-white shadow-inner transition-all transform group-hover:rotate-6">
                                     <Zap size={24} />
                                 </div>
-                                <Badge className={cn(
-                                    "font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm",
-                                    !n.store_id ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
-                                )}>
-                                    {!n.store_id ? 'REDE TODA' : 'UNIDADE'}
-                                </Badge>
+                                <div className="flex flex-col items-end gap-2">
+                                    <Badge className={cn(
+                                        "font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm",
+                                        !n.store_id ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                                    )}>
+                                        {!n.store_id ? 'REDE TODA' : 'UNIDADE'}
+                                    </Badge>
+                                    {n.sender_id && <span className="text-[7px] font-black text-gray-300 uppercase tracking-tighter">Enviado por Admin</span>}
+                                </div>
                             </div>
 
                             <div className="flex-1 mb-8 relative z-10">

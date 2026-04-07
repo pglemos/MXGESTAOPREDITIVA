@@ -33,36 +33,49 @@ interface CheckinForm {
 
 export default function Checkin() {
     const { profile, role, membership, storeId } = useAuth()
-    const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate } = useCheckins()
-    const navigate = useNavigate()
-    const [saving, setSaving] = useState(false)
-    const [showConfetti, setShowConfetti] = useState(false)
-    const timerRef = useRef<NodeJS.Timeout | null>(null)
-
-    const [form, setForm] = useState<CheckinForm>({
-        leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '',
-    })
-
-    // 16. Track changes for highlight
-    const [changedFields, setChangedFields] = useState<Set<keyof CheckinForm>>(new Set())
+    const [metricScope, setMetricScope] = useState<'daily' | 'adjustment'>('daily')
+    const [customReferenceDate, setCustomReferenceDate] = useState(referenceDate)
 
     useEffect(() => {
-        if (todayCheckin) {
-            setForm({
-                leads: todayCheckin.leads_prev_day || 0,
-                agd_cart_prev: todayCheckin.agd_cart_prev_day || 0,
-                agd_net_prev: todayCheckin.agd_net_prev_day || 0,
-                agd_cart: todayCheckin.agd_cart_today || 0,
-                agd_net: todayCheckin.agd_net_today || 0,
-                vnd_porta: todayCheckin.vnd_porta_prev_day || 0,
-                vnd_cart: todayCheckin.vnd_cart_prev_day || 0,
-                vnd_net: todayCheckin.vnd_net_prev_day || 0,
-                visitas: todayCheckin.visit_prev_day || 0,
-                note: todayCheckin.note || '',
-                zero_reason: todayCheckin.zero_reason || '',
+        setCustomReferenceDate(referenceDate)
+    }, [referenceDate])
+
+    const { todayCheckin, saveCheckin, loading: hookLoading, fetchCheckinByDate } = useCheckins()
+    const [historicalCheckin, setHistoricalCheckin] = useState<any>(null)
+    const [loadingHistory, setLoadingHistory] = useState(false)
+
+    // Load record based on date/scope
+    useEffect(() => {
+        if (customReferenceDate === referenceDate && metricScope === 'daily') {
+            setHistoricalCheckin(todayCheckin)
+        } else {
+            setLoadingHistory(true)
+            fetchCheckinByDate(customReferenceDate, metricScope).then(res => {
+                setHistoricalCheckin(res)
+                setLoadingHistory(false)
             })
         }
-    }, [todayCheckin])
+    }, [customReferenceDate, metricScope, todayCheckin, referenceDate, fetchCheckinByDate])
+
+    useEffect(() => {
+        if (historicalCheckin) {
+            setForm({
+                leads: historicalCheckin.leads_prev_day || 0,
+                agd_cart_prev: historicalCheckin.agd_cart_prev_day || 0,
+                agd_net_prev: historicalCheckin.agd_net_prev_day || 0,
+                agd_cart: historicalCheckin.agd_cart_today || 0,
+                agd_net: historicalCheckin.agd_net_today || 0,
+                vnd_porta: historicalCheckin.vnd_porta_prev_day || 0,
+                vnd_cart: historicalCheckin.vnd_cart_prev_day || 0,
+                vnd_net: historicalCheckin.vnd_net_prev_day || 0,
+                visitas: historicalCheckin.visit_prev_day || 0,
+                note: historicalCheckin.note || '',
+                zero_reason: historicalCheckin.zero_reason || '',
+            })
+        } else {
+            setForm({ leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '' })
+        }
+    }, [historicalCheckin])
 
     // 20. & 12. Performance & Memory Leak Fix
     const totals = useMemo(() => calcularTotais(form), [form])
@@ -195,30 +208,38 @@ export default function Checkin() {
                 </div>
             )}
 
-            {/* Header / Toolbar */}
+            {/* Header / Toolbar com Seletor de Escopo/Data */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-slate-950 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.2)]" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Check-in Diário MX</h1>
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Terminal MX</h1>
                     </div>
                     <div className="flex flex-col gap-2 pl-6 mt-2">
-                        <div className="flex items-center gap-3">
-                            <div className={cn("w-2 h-2 rounded-full shadow-lg animate-pulse", isLate ? "bg-rose-500 shadow-rose-500/50" : "bg-emerald-500 shadow-emerald-500/50")} />
-                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">
-                                Produção de Referência: {dateStr}
-                            </p>
-                        </div>
-                        <div className="inline-flex mt-1">
-                            {isLate ? (
-                                <p className="text-white text-[9px] font-black uppercase tracking-widest bg-rose-600 border border-rose-700 px-3 py-1 rounded-full shadow-lg animate-bounce">
-                                    REGISTRO FORA DO PRAZO: IMPACTO NO RANKING E MATINAL
-                                </p>
-                            ) : (
-                                <p className="text-emerald-600 text-[9px] font-black uppercase tracking-widest bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
-                                    Prazo Operacional: {CHECKIN_DEADLINE_LABEL} (No Horário)
-                                </p>
-                            )}
+                        <div className="flex items-center gap-4">
+                            <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 shadow-inner">
+                                <button 
+                                    onClick={() => setMetricScope('daily')}
+                                    className={cn("px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all", metricScope === 'daily' ? "bg-white text-slate-950 shadow-sm" : "text-gray-400")}
+                                >
+                                    Registro Diário
+                                </button>
+                                <button 
+                                    onClick={() => setMetricScope('adjustment')}
+                                    className={cn("px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all", metricScope === 'adjustment' ? "bg-amber-500 text-white shadow-sm" : "text-gray-400")}
+                                >
+                                    Ajuste Técnico
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 bg-white h-10 rounded-xl shadow-sm border border-gray-100">
+                                <CalendarDays size={14} className="text-gray-300" />
+                                <input 
+                                    type="date" 
+                                    value={customReferenceDate} 
+                                    onChange={e => setCustomReferenceDate(e.target.value)} 
+                                    className="text-[10px] font-black uppercase text-slate-700 bg-transparent focus:outline-none"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,17 +251,10 @@ export default function Checkin() {
                     >
                         <X size={20} strokeWidth={2.5} />
                     </button>
-                    <button
-                        onClick={resetForm}
-                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-rose-500 transition-all active:scale-90"
-                        title="Limpar tudo"
-                    >
-                        <Trash2 size={20} />
-                    </button>
-                    {todayCheckin && (
+                    {historicalCheckin && (
                         <div className="hidden sm:flex items-center justify-center gap-2 rounded-full border border-amber-100 bg-amber-50 px-5 py-3 shadow-sm">
                             <Sparkles size={14} className="text-amber-500" />
-                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">{canEditExisting ? 'Edição de Registro' : 'Edição Bloqueada'}</span>
+                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">{canEditExisting || metricScope === 'adjustment' ? 'Edição Habilitada' : 'Visualização (Bloqueado)'}</span>
                         </div>
                     )}
                 </div>
