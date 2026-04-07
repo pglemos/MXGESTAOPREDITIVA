@@ -148,7 +148,7 @@ export default function GerenteFeedback() {
         }
         setSaving(true)
         const { error } = await createFeedback(form)
-        setSaving(true) // Should be false, fixed in next turn
+        setSaving(false)
         if (error) { toast.error(error); return }
         toast.success('Feedback enviado para o cockpit do vendedor!')
         setShowForm(false)
@@ -224,6 +224,17 @@ export default function GerenteFeedback() {
         )
     }
 
+    const teamStatus = useMemo(() => {
+        if (!sellers || !feedbacks) return { total: 0, done: 0, acknowledged: 0, missing: 0 }
+        const currentWeekFeedbacks = feedbacks.filter(f => f.week_reference === previousWeek.startKey)
+        return {
+            total: (sellers || []).length,
+            done: currentWeekFeedbacks.length,
+            acknowledged: currentWeekFeedbacks.filter(f => f.acknowledged).length,
+            missing: Math.max(0, (sellers || []).length - currentWeekFeedbacks.length)
+        }
+    }, [sellers, feedbacks, previousWeek.startKey])
+
     return (
         <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
 
@@ -291,6 +302,30 @@ export default function GerenteFeedback() {
                     )}
                 </div>
             </div>
+
+            {/* Executive Status Section */}
+            <AnimatePresence>
+                {activeTab === 'individual' && (
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 md:grid-cols-4 gap-6 shrink-0">
+                        <div className="p-6 rounded-[2rem] bg-white border border-gray-100 shadow-sm space-y-4">
+                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">Tropa Total</p>
+                            <p className="text-3xl font-black tabular-nums text-slate-950">{teamStatus.total}</p>
+                        </div>
+                        <div className="p-6 rounded-[2rem] bg-indigo-50 border border-indigo-100 shadow-sm space-y-4">
+                            <p className="text-[8px] font-black text-indigo-600 uppercase tracking-[0.2em]">Auditorias Feitas</p>
+                            <p className="text-3xl font-black tabular-nums text-indigo-600">{teamStatus.done}<span className="text-sm text-indigo-300 ml-2">/ {teamStatus.total}</span></p>
+                        </div>
+                        <div className={cn("p-6 rounded-[2rem] border shadow-sm space-y-4", teamStatus.missing > 0 ? "bg-rose-50 border-rose-100" : "bg-emerald-50 border-emerald-100")}>
+                            <p className={cn("text-[8px] font-black uppercase tracking-[0.2em]", teamStatus.missing > 0 ? "text-rose-600" : "text-emerald-600")}>Pendentes</p>
+                            <p className={cn("text-3xl font-black tabular-nums", teamStatus.missing > 0 ? "text-rose-600" : "text-emerald-600")}>{teamStatus.missing}</p>
+                        </div>
+                        <div className="p-6 rounded-[2rem] bg-emerald-50 border border-emerald-100 shadow-sm space-y-4">
+                            <p className="text-[8px] font-black text-emerald-600 uppercase tracking-[0.2em]">Ciência Recebida</p>
+                            <p className="text-3xl font-black tabular-nums text-emerald-600">{teamStatus.acknowledged}<span className="text-sm text-emerald-200 ml-2">/ {teamStatus.done}</span></p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <AnimatePresence mode="wait">
                 {activeTab === 'individual' ? (
