@@ -36,7 +36,8 @@ export default function GerenteFeedback() {
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
-    const canManageFeedback = role === 'admin' || role === 'gerente'
+    const canCreateFeedback = role === 'admin' || role === 'gerente'
+    const isExecutiveView = role === 'dono'
     const previousWeek = useMemo(() => getPreviousWeekRange(), [])
 
     const [form, setForm] = useState<FeedbackFormData>({ 
@@ -291,7 +292,7 @@ export default function GerenteFeedback() {
                     >
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </button>
-                    {activeTab === 'individual' && canManageFeedback && (
+                    {activeTab === 'individual' && canCreateFeedback && (
                         <button
                             onClick={() => setShowForm(true)}
                             className="mx-button-primary !px-8 !py-4 hover:bg-brand-secondary-hover shadow-3xl group relative overflow-hidden"
@@ -299,6 +300,11 @@ export default function GerenteFeedback() {
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Feedback
                         </button>
+                    )}
+                    {activeTab === 'individual' && isExecutiveView && (
+                        <div className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-50 border border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest shadow-inner">
+                            <LayoutDashboard size={14} /> Visão Executiva
+                        </div>
                     )}
                 </div>
             </div>
@@ -561,7 +567,7 @@ export default function GerenteFeedback() {
                                     <p className="text-gray-400 text-sm font-bold max-w-sm mx-auto mb-8">
                                         Nenhum registro de feedback localizado para "{searchTerm}" na unidade atual.
                                     </p>
-                                    {canManageFeedback && (
+                                    {canCreateFeedback && (
                                         <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="mx-button-primary hover:bg-brand-secondary-hover px-10 py-4 shadow-3xl">
                                             Iniciar Primeiro Feedback
                                         </button>
