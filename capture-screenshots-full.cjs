@@ -26,8 +26,8 @@ const routes = [
   console.log('🚀 Iniciando Captura de Elite (Full Capture)...');
   
   // Login
-  await page.goto('https://autogestao.vercel.app/login');
-  await page.fill('input[type="email"]', 'admin@autogestao.com.br');
+  await page.goto('https://mxgestaopreditiva.vercel.app/login');
+  await page.fill('input[type="email"]', 'admin@mxgestaopreditiva.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/painel');
@@ -41,7 +41,7 @@ const routes = [
     console.log(`[${i + 1}/${routes.length}] Capturando: ${route}`);
 
     try {
-      await page.goto(`https://autogestao.vercel.app${route}`, { waitUntil: 'networkidle' });
+      await page.goto(`https://mxgestaopreditiva.vercel.app${route}`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(4000); // Tempo para animações estabilizarem
 
       // INJEÇÃO DE ELITE PARA NÃO CORTAR NADA

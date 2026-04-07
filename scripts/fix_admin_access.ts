@@ -81,7 +81,7 @@ async function fixAdminAccess(email: string) {
     console.log(`Membership created in store "${defaultStore.name}" (${defaultStore.id}) as gerente.`)
 }
 
-fixAdminAccess('admin@autogestao.com.br')
+fixAdminAccess('admin@mxgestaopreditiva.com.br')
     .then(() => {
         console.log('Admin access fix completed successfully.')
         process.exit(0)

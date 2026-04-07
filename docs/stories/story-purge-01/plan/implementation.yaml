@@ -134,5 +134,5 @@ phases:
         files: [validate-visual.cjs]
         verification:
           type: browser
-          url: https://autogestao.vercel.app
+          url: https://mxgestaopreditiva.vercel.app
         status: pending

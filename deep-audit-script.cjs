@@ -24,7 +24,7 @@ const baseUrl = 'http://localhost:3000';
 
   // Login
   await page.goto(`${baseUrl}/login`);
-  await page.fill('input[type="email"]', 'admin@autogestao.com.br');
+  await page.fill('input[type="email"]', 'admin@mxgestaopreditiva.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/painel', { timeout: 15000 });

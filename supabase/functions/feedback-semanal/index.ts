@@ -228,7 +228,7 @@ ${ranking.map((r: any) => {
 <div class="acao"><strong>🎯 Ação Orientada:</strong><br>${r.acao}</div>
 </div>
 `}).join("")}
-<a href="https://autogestao.vercel.app/feedback" class="btn">ACESSAR PAINEL DE FEEDBACK</a>
+<a href="https://mxgestaopreditiva.vercel.app/feedback" class="btn">ACESSAR PAINEL DE FEEDBACK</a>
 <a href="https://api.whatsapp.com/send?text=${wppText}" class="btn btn-wpp">ENVIAR VIA WHATSAPP</a>
 </div>
 <div class="f">MX Gestão Preditiva © 2026</div>

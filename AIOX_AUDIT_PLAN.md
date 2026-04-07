@@ -1,6 +1,6 @@
 # AUDITORIA ESTRUTURAL E DE UX/UI AIOX-MASTER
 ## DATA: 02 de Abril de 2026
-## ALVO: `https://autogestao.vercel.app`
+## ALVO: `https://mxgestaopreditiva.vercel.app`
 
 Conforme ordenado pela orquestração do Master, os agentes virtuais `@architect`, `@ux-design-expert`, `@dev` e `@qa` foram ativados para cobrir todas as frestas do sistema.
 

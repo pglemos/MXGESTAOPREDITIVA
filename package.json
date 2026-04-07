@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test src",
     "deploy": "vercel --prod",
     "fix:admin-access": "tsx scripts/fix_admin_access.ts"
   },
@@ -61,6 +63,7 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
+    "vercel": "^50.40.0",
     "vite": "^6.2.0"
   }
 }

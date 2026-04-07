@@ -3,7 +3,16 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
+export function checkSupabaseCredentials(url?: string, anonKey?: string) {
+    if (!url || !anonKey) {
+        console.warn('Supabase credentials missing. Check your .env file.')
+        return false
+    }
+
+    return true
+}
+
+if (!checkSupabaseCredentials(supabaseUrl, supabaseAnonKey)) {
     throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
 }
 

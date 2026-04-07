@@ -4,9 +4,9 @@ description: Build MX Gestão Preditiva v1.0 — Full autonomous implementation 
 
 # 🚀 MX Gestão Preditiva — Workflow de Implementação Completo
 
-> **PRD:** `/Users/pedroguilherme/.gemini/antigravity/brain/b70cdab0-7b45-4e39-b09f-801dcf5156d1/prd_autogestao.md`
+> **PRD:** `/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/PRD_MX_Gestao_Preditiva_90D_atualizado.md`
 > **Stack:** Vite + React 19 + TypeScript + Tailwind CSS v4 + Supabase + Vercel
-> **Projeto:** `/Users/pedroguilherme/AutoGestao`
+> **Projeto:** `/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA`
 > **Supabase ID:** `fbhcmzzgwjdgkctlfvbo`
 
 ---
@@ -19,7 +19,7 @@ description: Build MX Gestão Preditiva v1.0 — Full autonomous implementation 
 2. Conecte tudo ao Supabase real — zero mock data
 3. Design premium — Inter, cores modernas, micro-animações, glassmorphism
 4. 3 canais de venda (porta/carteira/internet) em TUDO
-5. Login de teste: `admin@autogestao.com.br` / `Jose20161@`
+5. Login de teste: `admin@mxgestaopreditiva.com.br` / `Jose20161@`
 6. Após cada fase: `npm run build` para validar + teste via browser `http://localhost:3000`
 
 ---

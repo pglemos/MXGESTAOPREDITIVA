@@ -12,11 +12,11 @@
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": [
-        "https://autogestao.vercel.app/assets/trending-up-D2fZf5Tm.js: net::ERR_ABORTED",
-        "https://autogestao.vercel.app/assets/award-CXwrAAgT.js: net::ERR_ABORTED",
-        "https://autogestao.vercel.app/assets/chevron-right-COQzs4zi.js: net::ERR_ABORTED",
+        "https://mxgestaopreditiva.vercel.app/assets/trending-up-D2fZf5Tm.js: net::ERR_ABORTED",
+        "https://mxgestaopreditiva.vercel.app/assets/award-CXwrAAgT.js: net::ERR_ABORTED",
+        "https://mxgestaopreditiva.vercel.app/assets/chevron-right-COQzs4zi.js: net::ERR_ABORTED",
         "https://fbhcmzzgwjdgkctlfvbo.supabase.co/rest/v1/notifications?select=*&order=sent_at.desc&limit=50: net::ERR_ABORTED",
-        "https://autogestao.vercel.app/assets/PainelConsultor-DwdGn_LV.js: net::ERR_ABORTED"
+        "https://mxgestaopreditiva.vercel.app/assets/PainelConsultor-DwdGn_LV.js: net::ERR_ABORTED"
       ]
     },
     {

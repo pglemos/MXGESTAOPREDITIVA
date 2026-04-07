@@ -11,4 +11,4 @@ Também adicionei o `useEffect` para acionar a rota raiz `/` apenas *após* carr
 
 A aplicação agora carrega os dados com perfeição (verifiquei isso em Node.js com os hooks modificados localmente) e o seu npm run dev já está operante no localhost:3000
 
-Pode ir lá testar e validar o login (`admin@autogestao.com.br`)!
+Pode ir lá testar e validar o login (`admin@mxgestaopreditiva.com.br`)!
