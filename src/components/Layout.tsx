@@ -68,7 +68,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Painel da Loja', path: '/loja', icon: <LayoutDashboard size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
-        { label: 'Check-ins', path: '/rotina', icon: <CheckSquare size={16} /> },
+        { label: 'Rotina Diária', path: '/rotina', icon: <CheckSquare size={16} /> },
         { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
       ]
     },

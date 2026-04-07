@@ -4,15 +4,18 @@ import { useAuth } from '@/hooks/useAuth'
 import type { RankingEntry } from '@/types/database'
 import { calcularAtingimento } from '@/lib/calculations'
 
-export function useRanking(storeIdOverride?: string) {
+export function useRanking(storeIdOverride?: string, filters?: { startDate?: string; endDate?: string }) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
     const [ranking, setRanking] = useState<RankingEntry[]>([])
     const [loading, setLoading] = useState(true)
 
     const now = new Date()
-    const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-    const endOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`
+    const defaultStartOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+    const defaultEndOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`
+
+    const startDate = filters?.startDate || defaultStartOfMonth
+    const endDate = filters?.endDate || defaultEndOfMonth
 
     const fetchRanking = useCallback(async () => {
         if (!storeId) {
@@ -28,8 +31,8 @@ export function useRanking(storeIdOverride?: string) {
             .select('seller_user_id, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
             .eq('metric_scope', 'daily') // Garante que apenas produção diária conte para o ranking
-            .gte('reference_date', startOfMonth)
-            .lte('reference_date', endOfMonth)
+            .gte('reference_date', startDate)
+            .lte('reference_date', endDate)
 
         // Get active sellers by operational tenure. Fallback keeps old data readable until stores are configured.
         const { data: tenures } = await supabase
@@ -117,7 +120,7 @@ export function useRanking(storeIdOverride?: string) {
 
         setRanking(entries)
         setLoading(false)
-    }, [storeId, startOfMonth, endOfMonth])
+    }, [storeId, startDate, endDate])
 
     useEffect(() => { fetchRanking() }, [fetchRanking])
     return { ranking, loading, refetch: fetchRanking }
