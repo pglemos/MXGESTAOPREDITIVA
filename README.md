@@ -202,6 +202,33 @@ Observação: o AGENTS.md do projeto exige também atualização de story quando
 - Os módulos sob `/legacy` existem para compatibilidade e não devem ser confundidos com o fluxo operacional principal da Metodologia MX.
 - `whatsapp-service/` é um serviço auxiliar separado; não faz parte do bundle Vite principal.
 
+## Arquitetura de Dados Canônica (D-1/D-0)
+
+O sistema opera sob o **Modelo de Vigência MX**, onde a produção é consolidada em **D-1** e os compromissos são firmados para **D-0 (Hoje)**.
+
+### Tabelas Principais (Auditáveis)
+- **`store_sellers`**: Vigência operacional dos especialistas (Início/Fim/Ativo).
+- **`daily_checkins`**: Única fonte de verdade para produção. Armazena métricas de Ontem (D-1) e Hoje (D-0).
+- **`store_meta_rules` / `store_delivery_rules` / `store_benchmarks`**: Regras de governança por unidade. Substituem as colunas legadas da tabela `stores`.
+- **`view_daily_team_status`**: View de governança para identificação em tempo real de **Sem Registro** (D-1).
+
+### Fluxo Operacional
+1. **Check-in (09:30)**: Vendedor registra produção D-1 e agenda D-0.
+2. **Command Center (09:45)**: Gerente audita a grade, cobra pendentes e valida agendas.
+3. **Matinal Oficial (10:30)**: Disparo automático (Cron) de relatório XLSX para diretoria via Edge Function.
+4. **Feedback Semanal**: Ritual único por vendedor garantido por constraint de unicidade.
+
+---
+
+## Auditoria Final (EPIC-01 a EPIC-05) - Status: 100%
+
+Após o hardening realizado, os seguintes bloqueadores foram eliminados:
+- [x] **EPIC-01**: Migrations/RLS consolidadas; `stores.manager_email` removido; View canônica implementada.
+- [x] **EPIC-02**: "Sem Registro" fechado sistemicamente via View; Fluxos de vigência validados.
+- [x] **EPIC-03**: Dashboard com grade de alta densidade ("Bruta"), métricas de conversão e filtro universal.
+- [x] **EPIC-04**: Cobrança em massa via WhatsApp e notificações internas integrada ao Command Center.
+- [x] **EPIC-05**: Motor de relatório gera **XLSX** real; Cron 10:30 configurado e comprovado; Zero resquício híbrido.
+
 ## Licença E Propriedade
 
 Projeto privado de operação MX/Synvolt no GitHub/Vercel indicados acima. Ajuste esta seção caso seja necessária uma licença formal.

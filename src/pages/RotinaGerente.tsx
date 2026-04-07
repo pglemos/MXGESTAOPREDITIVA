@@ -171,6 +171,19 @@ export default function RotinaGerente() {
         toast.success('Preparando compartilhamento no WhatsApp...')
     }
 
+    const handleCobrarTropaWhatsApp = () => {
+        if (pendingSellers.length === 0) return
+        const storeName = membership?.store?.name || 'Unidade'
+        const header = `*MX ALERTA - ${storeName.toUpperCase()}*\n_BLOQUEIO DE MATINAL_\n\n`
+        const body = `Os especialistas abaixo ainda não registraram sua produção D-1:\n\n`
+        const list = pendingSellers.map(s => `• ${s.name}`).join('\n')
+        const footer = `\n\n_Prazo de edição: ${CHECKIN_DEADLINE_LABEL}_\nFavor regularizar imediatamente.`
+        
+        const message = encodeURIComponent(header + body + list + footer)
+        window.open(`https://wa.me/?text=${message}`, '_blank')
+        toast.success('Lista de cobrança enviada para o WhatsApp!')
+    }
+
     const handleCobrarTropa = async () => {
         if (pendingSellers.length === 0) return
         setCobrando(true)
@@ -185,7 +198,7 @@ export default function RotinaGerente() {
         }))
         await Promise.all(promises)
         setCobrando(false)
-        toast.success(`Cobrança enviada para ${pendingSellers.length} especialistas!`)
+        toast.success(`Notificação enviada para ${pendingSellers.length} especialistas!`)
     }
 
     if (loadingTeam || loadingCheckins || loadingRanking || loadingFeedbacks || loadingPDIs || loadingRoutine) {
@@ -327,17 +340,28 @@ export default function RotinaGerente() {
                                 </div>
 
                                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <h3 className="text-lg font-black uppercase tracking-tight">Vendedores Pendentes</h3>
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                                        <div>
+                                            <h3 className="text-lg font-black uppercase tracking-tight">Vendedores Pendentes</h3>
+                                            <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest mt-1">Bloqueio de visibilidade em vigor</p>
+                                        </div>
                                         {pendingSellers.length > 0 && (
-                                            <button 
-                                                onClick={handleCobrarTropa} 
-                                                disabled={cobrando}
-                                                className="px-6 h-10 rounded-full bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg shadow-rose-100"
-                                            >
-                                                {cobrando ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
-                                                Cobrar Tropa Agora
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={handleCobrarTropa} 
+                                                    disabled={cobrando}
+                                                    className="px-6 h-10 rounded-full bg-slate-100 text-slate-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition-all border border-slate-200"
+                                                >
+                                                    Notificar App
+                                                </button>
+                                                <button 
+                                                    onClick={handleCobrarTropaWhatsApp} 
+                                                    disabled={cobrando}
+                                                    className="px-6 h-10 rounded-full bg-emerald-600 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 border border-emerald-500"
+                                                >
+                                                    Cobrança em Massa (WhatsApp)
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

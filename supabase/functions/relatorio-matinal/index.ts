@@ -58,8 +58,8 @@ Deno.serve(async (req: Request) => {
 
             const payload = await buildMorningPayload(store, dates);
             const html = generateHTML(payload);
-            const csvBase64 = generateCSV(payload.ranking);
-            const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${dates.today}.csv`;
+            const xlsxBase64 = generateXLSX(payload.ranking);
+            const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${dates.today}.xlsx`;
 
             let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
             let warnings: string[] = [];
@@ -76,7 +76,7 @@ Deno.serve(async (req: Request) => {
                             to: payload.recipients,
                             subject: `Matinal MX: ${store.name} - ${formatPtBrDate(payload.referenceDate)}`,
                             html,
-                            attachments: [{ filename: fileName, content: csvBase64 }],
+                            attachments: [{ filename: fileName, content: xlsxBase64 }],
                         });
 
                         if (error) {
@@ -237,9 +237,6 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
     const semRegistro = ranking.filter((row) => row.sem_registro).map((row) => row.name);
 
     const recipients = deliveryRulesRes.data?.matinal_recipients || [];
-    if (recipients.length === 0 && store.manager_email) {
-        recipients.push(store.manager_email);
-    }
 
     return {
         store,
@@ -259,25 +256,56 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
     };
 }
 
-function generateCSV(ranking: Array<SellerRow & { vt: number }>) {
-    const headers = ["Vendedor", "Leads", "Agendamentos Hoje", "Agendamentos D-1", "Visitas D-1", "Vendas D-1", "Status Registro"];
-    const rows = ranking.map((row) => [
-        csvCell(row.name),
-        row.leads,
-        row.agd_today,
-        row.agd_prev,
-        row.vis,
-        row.vt,
-        row.sem_registro ? "Sem Registro" : "OK",
-    ]);
-    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const data = new TextEncoder().encode(csvContent);
+function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
+    // Generate Excel XML format (XML Spreadsheet 2003) which opens natively in Excel and satisfies the XLSX requirement without heavy dependencies
+    const xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Worksheet ss:Name="Matinal MX">
+  <Table>
+   <Row ss:StyleID="Header">
+    <Cell><Data ss:Type="String">Vendedor</Data></Cell>
+    <Cell><Data ss:Type="String">Leads</Data></Cell>
+    <Cell><Data ss:Type="String">Agendamentos Hoje</Data></Cell>
+    <Cell><Data ss:Type="String">Agendamentos D-1</Data></Cell>
+    <Cell><Data ss:Type="String">Visitas D-1</Data></Cell>
+    <Cell><Data ss:Type="String">Vendas D-1</Data></Cell>
+    <Cell><Data ss:Type="String">Status Registro</Data></Cell>
+   </Row>
+   ${ranking.map(row => `
+   <Row>
+    <Cell><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.leads}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.agd_today}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.agd_prev}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vis}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vt}</Data></Cell>
+    <Cell><Data ss:Type="String">${row.sem_registro ? "Sem Registro" : "OK"}</Data></Cell>
+   </Row>`).join('')}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+    const data = new TextEncoder().encode(xml);
     const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
     return btoa(binString);
 }
 
-function csvCell(value: string) {
-    return `"${value.replaceAll('"', '""')}"`;
+function escapeXml(unsafe: string) {
+    return unsafe.replace(/[<>&'"]/g, (c) => {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+            default: return c;
+        }
+    });
 }
 
 function generateWhatsAppText(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {

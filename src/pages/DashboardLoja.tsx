@@ -288,63 +288,62 @@ export default function DashboardLoja() {
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">
                             <table className="w-full text-left min-w-[800px]">
-                                <thead className="bg-slate-50 border-b border-gray-200">
-                                    <tr className="text-[9px] font-black uppercase tracking-widest text-slate-500">
-                                        <th className="px-8 py-4 w-12 text-center">Pos</th>
-                                        <th className="py-4">Especialista</th>
-                                        <th className="py-4 text-center">Leads</th>
-                                        <th className="py-4 text-center">Agend.</th>
-                                        <th className="py-4 text-center">Visitas</th>
-                                        <th className="py-4 text-center text-indigo-600">Vendas</th>
-                                        <th className="py-4 text-center">Meta</th>
-                                        <th className="py-4 text-center">% Ating.</th>
-                                        <th className="px-8 py-4 text-right">Disciplina</th>
+                                <thead className="bg-slate-950 border-b border-gray-800">
+                                    <tr className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                                        <th className="px-6 py-5 w-12 text-center border-r border-slate-800">Pos</th>
+                                        <th className="px-6 py-5 border-r border-slate-800">Especialista</th>
+                                        <th className="py-5 text-center border-r border-slate-800">Leads</th>
+                                        <th className="py-5 text-center border-r border-slate-800">Agend.</th>
+                                        <th className="py-5 text-center border-r border-slate-800">Visitas</th>
+                                        <th className="py-5 text-center border-r border-slate-800 text-indigo-400">Vendas</th>
+                                        <th className="py-5 text-center border-r border-slate-800">Meta</th>
+                                        <th className="py-5 text-center border-r border-slate-800">% At.</th>
+                                        <th className="py-5 text-center border-r border-slate-800">Conv.</th>
+                                        <th className="px-6 py-5 text-right">Disciplina</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-gray-200">
                                     {filteredRanking.map((r, i) => {
                                         const seller = sellers?.find(s => s.id === r.user_id)
                                         const isCheckedIn = seller?.checkin_today
+                                        const conversao = r.leads > 0 ? Math.round((r.vnd_total / r.leads) * 100) : 0
                                         return (
-                                        <tr key={r.user_id} className={cn("hover:bg-slate-50/50 transition-colors h-20 group", r.is_venda_loja && "bg-amber-50/30 hover:bg-amber-50/60")}>
-                                            <td className="px-8 py-2 text-center font-black text-xs text-gray-300 group-hover:text-indigo-600">{(i + 1).toString().padStart(2, '0')}</td>
-                                            <td className="py-2">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm uppercase shadow-sm border", r.is_venda_loja ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-white text-slate-700 border-slate-200")}>
+                                        <tr key={r.user_id} className={cn("hover:bg-slate-100/80 transition-all h-16 group border-l-4", isCheckedIn ? "border-l-transparent" : "border-l-rose-500", r.is_venda_loja && "bg-amber-50/50")}>
+                                            <td className="px-6 py-2 text-center font-black text-xs text-slate-400 font-mono-numbers border-r border-gray-100 group-hover:text-indigo-600">{(i + 1).toString().padStart(2, '0')}</td>
+                                            <td className="px-6 py-2 border-r border-gray-100">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] uppercase shadow-sm border shrink-0", r.is_venda_loja ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-white text-slate-700 border-slate-200")}>
                                                         {r.user_name?.charAt(0)}
                                                     </div>
-                                                    <div>
-                                                        <p className="font-black text-xs text-slate-950 uppercase tracking-tight leading-none mb-1">{r.user_name}</p>
+                                                    <div className="truncate">
+                                                        <p className="font-black text-[11px] text-slate-950 uppercase tracking-tight leading-none mb-1 truncate">{r.user_name}</p>
                                                         {r.is_venda_loja ? (
-                                                            <span className="text-[8px] font-black bg-amber-500 text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>
+                                                            <span className="text-[7px] font-black bg-amber-500 text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>
                                                         ) : (
-                                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Unidade {metrics.storeName}</p>
+                                                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest truncate">Unidade {metrics.storeName}</p>
                                                         )}
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-2 text-center font-black text-sm font-mono-numbers text-slate-700">{r.leads}</td>
-                                            <td className="py-2 text-center font-black text-sm font-mono-numbers text-slate-700">{r.agd_total}</td>
-                                            <td className="py-2 text-center font-black text-sm font-mono-numbers text-slate-700">{r.visitas}</td>
-                                            <td className="py-2 text-center font-black text-xl font-mono-numbers text-indigo-600">{r.vnd_total}</td>
-                                            <td className="py-2 text-center font-black text-sm font-mono-numbers text-slate-700">{r.is_venda_loja ? '-' : r.meta}</td>
-                                            <td className="py-2 text-center">
+                                            <td className="py-2 text-center font-black text-xs font-mono-numbers text-slate-700 border-r border-gray-100">{r.leads}</td>
+                                            <td className="py-2 text-center font-black text-xs font-mono-numbers text-slate-700 border-r border-gray-100">{r.agd_total}</td>
+                                            <td className="py-2 text-center font-black text-xs font-mono-numbers text-slate-700 border-r border-gray-100">{r.visitas}</td>
+                                            <td className="py-2 text-center font-black text-lg font-mono-numbers text-indigo-600 border-r border-gray-100 bg-indigo-50/30">{r.vnd_total}</td>
+                                            <td className="py-2 text-center font-black text-xs font-mono-numbers text-slate-500 border-r border-gray-100">{r.is_venda_loja ? '-' : r.meta}</td>
+                                            <td className="py-2 text-center border-r border-gray-100">
                                                 {!r.is_venda_loja && (
-                                                    <span className={cn("font-mono-numbers font-black text-sm", r.atingimento >= 100 ? 'text-emerald-600' : 'text-amber-500')}>{r.atingimento}%</span>
+                                                    <span className={cn("font-mono-numbers font-black text-xs", r.atingimento >= 100 ? 'text-emerald-600' : r.atingimento >= 80 ? 'text-indigo-600' : 'text-rose-600')}>{r.atingimento}%</span>
                                                 )}
                                                 {r.is_venda_loja && <span className="text-gray-300">-</span>}
                                             </td>
-                                            <td className="px-8 py-2 text-right">
-                                                {!r.is_venda_loja ? (
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <span className={cn("text-[9px] font-black uppercase tracking-widest", isCheckedIn ? "text-emerald-600" : "text-rose-500")}>
-                                                            {isCheckedIn ? 'REGISTRADO' : 'PENDENTE'}
-                                                        </span>
-                                                        {isCheckedIn ? <CheckCircle2 size={14} className="text-emerald-500" /> : <XCircle size={14} className="text-rose-500" />}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">-</span>
-                                                )}
+                                            <td className="py-2 text-center font-black text-[10px] font-mono-numbers text-slate-400 border-r border-gray-100">{conversao}%</td>
+                                            <td className="px-6 py-2 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <span className={cn("text-[8px] font-black uppercase tracking-widest", isCheckedIn ? "text-emerald-600" : "text-rose-500")}>
+                                                        {isCheckedIn ? 'OK' : 'PENDENTE'}
+                                                    </span>
+                                                    {isCheckedIn ? <CheckCircle2 size={12} className="text-emerald-500" /> : <XCircle size={12} className="text-rose-500" />}
+                                                </div>
                                             </td>
                                         </tr>
                                     )})}
