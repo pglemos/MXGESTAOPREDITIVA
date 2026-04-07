@@ -5,13 +5,13 @@ import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useManagerRoutine } from '@/hooks/useManagerRoutine'
 import { useFeedbacks, usePDIs, useNotifications } from '@/hooks/useData'
-import { somarVendas, calcularAtingimento, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
+import { somarVendas, calcularAtingimento, calcularFunil, gerarDiagnosticoMX, getDiasInfo } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import {
     CheckCircle2, Clock, Activity, CalendarDays,
     Zap, FileCheck, Target, TrendingUp,
     MessageSquare, Award, ChevronRight, Mail,
-    BarChart3, RefreshCw, User, X, ShieldCheck
+    BarChart3, RefreshCw, User, X, ShieldCheck, ShieldAlert
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -41,6 +41,17 @@ export default function RotinaGerente() {
     const [showAgendaModal, setShowAgendaModal] = useState(false)
     const [routineNotes, setRoutineNotes] = useState('')
     const [savingRoutine, setSavingRoutine] = useState(false)
+
+    // Expected attainment calculation (DRR context)
+    const diasInfo = useMemo(() => getDiasInfo(), [])
+    const expectedAttainment = useMemo(() => (diasInfo.decorridos / diasInfo.total) * 100, [diasInfo])
+
+    // Sellers in risk zone (attainment < expectedAttainment - 10%)
+    const atRiskSellers = useMemo(() => {
+        return ranking
+            .filter(item => !item.is_venda_loja && item.atingimento < (expectedAttainment - 10))
+            .sort((a, b) => a.atingimento - b.atingimento)
+    }, [ranking, expectedAttainment])
 
     // Derived State - Metrics
     const referenceDate = calculateReferenceDate()
@@ -145,6 +156,17 @@ export default function RotinaGerente() {
         } finally {
             setExecuting(false)
         }
+    }
+
+    const handleWhatsAppShareGroup = () => {
+        const storeName = sellers?.[0]?.store?.name || 'Unidade Operacional'
+        const header = `*MATINAL OFICIAL - ${storeName.toUpperCase()}*\n_Referência: ${referenceDate}_\n\n`
+        const metricsStr = `*Vendas Ontem:* ${previousDaySummary.vendas}\n*Agendamentos Hoje:* ${totalAgendamentosHoje}\n*Gap Unidade:* ${Math.max((storeGoal?.target || 0) - somarVendas(checkins), 0)} un\n\n`
+        const top5 = ranking.slice(0, 5).map(item => `${item.position}º ${item.user_name} - ${item.vnd_total}v (${item.atingimento}%)`).join('\n')
+        
+        const message = encodeURIComponent(header + metricsStr + "*TOP 5 ATUAL:*\n" + top5)
+        window.open(`https://wa.me/?text=${message}`, '_blank')
+        toast.success('Preparando compartilhamento no WhatsApp...')
     }
 
     const handleCobrarTropa = async () => {
