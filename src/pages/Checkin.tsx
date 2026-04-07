@@ -9,7 +9,7 @@ import {
     CheckSquare, Users, Globe, Car, Eye, Send, Sparkles,
     MessageSquare, AlertTriangle, ChevronLeft, Minus, Plus, Zap,
     ArrowLeft, Target, TrendingUp, Info, RefreshCw, Trash2,
-    X, History, CalendarDays
+    X, History, CalendarDays, ShieldCheck
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -32,7 +32,7 @@ interface CheckinForm {
 }
 
 export default function Checkin() {
-    const { profile } = useAuth()
+    const { profile, role } = useAuth()
     const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate } = useCheckins()
     const navigate = useNavigate()
     const [saving, setSaving] = useState(false)
@@ -172,6 +172,16 @@ export default function Checkin() {
             <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase animate-pulse">Sincronizando Terminal MX...</p>
         </div>
     )
+
+    if (role !== 'vendedor') {
+        return (
+            <div className="h-full w-full flex flex-col items-center justify-center text-center p-10 bg-white">
+                <ShieldCheck size={48} className="text-gray-200 mb-6" />
+                <h3 className="text-2xl font-black text-pure-black tracking-tight mb-2 uppercase">Lançamento Individual</h3>
+                <p className="text-gray-400 text-sm font-bold max-w-sm mx-auto">O check-in diário é exclusivo do vendedor. Dono acompanha, gerente opera a rotina e admin audita.</p>
+            </div>
+        )
+    }
 
     return (
         <div className="w-full h-full flex flex-col gap-10 md:gap-14 overflow-y-auto no-scrollbar relative text-pure-black p-mx-md sm:p-mx-lg md:p-mx-xl">

@@ -41,13 +41,13 @@ function ChartTooltipContent({ active, payload, label }: ChartTooltipContentProp
     if (!active || !payload?.length) return null
 
     return (
-        <div className="rounded-xl border bg-background p-3 shadow-lg">
-            {label && <p className="text-xs font-bold text-muted-foreground mb-2">{label}</p>}
+        <div className="rounded-xl border border-border-default bg-surface-main p-3 shadow-mx-lg">
+            {label && <p className="text-xs font-bold text-text-tertiary mb-2">{label}</p>}
             {payload.map((entry, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
-                    <span className="font-semibold text-foreground">{entry.name || (entry.dataKey as string | number)}:</span>
-                    <span className="font-bold text-foreground">{entry.value}</span>
+                    <div className="size-2.5 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
+                    <span className="font-semibold text-text-primary">{entry.name || (entry.dataKey as string | number)}:</span>
+                    <span className="font-bold text-text-primary">{entry.value}</span>
                 </div>
             ))}
         </div>

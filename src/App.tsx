@@ -32,7 +32,7 @@ const PDIPrint = lazy(() => import('@/pages/PDIPrint'))
 const GerenteTreinamentos = lazy(() => import('@/pages/GerenteTreinamentos'))
 const RotinaGerente = lazy(() => import('@/pages/RotinaGerente'))
 
-// Consultor
+// Admin
 const PainelConsultor = lazy(() => import('@/pages/PainelConsultor'))
 const Lojas = lazy(() => import('@/pages/Lojas'))
 const ConsultorTreinamentos = lazy(() => import('@/pages/ConsultorTreinamentos'))
@@ -78,7 +78,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function RoleRedirect() {
   const { role } = useAuth()
   if (role === 'admin') return <Navigate to="/painel" replace />
-  if (role === 'consultor') return <Navigate to="/painel" replace />
+  if (role === 'dono') return <Navigate to="/lojas" replace />
   if (role === 'gerente') return <Navigate to="/loja" replace />
   return <Navigate to="/home" replace />
 }
@@ -108,13 +108,13 @@ export default function App() {
             <Route path="historico" element={<Suspense fallback={<Spinner />}><Historico /></Suspense>} />
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} consultor={<ConsultorTreinamentos />} admin={<ConsultorTreinamentos />} />
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<Navigate to="/lojas" replace />} admin={<ConsultorTreinamentos />} />
             </Suspense>} />
             <Route path="feedback" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} consultor={<GerenteFeedback />} admin={<GerenteFeedback />} />
+              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} dono={<GerenteFeedback />} admin={<GerenteFeedback />} />
             </Suspense>} />
             <Route path="notificacoes" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} consultor={<ConsultorNotificacoes />} admin={<ConsultorNotificacoes />} />
+              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} dono={<Notificacoes />} admin={<ConsultorNotificacoes />} />
             </Suspense>} />
             <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
 
@@ -127,7 +127,7 @@ export default function App() {
             <Route path="pdi/:id/print" element={<Suspense fallback={<Spinner />}><PDIPrint /></Suspense>} />
             <Route path="rotina" element={<Suspense fallback={<Spinner />}><RotinaGerente /></Suspense>} />
 
-            {/* Consultor / Admin Core */}
+            {/* Admin Core */}
             <Route path="painel" element={<Suspense fallback={<Spinner />}><PainelConsultor /></Suspense>} />
             <Route path="lojas" element={<Suspense fallback={<Spinner />}><Lojas /></Suspense>} />
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
@@ -135,7 +135,7 @@ export default function App() {
             <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}><Reprocessamento /></Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
             <Route path="auditoria" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} consultor={<AiDiagnostics />} admin={<AiDiagnostics />} />
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} dono={<Navigate to="/lojas" replace />} admin={<AiDiagnostics />} />
             </Suspense>} />
 
             {/* Módulos Legados Isolados */}
@@ -169,17 +169,17 @@ export default function App() {
 function RoleSwitch({
   vendedor,
   gerente,
-  consultor,
+  dono,
   admin,
 }: {
   vendedor: React.ReactNode
   gerente: React.ReactNode
-  consultor: React.ReactNode
+  dono: React.ReactNode
   admin?: React.ReactNode
 }) {
   const { role } = useAuth()
-  if (role === 'admin') return <>{admin || consultor}</>
-  if (role === 'consultor') return <>{consultor}</>
+  if (role === 'admin') return <>{admin}</>
+  if (role === 'dono') return <>{dono}</>
   if (role === 'gerente') return <>{gerente}</>
   return <>{vendedor}</>
 }

@@ -1,6 +1,7 @@
 import { useFeedbacks } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
 import { useCheckins } from '@/hooks/useCheckins'
+import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
 import { MessageSquare, Plus, X, Send, CheckCircle, Clock, User, Award, AlertCircle, Zap, ChevronRight, LayoutDashboard, Target, TrendingUp, Sparkles, Filter, RefreshCw, Search, History } from 'lucide-react'
@@ -12,6 +13,7 @@ import type { FunnelData, FeedbackFormData } from '@/types/database'
 import { Badge } from '@/components/ui/badge'
 
 export default function GerenteFeedback() {
+    const { role } = useAuth()
     const { feedbacks, loading, createFeedback, refetch } = useFeedbacks()
     const { sellers } = useTeam()
     const { checkins } = useCheckins()
@@ -19,6 +21,7 @@ export default function GerenteFeedback() {
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
+    const canManageFeedback = role === 'admin' || role === 'gerente'
 
     const [form, setForm] = useState<FeedbackFormData>({ 
         seller_id: '', 
@@ -87,6 +90,10 @@ export default function GerenteFeedback() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!canManageFeedback) {
+            toast.error('Seu papel permite acompanhar feedbacks, mas não criar ou editar.')
+            return
+        }
         if (!form.seller_id || !form.meta_compromisso || !form.positives || !form.attention_points || !form.action) {
             toast.error('Preencha os campos mandatórios da auditoria.')
             return
@@ -198,18 +205,20 @@ export default function GerenteFeedback() {
                     >
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </button>
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="mx-button-primary !px-8 !py-4 hover:bg-brand-secondary-hover shadow-3xl group relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Feedback
-                    </button>
+                    {canManageFeedback && (
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="mx-button-primary !px-8 !py-4 hover:bg-brand-secondary-hover shadow-3xl group relative overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Feedback
+                        </button>
+                    )}
                 </div>
             </div>
 
             <AnimatePresence>
-                {showForm && (
+                {showForm && canManageFeedback && (
                     <motion.div initial={{ opacity: 0, y: -20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 z-50 rounded-[3rem] p-1 bg-gradient-to-b from-indigo-50 to-white shadow-3xl mb-10">
                         <form onSubmit={handleSubmit} className="mx-card !border-none p-10 md:p-14 space-y-10 relative overflow-hidden bg-white">
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
@@ -436,9 +445,11 @@ export default function GerenteFeedback() {
                         <p className="text-gray-400 text-sm font-bold max-w-sm mx-auto mb-8">
                             Nenhum registro de feedback localizado para "{searchTerm}" na unidade atual.
                         </p>
-                        <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="mx-button-primary hover:bg-brand-secondary-hover px-10 py-4 shadow-3xl">
-                            Iniciar Primeiro Feedback
-                        </button>
+                        {canManageFeedback && (
+                            <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="mx-button-primary hover:bg-brand-secondary-hover px-10 py-4 shadow-3xl">
+                                Iniciar Primeiro Feedback
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

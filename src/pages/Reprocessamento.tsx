@@ -26,7 +26,7 @@ type ReprocessLog = {
 }
 
 export default function Reprocessamento() {
-    const { profile } = useAuth()
+    const { profile, role } = useAuth()
     const { stores } = useStores()
     const [logs, setLogs] = useState<ReprocessLog[]>([])
     const [loading, setLoading] = useState(true)
@@ -38,6 +38,11 @@ export default function Reprocessamento() {
     const navigate = useNavigate()
 
     const fetchLogs = async () => {
+        if (role !== 'admin') {
+            setLogs([])
+            setLoading(false)
+            return
+        }
         setLoading(true)
         const { data, error } = await supabase
             .from('reprocess_logs')
@@ -53,7 +58,17 @@ export default function Reprocessamento() {
 
     useEffect(() => {
         fetchLogs()
-    }, [])
+    }, [role])
+
+    if (role !== 'admin') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] p-10 text-center">
+                <ShieldCheck size={48} className="text-gray-200 mb-6" />
+                <h3 className="text-2xl font-black text-pure-black tracking-tight mb-2">Acesso Restrito</h3>
+                <p className="text-gray-400 text-sm font-bold max-w-xs mx-auto">Reprocessamento é exclusivo do admin da MX Gestão Preditiva.</p>
+            </div>
+        )
+    }
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]

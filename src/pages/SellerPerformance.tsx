@@ -60,7 +60,7 @@ export default function SellerPerformance() {
                         {i === 0 && <div className="absolute top-0 right-0 w-40 h-40 bg-brand-primary/20 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none group-hover:bg-brand-primary/30 transition-all z-0" />}
                         <div className="flex items-center gap-mx-md mb-mx-lg relative z-10">
                             <div className={cn("w-16 h-16 rounded-mx-lg flex items-center justify-center overflow-hidden shadow-inner transform group-hover:rotate-3 transition-transform", i === 0 ? "bg-white/10" : "bg-mx-slate-50")}>
-                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=transparent&color=${i === 0 ? 'fff' : '1a1d20'}&bold=true`} className="w-full h-full p-2" />
+                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=transparent&color=${i === 0 ? 'fff' : '1a1d20'}&bold=true`} alt={`Avatar de ${member.name}`} width={64} height={64} loading="lazy" className="w-full h-full p-2" />
                             </div>
                             <div className="min-w-0">
                                 <h3 className={cn("text-xl font-black tracking-tight truncate uppercase", i === 0 ? "text-white" : "text-text-primary")}>{member.name}</h3>

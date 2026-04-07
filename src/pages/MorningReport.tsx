@@ -387,7 +387,7 @@ export default function MorningReport() {
 
             <div className="mt-8 p-5 rounded-2xl bg-slate-950 text-white flex items-center gap-4 shadow-xl">
               <div className="w-10 h-10 rounded-full border-2 border-white/20 overflow-hidden shrink-0 shadow-lg">
-                <img src={`https://ui-avatars.com/api/?name=${profile?.name || 'Admin'}&background=6366f1&color=fff`} />
+                <img src={`https://ui-avatars.com/api/?name=${profile?.name || 'Admin'}&background=6366f1&color=fff`} alt={`Avatar de ${profile?.name || 'gestor'}`} width={40} height={40} />
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-widest truncate">{profile?.name || 'Gestor Unidade'}</p>

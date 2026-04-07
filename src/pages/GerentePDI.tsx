@@ -1,5 +1,6 @@
 import { usePDIs } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
+import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { Plus, Target, CheckCircle2, Calendar, User, TrendingUp, Search, Briefcase, X, MessageSquare, AlertCircle, Clock, RefreshCw, Printer, Award, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -15,6 +16,7 @@ const statusCfg = {
 }
 
 export default function GerentePDI() {
+    const { role } = useAuth()
     const { pdis, reviews, loading, createPDI, updateStatus, createReview, fetchReviews, refetch } = usePDIs()
     const { sellers } = useTeam()
     const navigate = useNavigate()
@@ -23,7 +25,8 @@ export default function GerentePDI() {
     const [searchTerm, setSearchTerm] = useState('')
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
-    
+    const canManagePDI = role === 'admin' || role === 'gerente'
+
     const [form, setForm] = useState({
         seller_id: '',
         meta_6m: '',
@@ -55,6 +58,10 @@ export default function GerentePDI() {
     })
 
     const handleReviewSubmit = async (pdiId: string) => {
+        if (!canManagePDI) {
+            toast.error('Seu papel permite acompanhar PDIs, mas não revisar.')
+            return
+        }
         if (!reviewForm.evolution || !reviewForm.next_review_date) {
             toast.error('Preencha a evolução e a próxima data.')
             return
@@ -89,6 +96,10 @@ export default function GerentePDI() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!canManagePDI) {
+            toast.error('Seu papel permite acompanhar PDIs, mas não criar ou editar.')
+            return
+        }
         if (!form.seller_id || !form.meta_6m || !form.action_1) {
             toast.error('Preencha as diretrizes mandatórias do PDI MX.')
             return
@@ -138,7 +149,7 @@ export default function GerentePDI() {
                 <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
                     <div className="relative group w-full sm:w-64">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
-                        <input 
+                        <input
                             type="text"
                             placeholder="Buscar PDI ou vendedor..."
                             value={searchTerm}
@@ -146,24 +157,26 @@ export default function GerentePDI() {
                             className="w-full bg-white border border-gray-100 rounded-full pl-11 pr-10 py-3 text-xs font-bold focus:outline-none focus:border-indigo-200 shadow-sm transition-all"
                         />
                     </div>
-                    <button 
+                    <button
                         onClick={handleRefresh}
                         className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black active:scale-90 transition-all"
                     >
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </button>
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-pure-black text-white font-black hover:bg-brand-secondary-hover shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo PDI
-                    </button>
+                    {canManagePDI && (
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-pure-black text-white font-black hover:bg-brand-secondary-hover shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo PDI
+                        </button>
+                    )}
                 </div>
             </div>
 
             <AnimatePresence>
-                {showForm && (
+                {showForm && canManagePDI && (
                     <motion.div initial={{ opacity: 0, y: -20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 z-50 rounded-mx-3xl p-1 bg-gradient-to-b from-indigo-50 to-white shadow-mx-elite mb-10">
                         <form onSubmit={handleCreate} className="mx-card !border-none p-mx-lg md:p-mx-xl relative overflow-hidden bg-white">
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
@@ -201,7 +214,7 @@ export default function GerentePDI() {
                                     {/* Radar de Competências - Versão Auditoria de Gaps */}
                                     <div className="bg-slate-950 p-8 md:p-10 rounded-[3rem] text-white space-y-10 shadow-2xl relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
-                                        
+
                                         <div className="flex items-center justify-between relative z-10">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
@@ -232,12 +245,12 @@ export default function GerentePDI() {
                                                         </div>
                                                     </div>
                                                     <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                                        <motion.div 
+                                                        <motion.div
                                                             initial={{ width: 0 }}
                                                             animate={{ width: `${(form as any)[comp.id] * 10}%` }}
                                                             className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]"
                                                         />
-                                                        <input 
+                                                        <input
                                                             type="range" min="0" max="10" step="1"
                                                             value={(form as any)[comp.id]}
                                                             onChange={e => setForm(p => ({ ...p, [comp.id]: Number(e.target.value) }))}
@@ -273,9 +286,9 @@ export default function GerentePDI() {
                                     {[1, 2, 3, 4, 5].map(num => (
                                         <div key={num} className="space-y-2">
                                             <label className="text-[8px] font-black text-gray-400 uppercase ml-2">Ação #{num}</label>
-                                            <input 
-                                                type="text" 
-                                                value={(form as any)[`action_${num}`]} 
+                                            <input
+                                                type="text"
+                                                value={(form as any)[`action_${num}`]}
                                                 onChange={e => setForm(p => ({ ...p, [`action_${num}`]: e.target.value }))}
                                                 required={num === 1}
                                                 placeholder={`Descreva a ação ${num}...`}
@@ -352,15 +365,17 @@ export default function GerentePDI() {
                                         <Badge className={cn("text-[8px] font-black uppercase tracking-widest border shadow-sm px-3 h-6 rounded-lg", status.color)}>
                                             {status.label}
                                         </Badge>
-                                        <select
-                                            value={p.status}
-                                            onChange={e => updateStatus(p.id, e.target.value)}
-                                            className="text-[9px] font-black text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-pure-black transition-colors uppercase tracking-widest"
-                                        >
-                                            <option value="aberto">Aberto</option>
-                                            <option value="em_andamento">Execução</option>
-                                            <option value="concluido">Consolidado</option>
-                                        </select>
+                                        {canManagePDI && (
+                                            <select
+                                                value={p.status}
+                                                onChange={e => updateStatus(p.id, e.target.value)}
+                                                className="text-[9px] font-black text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-pure-black transition-colors uppercase tracking-widest"
+                                            >
+                                                <option value="aberto">Aberto</option>
+                                                <option value="em_andamento">Execução</option>
+                                                <option value="concluido">Consolidado</option>
+                                            </select>
+                                        )}
                                     </div>
                                 </div>
 
@@ -370,12 +385,14 @@ export default function GerentePDI() {
                                             <div className="flex items-center gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none">
                                                 <Target size={12} /> Horizonte 6 Meses
                                             </div>
-                                            <button 
-                                                onClick={() => setShowReviewForm(showReviewForm === p.id ? null : p.id)}
-                                                className="text-[8px] font-black text-amber-600 uppercase tracking-widest hover:underline"
-                                            >
-                                                {showReviewForm === p.id ? 'Cancelar' : 'Registrar Evolução'}
-                                            </button>
+                                            {canManagePDI && (
+                                                <button
+                                                    onClick={() => setShowReviewForm(showReviewForm === p.id ? null : p.id)}
+                                                    className="text-[8px] font-black text-amber-600 uppercase tracking-widest hover:underline"
+                                                >
+                                                    {showReviewForm === p.id ? 'Cancelar' : 'Registrar Evolução'}
+                                                </button>
+                                            )}
                                         </div>
                                         <h3 className="text-xl font-black text-pure-black leading-tight uppercase tracking-tight line-clamp-2">{(p as any).meta_6m || (p as any).objective || 'PDI Desatualizado'}</h3>
                                     </div>
@@ -400,20 +417,20 @@ export default function GerentePDI() {
 
                                     {showReviewForm === p.id ? (
                                         <div className="space-y-4 bg-gray-50 p-6 rounded-2xl border border-gray-100 animate-in fade-in slide-in-from-top-2">
-                                            <textarea 
+                                            <textarea
                                                 placeholder="Descreva a evolução do mês..."
                                                 value={reviewForm.evolution}
                                                 onChange={e => setReviewForm(prev => ({ ...prev, evolution: e.target.value }))}
                                                 className="w-full text-[11px] font-bold p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-indigo-300 min-h-[80px]"
                                             />
                                             <div className="grid grid-cols-2 gap-3">
-                                                <input 
+                                                <input
                                                     type="date"
                                                     value={reviewForm.next_review_date}
                                                     onChange={e => setReviewForm(prev => ({ ...prev, next_review_date: e.target.value }))}
                                                     className="text-[10px] font-black p-3 rounded-xl border border-gray-200 focus:outline-none"
                                                 />
-                                                <button 
+                                                <button
                                                     onClick={() => handleReviewSubmit(p.id)}
                                                     disabled={saving}
                                                     className="bg-slate-950 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-black transition-all"
@@ -442,10 +459,10 @@ export default function GerentePDI() {
                                 <div className="pt-6 border-t border-gray-50 flex items-center justify-between mt-auto relative z-10">
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                            <Calendar size={14} className="text-indigo-400" /> 
+                                            <Calendar size={14} className="text-indigo-400" />
                                             {p.due_date ? new Date(p.due_date).toLocaleDateString('pt-BR') : 'Sem Prazo'}
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => navigate(`/pdi/${p.id}/print`)}
                                             className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all"
                                             title="Imprimir PDI"
@@ -478,9 +495,11 @@ export default function GerentePDI() {
                         <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">
                             Não localizamos planos de desenvolvimento ativos para "{searchTerm}" na loja atual.
                         </p>
-                        <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="px-10 py-4 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-3xl transition-all active:scale-95">
-                            Fixar Primeiro PDI
-                        </button>
+                        {canManagePDI && (
+                            <button onClick={() => {setSearchTerm(''); setShowForm(true)}} className="px-10 py-4 bg-pure-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-3xl transition-all active:scale-95">
+                                Fixar Primeiro PDI
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

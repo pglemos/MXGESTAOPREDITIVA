@@ -1,5 +1,6 @@
 import { useAllStoreGoals } from '@/hooks/useGoals'
 import { useStores } from '@/hooks/useTeam'
+import { useAuth } from '@/hooks/useAuth'
 import { useState, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Target, Save, Calendar, Info, Users, ArrowRight, Zap, TrendingUp, CheckCircle2, AlertTriangle, ShieldCheck, RefreshCw, Filter, Settings2 } from 'lucide-react'
@@ -7,9 +8,12 @@ import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 export default function GoalManagement() {
+    const { role } = useAuth()
     const { stores, loading: storesLoading } = useStores()
     const { goals, benchmarks, updateGoal, updateBenchmark, loading: goalsLoading } = useAllStoreGoals()
-    
+    const canEditGoal = role === 'admin' || role === 'gerente'
+    const canEditBenchmark = role === 'admin'
+
     const [selectedStoreId, setSelectedStoreId] = useState<string>('')
     const [storeMeta, setStoreMeta] = useState<number>(0)
     const [storeBench, setStoreBench] = useState({
@@ -17,7 +21,7 @@ export default function GoalManagement() {
         agend_to_visit: 60,
         visit_to_sale: 33
     })
-    
+
     const [saving, setSaving] = useState(false)
     const [hasChanges, setHasChanges] = useState(false)
 
@@ -25,7 +29,7 @@ export default function GoalManagement() {
         if (selectedStoreId) {
             const goal = goals.find(g => g.store_id === selectedStoreId)
             setStoreMeta(goal?.target || 0)
-            
+
             const bench = benchmarks.find(b => b.store_id === selectedStoreId)
             if (bench) {
                 setStoreBench({
@@ -42,12 +46,16 @@ export default function GoalManagement() {
 
     const handleSave = async () => {
         if (!selectedStoreId) return
+        if (!canEditGoal && !canEditBenchmark) {
+            toast.error('Seu papel permite acompanhar metas, mas não editar configurações.')
+            return
+        }
         setSaving(true)
         try {
-            await Promise.all([
-                updateGoal(selectedStoreId, storeMeta),
-                updateBenchmark(selectedStoreId, storeBench)
-            ])
+            const writes = []
+            if (canEditGoal) writes.push(updateGoal(selectedStoreId, storeMeta))
+            if (canEditBenchmark) writes.push(updateBenchmark(selectedStoreId, storeBench))
+            await Promise.all(writes)
             setHasChanges(false)
             toast.success('Configurações da unidade fixadas!')
         } catch (e) {
@@ -77,14 +85,16 @@ export default function GoalManagement() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={handleSave} 
-                        disabled={saving || !hasChanges || !selectedStoreId} 
-                        className="h-14 px-10 bg-slate-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-black transition-all disabled:opacity-30 shadow-xl"
-                    >
-                        {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
-                        Firmar Configurações
-                    </button>
+                    {(canEditGoal || canEditBenchmark) && (
+                        <button
+                            onClick={handleSave}
+                            disabled={saving || !hasChanges || !selectedStoreId}
+                            className="h-14 px-10 bg-slate-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-black transition-all disabled:opacity-30 shadow-xl"
+                        >
+                            {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
+                            Firmar Configurações
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -98,10 +108,10 @@ export default function GoalManagement() {
                             </div>
                             <h3 className="text-xl font-black uppercase tracking-tight">Unidade Alvo</h3>
                         </div>
-                        
+
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Selecionar Loja</label>
-                            <select 
+                            <select
                                 value={selectedStoreId}
                                 onChange={(e) => setSelectedStoreId(e.target.value)}
                                 className="w-full h-14 px-6 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-indigo-400 transition-all appearance-none cursor-pointer shadow-sm"
@@ -151,12 +161,13 @@ export default function GoalManagement() {
 
                                     <div className="flex flex-col sm:flex-row items-center gap-8">
                                         <div className="flex-1 w-full">
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 inputMode="numeric"
                                                 value={storeMeta}
-                                                onChange={(e) => { setStoreMeta(Number(e.target.value.replace(/\D/g, '')) || 0); setHasChanges(true) }}
-                                                className="w-full text-7xl font-black tracking-tighter text-slate-950 bg-gray-50 border-2 border-transparent rounded-[2rem] py-10 text-center focus:outline-none focus:bg-white focus:border-indigo-200 transition-all font-mono-numbers shadow-inner"
+                                                onChange={(e) => { if (!canEditGoal) return; setStoreMeta(Number(e.target.value.replace(/\D/g, '')) || 0); setHasChanges(true) }}
+                                                disabled={!canEditGoal}
+                                                className="w-full text-7xl font-black tracking-tighter text-slate-950 bg-gray-50 border-2 border-transparent rounded-[2rem] py-10 text-center focus:outline-none focus:bg-white focus:border-indigo-200 transition-all font-mono-numbers shadow-inner disabled:cursor-not-allowed disabled:opacity-70"
                                             />
                                         </div>
                                         <div className="bg-indigo-600 rounded-[2rem] p-8 text-white w-full sm:w-64 shadow-2xl shadow-indigo-100">
@@ -191,12 +202,13 @@ export default function GoalManagement() {
                                             </div>
                                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{b.label}</p>
                                             <div className="flex items-baseline gap-2">
-                                                <input 
-                                                    type="text" 
+                                                <input
+                                                    type="text"
                                                     inputMode="numeric"
                                                     value={storeBench[b.field as keyof typeof storeBench]}
-                                                    onChange={(e) => { setStoreBench(prev => ({ ...prev, [b.field]: Number(e.target.value.replace(/\D/g, '')) || 0 })); setHasChanges(true) }}
-                                                    className="w-20 text-4xl font-black tracking-tighter text-slate-950 bg-transparent border-b-2 border-transparent focus:outline-none focus:border-indigo-400 transition-all font-mono-numbers"
+                                                    onChange={(e) => { if (!canEditBenchmark) return; setStoreBench(prev => ({ ...prev, [b.field]: Number(e.target.value.replace(/\D/g, '')) || 0 })); setHasChanges(true) }}
+                                                    disabled={!canEditBenchmark}
+                                                    className="w-20 text-4xl font-black tracking-tighter text-slate-950 bg-transparent border-b-2 border-transparent focus:outline-none focus:border-indigo-400 transition-all font-mono-numbers disabled:cursor-not-allowed disabled:opacity-70"
                                                 />
                                                 <span className="text-xl font-black text-gray-300">%</span>
                                             </div>

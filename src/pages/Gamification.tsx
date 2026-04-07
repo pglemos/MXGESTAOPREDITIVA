@@ -146,7 +146,7 @@ export default function Gamification() {
                       </div>
                       
                       <div className="w-16 h-16 rounded-[1.5rem] border-2 border-white shadow-lg overflow-hidden bg-gray-100 shrink-0 transform group-hover/item:scale-105 transition-all">
-                        <img src={`https://ui-avatars.com/api/?name=${user.user_name}&background=6366f1&color=fff`} className="w-full h-full object-cover" />
+                        <img src={`https://ui-avatars.com/api/?name=${user.user_name}&background=6366f1&color=fff`} alt={`Avatar de ${user.user_name}`} width={64} height={64} loading="lazy" className="w-full h-full object-cover" />
                       </div>
                       
                       <div className="min-w-0">

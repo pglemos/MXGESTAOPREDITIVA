@@ -11,7 +11,7 @@ export default function Configuracoes() {
     const [isRefetching, setIsRefetching] = useState(false)
 
     // 15. Security: Admin check
-    if (role !== 'admin' && role !== 'consultor') {
+    if (role !== 'admin') {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-10 text-center">
                 <ShieldCheck size={48} className="text-gray-200 mb-6" />

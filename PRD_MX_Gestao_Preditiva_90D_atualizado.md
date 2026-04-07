@@ -1,28 +1,28 @@
 # PRD — MX Gestão Preditiva 90D (Consultoria de Performance para Lojistas Automotivos)
 
-**Versão:** 3.0 — 28/02/2026  
-**Produto:** MX Gestão Preditiva 90D  
-**Modelo:** Sistema de Consultoria e Gestão de Performance (não-CRM) para **donos de lojas/agências automotivas**, **gerentes** e **vendedores**  
-**Plataformas:** Web (Admin/Consultor) + App Web-Mobile (PWA) (Gerente/Vendedor)  
-**Base conceitual:** sistema antigo de consultoria (planilha + formulário + automações) descrito em `auditoria_sistema_comercial`  
+**Versão:** 3.0 — 28/02/2026
+**Produto:** MX Gestão Preditiva 90D
+**Modelo:** Sistema de Consultoria e Gestão de Performance (não-CRM) para **donos de lojas/agências automotivas**, **gerentes** e **vendedores**
+**Plataformas:** Web (Admin/Dono) + App Web-Mobile (PWA) (Gerente/Vendedor)
+**Base conceitual:** sistema antigo de consultoria (planilha + formulário + automações) descrito em `auditoria_sistema_comercial`
 **IMPORTANTE (escopo):** **não** seguir modelo de CRM (lead→contato→mensagem→ligação→financeiro). O foco é **produção diária**, **funil por indicadores**, **metas**, **ranking**, **feedback/PDI**, **treinamentos** e **comunicação**.
 
 ---
 
 ## 0) Sumário Executivo
 
-O MX Gestão Preditiva 90D é um sistema operacional de performance para operação de loja automotiva.  
+O MX Gestão Preditiva 90D é um sistema operacional de performance para operação de loja automotiva.
 Ele substitui o “sistema antigo” (Google Sheets + Form + Apps Script) por um produto com:
 
-- **Check-in diário do vendedor** (Leads, Agendamentos, Visitas, Vendas) com validações e anti-duplicidade  
-- **Dashboards por papel** (Dono/Consultor, Gerente, Vendedor)  
-- **Metas mensais + ritmo** (projeção e “falta X carros”)  
-- **Funil** calculado a partir dos indicadores (Leads → Agendamentos → Visitas → Vendas) com benchmarks configuráveis por loja  
-- **Ranking** de lojas e vendedores  
-- **Feedback semanal automatizado** (baseado nos últimos 7 dias)  
-- **Relatório matinal automatizado** (diário)  
-- **Treinamentos** (cadastro e consumo)  
-- **Notificações** segmentadas por loja (e opcionalmente por papel)  
+- **Check-in diário do vendedor** (Leads, Agendamentos, Visitas, Vendas) com validações e anti-duplicidade
+- **Dashboards por papel** (Admin, Dono, Gerente, Vendedor)
+- **Metas mensais + ritmo** (projeção e “falta X carros”)
+- **Funil** calculado a partir dos indicadores (Leads → Agendamentos → Visitas → Vendas) com benchmarks configuráveis por loja
+- **Ranking** de lojas e vendedores
+- **Feedback semanal automatizado** (baseado nos últimos 7 dias)
+- **Relatório matinal automatizado** (diário)
+- **Treinamentos** (cadastro e consumo)
+- **Notificações** segmentadas por loja (e opcionalmente por papel)
 - **Feedback & PDI** do gerente para o vendedor
 
 ---
@@ -63,19 +63,37 @@ Entregar um sistema simples e obrigatório de uso diário, que transforme dados 
 
 ## 4) Personas e Permissões
 
-### 4.1 Dono / Consultor (WEB)
-**Visão:** global (todas as lojas)  
+### 4.1 Admin / MX Gestão Preditiva (WEB)
+**Visão:** global (todas as lojas)
 **Pode:**
-- Ver ranking de lojas e vendedores
-- Ver dashboards consolidados (dia/semana/mês/90D)
-- Cadastrar/editar Treinamentos
-- Cadastrar/editar Produtos Digitais
-- Enviar Notificações (todas as lojas ou loja específica)
-- Gerenciar lojas (criar, ativar/desativar) e gerentes (convidar/remover)
-- Configurar benchmarks padrões (global) e limites (governança)
+- Ver lojas, donos, gerentes, vendedores, performance, metas, benchmarks, funil, treinamentos, produtos digitais, notificações, relatórios, reprocessamento, PDI e feedback
+- Criar, editar e desativar lojas
+- Vincular donos, gerentes e vendedores
+- Configurar metas e benchmarks
+- Cadastrar treinamentos e produtos digitais
+- Enviar notificações
+- Executar reprocessamento
+- Ver relatórios globais
+- Auditar feedbacks e PDIs
 
-### 4.2 Gerente (APP Web-Mobile)
-**Visão:** somente sua loja  
+**Restrição:** não deve ter restrição operacional, exceto trilha de auditoria obrigatória.
+
+### 4.2 Dono (WEB)
+**Visão:** somente suas lojas
+**Pode:**
+- Ver suas lojas, gerentes, vendedores, performance da loja, metas, funil, relatórios, feedbacks e PDIs da equipe
+- Acompanhar operação e evolução da equipe
+- Acompanhar decisões gerenciais, metas e desempenho por loja, gerente e vendedor
+
+**Não deve fazer por padrão:**
+- Lançar check-in
+- Reprocessar base
+- Editar benchmark técnico
+- Operar rotina diária do gerente
+- Editar feedback/PDI da equipe
+
+### 4.3 Gerente (APP Web-Mobile)
+**Visão:** somente sua loja
 **Pode:**
 - Ver dashboard da loja (dia/semana/mês/90D)
 - Ver ranking interno de vendedores
@@ -84,34 +102,53 @@ Entregar um sistema simples e obrigatório de uso diário, que transforme dados 
 - Criar Feedback e PDI por vendedor
 - Ver e atribuir treinamentos (v1: só visualizar; v1.1: atribuir)
 
-### 4.3 Vendedor (APP Web-Mobile) — FOCO PRINCIPAL
-**Visão:** somente seus dados  
+**Não deve poder:**
+- Ver outra loja
+- Alterar benchmark global
+- Executar reprocessamento global
+- Mexer em configuração estrutural de outras lojas
+
+### 4.4 Vendedor (APP Web-Mobile) — FOCO PRINCIPAL
+**Visão:** somente seus dados
 **Pode:**
 - Registrar check-in diário (Leads, Agendamentos, Visitas, Vendas + observação)
 - Ver sua performance (mês/semana/90D), ritmo e ranking
 - Ver treinamentos e consumir conteúdo
 - Ver feedbacks e PDI recebidos (e confirmar leitura)
 
+**Não deve poder:**
+- Ver dados de outros vendedores
+- Editar meta
+- Editar benchmark
+- Criar feedback
+- Criar PDI
+- Reprocessar base
+
 ---
 
 ## 5) Jornada por Papel (alto nível)
 
-### Dono/Consultor
-1) Entra no Web → vê ranking/saúde do sistema  
-2) Confere lojas com baixa aderência (sem check-ins)  
-3) Envia notificação (cobrança/ajuste/treinamento)  
-4) Atualiza treinamentos e benchmarks
+### Admin
+1) Entra no Web → vê ranking/saúde global do sistema
+2) Confere lojas com baixa aderência (sem check-ins)
+3) Envia notificação (cobrança/ajuste/treinamento)
+4) Atualiza lojas, usuários, treinamentos, produtos digitais, metas e benchmarks
+
+### Dono
+1) Entra no Web → vê suas lojas e performance executiva
+2) Acompanha gerentes, vendedores, metas, funil, relatórios, feedbacks e PDIs
+3) Acompanha decisões gerenciais sem assumir a operação diária
 
 ### Gerente
-1) Entra no app → vê status do dia (quem lançou)  
-2) Confere indicadores e gargalos do funil  
-3) Ajusta rota: feedbacks e PDIs  
+1) Entra no app → vê status do dia (quem lançou)
+2) Confere indicadores e gargalos do funil
+3) Ajusta rota: feedbacks e PDIs
 4) Prepara a semana: metas, foco e treinamento
 
 ### Vendedor
-1) Entra no app → **faz check-in diário** (rápido)  
-2) Vê ritmo vs meta e posição no ranking  
-3) Consome treinamentos (quando pendente)  
+1) Entra no app → **faz check-in diário** (rápido)
+2) Vê ritmo vs meta e posição no ranking
+3) Consome treinamentos (quando pendente)
 4) Lê feedback/PDI e confirma execução
 
 ---
@@ -128,7 +165,7 @@ Entregar um sistema simples e obrigatório de uso diário, que transforme dados 
 
 ### Regras
 - **Vendedor não cria loja.**
-- **Gerente** só entra se estiver vinculado a uma loja (criar com permissão do consultor ou via fluxo controlado).
+- **Gerente** só entra se estiver vinculado a uma loja (criar com permissão do admin ou via fluxo controlado).
 - Vinculação recomendada via **convite** (link/código) para evitar vendedores entrando em loja errada.
 
 ---
@@ -140,7 +177,7 @@ Entregar um sistema simples e obrigatório de uso diário, que transforme dados 
 - Gerente
 - Vendedores
 
-### Telas e ações (Consultor)
+### Telas e ações (Admin)
 - Criar loja
 - Ativar/desativar loja
 - Convidar gerente
@@ -167,9 +204,9 @@ Entregar um sistema simples e obrigatório de uso diário, que transforme dados 
 - **Ritmo diário** = Meta_Mensal / dias do período (corridos ou úteis)
 
 ### Telas
-- Configurar metas (Gerente)
+- Configurar metas (Gerente/Admin)
 - Visão de meta e ritmo (Gerente/Vendedor)
-- Visão consolidada (Consultor)
+- Visão consolidada (Admin)
 
 ---
 
@@ -196,13 +233,13 @@ Indicadores oficiais da V1 (espelhando o sistema antigo e o funil auditado):
 - Visita → Venda: **33%**
 
 ### Requisito crítico
-Benchmarks devem ser **configuráveis por loja** (aba CONFIG no legado).  
-No produto: **Configurações → Benchmarks do Funil** por loja (Gerente/Consultor).
+Benchmarks devem ser **configuráveis por loja** (aba CONFIG no legado).
+No produto: **Configurações → Benchmarks do Funil** por loja (Gerente/Admin).
 
 ### Telas
 - Funil da loja (Gerente)
 - Funil do vendedor (Vendedor, opcional V1)
-- Funil global (Consultor)
+- Funil global (Admin)
 
 ### Saídas (diagnóstico)
 - Identificar gargalo (qual etapa está abaixo do benchmark)
@@ -224,7 +261,7 @@ No produto: **Configurações → Benchmarks do Funil** por loja (Gerente/Consul
 - Desempate: ritmo/projeção
 
 ### Telas
-- Ranking (Consultor: global)
+- Ranking (Admin: global)
 - Ranking (Gerente: loja)
 - Ranking pessoal (Vendedor: posição)
 
@@ -232,7 +269,7 @@ No produto: **Configurações → Benchmarks do Funil** por loja (Gerente/Consul
 
 ## 6.7 Treinamentos
 
-### Cadastro (Consultor)
+### Cadastro (Admin)
 Campos:
 - Título (obrigatório)
 - Descrição (obrigatório)
@@ -249,7 +286,7 @@ Campos:
 
 ## 6.8 Produtos Digitais
 
-### Cadastro (Consultor)
+### Cadastro (Admin)
 - Nome, descrição, link
 
 ### Consumo (Gerente/Vendedor)
@@ -260,7 +297,7 @@ Campos:
 
 ## 6.9 Notificações
 
-### Envio (Consultor)
+### Envio (Admin)
 - Título
 - Mensagem
 - Destino: todas as lojas ou loja específica
@@ -298,13 +335,13 @@ Campos:
 > Este é o módulo principal. Sem isso, o sistema não tem dados.
 
 ## 7.1 Menu do Vendedor
-1) Home  
-2) **Check-in do Dia**  
-3) Meu Histórico  
-4) Ranking  
-5) Treinamentos  
-6) Feedback & PDI  
-7) Notificações  
+1) Home
+2) **Check-in do Dia**
+3) Meu Histórico
+4) Ranking
+5) Treinamentos
+6) Feedback & PDI
+7) Notificações
 8) Perfil
 
 ---
@@ -374,7 +411,7 @@ Dar feedback visual e permitir correções controladas.
 ### Regras de edição
 - Edição permitida:
   - mesmo dia: livre
-  - dias anteriores: somente com **solicitação ao gerente** (V1.1)  
+  - dias anteriores: somente com **solicitação ao gerente** (V1.1)
   - (V1 simples) permitir até D+1, com log
 
 ---
@@ -406,7 +443,7 @@ Dar feedback visual e permitir correções controladas.
 - Detalhe do PDI: objetivo, ação, prazo, status
 
 ### Ações (V1)
-- “Confirmar leitura” (obrigatório)  
+- “Confirmar leitura” (obrigatório)
 - (v1.1) atualizar status do PDI e registrar evidência
 
 ---
@@ -435,7 +472,7 @@ Dar feedback visual e permitir correções controladas.
 - Status de check-in do dia (quem não lançou)
 - Evolução 90D (gráfico)
 
-## 8.2 Dashboard do Consultor (Global)
+## 8.2 Dashboard do Admin (Global)
 - Ranking de lojas
 - Ranking de vendedores
 - Saúde do sistema (lojas com baixo preenchimento)
@@ -446,7 +483,7 @@ Dar feedback visual e permitir correções controladas.
 # 9) Automações (Relatórios por E-mail)
 
 ## 9.1 Relatório Matinal (diário)
-**Destinatários:** Dono/Consultor e/ou gestores configurados  
+**Destinatários:** Dono/Admin e/ou gestores configurados
 **Conteúdo mínimo (espelhando auditoria):**
 - Leads por vendedor (dia)
 - Agendamentos do dia
@@ -462,7 +499,7 @@ Dar feedback visual e permitir correções controladas.
 - Comparativo com média da semana (tendência)
 
 ## 9.2 Feedback Semanal (últimos 7 dias)
-**Destinatários:** Dono/Consultor e/ou gerente  
+**Destinatários:** Dono/Admin e/ou gerente
 **Conteúdo mínimo:**
 - Sumário por vendedor (últimos 7 dias): Leads, Agend., Visitas, Vendas
 - Funil e gargalo vs benchmark
@@ -486,7 +523,7 @@ Registrar:
 
 ## 10.3 Multi-loja / isolamento
 - Gerente e vendedor só acessam dados da sua loja
-- Consultor acessa tudo
+- Admin acessa tudo
 
 ---
 
@@ -526,7 +563,7 @@ Entidades mínimas:
 - Vê funil preenchido após check-ins
 - Cria feedback e PDI
 
-## Consultor
+## Admin
 - Vê ranking global de lojas e vendedores
 - Cadastra treinamento e ele aparece no app
 - Envia notificação para loja específica e ela chega no app

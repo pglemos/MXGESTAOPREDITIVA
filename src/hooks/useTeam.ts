@@ -47,23 +47,38 @@ export function useTeam(storeIdOverride?: string) {
 }
 
 export function useStores() {
+    const { role, memberships, storeId } = useAuth()
     const [stores, setStores] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchStores = useCallback(async () => {
         setLoading(true)
-        const { data } = await supabase.from('stores').select('*').eq('active', true).order('name')
+        let query = supabase.from('stores').select('*').eq('active', true).order('name')
+        if (role === 'dono') {
+            const storeIds = memberships.map(m => m.store_id)
+            if (!storeIds.length) {
+                setStores([])
+                setLoading(false)
+                return
+            }
+            query = query.in('id', storeIds)
+        } else if ((role === 'gerente' || role === 'vendedor') && storeId) {
+            query = query.eq('id', storeId)
+        }
+        const { data } = await query
         if (data) setStores(data)
         setLoading(false)
-    }, [])
+    }, [role, memberships, storeId])
 
     const createStore = async (name: string, managerEmail?: string) => {
+        if (role !== 'admin') return { error: 'Apenas admin pode criar lojas.' }
         const { error } = await supabase.from('stores').insert({ name, manager_email: managerEmail || null })
         if (!error) await fetchStores()
         return { error: error?.message || null }
     }
 
     const updateStore = async (id: string, updates: { name?: string; manager_email?: string; active?: boolean }) => {
+        if (role !== 'admin') return { error: 'Apenas admin pode editar lojas.' }
         const { error } = await supabase.from('stores').update(updates).eq('id', id)
         if (!error) await fetchStores()
         return { error: error?.message || null }

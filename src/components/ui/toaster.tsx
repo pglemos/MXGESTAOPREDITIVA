@@ -13,16 +13,16 @@ export function Toaster() {
                     className={cn(
                         'group pointer-events-auto relative flex w-full items-center justify-between gap-4 overflow-hidden rounded-xl border p-4 shadow-lg transition-all animate-in slide-in-from-bottom-5',
                         toast.variant === 'destructive'
-                            ? 'border-red-500/30 bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100'
-                            : 'border-border bg-background text-foreground',
+                            ? 'border-status-error/30 bg-status-error-surface text-status-error'
+                            : 'border-border-default bg-surface-main text-text-primary',
                     )}
                 >
                     <div className="flex flex-col gap-1">
                         {toast.title && <div className="text-sm font-bold">{toast.title}</div>}
                         {toast.description && <div className="text-xs opacity-80">{toast.description}</div>}
                     </div>
-                    <button onClick={() => dismiss(toast.id)} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <X className="h-4 w-4" />
+                    <button type="button" aria-label="Fechar notificação" onClick={() => dismiss(toast.id)} className="opacity-0 group-hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 rounded-mx-sm">
+                        <X className="size-4" aria-hidden="true" />
                     </button>
                 </div>
             ))}

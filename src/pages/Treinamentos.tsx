@@ -98,7 +98,7 @@ export default function Treinamentos() {
               {[1, 2, 3].map(pos => (
                 <div key={pos} className="flex items-center gap-mx-md p-mx-md rounded-mx-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
                   <div className="w-8 h-8 rounded-mx-md bg-white/10 flex items-center justify-center font-black text-xs text-white/40">{pos}º</div>
-                  <div className="w-10 h-10 rounded-full bg-mx-slate-50 overflow-hidden border-2 border-white/10"><img src={`https://i.pravatar.cc/150?u=${pos}`} /></div>
+                  <div className="w-10 h-10 rounded-full bg-mx-slate-50 overflow-hidden border-2 border-white/10"><img src={`https://i.pravatar.cc/150?u=${pos}`} alt={`Avatar do participante ${pos}`} width={40} height={40} loading="lazy" /></div>
                   <div className="flex-1 min-w-0"><p className="text-xs font-black truncate uppercase">Elite Member {pos}</p><p className="mx-text-caption !text-[8px] text-white/30">Master Certified</p></div>
                   <div className="text-right"><p className="text-xs font-black text-status-warning font-mono-numbers">{(4 - pos) * 1200} XP</p></div>
                 </div>

@@ -21,15 +21,16 @@ O aplicativo organiza a rotina de vendas por papel operacional:
 
 - Vendedor registra o ritual diário, acompanha histórico, ranking, feedback, PDI, treinamentos e notificações.
 - Gerente acompanha painel da loja, equipe, metas, funil, ranking, feedback, PDI, treinamentos e rotina gerencial.
-- Consultor/Admin acompanha painel consolidado, lojas, produtos digitais, configurações, reprocessamento, relatório matinal, auditoria, notificações e treinamentos.
+- Dono acompanha suas lojas, performance, metas, funil, relatórios, feedbacks e PDIs da equipe como visão executiva, sem operar a rotina diária.
+- Admin representa a MX Gestão Preditiva, com governança total sobre lojas, usuários, metas, benchmarks, treinamentos, produtos digitais, notificações, relatórios, reprocessamento, feedback e PDI.
 
 O código também mantém módulos legados isolados sob `/legacy`, para que funcionalidades antigas continuem acessíveis sem confundir a navegação principal da Metodologia MX.
 
 ## Módulos Principais
 
-- Autenticação e autorização por Supabase Auth, tabela `users`, tabela `memberships` e papéis normalizados: `admin`, `consultor`, `gerente`, `vendedor`.
+- Autenticação e autorização por Supabase Auth, tabela `users`, tabela `memberships` e papéis oficiais: `admin`, `dono`, `gerente`, `vendedor`. O alias legado `consultor` é normalizado para `admin`.
 - Check-in diário em `daily_checkins`, com data de referência, submissão e métricas de leads, agendamentos, visitas e vendas.
-- Painel da loja e painel do consultor com leitura consolidada por loja e por equipe.
+- Painel da loja, painel executivo do dono e painel global do admin com leitura consolidada por loja e por equipe.
 - Ranking por vendedor com métricas de vendas, leads, agendamentos, visitas, meta, atingimento e projeção.
 - Funil MX com diagnóstico por gargalo usando benchmarks 20/60/33.
 - Metas por loja e vendedor em `goals`, com regras em `store_meta_rules`.
@@ -65,8 +66,8 @@ Rotas protegidas principais:
 - `/metas`: gestão de metas
 - `/funil`: funil operacional
 - `/rotina`: rotina do gerente
-- `/painel`: painel do consultor/admin
-- `/lojas`: gestão de lojas
+- `/painel`: painel global do admin
+- `/lojas`: gestão de lojas para admin e minhas lojas para dono
 - `/produtos`: produtos digitais
 - `/configuracoes`: configurações
 - `/configuracoes/reprocessamento`: reprocessamento

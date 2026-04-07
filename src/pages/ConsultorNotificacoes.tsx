@@ -16,7 +16,7 @@ export default function ConsultorNotificacoes() {
         message: '', 
         target_type: 'all' as 'all' | 'store', 
         target_store_id: '',
-        target_role: 'todos' as 'todos' | 'gerente' | 'vendedor'
+        target_role: 'todos' as 'todos' | 'dono' | 'gerente' | 'vendedor'
     })
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
@@ -168,7 +168,7 @@ export default function ConsultorNotificacoes() {
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Filtro por Papel (Role)</label>
                                         <div className="grid grid-cols-3 gap-2">
-                                            {['todos', 'gerente', 'vendedor'].map(role => (
+                                            {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
                                                 <button
                                                     key={role}
                                                     type="button"

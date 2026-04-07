@@ -161,26 +161,26 @@ export default function PainelConsultor() {
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
                         >
-                            {isTriggering === 'matinal' ? '...' : 'Matinal'}
+                            {isTriggering === 'matinal' ? '…' : 'Matinal'}
                         </button>
                         <button 
                             onClick={() => triggerReport('semanal')} 
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
                         >
-                            {isTriggering === 'semanal' ? '...' : 'Feedback'}
+                            {isTriggering === 'semanal' ? '…' : 'Feedback'}
                         </button>
                         <button 
                             onClick={() => triggerReport('mensal')} 
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-white border border-gray-200 hover:bg-slate-950 hover:text-white transition-all disabled:opacity-50"
                         >
-                            {isTriggering === 'mensal' ? '...' : 'Fechamento'}
+                            {isTriggering === 'mensal' ? '…' : 'Fechamento'}
                         </button>
                     </div>
 
-                    <button onClick={() => fetchNetworkSnapshot(true)} className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-all active:scale-95">
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    <button type="button" aria-label="Atualizar visão geral da rede" onClick={() => fetchNetworkSnapshot(true)} className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
+                        <RefreshCw size={20} aria-hidden="true" className={cn(isRefetching && "animate-spin")} />
                     </button>
                 </div>
             </div>
@@ -196,8 +196,8 @@ export default function PainelConsultor() {
                                 <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest mt-1">Mapeamento bruto do escoamento de funil por unidade.</CardDescription>
                             </div>
                             <div className="flex items-center gap-4">
-                                <Link to="/configuracoes/reprocessamento"><button className="text-[10px] font-black uppercase tracking-widest bg-white border border-gray-200 px-6 h-12 rounded-xl hover:bg-slate-50 transition-all shadow-sm">Reprocessar Base</button></Link>
-                                <Link to="/lojas"><button className="mx-button-primary !h-12 !px-8 bg-slate-950 text-white rounded-xl">GERENCIAR UNIDADES</button></Link>
+                                <Link to="/configuracoes/reprocessamento" className="text-[10px] font-black uppercase tracking-widest bg-white border border-gray-200 px-6 h-12 rounded-xl hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">Reprocessar Base</Link>
+                                <Link to="/lojas" className="mx-button-primary !h-12 !px-8 bg-slate-950 text-white rounded-xl flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">Gerenciar Unidades</Link>
                             </div>
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">

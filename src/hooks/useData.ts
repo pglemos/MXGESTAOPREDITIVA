@@ -18,7 +18,7 @@ export function useTrainings() {
         const { data: progress } = await supabase.from('training_progress').select('training_id').eq('user_id', profile.id)
         const watchedSet = new Set((progress || []).map(p => p.training_id))
         if (all) {
-            const filtered = role === 'consultor' || role === 'admin'
+            const filtered = role === 'admin'
                 ? all
                 : all.filter(t => t.target_audience === 'todos' || t.target_audience === role)
             setTrainings(filtered.map(t => ({ ...t, watched: watchedSet.has(t.id) })))
@@ -51,7 +51,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
     const [loading, setLoading] = useState(true)
 
     const fetchFeedbacks = useCallback(async () => {
-        if (!profile || !storeId) {
+        if (!profile || (!storeId && role !== 'admin')) {
             setFeedbacks([])
             setLoading(false)
             return
@@ -61,8 +61,13 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         
         if (role === 'vendedor') {
             query = query.eq('seller_id', profile.id)
-        } else if (role === 'gerente' || role === 'consultor' || role === 'admin') {
-            query = query.eq('store_id', storeId)
+        } else if (role === 'gerente' || role === 'dono') {
+            if (storeId) query = query.eq('store_id', storeId)
+            if (filters?.sellerId) {
+                query = query.eq('seller_id', filters.sellerId)
+            }
+        } else if (role === 'admin') {
+            if (filters?.storeId) query = query.eq('store_id', filters.storeId)
             if (filters?.sellerId) {
                 query = query.eq('seller_id', filters.sellerId)
             }
@@ -76,6 +81,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
 
     const createFeedback = async (data: FeedbackFormData) => {
         if (!profile || !storeId) return { error: 'Não autenticado' }
+        if (role !== 'admin' && role !== 'gerente') return { error: 'Seu papel permite acompanhar feedbacks, mas não criar ou editar.' }
         const { error } = await supabase.from('feedbacks').insert({
             store_id: storeId, manager_id: profile.id, seller_id: data.seller_id,
             week_reference: data.week_reference,
@@ -109,7 +115,7 @@ export function usePDIs(storeIdOverride?: string) {
     const [loading, setLoading] = useState(true)
 
     const fetchPDIs = useCallback(async () => {
-        if (!profile || !storeId) {
+        if (!profile || (!storeId && role !== 'admin')) {
             setPdis([])
             setLoading(false)
             return
@@ -117,7 +123,8 @@ export function usePDIs(storeIdOverride?: string) {
         setLoading(true)
         let query = supabase.from('pdis').select('*, seller:users!pdis_seller_id_fkey(name)')
         if (role === 'vendedor') query = query.eq('seller_id', profile.id)
-        else if (role === 'gerente') query = query.eq('store_id', storeId)
+        else if (role === 'gerente' || role === 'dono') query = query.eq('store_id', storeId)
+        else if (role === 'admin' && storeIdOverride) query = query.eq('store_id', storeId)
         const { data } = await query.order('created_at', { ascending: false })
         if (data) setPdis(data.map((p: any) => ({ ...p, seller_name: p.seller?.name })))
         setLoading(false)
@@ -130,6 +137,7 @@ export function usePDIs(storeIdOverride?: string) {
 
     const createPDI = async (data: PDIFormData) => {
         if (!profile || !storeId) return { error: 'Não autenticado' }
+        if (role !== 'admin' && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não criar ou editar.' }
         const { error } = await supabase.from('pdis').insert({
             store_id: storeId, manager_id: profile.id, seller_id: data.seller_id,
             meta_6m: data.meta_6m, meta_12m: data.meta_12m, meta_24m: data.meta_24m,
@@ -153,11 +161,13 @@ export function usePDIs(storeIdOverride?: string) {
     }
 
     const updateStatus = async (id: string, status: string) => {
+        if (role !== 'admin' && role !== 'gerente') return
         await supabase.from('pdis').update({ status }).eq('id', id)
         await fetchPDIs()
     }
 
     const createReview = async (pdiId: string, data: any) => {
+        if (role !== 'admin' && role !== 'gerente') return { error: new Error('Seu papel permite acompanhar PDIs, mas não revisar.') }
         const { error } = await supabase.from('pdi_reviews').insert({ pdi_id: pdiId, ...data })
         if (!error) {
             await fetchPDIs()
@@ -283,7 +293,7 @@ export function useCommissions() {
         setLoading(true)
         let query = supabase.from('commissions').select('*, seller:users!commissions_seller_id_fkey(name)')
         if (role === 'vendedor') query = query.eq('seller_id', profile.id)
-        else if (role === 'gerente') query = query.eq('store_id', storeId)
+        else if (role === 'gerente' || role === 'dono') query = query.eq('store_id', storeId)
         const { data } = await query.order('sale_date', { ascending: false })
         if (data) setCommissions(data.map((c: any) => ({ ...c, seller_name: c.seller?.name || 'Vendedor' })))
         setLoading(false)

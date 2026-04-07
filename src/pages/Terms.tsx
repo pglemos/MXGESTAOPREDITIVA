@@ -6,7 +6,7 @@ export default function Terms() {
     const navigate = useNavigate()
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 sm:p-8 selection:bg-[#1A1D20] selection:text-white relative overflow-hidden">
+        <div className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-8 selection:bg-brand-secondary selection:text-white relative overflow-hidden">
 
             {/* Background Decorations */}
             <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-rose-50/50 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
@@ -18,7 +18,7 @@ export default function Terms() {
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full max-w-4xl bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden flex flex-col relative z-10 border border-gray-100"
             >
-                <div className="bg-[#1A1D20] p-10 md:p-14 relative overflow-hidden text-center">
+                <div className="bg-brand-secondary p-10 md:p-14 relative overflow-hidden text-center">
                     <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent z-0 pointer-events-none" />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
 
@@ -29,14 +29,14 @@ export default function Terms() {
                     <p className="text-gray-400 font-bold max-w-xl mx-auto opacity-80 relative z-10">Condições gerais de provimento e acesso ao conjunto de ferramentas MX Gestão Preditiva.</p>
                 </div>
 
-                <div className="p-10 md:p-16 space-y-10 text-[#1A1D20]">
+                <div className="p-10 md:p-16 space-y-10 text-text-primary">
                     <div className="prose prose-lg max-w-none">
                         <p className="text-lg text-gray-500 font-bold mb-8">
                             O acesso contínuo e a utilização do sistema MX Gestão Preditiva caracterizam concordância incondicional com as diretrizes e regras aqui estipuladas. Recomendamos leitura atenta desta documentação.
                         </p>
 
                         <div className="grid md:grid-cols-2 gap-8 mb-12">
-                            <div className="bg-[#F8FAFC] p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-rose-100 transition-all">
+                            <div className="bg-surface-alt p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-rose-100 transition-all">
                                 <Lock size={24} className="text-rose-500 mb-6 group-hover:scale-110 transition-transform" />
                                 <h2 className="text-xl font-black mb-3 tracking-tight">Autoridade de Acesso</h2>
                                 <p className="text-sm font-bold text-gray-500 leading-relaxed">
@@ -44,7 +44,7 @@ export default function Terms() {
                                 </p>
                             </div>
 
-                            <div className="bg-[#F8FAFC] p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-amber-100 transition-all">
+                            <div className="bg-surface-alt p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-amber-100 transition-all">
                                 <AlertTriangle size={24} className="text-amber-500 mb-6 group-hover:scale-110 transition-transform" />
                                 <h2 className="text-xl font-black mb-3 tracking-tight">Obrigações e Sanções</h2>
                                 <p className="text-sm font-bold text-gray-500 leading-relaxed">
@@ -66,7 +66,7 @@ export default function Terms() {
                     <div className="pt-10 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
                         <button
                             onClick={() => navigate(-1)}
-                            className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#1A1D20] flex items-center gap-2 transition-colors px-6 py-3 rounded-full hover:bg-gray-50"
+                            className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-text-primary flex items-center gap-2 transition-colors px-6 py-3 rounded-full hover:bg-gray-50"
                         >
                             Voltar ao Sistema
                         </button>

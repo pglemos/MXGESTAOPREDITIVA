@@ -80,6 +80,58 @@ Utilizaremos o framework AIOX para orquestrar a refatoração. A estratégia ser
 
 ---
 
+## 6. Execution Update — Design System Pass — 2026-04-07
+
+### 6.1 Checklist
+
+- [x] Mapear tokens e aliases de design system quebrados.
+- [x] Adicionar aliases semânticos para classes legadas ainda usadas em telas.
+- [x] Refatorar componentes base para tokens MX em vez de tokens genéricos shadcn.
+- [x] Corrigir imagens sem `alt`/dimensões nos pontos auditados.
+- [x] Corrigir nesting inválido `Link > button` nos pontos auditados.
+- [x] Remover hardcodes hex diretos em páginas públicas/legadas auditadas.
+- [x] Rodar `npm run lint`.
+- [x] Rodar `npm run typecheck`.
+- [x] Rodar `npm test`.
+- [x] Rodar `npm run build`.
+
+### 6.2 File List — Design System Pass
+
+- `src/index.css`
+- `src/components/LegacyModuleShell.tsx`
+- `src/components/Layout.tsx`
+- `src/components/ui/avatar.tsx`
+- `src/components/ui/badge.tsx`
+- `src/components/ui/card.tsx`
+- `src/components/ui/chart.tsx`
+- `src/components/ui/checkbox.tsx`
+- `src/components/ui/dialog.tsx`
+- `src/components/ui/dropdown-menu.tsx`
+- `src/components/ui/progress.tsx`
+- `src/components/ui/select.tsx`
+- `src/components/ui/sonner.tsx`
+- `src/components/ui/switch.tsx`
+- `src/components/ui/table.tsx`
+- `src/components/ui/tabs.tsx`
+- `src/components/ui/textarea.tsx`
+- `src/components/ui/toaster.tsx`
+- `src/components/ui/tooltip.tsx`
+- `src/pages/ConsultorTreinamentos.tsx`
+- `src/pages/DashboardLoja.tsx`
+- `src/pages/Equipe.tsx`
+- `src/pages/Gamification.tsx`
+- `src/pages/Login.tsx`
+- `src/pages/MorningReport.tsx`
+- `src/pages/NotFound.tsx`
+- `src/pages/PainelConsultor.tsx`
+- `src/pages/Perfil.tsx`
+- `src/pages/Privacy.tsx`
+- `src/pages/SellerPerformance.tsx`
+- `src/pages/Terms.tsx`
+- `src/pages/Treinamentos.tsx`
+
+---
+
 ## Metadata
 
 ```yaml

@@ -49,8 +49,8 @@ export default function Perfil() {
             <div className="absolute top-0 left-0 w-full h-24 bg-brand-secondary z-0" />
             <div className="relative z-10 pt-12">
               <div className="w-32 h-32 rounded-mx-3xl border-8 border-white shadow-mx-xl overflow-hidden bg-mx-slate-50 relative group/avatar">
-                <img src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || '')}&size=256&background=4f46e5&color=fff&bold=true`} className="w-full h-full object-cover" />
-                <button className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-black uppercase"><Camera size={24} className="mb-1" /> Alterar</button>
+                <img src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || '')}&size=256&background=4f46e5&color=fff&bold=true`} alt={`Avatar de ${profile.name || 'usuário'}`} width={128} height={128} className="w-full h-full object-cover" />
+                <button type="button" aria-label="Alterar avatar" className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-black uppercase"><Camera size={24} className="mb-1" aria-hidden="true" /> Alterar</button>
               </div>
               <h3 className="text-2xl font-black text-text-primary tracking-tighter mt-mx-md uppercase leading-none">{profile.name}</h3>
               <p className="mx-text-caption !text-[10px] text-brand-primary mt-2 font-black tracking-[0.3em]">{role} TIER</p>

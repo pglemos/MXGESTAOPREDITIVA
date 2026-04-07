@@ -79,7 +79,7 @@ export default function Team() {
                 </div>
                 <div className="p-mx-lg flex flex-col items-center text-center flex-1">
                   <div className="w-20 h-20 rounded-mx-2xl border-4 border-white shadow-mx-lg overflow-hidden bg-mx-slate-50 mb-mx-md group-hover:scale-105 transition-transform">
-                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || '')}&background=4f46e5&color=fff&bold=true`} className="w-full h-full object-cover" />
+                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || '')}&background=4f46e5&color=fff&bold=true`} alt={`Avatar de ${member.name || 'membro da equipe'}`} width={80} height={80} className="w-full h-full object-cover" />
                   </div>
                   <h3 className="text-lg font-black text-text-primary uppercase tracking-tight leading-none mb-1 group-hover:text-brand-primary transition-colors">{member.name}</h3>
                   <p className="mx-text-caption !text-[8px] opacity-60 uppercase">{member.role || 'Especialista'}</p>

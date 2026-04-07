@@ -1,4 +1,5 @@
 import { useStores } from '@/hooks/useTeam'
+import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Store, Plus, X, Save, Mail, Building2, ChevronRight, Search, RefreshCw, Activity, Database, Globe, Zap } from 'lucide-react'
@@ -14,7 +15,9 @@ const storeSchema = z.object({
 })
 
 export default function Lojas() {
+    const { role, setActiveStoreId } = useAuth()
     const { stores, loading, createStore } = useStores()
+    const canManageStores = role === 'admin'
     const [showForm, setShowForm] = useState(false)
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
@@ -24,6 +27,10 @@ export default function Lojas() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!canManageStores) {
+            toast.error('Apenas admin pode criar lojas.')
+            return
+        }
         setFormErrors({})
         
         const result = storeSchema.safeParse({ name, email })
@@ -59,8 +66,8 @@ export default function Lojas() {
             {/* Header / Toolbar - Elite Aligned */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div>
-                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">GESTOR DE REDE</span>
-                    <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">Gestão de Unidades</h1>
+                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">{canManageStores ? 'GESTOR DE REDE' : 'VISÃO EXECUTIVA'}</span>
+                    <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">{canManageStores ? 'Gestão de Unidades' : 'Minhas Lojas'}</h1>
                     <div className="flex items-center gap-2 mt-4">
                         <div className="w-2 h-2 rounded-full bg-status-success animate-pulse" />
                         <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{stores.length} Lojas Ativas na Rede</p>
@@ -76,14 +83,16 @@ export default function Lojas() {
                             className="mx-input !h-14 !pl-14 !text-[10px] !font-black !tracking-widest uppercase"
                         />
                     </div>
-                    <button onClick={() => setShowForm(true)} className="mx-button-primary bg-brand-secondary w-full sm:w-auto h-14 px-8 flex items-center justify-center gap-3 shadow-mx-lg hover:shadow-mx-xl transition-all">
-                        <Plus size={20} /> NOVA LOJA
-                    </button>
+                    {canManageStores && (
+                        <button onClick={() => setShowForm(true)} className="mx-button-primary bg-brand-secondary w-full sm:w-auto h-14 px-8 flex items-center justify-center gap-3 shadow-mx-lg hover:shadow-mx-xl transition-all">
+                            <Plus size={20} /> NOVA LOJA
+                        </button>
+                    )}
                 </div>
             </div>
 
             <AnimatePresence>
-                {showForm && (
+                {showForm && canManageStores && (
                     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="shrink-0 z-50 rounded-[2.5rem] p-1 bg-gradient-to-b from-mx-indigo-50 to-white shadow-mx-xl mb-mx-lg">
                         <form onSubmit={handleCreate} className="bg-white rounded-[2.4rem] p-mx-xl space-y-mx-lg relative overflow-hidden">
                             <div className="flex items-center justify-between border-b border-border-subtle pb-mx-lg">
@@ -145,7 +154,7 @@ export default function Lojas() {
                                     <div className="flex items-center gap-2 mx-text-caption !text-[9px] font-black text-brand-primary">
                                         <Activity size={14} strokeWidth={3} className="animate-pulse" /> MONITORAMENTO LIVE
                                     </div>
-                                    <Link to={`/loja?id=${s.id}`} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-white hover:bg-brand-secondary transition-all flex items-center justify-center shadow-sm">
+                                    <Link to={`/loja?id=${s.id}`} onClick={() => setActiveStoreId(s.id)} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-white hover:bg-brand-secondary transition-all flex items-center justify-center shadow-sm">
                                         <ChevronRight size={22} strokeWidth={2.5} />
                                     </Link>
                                 </div>

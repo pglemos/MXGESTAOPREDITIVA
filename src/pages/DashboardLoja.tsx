@@ -10,8 +10,8 @@ import { motion, AnimatePresence } from 'motion/react'
 import { 
     Activity, ArrowUpRight, BarChart3, Car, Calendar, CheckCircle, ChevronRight, Clock, Globe, Target, TrendingUp, Users, RefreshCw
 } from 'lucide-react'
-import { useMemo, useCallback, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useMemo, useCallback, useState, useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -46,12 +46,21 @@ const Stat = ({ icon: Icon, label, value, sub, bg, color, trend, delay = 0 }: St
 )
 
 export default function DashboardLoja() {
-    const { membership } = useAuth()
+    const { membership, memberships, role, setActiveStoreId } = useAuth()
+    const [searchParams] = useSearchParams()
     const { checkins, loading, fetchCheckins: refetchCheckins } = useCheckins()
     const { storeGoal, fetchGoals: refetchGoals } = useGoals()
     const { sellers, refetch: refetchTeam } = useTeam()
     const { ranking, refetch: refetchRanking } = useRanking()
     const [isRefetching, setIsRefetching] = useState(false)
+
+    useEffect(() => {
+        const storeIdParam = searchParams.get('id')
+        if (!storeIdParam) return
+        if (role === 'admin' || memberships.some(m => m.store_id === storeIdParam)) {
+            setActiveStoreId(storeIdParam)
+        }
+    }, [memberships, role, searchParams, setActiveStoreId])
 
     const metrics = useMemo(() => {
         const meta = storeGoal?.target || 0
@@ -132,14 +141,14 @@ export default function DashboardLoja() {
                     <Card className="border-none shadow-mx-lg rounded-[2.5rem] overflow-hidden">
                         <CardHeader className="flex-row items-center justify-between p-mx-lg bg-mx-slate-50/30 border-b border-border-subtle">
                             <div><CardTitle className="text-xl font-black uppercase tracking-tight">Grade de Performance</CardTitle><CardDescription className="font-bold text-text-tertiary">Ranking individual da tropa local.</CardDescription></div>
-                            <Link to="/equipe"><button className="mx-button-primary !h-10 !px-6 text-[10px]">VER TIME</button></Link>
+                            <Link to="/equipe" className="mx-button-primary !h-10 !px-6 text-[10px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">Ver Time</Link>
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">
                             <table className="w-full text-left">
                                 <thead className="bg-mx-slate-50/50 border-b border-border-default">
                                     <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
                                         <th className="px-mx-xl py-mx-md w-16 text-center">#</th>
-                                        <th className="py-mx-md">Consultor</th>
+                                        <th className="py-mx-md">Vendedor</th>
                                         <th className="py-mx-md text-center">Status</th>
                                         <th className="py-mx-md text-center">Vendas</th>
                                         <th className="px-mx-xl py-mx-md text-right">Eficiência</th>

@@ -53,7 +53,7 @@ export default function Login() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 selection:bg-[#1A1D20] selection:text-white relative overflow-hidden">
+        <div className="min-h-screen bg-surface-alt flex items-center justify-center p-4 selection:bg-brand-secondary selection:text-white relative overflow-hidden">
 
             {/* Background Decorations */}
             <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-indigo-50/50 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
@@ -66,12 +66,12 @@ export default function Login() {
                 className="w-full max-w-[1240px] bg-white ring-1 ring-gray-100 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] rounded-[3rem] md:rounded-[4rem] overflow-hidden flex flex-col lg:flex-row relative z-10"
             >
                 {/* Left Side: Brand / Marketing */}
-                <div className="hidden lg:flex lg:w-[45%] bg-[#1A1D20] p-16 flex-col justify-between relative overflow-hidden group">
+                <div className="hidden lg:flex lg:w-[45%] bg-brand-secondary p-16 flex-col justify-between relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent z-0 pointer-events-none" />
 
                     <div className="relative z-10">
                         <div className="flex items-center gap-4 font-black text-2xl text-white mb-20">
-                            <div className="w-12 h-12 rounded-[1.5rem] bg-white text-[#1A1D20] flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                            <div className="w-12 h-12 rounded-[1.5rem] bg-white text-text-primary flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
                                 <Building2 size={24} />
                             </div>
                             <span className="tracking-tighter">MX GESTÃO</span>
@@ -118,15 +118,15 @@ export default function Login() {
                 {/* Right Side: Login Form */}
                 <div className="w-full lg:w-[55%] flex items-center justify-center p-10 sm:p-24 relative bg-white">
                     <div className="w-full max-w-md">
-                        <div className="lg:hidden flex items-center justify-center gap-4 font-black text-3xl mb-16 text-[#1A1D20]">
-                            <div className="w-12 h-12 rounded-2xl bg-[#1A1D20] text-white flex items-center justify-center shadow-2xl">
+                        <div className="lg:hidden flex items-center justify-center gap-4 font-black text-3xl mb-16 text-text-primary">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-secondary text-white flex items-center justify-center shadow-2xl">
                                 <Building2 size={24} />
                             </div>
                             <span className="tracking-tighter uppercase">MX Gestão</span>
                         </div>
 
                         <div className="mb-12 text-center lg:text-left">
-                            <h2 className="text-4xl font-black tracking-tighter text-[#1A1D20] mb-4">Acesse sua Conta</h2>
+                            <h2 className="text-4xl font-black tracking-tighter text-text-primary mb-4">Acesse sua Conta</h2>
                             <p className="text-gray-400 text-base font-bold leading-relaxed opacity-60">Utilize suas credenciais corporativas para entrar na plataforma de gestão.</p>
                         </div>
 
@@ -139,7 +139,7 @@ export default function Login() {
                                     <input
                                         type="email" value={email} onChange={e => setEmail(e.target.value)}
                                         placeholder="seu@email.com.br" required autoFocus
-                                        className="w-full px-8 py-5 bg-[#F8FAFC] border border-gray-100 rounded-[2rem] text-base font-black text-[#1A1D20] placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
+                                        className="w-full px-8 py-5 bg-surface-alt border border-gray-100 rounded-[2rem] text-base font-black text-text-primary placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-brand-primary focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
                                     />
                                 </div>
 
@@ -150,7 +150,7 @@ export default function Login() {
                                     <input
                                         type="password" value={password} onChange={e => setPassword(e.target.value)}
                                         placeholder="••••••••" required
-                                        className="w-full px-8 py-5 bg-[#F8FAFC] border border-gray-100 rounded-[2rem] text-base font-black text-[#1A1D20] placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
+                                        className="w-full px-8 py-5 bg-surface-alt border border-gray-100 rounded-[2rem] text-base font-black text-text-primary placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-brand-primary focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
                                     />
                                 </div>
                             </div>

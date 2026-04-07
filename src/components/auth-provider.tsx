@@ -16,7 +16,8 @@ type LegacyAuthContext = {
 const LegacyContext = createContext<LegacyAuthContext | undefined>(undefined)
 
 function mapRole(role: string | null): Role | null {
-    if (role === 'admin' || role === 'consultor') return 'Admin'
+    if (role === 'admin') return 'Admin'
+    if (role === 'dono') return 'Owner'
     if (role === 'gerente') return 'Manager'
     if (role === 'vendedor') return 'Seller'
     return null
