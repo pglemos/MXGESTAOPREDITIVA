@@ -28,7 +28,7 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Rituais MX', icon: <Target size={22} />,
       items: [
-        { label: 'Relatórios', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
+        { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
         { label: 'Feedback/PDI', path: '/feedback', icon: <MessageSquare size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
@@ -57,7 +57,7 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Acompanhamento', icon: <User size={22} />,
       items: [
-        { label: 'Relatórios', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
+        { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
         { label: 'Feedback/PDI', path: '/feedback', icon: <MessageSquare size={16} /> },
       ]
     }

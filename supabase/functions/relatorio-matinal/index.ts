@@ -236,9 +236,14 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
     const gap = Math.max(storeGoal - totalSales, 0);
     const semRegistro = ranking.filter((row) => row.sem_registro).map((row) => row.name);
 
+    const recipients = deliveryRulesRes.data?.matinal_recipients || [];
+    if (recipients.length === 0 && store.manager_email) {
+        recipients.push(store.manager_email);
+    }
+
     return {
         store,
-        recipients: deliveryRulesRes.data?.matinal_recipients || [],
+        recipients,
         whatsappGroupRef: deliveryRulesRes.data?.whatsapp_group_ref || null,
         referenceDate: dates.referenceDate,
         referenceAsDate: dates.referenceAsDate,
