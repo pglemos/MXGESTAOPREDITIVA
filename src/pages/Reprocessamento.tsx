@@ -272,6 +272,12 @@ export default function Reprocessamento() {
                                                     <td className="pl-8 py-2">
                                                         <p className="font-black text-xs text-slate-950 uppercase tracking-tight">{log.source_type === 'bulk_csv_import' ? 'Importação Planilha' : 'Reconstrução Manual'}</p>
                                                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{new Date(log.started_at).toLocaleString('pt-BR')}</p>
+                                                        {log.error_log && log.error_log.length > 0 && (
+                                                            <div className="mt-2 p-3 bg-rose-50 rounded-lg border border-rose-100 max-w-xs">
+                                                                <p className="text-[8px] font-black text-rose-600 uppercase mb-1">Log de Erros:</p>
+                                                                <p className="text-[8px] font-bold text-rose-400 line-clamp-2">{JSON.stringify(log.error_log[0])}</p>
+                                                            </div>
+                                                        )}
                                                     </td>
                                                     <td className="px-4 py-2 text-center">
                                                         <Badge variant="outline" className="text-[8px] font-black text-slate-400 border-gray-200 uppercase tracking-widest">

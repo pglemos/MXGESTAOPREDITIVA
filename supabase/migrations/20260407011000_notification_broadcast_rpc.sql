@@ -8,7 +8,8 @@ CREATE OR REPLACE FUNCTION public.send_broadcast_notification(
     p_priority TEXT DEFAULT 'medium',
     p_store_id UUID DEFAULT NULL,
     p_target_role TEXT DEFAULT 'todos',
-    p_link TEXT DEFAULT NULL
+    p_link TEXT DEFAULT NULL,
+    p_sender_id UUID DEFAULT NULL
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -39,7 +40,8 @@ BEGIN
             type,
             priority,
             link,
-            read
+            read,
+            sender_id -- Adicionado sender_id se existir na tabela
         ) VALUES (
             v_user_record.id,
             COALESCE(p_store_id, v_user_record.store_id),
@@ -48,7 +50,8 @@ BEGIN
             p_type,
             p_priority,
             p_link,
-            FALSE
+            FALSE,
+            p_sender_id
         );
     END LOOP;
 END;

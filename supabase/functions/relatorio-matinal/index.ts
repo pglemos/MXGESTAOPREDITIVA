@@ -117,6 +117,43 @@ Deno.serve(async (req: Request) => {
                 email: emailStatus,
                 dry_run: body.dry_run || false,
             });
+
+            // --- EPIC-12: Fan-out de Notificações Operacionais Automáticas ---
+            if (!body.dry_run && payload.semRegistroFull.length > 0) {
+                // 1. Notificar os Gerentes da Unidade sobre o vácuo de disciplina
+                const { data: managers } = await supabase
+                    .from("memberships")
+                    .select("user_id")
+                    .eq("store_id", store.id)
+                    .eq("role", "gerente");
+
+                if (managers && managers.length > 0) {
+                    for (const manager of managers) {
+                        await supabase.from("notifications").insert({
+                            recipient_id: manager.user_id,
+                            store_id: store.id,
+                            title: `Alerta de Disciplina: ${store.name}`,
+                            message: `Atenção: ${payload.semRegistroFull.length} vendedores estão sem registro no fechamento de ontem: ${payload.semRegistro.join(", ")}.`,
+                            type: 'discipline',
+                            priority: 'high',
+                            link: `/equipe`
+                        });
+                    }
+                }
+
+                // 2. Notificar individualmente cada vendedor esquecido (opcional, mas bom para engajamento)
+                for (const seller of payload.semRegistroFull) {
+                    await supabase.from("notifications").insert({
+                        recipient_id: seller.uid,
+                        store_id: store.id,
+                        title: "Pendente: Registro de Ontem",
+                        message: "Sua produção de ontem ainda não foi registrada no sistema. Regularize seu check-in agora.",
+                        type: 'discipline',
+                        priority: 'medium',
+                        link: `/checkin`
+                    });
+                }
+            }
         }
 
         return jsonResponse({ message: "Processamento matinal concluido", reports });
@@ -235,6 +272,7 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
     const projection = dates.daysElapsed > 0 ? Math.round((totalSales / dates.daysElapsed) * dates.totalDays) : 0;
     const gap = Math.max(storeGoal - totalSales, 0);
     const semRegistro = ranking.filter((row) => row.sem_registro).map((row) => row.name);
+    const semRegistroFull = ranking.filter((row) => row.sem_registro);
 
     const recipients = deliveryRulesRes.data?.matinal_recipients || [];
 
@@ -253,6 +291,7 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
         gap,
         ranking,
         semRegistro,
+        semRegistroFull,
     };
 }
 

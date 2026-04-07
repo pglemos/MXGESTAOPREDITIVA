@@ -140,6 +140,24 @@ Deno.serve(async (req: Request) => {
                 email: emailStatus,
                 dry_run: body.dry_run || false,
             });
+
+            // --- EPIC-12: Fan-out de Notificações de Performance ---
+            if (!body.dry_run) {
+                for (const row of payload.ranking) {
+                    if (row.bottleneck) {
+                        // Notificar o Vendedor sobre o seu gargalo principal
+                        await supabase.from("notifications").insert({
+                            recipient_id: row.uid,
+                            store_id: store.id,
+                            title: "Alerta de Funil MX",
+                            message: `Seu principal gargalo na última semana foi: ${row.bottleneck === 'lead_agendamento' ? 'Lead para Agendamento' : row.bottleneck === 'agendamento_visita' ? 'Agendamento para Visita' : 'Visita para Venda'}. Acesse seu treinamento prescrito.`,
+                            type: 'performance',
+                            priority: 'medium',
+                            link: `/treinamentos`
+                        });
+                    }
+                }
+            }
         }
 
         return jsonResponse({ message: "Processamento semanal concluido", reports });
