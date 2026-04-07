@@ -27,8 +27,14 @@ export type SandboxContext = {
 };
 
 const STORE_NAME = process.env.MX_SANDBOX_STORE_NAME || 'SANDBOX MX QA';
-const PASSWORD = process.env.MX_SANDBOX_PASSWORD || 'MxSandbox#2026!';
+const PASSWORD = process.env.MX_SANDBOX_PASSWORD || 'Mx#2026!';
 const EMAILS: Record<SandboxUserKey, string> = {
+  admin: 'admin@mxgestaopreditiva.com.br',
+  owner: 'dono@mxgestaopreditiva.com.br',
+  manager: 'gerente@mxgestaopreditiva.com.br',
+  seller: 'vendedor@mxgestaopreditiva.com.br',
+};
+const LEGACY_EMAILS: Record<SandboxUserKey, string> = {
   admin: 'sandbox.admin@mxgestaopreditiva.com.br',
   owner: 'sandbox.dono@mxgestaopreditiva.com.br',
   manager: 'sandbox.gerente@mxgestaopreditiva.com.br',
@@ -66,9 +72,9 @@ async function findUserByEmail(supabase: ReturnType<typeof createServiceClient>,
 
 async function ensureAuthUser(
   supabase: ReturnType<typeof createServiceClient>,
-  user: { email: string; name: string; role: SandboxUser['role'] },
+  user: { email: string; legacyEmail: string; name: string; role: SandboxUser['role'] },
 ) {
-  const existing = await findUserByEmail(supabase, user.email);
+  const existing = await findUserByEmail(supabase, user.email) || await findUserByEmail(supabase, user.legacyEmail);
   if (existing) {
     const { data, error } = await supabase.auth.admin.updateUserById(existing.id, {
       email: user.email,
@@ -96,17 +102,17 @@ export async function seedLiveSandbox(): Promise<SandboxContext> {
 
   try {
     const authUsers = await Promise.all([
-      ensureAuthUser(supabase, { email: EMAILS.admin, name: 'Sandbox Admin MX', role: 'admin' }),
-      ensureAuthUser(supabase, { email: EMAILS.owner, name: 'Sandbox Dono MX', role: 'dono' }),
-      ensureAuthUser(supabase, { email: EMAILS.manager, name: 'Sandbox Gerente MX', role: 'gerente' }),
-      ensureAuthUser(supabase, { email: EMAILS.seller, name: 'Sandbox Vendedor MX', role: 'vendedor' }),
+      ensureAuthUser(supabase, { email: EMAILS.admin, legacyEmail: LEGACY_EMAILS.admin, name: 'Admin MX', role: 'admin' }),
+      ensureAuthUser(supabase, { email: EMAILS.owner, legacyEmail: LEGACY_EMAILS.owner, name: 'Dono MX', role: 'dono' }),
+      ensureAuthUser(supabase, { email: EMAILS.manager, legacyEmail: LEGACY_EMAILS.manager, name: 'Gerente MX', role: 'gerente' }),
+      ensureAuthUser(supabase, { email: EMAILS.seller, legacyEmail: LEGACY_EMAILS.seller, name: 'Vendedor MX', role: 'vendedor' }),
     ]);
 
     const users: Record<SandboxUserKey, SandboxUser> = {
-      admin: { key: 'admin', id: authUsers[0].id, email: EMAILS.admin, name: 'Sandbox Admin MX', role: 'admin' },
-      owner: { key: 'owner', id: authUsers[1].id, email: EMAILS.owner, name: 'Sandbox Dono MX', role: 'dono' },
-      manager: { key: 'manager', id: authUsers[2].id, email: EMAILS.manager, name: 'Sandbox Gerente MX', role: 'gerente' },
-      seller: { key: 'seller', id: authUsers[3].id, email: EMAILS.seller, name: 'Sandbox Vendedor MX', role: 'vendedor' },
+      admin: { key: 'admin', id: authUsers[0].id, email: EMAILS.admin, name: 'Admin MX', role: 'admin' },
+      owner: { key: 'owner', id: authUsers[1].id, email: EMAILS.owner, name: 'Dono MX', role: 'dono' },
+      manager: { key: 'manager', id: authUsers[2].id, email: EMAILS.manager, name: 'Gerente MX', role: 'gerente' },
+      seller: { key: 'seller', id: authUsers[3].id, email: EMAILS.seller, name: 'Vendedor MX', role: 'vendedor' },
     };
 
     const userIds = Object.values(users).map((user) => user.id);

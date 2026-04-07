@@ -13,6 +13,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'))
 
 // Vendedor
 const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
+const VendedorPDI = lazy(() => import('@/pages/VendedorPDI'))
 const Checkin = lazy(() => import('@/pages/Checkin'))
 const Historico = lazy(() => import('@/pages/Historico'))
 const Ranking = lazy(() => import('@/pages/Ranking'))
@@ -124,7 +125,9 @@ export default function App() {
             <Route path="equipe" element={<Suspense fallback={<Spinner />}><Equipe /></Suspense>} />
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
             <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
-            <Route path="pdi" element={<Suspense fallback={<Spinner />}><GerentePDI /></Suspense>} />
+            <Route path="pdi" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorPDI />} gerente={<GerentePDI />} dono={<GerentePDI />} admin={<GerentePDI />} />
+            </Suspense>} />
             <Route path="pdi/:id/print" element={<Suspense fallback={<Spinner />}><PDIPrint /></Suspense>} />
             <Route path="rotina" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<RotinaGerente />} dono={<Navigate to="/lojas" replace />} admin={<RotinaGerente />} />
