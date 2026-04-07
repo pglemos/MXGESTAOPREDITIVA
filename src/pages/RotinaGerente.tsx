@@ -5,6 +5,7 @@ import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useManagerRoutine } from '@/hooks/useManagerRoutine'
 import { useFeedbacks, usePDIs, useNotifications } from '@/hooks/useData'
+import { useAuth } from '@/hooks/useAuth'
 import { somarVendas, calcularAtingimento, calcularFunil, gerarDiagnosticoMX, getDiasInfo } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import {
@@ -25,6 +26,7 @@ type RoutineTab = 'diario' | 'semanal' | 'mensal'
 export default function RotinaGerente() {
     const [tab, setTab] = useState<RoutineTab>('diario')
     const { sellers, loading: loadingTeam } = useTeam()
+    const { membership } = useAuth()
     const { checkins, loading: loadingCheckins } = useCheckins()
     const { storeGoal } = useGoals()
     const { ranking, loading: loadingRanking } = useRanking()
@@ -159,7 +161,7 @@ export default function RotinaGerente() {
     }
 
     const handleWhatsAppShareGroup = () => {
-        const storeName = sellers?.[0]?.store?.name || 'Unidade Operacional'
+        const storeName = membership?.store?.name || 'Unidade Operacional'
         const header = `*MATINAL OFICIAL - ${storeName.toUpperCase()}*\n_Referência: ${referenceDate}_\n\n`
         const metricsStr = `*Vendas Ontem:* ${previousDaySummary.vendas}\n*Agendamentos Hoje:* ${totalAgendamentosHoje}\n*Gap Unidade:* ${Math.max((storeGoal?.target || 0) - somarVendas(checkins), 0)} un\n\n`
         const top5 = ranking.slice(0, 5).map(item => `${item.position}º ${item.user_name} - ${item.vnd_total}v (${item.atingimento}%)`).join('\n')
@@ -325,7 +327,19 @@ export default function RotinaGerente() {
                                 </div>
 
                                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm">
-                                    <h3 className="text-lg font-black uppercase tracking-tight mb-8">Vendedores Pendentes</h3>
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="text-lg font-black uppercase tracking-tight">Vendedores Pendentes</h3>
+                                        {pendingSellers.length > 0 && (
+                                            <button 
+                                                onClick={handleCobrarTropa} 
+                                                disabled={cobrando}
+                                                className="px-6 h-10 rounded-full bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg shadow-rose-100"
+                                            >
+                                                {cobrando ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
+                                                Cobrar Tropa Agora
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {pendingSellers.map(s => (
                                             <div key={s.id} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between group">
@@ -354,11 +368,20 @@ export default function RotinaGerente() {
                                 <div className="bg-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20" />
                                     <div className="relative z-10 space-y-8">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner">
-                                                <Clock size={24} className="text-white" />
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner">
+                                                    <Clock size={24} className="text-white" />
+                                                </div>
+                                                <h3 className="text-xl font-black uppercase tracking-tight">Status do Dia</h3>
                                             </div>
-                                            <h3 className="text-xl font-black uppercase tracking-tight">Status do Dia</h3>
+                                            <button 
+                                                onClick={handleWhatsAppShareGroup}
+                                                className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-emerald-500 hover:border-emerald-400 transition-all group"
+                                                title="Enviar Resumo no Grupo"
+                                            >
+                                                <MessageSquare size={20} className="text-white" />
+                                            </button>
                                         </div>
                                         <div className="grid grid-cols-2 gap-8 border-t border-white/10 pt-8">
                                             <div>
@@ -375,48 +398,32 @@ export default function RotinaGerente() {
 
                                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-8">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100">
-                                            <TrendingUp size={24} className="text-slate-400" />
+                                        <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center border border-rose-100 shadow-inner">
+                                            <ShieldAlert size={24} className="text-rose-600" />
                                         </div>
-                                        <h3 className="text-lg font-black uppercase tracking-tight leading-none">Ritmo Operacional</h3>
+                                        <div>
+                                            <h3 className="text-lg font-black uppercase tracking-tight leading-none text-rose-600">Zonas de Risco</h3>
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Ação prioritária necessária</p>
+                                        </div>
                                     </div>
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Realizado Ontem</p>
-                                                <p className="text-2xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.vendas}</p>
+                                    <div className="space-y-4">
+                                        {atRiskSellers.length > 0 ? atRiskSellers.slice(0, 3).map(s => (
+                                            <div key={s.user_id} className="p-5 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-rose-200 flex items-center justify-center text-[10px] font-black text-rose-600 shadow-sm">{s.user_name.charAt(0)}</div>
+                                                    <div>
+                                                        <p className="text-[11px] font-black uppercase text-slate-950">{s.user_name}</p>
+                                                        <p className="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-0.5">Ritmo: {s.atingimento}% (Alvo: {Math.round(expectedAttainment)}%)</p>
+                                                    </div>
+                                                </div>
+                                                <Link to={`/feedback?seller=${s.user_id}`} className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-rose-100"><TrendingUp size={14}/></Link>
                                             </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black text-indigo-600 uppercase tracking-widest">Ritmo Ideal (DRR)</p>
-                                                <p className="text-2xl font-black text-indigo-600 font-mono-numbers">
-                                                    {Math.round(((storeGoal?.target || 0) - somarVendas(checkins)) / Math.max(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate(), 1) * 10) / 10}
-                                                </p>
+                                        )) : (
+                                            <div className="py-8 text-center border-2 border-dashed border-emerald-100 rounded-3xl bg-emerald-50/30">
+                                                <CheckCircle2 size={32} className="mx-auto text-emerald-500 mb-2 opacity-30" />
+                                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Nenhum especialista abaixo do ritmo!</p>
                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-50">
-                                            <div>
-                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Leads D-1</p>
-                                                <p className="text-xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.leads}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Agd D-1</p>
-                                                <p className="text-xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.agendamentos}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Visitas D-1</p>
-                                                <p className="text-xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.visitas}</p>
-                                            </div>
-                                        </div>
-                                        <div className="pt-4 border-t border-gray-50">
-                                            <div className="flex justify-between items-end mb-2">
-                                                <span className="text-[9px] font-black uppercase text-gray-400">Atingimento Global Unidade</span>
-                                                <span className="text-xl font-black text-slate-950">{somarVendas(checkins)} / {storeGoal?.target || 0}</span>
-                                            </div>
-                                            <div className="h-2 w-full bg-gray-50 rounded-full border border-gray-100 overflow-hidden">
-                                                <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${Math.min(calcularAtingimento(somarVendas(checkins), storeGoal?.target || 1), 100)}%` }} />
-                                            </div>
-                                        </div>
-                                        <p className="text-[10px] font-bold text-gray-500 italic leading-relaxed">"O sucesso da unidade depende do fechamento do gap individual nas próximas 48h."</p>
+                                        )}
                                     </div>
                                 </div>
 
