@@ -88,7 +88,7 @@ export default function GerenteFeedback() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!form.seller_id || !form.meta_compromisso || !form.positives || !form.attention_points || !form.action) {
-            toast.error('Preencha os campos mandatórios de mentoria.')
+            toast.error('Preencha os campos mandatórios da auditoria.')
             return
         }
         setSaving(true)
@@ -128,27 +128,37 @@ export default function GerenteFeedback() {
             <div className="space-y-6 pt-8 border-t border-white/10">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10"><History size={16} className="text-indigo-400" /></div>
-                    <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Histórico de Auditoria (Últimas Semanas)</h4>
+                    <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Histórico Analítico (Últimas Semanas)</h4>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
-                    {sellerHistory.slice(0, 3).map((h) => (
-                        <div key={h.id} className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-[10px] font-black text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20 uppercase tracking-widest">Semana {format(new Date(h.week_reference), 'dd/MM')}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-tighter">Meta: {h.meta_compromisso}</span>
-                                    {h.acknowledged ? <Badge className="bg-emerald-500/20 text-emerald-400 text-[7px] border-none px-2 h-4 rounded-full">CIENTE</Badge> : <Badge className="bg-amber-500/20 text-amber-400 text-[7px] border-none px-2 h-4 rounded-full">PENDENTE</Badge>}
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <p className="text-[11px] font-bold text-white/60 leading-relaxed line-clamp-2 italic">"{h.attention_points}"</p>
-                                <div className="flex items-center gap-2 pt-2">
-                                    <Zap size={10} className="text-indigo-400" />
-                                    <p className="text-[10px] font-black text-white/80 uppercase tracking-tight truncate">{h.action}</p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-white/5 border-b border-white/10">
+                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Semana</th>
+                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Meta</th>
+                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest text-center">Status</th>
+                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Ação Corretiva</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {sellerHistory.slice(0, 4).map((h) => (
+                                <tr key={h.id} className="hover:bg-white/5 transition-all group">
+                                    <td className="px-6 py-4">
+                                        <span className="text-[10px] font-black text-indigo-400 uppercase">{format(new Date(h.week_reference), 'dd/MM')}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-[10px] font-bold text-white/60">{h.meta_compromisso}</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        {h.acknowledged ? <CheckCircle size={12} className="text-emerald-500 mx-auto" /> : <Clock size={12} className="text-amber-500 mx-auto" />}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <p className="text-[9px] font-bold text-white/40 line-clamp-1 group-hover:text-white/80 transition-colors uppercase tracking-tight">{h.action}</p>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         )

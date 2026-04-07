@@ -424,10 +424,17 @@ export default function GerentePDI() {
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
-                                            <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
-                                                <TrendingUp size={12} /> Ação Primária
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
+                                                    <TrendingUp size={12} /> Ações MX
+                                                </div>
+                                                <span className="text-[8px] font-black text-rose-500 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 uppercase tracking-widest">
+                                                    {[p.action_1, p.action_2, p.action_3, p.action_4, p.action_5].filter(Boolean).length} Ativas
+                                                </span>
                                             </div>
-                                            <p className="text-sm font-bold text-gray-500 line-clamp-4 leading-relaxed opacity-80">{(p as any).action_1 || (p as any).action || 'Sem ação definida'}</p>
+                                            <p className="text-sm font-bold text-gray-500 line-clamp-3 leading-relaxed opacity-80 uppercase tracking-tight">
+                                                <span className="text-pure-black font-black">#1:</span> {(p as any).action_1 || (p as any).action || 'Sem ação definida'}
+                                            </p>
                                         </div>
                                     )}
                                 </div>
