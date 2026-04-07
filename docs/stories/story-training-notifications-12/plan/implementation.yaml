@@ -1,0 +1,29 @@
+story: STORY-12
+title: Treinamentos e notificações operacionais
+status: Ready for Review
+epic: EPIC-12
+scope:
+  - inbox por usuário
+  - broadcast com tracking
+  - compatibilidade notification_reads
+steps:
+  - id: schema
+    description: Reconciliar notifications com recipient_id, broadcast_id e sender_id.
+    status: done
+  - id: rpc
+    description: Criar send_broadcast_notification.
+    status: done
+  - id: app
+    description: Validar hooks e telas contra o contrato final.
+    status: done
+files:
+  - docs/stories/story-training-notifications-12/spec/spec.md
+  - docs/stories/story-training-notifications-12/plan/implementation.yaml
+  - src/hooks/useData.ts
+  - src/pages/ConsultorNotificacoes.tsx
+  - src/pages/Notificacoes.tsx
+  - src/pages/RotinaGerente.tsx
+  - src/types/database.ts
+  - supabase/functions/feedback-semanal/index.ts
+  - supabase/functions/relatorio-matinal/index.ts
+  - supabase/migrations/20260407160000_reconcile_epic09_12_end_to_end.sql

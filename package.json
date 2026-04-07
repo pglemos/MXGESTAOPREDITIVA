@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
     "deploy": "vercel --prod",
-    "fix:admin-access": "tsx scripts/fix_admin_access.ts"
+    "fix:admin-access": "tsx scripts/fix_admin_access.ts",
+    "seed:sandbox:live": "tsx scripts/seed_live_sandbox.ts",
+    "validate:e2e:live": "tsx scripts/validate_live_end_to_end.ts"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",

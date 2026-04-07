@@ -7,6 +7,8 @@
 
 # Project Backlog Status (MX Methodology)
 
+Reconciliado e validado no Supabase live em `2026-04-07` com sandbox controlada `SANDBOX MX QA`, usuários reais por papel, `dry_run` das 3 automações oficiais e teste de idempotência do reprocessamento por hash.
+
 - [x] EPIC-01: Domínio e Dados Canônicos (100% materializado e protegido)
 - [x] EPIC-02: Check-in Diário do Vendedor (100% amarrado ao fluxo operacional)
 - [x] EPIC-03: Painel da Loja e Ranking Oficial (100% com grade diária e seletor de unidade)

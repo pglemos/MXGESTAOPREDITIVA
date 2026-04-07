@@ -22,6 +22,8 @@ type ReprocessLog = {
     rows_processed: number
     warnings: string[] | null
     error_log: any[] | null
+    file_hash?: string | null
+    processed_at?: string | null
     store?: { name: string }
 }
 
@@ -34,6 +36,7 @@ export default function Reprocessamento() {
     const [selectedStore, setSelectedStore] = useState<string>('all')
     const [importData, setImportData] = useState<ParsedCSVRow[]>([])
     const [headers, setHeaders] = useState<string[]>([])
+    const [fileHash, setFileHash] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const navigate = useNavigate()
 
@@ -70,12 +73,18 @@ export default function Reprocessamento() {
         )
     }
 
+    const buildFileHash = async (text: string) => {
+        const data = new TextEncoder().encode(text)
+        const digest = await crypto.subtle.digest('SHA-256', data)
+        return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('')
+    }
+
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
         const reader = new FileReader()
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             const text = event.target?.result as string
             const rows = parseCSV(text)
             if (rows.length > 0) {
@@ -89,6 +98,7 @@ export default function Reprocessamento() {
 
                 setHeaders(fileHeaders)
                 setImportData(rows)
+                setFileHash(await buildFileHash(text))
                 toast.success(`${rows.length} registros carregados e validados!`)
             }
         }
@@ -107,7 +117,8 @@ export default function Reprocessamento() {
                     store_id: selectedStore === 'all' ? null : selectedStore,
                     source_type: importData.length > 0 ? 'bulk_csv_import' : 'manual_rebuild',
                     triggered_by: profile?.id,
-                    status: 'pending'
+                    status: 'pending',
+                    file_hash: fileHash,
                 })
                 .select()
                 .single()
@@ -136,6 +147,7 @@ export default function Reprocessamento() {
             toast.success('Processamento concluído com sucesso!')
             setImportData([])
             setHeaders([])
+            setFileHash(null)
             fetchLogs()
         } catch (error: any) {
             toast.error(`Falha Crítica: ${error.message}`)

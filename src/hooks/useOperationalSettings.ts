@@ -70,8 +70,12 @@ export function useOperationalSettings(storeId: string | null) {
         if (tenuresRes.error) console.error('Audit Error [useOperationalSettings]: tenures ->', tenuresRes.error.message)
         if (usersRes.error) console.error('Audit Error [useOperationalSettings]: users ->', usersRes.error.message)
 
-        setStore((storeRes.data as Store) || null)
-        setDeliveryRules((deliveryRes.data as StoreDeliveryRules) || null)
+        const storeData = (storeRes.data as Store) || null
+        const deliveryData = (deliveryRes.data as StoreDeliveryRules) || null
+        const derivedManagerEmail = deliveryData?.matinal_recipients?.[0] || storeData?.manager_email || null
+
+        setStore(storeData ? { ...storeData, manager_email: derivedManagerEmail } : null)
+        setDeliveryRules(deliveryData)
         setBenchmark((benchmarkRes.data as StoreBenchmark) || null)
         setMetaRules((metaRes.data as StoreMetaRules) || null)
         setSellerTenures((tenuresRes.data as SellerTenure[]) || [])
@@ -86,7 +90,7 @@ export function useOperationalSettings(storeId: string | null) {
             supabase
                 .from('stores')
                 .update({
-                    manager_email: payload.store.manager_email || null,
+                    manager_email: payload.delivery.matinal_recipients[0] || payload.store.manager_email || null,
                     source_mode: payload.store.source_mode,
                     active: payload.store.active,
                 })

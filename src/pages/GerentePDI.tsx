@@ -2,12 +2,13 @@ import { usePDIs } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
-import { Plus, Target, CheckCircle2, Calendar, User, TrendingUp, Search, Briefcase, X, MessageSquare, AlertCircle, Clock, RefreshCw, Printer, Award, Zap } from 'lucide-react'
+import { Plus, Target, CheckCircle2, Calendar, User, TrendingUp, Search, Briefcase, X, MessageSquare, AlertCircle, Clock, RefreshCw, Printer, Award, Zap, ChevronLeft, ChevronRight, LayoutDashboard, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge"
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
 
 const statusCfg = {
     aberto: { color: 'bg-rose-50 text-rose-600 border-rose-100', label: 'Aberto' },
@@ -15,12 +16,32 @@ const statusCfg = {
     concluido: { color: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'Concluído' }
 }
 
+const steps = [
+    { id: 'goals', label: 'Metas de Carreira', icon: Target },
+    { id: 'skills', label: 'Radar de Competências', icon: LayoutDashboard },
+    { id: 'actions', label: 'Plano de Ação', icon: Zap }
+]
+
+const competences = [
+    { id: 'comp_prospeccao', label: 'Prospecção' },
+    { id: 'comp_abordagem', label: 'Abordagem' },
+    { id: 'comp_demonstracao', label: 'Demonstração' },
+    { id: 'comp_fechamento', label: 'Fechamento' },
+    { id: 'comp_crm', label: 'Gestão CRM' },
+    { id: 'comp_digital', label: 'Venda Digital' },
+    { id: 'comp_disciplina', label: 'Disciplina' },
+    { id: 'comp_organizacao', label: 'Organização' },
+    { id: 'comp_negociacao', label: 'Negociação' },
+    { id: 'comp_produto', label: 'Prod. Técnico' }
+]
+
 export default function GerentePDI() {
     const { role } = useAuth()
-    const { pdis, reviews, loading, createPDI, updateStatus, createReview, fetchReviews, refetch } = usePDIs()
+    const { pdis, loading, createPDI, updateStatus, createReview, refetch } = usePDIs()
     const { sellers } = useTeam()
     const navigate = useNavigate()
     const [showForm, setShowForm] = useState(false)
+    const [currentStep, setCurrentStep] = useState(0)
     const [showReviewForm, setShowReviewForm] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     const [saving, setSaving] = useState(false)
@@ -57,6 +78,27 @@ export default function GerentePDI() {
         next_review_date: ''
     })
 
+    const radarData = useMemo(() => competences.map(c => ({
+        subject: c.label,
+        value: (form as any)[c.id] || 6,
+        fullMark: 10
+    })), [form])
+
+    const filteredPDIs = useMemo(() => {
+        const term = searchTerm.toLowerCase()
+        return pdis.filter((p: any) =>
+            (p.meta_6m || p.objective || '').toLowerCase().includes(term) ||
+            (p.seller_name || '').toLowerCase().includes(term)
+        )
+    }, [pdis, searchTerm])
+
+    const handleRefresh = useCallback(async () => {
+        setIsRefetching(true)
+        await refetch()
+        setIsRefetching(false)
+        toast.success('Matriz de PDI sincronizada!')
+    }, [refetch])
+
     const handleReviewSubmit = async (pdiId: string) => {
         if (!canManagePDI) {
             toast.error('Seu papel permite acompanhar PDIs, mas não revisar.')
@@ -71,28 +113,17 @@ export default function GerentePDI() {
         setSaving(false)
         if (error) {
             toast.error(error.message)
-        } else {
-            toast.success('Revisão mensal registrada!')
-            setShowReviewForm(null)
-            setReviewForm({ evolution: '', difficulties: '', adjustments: '', next_review_date: '' })
+            return
         }
+        toast.success('Revisão mensal registrada!')
+        setShowReviewForm(null)
+        setReviewForm({
+            evolution: '',
+            difficulties: '',
+            adjustments: '',
+            next_review_date: ''
+        })
     }
-
-    // 1. & 11. Performance: Memoized search and normalization
-    const filteredPDIs = useMemo(() => {
-        const term = searchTerm.toLowerCase()
-        return (pdis || []).filter(p =>
-            (p as any).meta_6m?.toLowerCase().includes(term) ||
-            (p as any).seller_name?.toLowerCase().includes(term)
-        )
-    }, [pdis, searchTerm])
-
-    const handleRefresh = useCallback(async () => {
-        setIsRefetching(true)
-        await refetch()
-        setIsRefetching(false)
-        toast.success('Matriz de PDI sincronizada!')
-    }, [refetch])
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -100,8 +131,8 @@ export default function GerentePDI() {
             toast.error('Seu papel permite acompanhar PDIs, mas não criar ou editar.')
             return
         }
-        if (!form.seller_id || !form.meta_6m || !form.action_1 || !form.action_2 || !form.action_3 || !form.action_4 || !form.action_5) {
-            toast.error('Preencha as 5 ações mandatórias do PDI MX.')
+        if (!form.seller_id || !form.meta_6m || !form.meta_12m || !form.meta_24m || !form.action_1 || !form.action_2 || !form.action_3 || !form.action_4 || !form.action_5 || !form.due_date) {
+            toast.error('Preencha os 3 horizontes, as 5 ações mandatórias e a data alvo do PDI MX.')
             return
         }
         setSaving(true)
@@ -112,6 +143,7 @@ export default function GerentePDI() {
         } else {
             toast.success('PDI Oficial MX ativado com sucesso!')
             setShowForm(false)
+            setCurrentStep(0)
             setForm({
                 seller_id: '', meta_6m: '', meta_12m: '', meta_24m: '',
                 comp_prospeccao: 6, comp_abordagem: 6, comp_demonstracao: 6, comp_fechamento: 6, comp_crm: 6,
@@ -181,148 +213,180 @@ export default function GerentePDI() {
                         <form onSubmit={handleCreate} className="mx-card !border-none p-mx-lg md:p-mx-xl relative overflow-hidden bg-white">
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
 
-                                    <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-14 h-14 rounded-2xl bg-pure-black text-white flex items-center justify-center shadow-2xl transform rotate-2">
-                                                <Target size={24} className="text-indigo-400" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Estruturar PDI</h3>
-                                                <div className="flex items-center gap-3">
-                                                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Diretriz de Crescimento Profissional</p>
-                                                    <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[8px] font-black rounded uppercase tracking-widest animate-pulse">Duração sugerida: 45 min</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
-                                            <X size={20} />
-                                        </button>
+                            <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8 mb-8">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-14 h-14 rounded-2xl bg-pure-black text-white flex items-center justify-center shadow-2xl transform rotate-2">
+                                        <Target size={24} className="text-indigo-400" />
                                     </div>
-
-                            <div className="grid lg:grid-cols-2 gap-12 relative z-10">
-                                <div className="space-y-8">
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Vendedor Vinculado</label>
-                                        <select
-                                            value={form.seller_id}
-                                            onChange={e => setForm(p => ({ ...p, seller_id: e.target.value }))}
-                                            required
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-pure-black font-black text-sm focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-xl transition-all appearance-none cursor-pointer shadow-inner"
-                                        >
-                                            <option value="">Selecione o vendedor...</option>
-                                            {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                        </select>
-                                    </div>
-
-                                    {/* Radar de Competências - Versão Auditoria de Gaps */}
-                                    <div className="bg-slate-950 p-8 md:p-10 rounded-[3rem] text-white space-y-10 shadow-2xl relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
-
-                                        <div className="flex items-center justify-between relative z-10">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-                                                <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.4em]">Radar de Capacidade MX</h4>
-                                            </div>
-                                            <Badge variant="outline" className="border-white/10 text-white/40 font-black text-[8px] tracking-widest uppercase">Escala 6 a 10</Badge>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 gap-8 relative z-10">
-                                            {[
-                                                { id: 'comp_prospeccao', label: 'Prospecção' },
-                                                { id: 'comp_abordagem', label: 'Abordagem' },
-                                                { id: 'comp_demonstracao', label: 'Demonstração' },
-                                                { id: 'comp_fechamento', label: 'Fechamento' },
-                                                { id: 'comp_crm', label: 'Gestão CRM' },
-                                                { id: 'comp_digital', label: 'Venda Digital' },
-                                                { id: 'comp_disciplina', label: 'Disciplina' },
-                                                { id: 'comp_organizacao', label: 'Organização' },
-                                                { id: 'comp_negociacao', label: 'Negociação' },
-                                                { id: 'comp_produto', label: 'Prod. Técnico' }
-                                            ].map(comp => (
-                                                <div key={comp.id} className="space-y-3">
-                                                    <div className="flex justify-between items-end px-1">
-                                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{comp.label}</span>
-                                                        <div className="flex items-baseline gap-2">
-                                                            <span className="text-2xl font-black tabular-nums tracking-tighter text-indigo-400">{(form as any)[comp.id]}</span>
-                                                            <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">/ 10</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                                        <motion.div
-                                                            initial={{ width: 0 }}
-                                                            animate={{ width: `${((form as any)[comp.id] / 10) * 100}%` }}
-                                                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]"
-                                                        />
-                                                        <input
-                                                            type="range" min="6" max="10" step="1"
-                                                            value={(form as any)[comp.id]}
-                                                            onChange={e => setForm(p => ({ ...p, [comp.id]: Number(e.target.value) }))}
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest text-center pt-4 italic">Arraste as barras para auditar o nível técnico atual.</p>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Meta Estratégica (6 Meses)</label>
-                                        <input type="text" value={form.meta_6m} onChange={e => setForm(p => ({ ...p, meta_6m: e.target.value }))} required placeholder="Ex: Assumir liderança de equipe ou atingir 120% da meta constante." className="premium-input !rounded-[1.5rem]" />
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Meta Tática (12 Meses)</label>
-                                        <input type="text" value={form.meta_12m} onChange={e => setForm(p => ({ ...p, meta_12m: e.target.value }))} required placeholder="Objetivo de consolidação no ano." className="premium-input !rounded-[1.5rem]" />
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Visão de Longo Prazo (24 Meses)</label>
-                                        <input type="text" value={form.meta_24m} onChange={e => setForm(p => ({ ...p, meta_24m: e.target.value }))} placeholder="Ponto de chegada na rede (ex: Gerência Regional)." className="premium-input !rounded-[1.5rem]" />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <h4 className="text-[10px] font-black text-rose-600 uppercase tracking-widest flex items-center gap-2 ml-2">
-                                        <Zap size={14} /> 5 Ações de Desenvolvimento (Mandatórias)
-                                    </h4>
-                                    {[1, 2, 3, 4, 5].map(num => (
-                                        <div key={num} className="space-y-2">
-                                            <label className="text-[8px] font-black text-gray-400 uppercase ml-2">Ação #{num}</label>
-                                            <input
-                                                type="text"
-                                                value={(form as any)[`action_${num}`]}
-                                                onChange={e => setForm(p => ({ ...p, [`action_${num}`]: e.target.value }))}
-                                                required={true}
-                                                placeholder={`Descreva a ação ${num}...`}
-                                                className="premium-input !rounded-xl py-4"
-                                            />
-                                        </div>
-                                    ))}
-
-                                    <div className="space-y-4 pt-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Data da Próxima Revisão</label>
-                                        <div className="relative group">
-                                            <Calendar size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-indigo-500 transition-colors" />
-                                            <input
-                                                type="date"
-                                                value={form.due_date}
-                                                onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))}
-                                                required
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-[1.5rem] pl-16 pr-6 py-5 text-pure-black font-black text-sm focus:outline-none focus:bg-white focus:border-indigo-400 focus:shadow-xl transition-all shadow-inner font-mono-numbers"
-                                            />
+                                    <div>
+                                        <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Ciclo de Evolução Individual</h3>
+                                        <div className="flex items-center gap-3">
+                                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Mapeamento de Competências & Gaps</p>
+                                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[8px] font-black rounded uppercase tracking-widest animate-pulse">Consultoria Técnica MX</span>
                                         </div>
                                     </div>
                                 </div>
+                                <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
+                                    <X size={20} />
+                                </button>
                             </div>
 
-                            <div className="pt-8 border-t border-gray-50 flex justify-end">
+                            {/* Stepper */}
+                            <div className="flex items-center justify-between gap-4 mb-12 relative z-10">
+                                {steps.map((step, idx) => (
+                                    <div key={step.id} className="flex-1 flex flex-col gap-3">
+                                        <div className={cn(
+                                            "h-1.5 rounded-full transition-all duration-500",
+                                            currentStep >= idx ? "bg-indigo-600" : "bg-gray-100"
+                                        )} />
+                                        <div className="flex items-center gap-2">
+                                            <step.icon size={12} className={currentStep >= idx ? "text-indigo-600" : "text-gray-300"} />
+                                            <span className={cn("text-[8px] font-black uppercase tracking-widest", currentStep >= idx ? "text-slate-950" : "text-gray-300")}>{step.label}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="relative z-10 min-h-[500px]">
+                                <AnimatePresence mode="wait">
+                                    {currentStep === 0 && (
+                                        <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                                            <div className="space-y-4">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Especialista Alvo</label>
+                                                <select
+                                                    value={form.seller_id}
+                                                    onChange={e => setForm(p => ({ ...p, seller_id: e.target.value }))}
+                                                    required
+                                                    className="mx-input appearance-none cursor-pointer"
+                                                >
+                                                    <option value="">Selecione o vendedor...</option>
+                                                    {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2 italic">Horizonte 6 Meses</label>
+                                                    <input type="text" value={form.meta_6m} onChange={e => setForm(p => ({ ...p, meta_6m: e.target.value }))} className="premium-input" placeholder="Onde o vendedor estara em 6 meses?" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2 italic">Horizonte 12 Meses</label>
+                                                    <input type="text" value={form.meta_12m} onChange={e => setForm(p => ({ ...p, meta_12m: e.target.value }))} className="premium-input" placeholder="Meta tatica anual..." />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2 italic">Visao 24 Meses</label>
+                                                    <input type="text" value={form.meta_24m} onChange={e => setForm(p => ({ ...p, meta_24m: e.target.value }))} className="premium-input" placeholder="Ponto de chegada na rede..." />
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {currentStep === 1 && (
+                                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid lg:grid-cols-2 gap-12">
+                                            <div className="space-y-6">
+                                                <h4 className="text-[10px] font-black text-slate-950 uppercase tracking-widest border-l-4 border-indigo-600 pl-4 mb-8">Auditoria de Competencias (6-10)</h4>
+                                                <div className="grid grid-cols-1 gap-6 h-[400px] overflow-y-auto pr-4 no-scrollbar">
+                                                    {competences.map(c => (
+                                                        <div key={c.id} className="space-y-2">
+                                                            <div className="flex justify-between items-end">
+                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{c.label}</span>
+                                                                <span className="text-xl font-black text-indigo-600 font-mono-numbers">{(form as any)[c.id]}</span>
+                                                            </div>
+                                                            <input
+                                                                type="range" min="6" max="10" step="1"
+                                                                value={(form as any)[c.id]}
+                                                                onChange={e => setForm(p => ({ ...p, [c.id]: Number(e.target.value) }))}
+                                                                className="w-full accent-indigo-600 h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="bg-slate-950 rounded-[3rem] p-10 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group">
+                                                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+                                                <div className="flex items-center gap-2 mb-8 relative z-10">
+                                                    <Sparkles size={14} className="text-indigo-400" />
+                                                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Radar Tecnico MX</span>
+                                                </div>
+                                                <div className="w-full h-[350px] relative z-10">
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                                                            <PolarGrid stroke="#ffffff20" />
+                                                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#ffffff40', fontSize: 8, fontWeight: 'bold' }} />
+                                                            <Radar
+                                                                name="Capacidade"
+                                                                dataKey="value"
+                                                                stroke="#6366f1"
+                                                                fill="#6366f1"
+                                                                fillOpacity={0.5}
+                                                            />
+                                                        </RadarChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {currentStep === 2 && (
+                                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <h4 className="text-[10px] font-black text-rose-600 uppercase tracking-widest flex items-center gap-2 mb-4">
+                                                    <Zap size={14} /> 5 Ações Mandatorias de Evolucao
+                                                </h4>
+                                                {[1, 2, 3, 4, 5].map(n => (
+                                                    <div key={n} className="flex items-center gap-4">
+                                                        <span className="w-8 h-8 rounded-full bg-slate-950 text-white flex items-center justify-center font-black text-[10px] shrink-0">{n}</span>
+                                                        <input
+                                                            type="text"
+                                                            value={(form as any)[`action_${n}`]}
+                                                            onChange={e => setForm(p => ({ ...p, [`action_${n}`]: e.target.value }))}
+                                                            required={n === 1}
+                                                            className="premium-input !rounded-2xl"
+                                                            placeholder={`Ação #${n}...`}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="pt-8 border-t border-gray-50 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Data da Proxima Revisao</label>
+                                                    <div className="relative group">
+                                                        <Calendar size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-indigo-500 transition-colors" />
+                                                        <input type="date" value={form.due_date} onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))} required className="mx-input !pl-16 font-mono-numbers" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-end">
+                                                    <button
+                                                        type="submit" disabled={saving}
+                                                        className="w-full h-16 rounded-full bg-indigo-600 text-white font-black flex items-center justify-center gap-4 hover:bg-indigo-700 shadow-xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em]"
+                                                    >
+                                                        {saving ? <RefreshCw className="animate-spin" /> : <><Award size={18} /> Ativar Ciclo de Evolucao</>}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Navigation */}
+                            <div className="flex items-center justify-between mt-12 pt-8 border-t border-gray-50 relative z-10">
                                 <button
-                                    type="submit" disabled={saving}
-                                    className="w-full sm:w-auto px-12 py-5 rounded-full bg-pure-black text-white font-black flex items-center justify-center gap-4 hover:bg-brand-secondary-hover hover:shadow-elevation transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
+                                    type="button"
+                                    onClick={() => setCurrentStep(s => Math.max(0, s - 1))}
+                                    disabled={currentStep === 0}
+                                    className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-pure-black disabled:opacity-0 transition-all"
                                 >
-                                    {saving ? <RefreshCw className="w-6 h-6 animate-spin text-indigo-400" /> : <><CheckCircle2 size={18} className="group-hover/btn:scale-110 transition-transform" /> Ativar Plano de Desenvolvimento</>}
+                                    <ChevronLeft size={16} /> Voltar Passo
                                 </button>
+                                {currentStep < 2 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentStep(s => Math.min(2, s + 1))}
+                                        className="mx-button-primary !w-auto !px-10 group"
+                                    >
+                                        Proximo Passo <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                )}
                             </div>
                         </form>
                     </motion.div>

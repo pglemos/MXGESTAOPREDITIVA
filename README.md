@@ -223,7 +223,7 @@ O sistema opera sob o **Modelo de Vigência MX**, onde a produção é consolida
 ## Auditoria Final (EPIC-01 a EPIC-05) - Status: 100%
 
 Bloqueadores eliminados com evidências técnicas:
-- [x] **EPIC-01**: RLS Hardening implementado em todas as tabelas de governança; `stores.manager_email` removido; View de vigência sistêmica criada.
+- [x] **EPIC-01**: RLS Hardening implementado em todas as tabelas de governança; `store_delivery_rules` é a fonte oficial de destinatários e `stores.manager_email` fica apenas como compatibilidade transitória de 1 release; View de vigência sistêmica criada.
 - [x] **EPIC-02**: Terminal MX com suporte nativo a **Ajuste Técnico** e **Histórico**; "Sem Registro" fechado sistemicamente.
 - [x] **EPIC-03**: Dashboard com grade de alta densidade ("Legado Bruto"), seletor de loja analítico e métricas de conversão.
 - [x] **EPIC-04**: Rotina de comando com **Cobrança em Massa via WhatsApp** e trilha de auditoria completa.

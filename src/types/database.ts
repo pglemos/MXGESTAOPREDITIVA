@@ -221,6 +221,8 @@ export interface PDI {
     acknowledged: boolean
     created_at: string
     updated_at: string
+    objective?: string | null
+    action?: string | null
 }
 
 export interface PDIReview {
@@ -238,8 +240,8 @@ export type NotificationPriority = 'high' | 'medium' | 'low'
 
 export interface Notification {
     id: string
-    recipient_id: string
-    store_id: string
+    recipient_id: string | null
+    store_id: string | null
     title: string
     message: string
     type: NotificationType
@@ -247,6 +249,12 @@ export interface Notification {
     link: string | null
     read: boolean
     created_at: string
+    sender_id?: string | null
+    broadcast_id?: string | null
+    target_type?: 'all' | 'store' | 'individual' | null
+    target_store_id?: string | null
+    target_role?: string | null
+    sent_at?: string | null
 }
 
 export interface AuditLog {
@@ -273,6 +281,8 @@ export interface ReprocessLog {
     error_log: unknown[]
     started_at: string
     finished_at: string | null
+    file_hash?: string | null
+    processed_at?: string | null
 }
 
 export interface ManagerRoutineLog {

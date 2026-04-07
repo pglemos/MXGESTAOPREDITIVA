@@ -235,6 +235,13 @@ export default function PainelConsultor() {
                         >
                             {isTriggering === 'semanal' ? '…' : 'Ciclo Feedback'}
                         </button>
+                        <button
+                            onClick={() => triggerReport('mensal')}
+                            disabled={isTriggering !== null}
+                            className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50"
+                        >
+                            {isTriggering === 'mensal' ? '…' : 'Fechamento Mensal'}
+                        </button>
                     </div>
 
                     <button type="button" aria-label="Atualizar rede" onClick={() => fetchNetworkSnapshot(true)} className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-all active:scale-95">

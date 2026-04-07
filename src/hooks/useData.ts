@@ -182,6 +182,8 @@ export function usePDIs(storeIdOverride?: string) {
         if (role !== 'admin' && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não criar ou editar.' }
         const { error } = await supabase.from('pdis').insert({
             store_id: storeId, manager_id: profile.id, seller_id: data.seller_id,
+            objective: data.meta_6m,
+            action: data.action_1,
             meta_6m: data.meta_6m, meta_12m: data.meta_12m, meta_24m: data.meta_24m,
             comp_prospeccao: data.comp_prospeccao, comp_abordagem: data.comp_abordagem,
             comp_demonstracao: data.comp_demonstracao, comp_fechamento: data.comp_fechamento,

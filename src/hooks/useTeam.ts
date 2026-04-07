@@ -96,16 +96,53 @@ export function useStores() {
 
     const createStore = async (name: string, managerEmail?: string) => {
         if (role !== 'admin') return { error: 'Apenas admin pode criar lojas.' }
-        const { error } = await supabase.from('stores').insert({ name, manager_email: managerEmail || null })
-        if (!error) await fetchStores()
-        return { error: error?.message || null }
+        const { data: store, error } = await supabase
+            .from('stores')
+            .insert({ name, manager_email: managerEmail || null })
+            .select('id')
+            .single()
+
+        if (error) return { error: error.message }
+
+        if (store?.id) {
+            const recipients = managerEmail ? [managerEmail] : []
+            const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
+                store_id: store.id,
+                matinal_recipients: recipients,
+                weekly_recipients: recipients,
+                monthly_recipients: recipients,
+                timezone: 'America/Sao_Paulo',
+                active: true,
+            }, { onConflict: 'store_id' })
+
+            if (deliveryError) return { error: deliveryError.message }
+        }
+
+        await fetchStores()
+        return { error: null }
     }
 
     const updateStore = async (id: string, updates: { name?: string; manager_email?: string; active?: boolean }) => {
         if (role !== 'admin') return { error: 'Apenas admin pode editar lojas.' }
         const { error } = await supabase.from('stores').update(updates).eq('id', id)
-        if (!error) await fetchStores()
-        return { error: error?.message || null }
+        if (error) return { error: error.message }
+
+        if (typeof updates.manager_email !== 'undefined') {
+            const recipients = updates.manager_email ? [updates.manager_email] : []
+            const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
+                store_id: id,
+                matinal_recipients: recipients,
+                weekly_recipients: recipients,
+                monthly_recipients: recipients,
+                timezone: 'America/Sao_Paulo',
+                active: true,
+            }, { onConflict: 'store_id' })
+
+            if (deliveryError) return { error: deliveryError.message }
+        }
+
+        await fetchStores()
+        return { error: null }
     }
 
     useEffect(() => { fetchStores() }, [fetchStores])
