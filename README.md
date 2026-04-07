@@ -1,6 +1,6 @@
 <div align="center">
 
-# AutoGestão - High-Performance Dealer OS
+# MX GESTÃO PREDITIVA
 
 [![Vercel Deployment](https://img.shields.io/badge/Deployment-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com/)
 [![React 19](https://img.shields.io/badge/React-19.0-blue?style=flat-square&logo=react)](https://react.dev/)
