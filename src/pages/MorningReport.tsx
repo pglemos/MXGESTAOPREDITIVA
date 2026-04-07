@@ -14,6 +14,7 @@ import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useTeam } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
+import { useStoreDeliveryRules } from '@/hooks/useData'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { 
@@ -29,6 +30,7 @@ export default function MorningReport() {
     const { metaRules, loading: loadingMetaRules, fetchMetaRules } = useStoreMetaRules()
     const { ranking, loading: loadingRanking, refetch: refetchRanking } = useRanking()
     const { sellers, loading: loadingTeam, refetch: refetchTeam } = useTeam()
+    const { deliveryRules, loading: loadingDelivery } = useStoreDeliveryRules()
     
     const [isRefetching, setIsRefetching] = useState(false)
     const [isSendingEmail, setIsSendingEmail] = useState(false)
@@ -123,6 +125,23 @@ export default function MorningReport() {
             `_Gerado via MX Gestão Preditiva_`,
         ].join('\n')
 
+        const groupRef = deliveryRules?.whatsapp_group_ref
+        
+        // Se for um link de grupo (começa com http), abrimos o link diretamente para postagem manual
+        // Caso contrário, usamos wa.me com o identificador se ele parecer um número de telefone
+        let waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+        
+        if (groupRef) {
+            if (groupRef.startsWith('http')) {
+                // Link de convite - não suporta pré-preencher texto em todos os clientes, 
+                // mas podemos tentar o padrão do WhatsApp para links
+                waUrl = groupRef
+                // Nota: Navigator.share é mais confiável para "mandar para algum lugar"
+            } else if (/^\d+$/.test(groupRef.replace(/\D/g, ''))) {
+                waUrl = `https://wa.me/${groupRef.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
+            }
+        }
+
         if (navigator.share) {
             try {
                 await navigator.share({ text: message })
@@ -131,7 +150,7 @@ export default function MorningReport() {
                 // User cancelled or error
             }
         } else {
-            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+            window.open(waUrl, '_blank')
             await registerShareLog(message, 'whatsapp')
         }
     }
@@ -147,6 +166,18 @@ export default function MorningReport() {
             shared_via: via,
         })
         toast.success('Compartilhamento registrado com sucesso.')
+    }
+
+    const handleWhatsAppIndividual = (seller: any) => {
+        const phone = seller.phone?.replace(/\D/g, '')
+        if (!phone) {
+            toast.error(`Vendedor ${seller.name} não possui telefone cadastrado.`)
+            return
+        }
+        
+        const message = encodeURIComponent(`Olá ${seller.name}, notamos que seu check-in operacional MX de hoje ainda não foi realizado. Alguma dificuldade técnica ou operacional que possamos ajudar para mantermos a disciplina da unidade?`)
+        window.open(`https://wa.me/55${phone}?text=${message}`, '_blank')
+        toast.success(`WhatsApp aberto para ${seller.name}`)
     }
 
     const handleSendEmail = async () => {
@@ -190,7 +221,7 @@ export default function MorningReport() {
         toast.success('Planilha operacional gerada.')
     }
 
-    const isLoading = loadingCheckins || loadingGoals || loadingMetaRules || loadingRanking || loadingTeam
+    const isLoading = loadingCheckins || loadingGoals || loadingMetaRules || loadingRanking || loadingTeam || loadingDelivery
 
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-white">
@@ -352,8 +383,26 @@ export default function MorningReport() {
                             <Zap size={16} className="text-amber-500" /> Foco do Dia
                         </h4>
                         <div className="space-y-4">
+                            {metrics.pendingSellers.length > 0 && (
+                                <div className="p-5 rounded-2xl bg-rose-50 border border-rose-100 hover:shadow-lg transition-all group">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <p className="text-[10px] font-black text-rose-900 uppercase tracking-tight">Cobrar Sem Registro</p>
+                                        <Badge className="bg-white border-rose-200 text-rose-400 text-[7px] font-black uppercase">Alta</Badge>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {metrics.pendingSellers.slice(0, 3).map(s => (
+                                            <button 
+                                                key={s.id} 
+                                                onClick={() => handleWhatsAppIndividual(s)}
+                                                className="px-3 py-1 bg-white border border-rose-100 rounded-lg text-[8px] font-black text-rose-600 uppercase hover:bg-rose-600 hover:text-white transition-colors flex items-center gap-1"
+                                            >
+                                                <MessageCircle size={10} /> {s.name.split(' ')[0]}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             {[
-                                { title: 'Cobrar Sem Registro', desc: `${metrics.pendingSellers.length} vendedores pendentes`, priority: 'Alta' },
                                 { title: 'Validar Agendamentos', desc: 'Conferir agenda internet D-0', priority: 'Alta' },
                                 { title: 'Recuperar Leads D-1', desc: 'Focar em taxa de visita', priority: 'Média' }
                             ].map((task, i) => (

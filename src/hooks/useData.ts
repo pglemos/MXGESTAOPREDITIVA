@@ -309,3 +309,26 @@ export function useTeamTrainings() {
     useEffect(() => { fetchProgress() }, [fetchProgress])
     return { teamProgress, loading, refetch: fetchProgress }
 }
+
+// ============ DELIVERY RULES ============
+export function useStoreDeliveryRules(storeIdOverride?: string) {
+    const { storeId: authStoreId } = useAuth()
+    const storeId = storeIdOverride || authStoreId
+    const [deliveryRules, setDeliveryRules] = useState<any | null>(null)
+    const [loading, setLoading] = useState(true)
+
+    const fetchRules = useCallback(async () => {
+        if (!storeId) {
+            setDeliveryRules(null)
+            setLoading(false)
+            return
+        }
+        setLoading(true)
+        const { data } = await supabase.from('store_delivery_rules').select('*').eq('store_id', storeId).maybeSingle()
+        setDeliveryRules(data)
+        setLoading(false)
+    }, [storeId])
+
+    useEffect(() => { fetchRules() }, [fetchRules])
+    return { deliveryRules, loading, refetch: fetchRules }
+}
