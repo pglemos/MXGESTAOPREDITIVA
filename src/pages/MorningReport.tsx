@@ -6,7 +6,9 @@ import { supabase } from '@/lib/supabase'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useCheckins } from '@/hooks/useCheckins'
-import { useGoals } from '@/hooks/useGoals'
+import { calculateReferenceDate } from '@/hooks/useCheckins'
+import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
+import { useRanking } from '@/hooks/useRanking'
 import { useTeam } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import useAppStore from '@/stores/main'
@@ -15,19 +17,23 @@ import { ptBR } from 'date-fns/locale'
 import { calcularProjecao, getDiasInfo, calcularAtingimento, somarVendas } from '@/lib/calculations'
 
 export default function MorningReport() {
-  const { profile, membership } = useAuth()
+  const { profile, membership, storeId, role } = useAuth()
   const { leads } = useAppStore()
   const { checkins, loading: loadingCheckins } = useCheckins()
   const { storeGoal, loading: loadingGoals } = useGoals()
+  const { metaRules, loading: loadingMetaRules } = useStoreMetaRules()
+  const { ranking, loading: loadingRanking } = useRanking()
   const { sellers, loading: loadingTeam } = useTeam()
   const [isRefetching, setIsRefetching] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
 
   const daysInfo = useMemo(() => getDiasInfo(), [])
+  const referenceDate = useMemo(() => calculateReferenceDate(), [])
+  const referenceDateLabel = useMemo(() => format(new Date(`${referenceDate}T12:00:00`), 'dd/MM/yyyy', { locale: ptBR }), [referenceDate])
   
   const metrics = useMemo(() => {
     const currentSales = somarVendas(checkins)
-    const teamGoal = storeGoal?.target || 1
+    const teamGoal = metaRules?.monthly_goal ?? storeGoal?.target ?? 1
     const projection = calcularProjecao(currentSales, daysInfo.decorridos, daysInfo.total)
     const reaching = calcularAtingimento(currentSales, teamGoal)
     const projectedReaching = calcularAtingimento(projection, teamGoal)
@@ -41,7 +47,7 @@ export default function MorningReport() {
       projectedReaching,
       gap
     }
-  }, [checkins, storeGoal, daysInfo])
+  }, [checkins, metaRules, storeGoal, daysInfo])
 
   const stagnantLeads = useMemo(() => {
     return (leads || []).filter(l => (l.stagnantDays || 0) > 0).sort((a, b) => (b.stagnantDays || 0) - (a.stagnantDays || 0))
@@ -57,34 +63,77 @@ export default function MorningReport() {
     toast.success('WhatsApp aberto para ' + name)
   }
 
-  const handleWhatsAppShare = () => {
+  const handleWhatsAppShare = async () => {
+    if (role !== 'admin' && role !== 'gerente') {
+      toast.error('Seu papel permite acompanhar o relatorio, mas nao operar o disparo.')
+      return
+    }
+    if (!profile || !storeId) {
+      toast.error('Usuario ou loja nao encontrados para registrar compartilhamento.')
+      return
+    }
+
     const currentSales = metrics.currentSales
     const teamGoal = metrics.teamGoal
     const projection = metrics.projection
     const gap = metrics.gap
     const reaching = metrics.reaching
-    
-    // Top 3 sellers by sales
-    const sellerSales = (sellers || []).map(s => ({
-      name: s.name,
-      sales: checkins
-        .filter(c => c.seller_user_id === s.id)
-        .reduce((sum, c) => sum + (c.vnd_total || 0), 0)
-    })).sort((a, b) => b.sales - a.sales).slice(0, 3)
 
-    const top3Text = sellerSales.map((s, i) => `${i + 1}º ${s.name} - ${s.sales}v`).join('\n')
+    const rankingText = ranking.slice(0, 5).map(item => `${item.position}º ${item.user_name} - ${item.vnd_total}v (${item.atingimento}%)`).join('\n') || 'Sem ranking acumulado.'
+    const pendingText = pendingSellers.length > 0 ? pendingSellers.map(s => s.name).join(', ') : 'Todos registraram.'
+    const registeredCount = Math.max((sellers || []).length - pendingSellers.length, 0)
+    const storeName = membership?.store?.name || 'Loja'
 
-    const text = encodeURIComponent(
-      `*📊 MATINAL MX - ${membership?.store?.name || 'Loja'}*\n` +
-      `📅 Ref: ${format(new Date(), 'dd/MM/yyyy')}\n\n` +
-      `🎯 Meta: ${teamGoal}\n` +
-      `🔥 Vendido: ${currentSales} (${reaching}%)\n` +
-      `📈 Projeção: ${projection}\n` +
-      `🚨 Faltam: ${gap}\n\n` +
-      `🏆 *Top 3*\n${top3Text}`
-    )
-    window.open(`https://wa.me/?text=${text}`, '_blank')
-    toast.success('Resumo formatado para WhatsApp!')
+    const message = [
+      `Bom dia, equipe!`,
+      ``,
+      `*MATINAL MX - ${storeName}*`,
+      `Referencia: ${referenceDateLabel}`,
+      ``,
+      `*Falta pouco / Meta*`,
+      `Meta do mes: ${teamGoal}`,
+      `Vendido: ${currentSales} (${reaching}%)`,
+      `Projecao: ${projection}`,
+      `Faltam: ${gap}`,
+      ``,
+      `*Registros de hoje*`,
+      `Registrados: ${registeredCount}/${sellers.length}`,
+      `Sem registro: ${pendingText}`,
+      ``,
+      `*Ranking acumulado do mes*`,
+      rankingText,
+      ``,
+      `MX Gestao Preditiva`,
+    ].join('\n')
+
+    let sharedVia: 'native_share' | 'whatsapp' = 'whatsapp'
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: message })
+        sharedVia = 'native_share'
+      } catch (err) {
+        return
+      }
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+    }
+
+    const { error } = await supabase.from('whatsapp_share_logs').insert({
+      store_id: storeId,
+      user_id: profile.id,
+      reference_date: referenceDate,
+      source: 'morning_report',
+      message_text: message,
+      shared_via: sharedVia,
+    })
+
+    if (error) {
+      console.error('Erro ao registrar compartilhamento:', error)
+      toast.warning('Mensagem aberta, mas o registro de uso falhou.')
+      return
+    }
+
+    toast.success('Mensagem oficial aberta e registrada.')
   }
 
   const handleSendEmail = async () => {
@@ -136,7 +185,7 @@ export default function MorningReport() {
     toast.success('CSV exportado com sucesso!')
   }
 
-  if (loadingCheckins || loadingGoals || loadingTeam) return (
+  if (loadingCheckins || loadingGoals || loadingMetaRules || loadingRanking || loadingTeam) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
       <div className="w-16 h-16 border-4 border-electric-blue/10 border-t-electric-blue rounded-full animate-spin shadow-xl"></div>
       <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase animate-pulse">Consolidando Matinal...</p>
@@ -169,9 +218,10 @@ export default function MorningReport() {
           </button>
           <button 
             onClick={handleWhatsAppShare}
-            className="mx-button-primary bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 h-12 px-6 rounded-xl shadow-lg transition-all"
+            disabled={role !== 'admin' && role !== 'gerente'}
+            className="mx-button-primary bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 h-12 px-6 rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <MessageCircle size={18} /> Resumo WhatsApp
+            <MessageCircle size={18} /> Compartilhar WhatsApp
           </button>
           <button 
             onClick={handleSendEmail} 

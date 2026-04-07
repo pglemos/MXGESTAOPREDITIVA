@@ -294,6 +294,17 @@ export interface ManagerRoutineLog {
     updated_at: string
 }
 
+export interface WhatsAppShareLog {
+    id: string
+    store_id: string
+    user_id: string
+    reference_date: string
+    source: 'morning_report'
+    message_text: string
+    shared_via: 'whatsapp' | 'native_share'
+    created_at: string
+}
+
 export interface RawImport {
     id: string
     log_id: string
