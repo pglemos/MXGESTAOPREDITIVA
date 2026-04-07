@@ -79,28 +79,47 @@ export function useCheckins(storeIdOverride?: string) {
             .eq('seller_user_id', profile.id)
             .eq('store_id', storeId)
             .eq('reference_date', referenceDate)
+            .eq('metric_scope', 'daily')
             .maybeSingle()
         
         if (data) setTodayCheckin({ ...data, ...calcularTotais(data) })
         else setTodayCheckin(null)
     }, [profile, storeId, referenceDate])
 
-    const saveCheckin = async (formData: CheckinFormData): Promise<{ error: string | null }> => {
+    const fetchCheckinByDate = useCallback(async (date: string, scope: string = 'daily') => {
+        if (!profile || !storeId) return null
+        const { data } = await supabase
+            .from('daily_checkins')
+            .select('*')
+            .eq('seller_user_id', profile.id)
+            .eq('store_id', storeId)
+            .eq('reference_date', date)
+            .eq('metric_scope', scope)
+            .maybeSingle()
+        
+        return data ? { ...data, ...calcularTotais(data) } : null
+    }, [profile, storeId])
+
+    const saveCheckin = async (formData: CheckinFormData, scope: any = 'daily', customDate?: string): Promise<{ error: string | null }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
-        if (todayCheckin && !canEditCurrentCheckin()) {
-            return { error: `Correções do check-in ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
+        
+        const finalDate = customDate || referenceDate
+        const isDaily = scope === 'daily' && finalDate === referenceDate
+
+        if (isDaily && todayCheckin && !canEditCurrentCheckin()) {
+            return { error: `Correções do check-in diário ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
         }
 
         const submittedAt = new Date()
         const payload = {
             seller_user_id: profile.id,
             store_id: storeId,
-            reference_date: referenceDate,
+            reference_date: finalDate,
             submitted_at: submittedAt.toISOString(),
-            metric_scope: 'daily',
-            submitted_late: isCheckinLate(submittedAt),
-            submission_status: isCheckinLate(submittedAt) ? 'late' : 'on_time',
-            edit_locked_at: getCheckinEditLockedAt(submittedAt),
+            metric_scope: scope,
+            submitted_late: isDaily ? isCheckinLate(submittedAt) : false,
+            submission_status: isDaily ? (isCheckinLate(submittedAt) ? 'late' : 'on_time') : 'on_time',
+            edit_locked_at: isDaily ? getCheckinEditLockedAt(submittedAt) : null,
             leads_prev_day: formData.leads,
             agd_cart_prev_day: formData.agd_cart_prev,
             agd_net_prev_day: formData.agd_net_prev,
@@ -114,9 +133,9 @@ export function useCheckins(storeIdOverride?: string) {
             note: formData.note || null,
         }
 
-        const { error } = todayCheckin
-            ? await supabase.from('daily_checkins').update(payload).eq('id', todayCheckin.id)
-            : await supabase.from('daily_checkins').insert(payload)
+        const { error } = await supabase.from('daily_checkins').upsert(payload, { 
+            onConflict: 'seller_user_id, store_id, reference_date, metric_scope' 
+        })
 
         if (error) return { error: error.message }
         await fetchTodayCheckin()
@@ -126,7 +145,7 @@ export function useCheckins(storeIdOverride?: string) {
     useEffect(() => { fetchCheckins() }, [fetchCheckins])
     useEffect(() => { fetchTodayCheckin() }, [fetchTodayCheckin])
 
-    return { checkins, todayCheckin, loading, fetchCheckins, fetchTodayCheckin, saveCheckin, referenceDate }
+    return { checkins, todayCheckin, loading, fetchCheckins, fetchTodayCheckin, saveCheckin, referenceDate, fetchCheckinByDate }
 }
 
 

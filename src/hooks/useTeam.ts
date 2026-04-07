@@ -7,7 +7,7 @@ import type { User } from '@/types/database'
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
-    const [sellers, setSellers] = useState<(User & { checkin_today: boolean })[]>([])
+    const [sellers, setSellers] = useState<(User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean })[]>([])
     const [loading, setLoading] = useState(true)
 
     const referenceDate = calculateReferenceDate()
@@ -22,9 +22,8 @@ export function useTeam(storeIdOverride?: string) {
 
         const { data: tenures } = await supabase
             .from('store_sellers')
-            .select('seller_user_id, users:seller_user_id(*)')
+            .select('seller_user_id, started_at, ended_at, is_active, closing_month_grace, users:seller_user_id(*)')
             .eq('store_id', storeId)
-            .eq('is_active', true)
 
         const { data: fallbackMembers } = (!tenures || tenures.length === 0)
             ? await supabase
@@ -42,13 +41,26 @@ export function useTeam(storeIdOverride?: string) {
 
         const checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
         const sourceRows = (tenures && tenures.length > 0)
-            ? tenures.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))
+            ? tenures.map((item: any) => ({ 
+                user_id: item.seller_user_id, 
+                users: item.users,
+                tenure: {
+                    started_at: item.started_at,
+                    ended_at: item.ended_at,
+                    is_active: item.is_active,
+                    closing_month_grace: item.closing_month_grace
+                }
+            }))
             : (fallbackMembers || [])
 
         if (sourceRows) {
             setSellers(sourceRows.map((m: any) => ({
                 ...m.users,
                 checkin_today: checkedIn.has(m.user_id),
+                started_at: m.tenure?.started_at,
+                ended_at: m.tenure?.ended_at,
+                is_active: m.tenure?.is_active ?? m.users?.active ?? true,
+                closing_month_grace: m.tenure?.closing_month_grace ?? false,
             })))
         }
         setLoading(false)

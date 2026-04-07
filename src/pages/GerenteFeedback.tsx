@@ -139,7 +139,7 @@ export default function GerenteFeedback() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!canManageFeedback) {
+        if (!canCreateFeedback) {
             toast.error('Seu papel permite acompanhar feedbacks, mas não criar ou editar.')
             return
         }
@@ -337,7 +337,7 @@ export default function GerenteFeedback() {
                 {activeTab === 'individual' ? (
                     <motion.div key="individual" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-10 pb-32">
                         <AnimatePresence>
-                            {showForm && canManageFeedback && (
+                            {showForm && canCreateFeedback && (
                                 <motion.div initial={{ opacity: 0, y: -20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 z-50 rounded-[3rem] p-1 bg-gradient-to-b from-indigo-50 to-white shadow-3xl mb-10">
                                     <form onSubmit={handleSubmit} className="mx-card !border-none p-10 md:p-14 space-y-10 relative overflow-hidden bg-white">
                                         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />

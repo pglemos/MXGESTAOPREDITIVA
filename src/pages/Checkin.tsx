@@ -33,19 +33,30 @@ interface CheckinForm {
 
 export default function Checkin() {
     const { profile, role, membership, storeId } = useAuth()
+    const navigate = useNavigate()
+    const [saving, setSaving] = useState(false)
+    const [showConfetti, setShowConfetti] = useState(false)
+    const timerRef = useRef<NodeJS.Timeout | null>(null)
+    const [changedFields, setChangedFields] = useState<Set<keyof CheckinForm>>(new Set())
     const [metricScope, setMetricScope] = useState<'daily' | 'adjustment'>('daily')
-    const [customReferenceDate, setCustomReferenceDate] = useState(referenceDate)
+    
+    const [form, setForm] = useState<CheckinForm>({
+        leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '',
+    })
 
-    useEffect(() => {
-        setCustomReferenceDate(referenceDate)
-    }, [referenceDate])
-
-    const { todayCheckin, saveCheckin, loading: hookLoading, fetchCheckinByDate } = useCheckins()
+    const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate, fetchCheckinByDate } = useCheckins()
     const [historicalCheckin, setHistoricalCheckin] = useState<any>(null)
     const [loadingHistory, setLoadingHistory] = useState(false)
+    const [customReferenceDate, setCustomReferenceDate] = useState('')
+
+    useEffect(() => {
+        if (referenceDate) setCustomReferenceDate(referenceDate)
+    }, [referenceDate])
 
     // Load record based on date/scope
     useEffect(() => {
+        if (!customReferenceDate || !referenceDate) return
+
         if (customReferenceDate === referenceDate && metricScope === 'daily') {
             setHistoricalCheckin(todayCheckin)
         } else {
@@ -128,7 +139,7 @@ export default function Checkin() {
             agd_cart_prev: form.agd_cart_prev || 0,
             agd_net_prev: form.agd_net_prev || 0
         }
-        const { error } = await saveCheckin(formDataToSave)
+        const { error } = await saveCheckin(formDataToSave, metricScope, customReferenceDate)
         
         if (error) { 
             setSaving(false)
