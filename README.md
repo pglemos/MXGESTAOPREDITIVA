@@ -7,9 +7,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-green?style=flat-square&logo=supabase)](https://supabase.com/)
 
-[View App in AI Studio](https://ai.studio/apps/626d9552-45cc-4d3b-9c51-9ef21386510c)
 
-AutoFlux is a premium, multi-tenant operating system designed for car dealerships and automotive consultancies. It focuses on maximizing sales performance through LeadOps, automated SLAs, and AI-driven diagnostics.
+MX GESTÃO PREDITIVA is a premium, multi-tenant operating system designed for car dealerships and automotive consultancies. It focuses on maximizing sales performance through LeadOps, automated SLAs, and AI-driven diagnostics.
 
 
 </div>
