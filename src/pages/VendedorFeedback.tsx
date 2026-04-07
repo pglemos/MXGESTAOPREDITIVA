@@ -119,14 +119,14 @@ export default function VendedorFeedback() {
                                                     </div>
                                                     <div>
                                                         <h3 className="font-black text-pure-black text-2xl tracking-tighter leading-none mb-2 group-hover:text-electric-blue transition-colors">Feedback One-on-One</h3>
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2"><Clock size={12} className="text-indigo-400" /> {new Date(f.created_at).toLocaleDateString('pt-BR')}</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2"><Clock size={12} className="text-indigo-400" /> Semana {new Date(f.week_reference).toLocaleDateString('pt-BR')} • Criado {new Date(f.created_at).toLocaleDateString('pt-BR')}</span>
                                                     </div>
                                                 </div>
                                                 <div className={cn("text-[9px] font-black px-5 py-2.5 rounded-full uppercase tracking-[0.3em] flex items-center gap-2 border shadow-sm shrink-0 self-start sm:self-auto", 
                                                     f.acknowledged ? 'bg-gray-50 text-gray-400 border-gray-100' : 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse'
                                                 )}>
                                                     {f.acknowledged ? <CheckCircle size={12} strokeWidth={2.5} /> : <AlertCircle size={12} strokeWidth={2.5} />}
-                                                    {f.acknowledged ? 'CIÊNCIA CONFIRMADA' : 'PENDENTE DE LEITURA'}
+                                                    {f.acknowledged ? `CIÊNCIA CONFIRMADA${f.acknowledged_at ? ` • ${new Date(f.acknowledged_at).toLocaleDateString('pt-BR')}` : ''}` : 'PENDENTE DE LEITURA'}
                                                 </div>
                                             </div>
 
@@ -179,6 +179,11 @@ export default function VendedorFeedback() {
                                                             Meta: {f.meta_compromisso}
                                                         </div>
                                                     </div>
+                                                    {f.commitment_suggested > 0 && (
+                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                            Meta sugerida pela MX: {f.commitment_suggested}. Meta final definida pelo gerente: {f.meta_compromisso}.
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
 

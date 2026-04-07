@@ -1,0 +1,31 @@
+story: STORY-07
+title: Feedback semanal oficial
+status: Ready for Review
+epic: EPIC-07
+scope:
+  - Edge Function feedback-semanal com consolidado da semana anterior
+  - Persistencia de weekly_feedback_reports
+  - Cron oficial segunda 12:30 BRT
+  - Logs em reprocess_logs
+steps:
+  - id: schema
+    description: Criar schema e RLS de weekly_feedback_reports e colunas estruturadas em feedbacks.
+    status: done
+  - id: edge-function
+    description: Reescrever feedback-semanal com dry_run, force, store_id e criterio MX.
+    status: done
+  - id: cron
+    description: Aplicar e validar cron mx-weekly-feedback-1230.
+    status: done
+  - id: validation
+    description: Validar dry-run live e gates locais.
+    status: done
+files:
+  - docs/stories/story-weekly-feedback-07/spec/spec.md
+  - docs/stories/story-weekly-feedback-07/plan/implementation.yaml
+  - supabase/functions/feedback-semanal/index.ts
+  - supabase/migrations/20260407006000_weekly_feedback_official.sql
+  - supabase/migrations/20260407006100_feedback_seller_ack_guard.sql
+  - src/types/database.ts
+  - src/hooks/useData.ts
+  - src/hooks/useGoals.ts

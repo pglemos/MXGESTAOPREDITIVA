@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { Training, TrainingProgress, Feedback, FeedbackFormData, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin, Commission } from '@/types/database'
+import type { Training, TrainingProgress, Feedback, FeedbackFormData, WeeklyFeedbackReport, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin, Commission } from '@/types/database'
 import { startOfWeek } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 
@@ -76,7 +76,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         const { data } = await query.order('created_at', { ascending: false })
         if (data) setFeedbacks(data.map((f: any) => ({ ...f, seller_name: f.seller?.name, manager_name: f.manager?.name })))
         setLoading(false)
-    }, [profile, storeId, role, filters?.sellerId])
+    }, [profile, storeId, role, filters?.storeId, filters?.sellerId])
 
 
     const createFeedback = async (data: FeedbackFormData) => {
@@ -90,6 +90,9 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
             tx_lead_agd: data.tx_lead_agd, tx_agd_visita: data.tx_agd_visita,
             tx_visita_vnd: data.tx_visita_vnd,
             meta_compromisso: data.meta_compromisso,
+            team_avg_json: data.team_avg_json || {},
+            diagnostic_json: data.diagnostic_json || {},
+            commitment_suggested: data.commitment_suggested ?? data.meta_compromisso,
             positives: data.positives, attention_points: data.attention_points,
             action: data.action, notes: data.notes || null,
         })
@@ -98,12 +101,37 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
     }
 
     const acknowledge = async (id: string) => {
-        await supabase.from('feedbacks').update({ acknowledged: true }).eq('id', id)
+        await supabase.from('feedbacks').update({ acknowledged: true, acknowledged_at: new Date().toISOString() }).eq('id', id)
         await fetchFeedbacks()
     }
 
     useEffect(() => { fetchFeedbacks() }, [fetchFeedbacks])
     return { feedbacks, loading, createFeedback, acknowledge, refetch: fetchFeedbacks }
+}
+
+export function useWeeklyFeedbackReports(filters?: { storeId?: string }) {
+    const { profile, storeId: authStoreId, role } = useAuth()
+    const storeId = filters?.storeId || authStoreId
+    const [reports, setReports] = useState<WeeklyFeedbackReport[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchReports = useCallback(async () => {
+        if (!profile || (!storeId && role !== 'admin')) {
+            setReports([])
+            setLoading(false)
+            return
+        }
+
+        setLoading(true)
+        let query = supabase.from('weekly_feedback_reports').select('*')
+        if (storeId) query = query.eq('store_id', storeId)
+        const { data } = await query.order('week_start', { ascending: false }).limit(12)
+        setReports((data || []) as WeeklyFeedbackReport[])
+        setLoading(false)
+    }, [profile, storeId, role])
+
+    useEffect(() => { fetchReports() }, [fetchReports])
+    return { reports, loading, refetch: fetchReports }
 }
 
 // ============ PDIs ============

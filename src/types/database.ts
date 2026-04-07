@@ -88,26 +88,6 @@ export interface Membership {
     created_at: string
 }
 
-export interface Goal {
-    id: string
-    store_id: string
-    user_id: string | null
-    month: number
-    year: number
-    target: number
-    updated_at: string
-    updated_by: string | null
-}
-
-export interface GoalLog {
-    id: string
-    goal_id: string
-    changed_by: string
-    prev_value: number | null
-    new_value: number
-    changed_at: string
-}
-
 export interface DailyCheckin {
     id: string
     seller_user_id: string
@@ -185,8 +165,29 @@ export interface Feedback {
     attention_points: string
     action: string
     notes: string | null
+    team_avg_json: Record<string, unknown>
+    diagnostic_json: Record<string, unknown>
+    commitment_suggested: number
     acknowledged: boolean
+    acknowledged_at: string | null
     created_at: string
+}
+
+export interface WeeklyFeedbackReport {
+    id: string
+    store_id: string
+    week_start: string
+    week_end: string
+    team_avg_json: Record<string, unknown>
+    ranking_json: unknown[]
+    benchmark_json: Record<string, unknown>
+    weekly_goal: number
+    report_url: string | null
+    email_status: 'dry_run' | 'sent' | 'failed' | 'not_sent'
+    recipients: string[]
+    warnings: string[]
+    created_at: string
+    updated_at: string
 }
 
 export interface PDI {
@@ -312,28 +313,6 @@ export interface RawImport {
     created_at: string
 }
 
-export interface Commission {
-    id: string
-    seller_id: string
-    store_id: string
-    car: string
-    sale_date: string
-    margin: string
-    commission_amount: number
-    created_at: string
-    seller_name?: string
-}
-
-export interface CommissionRule {
-    id: string
-    store_id: string
-    seller_id: string | null
-    vehicle_type: string
-    margin_min: number
-    margin_max: number
-    percentage: number
-}
-
 // ============================================
 // Derived Types
 // ============================================
@@ -427,6 +406,9 @@ export interface FeedbackFormData {
     attention_points: string
     action: string
     notes: string
+    team_avg_json?: Record<string, unknown>
+    diagnostic_json?: Record<string, unknown>
+    commitment_suggested?: number
 }
 
 export interface PDIFormData {

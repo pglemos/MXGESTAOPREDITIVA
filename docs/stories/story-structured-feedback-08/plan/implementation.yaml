@@ -1,0 +1,35 @@
+story: STORY-08
+title: Feedback estruturado completo
+status: Ready for Review
+epic: EPIC-08
+scope:
+  - Painel semanal por vendedor
+  - Formulario obrigatorio do gerente
+  - Meta compromisso sugerida pelos ultimos 15 dias
+  - Ciencia do vendedor
+steps:
+  - id: schema
+    description: Garantir campos estruturados em feedbacks.
+    status: done
+  - id: hook
+    description: Persistir snapshots e acknowledged_at no hook useFeedbacks.
+    status: done
+  - id: manager-ui
+    description: Ajustar painel do gerente para semana anterior, comparacao de equipe e meta sugerida.
+    status: done
+  - id: seller-ui
+    description: Exibir leitura/ciencia do vendedor com periodo e meta sugerida.
+    status: done
+  - id: validation
+    description: Rodar gates locais e validar Supabase live.
+    status: done
+files:
+  - docs/stories/story-structured-feedback-08/spec/spec.md
+  - docs/stories/story-structured-feedback-08/plan/implementation.yaml
+  - src/pages/GerenteFeedback.tsx
+  - src/pages/VendedorFeedback.tsx
+  - src/hooks/useData.ts
+  - src/components/auth-provider.tsx
+  - src/types/database.ts
+  - supabase/migrations/20260407006000_weekly_feedback_official.sql
+  - supabase/migrations/20260407006100_feedback_seller_ack_guard.sql

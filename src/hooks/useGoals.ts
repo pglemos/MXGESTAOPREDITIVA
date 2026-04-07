@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { Goal, GoalFormData, StoreMetaRules } from '@/types/database'
+import type { StoreMetaRules } from '@/types/database'
 
 export function useGoals(storeIdOverride?: string) {
-    const { storeId: authStoreId, role } = useAuth()
+    const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
-    const [storeGoal, setStoreGoal] = useState<Goal | null>(null)
-    const [sellerGoals, setSellerGoals] = useState<Goal[]>([])
+    const [storeGoal, setStoreGoal] = useState<{ target: number } | null>(null)
     const [loading, setLoading] = useState(true)
 
     const now = new Date()
@@ -17,68 +16,66 @@ export function useGoals(storeIdOverride?: string) {
     const fetchGoals = useCallback(async () => {
         if (!storeId) {
             setStoreGoal(null)
-            setSellerGoals([])
             setLoading(false)
             return
         }
         setLoading(true)
         const { data } = await supabase
-            .from('goals')
-            .select('*')
+            .from('store_meta_rules')
+            .select('monthly_goal')
             .eq('store_id', storeId)
-            .eq('month', currentMonth)
-            .eq('year', currentYear)
+            .maybeSingle()
 
         if (data) {
-            setStoreGoal(data.find(g => g.user_id === null) || null)
-            setSellerGoals(data.filter(g => g.user_id !== null))
+            setStoreGoal({ target: data.monthly_goal || 0 })
+        } else {
+            setStoreGoal({ target: 0 })
         }
         setLoading(false)
-    }, [storeId, currentMonth, currentYear])
+    }, [storeId])
 
-    const upsertGoal = async (formData: GoalFormData): Promise<{ error: string | null }> => {
-        const { error } = await supabase.from('goals').upsert({
+    const upsertGoal = async (formData: { store_id: string; target: number }): Promise<{ error: string | null }> => {
+        const { error } = await supabase.from('store_meta_rules').upsert({
             store_id: formData.store_id,
-            user_id: formData.user_id,
-            month: formData.month,
-            year: formData.year,
-            target: formData.target,
-        }, { onConflict: 'store_id,user_id,month,year', ignoreDuplicates: false })
+            monthly_goal: formData.target,
+        }, { onConflict: 'store_id' })
         if (error) return { error: error.message }
         await fetchGoals()
         return { error: null }
     }
 
     useEffect(() => { fetchGoals() }, [fetchGoals])
-    return { storeGoal, sellerGoals, loading, fetchGoals, upsertGoal, currentMonth, currentYear }
+    return { storeGoal, sellerGoals: [], loading, fetchGoals, upsertGoal, currentMonth, currentYear }
 }
 
 export function useAllStoreGoals() {
-    const [goals, setGoals] = useState<(Goal & { store_name?: string })[]>([])
+    const [goals, setGoals] = useState<{ store_id: string, target: number, store_name?: string }[]>([])
     const [benchmarks, setBenchmarks] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-    const now = new Date()
 
     const fetchData = useCallback(async () => {
         setLoading(true)
         const [goalsRes, benchRes] = await Promise.all([
-            supabase.from('goals').select('*, stores(name)').is('user_id', null).eq('month', now.getMonth() + 1).eq('year', now.getFullYear()),
+            supabase.from('store_meta_rules').select('store_id, monthly_goal, stores(name)'),
             supabase.from('store_benchmarks').select('*')
         ])
         
-        if (goalsRes.data) setGoals(goalsRes.data.map((g: any) => ({ ...g, store_name: g.stores?.name })))
+        if (goalsRes.data) {
+            setGoals(goalsRes.data.map((g: any) => ({
+                store_id: g.store_id,
+                target: g.monthly_goal,
+                store_name: g.stores?.name
+            })))
+        }
         if (benchRes.data) setBenchmarks(benchRes.data)
         setLoading(false)
-    }, [now.getMonth(), now.getFullYear()])
+    }, [])
 
     const updateGoal = async (storeId: string, target: number) => {
-        const { error } = await supabase.from('goals').upsert({
+        const { error } = await supabase.from('store_meta_rules').upsert({
             store_id: storeId,
-            user_id: null,
-            month: now.getMonth() + 1,
-            year: now.getFullYear(),
-            target
-        }, { onConflict: 'store_id,user_id,month,year' })
+            monthly_goal: target
+        }, { onConflict: 'store_id' })
         if (!error) await fetchData()
         return { error: error?.message || null }
     }

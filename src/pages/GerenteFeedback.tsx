@@ -7,10 +7,23 @@ import { toast } from 'sonner'
 import { MessageSquare, Plus, X, Send, CheckCircle, Clock, User, Award, AlertCircle, Zap, ChevronRight, LayoutDashboard, Target, TrendingUp, Sparkles, Filter, RefreshCw, Search, History } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { format, startOfWeek } from 'date-fns'
+import { addDays, format, startOfWeek, subDays } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS } from '@/lib/calculations'
 import type { FunnelData, FeedbackFormData } from '@/types/database'
 import { Badge } from '@/components/ui/badge'
+
+function getPreviousWeekRange(baseDate = new Date()) {
+    const currentWeekStart = startOfWeek(baseDate, { weekStartsOn: 1 })
+    const start = addDays(currentWeekStart, -7)
+    const end = addDays(currentWeekStart, -1)
+    return {
+        start,
+        end,
+        startKey: format(start, 'yyyy-MM-dd'),
+        endKey: format(end, 'yyyy-MM-dd'),
+        label: `${format(start, 'dd/MM')} a ${format(end, 'dd/MM')}`,
+    }
+}
 
 export default function GerenteFeedback() {
     const { role } = useAuth()
@@ -22,10 +35,11 @@ export default function GerenteFeedback() {
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
     const canManageFeedback = role === 'admin' || role === 'gerente'
+    const previousWeek = useMemo(() => getPreviousWeekRange(), [])
 
     const [form, setForm] = useState<FeedbackFormData>({ 
         seller_id: '', 
-        week_reference: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+        week_reference: previousWeek.startKey,
         leads_week: 0,
         agd_week: 0,
         visit_week: 0,
@@ -41,24 +55,44 @@ export default function GerenteFeedback() {
     })
 
     const [weeklySnapshot, setWeeklySnapshot] = useState<FunnelData | null>(null)
+    const [commitmentSuggested, setCommitmentSuggested] = useState(0)
     
     // Instância dedicada para histórico do vendedor selecionado
     const { feedbacks: sellerHistory, refetch: refetchHistory } = useFeedbacks({ sellerId: form.seller_id || undefined })
 
+    const weeklyTeamCheckins = useMemo(() => {
+        return checkins.filter(c => c.reference_date >= previousWeek.startKey && c.reference_date <= previousWeek.endKey)
+    }, [checkins, previousWeek.endKey, previousWeek.startKey])
+
+    const weeklyTeamSnapshot = useMemo(() => calcularFunil(weeklyTeamCheckins), [weeklyTeamCheckins])
+
     // Carregar dados da semana e gerar diagnóstico ao selecionar vendedor
     useEffect(() => {
         if (form.seller_id) {
-            const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
             const sellerCheckins = checkins.filter(c => 
                 c.seller_user_id === form.seller_id && 
-                new Date(c.reference_date) >= weekStart
+                c.reference_date >= previousWeek.startKey &&
+                c.reference_date <= previousWeek.endKey
+            )
+            const last15Start = format(subDays(new Date(), 15), 'yyyy-MM-dd')
+            const sellerLast15Checkins = checkins.filter(c =>
+                c.seller_user_id === form.seller_id &&
+                c.reference_date >= last15Start
             )
             const funil = calcularFunil(sellerCheckins)
             const diagnostico = gerarDiagnosticoMX(funil)
+            const activeDays = new Set(sellerLast15Checkins.map(c => c.reference_date)).size || 1
+            const last15Sales = sellerLast15Checkins.reduce(
+                (sum, c) => sum + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0),
+                0
+            )
+            const suggested = Math.max(1, Math.ceil((last15Sales / activeDays) * 7))
             
             setWeeklySnapshot(funil)
+            setCommitmentSuggested(suggested)
             setForm(p => ({
                 ...p,
+                week_reference: previousWeek.startKey,
                 leads_week: funil.leads,
                 agd_week: funil.agd_total,
                 visit_week: funil.visitas,
@@ -66,12 +100,23 @@ export default function GerenteFeedback() {
                 tx_lead_agd: funil.tx_lead_agd,
                 tx_agd_visita: funil.tx_agd_visita,
                 tx_visita_vnd: funil.tx_visita_vnd,
+                meta_compromisso: suggested,
+                commitment_suggested: suggested,
+                team_avg_json: { ...weeklyTeamSnapshot },
+                diagnostic_json: {
+                    week_start: previousWeek.startKey,
+                    week_end: previousWeek.endKey,
+                    criterion: 'MX 20/60/33',
+                    gargalo: diagnostico.gargalo,
+                    seller_snapshot: { ...funil },
+                    team_snapshot: { ...weeklyTeamSnapshot },
+                },
                 attention_points: diagnostico.diagnostico,
                 action: diagnostico.sugestao
             }))
             refetchHistory()
         }
-    }, [form.seller_id, checkins, refetchHistory])
+    }, [form.seller_id, checkins, previousWeek.endKey, previousWeek.startKey, refetchHistory, weeklyTeamSnapshot])
 
     const filteredFeedbacks = useMemo(() => {
         return feedbacks.filter(f => 
@@ -106,7 +151,7 @@ export default function GerenteFeedback() {
         setShowForm(false)
         setForm({ 
             seller_id: '', 
-            week_reference: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+            week_reference: previousWeek.startKey,
             leads_week: 0,
             agd_week: 0,
             visit_week: 0,
@@ -118,8 +163,13 @@ export default function GerenteFeedback() {
             positives: '', 
             attention_points: '', 
             action: '', 
-            notes: '' 
+            notes: '',
+            team_avg_json: {},
+            diagnostic_json: {},
+            commitment_suggested: 0,
         })
+        setCommitmentSuggested(0)
+        setWeeklySnapshot(null)
     }
 
     if (loading) return (
@@ -184,7 +234,7 @@ export default function GerenteFeedback() {
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Rotina Semanal Mandatória • Critério 20/60/33</p>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Rotina Semanal Mandatória • Semana {previousWeek.label} • Critério 20/60/33</p>
                     </div>
                 </div>
 
@@ -268,9 +318,9 @@ export default function GerenteFeedback() {
 
                                                 <div className="grid grid-cols-1 gap-6 relative z-10">
                                                     {[
-                                                        { label: 'Lead → Agendamento', val: weeklySnapshot.tx_lead_agd, bench: MX_BENCHMARKS.lead_agd, avg: Math.round(checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) / (checkins.reduce((s, c) => s + (c.leads_prev_day || 0), 0) || 1) * 100) },
-                                                        { label: 'Agendamento → Visita', val: weeklySnapshot.tx_agd_visita, bench: MX_BENCHMARKS.agd_visita, avg: Math.round(checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0) || 1) * 100) },
-                                                        { label: 'Visita → Venda', val: weeklySnapshot.tx_visita_vnd, bench: MX_BENCHMARKS.visita_vnd, avg: Math.round(checkins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0) / (checkins.reduce((s, c) => s + (c.visit_prev_day || 0), 0) || 1) * 100) },
+                                                        { label: 'Lead → Agendamento', val: weeklySnapshot.tx_lead_agd, bench: MX_BENCHMARKS.lead_agd, avg: weeklyTeamSnapshot.tx_lead_agd },
+                                                        { label: 'Agendamento → Visita', val: weeklySnapshot.tx_agd_visita, bench: MX_BENCHMARKS.agd_visita, avg: weeklyTeamSnapshot.tx_agd_visita },
+                                                        { label: 'Visita → Venda', val: weeklySnapshot.tx_visita_vnd, bench: MX_BENCHMARKS.visita_vnd, avg: weeklyTeamSnapshot.tx_visita_vnd },
                                                     ].map(metric => {
                                                         const isAboveAvg = metric.val >= metric.avg
                                                         return (
@@ -317,6 +367,9 @@ export default function GerenteFeedback() {
                                             placeholder="Sugerido: Média dos últimos 15 dias..."
                                             className="mx-input"
                                         />
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">
+                                            Sugerido pelos últimos 15 dias: {commitmentSuggested} venda(s). O gerente pode ajustar manualmente.
+                                        </p>
                                     </div>
 
                                     <div className="space-y-4">
