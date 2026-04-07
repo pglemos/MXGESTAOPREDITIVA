@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { Goal, GoalFormData } from '@/types/database'
+import type { Goal, GoalFormData, StoreMetaRules } from '@/types/database'
 
 export function useGoals(storeIdOverride?: string) {
     const { storeId: authStoreId, role } = useAuth()
@@ -95,4 +95,32 @@ export function useAllStoreGoals() {
     useEffect(() => { fetchData() }, [fetchData])
 
     return { goals, benchmarks, loading, updateGoal, updateBenchmark, refetch: fetchData }
+}
+
+export function useStoreMetaRules(storeIdOverride?: string) {
+    const { storeId: authStoreId } = useAuth()
+    const storeId = storeIdOverride || authStoreId
+    const [metaRules, setMetaRules] = useState<StoreMetaRules | null>(null)
+    const [loading, setLoading] = useState(true)
+
+    const fetchMetaRules = useCallback(async () => {
+        if (!storeId) {
+            setMetaRules(null)
+            setLoading(false)
+            return
+        }
+        setLoading(true)
+        const { data } = await supabase
+            .from('store_meta_rules')
+            .select('*')
+            .eq('store_id', storeId)
+            .maybeSingle()
+
+        setMetaRules((data as StoreMetaRules) || null)
+        setLoading(false)
+    }, [storeId])
+
+    useEffect(() => { fetchMetaRules() }, [fetchMetaRules])
+
+    return { metaRules, loading, fetchMetaRules }
 }

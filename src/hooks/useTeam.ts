@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { calculateReferenceDate } from '@/hooks/useCheckins'
 import type { User } from '@/types/database'
 
 export function useTeam(storeIdOverride?: string) {
@@ -9,7 +10,7 @@ export function useTeam(storeIdOverride?: string) {
     const [sellers, setSellers] = useState<(User & { checkin_today: boolean })[]>([])
     const [loading, setLoading] = useState(true)
 
-    const today = new Date().toISOString().split('T')[0]
+    const referenceDate = calculateReferenceDate()
 
     const fetchTeam = useCallback(async () => {
         if (!storeId) {
@@ -19,28 +20,39 @@ export function useTeam(storeIdOverride?: string) {
         }
         setLoading(true)
 
-        const { data: members } = await supabase
-            .from('memberships')
-            .select('user_id, role, users(*)')
+        const { data: tenures } = await supabase
+            .from('store_sellers')
+            .select('seller_user_id, users:seller_user_id(*)')
             .eq('store_id', storeId)
-            .eq('role', 'vendedor')
+            .eq('is_active', true)
+
+        const { data: fallbackMembers } = (!tenures || tenures.length === 0)
+            ? await supabase
+                .from('memberships')
+                .select('user_id, role, users(*)')
+                .eq('store_id', storeId)
+                .eq('role', 'vendedor')
+            : { data: null }
 
         const { data: todayCheckins } = await supabase
             .from('daily_checkins')
-            .select('user_id')
+            .select('seller_user_id')
             .eq('store_id', storeId)
-            .eq('date', today)
+            .eq('reference_date', referenceDate)
 
-        const checkedIn = new Set((todayCheckins || []).map(c => c.user_id))
+        const checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
+        const sourceRows = (tenures && tenures.length > 0)
+            ? tenures.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))
+            : (fallbackMembers || [])
 
-        if (members) {
-            setSellers(members.map((m: any) => ({
+        if (sourceRows) {
+            setSellers(sourceRows.map((m: any) => ({
                 ...m.users,
                 checkin_today: checkedIn.has(m.user_id),
             })))
         }
         setLoading(false)
-    }, [storeId, today])
+    }, [storeId, referenceDate])
 
     useEffect(() => { fetchTeam() }, [fetchTeam])
     return { sellers, loading, refetch: fetchTeam }

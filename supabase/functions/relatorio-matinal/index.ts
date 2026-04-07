@@ -8,203 +8,344 @@ const resendApiKey = Deno.env.get("RESEND_API_KEY");
 const supabase = createClient(supabaseUrl, serviceKey);
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-Deno.serve(async (_req: Request) => {
+type MatinalRequest = {
+    store_id?: string;
+    dry_run?: boolean;
+    force?: boolean;
+};
+
+type SellerRow = {
+    uid: string;
+    name: string;
+    email: string | null;
+    is_venda_loja: boolean;
+    leads: number;
+    agd_prev: number;
+    agd_today: number;
+    vis: number;
+    vp: number;
+    vc: number;
+    vn: number;
+    sem_registro: boolean;
+};
+
+Deno.serve(async (req: Request) => {
     try {
-        const now = new Date();
-        const month = now.getMonth() + 1;
-        const year = now.getFullYear();
-        const startOfMonth = `${year}-${String(month).padStart(2, "0")}-01`;
-        const today = now.toISOString().split("T")[0];
-        
-        // Data de referência do matinal é SEMPRE o dia anterior
-        const yesterdayDate = new Date(now);
-        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-        const yesterday = yesterdayDate.toISOString().split("T")[0];
+        const body = await parseBody(req);
+        const dates = getSaoPauloDates();
+        const { data: stores, error: storesError } = await buildStoreQuery(body.store_id);
 
-        const daysElapsed = yesterdayDate.getDate();
-        const totalDays = new Date(year, month, 0).getDate();
-        const daysRemaining = totalDays - daysElapsed;
+        if (storesError) throw storesError;
+        if (!stores?.length) {
+            return jsonResponse({ message: "No active stores", reports: [] });
+        }
 
-        const { data: stores } = await supabase.from("stores").select("*").eq("active", true);
-        if (!stores?.length) return new Response(JSON.stringify({ message: "No stores" }), { headers: { "Content-Type": "application/json" } });
-
-        const reports: any[] = [];
+        const reports = [];
 
         for (const store of stores) {
-            // STORY-05A.1: Idempotência do Matinal
-            const idempotencyKey = `matinal-${store.id}-${today}`;
-            const { data: existingLog } = await supabase.from("reprocess_logs").select("id").eq("source_type", idempotencyKey).single();
-            
-            if (existingLog) {
-                console.log(`[Matinal] Skipped ${store.name} - Já disparado hoje.`);
+            const idempotencyKey = `matinal-${store.id}-${dates.today}`;
+            const { data: existingLog } = await supabase
+                .from("reprocess_logs")
+                .select("id")
+                .eq("source_type", idempotencyKey)
+                .eq("status", "completed")
+                .maybeSingle();
+
+            if (existingLog && !body.force && !body.dry_run) {
+                reports.push({ store: store.name, skipped: true, reason: "already_sent" });
                 continue;
             }
 
-            // Puxando regras de entrega para destinatários de e-mail
-            const { data: deliveryRules } = await supabase.from("store_delivery_rules").select("matinal_recipients").eq("store_id", store.id).single();
-            const recipients = deliveryRules?.matinal_recipients || [];
+            const payload = await buildMorningPayload(store, dates);
+            const html = generateHTML(payload);
+            const csvBase64 = generateCSV(payload.ranking);
+            const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${dates.today}.csv`;
 
-            // Puxando vendedores ativos
-            const { data: sellers } = await supabase.from("store_sellers").select("seller_user_id, is_active, users:seller_user_id(name, email)").eq("store_id", store.id).eq("is_active", true);
+            let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
+            let warnings: string[] = [];
 
-            // Produção acumulada do mês usando reference_date
-            const { data: checkins } = await supabase.from("daily_checkins").select("*").eq("store_id", store.id).gte("reference_date", startOfMonth).lte("reference_date", yesterday);
+            if (!body.dry_run) {
+                if (!resend) {
+                    warnings = ["RESEND_API_KEY nao configurada"];
+                } else if (payload.recipients.length === 0) {
+                    warnings = ["Nenhum destinatario matinal configurado"];
+                } else {
+                    try {
+                        const { error } = await resend.emails.send({
+                            from: "MX Relatórios <relatorios@mxgestaopreditiva.com.br>",
+                            to: payload.recipients,
+                            subject: `Matinal MX: ${store.name} - ${formatPtBrDate(payload.referenceDate)}`,
+                            html,
+                            attachments: [{ filename: fileName, content: csvBase64 }],
+                        });
 
-            // Meta da loja
-            const { data: metaData } = await supabase.from("store_meta_rules").select("monthly_goal").eq("store_id", store.id).single();
-            const storeGoal = metaData?.monthly_goal || 0;
+                        if (error) {
+                            console.error(`[Matinal] Error sending email for ${store.name}:`, error);
+                            emailStatus = "failed";
+                            warnings = ["Falha no disparo do e-mail"];
+                        } else {
+                            emailStatus = "sent";
+                        }
+                    } catch (err) {
+                        console.error(`[Matinal] Critical error sending email for ${store.name}:`, err);
+                        emailStatus = "failed";
+                        warnings = ["Erro critico no disparo do e-mail"];
+                    }
+                }
 
-            // Check-ins de ontem (Sem Registro)
-            const { data: yCheckins } = await supabase.from("daily_checkins").select("seller_user_id").eq("store_id", store.id).eq("reference_date", yesterday);
-            const checkedY = new Set((yCheckins || []).map((c: any) => c.seller_user_id));
-
-            const agg = new Map<string, any>();
-            for (const s of sellers || []) {
-                const u = (s as any).users;
-                agg.set(s.seller_user_id, {
-                    uid: s.seller_user_id,
-                    name: u?.name || "Vendedor",
-                    leads: 0, ac: 0, an: 0, vp: 0, vc: 0, vn: 0, vis: 0,
-                    sem_registro: !checkedY.has(s.seller_user_id)
+                await supabase.from("reprocess_logs").insert({
+                    store_id: store.id,
+                    source_type: idempotencyKey,
+                    status: emailStatus === "sent" ? "completed" : "failed",
+                    rows_processed: payload.ranking.length,
+                    records_processed: payload.ranking.length,
+                    warnings,
+                    errors: emailStatus === "failed" ? warnings : [],
+                    started_at: new Date().toISOString(),
+                    finished_at: new Date().toISOString(),
                 });
             }
 
-            for (const c of checkins || []) {
-                const a = agg.get(c.seller_user_id);
-                if (a) {
-                    a.leads += c.leads_prev_day || 0;
-                    a.ac += c.agd_cart_today || 0;
-                    a.an += c.agd_net_today || 0;
-                    a.vp += c.vnd_porta_prev_day || 0;
-                    a.vc += c.vnd_cart_prev_day || 0;
-                    a.vn += c.vnd_net_prev_day || 0;
-                    a.vis += c.visit_prev_day || 0;
-                }
-            }
-
-            const ranking = Array.from(agg.values()).map((s) => ({
-                ...s,
-                at: s.ac + s.an,
-                vt: s.vp + s.vc + s.vn
-            })).sort((a, b) => b.vt - a.vt);
-
-            const tv = ranking.reduce((s: number, r: any) => s + r.vt, 0);
-            const pct = storeGoal > 0 ? Math.round((tv / storeGoal) * 100) : 0;
-            const proj = daysElapsed > 0 ? Math.round((tv / daysElapsed) * totalDays) : 0;
-            const falta = Math.max(storeGoal - tv, 0);
-            
-            const semRegistroNomes = ranking.filter(r => r.sem_registro).map(r => r.name);
-
-            // Gerar HTML oficial MX
-            const html = generateHTML(store.name, yesterdayDate, tv, storeGoal, pct, proj, falta, daysRemaining, ranking, semRegistroNomes, year);
-
-            // Gerar CSV para anexo
-            const csvBase64 = generateCSV(ranking);
-            const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${today}.csv`;
-
-            // Enviar e-mail via Resend se configurado
-            let emailStatus = "not_sent";
-            if (resend && recipients.length > 0) {
-                try {
-                    const { error } = await resend.emails.send({
-                        from: "MX Relatórios <relatorios@mxgestaopreditiva.com.br>",
-                        to: recipients,
-                        subject: `📊 Matinal MX: ${store.name} - ${yesterdayDate.toLocaleDateString("pt-BR")}`,
-                        html: html,
-                        attachments: [
-                            {
-                                filename: fileName,
-                                content: csvBase64,
-                            }
-                        ]
-                    });
-                    if (error) {
-                        console.error(`[Matinal] Error sending email for ${store.name}:`, error);
-                        emailStatus = "failed";
-                    } else {
-                        emailStatus = "sent";
-                    }
-                } catch (err) {
-                    console.error(`[Matinal] Critical error sending email for ${store.name}:`, err);
-                    emailStatus = "failed";
-                }
-            }
-
-            // Logar disparo (Idempotência) com status do e-mail
-            await supabase.from("reprocess_logs").insert({ 
-                store_id: store.id, 
-                source_type: idempotencyKey, 
-                status: 'completed',
-                rows_processed: ranking.length,
-                warnings: emailStatus === "failed" ? ["Falha no disparo do e-mail"] : emailStatus === "not_sent" ? ["Nenhum destinatário configurado ou Resend desativado"] : []
+            reports.push({
+                store: store.name,
+                total_vendas: payload.totalSales,
+                meta: payload.storeGoal,
+                pct: payload.reaching,
+                projection: payload.projection,
+                sem_registro: payload.semRegistro.length,
+                recipients: payload.recipients.length,
+                email: emailStatus,
+                dry_run: body.dry_run || false,
             });
-
-            reports.push({ store: store.name, total_vendas: tv, pct, sem_registro: semRegistroNomes.length, email: emailStatus });
-            console.log(`[Matinal] Disparado para ${store.name} com sucesso. Status E-mail: ${emailStatus}`);
         }
 
-        return new Response(JSON.stringify({ message: `Processamento matinal concluído`, reports }), { headers: { "Content-Type": "application/json" } });
+        return jsonResponse({ message: "Processamento matinal concluido", reports });
     } catch (error) {
-        return new Response(JSON.stringify({ error: String(error) }), { status: 500, headers: { "Content-Type": "application/json" } });
+        console.error("[Matinal] Fatal error:", error);
+        return jsonResponse({ error: String(error) }, 500);
     }
 });
 
-function generateCSV(ranking: any[]) {
-    const headers = ["Vendedor", "Leads", "Agendamentos", "Visitas", "Vendas", "Status Registro"];
-    const rows = ranking.map(r => [
-        `"${r.name}"`,
-        r.leads,
-        r.at,
-        r.vis,
-        r.vt,
-        r.sem_registro ? '"Sem Registro"' : '"OK"'
+async function parseBody(req: Request): Promise<MatinalRequest> {
+    if (req.method !== "POST") return {};
+    try {
+        return await req.json();
+    } catch {
+        return {};
+    }
+}
+
+function getSaoPauloDates() {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
+    const today = formatter.format(new Date());
+    const [year, month, day] = today.split("-").map(Number);
+    const todayAtNoon = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+    const reference = new Date(todayAtNoon);
+    reference.setUTCDate(reference.getUTCDate() - 1);
+    const referenceDate = formatter.format(reference);
+    const startOfMonth = `${year}-${String(month).padStart(2, "0")}-01`;
+    const totalDays = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const daysElapsed = Number(referenceDate.split("-")[2]);
+
+    return {
+        today,
+        referenceDate,
+        startOfMonth,
+        year,
+        month,
+        totalDays,
+        daysElapsed,
+        daysRemaining: Math.max(totalDays - daysElapsed, 0),
+        referenceAsDate: reference,
+    };
+}
+
+function buildStoreQuery(storeId?: string) {
+    let query = supabase.from("stores").select("*").eq("active", true).order("name");
+    if (storeId) query = query.eq("id", storeId);
+    return query;
+}
+
+async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPauloDates>) {
+    const [deliveryRulesRes, tenuresRes, fallbackMembersRes, checkinsRes, referenceCheckinsRes, metaRulesRes] = await Promise.all([
+        supabase.from("store_delivery_rules").select("matinal_recipients, whatsapp_group_ref").eq("store_id", store.id).maybeSingle(),
+        supabase.from("store_sellers").select("seller_user_id, is_active, users:seller_user_id(name, email, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
+        supabase.from("memberships").select("user_id, users(name, email, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
+        supabase.from("daily_checkins").select("*").eq("store_id", store.id).eq("metric_scope", "daily").gte("reference_date", dates.startOfMonth).lte("reference_date", dates.referenceDate),
+        supabase.from("daily_checkins").select("seller_user_id").eq("store_id", store.id).eq("metric_scope", "daily").eq("reference_date", dates.referenceDate),
+        supabase.from("store_meta_rules").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
     ]);
-    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
-    
-    // In Deno, we can use btoa for simple strings, but for universal UTF-8 support:
-    const encoder = new TextEncoder();
-    const data = encoder.encode(csvContent);
+
+    const tenureRows = tenuresRes.data && tenuresRes.data.length > 0
+        ? tenuresRes.data.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))
+        : (fallbackMembersRes.data || []);
+
+    const checkedReference = new Set((referenceCheckinsRes.data || []).map((c: any) => c.seller_user_id));
+    const agg = new Map<string, SellerRow>();
+
+    for (const row of tenureRows) {
+        const user = (row as any).users;
+        agg.set(row.user_id, {
+            uid: row.user_id,
+            name: user?.name || "Vendedor",
+            email: user?.email || null,
+            is_venda_loja: user?.is_venda_loja || false,
+            leads: 0,
+            agd_prev: 0,
+            agd_today: 0,
+            vis: 0,
+            vp: 0,
+            vc: 0,
+            vn: 0,
+            sem_registro: !checkedReference.has(row.user_id),
+        });
+    }
+
+    for (const checkin of checkinsRes.data || []) {
+        const seller = agg.get(checkin.seller_user_id);
+        if (!seller) continue;
+
+        seller.leads += checkin.leads_prev_day || 0;
+        seller.agd_prev += (checkin.agd_cart_prev_day || 0) + (checkin.agd_net_prev_day || 0);
+        seller.agd_today += (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0);
+        seller.vis += checkin.visit_prev_day || 0;
+        seller.vp += checkin.vnd_porta_prev_day || 0;
+        seller.vc += checkin.vnd_cart_prev_day || 0;
+        seller.vn += checkin.vnd_net_prev_day || 0;
+    }
+
+    const includeVendaLoja = metaRulesRes.data?.include_venda_loja_in_store_total ?? true;
+    const ranking = Array.from(agg.values())
+        .map((seller) => ({ ...seller, vt: seller.vp + seller.vc + seller.vn }))
+        .sort((a, b) => {
+            if (b.vt !== a.vt) return b.vt - a.vt;
+            if (a.is_venda_loja !== b.is_venda_loja) return a.is_venda_loja ? 1 : -1;
+            return b.vis - a.vis;
+        });
+
+    const productionRows = includeVendaLoja ? ranking : ranking.filter((row) => !row.is_venda_loja);
+    const totalSales = productionRows.reduce((sum, row) => sum + row.vt, 0);
+    const storeGoal = metaRulesRes.data?.monthly_goal || 0;
+    const reaching = storeGoal > 0 ? Math.round((totalSales / storeGoal) * 100) : 0;
+    const projection = dates.daysElapsed > 0 ? Math.round((totalSales / dates.daysElapsed) * dates.totalDays) : 0;
+    const gap = Math.max(storeGoal - totalSales, 0);
+    const semRegistro = ranking.filter((row) => row.sem_registro).map((row) => row.name);
+
+    return {
+        store,
+        recipients: deliveryRulesRes.data?.matinal_recipients || [],
+        whatsappGroupRef: deliveryRulesRes.data?.whatsapp_group_ref || null,
+        referenceDate: dates.referenceDate,
+        referenceAsDate: dates.referenceAsDate,
+        year: dates.year,
+        daysRemaining: dates.daysRemaining,
+        totalSales,
+        storeGoal,
+        reaching,
+        projection,
+        gap,
+        ranking,
+        semRegistro,
+    };
+}
+
+function generateCSV(ranking: Array<SellerRow & { vt: number }>) {
+    const headers = ["Vendedor", "Leads", "Agendamentos Hoje", "Agendamentos D-1", "Visitas D-1", "Vendas D-1", "Status Registro"];
+    const rows = ranking.map((row) => [
+        csvCell(row.name),
+        row.leads,
+        row.agd_today,
+        row.agd_prev,
+        row.vis,
+        row.vt,
+        row.sem_registro ? "Sem Registro" : "OK",
+    ]);
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const data = new TextEncoder().encode(csvContent);
     const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
     return btoa(binString);
 }
 
-function generateHTML(storeName: string, date: Date, tv: number, meta: number, pct: number, proj: number, falta: number, dr: number, ranking: any[], semRegistro: string[], year: number) {
-    const clr = (v: number, t: number) => t > 0 ? ((v / t) * 100 >= 100 ? "color:#10b981" : (v / t) * 100 >= 80 ? "color:#4f46e5" : "color:#f43f5e") : "color:#4f46e5";
-    const wppText = encodeURIComponent(`*📊 MATINAL MX - ${storeName}*\n📅 Ref: ${date.toLocaleDateString("pt-BR")}\n\n🎯 Meta: ${meta}\n🔥 Vendido: ${tv} (${pct}%)\n📈 Projeção: ${proj}\n🚨 Faltam: ${falta}\n\n🏆 *Top 3*\n${ranking.slice(0,3).map((r,i) => `${i+1}º ${r.name} - ${r.vt}v`).join('\n')}\n\n${semRegistro.length > 0 ? `⚠️ *SEM REGISTRO HOJE:*\n${semRegistro.join(', ')}` : '✅ Todos registraram hoje!'}`);
-    
+function csvCell(value: string) {
+    return `"${value.replaceAll('"', '""')}"`;
+}
+
+function generateWhatsAppText(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
+    return `*MATINAL MX - ${payload.store.name}*
+Ref: ${formatPtBrDate(payload.referenceDate)}
+
+Meta: ${payload.storeGoal}
+Vendido: ${payload.totalSales} (${payload.reaching}%)
+Projecao: ${payload.projection}
+Faltam: ${payload.gap}
+
+Top 3
+${payload.ranking.slice(0, 3).map((row, index) => `${index + 1}º ${row.name} - ${row.vt}v`).join("\n")}
+
+${payload.semRegistro.length > 0 ? `SEM REGISTRO:\n${payload.semRegistro.join(", ")}` : "Todos registraram."}
+
+MX Gestao Preditiva`;
+}
+
+function generateHTML(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
+    const wppText = encodeURIComponent(generateWhatsAppText(payload));
+    const statusColor = payload.reaching >= 100 ? "#10b981" : payload.reaching >= 80 ? "#4f46e5" : "#f43f5e";
+
     return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-body{font-family:'Inter',sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:20px;line-height:1.5}
-.c{max-width:680px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 10px 30px -10px rgba(0,0,0,0.1);overflow:hidden}
-.h{background:#0f172a;padding:48px 32px;text-align:center;border-bottom:4px solid #4f46e5}
-.h h1{color:#fff;margin:0 0 12px;font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.h p{color:#94a3b8;margin:0;font-size:14px;text-transform:uppercase;letter-spacing:3px}
-.content{padding:40px 32px}
-.sr{background:#fff1f2;border-left:4px solid #f43f5e;padding:20px;border-radius:12px;margin-bottom:32px;color:#9f1239;font-weight:600;font-size:14px}
-.ss{display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;margin-bottom:32px}
-.s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:24px;text-align:center;transition:all 0.3s}
-.sv{font-size:36px;font-weight:900;color:#0f172a;line-height:1;margin-bottom:8px}.sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
-.alert{text-align:center;padding:20px;background:#f1f5f9;border-radius:16px;font-size:14px;font-weight:700;color:#334155;margin-bottom:40px;border:1px dashed #cbd5e1}
-table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:40px}
-th{background:#fff;padding:16px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #0f172a;font-weight:700}
-td{padding:18px 12px;border-bottom:1px solid #f1f5f9;font-size:14px;font-weight:600;color:#334155}
-.btn{display:block;width:100%;background:#4f46e5;color:#fff;text-align:center;padding:20px;border-radius:14px;text-decoration:none;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;box-shadow:0 4px 14px 0 rgba(79,70,229,0.39)}
-.f{text-align:center;padding:32px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:2px;border-top:1px solid #f1f5f9;background:#fcfcfc}
+body{font-family:Inter,Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:20px;line-height:1.5}
+.c{max-width:720px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 10px 30px -10px rgba(0,0,0,.12);overflow:hidden}
+.h{background:#0f172a;padding:44px 32px;text-align:center;border-bottom:4px solid #4f46e5}
+.h h1{color:#fff;margin:0 0 12px;font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.h p{color:#94a3b8;margin:0;font-size:13px;text-transform:uppercase;letter-spacing:3px}
+.content{padding:36px 32px}.sr{background:#fff1f2;border-left:4px solid #f43f5e;padding:18px;border-radius:12px;margin-bottom:28px;color:#9f1239;font-weight:700;font-size:14px}
+.ss{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:28px}.s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:22px;text-align:center}
+.sv{font-size:36px;font-weight:900;color:#0f172a;line-height:1;margin-bottom:8px}.sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
+.alert{text-align:center;padding:18px;background:#f1f5f9;border-radius:16px;font-size:14px;font-weight:800;color:#334155;margin-bottom:34px;border:1px dashed #cbd5e1}
+table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:34px}th{background:#fff;padding:14px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #0f172a;font-weight:800}
+td{padding:16px 10px;border-bottom:1px solid #f1f5f9;font-size:13px;font-weight:700;color:#334155}.btn{display:block;background:#4f46e5;color:#fff;text-align:center;padding:18px;border-radius:14px;text-decoration:none;font-weight:900;text-transform:uppercase;letter-spacing:1.5px}
+.f{text-align:center;padding:28px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:2px;border-top:1px solid #f1f5f9;background:#fcfcfc}
 </style></head><body><div class="c">
-<div class="h"><h1>📊 Matinal MX</h1><p>${storeName} • ${date.toLocaleDateString("pt-BR")}</p></div>
+<div class="h"><h1>Matinal MX</h1><p>${payload.store.name} • ${formatPtBrDate(payload.referenceDate)}</p></div>
 <div class="content">
-${semRegistro.length > 0 ? `<div class="sr">⚠️ Atenção: ${semRegistro.join(', ')} estão SEM REGISTRO no fechamento de ontem.</div>` : ''}
+${payload.semRegistro.length > 0 ? `<div class="sr">Atencao: ${payload.semRegistro.join(", ")} estao sem registro no fechamento.</div>` : ""}
 <div class="ss">
-<div class="s"><div class="sv" style="${clr(tv, meta)}">${tv}</div><div class="sl">Vendido</div></div>
-<div class="s"><div class="sv">${meta}</div><div class="sl">Meta</div></div>
-<div class="s"><div class="sv">${proj}</div><div class="sl">Projeção</div></div>
-<div class="s"><div class="sv" style="${clr(tv, meta)}">${pct}%</div><div class="sl">Atingimento</div></div>
+<div class="s"><div class="sv" style="color:${statusColor}">${payload.totalSales}</div><div class="sl">Vendido</div></div>
+<div class="s"><div class="sv">${payload.storeGoal}</div><div class="sl">Meta</div></div>
+<div class="s"><div class="sv">${payload.projection}</div><div class="sl">Projecao</div></div>
+<div class="s"><div class="sv" style="color:${statusColor}">${payload.reaching}%</div><div class="sl">Atingimento</div></div>
 </div>
-<div class="alert">📌 Faltam ${falta} vendas em ${dr} dias (${dr > 0 ? (falta / dr).toFixed(1) : 0}/dia)</div>
-<table><thead><tr><th>Consultor</th><th>AGD</th><th>Vis</th><th>VND</th><th>Ontem</th></tr></thead>
-<tbody>${ranking.map((r: any) => `<tr><td>${r.name}</td><td>${r.at}</td><td>${r.vis}</td><td>${r.vt}</td><td>${r.sem_registro ? '<span style="color:#f43f5e">❌</span>' : '<span style="color:#10b981">✅</span>'}</td></tr>`).join("")}</tbody></table>
-<a href="https://api.whatsapp.com/send?text=${wppText}" class="btn">ENVIAR FEEDBACK VIA WHATSAPP</a>
+<div class="alert">Faltam ${payload.gap} vendas em ${payload.daysRemaining} dias (${payload.daysRemaining > 0 ? (payload.gap / payload.daysRemaining).toFixed(1) : 0}/dia)</div>
+<table><thead><tr><th>Vendedor</th><th>Leads</th><th>AGD Hoje</th><th>Visitas D-1</th><th>VND</th><th>Registro</th></tr></thead>
+<tbody>${payload.ranking.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${row.leads}</td><td>${row.agd_today}</td><td>${row.vis}</td><td>${row.vt}</td><td>${row.sem_registro ? "Sem registro" : "OK"}</td></tr>`).join("")}</tbody></table>
+<a href="https://api.whatsapp.com/send?text=${wppText}" class="btn">Enviar no WhatsApp</a>
 </div>
-<div class="f">MX Gestão Preditiva © ${year}</div>
+<div class="f">MX Gestao Preditiva © ${payload.year}</div>
 </div></body></html>`;
+}
+
+function formatPtBrDate(date: string) {
+    const [year, month, day] = date.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day, 12)).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+}
+
+function escapeHtml(value: string) {
+    return value.replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+    }[char] || char));
+}
+
+function jsonResponse(payload: unknown, status = 200) {
+    return new Response(JSON.stringify(payload), {
+        status,
+        headers: { "Content-Type": "application/json" },
+    });
 }

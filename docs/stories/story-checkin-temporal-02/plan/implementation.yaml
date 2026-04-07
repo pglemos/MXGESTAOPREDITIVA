@@ -1,0 +1,40 @@
+story: STORY-02
+title: Check-in Diario Com Semantica Temporal MX
+status: ready_for_review
+source_artifacts:
+  - /Users/pedroguilherme/Downloads/Plano_Operacional_de_Produto_MX_Gestao_Preditiva_v1_3.md
+  - /Users/pedroguilherme/Downloads/Backlog_Executavel_MX_Gestao_Preditiva_v1_2.md
+depends_on:
+  - STORY-01.1
+tasks:
+  - id: db-01
+    description: Adicionar status temporal de envio no schema live.
+    status: completed
+  - id: app-01
+    description: Corrigir calculo de reference_date e janela de edicao.
+    status: completed
+  - id: app-02
+    description: Exibir bloco de referencia do registro na tela.
+    status: completed
+  - id: qa-01
+    description: Adicionar teste unitario e rodar gates.
+    status: completed
+validation:
+  lint: passed
+  typecheck: passed
+  test: passed
+  build: passed
+  diff_check: passed
+  supabase_rollback: passed
+  supabase_live: passed
+supabase_live:
+  project_ref: fbhcmzzgwjdgkctlfvbo
+  migration: 20260407002000
+  applied_with: direct_sql_transaction
+  history_repair: applied
+  validation:
+    on_time_at_0930: passed
+    late_at_0931: passed
+notes:
+  - Deadline operacional: 09:30 America/Sao_Paulo.
+  - Janela de correcao: ate 09:45 no mesmo dia de envio.

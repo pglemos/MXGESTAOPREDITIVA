@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
-  LogOut, Zap, Menu, X, Building2, TrendingUp, Package, ClipboardList
+  LogOut, Zap, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +38,7 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Sustentação', icon: <Settings size={22} />,
       items: [
+        { label: 'Configuração Operacional', path: '/configuracoes/operacional', icon: <SlidersHorizontal size={16} /> },
         { label: 'Reprocessamento', path: '/configuracoes/reprocessamento', icon: <Database size={16} /> },
         { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]

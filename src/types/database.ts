@@ -8,6 +8,8 @@ export type PDIStatus = 'aberto' | 'em_andamento' | 'concluido'
 export type TrainingType = 'prospeccao' | 'fechamento' | 'atendimento' | 'gestao' | 'pre-vendas'
 export type TargetAudience = 'vendedor' | 'gerente' | 'todos'
 export type CheckinScope = 'daily' | 'adjustment' | 'historical'
+export type CheckinSubmissionStatus = 'on_time' | 'late'
+export type StoreSourceMode = 'legacy_forms' | 'native_app' | 'hybrid'
 
 export interface User {
     id: string
@@ -27,7 +29,42 @@ export interface Store {
     name: string
     manager_email: string | null
     active: boolean
+    source_mode: StoreSourceMode
     created_at: string
+    updated_at: string
+}
+
+export interface StoreSeller {
+    id: string
+    store_id: string
+    seller_user_id: string
+    started_at: string
+    ended_at: string | null
+    is_active: boolean
+    closing_month_grace: boolean
+    created_at: string
+    updated_at: string
+}
+
+export interface StoreBenchmark {
+    store_id: string
+    lead_to_agend: number
+    agend_to_visit: number
+    visit_to_sale: number
+    updated_by: string | null
+    updated_at: string
+}
+
+export interface StoreDeliveryRules {
+    store_id: string
+    matinal_recipients: string[]
+    weekly_recipients: string[]
+    monthly_recipients: string[]
+    whatsapp_group_ref: string | null
+    timezone: string
+    active: boolean
+    updated_by: string | null
+    updated_at: string
 }
 
 export interface StoreMetaRules {
@@ -77,6 +114,9 @@ export interface DailyCheckin {
     store_id: string
     reference_date: string
     submitted_at: string
+    submitted_late: boolean
+    submission_status: CheckinSubmissionStatus
+    edit_locked_at: string | null
     metric_scope: CheckinScope
     leads_prev_day: number
     agd_cart_prev_day: number
@@ -215,6 +255,49 @@ export interface AuditLog {
     entity: string
     entity_id: string | null
     details_json: Record<string, unknown> | null
+    created_at: string
+}
+
+export interface ReprocessLog {
+    id: string
+    store_id: string | null
+    source_type: string
+    triggered_by: string | null
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+    rows_processed: number
+    records_processed: number
+    records_failed: number
+    warnings: unknown[]
+    errors: unknown[]
+    error_log: unknown[]
+    started_at: string
+    finished_at: string | null
+}
+
+export interface ManagerRoutineLog {
+    id: string
+    store_id: string
+    manager_id: string
+    routine_date: string
+    reference_date: string
+    checkins_pending_count: number
+    sem_registro_count: number
+    agd_cart_today: number
+    agd_net_today: number
+    previous_day_leads: number
+    previous_day_sales: number
+    ranking_snapshot: unknown[]
+    notes: string | null
+    status: 'completed'
+    executed_at: string
+    created_at: string
+    updated_at: string
+}
+
+export interface RawImport {
+    id: string
+    log_id: string
+    raw_data: Record<string, unknown>
     created_at: string
 }
 

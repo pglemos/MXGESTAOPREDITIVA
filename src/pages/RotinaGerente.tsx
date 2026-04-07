@@ -1,21 +1,22 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useTeam } from '@/hooks/useTeam'
-import { useCheckins } from '@/hooks/useCheckins'
+import { CHECKIN_DEADLINE_LABEL, calculateReferenceDate, useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
+import { useRanking } from '@/hooks/useRanking'
+import { useManagerRoutine } from '@/hooks/useManagerRoutine'
 import { useFeedbacks, usePDIs, useNotifications } from '@/hooks/useData'
 import { somarVendas, calcularAtingimento, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
-import { 
-    CheckCircle2, Clock, Users, ArrowRight, Activity, CalendarDays, 
-    Zap, FileCheck, BellRing, Target, TrendingUp, AlertTriangle, 
-    MessageSquare, Award, ChevronRight, Mail, LayoutDashboard, Search,
+import {
+    CheckCircle2, Clock, Activity, CalendarDays,
+    Zap, FileCheck, Target, TrendingUp,
+    MessageSquare, Award, ChevronRight, Mail,
     BarChart3, RefreshCw, User, X, ShieldCheck
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
-import { format, startOfWeek, isSameWeek, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { startOfWeek, isSameWeek, parseISO } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
 
@@ -26,6 +27,8 @@ export default function RotinaGerente() {
     const { sellers, loading: loadingTeam } = useTeam()
     const { checkins, loading: loadingCheckins } = useCheckins()
     const { storeGoal } = useGoals()
+    const { ranking, loading: loadingRanking } = useRanking()
+    const { routineLog, history: routineHistory, loading: loadingRoutine, registerRoutine } = useManagerRoutine()
     const { feedbacks, loading: loadingFeedbacks } = useFeedbacks()
     const { pdis, loading: loadingPDIs } = usePDIs()
     const { sendNotification } = useNotifications()
@@ -36,15 +39,25 @@ export default function RotinaGerente() {
     const [reuniaoDone, setReuniaoDone] = useState(false)
     const [agendaValidated, setAgendaDone] = useState(false)
     const [showAgendaModal, setShowAgendaModal] = useState(false)
+    const [routineNotes, setRoutineNotes] = useState('')
+    const [savingRoutine, setSavingRoutine] = useState(false)
 
     // Derived State - Metrics
+    const referenceDate = calculateReferenceDate()
+    const previousDayCheckins = useMemo(() => checkins.filter(c => c.reference_date === referenceDate), [checkins, referenceDate])
     const pendingSellers = useMemo(() => (sellers || []).filter(s => !s.checkin_today), [sellers])
-    const totalAgendamentosHoje = useMemo(() => checkins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0), [checkins])
+    const totalAgendamentosHoje = useMemo(() => previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0), [previousDayCheckins])
+    const previousDaySummary = useMemo(() => ({
+        leads: previousDayCheckins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
+        visitas: previousDayCheckins.reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
+        agendamentos: previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0), 0),
+        vendas: somarVendas(previousDayCheckins),
+    }), [previousDayCheckins])
     
     // Agendamentos do dia por vendedor
     const todayAgendas = useMemo(() => {
         const usersMap = new Map()
-        checkins.forEach(c => {
+        previousDayCheckins.forEach(c => {
             if ((c.agd_cart_today || 0) > 0 || (c.agd_net_today || 0) > 0) {
                 if (!usersMap.has(c.seller_user_id)) {
                     usersMap.set(c.seller_user_id, {
@@ -60,7 +73,7 @@ export default function RotinaGerente() {
             }
         })
         return Array.from(usersMap.values())
-    }, [checkins, sellers])
+    }, [previousDayCheckins, sellers])
 
     const canTriggerMatinal = useMemo(() => {
         return reuniaoDone && agendaValidated && pendingSellers.length === 0
@@ -80,6 +93,36 @@ export default function RotinaGerente() {
     const pdiDueCount = useMemo(() => {
         return pdis.filter(p => p.due_date && new Date(p.due_date).getMonth() === new Date().getMonth()).length
     }, [pdis])
+
+    const handleRegisterRoutine = async () => {
+        setSavingRoutine(true)
+        const { error } = await registerRoutine({
+            reference_date: referenceDate,
+            checkins_pending_count: pendingSellers.length,
+            sem_registro_count: pendingSellers.length,
+            agd_cart_today: previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0), 0),
+            agd_net_today: previousDayCheckins.reduce((acc, c) => acc + (c.agd_net_today || 0), 0),
+            previous_day_leads: previousDaySummary.leads,
+            previous_day_sales: previousDaySummary.vendas,
+            ranking_snapshot: ranking.slice(0, 10).map(item => ({
+                user_id: item.user_id,
+                user_name: item.user_name,
+                position: item.position,
+                vnd_total: item.vnd_total,
+                meta: item.meta,
+                atingimento: item.atingimento,
+            })),
+            notes: routineNotes,
+        })
+        setSavingRoutine(false)
+
+        if (error) {
+            toast.error(error)
+            return
+        }
+
+        toast.success('Rotina diária registrada para auditoria MX.')
+    }
 
     const handleTriggerMatinal = async () => {
         setExecuting(true)
@@ -111,7 +154,7 @@ export default function RotinaGerente() {
             recipient_id: s.id,
             store_id: s.store_id || '',
             title: 'ALERTA: Check-in Pendente',
-            message: 'Seu registro de produção está atrasado (Prazo: 10:30). Lance seus dados para o matinal.',
+            message: `Seu registro de produção está atrasado (Prazo: ${CHECKIN_DEADLINE_LABEL}). Lance seus dados para o matinal.`,
             type: 'discipline',
             priority: 'high',
             link: '/checkin'
@@ -121,7 +164,7 @@ export default function RotinaGerente() {
         toast.success(`Cobrança enviada para ${pendingSellers.length} especialistas!`)
     }
 
-    if (loadingTeam || loadingCheckins || loadingFeedbacks || loadingPDIs) {
+    if (loadingTeam || loadingCheckins || loadingRanking || loadingFeedbacks || loadingPDIs || loadingRoutine) {
         return <div className="h-full w-full flex items-center justify-center bg-white"><Activity className="animate-spin text-indigo-600" /></div>
     }
 
@@ -301,8 +344,8 @@ export default function RotinaGerente() {
                                                 <p className="text-4xl font-black tracking-tighter">{totalAgendamentosHoje}</p>
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-indigo-200 mb-1">Foco Operacional</p>
-                                                <p className="text-sm font-bold uppercase leading-tight">Garantir 60% de Conversão</p>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-indigo-200 mb-1">Sem Registro</p>
+                                                <p className="text-4xl font-black tracking-tighter">{pendingSellers.length}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -319,13 +362,27 @@ export default function RotinaGerente() {
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-1">
                                                 <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Realizado Ontem</p>
-                                                <p className="text-2xl font-black text-slate-950 font-mono-numbers">{somarVendas(checkins.filter(c => c.reference_date === format(new Date(new Date().setDate(new Date().getDate()-1)), 'yyyy-MM-dd')))}</p>
+                                                <p className="text-2xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.vendas}</p>
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[8px] font-black text-indigo-600 uppercase tracking-widest">Ritmo Ideal (DRR)</p>
                                                 <p className="text-2xl font-black text-indigo-600 font-mono-numbers">
                                                     {Math.round(((storeGoal?.target || 0) - somarVendas(checkins)) / Math.max(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate(), 1) * 10) / 10}
                                                 </p>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-50">
+                                            <div>
+                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Leads D-1</p>
+                                                <p className="text-xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.leads}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Agd D-1</p>
+                                                <p className="text-xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.agendamentos}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Visitas D-1</p>
+                                                <p className="text-xl font-black text-slate-950 font-mono-numbers">{previousDaySummary.visitas}</p>
                                             </div>
                                         </div>
                                         <div className="pt-4 border-t border-gray-50">
@@ -339,6 +396,87 @@ export default function RotinaGerente() {
                                         </div>
                                         <p className="text-[10px] font-bold text-gray-500 italic leading-relaxed">"O sucesso da unidade depende do fechamento do gap individual nas próximas 48h."</p>
                                     </div>
+                                </div>
+
+                                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-6">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center border border-amber-100">
+                                                <Award size={24} className="text-amber-600" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-black uppercase tracking-tight leading-none">Ranking do Momento</h3>
+                                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Ritmo mensal da loja</p>
+                                            </div>
+                                        </div>
+                                        <Link to="/ranking" className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Ver todos</Link>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {ranking.slice(0, 5).map(item => (
+                                            <div key={item.user_id} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="w-8 h-8 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[10px] font-black text-slate-950">{item.position}</span>
+                                                    <div>
+                                                        <p className="text-[11px] font-black uppercase tracking-tight text-slate-950">{item.user_name}</p>
+                                                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-400">{item.vnd_total} vendas / meta {item.meta}</p>
+                                                    </div>
+                                                </div>
+                                                <Badge className="bg-indigo-600 text-white border-none text-[8px] font-black rounded-lg">{item.atingimento}%</Badge>
+                                            </div>
+                                        ))}
+                                        {ranking.length === 0 && (
+                                            <div className="py-8 text-center border-2 border-dashed border-gray-100 rounded-3xl">
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ranking sem dados de vigencia ou check-in.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                                            <ShieldCheck size={24} className="text-emerald-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-black uppercase tracking-tight leading-none">Execução da Rotina</h3>
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                                                {routineLog ? `Registrada às ${new Date(routineLog.executed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Ainda não registrada hoje'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <textarea
+                                        value={routineNotes}
+                                        onChange={event => setRoutineNotes(event.target.value)}
+                                        placeholder="Observação opcional da rotina diária"
+                                        className="w-full min-h-24 rounded-3xl border border-gray-100 bg-gray-50 p-5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-200 focus:bg-white"
+                                    />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <Link to="/feedback" className="h-12 rounded-2xl bg-slate-950 text-white text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                                            <MessageSquare size={14} /> Feedback
+                                        </Link>
+                                        <Link to="/notificacoes" className="h-12 rounded-2xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                                            <Mail size={14} /> Mensagem da Loja
+                                        </Link>
+                                    </div>
+                                    <button
+                                        onClick={handleRegisterRoutine}
+                                        disabled={savingRoutine}
+                                        className="w-full h-14 rounded-2xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {savingRoutine ? <RefreshCw size={14} className="animate-spin" /> : <FileCheck size={14} />}
+                                        Registrar Rotina Executada
+                                    </button>
+                                    {routineHistory.length > 0 && (
+                                        <div className="pt-4 border-t border-gray-100 space-y-2">
+                                            <p className="text-[8px] font-black uppercase tracking-widest text-gray-400">Histórico mínimo</p>
+                                            {routineHistory.slice(0, 3).map(log => (
+                                                <div key={log.id} className="flex items-center justify-between text-[10px] font-black uppercase text-gray-500">
+                                                    <span>{new Date(`${log.routine_date}T00:00:00`).toLocaleDateString('pt-BR')}</span>
+                                                    <span>{log.checkins_pending_count} pendentes</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>

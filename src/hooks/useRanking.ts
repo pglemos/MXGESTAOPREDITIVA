@@ -31,12 +31,20 @@ export function useRanking(storeIdOverride?: string) {
             .gte('reference_date', startOfMonth)
             .lte('reference_date', endOfMonth)
 
-        // Get users for this store, including is_venda_loja
-        const { data: members } = await supabase
-            .from('memberships')
-            .select('user_id, users(name, is_venda_loja)')
+        // Get active sellers by operational tenure. Fallback keeps old data readable until stores are configured.
+        const { data: tenures } = await supabase
+            .from('store_sellers')
+            .select('seller_user_id, users:seller_user_id(name, is_venda_loja)')
             .eq('store_id', storeId)
-            .eq('role', 'vendedor')
+            .eq('is_active', true)
+
+        const { data: fallbackMembers } = (!tenures || tenures.length === 0)
+            ? await supabase
+                .from('memberships')
+                .select('user_id, users(name, is_venda_loja)')
+                .eq('store_id', storeId)
+                .eq('role', 'vendedor')
+            : { data: null }
 
         // Get goals for the store
         const { data: rules } = await supabase
@@ -45,12 +53,18 @@ export function useRanking(storeIdOverride?: string) {
             .eq('store_id', storeId)
             .single()
 
+        const members = (tenures && tenures.length > 0)
+            ? tenures.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))
+            : (fallbackMembers || [])
+
         if (!checkins || !members) { setLoading(false); return }
 
         const storeGoal = rules?.monthly_goal || 0
         const includeVendaLojaInGoal = rules?.include_venda_loja_in_individual_goal || false
         
         const aggregated = new Map<string, { leads: number; agd: number; visitas: number; vnd: number; name: string; isVendaLoja: boolean }>()
+        const realSellersCount = members.filter((m: any) => !m.users?.is_venda_loja).length
+        const goalDivisor = realSellersCount + (includeVendaLojaInGoal ? members.filter((m: any) => m.users?.is_venda_loja).length : 0)
 
         for (const m of members) {
             const user = (m as any).users
@@ -73,12 +87,9 @@ export function useRanking(storeIdOverride?: string) {
 
         const entries: RankingEntry[] = Array.from(aggregated.entries())
             .map(([userId, data]) => {
-                // Filtro de Vendedores Reais (para divisão da meta)
-                const realSellersCount = members.filter(m => !(m as any).users?.is_venda_loja).length
-                
                 const meta = data.isVendaLoja 
-                    ? (includeVendaLojaInGoal ? Math.round(storeGoal / Math.max(realSellersCount + 1, 1)) : 0)
-                    : Math.round(storeGoal / Math.max(realSellersCount, 1))
+                    ? (includeVendaLojaInGoal ? Math.round(storeGoal / Math.max(goalDivisor, 1)) : 0)
+                    : Math.round(storeGoal / Math.max(goalDivisor || realSellersCount, 1))
 
                 return {
                     user_id: userId,
@@ -127,16 +138,16 @@ export function useGlobalRanking() {
             .eq('metric_scope', 'daily')
             .gte('reference_date', startOfMonth)
 
-        const { data: members } = await supabase
-            .from('memberships')
-            .select('user_id, store_id, users(name, is_venda_loja), stores(name)')
-            .eq('role', 'vendedor')
+        const { data: tenures } = await supabase
+            .from('store_sellers')
+            .select('seller_user_id, store_id, users:seller_user_id(name, is_venda_loja), stores(name)')
+            .eq('is_active', true)
 
-        if (!checkins || !members) { setLoading(false); return }
+        if (!checkins || !tenures) { setLoading(false); return }
 
         const agg = new Map<string, { vnd: number; leads: number; agd: number; vis: number; name: string; store: string; isVendaLoja: boolean }>()
-        for (const m of members) {
-            agg.set(m.user_id, { 
+        for (const m of tenures) {
+            agg.set(m.seller_user_id, {
                 vnd: 0, leads: 0, agd: 0, vis: 0, 
                 name: (m as any).users?.name || '', 
                 store: (m as any).stores?.name || '',

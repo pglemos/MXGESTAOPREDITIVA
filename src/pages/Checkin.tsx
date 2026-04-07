@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { useCheckins } from '@/hooks/useCheckins'
+import { CHECKIN_DEADLINE_LABEL, CHECKIN_EDIT_LIMIT_LABEL, canEditCurrentCheckin, isCheckinLate, useCheckins } from '@/hooks/useCheckins'
 import { validarFunil, calcularTotais } from '@/lib/calculations'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'motion/react'
@@ -32,7 +32,7 @@ interface CheckinForm {
 }
 
 export default function Checkin() {
-    const { profile, role } = useAuth()
+    const { profile, role, membership, storeId } = useAuth()
     const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate } = useCheckins()
     const navigate = useNavigate()
     const [saving, setSaving] = useState(false)
@@ -72,9 +72,8 @@ export default function Checkin() {
     }, [])
 
     const now = new Date()
-    const hours = now.getHours()
-    const minutes = now.getMinutes()
-    const isLate = (hours > 9) || (hours === 9 && minutes > 30)
+    const isLate = isCheckinLate(now)
+    const canEditExisting = canEditCurrentCheckin(now)
 
     const allZero = useMemo(() => 
         form.leads === 0 && totals.agd_total === 0 && form.visitas === 0 && totals.vnd_total === 0
@@ -103,6 +102,10 @@ export default function Checkin() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (saving) return // 3. Prevent double submit
+        if (todayCheckin && !canEditExisting) {
+            toast.error(`Correções ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.`)
+            return
+        }
         if (allZero && !form.zero_reason) { toast.error('Selecione o motivo da ausência de atividade'); return }
         if (funnelError) { toast.error(funnelError); return }
 
@@ -209,11 +212,11 @@ export default function Checkin() {
                         <div className="inline-flex mt-1">
                             {isLate ? (
                                 <p className="text-white text-[9px] font-black uppercase tracking-widest bg-rose-600 border border-rose-700 px-3 py-1 rounded-full shadow-lg animate-bounce">
-                                    REGISTRO EM ATRASO: IMPACTO NO RANKING E MATINAL
+                                    REGISTRO FORA DO PRAZO: IMPACTO NO RANKING E MATINAL
                                 </p>
                             ) : (
                                 <p className="text-emerald-600 text-[9px] font-black uppercase tracking-widest bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
-                                    Prazo Operacional: 09:30 (No Horário)
+                                    Prazo Operacional: {CHECKIN_DEADLINE_LABEL} (No Horário)
                                 </p>
                             )}
                         </div>
@@ -237,7 +240,7 @@ export default function Checkin() {
                     {todayCheckin && (
                         <div className="hidden sm:flex items-center justify-center gap-2 rounded-full border border-amber-100 bg-amber-50 px-5 py-3 shadow-sm">
                             <Sparkles size={14} className="text-amber-500" />
-                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">Edição de Registro</span>
+                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">{canEditExisting ? 'Edição de Registro' : 'Edição Bloqueada'}</span>
                         </div>
                     )}
                 </div>
@@ -248,6 +251,28 @@ export default function Checkin() {
                 {/* Form Column */}
                 <div className="flex-1 space-y-12">
                     <form onSubmit={handleSubmit} className="space-y-14">
+
+                        {/* REFERÊNCIA: Contrato temporal do registro */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Data de referência', value: dateStr, tone: 'bg-slate-950 text-white' },
+                                { label: 'Loja', value: membership?.store?.name || storeId || 'Loja ativa', tone: 'bg-mx-slate-50 text-slate-950' },
+                                { label: 'Vendedor', value: profile?.name || 'Vendedor', tone: 'bg-mx-slate-50 text-slate-950' },
+                                { label: 'Status do envio', value: isLate ? `Fora do prazo (${CHECKIN_DEADLINE_LABEL})` : `No prazo (${CHECKIN_DEADLINE_LABEL})`, tone: isLate ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700' },
+                            ].map(item => (
+                                <div key={item.label} className={cn("rounded-[2rem] border border-gray-100 p-6 shadow-sm", item.tone)}>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.25em] opacity-50 mb-2">{item.label}</p>
+                                    <p className="text-sm font-black uppercase tracking-tight leading-snug">{item.value}</p>
+                                </div>
+                            ))}
+                            <div className="md:col-span-4 rounded-[2rem] border border-indigo-100 bg-indigo-50/40 p-6 flex flex-col gap-2">
+                                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-700">Contrato temporal MX</p>
+                                <p className="text-sm font-bold text-indigo-900/70 leading-relaxed">
+                                    Produção, leads, visitas e vendas sempre se referem ao dia anterior. Agendamentos representam a agenda de hoje.
+                                    Correções do registro já enviado ficam abertas até {CHECKIN_EDIT_LIMIT_LABEL}.
+                                </p>
+                            </div>
+                        </div>
 
                         {/* RETROSPECTIVA: Produção do Dia Anterior */}
                         <div className="space-y-8">
@@ -367,14 +392,14 @@ export default function Checkin() {
 
                             <button
                                 type="submit"
-                                disabled={saving}
+                                disabled={saving || (!!todayCheckin && !canEditExisting)}
                                 className="w-full py-10 rounded-[3rem] bg-slate-950 text-white font-black text-3xl tracking-tighter flex items-center justify-center gap-6 hover:bg-brand-secondary-hover transition-all hover:shadow-3xl hover:-translate-y-2 active:scale-[0.98] group relative overflow-hidden disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-transparent to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                 {saving ? (
                                     <RefreshCw className="w-12 h-12 animate-spin text-electric-blue" />
                                 ) : (
-                                    <><Send size={40} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" /> <span>{todayCheckin ? 'ATUALIZAR RITUAL' : 'CONGELAR PERFORMANCE'}</span></>
+                                    <><Send size={40} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" /> <span>{todayCheckin ? (canEditExisting ? 'ATUALIZAR RITUAL' : 'RITUAL BLOQUEADO') : 'CONGELAR PERFORMANCE'}</span></>
                                 )}
                             </button>
                         </div>

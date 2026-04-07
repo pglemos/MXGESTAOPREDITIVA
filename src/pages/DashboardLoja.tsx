@@ -1,5 +1,5 @@
 import { useCheckins } from '@/hooks/useCheckins'
-import { useGoals } from '@/hooks/useGoals'
+import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
 import { useTeam } from '@/hooks/useTeam'
 import { useRanking } from '@/hooks/useRanking'
 import { useAuth } from '@/hooks/useAuth'
@@ -50,6 +50,7 @@ export default function DashboardLoja() {
     const [searchParams] = useSearchParams()
     const { checkins, loading, fetchCheckins: refetchCheckins } = useCheckins()
     const { storeGoal, fetchGoals: refetchGoals } = useGoals()
+    const { metaRules, fetchMetaRules } = useStoreMetaRules()
     const { sellers, refetch: refetchTeam } = useTeam()
     const { ranking, refetch: refetchRanking } = useRanking()
     const [isRefetching, setIsRefetching] = useState(false)
@@ -63,25 +64,30 @@ export default function DashboardLoja() {
     }, [memberships, role, searchParams, setActiveStoreId])
 
     const metrics = useMemo(() => {
-        const meta = storeGoal?.target || 0
-        const vendasMes = somarVendas(checkins)
-        const porCanal = somarVendasPorCanal(checkins)
+        const meta = Number(metaRules?.monthly_goal ?? storeGoal?.target ?? 0)
+        const vendaLojaIds = new Set((sellers || []).filter(s => s.is_venda_loja).map(s => s.id))
+        const checkinsForStoreTotal = metaRules?.include_venda_loja_in_store_total === false
+            ? checkins.filter(c => !vendaLojaIds.has(c.seller_user_id))
+            : checkins
+        const vendasMes = somarVendas(checkinsForStoreTotal)
+        const porCanal = somarVendasPorCanal(checkinsForStoreTotal)
         const atingimento = calcularAtingimento(vendasMes, meta)
         const dias = getDiasInfo()
         const projecao = calcularProjecao(vendasMes, dias.decorridos, dias.total)
         const faltaX = calcularFaltaX(meta, vendasMes)
         const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
-        const funil = calcularFunil(checkins)
-        return { meta, vendasMes, porCanal, atingimento, projecao, faltaX, checkedInCount, funil, storeName: membership?.store?.name || 'UNIDADE' }
-    }, [checkins, storeGoal, sellers, membership])
+        const semRegistroCount = Math.max((sellers || []).length - checkedInCount, 0)
+        const funil = calcularFunil(checkinsForStoreTotal)
+        return { meta, vendasMes, porCanal, atingimento, projecao, faltaX, checkedInCount, semRegistroCount, funil, storeName: membership?.store?.name || 'UNIDADE' }
+    }, [checkins, metaRules, storeGoal, sellers, membership])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
         try {
-            await Promise.all([refetchCheckins(), refetchGoals(), refetchTeam(), refetchRanking?.() || Promise.resolve()])
+            await Promise.all([refetchCheckins(), refetchGoals(), fetchMetaRules(), refetchTeam(), refetchRanking?.() || Promise.resolve()])
             toast.success('Performance sincronizada!')
         } finally { setIsRefetching(false) }
-    }, [refetchCheckins, refetchGoals, refetchTeam, refetchRanking])
+    }, [refetchCheckins, refetchGoals, fetchMetaRules, refetchTeam, refetchRanking])
 
     if (loading) return <div className="h-full w-full flex items-center justify-center bg-white"><RefreshCw className="animate-spin text-brand-primary" /></div>
 
@@ -108,7 +114,7 @@ export default function DashboardLoja() {
                 <Stat icon={Target} label="Meta Oficial" value={metrics.meta} sub={`${metrics.atingimento}% Atingido`} bg="bg-mx-indigo-50" color="text-mx-indigo-600" trend="ALVO" delay={0.1} />
                 <Stat icon={Car} label="Acumulado (Vendido)" value={metrics.vendasMes} sub={`Faltam ${metrics.faltaX}`} bg="bg-status-success-surface" color="text-status-success" trend="REALIZADO" delay={0.2} />
                 <Stat icon={TrendingUp} label="Projeção" value={metrics.projecao} bg="bg-status-info-surface" color="text-status-info" sub={metrics.projecao >= metrics.meta ? 'Ritmo Saudável' : 'Ritmo Abaixo'} trend="ESTIMADO" delay={0.3} />
-                <Stat icon={Users} label="Check-ins" value={`${metrics.checkedInCount}/${(sellers || []).length}`} bg="bg-status-warning-surface" color="text-status-warning" sub={`${(sellers || []).length - metrics.checkedInCount} Sem Registro`} trend="OPERAÇÃO" delay={0.4} />
+                <Stat icon={Users} label="Check-ins" value={`${metrics.checkedInCount}/${(sellers || []).length}`} bg="bg-status-warning-surface" color="text-status-warning" sub={`${metrics.semRegistroCount} Sem Registro`} trend="OPERAÇÃO" delay={0.4} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0 pb-mx-2xl">

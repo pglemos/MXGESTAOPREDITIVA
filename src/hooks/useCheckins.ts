@@ -4,20 +4,34 @@ import { useAuth } from '@/hooks/useAuth'
 import type { DailyCheckin, CheckinFormData, CheckinWithTotals } from '@/types/database'
 import { calcularTotais } from '@/lib/calculations'
 
-// Regra MX: Se for antes das 09:45, a produção refere-se ao dia útil anterior.
-// Caso contrário, refere-se ao dia atual (embora agendamentos sejam sempre 'hoje').
-export function calculateReferenceDate(): string {
-    const now = new Date()
-    const hours = now.getHours()
-    const minutes = now.getMinutes()
-    const currentTime = hours * 60 + minutes
-    const threshold = 9 * 60 + 45 // 09:45 em minutos
+export const CHECKIN_DEADLINE_MINUTES = 9 * 60 + 30
+export const CHECKIN_EDIT_LIMIT_MINUTES = 9 * 60 + 45
+export const CHECKIN_DEADLINE_LABEL = '09:30'
+export const CHECKIN_EDIT_LIMIT_LABEL = '09:45'
 
-    const refDate = new Date(now)
-    if (currentTime < threshold) {
-        refDate.setDate(now.getDate() - 1)
-    }
+function minutesSinceStartOfDay(date: Date) {
+    return date.getHours() * 60 + date.getMinutes()
+}
+
+// Regra MX: envio acontece hoje, mas a produção declarada se refere sempre ao dia anterior.
+export function calculateReferenceDate(baseDate = new Date()): string {
+    const refDate = new Date(baseDate)
+    refDate.setDate(baseDate.getDate() - 1)
     return refDate.toISOString().split('T')[0]
+}
+
+export function isCheckinLate(baseDate = new Date()): boolean {
+    return minutesSinceStartOfDay(baseDate) > CHECKIN_DEADLINE_MINUTES
+}
+
+export function canEditCurrentCheckin(baseDate = new Date()): boolean {
+    return minutesSinceStartOfDay(baseDate) <= CHECKIN_EDIT_LIMIT_MINUTES
+}
+
+export function getCheckinEditLockedAt(baseDate = new Date()): string {
+    const refDate = new Date(baseDate)
+    refDate.setHours(9, 45, 0, 0)
+    return refDate.toISOString()
 }
 
 export function useCheckins(storeIdOverride?: string) {
@@ -73,13 +87,20 @@ export function useCheckins(storeIdOverride?: string) {
 
     const saveCheckin = async (formData: CheckinFormData): Promise<{ error: string | null }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
+        if (todayCheckin && !canEditCurrentCheckin()) {
+            return { error: `Correções do check-in ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
+        }
 
+        const submittedAt = new Date()
         const payload = {
             seller_user_id: profile.id,
             store_id: storeId,
             reference_date: referenceDate,
-            submitted_at: new Date().toISOString(),
+            submitted_at: submittedAt.toISOString(),
             metric_scope: 'daily',
+            submitted_late: isCheckinLate(submittedAt),
+            submission_status: isCheckinLate(submittedAt) ? 'late' : 'on_time',
+            edit_locked_at: getCheckinEditLockedAt(submittedAt),
             leads_prev_day: formData.leads,
             agd_cart_prev_day: formData.agd_cart_prev,
             agd_net_prev_day: formData.agd_net_prev,
@@ -122,9 +143,9 @@ export function useMyCheckins() {
         }
         setLoading(true)
         let query = supabase.from('daily_checkins').select('*')
-            .eq('user_id', profile.id).eq('store_id', storeId).order('date', { ascending: false })
-        if (filters?.startDate) query = query.gte('date', filters.startDate)
-        if (filters?.endDate) query = query.lte('date', filters.endDate)
+            .eq('seller_user_id', profile.id).eq('store_id', storeId).order('reference_date', { ascending: false })
+        if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
+        if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
         const { data } = await query
         if (data) setCheckins(data.map(c => ({ ...c, ...calcularTotais(c) })))
         setLoading(false)
