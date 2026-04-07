@@ -59,7 +59,7 @@ export default function NotFound() {
                     </div>
 
                     <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest text-center mt-4">
-                        MX Gestão Preditiva © {new Date().getFullYear()}
+                        MX PERFORMANCE © {new Date().getFullYear()}
                     </p>
                 </div>
             </motion.div>

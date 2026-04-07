@@ -1,4 +1,4 @@
-# Product Guidelines: MX GESTÃO PREDITIVA
+# Product Guidelines: MX PERFORMANCE
 
 **Versão:** 1.0.0
 **Última Atualização:** 2026-04-02
@@ -9,7 +9,7 @@
 
 ## Overview
 
-Este documento define os padrões de usabilidade e experiência do usuário (UX) que regem o desenvolvimento do sistema MX Gestão Preditiva. Ele serve como critério de aceitação mandatório para toda nova funcionalidade, componente de interface ou refatoração.
+Este documento define os padrões de usabilidade e experiência do usuário (UX) que regem o desenvolvimento do sistema MX PERFORMANCE. Ele serve como critério de aceitação mandatório para toda nova funcionalidade, componente de interface ou refatoração.
 
 ### Objetivos Principais
 - **Consistência:** Garantir que o usuário nunca se sinta perdido entre as telas.

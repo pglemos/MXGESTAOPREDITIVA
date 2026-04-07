@@ -1,4 +1,4 @@
--- MX Gestão Preditiva
+-- MX PERFORMANCE
 -- Reconciliação final EPIC-09 a EPIC-12 sobre o estado live consolidado até 20260407006100.
 -- Objetivo: fechar PDI 2.0, notificações inbox, reprocessamento hardening, views finais
 -- e helper mensal sem depender do histórico legado quebrado.

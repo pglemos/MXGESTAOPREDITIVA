@@ -26,13 +26,13 @@ export default function Privacy() {
                         <Lock size={32} />
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 relative z-10">Política de Privacidade</h1>
-                    <p className="text-gray-400 font-bold max-w-xl mx-auto opacity-80 relative z-10">Diretrizes de proteção e tratamento de dados corporativos no ecossistema MX Gestão Preditiva.</p>
+                    <p className="text-gray-400 font-bold max-w-xl mx-auto opacity-80 relative z-10">Diretrizes de proteção e tratamento de dados corporativos no ecossistema MX PERFORMANCE.</p>
                 </div>
 
                 <div className="p-10 md:p-16 space-y-10 text-text-primary">
                     <div className="prose prose-lg max-w-none">
                         <p className="text-lg text-gray-500 font-bold mb-8">
-                            A MX Gestão Preditiva respeita a privacidade dos seus usuários. Esta política descreve como coletamos, usamos e protegemos as informações trafegadas em nosso sistema, assegurando conformidade com as melhores práticas de governança de dados.
+                            A MX PERFORMANCE respeita a privacidade dos seus usuários. Esta política descreve como coletamos, usamos e protegemos as informações trafegadas em nosso sistema, assegurando conformidade com as melhores práticas de governança de dados.
                         </p>
 
                         <div className="grid md:grid-cols-2 gap-8 mb-12">

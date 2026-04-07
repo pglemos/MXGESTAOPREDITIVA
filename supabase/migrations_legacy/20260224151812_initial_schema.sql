@@ -1,4 +1,4 @@
--- MX Gestão Preditiva CRM & Management System Schema (Canonical Domain)
+-- MX PERFORMANCE CRM & Management System Schema (Canonical Domain)
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

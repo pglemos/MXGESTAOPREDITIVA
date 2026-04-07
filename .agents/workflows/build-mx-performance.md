@@ -1,12 +1,12 @@
 ---
-description: Build MX Gestão Preditiva v1.0 — Full autonomous implementation from PRD v5.0
+description: Build MX PERFORMANCE v1.0 — Full autonomous implementation from PRD v5.0
 ---
 
-# 🚀 MX Gestão Preditiva — Workflow de Implementação Completo
+# 🚀 MX PERFORMANCE — Workflow de Implementação Completo
 
-> **PRD:** `/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/PRD_MX_Gestao_Preditiva_90D_atualizado.md`
+> **PRD:** `/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/PRD_MX_Gestao_Preditiva_90D_atualizado.md`
 > **Stack:** Vite + React 19 + TypeScript + Tailwind CSS v4 + Supabase + Vercel
-> **Projeto:** `/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA`
+> **Projeto:** `/Users/pedroguilherme/PROJETOS/MX PERFORMANCE`
 > **Supabase ID:** `fbhcmzzgwjdgkctlfvbo`
 
 ---
@@ -19,7 +19,7 @@ description: Build MX Gestão Preditiva v1.0 — Full autonomous implementation 
 2. Conecte tudo ao Supabase real — zero mock data
 3. Design premium — Inter, cores modernas, micro-animações, glassmorphism
 4. 3 canais de venda (porta/carteira/internet) em TUDO
-5. Login de teste: `admin@mxgestaopreditiva.com.br` / `Jose20161@`
+5. Login de teste: `admin@mxperformance.com.br` / `Jose20161@`
 6. Após cada fase: `npm run build` para validar + teste via browser `http://localhost:3000`
 
 ---
@@ -27,7 +27,7 @@ description: Build MX Gestão Preditiva v1.0 — Full autonomous implementation 
 ## FASE 0 — LIMPEZA
 
 ### 0.1: Limpar código CRM antigo
-1. `git checkout -b feature/mx-gestao-preditiva-v1`
+1. `git checkout -b feature/mx-performance-v1`
 2. Deletar páginas CRM:
    - `Activities.tsx`, `Agenda.tsx`, `AiDiagnostics.tsx`, `CommissionRules.tsx`
    - `Communication.tsx`, `CrossSalesReports.tsx`, `Financeiro.tsx`, `Inventory.tsx`
@@ -39,7 +39,7 @@ description: Build MX Gestão Preditiva v1.0 — Full autonomous implementation 
 ### 0.2: Atualizar projeto
 1. `package.json`: remover `@google/genai`, `@hello-pangea/dnd`, `express`, `pg`, `playwright`, `postgres`, `xlsx`
 2. `npm install`
-3. `index.html`: title = "MX Gestão Preditiva"
+3. `index.html`: title = "MX PERFORMANCE"
 
 ---
 
@@ -149,7 +149,7 @@ Criar `src/lib/calculations.ts`:
 
 ### 3.1: Login
 Reescrever `src/pages/Login.tsx`:
-- Design premium, logo "MX Gestão Preditiva"
+- Design premium, logo "MX PERFORMANCE"
 - Email + Senha → Supabase signInWithPassword
 - Redirect por role: consultor→`/painel`, gerente→`/loja`, vendedor→`/home`
 
@@ -311,4 +311,4 @@ Vendedores reais das 8 lojas, metas reais, dados de teste.
 
 ---
 
-*Workflow v1.0 — MX Gestão Preditiva · PRD v5.0*
+*Workflow v1.0 — MX PERFORMANCE · PRD v5.0*

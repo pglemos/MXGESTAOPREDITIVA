@@ -6,9 +6,9 @@ Ready for Review
 
 ## Contexto
 
-O produto MX Gestao Preditiva deve operar com a matriz oficial de papeis definida pelo dominio:
+O produto MX PERFORMANCE deve operar com a matriz oficial de papeis definida pelo dominio:
 
-- `admin`: governanca total da MX Gestao Preditiva em todas as lojas.
+- `admin`: governanca total da MX PERFORMANCE em todas as lojas.
 - `dono`: visao executiva das lojas vinculadas, sem operacao diaria.
 - `gerente`: operacao da loja e desenvolvimento da equipe.
 - `vendedor`: execucao individual, leitura e ciencia dos rituais.
@@ -41,7 +41,7 @@ O produto MX Gestao Preditiva deve operar com a matriz oficial de papeis definid
 
 ## Supabase Live Validation
 
-- [x] Projeto CLI linkado em `fbhcmzzgwjdgkctlfvbo` / `MX GESTAO PREDITIVA`.
+- [x] Projeto CLI linkado em `fbhcmzzgwjdgkctlfvbo` / `MX PERFORMANCE`.
 - [x] `supabase db push --dry-run` nao foi usado para aplicar porque o historico remoto diverge das migrations locais antigas.
 - [x] Snapshot critico pre-migration salvo em `supabase/.temp/backups/pre_role_matrix_20260407150825_metadata.json`.
 - [x] Migration `20260407000000_role_matrix_dono_admin.sql` validada em transacao com `ROLLBACK`.

@@ -99,7 +99,7 @@ td{padding:18px 12px;border-bottom:1px solid #f1f5f9;font-size:14px;font-weight:
 <tbody>${ranking.map((r: any, i: number) => `<tr><td>${i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}${r.name}</td><td>${r.leads}</td><td>${r.vis}</td><td>${r.vt}</td></tr>`).join("")}</tbody></table>
 <a href="https://api.whatsapp.com/send?text=${wppText}" class="btn">COMPARTILHAR FEEDBACK WHATSAPP</a>
 </div>
-<div class="f">MX Authority • Gestão Preditiva © ${year}</div>
+<div class="f">MX Authority • PERFORMANCE © ${year}</div>
 </div></body></html>`;
 }
 ```
@@ -136,7 +136,7 @@ Locate the `for (const store of stores)` loop and update the email sending secti
             if (resend && recipients.length > 0) {
                 try {
                     await resend.emails.send({
-                        from: "MX Relatórios <relatorios@mxgestaopreditiva.com.br>",
+                        from: "MX Relatórios <relatorios@mxperformance.com.br>",
                         to: recipients,
                         subject: `🏆 Relatório Mensal MX: ${store.name} - ${monthName.toUpperCase()}`,
                         html: html,

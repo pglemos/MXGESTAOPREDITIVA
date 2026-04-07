@@ -22,7 +22,7 @@ import { chromium } from 'playwright';
     console.log('🔐 LOGIN: Autenticando na Plataforma');
     console.log('========================================');
     await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle' });
-    await page.fill('input[type="email"]', 'admin@mxgestaopreditiva.com.br');
+    await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
     await page.fill('input[type="password"]', 'Jose20161@');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/painel', { timeout: 15000 });

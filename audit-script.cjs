@@ -41,7 +41,7 @@ const urls = [
   '/perfil'
 ];
 
-const baseUrl = 'https://mxgestaopreditiva.vercel.app';
+const baseUrl = 'https://mxperformance.vercel.app';
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -77,7 +77,7 @@ const baseUrl = 'https://mxgestaopreditiva.vercel.app';
   await page.goto(`${baseUrl}/login`);
   
   console.log('Typing credentials...');
-  await page.fill('input[type="email"]', 'admin@mxgestaopreditiva.com.br');
+  await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   
   console.log('Clicking login...');

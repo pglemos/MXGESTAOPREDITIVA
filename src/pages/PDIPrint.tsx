@@ -45,7 +45,7 @@ export default function PDIPrint() {
                         <div className="w-10 h-10 bg-slate-950 rounded-xl flex items-center justify-center text-white">
                             <Target size={24} />
                         </div>
-                        <span className="text-2xl font-black tracking-tighter uppercase">MX Gestão Preditiva</span>
+                        <span className="text-2xl font-black tracking-tighter uppercase">MX PERFORMANCE</span>
                     </div>
                     <h1 className="text-5xl font-black tracking-tighter leading-none uppercase">Certificado de <span className="text-indigo-600">Compromisso</span></h1>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-[0.4em] mt-3">Plano de Desenvolvimento Individual (PDI 2.0)</p>
@@ -145,7 +145,7 @@ export default function PDIPrint() {
             </div>
 
             <div className="mt-20 text-center">
-                <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">MX Gestão Preditiva — AIOX MASTER CERTIFIED SYSTEM</p>
+                <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">MX PERFORMANCE — AIOX MASTER CERTIFIED SYSTEM</p>
             </div>
 
             <button 

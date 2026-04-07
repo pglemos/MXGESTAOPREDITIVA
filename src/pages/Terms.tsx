@@ -26,13 +26,13 @@ export default function Terms() {
                         <FileText size={32} />
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 relative z-10">Termos de Serviço</h1>
-                    <p className="text-gray-400 font-bold max-w-xl mx-auto opacity-80 relative z-10">Condições gerais de provimento e acesso ao conjunto de ferramentas MX Gestão Preditiva.</p>
+                    <p className="text-gray-400 font-bold max-w-xl mx-auto opacity-80 relative z-10">Condições gerais de provimento e acesso ao conjunto de ferramentas MX PERFORMANCE.</p>
                 </div>
 
                 <div className="p-10 md:p-16 space-y-10 text-text-primary">
                     <div className="prose prose-lg max-w-none">
                         <p className="text-lg text-gray-500 font-bold mb-8">
-                            O acesso contínuo e a utilização do sistema MX Gestão Preditiva caracterizam concordância incondicional com as diretrizes e regras aqui estipuladas. Recomendamos leitura atenta desta documentação.
+                            O acesso contínuo e a utilização do sistema MX PERFORMANCE caracterizam concordância incondicional com as diretrizes e regras aqui estipuladas. Recomendamos leitura atenta desta documentação.
                         </p>
 
                         <div className="grid md:grid-cols-2 gap-8 mb-12">

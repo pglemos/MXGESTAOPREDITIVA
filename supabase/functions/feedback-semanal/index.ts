@@ -78,7 +78,7 @@ Deno.serve(async (req: Request) => {
                 } else {
                     try {
                         const { error } = await resend.emails.send({
-                            from: "MX Relatórios <relatorios@mxgestaopreditiva.com.br>",
+                            from: "MX Relatórios <relatorios@mxperformance.com.br>",
                             to: payload.recipients,
                             subject: `Feedback Semanal MX: ${store.name} (${formatPtBrDate(dates.weekStart)} a ${formatPtBrDate(dates.weekEnd)})`,
                             html,
@@ -427,7 +427,7 @@ ${payload.ranking.map((row) => `
 <a href="${payload.reportUrl}" class="btn">Acessar relatorio completo</a>
 <a href="https://api.whatsapp.com/send?text=${wppText}" class="btn wpp">Enviar via WhatsApp</a>
 </div>
-<div class="f">MX Gestao Preditiva © ${payload.year}</div>
+<div class="f">MX PERFORMANCE © ${payload.year}</div>
 </div></body></html>`;
 }
 

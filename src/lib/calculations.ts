@@ -1,5 +1,5 @@
 // ============================================
-// MX Gestão Preditiva — Business Calculations
+// MX PERFORMANCE — Business Calculations
 // ============================================
 
 import type { DailyCheckin, CheckinTotals, FunnelData, FunnelDiagnostic, Benchmark, CheckinFormData, StoreMetaRules } from '@/types/database'

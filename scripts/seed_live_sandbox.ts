@@ -29,16 +29,16 @@ export type SandboxContext = {
 const STORE_NAME = process.env.MX_SANDBOX_STORE_NAME || 'SANDBOX MX QA';
 const PASSWORD = process.env.MX_SANDBOX_PASSWORD || 'Mx#2026!';
 const EMAILS: Record<SandboxUserKey, string> = {
-  admin: 'admin@mxgestaopreditiva.com.br',
-  owner: 'dono@mxgestaopreditiva.com.br',
-  manager: 'gerente@mxgestaopreditiva.com.br',
-  seller: 'vendedor@mxgestaopreditiva.com.br',
+  admin: 'admin@mxperformance.com.br',
+  owner: 'dono@mxperformance.com.br',
+  manager: 'gerente@mxperformance.com.br',
+  seller: 'vendedor@mxperformance.com.br',
 };
 const LEGACY_EMAILS: Record<SandboxUserKey, string> = {
-  admin: 'sandbox.admin@mxgestaopreditiva.com.br',
-  owner: 'sandbox.dono@mxgestaopreditiva.com.br',
-  manager: 'sandbox.gerente@mxgestaopreditiva.com.br',
-  seller: 'sandbox.vendedor@mxgestaopreditiva.com.br',
+  admin: 'sandbox.admin@mxperformance.com.br',
+  owner: 'sandbox.dono@mxperformance.com.br',
+  manager: 'sandbox.gerente@mxperformance.com.br',
+  seller: 'sandbox.vendedor@mxperformance.com.br',
 };
 
 function getEnv(name: string) {

@@ -1,7 +1,7 @@
-# PRD — MX Gestão Preditiva 90D (Consultoria de Performance para Lojistas Automotivos)
+# PRD — MX PERFORMANCE 90D (Consultoria de Performance para Lojistas Automotivos)
 
 **Versão:** 3.0 — 28/02/2026
-**Produto:** MX Gestão Preditiva 90D
+**Produto:** MX PERFORMANCE 90D
 **Modelo:** Sistema de Consultoria e Gestão de Performance (não-CRM) para **donos de lojas/agências automotivas**, **gerentes** e **vendedores**
 **Plataformas:** Web (Admin/Dono) + App Web-Mobile (PWA) (Gerente/Vendedor)
 **Base conceitual:** sistema antigo de consultoria (planilha + formulário + automações) descrito em `auditoria_sistema_comercial`
@@ -11,7 +11,7 @@
 
 ## 0) Sumário Executivo
 
-O MX Gestão Preditiva 90D é um sistema operacional de performance para operação de loja automotiva.
+O MX PERFORMANCE 90D é um sistema operacional de performance para operação de loja automotiva.
 Ele substitui o “sistema antigo” (Google Sheets + Form + Apps Script) por um produto com:
 
 - **Check-in diário do vendedor** (Leads, Agendamentos, Visitas, Vendas) com validações e anti-duplicidade
@@ -63,7 +63,7 @@ Entregar um sistema simples e obrigatório de uso diário, que transforme dados 
 
 ## 4) Personas e Permissões
 
-### 4.1 Admin / MX Gestão Preditiva (WEB)
+### 4.1 Admin / MX PERFORMANCE (WEB)
 **Visão:** global (todas as lojas)
 **Pode:**
 - Ver lojas, donos, gerentes, vendedores, performance, metas, benchmarks, funil, treinamentos, produtos digitais, notificações, relatórios, reprocessamento, PDI e feedback

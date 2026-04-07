@@ -36,7 +36,7 @@ Fix the `relatorio-matinal` Supabase Edge Function to actually send emails to co
 
 ## Metadata & Secrets
 - **Required Secrets**: `RESEND_API_KEY` must be set in Supabase.
-- **From Address**: `relatorios@mxgestaopreditiva.com.br` (Official MX).
+- **From Address**: `relatorios@mxperformance.com.br` (Official MX).
 
 ## Verification & Testing
 - Use `deno run` or `supabase functions serve` to test locally.

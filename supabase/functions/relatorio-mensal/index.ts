@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
         } else {
           try {
             const { error } = await resend.emails.send({
-              from: "MX Relatórios <relatorios@mxgestaopreditiva.com.br>",
+              from: "MX Relatórios <relatorios@mxperformance.com.br>",
               to: payload.recipients,
               subject: `Fechamento Mensal MX: ${store.name} - ${payload.monthLabel.toUpperCase()}`,
               html,

@@ -1,4 +1,4 @@
-# AIOX Execution Plan: MX Gestão Preditiva (v1.1)
+# AIOX Execution Plan: MX PERFORMANCE (v1.1)
 **Data de Execução:** 03 de Abril de 2026
 **Modo de Operação:** *yolo (Auto)
 **Comandante:** Orion (AIOX Master Orchestrator)

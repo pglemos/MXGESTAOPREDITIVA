@@ -1,5 +1,5 @@
 // ============================================
-// MX Gestão Preditiva — Database Types
+// MX PERFORMANCE — Database Types
 // ============================================
 
 export type UserRole = 'admin' | 'dono' | 'gerente' | 'vendedor'

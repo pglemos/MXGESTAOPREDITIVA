@@ -72,7 +72,7 @@ Deno.serve(async (req: Request) => {
                 } else {
                     try {
                         const { error } = await resend.emails.send({
-                            from: "MX Relatórios <relatorios@mxgestaopreditiva.com.br>",
+                            from: "MX Relatórios <relatorios@mxperformance.com.br>",
                             to: payload.recipients,
                             subject: `Matinal MX: ${store.name} - ${formatPtBrDate(payload.referenceDate)}`,
                             html,
@@ -361,7 +361,7 @@ ${payload.ranking.slice(0, 3).map((row, index) => `${index + 1}º ${row.name} - 
 
 ${payload.semRegistro.length > 0 ? `SEM REGISTRO:\n${payload.semRegistro.join(", ")}` : "Todos registraram."}
 
-MX Gestao Preditiva`;
+MX PERFORMANCE`;
 }
 
 function generateHTML(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
@@ -399,7 +399,7 @@ ${payload.semRegistro.length > 0 ? `<div class="sr">Atencao: ${payload.semRegist
 <tbody>${payload.ranking.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${row.leads}</td><td>${row.agd_today}</td><td>${row.vis}</td><td>${row.vt}</td><td>${row.sem_registro ? "Sem registro" : "OK"}</td></tr>`).join("")}</tbody></table>
 <a href="${wppLink}" class="btn">Enviar no WhatsApp</a>
 </div>
-<div class="f">MX Gestao Preditiva © ${payload.year}</div>
+<div class="f">MX PERFORMANCE © ${payload.year}</div>
 </div></body></html>`;
 }
 

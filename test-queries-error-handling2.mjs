@@ -6,7 +6,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function test() {
   const { data: { session }, error } = await supabase.auth.signInWithPassword({
-    email: 'admin@mxgestaopreditiva.com.br',
+    email: 'admin@mxperformance.com.br',
     password: 'Jose20161@',
   })
   if (error) {

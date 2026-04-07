@@ -122,7 +122,7 @@ export default function MorningReport() {
             `*RANKING ACUMULADO*`,
             rankingText,
             ``,
-            `_Gerado via MX Gestão Preditiva_`,
+            `_Gerado via MX PERFORMANCE_`,
         ].join('\n')
 
         const groupRef = deliveryRules?.whatsapp_group_ref

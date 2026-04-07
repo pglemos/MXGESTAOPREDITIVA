@@ -143,7 +143,7 @@ export default function Layout() {
           </button>
           <div className="flex flex-col min-w-0">
             <span className="font-black text-xl tracking-tighter text-text-primary whitespace-nowrap truncate uppercase">
-              MX <span className="text-brand-primary">Gestão Preditiva</span>
+              MX <span className="text-brand-primary">PERFORMANCE</span>
             </span>
           </div>
         </div>

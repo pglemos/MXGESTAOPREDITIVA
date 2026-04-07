@@ -175,5 +175,5 @@ phases:
         files: [validate-visual.cjs]
         verification:
           type: browser
-          url: https://mxgestaopreditiva.vercel.app
+          url: https://mxperformance.vercel.app
         status: pending

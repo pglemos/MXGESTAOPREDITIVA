@@ -400,6 +400,40 @@ export default function VendedorHome() {
                             ))}
                         </div>
                     </div>
+
+                    {/* Timeline de Rotina MX (Basado na Apostila) */}
+                    <div className="bg-white border border-gray-100 rounded-[3rem] p-10 md:p-12 shadow-sm relative overflow-hidden group">
+                        <div className="flex items-center justify-between mb-10 relative z-10">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm"><Clock size={24} /></div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-pure-black tracking-tighter uppercase leading-none">Minha Rotina MX</h3>
+                                    <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.3em] mt-1">Sua Agenda de Alta Performance</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                            {[
+                                { time: '08:00', task: 'Motivacional', desc: 'Leitura, áudio ou playlist energizadora.' },
+                                { time: '08:15', task: 'Organização', desc: 'Estratégia do dia e Terminal MX (Ontem).' },
+                                { time: '08:55', task: 'Novos Leads', desc: 'Boas-vindas e classificação Frio/Morno/Quente.' },
+                                { time: '11:00', task: 'Prospecção', desc: 'Carteira de clientes e redes sociais.' },
+                                { time: '13:00', task: 'Atendimento', desc: 'Atender agendados e confirmar novos.' },
+                                { time: '16:00', task: 'Lista Quente', desc: 'Trabalhar objeções e esquentar negociações.' },
+                                { time: '17:00', task: 'Fechamento', desc: 'Preparação para o próximo dia útil.' },
+                            ].map((r, i) => (
+                                <div key={i} className="flex items-center gap-6 p-5 rounded-2xl border border-gray-50 bg-gray-50/30 hover:bg-white hover:shadow-md transition-all group/task">
+                                    <div className="text-sm font-black text-indigo-600 font-mono-numbers shrink-0">{r.time}</div>
+                                    <div className="w-px h-8 bg-gray-200 group-hover/task:bg-indigo-200 transition-colors" />
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-950 uppercase tracking-tight mb-0.5">{r.task}</p>
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{r.desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Growth Section (4/12) */}

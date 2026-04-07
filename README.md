@@ -1,6 +1,6 @@
-# MX Gestão Preditiva
+# MX PERFORMANCE
 
-Sistema operacional de gestão preditiva para acompanhamento de performance comercial em lojas automotivas, com foco em rituais da Metodologia MX: lançamento diário, funil 20/60/33, ranking, feedback estruturado, PDI, treinamentos, relatórios recorrentes e reprocessamento de dados.
+Sistema operacional de gestão de performance comercial em lojas automotivas, com foco em rituais da Metodologia MX: lançamento diário, funil 20/60/33, ranking, feedback estruturado, PDI, treinamentos, relatórios recorrentes e reprocessamento de dados.
 
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com/)
 [![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)](https://react.dev/)
@@ -9,9 +9,9 @@ Sistema operacional de gestão preditiva para acompanhamento de performance come
 
 ## Identidade Do Projeto
 
-- Nome do produto: `MX Gestão Preditiva`
+- Nome do produto: `MX PERFORMANCE`
 - Repositório GitHub: `https://github.com/pglemos/MXGESTAOPREDITIVA`
-- Projeto Vercel: `mxgestaopreditiva`
+- Projeto Vercel: `mxperformance`
 - Vercel Project ID: `prj_fpYjxc851kMs55GzR6tgQEr7uWUj`
 - Stack principal: React 19, Vite 6, TypeScript, Supabase, Tailwind CSS 4, Radix UI, Recharts, Motion e Sonner
 
@@ -22,7 +22,7 @@ O aplicativo organiza a rotina de vendas por papel operacional:
 - Vendedor registra o ritual diário, acompanha histórico, ranking, feedback, PDI, treinamentos e notificações.
 - Gerente acompanha painel da loja, equipe, metas, funil, ranking, feedback, PDI, treinamentos e rotina gerencial.
 - Dono acompanha suas lojas, performance, metas, funil, relatórios, feedbacks e PDIs da equipe como visão executiva, sem operar a rotina diária.
-- Admin representa a MX Gestão Preditiva, com governança total sobre lojas, usuários, metas, benchmarks, treinamentos, produtos digitais, notificações, relatórios, reprocessamento, feedback e PDI.
+- Admin representa a MX PERFORMANCE, com governança total sobre lojas, usuários, metas, benchmarks, treinamentos, produtos digitais, notificações, relatórios, reprocessamento, feedback e PDI.
 
 O código também mantém módulos legados isolados sob `/legacy`, para que funcionalidades antigas continuem acessíveis sem confundir a navegação principal da Metodologia MX.
 
@@ -171,7 +171,7 @@ O servidor Vite usa `0.0.0.0:3000` por padrão.
 
 O deploy principal é Vercel:
 
-- Projeto: `mxgestaopreditiva`
+- Projeto: `mxperformance`
 - Project ID: `prj_fpYjxc851kMs55GzR6tgQEr7uWUj`
 - Framework: Vite
 - Build command: `npm run build`
@@ -179,7 +179,7 @@ O deploy principal é Vercel:
 - Repositório conectado: `pglemos/MXGESTAOPREDITIVA`
 - Branch de produção: `main`
 
-O projeto deve usar a identidade `MX Gestão Preditiva` e o slug `mxgestaopreditiva` em documentação, scripts e configurações novas.
+O projeto deve usar a identidade `MX PERFORMANCE` e o slug `mxperformance` em documentação, scripts e configurações novas.
 
 ## Qualidade
 
@@ -198,7 +198,7 @@ Observação: o AGENTS.md do projeto exige também atualização de story quando
 
 - A aplicação principal usa Supabase real e não Gemini.
 - `vite.config.ts` não injeta mais `GEMINI_API_KEY`.
-- Scripts, relatórios e documentação foram padronizados para `mxgestaopreditiva`.
+- Scripts, relatórios e documentação foram padronizados para `mxperformance`.
 - Os módulos sob `/legacy` existem para compatibilidade e não devem ser confundidos com o fluxo operacional principal da Metodologia MX.
 - `whatsapp-service/` é um serviço auxiliar separado; não faz parte do bundle Vite principal.
 

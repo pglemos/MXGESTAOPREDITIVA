@@ -35,7 +35,7 @@ quality_gates:
   build: passed
 supabase_live:
   project_ref: fbhcmzzgwjdgkctlfvbo
-  project_name: MX GESTAO PREDITIVA
+  project_name: MX PERFORMANCE
   migration: 20260407000000
   apply_method: direct_sql_transaction_plus_migration_repair
   status: applied_and_validated
