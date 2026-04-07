@@ -300,6 +300,9 @@ MX Gestao Preditiva`;
 function generateHTML(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
     const wppText = encodeURIComponent(generateWhatsAppText(payload));
     const statusColor = payload.reaching >= 100 ? "#10b981" : payload.reaching >= 80 ? "#4f46e5" : "#f43f5e";
+    const wppLink = payload.whatsappGroupRef && payload.whatsappGroupRef.startsWith("http")
+        ? payload.whatsappGroupRef
+        : `https://api.whatsapp.com/send?text=${wppText}`;
 
     return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
@@ -327,7 +330,7 @@ ${payload.semRegistro.length > 0 ? `<div class="sr">Atencao: ${payload.semRegist
 <div class="alert">Faltam ${payload.gap} vendas em ${payload.daysRemaining} dias (${payload.daysRemaining > 0 ? (payload.gap / payload.daysRemaining).toFixed(1) : 0}/dia)</div>
 <table><thead><tr><th>Vendedor</th><th>Leads</th><th>AGD Hoje</th><th>Visitas D-1</th><th>VND</th><th>Registro</th></tr></thead>
 <tbody>${payload.ranking.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${row.leads}</td><td>${row.agd_today}</td><td>${row.vis}</td><td>${row.vt}</td><td>${row.sem_registro ? "Sem registro" : "OK"}</td></tr>`).join("")}</tbody></table>
-<a href="https://api.whatsapp.com/send?text=${wppText}" class="btn">Enviar no WhatsApp</a>
+<a href="${wppLink}" class="btn">Enviar no WhatsApp</a>
 </div>
 <div class="f">MX Gestao Preditiva © ${payload.year}</div>
 </div></body></html>`;
