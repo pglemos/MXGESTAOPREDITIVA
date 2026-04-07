@@ -82,20 +82,34 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
     const createFeedback = async (data: FeedbackFormData) => {
         if (!profile || !storeId) return { error: 'Não autenticado' }
         if (role !== 'admin' && role !== 'gerente') return { error: 'Seu papel permite acompanhar feedbacks, mas não criar ou editar.' }
-        const { error } = await supabase.from('feedbacks').insert({
-            store_id: storeId, manager_id: profile.id, seller_id: data.seller_id,
+        
+        // Usamos upsert com base na constraint UNIQUE (seller_id, week_reference)
+        const { error } = await supabase.from('feedbacks').upsert({
+            store_id: storeId, 
+            manager_id: profile.id, 
+            seller_id: data.seller_id,
             week_reference: data.week_reference,
-            leads_week: data.leads_week, agd_week: data.agd_week,
-            visit_week: data.visit_week, vnd_week: data.vnd_week,
-            tx_lead_agd: data.tx_lead_agd, tx_agd_visita: data.tx_agd_visita,
+            leads_week: data.leads_week, 
+            agd_week: data.agd_week,
+            visit_week: data.visit_week, 
+            vnd_week: data.vnd_week,
+            tx_lead_agd: data.tx_lead_agd, 
+            tx_agd_visita: data.tx_agd_visita,
             tx_visita_vnd: data.tx_visita_vnd,
             meta_compromisso: data.meta_compromisso,
             team_avg_json: data.team_avg_json || {},
             diagnostic_json: data.diagnostic_json || {},
             commitment_suggested: data.commitment_suggested ?? data.meta_compromisso,
-            positives: data.positives, attention_points: data.attention_points,
-            action: data.action, notes: data.notes || null,
+            positives: data.positives, 
+            attention_points: data.attention_points,
+            action: data.action, 
+            notes: data.notes || null,
+            acknowledged: false, // Resetar ciência se for atualização
+            acknowledged_at: null
+        }, {
+            onConflict: 'seller_id, week_reference'
         })
+        
         if (!error) await fetchFeedbacks()
         return { error: error?.message || null }
     }

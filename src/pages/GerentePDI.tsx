@@ -32,16 +32,16 @@ export default function GerentePDI() {
         meta_6m: '',
         meta_12m: '',
         meta_24m: '',
-        comp_prospeccao: 5,
-        comp_abordagem: 5,
-        comp_demonstracao: 5,
-        comp_fechamento: 5,
-        comp_crm: 5,
-        comp_digital: 5,
-        comp_disciplina: 5,
-        comp_organizacao: 5,
-        comp_negociacao: 5,
-        comp_produto: 5,
+        comp_prospeccao: 6,
+        comp_abordagem: 6,
+        comp_demonstracao: 6,
+        comp_fechamento: 6,
+        comp_crm: 6,
+        comp_digital: 6,
+        comp_disciplina: 6,
+        comp_organizacao: 6,
+        comp_negociacao: 6,
+        comp_produto: 6,
         action_1: '',
         action_2: '',
         action_3: '',
@@ -100,8 +100,8 @@ export default function GerentePDI() {
             toast.error('Seu papel permite acompanhar PDIs, mas não criar ou editar.')
             return
         }
-        if (!form.seller_id || !form.meta_6m || !form.action_1) {
-            toast.error('Preencha as diretrizes mandatórias do PDI MX.')
+        if (!form.seller_id || !form.meta_6m || !form.action_1 || !form.action_2 || !form.action_3 || !form.action_4 || !form.action_5) {
+            toast.error('Preencha as 5 ações mandatórias do PDI MX.')
             return
         }
         setSaving(true)
@@ -114,8 +114,8 @@ export default function GerentePDI() {
             setShowForm(false)
             setForm({
                 seller_id: '', meta_6m: '', meta_12m: '', meta_24m: '',
-                comp_prospeccao: 5, comp_abordagem: 5, comp_demonstracao: 5, comp_fechamento: 5, comp_crm: 5,
-                comp_digital: 5, comp_disciplina: 5, comp_organizacao: 5, comp_negociacao: 5, comp_produto: 5,
+                comp_prospeccao: 6, comp_abordagem: 6, comp_demonstracao: 6, comp_fechamento: 6, comp_crm: 6,
+                comp_digital: 6, comp_disciplina: 6, comp_organizacao: 6, comp_negociacao: 6, comp_produto: 6,
                 action_1: '', action_2: '', action_3: '', action_4: '', action_5: '', due_date: ''
             })
         }
@@ -181,20 +181,23 @@ export default function GerentePDI() {
                         <form onSubmit={handleCreate} className="mx-card !border-none p-mx-lg md:p-mx-xl relative overflow-hidden bg-white">
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
 
-                            <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 rounded-2xl bg-pure-black text-white flex items-center justify-center shadow-2xl transform rotate-2">
-                                        <Target size={24} className="text-indigo-400" />
+                                    <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 rounded-2xl bg-pure-black text-white flex items-center justify-center shadow-2xl transform rotate-2">
+                                                <Target size={24} className="text-indigo-400" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Estruturar PDI</h3>
+                                                <div className="flex items-center gap-3">
+                                                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Diretriz de Crescimento Profissional</p>
+                                                    <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[8px] font-black rounded uppercase tracking-widest animate-pulse">Duração sugerida: 45 min</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
+                                            <X size={20} />
+                                        </button>
                                     </div>
-                                    <div>
-                                        <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Estruturar PDI</h3>
-                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Diretriz de Crescimento Profissional</p>
-                                    </div>
-                                </div>
-                                <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
-                                    <X size={20} />
-                                </button>
-                            </div>
 
                             <div className="grid lg:grid-cols-2 gap-12 relative z-10">
                                 <div className="space-y-8">
@@ -220,7 +223,7 @@ export default function GerentePDI() {
                                                 <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
                                                 <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.4em]">Radar de Capacidade MX</h4>
                                             </div>
-                                            <Badge variant="outline" className="border-white/10 text-white/40 font-black text-[8px] tracking-widest uppercase">Escala 0 a 10</Badge>
+                                            <Badge variant="outline" className="border-white/10 text-white/40 font-black text-[8px] tracking-widest uppercase">Escala 6 a 10</Badge>
                                         </div>
 
                                         <div className="grid grid-cols-1 gap-8 relative z-10">
@@ -247,11 +250,11 @@ export default function GerentePDI() {
                                                     <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                                                         <motion.div
                                                             initial={{ width: 0 }}
-                                                            animate={{ width: `${(form as any)[comp.id] * 10}%` }}
+                                                            animate={{ width: `${((form as any)[comp.id] / 10) * 100}%` }}
                                                             className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]"
                                                         />
                                                         <input
-                                                            type="range" min="0" max="10" step="1"
+                                                            type="range" min="6" max="10" step="1"
                                                             value={(form as any)[comp.id]}
                                                             onChange={e => setForm(p => ({ ...p, [comp.id]: Number(e.target.value) }))}
                                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
@@ -290,7 +293,7 @@ export default function GerentePDI() {
                                                 type="text"
                                                 value={(form as any)[`action_${num}`]}
                                                 onChange={e => setForm(p => ({ ...p, [`action_${num}`]: e.target.value }))}
-                                                required={num === 1}
+                                                required={true}
                                                 placeholder={`Descreva a ação ${num}...`}
                                                 className="premium-input !rounded-xl py-4"
                                             />
@@ -408,7 +411,7 @@ export default function GerentePDI() {
                                         ].map((c, idx) => (
                                             <div key={idx} className="flex flex-col gap-1">
                                                 <div className="w-full bg-slate-100 rounded-sm h-6 relative overflow-hidden">
-                                                    <div className={cn("absolute bottom-0 w-full rounded-sm transition-all", c.val < 5 ? "bg-rose-400" : "bg-indigo-400")} style={{ height: `${c.val * 10}%` }} />
+                                                    <div className={cn("absolute bottom-0 w-full rounded-sm transition-all", c.val < 7 ? "bg-rose-400" : "bg-indigo-400")} style={{ height: `${c.val * 10}%` }} />
                                                 </div>
                                                 <span className="text-[6px] font-black text-gray-300 text-center uppercase">{c.label}</span>
                                             </div>

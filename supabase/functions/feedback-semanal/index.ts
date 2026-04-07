@@ -65,7 +65,8 @@ Deno.serve(async (req: Request) => {
             const payload = await buildWeeklyPayload(store, dates);
             const html = generateWeeklyHTML(payload);
             const csvBase64 = generateCSV(payload.ranking);
-            const fileName = `feedback_semanal_MX_${store.name.replace(/\s+/g, "_")}_${dates.weekEnd}.csv`;
+            const jsonBase64 = btoa(JSON.stringify(payload, null, 2));
+            const baseFileName = `feedback_semanal_MX_${store.name.replace(/\s+/g, "_")}_${dates.weekEnd}`;
             let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
             let warnings: string[] = [];
 
@@ -81,7 +82,10 @@ Deno.serve(async (req: Request) => {
                             to: payload.recipients,
                             subject: `Feedback Semanal MX: ${store.name} (${formatPtBrDate(dates.weekStart)} a ${formatPtBrDate(dates.weekEnd)})`,
                             html,
-                            attachments: [{ filename: fileName, content: csvBase64 }],
+                            attachments: [
+                                { filename: `${baseFileName}.csv`, content: csvBase64 },
+                                { filename: `${baseFileName}.json`, content: jsonBase64 },
+                            ],
                         });
 
                         if (error) {

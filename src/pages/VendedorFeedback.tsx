@@ -265,7 +265,7 @@ export default function VendedorFeedback() {
                                                 {/* Radar de Capacidade MX */}
                                                 <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100 space-y-6">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em]">Radar de Capacidade (0-10)</span>
+                                                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em]">Radar de Capacidade (6-10)</span>
                                                         <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 border-none font-black text-[8px] uppercase tracking-widest px-2">Avaliação Gerencial</Badge>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-x-8 gap-y-4">
