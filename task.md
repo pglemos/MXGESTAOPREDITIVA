@@ -9,4 +9,5 @@
 
 - [x] EPIC-01: Domínio e Dados Canônicos (100% materializado e protegido)
 - [x] EPIC-02: Check-in Diário do Vendedor (100% amarrado ao fluxo operacional)
-- [x] EPIC-04: Rotina Diária do Gerente (Command Center unificado e registrado)
+- [x] EPIC-03: Painel da Loja e Ranking Oficial (100% com grade diária e seletor de unidade)
+- [x] EPIC-04: Rotina Diária do Gerente (100% com cobrança ativa e zonas de risco)
