@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { Training, TrainingProgress, Feedback, FeedbackFormData, WeeklyFeedbackReport, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin, Commission } from '@/types/database'
+import type { Training, TrainingProgress, Feedback, FeedbackFormData, WeeklyFeedbackReport, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin } from '@/types/database'
 import { startOfWeek } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 
@@ -308,25 +308,4 @@ export function useTeamTrainings() {
 
     useEffect(() => { fetchProgress() }, [fetchProgress])
     return { teamProgress, loading, refetch: fetchProgress }
-}
-
-// ============ COMMISSIONS ============
-export function useCommissions() {
-    const { storeId, role, profile } = useAuth()
-    const [commissions, setCommissions] = useState<Commission[]>([])
-    const [loading, setLoading] = useState(true)
-
-    const fetchCommissions = useCallback(async () => {
-        if (!storeId || !profile) return
-        setLoading(true)
-        let query = supabase.from('commissions').select('*, seller:users!commissions_seller_id_fkey(name)')
-        if (role === 'vendedor') query = query.eq('seller_id', profile.id)
-        else if (role === 'gerente' || role === 'dono') query = query.eq('store_id', storeId)
-        const { data } = await query.order('sale_date', { ascending: false })
-        if (data) setCommissions(data.map((c: any) => ({ ...c, seller_name: c.seller?.name || 'Vendedor' })))
-        setLoading(false)
-    }, [storeId, role, profile])
-
-    useEffect(() => { fetchCommissions() }, [fetchCommissions])
-    return { commissions, loading, refetch: fetchCommissions }
 }
