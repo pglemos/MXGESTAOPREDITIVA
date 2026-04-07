@@ -2,28 +2,61 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
-import { calcularAtingimento, calcularProjecao, calcularFaltaX, getDiasInfo, somarVendas, somarVendasPorCanal } from '@/lib/calculations'
+import { useTrainings } from '@/hooks/useData'
+import { calcularAtingimento, calcularProjecao, calcularFaltaX, getDiasInfo, somarVendas, somarVendasPorCanal, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Target, TrendingUp, Trophy, CheckSquare, Car, Users, Globe, BarChart3, AlertTriangle, ArrowRight, Star, ArrowUpRight, Zap, Sparkles, LayoutDashboard, Crown, Flame, RefreshCw, Phone, CalendarDays, History } from 'lucide-react'
-import { useMemo, useCallback, useState } from 'react'
+import { Target, TrendingUp, Trophy, CheckSquare, Car, Users, Globe, BarChart3, AlertTriangle, ArrowRight, Star, ArrowUpRight, Zap, Sparkles, LayoutDashboard, Crown, Flame, RefreshCw, Phone, CalendarDays, History, GraduationCap, Play } from 'lucide-react'
+import { useMemo, useCallback, useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { startOfWeek } from 'date-fns'
+import { Badge } from '@/components/ui/badge'
 
 export default function VendedorHome() {
     const { profile } = useAuth()
     const { checkins, todayCheckin, loading: checkisLoading, fetchCheckins: refetchCheckins } = useCheckins()
     const { storeGoal, sellerGoals, loading: goalsLoading, fetchGoals: refetchGoals } = useGoals()
     const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
+    const { trainings, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
     const [isRefetching, setIsRefetching] = useState(false)
     const navigate = useNavigate()
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        await Promise.all([refetchCheckins(), refetchGoals(), refetchRanking?.() || Promise.resolve()])
+        await Promise.all([
+            refetchCheckins(), 
+            refetchGoals(), 
+            refetchRanking?.() || Promise.resolve(),
+            refetchTrainings?.() || Promise.resolve()
+        ])
         setIsRefetching(false)
         toast.success('Cockpit de performance atualizado!')
-    }, [refetchCheckins, refetchGoals, refetchRanking])
+    }, [refetchCheckins, refetchGoals, refetchRanking, refetchTrainings])
+
+    // 🚀 Lógica de Prescrição MX na Home
+    const tacticalPrescription = useMemo(() => {
+        if (!checkins.length || !trainings.length) return null
+        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString().split('T')[0]
+        const recentCheckins = checkins.filter(c => c.seller_user_id === profile?.id && c.reference_date >= weekStart)
+        if (recentCheckins.length === 0) return null
+
+        const funil = calcularFunil(recentCheckins)
+        const diag = gerarDiagnosticoMX(funil)
+        if (!diag.gargalo) return null
+
+        const categoryMap: Record<string, string> = {
+            'LEAD_AGD': 'prospeccao',
+            'AGD_VISITA': 'atendimento',
+            'VISITA_VND': 'fechamento'
+        }
+
+        const category = categoryMap[diag.gargalo]
+        const recommended = trainings.find(t => t.type === category && !t.watched)
+        if (!recommended) return null
+
+        return { gargalo: diag.gargalo, label: diag.diagnostico, training: recommended }
+    }, [checkins, trainings, profile?.id])
 
     // 1. & 11. Performance: Memoized metrics
     const metrics = useMemo(() => {
@@ -65,7 +98,7 @@ export default function VendedorHome() {
     }, [checkins, profile, sellerGoals, storeGoal, ranking, todayCheckin])
 
 
-    if (checkisLoading || goalsLoading || rankingLoading) return (
+    if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
             <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin shadow-xl"></div>
             <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Sincronizando Suas Metas...</p>
@@ -136,6 +169,46 @@ export default function VendedorHome() {
                 </div>
             </div>
 
+            {/* Prescrição Tática MX - Mandatory Training Alert */}
+            <AnimatePresence>
+                {tacticalPrescription && (
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="shrink-0"
+                    >
+                        <div className="bg-indigo-600 text-white rounded-[3.5rem] p-10 sm:p-12 relative overflow-hidden group shadow-3xl">
+                            <div className="absolute top-0 right-0 w-[40%] h-full bg-gradient-to-l from-white/10 via-white/5 to-transparent pointer-events-none" />
+                            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-colors" />
+                            
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative z-10">
+                                <div className="w-20 h-20 rounded-[2rem] bg-white text-indigo-600 flex items-center justify-center shadow-2xl shrink-0 transform group-hover:rotate-6 transition-transform">
+                                    <GraduationCap size={40} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <Badge className="bg-rose-500 text-white border-none text-[8px] font-black tracking-widest px-3 h-6 uppercase">Correção Obrigatória</Badge>
+                                        <span className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.3em]">Gap: {tacticalPrescription.gargalo}</span>
+                                    </div>
+                                    <h3 className="text-3xl font-black tracking-tighter uppercase leading-none mb-3">Masterize sua {tacticalPrescription.training.type}</h3>
+                                    <p className="text-indigo-100 text-sm font-bold leading-relaxed opacity-80 max-w-2xl">
+                                        {tacticalPrescription.label} Conclua este treinamento hoje para normalizar seu funil.
+                                    </p>
+                                </div>
+                                <div className="shrink-0 w-full lg:w-auto">
+                                    <button 
+                                        onClick={() => navigate('/treinamentos')}
+                                        className="w-full lg:w-auto px-12 py-6 rounded-full bg-white text-indigo-600 text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:shadow-2xl hover:scale-105 transition-all active:scale-95 group/btn"
+                                    >
+                                        <Play size={18} className="fill-current group-hover/btn:scale-110" /> Iniciar Agora
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* CTA Check-in */}
             <div className="shrink-0 mb-2">
                 {!todayCheckin ? (
@@ -199,7 +272,7 @@ export default function VendedorHome() {
                     </motion.div>
                 )}
             </div>
-
+...
             {/* Stats grid - Cockpit Mode */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 shrink-0">
                 <StatCard index={0} icon={History} label="Produção Ontem" value={metrics.vendasOntem} sub="Consolidado" bg="bg-emerald-50" color="text-emerald-600" trend="Realizado" />
