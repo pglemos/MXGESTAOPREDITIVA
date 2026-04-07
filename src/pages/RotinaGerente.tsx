@@ -433,48 +433,44 @@ export default function RotinaGerente() {
                                 </div>
 
                                 <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-6">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 mb-4">
                                         <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-100">
                                             <ShieldCheck size={24} className="text-emerald-600" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-black uppercase tracking-tight leading-none">Execução da Rotina</h3>
+                                            <h3 className="text-lg font-black uppercase tracking-tight leading-none">Registro de Auditoria</h3>
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">
-                                                {routineLog ? `Registrada às ${new Date(routineLog.executed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Ainda não registrada hoje'}
+                                                {routineLog ? `Rotina salva às ${new Date(routineLog.executed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Auditoria não registrada hoje'}
                                             </p>
                                         </div>
                                     </div>
-                                    <textarea
-                                        value={routineNotes}
-                                        onChange={event => setRoutineNotes(event.target.value)}
-                                        placeholder="Observação opcional da rotina diária"
-                                        className="w-full min-h-24 rounded-3xl border border-gray-100 bg-gray-50 p-5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-200 focus:bg-white"
-                                    />
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <Link to="/feedback" className="h-12 rounded-2xl bg-slate-950 text-white text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                            <MessageSquare size={14} /> Feedback
-                                        </Link>
-                                        <Link to="/notificacoes" className="h-12 rounded-2xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                            <Mail size={14} /> Mensagem da Loja
-                                        </Link>
+                                    <div className="flex flex-col sm:flex-row items-stretch gap-4">
+                                        <textarea
+                                            value={routineNotes}
+                                            onChange={event => setRoutineNotes(event.target.value)}
+                                            placeholder="Nota operacional do dia..."
+                                            className="flex-1 min-h-14 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-xs font-bold text-slate-700 outline-none focus:border-indigo-200 focus:bg-white resize-none"
+                                        />
+                                        <button
+                                            onClick={handleRegisterRoutine}
+                                            disabled={savingRoutine || !!routineLog}
+                                            className="h-14 px-8 rounded-2xl bg-slate-950 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shrink-0 hover:bg-emerald-600 transition-colors"
+                                        >
+                                            {savingRoutine ? <RefreshCw size={14} className="animate-spin" /> : <FileCheck size={14} />}
+                                            {routineLog ? 'Registrado' : 'Registrar Rotina'}
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={handleRegisterRoutine}
-                                        disabled={savingRoutine}
-                                        className="w-full h-14 rounded-2xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        {savingRoutine ? <RefreshCw size={14} className="animate-spin" /> : <FileCheck size={14} />}
-                                        Registrar Rotina Executada
-                                    </button>
                                     {routineHistory.length > 0 && (
-                                        <div className="pt-4 border-t border-gray-100 space-y-2">
-                                            <p className="text-[8px] font-black uppercase tracking-widest text-gray-400">Histórico mínimo</p>
-                                            {routineHistory.slice(0, 3).map(log => (
-                                                <div key={log.id} className="flex items-center justify-between text-[10px] font-black uppercase text-gray-500">
-                                                    <span>{new Date(`${log.routine_date}T00:00:00`).toLocaleDateString('pt-BR')}</span>
-                                                    <span>{log.checkins_pending_count} pendentes</span>
-                                                </div>
-                                            ))}
+                                        <div className="pt-4 border-t border-gray-100 space-y-2 mt-4">
+                                            <p className="text-[8px] font-black uppercase tracking-widest text-gray-400">Histórico Recente</p>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                {routineHistory.slice(0, 3).map(log => (
+                                                    <div key={log.id} className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex flex-col gap-1 text-[10px] font-black uppercase text-gray-500">
+                                                        <span className="text-slate-950">{new Date(`${log.routine_date}T00:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+                                                        <span>{log.checkins_pending_count} pendentes</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
