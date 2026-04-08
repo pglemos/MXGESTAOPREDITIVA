@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { calcularAtingimento } from './calculations'
+import { calcularAtingimento, calcularFunil } from './calculations'
 
 describe('calcularAtingimento', () => {
   it('should calculate standard attainment percentage', () => {
@@ -31,3 +31,98 @@ describe('calcularAtingimento', () => {
     expect(calcularAtingimento(50, -10)).toBe(0)
   })
 })
+
+describe('calcularFunil', () => {
+  it('should calculate funnel data correctly with typical inputs', () => {
+    // We import DailyCheckin locally if needed or just use type assertion
+    const checkins: any[] = [
+      {
+        leads_prev_day: 10,
+        agd_cart_prev_day: 2,
+        agd_net_prev_day: 3,
+        visit_prev_day: 3,
+        vnd_porta_prev_day: 1,
+        vnd_cart_prev_day: 0,
+        vnd_net_prev_day: 1,
+      },
+      {
+        leads_prev_day: 20,
+        agd_cart_prev_day: 3,
+        agd_net_prev_day: 2,
+        visit_prev_day: 5,
+        vnd_porta_prev_day: 0,
+        vnd_cart_prev_day: 1,
+        vnd_net_prev_day: 0,
+      }
+    ];
+
+    const result = calcularFunil(checkins);
+
+    expect(result.leads).toBe(30);
+    expect(result.agd_total).toBe(10); // 2+3 + 3+2
+    expect(result.visitas).toBe(8); // 3+5
+    expect(result.vnd_total).toBe(3); // 1+0+1 + 0+1+0
+
+    // Rates
+    // tx_lead_agd = 10 / 30 = 33.33% -> 33
+    expect(result.tx_lead_agd).toBe(33);
+    // tx_agd_visita = 8 / 10 = 80% -> 80
+    expect(result.tx_agd_visita).toBe(80);
+    // tx_visita_vnd = 3 / 8 = 37.5% -> 38
+    expect(result.tx_visita_vnd).toBe(38);
+  });
+
+  it('should handle empty input array', () => {
+    const result = calcularFunil([]);
+    expect(result).toEqual({
+      leads: 0,
+      agd_total: 0,
+      visitas: 0,
+      vnd_total: 0,
+      tx_lead_agd: 0,
+      tx_agd_visita: 0,
+      tx_visita_vnd: 0,
+    });
+  });
+
+  it('should treat undefined or null values as 0', () => {
+    const checkins: any[] = [
+      {
+        leads_prev_day: undefined,
+        agd_cart_prev_day: null,
+        agd_net_prev_day: 5,
+        visit_prev_day: undefined,
+        vnd_porta_prev_day: null,
+        vnd_cart_prev_day: null,
+        vnd_net_prev_day: null,
+      }
+    ];
+
+    const result = calcularFunil(checkins);
+
+    expect(result.leads).toBe(0);
+    expect(result.agd_total).toBe(5);
+    expect(result.visitas).toBe(0);
+    expect(result.vnd_total).toBe(0);
+  });
+
+  it('should prevent division by zero when calculating rates', () => {
+    const checkins: any[] = [
+      {
+        leads_prev_day: 0,
+        agd_cart_prev_day: 0,
+        agd_net_prev_day: 0,
+        visit_prev_day: 0,
+        vnd_porta_prev_day: 0,
+        vnd_cart_prev_day: 0,
+        vnd_net_prev_day: 0,
+      }
+    ];
+
+    const result = calcularFunil(checkins);
+
+    expect(result.tx_lead_agd).toBe(0);
+    expect(result.tx_agd_visita).toBe(0);
+    expect(result.tx_visita_vnd).toBe(0);
+  });
+});
