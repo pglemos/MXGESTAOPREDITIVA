@@ -17,22 +17,24 @@ export default function SalesPerformance() {
     const [isRefetching, setIsRefetching] = useState(false)
 
     const stats = useMemo(() => {
-        const total = mockYearlySales.reduce((acc, curr) => acc + curr.sales, 0)
-        const avg = total / 12
+        if (!mockYearlySales || mockYearlySales.length === 0) return [];
+        const total = mockYearlySales.reduce((acc, curr) => acc + curr.sales, 0);
+        const avg = total / 12;
         return [
             { title: 'Volume Bruto', value: formatCurrency(total), trend: '+18.4%', icon: TrendingUp, color: 'text-brand-primary', bg: 'bg-brand-primary-surface' },
             { title: 'Ticket Médio', value: formatCurrency(avg / 10), trend: '+5.2%', icon: Tag, color: 'text-status-success', bg: 'bg-status-success-surface' },
             { title: 'Market Share', value: '24.2%', trend: '+2.1%', icon: Activity, color: 'text-status-warning', bg: 'bg-status-warning-surface' },
-        ]
-    }, [])
+        ];
+    }, []);
 
     const categoryStats = useMemo(() => {
-        const total = mockCategorySales.reduce((acc, curr) => acc + curr.value, 0)
+        if (!mockCategorySales || mockCategorySales.length === 0) return [];
+        const total = mockCategorySales.reduce((acc, curr) => acc + curr.value, 0);
         return mockCategorySales.map(cat => ({
             ...cat,
             pct: Math.round((cat.value / total) * 100)
-        }))
-    }, [])
+        }));
+    }, []);
 
     return (
         <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl text-text-primary">
