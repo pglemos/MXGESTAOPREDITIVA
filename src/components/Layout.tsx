@@ -242,14 +242,98 @@ export default function Layout() {
         </AnimatePresence>
       </div>
 
-      {/* Mobile Bar - Unificada */}
-      <nav className="md:hidden fixed bottom-mx-sm left-mx-sm right-mx-sm h-16 bg-brand-secondary/95 backdrop-blur-xl shadow-mx-elite rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10">
-        <div className="flex w-full justify-between items-center">
-          <NavLink to="/painel" aria-label="Abrir painel" className="text-white/40 [&.active]:text-white transition-colors"><LayoutDashboard size={24} aria-hidden="true" /></NavLink>
-          <NavLink to="/lojas" aria-label="Abrir lojas" className="text-white/40 [&.active]:text-white transition-colors"><Database size={24} aria-hidden="true" /></NavLink>
-          <button type="button" aria-label="Abrir menu mobile" onClick={() => setMobileMenuOpen(true)} className="w-12 h-12 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20"><Menu size={24} aria-hidden="true" /></button>
-          <NavLink to="/ranking" aria-label="Abrir ranking" className="text-white/40 [&.active]:text-white transition-colors"><Trophy size={24} aria-hidden="true" /></NavLink>
-          <NavLink to="/perfil" aria-label="Abrir perfil" className="text-white/40 [&.active]:text-white transition-colors"><User size={24} aria-hidden="true" /></NavLink>
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[100] md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[3rem] p-mx-xl pb-32 max-h-[80vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-12 h-1.5 bg-gray-100 rounded-full mx-auto mb-8" />
+              <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-secondary text-white flex items-center justify-center shadow-lg"><Zap size={24} /></div>
+                  <div>
+                    <h3 className="text-xl font-black text-text-primary tracking-tighter uppercase">Menu MX</h3>
+                    <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">{role} level</p>
+                  </div>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-text-tertiary"><X size={24} /></button>
+              </div>
+
+              <div className="space-y-10">
+                {categories.map(cat => (
+                  <div key={cat.category} className="space-y-4">
+                    <div className="flex items-center gap-3 px-2">
+                      <div className="text-brand-primary">{cat.icon}</div>
+                      <span className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em]">{cat.category}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {cat.items.map(item => (
+                        <NavLink
+                          key={item.path} to={item.path} onClick={() => setMobileMenuOpen(false)}
+                          className={({ isActive }) => cn(
+                            "flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black uppercase tracking-tight transition-all",
+                            isActive ? 'bg-brand-primary text-white shadow-mx-lg' : 'bg-mx-slate-50 text-text-secondary active:bg-gray-100'
+                          )}
+                        >
+                          {item.icon} {item.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <button onClick={() => signOut()} className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl bg-rose-50 text-rose-600 text-sm font-black uppercase tracking-tight transition-all active:bg-rose-100">
+                  <LogOut size={20} /> Encerrar Sessão
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Bar - Unificada e Dinâmica */}
+      <nav className="md:hidden fixed bottom-mx-sm left-mx-sm right-mx-sm h-16 bg-slate-950 shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden">
+        <div className="flex w-full justify-between items-center relative z-10">
+          <NavLink to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : '/lojas'} className="w-12 h-12 flex items-center justify-center text-white/40 [&.active]:text-white transition-colors">
+            {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
+          </NavLink>
+          
+          {role === 'vendedor' && (
+            <NavLink to="/checkin" className="w-12 h-12 flex items-center justify-center text-white/40 [&.active]:text-white transition-colors">
+              <CheckSquare size={22} />
+            </NavLink>
+          )}
+
+          {(role === 'gerente' || role === 'admin') && (
+            <NavLink to="/equipe" className="w-12 h-12 flex items-center justify-center text-white/40 [&.active]:text-white transition-colors">
+              <Users size={22} />
+            </NavLink>
+          )}
+
+          <button 
+            type="button" 
+            aria-label="Abrir menu mobile" 
+            onClick={() => setMobileMenuOpen(true)} 
+            className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-slate-950"
+          >
+            <Menu size={24} aria-hidden="true" />
+          </button>
+
+          <NavLink to="/ranking" className="w-12 h-12 flex items-center justify-center text-white/40 [&.active]:text-white transition-colors">
+            <Trophy size={22} />
+          </NavLink>
+
+          <NavLink to="/perfil" className="w-12 h-12 flex items-center justify-center text-white/40 [&.active]:text-white transition-colors">
+            <User size={22} />
+          </NavLink>
         </div>
       </nav>
     </div>

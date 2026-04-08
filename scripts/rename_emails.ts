@@ -1,36 +1,39 @@
-import { createClient } from '@supabase/supabase-js'
+import postgres from 'postgres'
 import * as dotenv from 'dotenv'
 import { resolve } from 'path'
 
 dotenv.config({ path: resolve(process.cwd(), '.env') })
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const connectionString = process.env.POSTGRES_URL
+if (!connectionString) {
+    console.error('Error: POSTGRES_URL not found')
+    process.exit(1)
+}
 
-const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
+const sql = postgres(connectionString, { ssl: 'require' })
+
+const MAPPING = [
+    { from: 'admin@mxperformance.com.br', to: 'admin@mxgestaopreditiva.com.br' },
+    { from: 'dono@mxperformance.com.br', to: 'dono@mxgestaopreditiva.com.br' },
+    { from: 'gerente@mxperformance.com.br', to: 'gerente@mxgestaopreditiva.com.br' },
+    { from: 'vendedor@mxperformance.com.br', to: 'vendedor@mxgestaopreditiva.com.br' }
+]
 
 async function renameEmails() {
-    console.log('--- RENAMING EMAILS TO mxperformance.com.br ---')
+    console.log('--- RESTORING EMAILS TO USER SPECIFIED DOMAIN ---')
     
-    // 1. Get all auth users
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    if (!authUsers) return
-
-    for (const u of authUsers.users) {
-        if (u.email && u.email.endsWith('@mxgestaopreditiva.com.br')) {
-            const newEmail = u.email.replace('@mxgestaopreditiva.com.br', '@mxperformance.com.br')
-            console.log(`Renaming ${u.email} -> ${newEmail}`)
-            
-            // 2. Update Auth email
-            const { error: authError } = await supabase.auth.admin.updateUserById(u.id, { email: newEmail })
-            if (authError) console.error('Error renaming auth user:', authError)
-            
-            // 3. Update public.users record
-            const { error: userError } = await supabase.from('users').update({ email: newEmail }).eq('id', u.id)
-            if (userError) console.error('Error renaming public user:', userError)
-        }
+    for (const m of MAPPING) {
+        console.log(`Renaming ${m.from} to ${m.to}...`)
+        
+        // 1. Update auth.users
+        await sql`UPDATE auth.users SET email = ${m.to} WHERE email = ${m.from}`
+        
+        // 2. Update public.users
+        await sql`UPDATE public.users SET email = ${m.to} WHERE email = ${m.from}`
     }
-    console.log('Renaming complete.')
+
+    console.log('\nRename complete.')
+    await sql.end()
 }
 
 renameEmails().catch(console.error)
