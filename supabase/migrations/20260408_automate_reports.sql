@@ -57,19 +57,3 @@ SELECT cron.schedule(
     );
     $$
 );
-
--- 3. Mensal: Todo dia 01 às 10:30 BRT (13:30 UTC)
-SELECT cron.schedule(
-    'mx-monthly-report',
-    '30 13 1 * *',
-    $$
-    SELECT net.http_post(
-        url := 'https://fbhcmzzgwjdgkctlfvbo.supabase.co/functions/v1/relatorio-mensal',
-        headers := jsonb_build_object(
-            'Content-Type', 'application/json',
-            'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'mx-service-role-key' LIMIT 1)
-        ),
-        body := '{}'::jsonb
-    );
-    $$
-);

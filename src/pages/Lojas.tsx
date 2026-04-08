@@ -6,7 +6,8 @@ import { toast } from 'sonner'
 import { 
     Store, Plus, X, Save, Mail, Building2, ChevronRight, 
     Search, RefreshCw, Activity, Database, Globe, Zap,
-    Target, TrendingUp, AlertCircle, CheckCircle2, LayoutGrid, List
+    Target, TrendingUp, AlertCircle, CheckCircle2, LayoutGrid, List,
+    ArrowLeft, MoreVertical, Share2, Copy, MessageCircle
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { z } from 'zod'
@@ -187,9 +188,37 @@ export default function Lojas() {
                                             <span className="text-[8px] font-black text-text-tertiary uppercase">Projeção</span>
                                             <span className="text-sm font-black text-text-primary">{p.projecao} Und.</span>
                                         </div>
-                                        <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} className="w-10 h-10 rounded-mx-lg bg-slate-950 text-white flex items-center justify-center hover:scale-110 transition-all">
-                                            <ChevronRight size={20} />
-                                        </Link>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        const url = `${window.location.origin}/dashboard/${p.id}`;
+                                                        navigator.clipboard.writeText(url);
+                                                        toast.success('Link da unidade copiado!');
+                                                    }}
+                                                    className="w-8 h-8 rounded-lg bg-mx-slate-50 flex items-center justify-center text-text-tertiary hover:bg-brand-primary/10 hover:text-brand-primary transition-all"
+                                                    title="Copiar Link"
+                                                >
+                                                    <Share2 size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        const url = `${window.location.origin}/dashboard/${p.id}`;
+                                                        const text = `Acesse o Painel MX da unidade ${p.name}: ${url}`;
+                                                        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                                                    }}
+                                                    className="w-8 h-8 rounded-lg bg-mx-slate-50 flex items-center justify-center text-text-tertiary hover:bg-status-success-surface hover:text-status-success transition-all"
+                                                    title="Enviar via WhatsApp"
+                                                >
+                                                    <MessageCircle size={14} />
+                                                </button>
+                                            </div>
+                                            <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} className="w-10 h-10 rounded-mx-lg bg-slate-950 text-white flex items-center justify-center hover:scale-110 transition-all">
+                                                <ChevronRight size={20} />
+                                            </Link>
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
@@ -264,9 +293,37 @@ export default function Lojas() {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
-                                                    <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} className="inline-flex items-center justify-center w-10 h-10 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:bg-slate-950 hover:text-white transition-all">
-                                                        <ChevronRight size={18} />
-                                                    </Link>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    const url = `${window.location.origin}/dashboard/${p.id}`;
+                                                                    navigator.clipboard.writeText(url);
+                                                                    toast.success('Link da unidade copiado!');
+                                                                }}
+                                                                className="w-8 h-8 rounded-lg bg-mx-slate-50 flex items-center justify-center text-text-tertiary hover:bg-brand-primary/10 hover:text-brand-primary transition-all"
+                                                                title="Copiar Link"
+                                                            >
+                                                                <Share2 size={14} />
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    const url = `${window.location.origin}/dashboard/${p.id}`;
+                                                                    const text = `Acesse o Painel MX da unidade ${p.name}: ${url}`;
+                                                                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                                                                }}
+                                                                className="w-8 h-8 rounded-lg bg-mx-slate-50 flex items-center justify-center text-text-tertiary hover:bg-status-success-surface hover:text-status-success transition-all"
+                                                                title="Enviar via WhatsApp"
+                                                            >
+                                                                <MessageCircle size={14} />
+                                                            </button>
+                                                        </div>
+                                                        <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} className="inline-flex items-center justify-center w-10 h-10 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:bg-slate-950 hover:text-white transition-all">
+                                                            <ChevronRight size={18} />
+                                                        </Link>
+                                                    </div>
                                                 </td>
                                             </motion.tr>
                                         ))}

@@ -197,8 +197,9 @@ export default function Reprocessamento() {
 
                 {/* Administrative Terminal */}
                 <div className="lg:col-span-5 flex flex-col gap-mx-lg">
-                    <div className="bg-slate-950 rounded-[2.5rem] p-10 text-white space-y-10 relative overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] -mr-32 -mt-32" />
+                    <div className="bg-slate-950 rounded-[2.5rem] p-10 text-white space-y-10 relative overflow-hidden shadow-2xl border border-white/5">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/20 rounded-full blur-[100px] -mr-32 -mt-32 animate-pulse" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[80px] -ml-24 -mb-24" />
 
                         <div className="space-y-2 relative z-10">
                             <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
@@ -235,10 +236,10 @@ export default function Reprocessamento() {
                                 <select 
                                     value={selectedStore}
                                     onChange={(e) => setSelectedStore(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white focus:outline-none focus:border-rose-500 transition-all appearance-none cursor-pointer"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white focus:outline-none focus:border-rose-500 transition-all appearance-none cursor-pointer backdrop-blur-md hover:bg-white/10"
                                 >
-                                    <option value="all">TODAS AS UNIDADES OPERACIONAIS</option>
-                                    {stores.map(s => <option key={s.id} value={s.id} className="text-slate-900">{s.name.toUpperCase()}</option>)}
+                                    <option value="all" className="bg-slate-900">TODAS AS UNIDADES OPERACIONAIS</option>
+                                    {stores.map(s => <option key={s.id} value={s.id} className="bg-slate-900 text-white">{s.name.toUpperCase()}</option>)}
                                 </select>
                             </div>
 
@@ -277,10 +278,16 @@ export default function Reprocessamento() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50 bg-white">
-                                        {logs.map(log => {
+                                        {logs.map((log, i) => {
                                             const st = getStatusConfig(log.status)
                                             return (
-                                                <tr key={log.id} className="hover:bg-slate-50/50 transition-colors h-24 group">
+                                                <motion.tr 
+                                                    key={log.id} 
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: i * 0.05 }}
+                                                    className="hover:bg-slate-50/50 transition-colors h-24 group"
+                                                >
                                                     <td className="pl-8 py-2">
                                                         <p className="font-black text-xs text-slate-950 uppercase tracking-tight">{log.source_type === 'bulk_csv_import' ? 'Importação Planilha' : 'Reconstrução Manual'}</p>
                                                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{new Date(log.started_at).toLocaleString('pt-BR')}</p>
@@ -307,7 +314,7 @@ export default function Reprocessamento() {
                                                             <st.icon size={12} strokeWidth={3} className={cn(log.status === 'processing' && "animate-spin")} /> {st.label}
                                                         </Badge>
                                                     </td>
-                                                </tr>
+                                                </motion.tr>
                                             )
                                         })}
                                         {logs.length === 0 && !loading && (
