@@ -20,14 +20,18 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
-        { label: 'Usuários', path: '/equipe', icon: <Users size={16} /> },
+        { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
-        { label: 'Benchmarks', path: '/metas', icon: <TrendingUp size={16} /> },
+        { label: 'Funil', path: '/funil', icon: <TrendingUp size={16} /> },
       ]
     },
     {
       category: 'Rituais MX', icon: <Target size={22} />,
       items: [
+        { label: 'Home', path: '/home', icon: <Home size={16} /> },
+        { label: 'Checkin', path: '/checkin', icon: <CheckSquare size={16} /> },
+        { label: 'Histórico', path: '/historico', icon: <History size={16} /> },
+        { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
         { label: 'Feedback/PDI', path: '/feedback', icon: <MessageSquare size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
@@ -40,6 +44,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Configuração Operacional', path: '/configuracoes/operacional', icon: <SlidersHorizontal size={16} /> },
         { label: 'Reprocessamento', path: '/configuracoes/reprocessamento', icon: <Database size={16} /> },
+        { label: 'Estoque Legado', path: '/legacy/reports/stock', icon: <Database size={16} /> },
         { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }

@@ -69,7 +69,7 @@ export default function Lojas() {
                     <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">{canManageStores ? 'Gestão de Unidades' : 'Minhas Lojas'}</h1>
                     <div className="flex items-center gap-2 mt-4">
                         <div className="w-2 h-2 rounded-full bg-status-success animate-pulse" />
-                        <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{loading ? <Skeleton className="h-3 w-20" /> : `${stores.length} Lojas Ativas na Rede`}</p>
+                        <div className="mx-text-caption !text-[10px] opacity-60 uppercase">{loading ? <Skeleton className="h-3 w-20" /> : `${stores.length} Lojas Ativas na Rede`}</div>
                     </div>
                 </div>
 

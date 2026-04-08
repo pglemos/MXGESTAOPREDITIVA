@@ -79,9 +79,9 @@ async function auditUser(user) {
       const duration = Date.now() - startNav;
       const content = await page.content();
       
-      // Heuristics for errors
-      const hasError = content.includes('Erro') || content.includes('error') || content.includes('Ops!') || content.includes('Not Found');
-      const isEmpty = content.includes('Vácuo') || content.includes('Nenhum') || content.includes('sem registros');
+      // Heuristics for errors - only check for visible text, not hidden styles
+      const hasError = content.includes('Erro ao') || content.includes('Não foi possível') || content.includes('Página não encontrada') || content.includes('Ops!');
+      const isEmpty = content.includes('Vácuo de') || content.includes('Nenhum registro');
       
       results.pages.push({
         path: route,

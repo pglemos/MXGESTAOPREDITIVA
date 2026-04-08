@@ -44,9 +44,9 @@ export default function Ranking() {
                     </button>
                     <div className="flex items-center justify-center gap-3 rounded-full border border-border-default bg-white px-8 py-4 shadow-mx-sm">
                         <Trophy size={20} className="text-status-warning" />
-                        <span className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">
+                        <div className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">
                             {loading ? <Skeleton className="h-3 w-20" /> : `${sortedRanking.filter(r => !r.is_venda_loja).length} Vendedores em Arena`}
-                        </span>
+                        </div>
                     </div>
                 </div>
             </div>

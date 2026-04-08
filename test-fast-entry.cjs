@@ -28,8 +28,8 @@ async function fastEntryTest(user) {
   const redirectTime = Date.now() - start;
   
   // Wait for Data (not skeletons)
-  // Most pages have a "font-black" or "text-slate-950" class for real data numbers
-  await page.waitForSelector('.font-mono-numbers, .text-slate-950', { timeout: 10000 }).catch(() => {});
+  // Most pages have a "text-text-primary" or "font-black" for real data/titles
+  await page.waitForSelector('.text-text-primary.font-black, h1.font-black', { timeout: 10000 }).catch(() => {});
   const dataTime = Date.now() - start;
 
   console.log(`   - Redirect to ${user.path}: ${redirectTime}ms`);
