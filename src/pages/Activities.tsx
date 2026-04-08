@@ -68,12 +68,13 @@ export default function Activities() {
     const lead = leads.find(l => l.id === selectedLeadId)
     if (!lead) { toast.error('Selecione um alvo válido.'); return }
 
+    const action = QUICK_ACTIONS.find(a => a.label === actionLabel)
     const newAct = {
       id: crypto.randomUUID(),
       type: 'manual',
       label: actionLabel,
-      icon: QUICK_ACTIONS.find(a => a.label === actionLabel)?.icon || FileText,
-      color: QUICK_ACTIONS.find(a => a.label === actionLabel)?.tone || 'bg-gray-50',
+      icon: action?.icon || FileText,
+      color: action?.tone || 'bg-gray-50',
       lead: lead.name,
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       result: 'Registro manual via cockpit'
