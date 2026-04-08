@@ -611,14 +611,49 @@ ${config.template === 'etl' ? 'Extracts data from the specified source.' : 'Exam
 ## Example
 
 \`\`\`javascript
-// This is a placeholder - implement your logic here
+// Simulated extraction logic
 async function execute(options) {
-  const { source, format } = options;
+  const { source, format = 'json' } = options;
 
-  // TODO: Implement extraction logic
-  console.log(\`Extracting from \${source} as \${format}\`);
+  try {
+    if (!source) {
+      throw new Error('Source is required for extraction.');
+    }
 
-  return { status: 'success', data: {} };
+    console.log(\`Extracting data from \${source} using format: \${format}\`);
+
+    // Simulate extraction delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Simulated data based on format
+    let extractedData;
+
+    switch (format.toLowerCase()) {
+      case 'json':
+        extractedData = { id: 1, name: 'Sample Data', timestamp: new Date().toISOString() };
+        break;
+      case 'csv':
+        extractedData = 'id,name,timestamp\\n1,Sample Data,' + new Date().toISOString();
+        break;
+      case 'yaml':
+      case 'yml':
+        extractedData = \`id: 1\\nname: Sample Data\\ntimestamp: \${new Date().toISOString()}\`;
+        break;
+      default:
+        throw new Error(\`Unsupported format: \${format}\`);
+    }
+
+    console.log('Extraction completed successfully.');
+
+    return {
+      status: 'success',
+      metadata: { source, format, extractedAt: new Date().toISOString() },
+      data: extractedData
+    };
+  } catch (error) {
+    console.error(\`Extraction failed: \${error.message}\`);
+    return { status: 'error', error: error.message };
+  }
 }
 \`\`\`
 `;
