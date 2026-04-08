@@ -32,3 +32,5 @@ Thumbs.db
 .aiox-core/local/
 .claude/settings.local.json
 .aiox/install-log.txt
+.gemini/mcp.json
+.gemini/settings.json
