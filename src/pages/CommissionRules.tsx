@@ -115,7 +115,7 @@ export default function CommissionRules() {
                 <CardHeader className="bg-mx-slate-50/30">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-10 h-10 rounded-mx-md bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><FileSignature size={20} /></div>
-                        <div><CardTitle className="!text-lg">Motor Financeiro</CardTitle><p className="mx-text-caption !text-[8px]">Diretrizes de Performance do Cluster</p></div>
+                        <div><CardTitle className="!text-lg">Motor Financeiro</CardTitle><p className="mx-text-caption !text-[8px]">Diretrizes de Performance da Rede</p></div>
                     </div>
                 </CardHeader>
                 <div className="overflow-x-auto no-scrollbar">
@@ -128,7 +128,7 @@ export default function CommissionRules() {
                                     <td className="py-4"><Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest">{rule.vehicleType || 'Todos'}</Badge></td>
                                     <td className="py-4 text-center font-mono-numbers font-bold text-xs text-text-tertiary">{rule.marginMin || 0}% → {rule.marginMax || '∞'}%</td>
                                     <td className="py-4 text-center"><div className="inline-flex items-center px-mx-sm py-1.5 rounded-mx-md bg-brand-primary-surface text-brand-primary font-black text-sm shadow-mx-sm">{rule.percentage}%</div></td>
-                                    <td className="pr-mx-lg py-4 text-right"><div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleEdit(rule)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-brand-primary transition-all flex items-center justify-center"><FileSignature size={16} /></button><button onClick={() => handleDelete(rule.id)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-status-error transition-all flex items-center justify-center"><Trash2 size={16} /></button></div></td>
+                                    <td className="pr-mx-lg py-4 text-right"><div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleDelete(rule.id)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-status-error transition-all flex items-center justify-center"><Trash2 size={16} /></button></div></td>
                                 </tr>
                             ))}
                         </tbody>

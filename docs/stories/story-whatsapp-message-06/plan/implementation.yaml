@@ -1,0 +1,30 @@
+story: STORY-06
+title: Mensagem Padrao De WhatsApp
+status: ready_for_review
+source_artifacts:
+  - /Users/pedroguilherme/Downloads/Plano_Operacional_de_Produto_MX_Gestao_Preditiva_v1_3.md
+  - /Users/pedroguilherme/Downloads/Backlog_Executavel_MX_Gestao_Preditiva_v1_2.md
+depends_on:
+  - STORY-05
+tasks:
+  - id: db-01
+    description: Criar whatsapp_share_logs com RLS.
+    status: completed
+  - id: app-01
+    description: Gerar mensagem oficial do matinal para WhatsApp.
+    status: completed
+  - id: app-02
+    description: Registrar evento de uso do CTA.
+    status: completed
+  - id: qa-01
+    description: Validar Supabase live e rodar gates.
+    status: completed
+validation:
+  supabase_live: passed
+  lint: passed
+  typecheck: passed
+  test: passed
+  build: passed
+  diff_check: passed
+notes:
+  - "Validacao live feita com rollback; nenhum registro de teste persistido."

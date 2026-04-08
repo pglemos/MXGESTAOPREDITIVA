@@ -1,12 +1,15 @@
 // ============================================
-// MX Gestão Preditiva — Database Types
+// MX PERFORMANCE — Database Types
 // ============================================
 
-export type UserRole = 'admin' | 'consultor' | 'gerente' | 'vendedor'
-export type MembershipRole = 'gerente' | 'vendedor'
+export type UserRole = 'admin' | 'dono' | 'gerente' | 'vendedor'
+export type MembershipRole = 'dono' | 'gerente' | 'vendedor'
 export type PDIStatus = 'aberto' | 'em_andamento' | 'concluido'
 export type TrainingType = 'prospeccao' | 'fechamento' | 'atendimento' | 'gestao' | 'pre-vendas'
 export type TargetAudience = 'vendedor' | 'gerente' | 'todos'
+export type CheckinScope = 'daily' | 'adjustment' | 'historical'
+export type CheckinSubmissionStatus = 'on_time' | 'late'
+export type StoreSourceMode = 'legacy_forms' | 'native_app' | 'hybrid'
 
 export interface User {
     id: string
@@ -14,8 +17,11 @@ export interface User {
     email: string
     role: UserRole
     avatar_url: string | null
+    is_venda_loja: boolean
     active: boolean
     created_at: string
+    phone?: string
+    store_id?: string
 }
 
 export interface Store {
@@ -23,7 +29,55 @@ export interface Store {
     name: string
     manager_email: string | null
     active: boolean
+    source_mode: StoreSourceMode
     created_at: string
+    updated_at: string
+}
+
+export interface StoreSeller {
+    id: string
+    store_id: string
+    seller_user_id: string
+    started_at: string
+    ended_at: string | null
+    is_active: boolean
+    closing_month_grace: boolean
+    created_at: string
+    updated_at: string
+}
+
+export interface StoreBenchmark {
+    store_id: string
+    lead_to_agend: number
+    agend_to_visit: number
+    visit_to_sale: number
+    updated_by: string | null
+    updated_at: string
+}
+
+export interface StoreDeliveryRules {
+    store_id: string
+    matinal_recipients: string[]
+    weekly_recipients: string[]
+    monthly_recipients: string[]
+    whatsapp_group_ref: string | null
+    timezone: string
+    active: boolean
+    updated_by: string | null
+    updated_at: string
+}
+
+export interface StoreMetaRules {
+    store_id: string
+    monthly_goal: number
+    individual_goal_mode: 'even' | 'custom' | 'proportional'
+    include_venda_loja_in_store_total: boolean
+    include_venda_loja_in_individual_goal: boolean
+    bench_lead_agd: number
+    bench_agd_visita: number
+    bench_visita_vnd: number
+    updated_by: string | null
+    updated_at: string
 }
 
 export interface Membership {
@@ -34,41 +88,27 @@ export interface Membership {
     created_at: string
 }
 
-export interface Goal {
-    id: string
-    store_id: string
-    user_id: string | null
-    month: number
-    year: number
-    target: number
-    updated_at: string
-    updated_by: string | null
-}
-
-export interface GoalLog {
-    id: string
-    goal_id: string
-    changed_by: string
-    prev_value: number | null
-    new_value: number
-    changed_at: string
-}
-
 export interface DailyCheckin {
     id: string
-    user_id: string
+    seller_user_id: string
     store_id: string
-    date: string
-    leads: number
-    agd_cart: number
-    agd_net: number
-    vnd_porta: number
-    vnd_cart: number
-    vnd_net: number
-    visitas: number
-    note: string | null
+    reference_date: string
+    submitted_at: string
+    submitted_late: boolean
+    submission_status: CheckinSubmissionStatus
+    edit_locked_at: string | null
+    metric_scope: CheckinScope
+    leads_prev_day: number
+    agd_cart_prev_day: number
+    agd_net_prev_day: number
+    agd_cart_today: number
+    agd_net_today: number
+    vnd_porta_prev_day: number
+    vnd_cart_prev_day: number
+    vnd_net_prev_day: number
+    visit_prev_day: number
     zero_reason: string | null
-    created_at: string
+    note: string | null
     updated_at: string
 }
 
@@ -112,12 +152,42 @@ export interface Feedback {
     store_id: string
     manager_id: string
     seller_id: string
+    week_reference: string
+    leads_week: number
+    agd_week: number
+    visit_week: number
+    vnd_week: number
+    tx_lead_agd: number
+    tx_agd_visita: number
+    tx_visita_vnd: number
+    meta_compromisso: number
     positives: string
     attention_points: string
     action: string
     notes: string | null
+    team_avg_json: Record<string, unknown>
+    diagnostic_json: Record<string, unknown>
+    commitment_suggested: number
     acknowledged: boolean
+    acknowledged_at: string | null
     created_at: string
+}
+
+export interface WeeklyFeedbackReport {
+    id: string
+    store_id: string
+    week_start: string
+    week_end: string
+    team_avg_json: Record<string, unknown>
+    ranking_json: unknown[]
+    benchmark_json: Record<string, unknown>
+    weekly_goal: number
+    report_url: string | null
+    email_status: 'dry_run' | 'sent' | 'failed' | 'not_sent'
+    recipients: string[]
+    warnings: string[]
+    created_at: string
+    updated_at: string
 }
 
 export interface PDI {
@@ -125,31 +195,66 @@ export interface PDI {
     store_id: string
     manager_id: string
     seller_id: string
-    objective: string
-    action: string
+    // Radar de Competências (0-10)
+    comp_prospeccao: number
+    comp_abordagem: number
+    comp_demonstracao: number
+    comp_fechamento: number
+    comp_crm: number
+    comp_digital: number
+    comp_disciplina: number
+    comp_organizacao: number
+    comp_negociacao: number
+    comp_produto: number
+    // Horizontes
+    meta_6m: string
+    meta_12m: string
+    meta_24m: string
+    // 5 Ações Mandatórias
+    action_1: string
+    action_2: string | null
+    action_3: string | null
+    action_4: string | null
+    action_5: string | null
     due_date: string | null
     status: PDIStatus
     acknowledged: boolean
     created_at: string
     updated_at: string
+    objective?: string | null
+    action?: string | null
 }
+
+export interface PDIReview {
+    id: string
+    pdi_id: string
+    evolution: string
+    difficulties: string | null
+    adjustments: string | null
+    next_review_date: string | null
+    created_at: string
+}
+
+export type NotificationType = 'discipline' | 'alert' | 'performance' | 'system'
+export type NotificationPriority = 'high' | 'medium' | 'low'
 
 export interface Notification {
     id: string
-    sender_id: string
+    recipient_id: string | null
+    store_id: string | null
     title: string
     message: string
-    target_type: 'all' | 'store'
-    target_store_id: string | null
-    target_role: string | null
-    sent_at: string
-}
-
-export interface NotificationRead {
-    id: string
-    notification_id: string
-    user_id: string
-    read_at: string
+    type: NotificationType
+    priority: NotificationPriority
+    link: string | null
+    read: boolean
+    created_at: string
+    sender_id?: string | null
+    broadcast_id?: string | null
+    target_type?: 'all' | 'store' | 'individual' | null
+    target_store_id?: string | null
+    target_role?: string | null
+    sent_at?: string | null
 }
 
 export interface AuditLog {
@@ -162,6 +267,62 @@ export interface AuditLog {
     created_at: string
 }
 
+export interface ReprocessLog {
+    id: string
+    store_id: string | null
+    source_type: string
+    triggered_by: string | null
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+    rows_processed: number
+    records_processed: number
+    records_failed: number
+    warnings: unknown[]
+    errors: unknown[]
+    error_log: unknown[]
+    started_at: string
+    finished_at: string | null
+    file_hash?: string | null
+    processed_at?: string | null
+}
+
+export interface ManagerRoutineLog {
+    id: string
+    store_id: string
+    manager_id: string
+    routine_date: string
+    reference_date: string
+    checkins_pending_count: number
+    sem_registro_count: number
+    agd_cart_today: number
+    agd_net_today: number
+    previous_day_leads: number
+    previous_day_sales: number
+    ranking_snapshot: unknown[]
+    notes: string | null
+    status: 'completed'
+    executed_at: string
+    created_at: string
+    updated_at: string
+}
+
+export interface WhatsAppShareLog {
+    id: string
+    store_id: string
+    user_id: string
+    reference_date: string
+    source: 'morning_report'
+    message_text: string
+    shared_via: 'whatsapp' | 'native_share'
+    created_at: string
+}
+
+export interface RawImport {
+    id: string
+    log_id: string
+    raw_data: Record<string, unknown>
+    created_at: string
+}
+
 // ============================================
 // Derived Types
 // ============================================
@@ -171,7 +332,10 @@ export interface CheckinTotals {
     vnd_total: number
 }
 
-export interface CheckinWithTotals extends DailyCheckin, CheckinTotals { }
+export interface CheckinWithTotals extends DailyCheckin, CheckinTotals {
+    seller_id: string
+    type: 'daily' | 'venda' | 'visita' | 'agendamento'
+}
 
 export interface StoreWithStats extends Store {
     vendedores_count: number
@@ -185,6 +349,7 @@ export interface RankingEntry {
     user_id: string
     user_name: string
     store_name?: string
+    is_venda_loja: boolean
     vnd_total: number
     leads: number
     agd_total: number
@@ -216,6 +381,8 @@ export interface FunnelDiagnostic {
 
 export interface CheckinFormData {
     leads: number
+    agd_cart_prev: number
+    agd_net_prev: number
     agd_cart: number
     agd_net: number
     vnd_porta: number
@@ -236,16 +403,44 @@ export interface GoalFormData {
 
 export interface FeedbackFormData {
     seller_id: string
+    week_reference: string
+    leads_week: number
+    agd_week: number
+    visit_week: number
+    vnd_week: number
+    tx_lead_agd: number
+    tx_agd_visita: number
+    tx_visita_vnd: number
+    meta_compromisso: number
     positives: string
     attention_points: string
     action: string
     notes: string
+    team_avg_json?: Record<string, unknown>
+    diagnostic_json?: Record<string, unknown>
+    commitment_suggested?: number
 }
 
 export interface PDIFormData {
     seller_id: string
-    objective: string
-    action: string
+    meta_6m: string
+    meta_12m: string
+    meta_24m: string
+    comp_prospeccao: number
+    comp_abordagem: number
+    comp_demonstracao: number
+    comp_fechamento: number
+    comp_crm: number
+    comp_digital: number
+    comp_disciplina: number
+    comp_organizacao: number
+    comp_negociacao: number
+    comp_produto: number
+    action_1: string
+    action_2: string
+    action_3: string
+    action_4: string
+    action_5: string
     due_date: string
 }
 

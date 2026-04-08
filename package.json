@@ -1,5 +1,5 @@
 {
-  "name": "mx-gestao-preditiva",
+  "name": "mx-performance",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -12,8 +12,12 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test src",
     "deploy": "vercel --prod",
-    "fix:admin-access": "tsx scripts/fix_admin_access.ts"
+    "fix:admin-access": "tsx scripts/fix_admin_access.ts",
+    "seed:sandbox:live": "tsx scripts/seed_live_sandbox.ts",
+    "validate:e2e:live": "tsx scripts/validate_live_end_to_end.ts"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
@@ -57,10 +61,12 @@
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.27",
     "bun-types": "^1.3.10",
+    "happy-dom": "^20.8.9",
     "playwright": "^1.58.2",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
+    "vercel": "^50.40.0",
     "vite": "^6.2.0"
   }
 }

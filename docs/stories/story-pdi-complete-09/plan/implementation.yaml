@@ -1,0 +1,27 @@
+story: STORY-09
+title: Painel de PDI completo
+status: Ready for Review
+epic: EPIC-09
+scope:
+  - PDI 2.0 no live
+  - Revisão mensal em pdi_reviews
+  - PDF final
+steps:
+  - id: schema
+    description: Reconciliar pdis e criar pdi_reviews no Supabase live.
+    status: done
+  - id: ui
+    description: Validar consumo do PDI 2.0 por GerentePDI, VendedorFeedback e PDIPrint.
+    status: done
+  - id: validation
+    description: Rodar gates locais e validar estrutura live.
+    status: done
+files:
+  - docs/stories/story-pdi-complete-09/spec/spec.md
+  - docs/stories/story-pdi-complete-09/plan/implementation.yaml
+  - src/hooks/useData.ts
+  - src/pages/GerentePDI.tsx
+  - src/pages/PDIPrint.tsx
+  - src/pages/VendedorFeedback.tsx
+  - src/types/database.ts
+  - supabase/migrations/20260407160000_reconcile_epic09_12_end_to_end.sql

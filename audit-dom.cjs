@@ -6,13 +6,13 @@ const path = require('path');
   const page = await browser.newPage();
 
   console.log('Auditando DOM de /equipe...');
-  await page.goto('https://autogestao.vercel.app/login');
-  await page.fill('input[type="email"]', 'admin@autogestao.com.br');
+  await page.goto('https://mxperformance.vercel.app/login');
+  await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   await page.click('button[type="submit"]');
   
   await page.waitForURL('**/painel');
-  await page.goto('https://autogestao.vercel.app/equipe');
+  await page.goto('https://mxperformance.vercel.app/equipe');
   await page.waitForTimeout(5000);
 
   // Verificar se o grid de stats existe

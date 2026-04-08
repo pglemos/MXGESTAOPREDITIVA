@@ -1,17 +1,24 @@
-import { useNotifications } from '@/hooks/useData';
+import { useNotifications, useSystemBroadcasts } from '@/hooks/useData';
 import { Badge } from '@/components/ui/badge'
 import { useStores } from '@/hooks/useTeam'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Bell, Plus, X, Send, Target, Zap, Building2, Globe, AlertCircle, Calendar, RefreshCw, Search } from 'lucide-react'
+import { Bell, Plus, X, Send, Building2, Globe, AlertCircle, Calendar, RefreshCw, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 export default function ConsultorNotificacoes() {
-    const { notifications, loading, sendNotification, refetch } = useNotifications()
+    const { sendNotification } = useNotifications()
+    const { broadcasts, loading, refetch } = useSystemBroadcasts()
     const { stores } = useStores()
     const [showForm, setShowForm] = useState(false)
-    const [form, setForm] = useState({ title: '', message: '', target_type: 'all' as 'all' | 'store', target_store_id: '' })
+    const [form, setForm] = useState({ 
+        title: '', 
+        message: '', 
+        target_type: 'all' as 'all' | 'store', 
+        target_store_id: '',
+        target_role: 'todos' as 'todos' | 'dono' | 'gerente' | 'vendedor'
+    })
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
 
@@ -19,12 +26,22 @@ export default function ConsultorNotificacoes() {
         e.preventDefault()
         if (!form.title || !form.message) { toast.error('Preencha título e mensagem corporativa'); return }
         setSaving(true)
-        const { error } = await sendNotification({ ...form, target_store_id: form.target_type === 'store' ? form.target_store_id : undefined })
+        
+        const { error } = await sendNotification({ 
+            store_id: form.target_type === 'store' ? form.target_store_id : undefined,
+            target_role: form.target_role,
+            title: form.title,
+            message: form.message,
+            type: 'system',
+            priority: 'medium'
+        })
+        
         setSaving(false)
         if (error) { toast.error(error); return }
-        toast.success('Broadcast disparado para o cluster!')
+        toast.success('Comunicado disparado para os canais selecionados!')
         setShowForm(false)
-        setForm({ title: '', message: '', target_type: 'all', target_store_id: '' })
+        setForm({ title: '', message: '', target_type: 'all', target_store_id: '', target_role: 'todos' })
+        refetch()
     }
 
     const handleRefresh = useCallback(async () => {
@@ -48,11 +65,11 @@ export default function ConsultorNotificacoes() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-rose-600 rounded-full shadow-[0_0_20px_rgba(225,29,72,0.4)]" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none">Broadcast <span className="text-rose-600">Center</span></h1>
+                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Central de <span className="text-rose-600">Mensagens MX</span></h1>
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Comunicação de Rede • {notifications.length} Alertas</p>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Comunicação de Rede • {broadcasts.length} Campanhas Enviadas</p>
                     </div>
                 </div>
 
@@ -65,7 +82,7 @@ export default function ConsultorNotificacoes() {
                     </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-10 py-4 rounded-full bg-pure-black text-white font-black hover:bg-black shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-10 py-4 rounded-full bg-pure-black text-white font-black hover:bg-brand-secondary-hover shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-rose-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Disparar Alerta
@@ -91,7 +108,7 @@ export default function ConsultorNotificacoes() {
                                     </div>
                                     <div>
                                         <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2">Compor Mensagem</h3>
-                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Network Intelligence Broadcast</p>
+                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Comunicado de Inteligência da Rede</p>
                                     </div>
                                 </div>
                                 <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
@@ -105,7 +122,7 @@ export default function ConsultorNotificacoes() {
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Assunto Estratégico</label>
                                         <input
                                             value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                                            placeholder="Ex: Alerta de Pacing Semanal" required autoFocus
+                                            placeholder="Ex: Alerta de Ritmo Semanal" required autoFocus
                                             className="premium-input !rounded-[1.5rem]"
                                         />
                                     </div>
@@ -146,8 +163,27 @@ export default function ConsultorNotificacoes() {
                                             <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-sm", form.target_type === 'store' ? 'bg-amber-500 text-white' : 'bg-gray-50 text-gray-300')}>
                                                 <Building2 size={24} />
                                             </div>
-                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", form.target_type === 'store' ? 'text-amber-900' : 'text-gray-400')}>Node Unit</span>
+                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", form.target_type === 'store' ? 'text-amber-900' : 'text-gray-400')}>Unidade Específica</span>
                                         </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Filtro por Papel (Role)</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
+                                                <button
+                                                    key={role}
+                                                    type="button"
+                                                    onClick={() => setForm(p => ({ ...p, target_role: role as any }))}
+                                                    className={cn(
+                                                        "py-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all",
+                                                        form.target_role === role ? 'bg-slate-950 text-white border-slate-950' : 'bg-gray-50 text-gray-400 border-gray-100 hover:bg-white'
+                                                    )}
+                                                >
+                                                    {role}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     <AnimatePresence>
@@ -173,7 +209,7 @@ export default function ConsultorNotificacoes() {
                                     type="submit" disabled={saving}
                                     className="w-full sm:w-auto px-12 py-5 rounded-full bg-rose-600 text-white font-black flex items-center justify-center gap-4 hover:bg-rose-700 hover:shadow-elevation transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
                                 >
-                                    {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <>Disparar no Cluster <Send size={18} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" /></>}
+                                    {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <>Disparar na Rede <Send size={18} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" /></>}
                                 </button>
                             </div>
                         </form>
@@ -182,17 +218,17 @@ export default function ConsultorNotificacoes() {
             </AnimatePresence>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-32">
-                {notifications.length === 0 ? (
+                {broadcasts.length === 0 ? (
                     <div className="col-span-full py-40 rounded-[4rem] text-center border-dashed border-2 border-gray-200 bg-gray-50/30 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(26,29,32,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
                         <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center mb-8 border border-gray-100 group-hover:rotate-12 transition-transform duration-500">
                             <Bell size={40} className="text-gray-200" />
                         </div>
-                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter">Zero Broadcasts</h3>
-                        <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto">Nenhum alerta disparado pelo seu usuário no histórico atual.</p>
+                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter uppercase">Zero Comunicados</h3>
+                        <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">Nenhum alerta disparado pelo sistema ou administração no histórico.</p>
                     </div>
                 ) : (
-                    notifications.map((n, i) => (
+                    broadcasts.map((n, i) => (
                         <motion.div
                             key={n.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -202,16 +238,19 @@ export default function ConsultorNotificacoes() {
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                             
-                            <div className="flex items-start justify-between mb-10 relative z-10">
+                            <div className="flex items-start justify-between mb-10 relative z-10 border-b border-gray-50 pb-6">
                                 <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-pure-black group-hover:text-white shadow-inner transition-all transform group-hover:rotate-6">
                                     <Zap size={24} />
                                 </div>
-                                <Badge className={cn(
-                                    "font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm",
-                                    n.target_type === 'all' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
-                                )}>
-                                    {n.target_type === 'all' ? 'GLOBAL' : 'NODE UNIT'}
-                                </Badge>
+                                <div className="flex flex-col items-end gap-2">
+                                    <Badge className={cn(
+                                        "font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm",
+                                        !n.store_id ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                                    )}>
+                                        {!n.store_id ? 'REDE TODA' : 'UNIDADE'}
+                                    </Badge>
+                                    {n.sender_id && <span className="text-[7px] font-black text-gray-300 uppercase tracking-tighter">Enviado por Admin</span>}
+                                </div>
                             </div>
 
                             <div className="flex-1 mb-8 relative z-10">
@@ -221,9 +260,9 @@ export default function ConsultorNotificacoes() {
 
                             <div className="pt-6 border-t border-gray-50 flex items-center justify-between mt-auto relative z-10">
                                 <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                    <Calendar size={14} className="text-rose-500" /> {new Date(n.sent_at).toLocaleDateString('pt-BR')}
+                                    <Calendar size={14} className="text-rose-500" /> {new Date(n.created_at).toLocaleDateString('pt-BR')}
                                 </div>
-                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{new Date(n.sent_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{new Date(n.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
                         </motion.div>
                     ))

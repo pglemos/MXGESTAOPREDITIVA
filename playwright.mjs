@@ -13,7 +13,7 @@ import { chromium } from 'playwright';
     await page.goto('http://127.0.0.1:3000/login');
     await page.waitForTimeout(1000);
 
-    await page.fill('input[type="email"]', 'admin@autogestao.com.br');
+    await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
     await page.fill('input[type="password"]', 'Jose20161@');
     await page.click('button[type="submit"]');
 

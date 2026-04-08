@@ -69,7 +69,7 @@ export default function Activities() {
     if (!lead) { toast.error('Selecione um alvo válido.'); return }
 
     const newAct = {
-      id: Math.random().toString(),
+      id: crypto.randomUUID(),
       type: 'manual',
       label: actionLabel,
       icon: QUICK_ACTIONS.find(a => a.label === actionLabel)?.icon || FileText,
@@ -207,7 +207,7 @@ export default function Activities() {
                     className="group rounded-2xl border border-gray-50 bg-gray-50/50 p-5 transition-all hover:bg-white hover:border-indigo-100 hover:shadow-xl hover:-translate-y-1 text-left relative overflow-hidden"
                   >
                     <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all shadow-sm border border-white", action.tone)}>
-                      <action.icon size={18} strokeWidth={3} />
+                      <action.icon size={18} strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] font-black text-pure-black uppercase tracking-widest leading-tight block">{action.label}</span>
                   </button>
@@ -258,7 +258,7 @@ export default function Activities() {
         <div className="lg:col-span-8 flex flex-col gap-8">
           <div className="bg-white border border-gray-100 rounded-[3rem] shadow-elevation overflow-hidden flex flex-col h-full group relative">
             <div className="absolute top-0 right-0 p-10 text-gray-50 -rotate-12 pointer-events-none group-hover:text-indigo-50/50 transition-colors">
-              <Clock size={160} strokeWidth={1} />
+              <Clock size={160} strokeWidth={2.5} />
             </div>
 
             <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between shrink-0 relative z-10">

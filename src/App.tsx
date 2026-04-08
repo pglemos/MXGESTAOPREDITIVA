@@ -13,6 +13,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'))
 
 // Vendedor
 const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
+const VendedorPDI = lazy(() => import('@/pages/VendedorPDI'))
 const Checkin = lazy(() => import('@/pages/Checkin'))
 const Historico = lazy(() => import('@/pages/Historico'))
 const Ranking = lazy(() => import('@/pages/Ranking'))
@@ -28,15 +29,19 @@ const GoalManagement = lazy(() => import('@/pages/GoalManagement'))
 const Funil = lazy(() => import('@/pages/Funil'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
+const PDIPrint = lazy(() => import('@/pages/PDIPrint'))
 const GerenteTreinamentos = lazy(() => import('@/pages/GerenteTreinamentos'))
+const RotinaGerente = lazy(() => import('@/pages/RotinaGerente'))
 
-// Consultor
+// Admin
 const PainelConsultor = lazy(() => import('@/pages/PainelConsultor'))
 const Lojas = lazy(() => import('@/pages/Lojas'))
 const ConsultorTreinamentos = lazy(() => import('@/pages/ConsultorTreinamentos'))
 const ProdutosDigitais = lazy(() => import('@/pages/ProdutosDigitais'))
 const ConsultorNotificacoes = lazy(() => import('@/pages/ConsultorNotificacoes'))
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
+const OperationalSettings = lazy(() => import('@/pages/OperationalSettings'))
+const Reprocessamento = lazy(() => import('@/pages/Reprocessamento'))
 const Agenda = lazy(() => import('@/pages/Agenda'))
 const AiDiagnostics = lazy(() => import('@/pages/AiDiagnostics'))
 const CommissionRules = lazy(() => import('@/pages/CommissionRules'))
@@ -55,8 +60,12 @@ const Gamification = lazy(() => import('@/pages/Gamification'))
 const Activities = lazy(() => import('@/pages/Activities'))
 
 const Spinner = () => (
-  <div className="min-h-[50vh] flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+  <div className="flex flex-col items-center gap-6">
+    <div className="relative w-16 h-16">
+      <div className="absolute inset-0 border-4 border-indigo-500/10 rounded-full"></div>
+      <div className="absolute inset-0 border-4 border-t-indigo-500 rounded-full animate-spin"></div>
+    </div>
+    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">MX PERFORMANCE</p>
   </div>
 )
 
@@ -65,17 +74,26 @@ const withLegacyShell = (node: React.ReactNode) => (
 )
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading, initialized } = useAuth()
+  const { profile, loading, initialized, supabaseUser } = useAuth()
   const location = useLocation()
+  
+  // Debug log for auth state
+  React.useEffect(() => {
+    console.log('Audit Info [ProtectedRoute]:', { initialized, loading, hasSupabaseUser: !!supabaseUser, hasProfile: !!profile })
+  }, [initialized, loading, supabaseUser, profile])
+
   if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-slate-950"><Spinner /></div>
-  if (!profile) return <Navigate to="/login" state={{ from: location }} replace />
+  if (!profile) {
+    console.warn('Audit Warn [ProtectedRoute]: No profile found, redirecting to login.')
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
   return <>{children}</>
 }
 
 function RoleRedirect() {
   const { role } = useAuth()
   if (role === 'admin') return <Navigate to="/painel" replace />
-  if (role === 'consultor') return <Navigate to="/painel" replace />
+  if (role === 'dono') return <Navigate to="/lojas" replace />
   if (role === 'gerente') return <Navigate to="/loja" replace />
   return <Navigate to="/home" replace />
 }
@@ -105,13 +123,13 @@ export default function App() {
             <Route path="historico" element={<Suspense fallback={<Spinner />}><Historico /></Suspense>} />
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} consultor={<ConsultorTreinamentos />} admin={<ConsultorTreinamentos />} />
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<Navigate to="/lojas" replace />} admin={<ConsultorTreinamentos />} />
             </Suspense>} />
             <Route path="feedback" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} consultor={<GerenteFeedback />} admin={<GerenteFeedback />} />
+              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} dono={<GerenteFeedback />} admin={<GerenteFeedback />} />
             </Suspense>} />
             <Route path="notificacoes" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} consultor={<ConsultorNotificacoes />} admin={<ConsultorNotificacoes />} />
+              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} dono={<Notificacoes />} admin={<ConsultorNotificacoes />} />
             </Suspense>} />
             <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
 
@@ -120,30 +138,44 @@ export default function App() {
             <Route path="equipe" element={<Suspense fallback={<Spinner />}><Equipe /></Suspense>} />
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
             <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
-            <Route path="pdi" element={<Suspense fallback={<Spinner />}><GerentePDI /></Suspense>} />
+            <Route path="pdi" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorPDI />} gerente={<GerentePDI />} dono={<GerentePDI />} admin={<GerentePDI />} />
+            </Suspense>} />
+            <Route path="pdi/:id/print" element={<Suspense fallback={<Spinner />}><PDIPrint /></Suspense>} />
+            <Route path="rotina" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<RotinaGerente />} dono={<Navigate to="/lojas" replace />} admin={<RotinaGerente />} />
+            </Suspense>} />
 
-            {/* Consultor */}
+            {/* Admin Core */}
             <Route path="painel" element={<Suspense fallback={<Spinner />}><PainelConsultor /></Suspense>} />
             <Route path="lojas" element={<Suspense fallback={<Spinner />}><Lojas /></Suspense>} />
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
-            <Route path="agenda" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Agenda />)}</Suspense>} />
-            <Route path="ia-diagnostics" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<AiDiagnostics />)}</Suspense>} />
-            <Route path="configuracoes/comissoes" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CommissionRules />)}</Suspense>} />
-            <Route path="communication" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Communication />)}</Suspense>} />
-            <Route path="relatorios/vendas-cruzados" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CrossSalesReports />)}</Suspense>} />
-            <Route path="financeiro" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Financeiro />)}</Suspense>} />
-            <Route path="inventory" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Inventory />)}</Suspense>} />
-            <Route path="leadops" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<LeadOps />)}</Suspense>} />
-            <Route path="leads" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Leads />)}</Suspense>} />
-            <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<MorningReport />)}</Suspense>} />
-            <Route path="reports" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
-            <Route path="reports/stock" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
-            <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SalesPerformance />)}</Suspense>} />
-            <Route path="relatorios/performance-vendedores" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SellerPerformance />)}</Suspense>} />
-            <Route path="tarefas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Tarefas />)}</Suspense>} />
-            <Route path="gamification" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Gamification />)}</Suspense>} />
-            <Route path="activities" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Activities />)}</Suspense>} />
+            <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
+            <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}><Reprocessamento /></Suspense>} />
+            <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
+            <Route path="auditoria" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} dono={<Navigate to="/lojas" replace />} admin={<AiDiagnostics />} />
+            </Suspense>} />
+
+            {/* Módulos Legados Isolados */}
+            <Route path="legacy">
+              <Route path="agenda" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Agenda />)}</Suspense>} />
+              <Route path="configuracoes/comissoes" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CommissionRules />)}</Suspense>} />
+              <Route path="communication" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Communication />)}</Suspense>} />
+              <Route path="relatorios/vendas-cruzados" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CrossSalesReports />)}</Suspense>} />
+              <Route path="financeiro" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Financeiro />)}</Suspense>} />
+              <Route path="inventory" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Inventory />)}</Suspense>} />
+              <Route path="leadops" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<LeadOps />)}</Suspense>} />
+              <Route path="leads" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Leads />)}</Suspense>} />
+              <Route path="reports" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
+              <Route path="reports/stock" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
+              <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SalesPerformance />)}</Suspense>} />
+              <Route path="relatorios/performance-vendedores" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SellerPerformance />)}</Suspense>} />
+              <Route path="tarefas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Tarefas />)}</Suspense>} />
+              <Route path="gamification" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Gamification />)}</Suspense>} />
+              <Route path="activities" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Activities />)}</Suspense>} />
+            </Route>
 
             <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
           </Route>
@@ -157,17 +189,17 @@ export default function App() {
 function RoleSwitch({
   vendedor,
   gerente,
-  consultor,
+  dono,
   admin,
 }: {
   vendedor: React.ReactNode
   gerente: React.ReactNode
-  consultor: React.ReactNode
+  dono: React.ReactNode
   admin?: React.ReactNode
 }) {
   const { role } = useAuth()
-  if (role === 'admin') return <>{admin || consultor}</>
-  if (role === 'consultor') return <>{consultor}</>
+  if (role === 'admin') return <>{admin}</>
+  if (role === 'dono') return <>{dono}</>
   if (role === 'gerente') return <>{gerente}</>
   return <>{vendedor}</>
 }

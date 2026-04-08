@@ -39,7 +39,7 @@ export default function ProdutosDigitais() {
         e.preventDefault();
         if (role !== 'admin') { toast.error('Permissão negada.'); return }
         const result = productSchema.safeParse(form)
-        if (!result.success) { toast.error(result.error.errors[0].message); return }
+        if (!result.success) { toast.error("Verifique os campos preenchidos"); return }
 
         setSaving(true)
         const { error } = await supabase.from('digital_products').insert(form)
@@ -127,7 +127,7 @@ export default function ProdutosDigitais() {
                     <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-mx-slate-50/20 border-2 border-dashed border-border-default rounded-[3rem]">
                         <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-lg flex items-center justify-center mb-mx-lg"><Package size={48} className="text-mx-slate-200" /></div>
                         <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Prateleira Vazia</h3>
-                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhum ativo digital implantado no catálogo do cluster.</p>
+                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhum ativo digital implantado no catálogo da rede.</p>
                     </div>
                 )}
             </div>

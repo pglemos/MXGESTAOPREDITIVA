@@ -18,7 +18,7 @@ const routes = [
   '/configuracoes', '/perfil'
 ];
 
-const baseUrl = 'https://autogestao.vercel.app';
+const baseUrl = 'https://mxperformance.vercel.app';
 
 (async () => {
   console.log('📸 Iniciando captura de screenshots Full Page...');
@@ -34,7 +34,7 @@ const baseUrl = 'https://autogestao.vercel.app';
 
   // Login action
   console.log('Realizando login...');
-  await page.fill('input[type="email"]', 'admin@autogestao.com.br');
+  await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   await page.click('button[type="submit"]');
   await page.waitForURL('**/painel', { timeout: 15000 });

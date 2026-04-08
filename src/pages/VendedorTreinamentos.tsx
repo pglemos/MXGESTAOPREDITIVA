@@ -1,10 +1,13 @@
 import { useTrainings } from '@/hooks/useData'
+import { useCheckins } from '@/hooks/useCheckins'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import { GraduationCap, Play, CheckCircle, ExternalLink, Clock, Users, Target, BookOpen, ChevronRight, Sparkles, RefreshCw, Search, X } from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
+import { startOfWeek } from 'date-fns'
 
 const typeColors: Record<string, string> = {
     prospeccao: 'bg-violet-50 text-violet-700 border-violet-100',
@@ -16,8 +19,37 @@ const typeColors: Record<string, string> = {
 
 export default function VendedorTreinamentos() {
     const { trainings, loading, markWatched, refetch } = useTrainings()
+    const { checkins } = useCheckins()
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+
+    // 🚀 Lógica de Prescrição Real MX
+    const gapAnalysis = useMemo(() => {
+        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+        const recentCheckins = checkins.filter(c => new Date(c.reference_date) >= weekStart)
+        if (recentCheckins.length === 0) return null
+
+        const funil = calcularFunil(recentCheckins)
+        const diag = gerarDiagnosticoMX(funil)
+
+        if (!diag.gargalo) return null
+
+        // Mapear gargalo para categoria de vídeo
+        const categoryMap: Record<string, string> = {
+            'LEAD_AGD': 'prospeccao',
+            'AGD_VISITA': 'atendimento',
+            'VISITA_VND': 'fechamento'
+        }
+
+        const category = categoryMap[diag.gargalo]
+        const recommended = trainings.find(t => t.type === category && !t.watched) || trainings.find(t => t.type === category)
+
+        return { 
+            gargalo: diag.gargalo, 
+            label: diag.diagnostico, 
+            recommended 
+        }
+    }, [checkins, trainings])
 
     const watched = useMemo(() => trainings.filter(t => t.watched).length, [trainings])
     const progress = useMemo(() => trainings.length > 0 ? (watched / trainings.length) * 100 : 0, [watched, trainings.length])
@@ -92,6 +124,38 @@ export default function VendedorTreinamentos() {
             </div>
 
             <div className="flex-1 w-full max-w-7xl mx-auto shrink-0 pb-32">
+                
+                {/* STORY-12.1 / 12.2: Prescrição Direta Baseada em Gargalo REAL */}
+                {gapAnalysis?.recommended && !searchTerm && (
+                    <div className="mb-mx-xl">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 mb-4 flex items-center gap-2">
+                            <Target size={14} /> Prescrição Tática (Baseada em seu Funil)
+                        </h3>
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-start md:items-center gap-8 relative overflow-hidden group shadow-xl shadow-indigo-500/5">
+                            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-200/20 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-200/30 transition-colors" />
+                            
+                            <div className="w-20 h-20 rounded-2xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-xl shrink-0 relative z-10 transform group-hover:rotate-3 transition-transform">
+                                <Sparkles size={32} />
+                            </div>
+                            
+                            <div className="flex-1 relative z-10">
+                                <Badge className="bg-rose-600 text-white border-none text-[8px] px-3 h-6 uppercase font-black tracking-widest mb-3">Gap Detectado: {gapAnalysis.gargalo}</Badge>
+                                <h4 className="text-2xl font-black text-slate-950 uppercase tracking-tight mb-2">{gapAnalysis.recommended.title}</h4>
+                                <p className="text-sm font-bold text-slate-500 leading-relaxed max-w-2xl">{gapAnalysis.label} Este módulo foi selecionado pela Metodologia MX para corrigir sua performance imediata.</p>
+                            </div>
+
+                            <div className="shrink-0 w-full md:w-auto relative z-10">
+                                <button 
+                                    onClick={() => window.open(gapAnalysis.recommended?.video_url, '_blank')}
+                                    className="w-full md:w-auto px-10 py-5 rounded-full bg-slate-950 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all active:scale-95 shadow-lg"
+                                >
+                                    <Play size={16} strokeWidth={2.5} /> Iniciar Correção
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <AnimatePresence mode="popLayout">
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
                         {filteredTrainings.map((t, i) => (
@@ -113,12 +177,15 @@ export default function VendedorTreinamentos() {
                                         {t.watched ? <CheckCircle size={24} strokeWidth={2.5} /> : <Play size={24} strokeWidth={2.5} className="ml-1" />}
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
+                                        {gapAnalysis?.recommended?.id === t.id && (
+                                            <Badge className="bg-rose-600 text-white border-none text-[7px] px-2 h-5 uppercase font-black tracking-widest animate-pulse mb-1">Correção de Gargalo</Badge>
+                                        )}
                                         <Badge className={cn("font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm", typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100')}>
                                             {t.type}
                                         </Badge>
                                         {t.watched && (
                                             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
-                                                <CheckCircle size={10} strokeWidth={3} /> Concluído
+                                                <CheckCircle size={10} strokeWidth={2.5} /> Concluído
                                             </span>
                                         )}
                                     </div>
@@ -147,18 +214,18 @@ export default function VendedorTreinamentos() {
                                         }}
                                         className="flex-1 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-pure-black text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white hover:shadow-lg transition-all active:scale-95 shadow-sm group/btn"
                                     >
-                                        <Play size={16} strokeWidth={3} className="group-hover/btn:scale-110" /> Assistir Aula
+                                        <Play size={16} strokeWidth={2.5} className="group-hover/btn:scale-110" /> Assistir Aula
                                     </button>
                                     {!t.watched ? (
                                         <button
                                             onClick={async () => { await markWatched(t.id); toast.success('Evolução Registrada! +100 XP ✨') }}
-                                            className="flex-1 py-4 rounded-2xl bg-pure-black text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black hover:shadow-2xl transition-all active:scale-95 shadow-lg shadow-gray-200"
+                                            className="flex-1 py-4 rounded-2xl bg-pure-black text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-brand-secondary-hover hover:shadow-2xl transition-all active:scale-95 shadow-lg shadow-gray-200"
                                         >
-                                            <CheckCircle size={16} strokeWidth={3} /> Concluir
+                                            <CheckCircle size={16} strokeWidth={2.5} /> Concluir
                                         </button>
                                     ) : (
                                         <div className="flex-1 py-4 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                            <CheckCircle size={16} strokeWidth={3} /> Validado
+                                            <CheckCircle size={16} strokeWidth={2.5} /> Validado
                                         </div>
                                     )}
                                 </div>

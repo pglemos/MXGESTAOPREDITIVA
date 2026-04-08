@@ -6,25 +6,25 @@
     {
       "route": "/painel",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_painel.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_painel.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": [
-        "https://autogestao.vercel.app/assets/trending-up-D2fZf5Tm.js: net::ERR_ABORTED",
-        "https://autogestao.vercel.app/assets/award-CXwrAAgT.js: net::ERR_ABORTED",
-        "https://autogestao.vercel.app/assets/chevron-right-COQzs4zi.js: net::ERR_ABORTED",
+        "https://mxperformance.vercel.app/assets/trending-up-D2fZf5Tm.js: net::ERR_ABORTED",
+        "https://mxperformance.vercel.app/assets/award-CXwrAAgT.js: net::ERR_ABORTED",
+        "https://mxperformance.vercel.app/assets/chevron-right-COQzs4zi.js: net::ERR_ABORTED",
         "https://fbhcmzzgwjdgkctlfvbo.supabase.co/rest/v1/notifications?select=*&order=sent_at.desc&limit=50: net::ERR_ABORTED",
-        "https://autogestao.vercel.app/assets/PainelConsultor-DwdGn_LV.js: net::ERR_ABORTED"
+        "https://mxperformance.vercel.app/assets/PainelConsultor-DwdGn_LV.js: net::ERR_ABORTED"
       ]
     },
     {
       "route": "/lojas",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_lojas.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_lojas.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -32,9 +32,9 @@
     {
       "route": "/loja",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_loja.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_loja.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -42,9 +42,9 @@
     {
       "route": "/agenda",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_agenda.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_agenda.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -52,9 +52,9 @@
     {
       "route": "/leadops",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_leadops.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_leadops.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -62,9 +62,9 @@
     {
       "route": "/leads",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_leads.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_leads.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -72,9 +72,9 @@
     {
       "route": "/equipe",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_equipe.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_equipe.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -82,9 +82,9 @@
     {
       "route": "/tarefas",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_tarefas.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_tarefas.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -92,9 +92,9 @@
     {
       "route": "/metas",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_metas.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_metas.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -102,9 +102,9 @@
     {
       "route": "/funil",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_funil.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_funil.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -112,9 +112,9 @@
     {
       "route": "/checkin",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_checkin.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_checkin.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -122,9 +122,9 @@
     {
       "route": "/historico",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_historico.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_historico.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -132,9 +132,9 @@
     {
       "route": "/ranking",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_ranking.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_ranking.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -142,9 +142,9 @@
     {
       "route": "/relatorio-matinal",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_relatorio_matinal.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_relatorio_matinal.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -152,9 +152,9 @@
     {
       "route": "/financeiro",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_financeiro.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_financeiro.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -162,9 +162,9 @@
     {
       "route": "/inventory",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_inventory.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_inventory.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -172,9 +172,9 @@
     {
       "route": "/configuracoes/comissoes",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_configuracoes_comissoes.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_configuracoes_comissoes.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -182,9 +182,9 @@
     {
       "route": "/treinamentos",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_treinamentos.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_treinamentos.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -192,9 +192,9 @@
     {
       "route": "/communication",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_communication.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_communication.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -202,9 +202,9 @@
     {
       "route": "/ia-diagnostics",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_ia_diagnostics.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_ia_diagnostics.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -212,9 +212,9 @@
     {
       "route": "/relatorios/performance-vendas",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_relatorios_performance_vendas.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_relatorios_performance_vendas.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -222,9 +222,9 @@
     {
       "route": "/relatorios/performance-vendedores",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_relatorios_performance_vendedores.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_relatorios_performance_vendedores.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -232,9 +232,9 @@
     {
       "route": "/relatorios/vendas-cruzados",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_relatorios_vendas_cruzados.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_relatorios_vendas_cruzados.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -242,9 +242,9 @@
     {
       "route": "/reports/stock",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_reports_stock.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_reports_stock.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -252,9 +252,9 @@
     {
       "route": "/activities",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_activities.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_activities.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -262,9 +262,9 @@
     {
       "route": "/gamification",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_gamification.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_gamification.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -272,9 +272,9 @@
     {
       "route": "/feedback",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_feedback.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_feedback.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -282,9 +282,9 @@
     {
       "route": "/notificacoes",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_notificacoes.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_notificacoes.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -292,9 +292,9 @@
     {
       "route": "/produtos",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_produtos.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_produtos.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -302,9 +302,9 @@
     {
       "route": "/configuracoes",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_configuracoes.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_configuracoes.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []
@@ -312,9 +312,9 @@
     {
       "route": "/perfil",
       "status": 200,
-      "title": "MX Gestão Preditiva",
+      "title": "MX PERFORMANCE",
       "hasErrorBoundary": false,
-      "screenshot": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/.temp/audit_screenshots/_perfil.png",
+      "screenshot": "/Users/pedroguilherme/PROJETOS/MX PERFORMANCE/.temp/audit_screenshots/_perfil.png",
       "pageErrors": [],
       "consoleErrors": [],
       "networkErrors": []

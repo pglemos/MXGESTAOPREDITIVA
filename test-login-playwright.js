@@ -18,7 +18,7 @@ import { test, expect, chromium } from '@playwright/test';
       await page.goto('http://127.0.0.1:3000/login');
       
       console.log('Filling form...');
-      await page.fill('input[type="email"]', 'admin@autogestao.com.br');
+      await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
       await page.fill('input[type="password"]', 'Jose20161@');
       
       console.log('Clicking submit...');

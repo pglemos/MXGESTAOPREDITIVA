@@ -22,9 +22,10 @@ export default function ConsultorTreinamentos() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!form.title || !form.video_url) { toast.error('Preencha título e URL'); return }
+        if (!form.title || !form.video_url) { toast.error('Preencha os campos obrigatórios'); return }
         setSaving(true)
         const { error } = await createTraining(form)
+
         setSaving(false)
         if (error) { toast.error(error); return }
         toast.success('Treinamento criado!')
@@ -39,7 +40,7 @@ export default function ConsultorTreinamentos() {
     )
 
     return (
-        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-[#1A1D20]">
+        <div className="soft-card p-4 sm:p-6 md:p-10 h-full flex flex-col gap-6 md:gap-10 overflow-y-auto no-scrollbar relative text-text-primary">
 
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-50 pb-10">
@@ -63,7 +64,7 @@ export default function ConsultorTreinamentos() {
                     </button>
                     <button
                         onClick={() => setShowForm(true)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-[2rem] bg-[#1A1D20] text-white font-black hover:bg-black hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transition-all active:scale-95 text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] group relative overflow-hidden"
+                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-[2rem] bg-brand-secondary text-white font-black hover:bg-brand-secondary-hover hover:shadow-mx-xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] group relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Novo Conteúdo
@@ -85,7 +86,7 @@ export default function ConsultorTreinamentos() {
 
                             <div className="relative z-10 flex flex-col gap-4 border-b border-gray-50 pb-8 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-[#1A1D20] text-white flex items-center justify-center shadow-lg">
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-secondary text-white flex items-center justify-center shadow-lg">
                                         <GraduationCap size={24} />
                                     </div>
                                     <div>
@@ -105,7 +106,7 @@ export default function ConsultorTreinamentos() {
                                         <input
                                             value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
                                             placeholder="Ex: Masterizando o Script de Fechamento" required autoFocus
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-black text-sm focus:outline-none focus:border-blue-500/30 transition-all shadow-inner"
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-text-primary font-black text-sm focus:outline-none focus:border-brand-primary/30 transition-all shadow-inner"
                                         />
                                     </div>
                                     <div>
@@ -113,7 +114,7 @@ export default function ConsultorTreinamentos() {
                                         <textarea
                                             value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
                                             placeholder="Descreva detalhadamente os objetivos desta aula..." rows={4}
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-bold text-sm placeholder:text-gray-300 focus:outline-none focus:border-blue-500/30 focus:bg-white transition-all shadow-inner resize-none"
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-text-primary font-bold text-sm placeholder:text-gray-300 focus:outline-none focus:border-brand-primary/30 focus:bg-white transition-all shadow-inner resize-none"
                                         />
                                     </div>
                                 </div>
@@ -124,21 +125,21 @@ export default function ConsultorTreinamentos() {
                                         <input
                                             value={form.video_url} onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))}
                                             placeholder="https://youtube.com/v/..." required
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-medium text-sm focus:outline-none focus:border-blue-500/30 transition-all shadow-inner"
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-text-primary font-medium text-sm focus:outline-none focus:border-brand-primary/30 transition-all shadow-inner"
                                         />
                                     </div>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">Pilar de Vendas</label>
                                             <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-black text-sm focus:outline-none focus:border-blue-500/30 transition-all appearance-none cursor-pointer shadow-inner">
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-text-primary font-black text-sm focus:outline-none focus:border-brand-primary/30 transition-all appearance-none cursor-pointer shadow-inner">
                                                 {types.map(t => <option key={t} value={t}>{t}</option>)}
                                             </select>
                                         </div>
                                         <div>
                                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1 opacity-60">Público Alvo</label>
                                             <select value={form.target_audience} onChange={e => setForm(p => ({ ...p, target_audience: e.target.value }))}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-[#1A1D20] font-black text-sm focus:outline-none focus:border-blue-500/30 transition-all appearance-none cursor-pointer shadow-inner">
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-text-primary font-black text-sm focus:outline-none focus:border-brand-primary/30 transition-all appearance-none cursor-pointer shadow-inner">
                                                 {audiences.map(a => <option key={a} value={a}>{a}</option>)}
                                             </select>
                                         </div>
@@ -146,7 +147,7 @@ export default function ConsultorTreinamentos() {
                                     <div className="pt-2 text-right">
                                         <button
                                             type="submit" disabled={saving}
-                                            className="w-full py-6 rounded-[2.5rem] bg-[#1A1D20] text-white font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-black hover:shadow-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                                            className="w-full py-6 rounded-[2.5rem] bg-brand-secondary text-white font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-brand-secondary-hover hover:shadow-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50"
                                         >
                                             {saving ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={18} /> Publicar Treinamento</>}
                                         </button>
@@ -172,8 +173,8 @@ export default function ConsultorTreinamentos() {
 
                         <div className="relative z-10 flex flex-col h-full">
                             <div className="flex items-start justify-between mb-8">
-                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all shadow-sm ${t.watched ? 'bg-emerald-50 border-emerald-100' : 'bg-[#F8FAFC] border-gray-100 group-hover:scale-110 group-hover:bg-white group-hover:rotate-3'}`}>
-                                    {t.watched ? <CheckCircle size={24} className="text-emerald-500" /> : <Play size={24} className="text-[#1A1D20] ml-1" />}
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all shadow-sm ${t.watched ? 'bg-emerald-50 border-emerald-100' : 'bg-surface-alt border-gray-100 group-hover:scale-110 group-hover:bg-white group-hover:rotate-3'}`}>
+                                    {t.watched ? <CheckCircle size={24} className="text-emerald-500" /> : <Play size={24} className="text-text-primary ml-1" />}
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
                                     <span className={`text-[9px] uppercase font-black tracking-widest px-4 py-2 rounded-full border shadow-sm ${typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
@@ -184,15 +185,15 @@ export default function ConsultorTreinamentos() {
                             </div>
 
                             <div className="flex-1 mb-6">
-                                <h3 className="text-xl font-black text-[#1A1D20] mb-3 leading-tight tracking-tight group-hover:text-blue-600 transition-colors line-clamp-2">{t.title}</h3>
+                                <h3 className="text-xl font-black text-text-primary mb-3 leading-tight tracking-tight group-hover:text-brand-primary transition-colors line-clamp-2">{t.title}</h3>
                                 {t.description && (
                                     <p className="text-gray-500 text-[13px] font-bold line-clamp-3 leading-relaxed opacity-80 mb-4">{t.description}</p>
                                 )}
                                 <div className="flex flex-wrap gap-2">
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest opacity-60">
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-text-primary text-[10px] font-black uppercase tracking-widest opacity-60">
                                         <Users size={12} /> {t.target_audience}
                                     </div>
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[#1A1D20] text-[10px] font-black uppercase tracking-widest opacity-60">
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-text-primary text-[10px] font-black uppercase tracking-widest opacity-60">
                                         <Clock size={12} /> 12 min
                                     </div>
                                 </div>
@@ -210,7 +211,7 @@ export default function ConsultorTreinamentos() {
                                     </div>
                                 </div>
                                 <a href={t.video_url} target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center justify-center w-12 h-12 rounded-2xl bg-[#1A1D20] text-white hover:bg-black hover:shadow-xl transition-all active:scale-95 group-hover:translate-x-1">
+                                    className="flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-secondary text-white hover:bg-brand-secondary-hover hover:shadow-xl transition-all active:scale-95 group-hover:translate-x-1">
                                     <ExternalLink size={20} />
                                 </a>
                             </div>

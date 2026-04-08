@@ -1,5 +1,5 @@
 import { useCheckins } from '@/hooks/useCheckins'
-import { calcularFunil, identificarGargalo } from '@/lib/calculations'
+import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useEffect, useState, useMemo } from 'react'
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 export default function Funil() {
     const { storeId } = useAuth()
-    const { checkins, loading, refetch } = useCheckins()
+    const { checkins, loading, fetchCheckins: refetch } = useCheckins()
     const [benchmark, setBenchmark] = useState<Benchmark | null>(null)
     const [isRefetching, setIsRefetching] = useState(false)
 
@@ -26,7 +26,14 @@ export default function Funil() {
         id: '', store_id: storeId || '', lead_to_appt: 30, appt_to_visit: 50, visit_to_sale: 20 
     }), [storeId])
 
-    const diagnostic = useMemo(() => identificarGargalo(funil, benchmark || defaultBenchmark), [funil, benchmark, defaultBenchmark])
+    const diagnostic = useMemo(() => {
+        const rules = {
+            bench_lead_agd: benchmark?.lead_to_appt || 20,
+            bench_agd_visita: benchmark?.appt_to_visit || 60,
+            bench_visita_vnd: benchmark?.visit_to_sale || 33
+        } as any
+        return gerarDiagnosticoMX(funil, false, rules)
+    }, [funil, benchmark])
 
     const steps = useMemo(() => [
         { label: 'Leads', value: funil.leads, pct: 100, bg: 'bg-brand-primary', color: 'text-brand-primary', subColor: 'bg-brand-primary-surface', bench: null },
@@ -75,7 +82,7 @@ export default function Funil() {
                             </div>
                             <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1">Diagnóstico</h3><p className="mx-text-caption !text-[8px]">Motor Preditivo MX</p></div>
                         </div>
-                        <p className="text-lg font-black text-text-primary leading-tight italic mb-mx-lg relative z-10">"{diagnostic.mensagem}"</p>
+                        <p className="text-lg font-black text-text-primary leading-tight italic mb-mx-lg relative z-10">"{diagnostic.diagnostico}"</p>
                         <div className="bg-mx-slate-50/50 rounded-mx-xl p-mx-md border border-border-default relative z-10">
                             <div className="flex items-center gap-2 mb-mx-sm"><Zap size={14} className="text-brand-primary" fill="currentColor" /><span className="mx-text-caption">Benchmarks Ativos</span></div>
                             <div className="space-y-2">
@@ -108,7 +115,7 @@ export default function Funil() {
                                                     <span className="text-4xl font-black text-text-primary tracking-tighter font-mono-numbers">{step.value}</span>
                                                     {i > 0 && (
                                                         <div className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black border shadow-mx-sm", step.pct < (step.bench || 0) ? 'bg-status-error-surface text-status-error border-mx-rose-100' : 'bg-status-success-surface text-status-success border-mx-emerald-100')}>
-                                                            {step.pct}% {step.pct >= (step.bench || 0) ? <ArrowUpRight size={12} strokeWidth={3} /> : <AlertTriangle size={12} strokeWidth={3} />}
+                                                            {step.pct}% {step.pct >= (step.bench || 0) ? <ArrowUpRight size={12} strokeWidth={2.5} /> : <AlertTriangle size={12} strokeWidth={2.5} />}
                                                         </div>
                                                     )}
                                                 </div>

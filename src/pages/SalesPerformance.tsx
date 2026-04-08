@@ -43,7 +43,7 @@ export default function SalesPerformance() {
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
                         <h1 className="mx-heading-hero">Análise de <span className="text-brand-primary">Performance</span></h1>
                     </div>
-                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Business Intelligence • Cluster Hub</p>
+                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Business Intelligence • Rede MX</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
@@ -80,8 +80,8 @@ export default function SalesPerformance() {
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 10 }} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 10 }} tickFormatter={(v) => `R$${v/1000}k`} />
-                            <Area type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" />
-                            <Area type="monotone" dataKey="margin" stroke="#10b981" strokeWidth={2} fill="transparent" strokeDasharray="5 5" />
+                            <Area type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSales)" />
+                            <Area type="monotone" dataKey="margin" stroke="#10b981" strokeWidth={2.5} fill="transparent" strokeDasharray="5 5" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div></Card></div>

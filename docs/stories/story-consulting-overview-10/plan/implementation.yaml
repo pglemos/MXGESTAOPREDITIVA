@@ -1,0 +1,24 @@
+story: STORY-10
+title: Visão de consultoria multiloja
+status: Ready for Review
+epic: EPIC-10
+scope:
+  - PainelConsultor como camada executiva de rede
+  - relatorio-mensal v2
+  - helper de cron mensal
+steps:
+  - id: panel
+    description: Expor disparo mensal no painel multiloja.
+    status: done
+  - id: monthly-function
+    description: Reescrever relatorio-mensal com contrato operacional final.
+    status: done
+  - id: cron-helper
+    description: Criar helper de cron mensal no banco.
+    status: done
+files:
+  - docs/stories/story-consulting-overview-10/spec/spec.md
+  - docs/stories/story-consulting-overview-10/plan/implementation.yaml
+  - src/pages/PainelConsultor.tsx
+  - supabase/functions/relatorio-mensal/index.ts
+  - supabase/migrations/20260407160000_reconcile_epic09_12_end_to_end.sql

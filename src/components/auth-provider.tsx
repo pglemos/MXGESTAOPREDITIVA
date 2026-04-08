@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
 import { useAuth as useCurrentAuth, type AuthProvider as CurrentAuthProvider } from '@/hooks/useAuth'
 
-export type Role = 'Owner' | 'Manager' | 'Seller' | 'RH' | 'Admin'
+export type Role = 'dono' | 'gerente' | 'vendedor' | 'admin'
 
 type LegacyAuthContext = {
     user: any
@@ -16,9 +16,10 @@ type LegacyAuthContext = {
 const LegacyContext = createContext<LegacyAuthContext | undefined>(undefined)
 
 function mapRole(role: string | null): Role | null {
-    if (role === 'admin' || role === 'consultor') return 'Admin'
-    if (role === 'gerente') return 'Manager'
-    if (role === 'vendedor') return 'Seller'
+    if (role === 'admin') return 'admin'
+    if (role === 'dono') return 'dono'
+    if (role === 'gerente') return 'gerente'
+    if (role === 'vendedor') return 'vendedor'
     return null
 }
 

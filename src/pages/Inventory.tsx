@@ -105,7 +105,7 @@ export default function Inventory() {
                                 <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }} className="mx-card overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 cursor-pointer flex flex-col h-full">
                                     <div className="aspect-[16/10] bg-mx-slate-50 relative flex items-center justify-center border-b border-border-default">
                                         <Badge className={cn("absolute top-mx-sm left-mx-sm font-black text-[8px] border-none px-3 h-6 rounded-md", item.status === 'Normal' ? "bg-status-success text-white" : "bg-status-error text-white")}>{item.status === 'Normal' ? 'SAUDÁVEL' : 'CRÍTICO'}</Badge>
-                                        <Car size={64} className="text-mx-slate-200 group-hover:scale-110 transition-transform duration-700" strokeWidth={1.5} />
+                                        <Car size={64} className="text-mx-slate-200 group-hover:scale-110 transition-transform duration-700" strokeWidth={2.5} />
                                         <div className="absolute bottom-mx-sm right-mx-sm text-[10px] font-black bg-white/80 border border-border-subtle px-3 py-1 rounded-full text-text-primary uppercase tracking-widest">{item.plate}</div>
                                     </div>
                                     <div className="p-mx-lg flex flex-col justify-between flex-1">

@@ -1,0 +1,65 @@
+story: story-role-matrix
+status: ready_for_review
+owner: codex
+requirements:
+  - FR-ROLE-001
+  - FR-ROLE-002
+  - FR-ROLE-003
+  - FR-ROLE-004
+  - FR-ROLE-005
+  - FR-ROLE-006
+  - FR-ROLE-007
+  - FR-ROLE-008
+  - CON-ROLE-001
+  - CON-ROLE-002
+steps:
+  - id: docs
+    description: Atualizar documentacao e story com matriz oficial.
+    status: done
+  - id: domain-types-auth
+    description: Atualizar tipos e autenticacao para admin, dono, gerente e vendedor.
+    status: done
+  - id: navigation-ui
+    description: Atualizar navegacao e permissoes basicas de UI por papel.
+    status: done
+  - id: rls-migration
+    description: Versionar migration de constraints, aliases, helpers e RLS.
+    status: done
+  - id: quality-gates
+    description: Executar lint, typecheck, testes e build.
+    status: done
+quality_gates:
+  lint: passed
+  typecheck: passed
+  test: passed
+  build: passed
+supabase_live:
+  project_ref: fbhcmzzgwjdgkctlfvbo
+  project_name: MX PERFORMANCE
+  migration: 20260407000000
+  apply_method: direct_sql_transaction_plus_migration_repair
+  status: applied_and_validated
+  pre_migration_snapshot: supabase/.temp/backups/pre_role_matrix_20260407150825_metadata.json
+  note: "Validacao ponta-a-ponta com login real completa depende de criar/vincular usuarios reais para dono, gerente e vendedor; hoje o banco live tem apenas usuario admin em public.users."
+files:
+  - docs/stories/story-role-matrix/spec/spec.md
+  - docs/stories/story-role-matrix/plan/implementation.yaml
+  - PRD_MX_Gestao_Preditiva_90D_atualizado.md
+  - README.md
+  - src/App.tsx
+  - src/components/Layout.tsx
+  - src/components/auth-provider.tsx
+  - src/hooks/useAuth.tsx
+  - src/hooks/useData.ts
+  - src/hooks/useTeam.ts
+  - src/pages/Checkin.tsx
+  - src/pages/Configuracoes.tsx
+  - src/pages/ConsultorNotificacoes.tsx
+  - src/pages/DashboardLoja.tsx
+  - src/pages/GerenteFeedback.tsx
+  - src/pages/GerentePDI.tsx
+  - src/pages/GoalManagement.tsx
+  - src/pages/Lojas.tsx
+  - src/pages/Reprocessamento.tsx
+  - src/types/database.ts
+  - supabase/migrations/20260407000000_role_matrix_dono_admin.sql

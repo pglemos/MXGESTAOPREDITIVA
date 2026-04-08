@@ -10,18 +10,16 @@ const path = require('path');
   page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
 
   console.log('Tentando acessar /painel...');
-  await page.goto('https://autogestao.vercel.app/login');
-  await page.fill('input[type="email"]', 'admin@autogestao.com.br');
+  await page.goto('https://mxperformance.vercel.app/login');
+  await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
   await page.fill('input[type="password"]', 'Jose20161@');
   await page.click('button[type="submit"]');
   
   try {
     await page.waitForURL('**/painel', { timeout: 10000 });
-    await page.goto('https://autogestao.vercel.app/lojas');
-    await page.waitForTimeout(3000);
-    await page.click('a[href*="/loja?id="]');
+    await page.goto('https://mxperformance.vercel.app/ranking');
     await page.waitForTimeout(5000);
-    const filePath = path.join(__dirname, 'audit_loja_final.png');
+    const filePath = path.join(__dirname, 'audit_ranking_final.png');
     await page.screenshot({ path: filePath, fullPage: true });
     console.log('📸 Screenshot salvo em:', filePath);
   } catch (e) {

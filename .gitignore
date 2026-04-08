@@ -8,6 +8,7 @@ coverage/
 !.env.example
 .vercel
 .wwebjs_auth/
+.temp/
 
 # Environment & Secrets (AIOX)
 .env

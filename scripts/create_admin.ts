@@ -21,9 +21,9 @@ const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
 })
 
 async function createAdmin() {
-    const email = 'admin@autogestao.com.br'
+    const email = 'admin@mxperformance.com.br'
     const password = 'Jose20161@'
-    const name = 'Admin AutoGestão'
+    const name = 'Admin MX PERFORMANCE'
 
     console.log(`Creating user ${email}...`)
 
@@ -64,7 +64,7 @@ async function ensureTeamRecord(userId: string, name: string) {
         .upsert({
             id: userId,
             name: name,
-            email: 'admin@autogestao.com.br',
+            email: 'admin@mxperformance.com.br',
             role: 'admin'
         })
         .select()

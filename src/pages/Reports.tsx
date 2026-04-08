@@ -82,7 +82,7 @@ export default function Reports() {
                             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 10 }} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 10 }} />
                             <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 800 }} />
-                            <Line type="monotone" dataKey="dias" stroke="#4f46e5" strokeWidth={5} dot={{ r: 6, fill: '#4f46e5', strokeWidth: 0 }} />
+                            <Line type="monotone" dataKey="dias" stroke="#4f46e5" strokeWidth={2.5} dot={{ r: 6, fill: '#4f46e5', strokeWidth: 0 }} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div></Card></div>

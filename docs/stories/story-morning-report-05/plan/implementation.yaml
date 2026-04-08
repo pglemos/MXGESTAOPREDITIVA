@@ -1,0 +1,37 @@
+story: STORY-05
+title: Relatorio Matinal Oficial
+status: ready_for_review
+source_artifacts:
+  - /Users/pedroguilherme/Downloads/Plano_Operacional_de_Produto_MX_Gestao_Preditiva_v1_3.md
+  - /Users/pedroguilherme/Downloads/Backlog_Executavel_MX_Gestao_Preditiva_v1_2.md
+depends_on:
+  - STORY-03
+  - STORY-04
+tasks:
+  - id: fn-01
+    description: Ajustar engine canonica do matinal.
+    status: completed
+  - id: fn-02
+    description: Ajustar HTML, CSV e WhatsApp.
+    status: completed
+  - id: fn-03
+    description: Deploy e validacao live da Edge Function.
+    status: completed
+  - id: cron-01
+    description: Validar agendamento 10:30 BRT.
+    status: completed
+  - id: qa-01
+    description: Rodar gates locais.
+    status: completed
+validation:
+  function_deploy: passed
+  dry_run: passed
+  cron_1030_brt: passed
+  lint: passed
+  typecheck: passed
+  test: passed
+  build: passed
+  diff_check: passed
+notes:
+  - "Dry-run live processou 8 lojas sem gravar log."
+  - "Envio real depende de configurar RESEND_API_KEY remoto e destinatarios em store_delivery_rules."

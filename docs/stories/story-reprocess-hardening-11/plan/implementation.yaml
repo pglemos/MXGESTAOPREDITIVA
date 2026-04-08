@@ -1,0 +1,24 @@
+story: STORY-11
+title: Reprocessamento e reparo administrativo
+status: Ready for Review
+epic: EPIC-11
+scope:
+  - file_hash
+  - processed_at
+  - trava de lote e duplicidade
+steps:
+  - id: backend
+    description: Endurecer process_import_data e reprocess_logs.
+    status: done
+  - id: ui
+    description: Calcular hash do arquivo no terminal administrativo.
+    status: done
+  - id: validation
+    description: Validar idempotência do reprocessamento.
+    status: done
+files:
+  - docs/stories/story-reprocess-hardening-11/spec/spec.md
+  - docs/stories/story-reprocess-hardening-11/plan/implementation.yaml
+  - src/pages/Reprocessamento.tsx
+  - src/types/database.ts
+  - supabase/migrations/20260407160000_reconcile_epic09_12_end_to_end.sql

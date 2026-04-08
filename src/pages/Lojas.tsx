@@ -1,4 +1,5 @@
 import { useStores } from '@/hooks/useTeam'
+import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Store, Plus, X, Save, Mail, Building2, ChevronRight, Search, RefreshCw, Activity, Database, Globe, Zap } from 'lucide-react'
@@ -14,7 +15,9 @@ const storeSchema = z.object({
 })
 
 export default function Lojas() {
+    const { role, setActiveStoreId } = useAuth()
     const { stores, loading, createStore } = useStores()
+    const canManageStores = role === 'admin'
     const [showForm, setShowForm] = useState(false)
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
@@ -24,6 +27,10 @@ export default function Lojas() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!canManageStores) {
+            toast.error('Apenas admin pode criar lojas.')
+            return
+        }
         setFormErrors({})
         
         const result = storeSchema.safeParse({ name, email })
@@ -39,7 +46,7 @@ export default function Lojas() {
         
         if (error) { toast.error(`Falha na implantação: ${error}`); return }
         
-        toast.success('Node operacional ativado no cluster!')
+        toast.success('Loja operacional ativada na rede!')
         setShowForm(false)
         setName(''); setEmail('')
     }
@@ -59,11 +66,11 @@ export default function Lojas() {
             {/* Header / Toolbar - Elite Aligned */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div>
-                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">TOPOLOGIA DE REDE</span>
-                    <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">Gestão de Unidades</h1>
+                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">{canManageStores ? 'GESTOR DE REDE' : 'VISÃO EXECUTIVA'}</span>
+                    <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">{canManageStores ? 'Gestão de Unidades' : 'Minhas Lojas'}</h1>
                     <div className="flex items-center gap-2 mt-4">
                         <div className="w-2 h-2 rounded-full bg-status-success animate-pulse" />
-                        <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{stores.length} Nodes Ativos no Cluster</p>
+                        <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{stores.length} Lojas Ativas na Rede</p>
                     </div>
                 </div>
 
@@ -71,19 +78,21 @@ export default function Lojas() {
                     <div className="relative w-full sm:w-72 group">
                         <Search size={18} className="absolute left-mx-md top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                         <input 
-                            type="text" placeholder="BUSCAR UNIDADE..." value={searchTerm}
+                            type="text" placeholder="BUSCAR LOJA..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="mx-input !h-14 !pl-14 !text-[10px] !font-black !tracking-widest uppercase"
                         />
                     </div>
-                    <button onClick={() => setShowForm(true)} className="mx-button-primary bg-brand-secondary w-full sm:w-auto h-14 px-8 flex items-center justify-center gap-3 shadow-mx-lg hover:shadow-mx-xl transition-all">
-                        <Plus size={20} /> NOVO NODE
-                    </button>
+                    {canManageStores && (
+                        <button onClick={() => setShowForm(true)} className="mx-button-primary bg-brand-secondary w-full sm:w-auto h-14 px-8 flex items-center justify-center gap-3 shadow-mx-lg hover:shadow-mx-xl transition-all">
+                            <Plus size={20} /> NOVA LOJA
+                        </button>
+                    )}
                 </div>
             </div>
 
             <AnimatePresence>
-                {showForm && (
+                {showForm && canManageStores && (
                     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="shrink-0 z-50 rounded-[2.5rem] p-1 bg-gradient-to-b from-mx-indigo-50 to-white shadow-mx-xl mb-mx-lg">
                         <form onSubmit={handleCreate} className="bg-white rounded-[2.4rem] p-mx-xl space-y-mx-lg relative overflow-hidden">
                             <div className="flex items-center justify-between border-b border-border-subtle pb-mx-lg">
@@ -103,8 +112,8 @@ export default function Lojas() {
                                     <input value={name} onChange={e => setName(e.target.value)} placeholder="EX: MX CAMPINAS" required className={cn("mx-input h-14", formErrors.name && "border-status-error")} />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="mx-text-caption ml-2 !text-[9px]">E-mail do Administrador</label>
-                                    <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="ADMIN@UNIDADE.MX" className={cn("mx-input h-14", formErrors.email && "border-status-error")} />
+                                    <label className="mx-text-caption ml-2 !text-[9px]">E-mail do Gestor</label>
+                                    <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="GESTOR@UNIDADE.MX" className={cn("mx-input h-14", formErrors.email && "border-status-error")} />
                                 </div>
                             </div>
 
@@ -133,20 +142,20 @@ export default function Lojas() {
                                 </div>
 
                                 <div className="flex-1 mb-mx-xl">
-                                    <p className="mx-text-caption !text-[9px] mb-2 opacity-40 uppercase tracking-[0.2em]">Node Identifier {s.id.slice(0,4)}</p>
+                                    <p className="mx-text-caption !text-[9px] mb-2 opacity-40 uppercase tracking-[0.2em]">IDENTIFICADOR DA UNIDADE</p>
                                     <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">{s.name}</h3>
                                     <div className="flex items-center gap-3 p-4 rounded-mx-xl bg-mx-slate-50 border border-border-subtle mt-mx-lg group-hover:bg-white group-hover:border-mx-indigo-100 transition-colors">
                                         <div className="w-10 h-10 rounded-mx-lg bg-white flex items-center justify-center text-brand-primary shadow-sm"><Mail size={18} /></div>
-                                        <span className="text-xs font-black text-text-primary truncate uppercase tracking-tight">{s.manager_email || 'S/ ADMIN DESIGNADO'}</span>
+                                        <span className="text-xs font-black text-text-primary truncate uppercase tracking-tight">{s.manager_email || 'S/ GESTOR DESIGNADO'}</span>
                                     </div>
                                 </div>
 
                                 <div className="pt-mx-lg border-t border-border-default flex items-center justify-between">
                                     <div className="flex items-center gap-2 mx-text-caption !text-[9px] font-black text-brand-primary">
-                                        <Activity size={14} strokeWidth={3} className="animate-pulse" /> LIVE TRACKING
+                                        <Activity size={14} strokeWidth={3} className="animate-pulse" /> MONITORAMENTO LIVE
                                     </div>
-                                    <Link to={`/loja?id=${s.id}`} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-white hover:bg-brand-secondary transition-all flex items-center justify-center shadow-sm">
-                                        <ChevronRight size={22} strokeWidth={3} />
+                                    <Link to={`/loja?id=${s.id}`} onClick={() => setActiveStoreId(s.id)} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-white hover:bg-brand-secondary transition-all flex items-center justify-center shadow-sm">
+                                        <ChevronRight size={22} strokeWidth={2.5} />
                                     </Link>
                                 </div>
                             </motion.div>
@@ -155,8 +164,8 @@ export default function Lojas() {
                 ) : (
                     <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-mx-slate-50/20 border-2 border-dashed border-border-default rounded-[3rem]">
                         <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-lg flex items-center justify-center mb-mx-lg"><Building2 size={48} className="text-mx-slate-200" /></div>
-                        <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Vácuo de Nodes</h3>
-                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhuma unidade operacional localizada na topologia do cluster.</p>
+                        <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Nenhuma Loja</h3>
+                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhuma unidade operacional localizada na rede atual.</p>
                     </div>
                 )}
             </div>

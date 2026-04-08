@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { calculateReferenceDate } from '@/hooks/useCheckins'
 import type { User } from '@/types/database'
 
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
-    const [sellers, setSellers] = useState<(User & { checkin_today: boolean })[]>([])
+    const [sellers, setSellers] = useState<(User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean })[]>([])
     const [loading, setLoading] = useState(true)
 
-    const today = new Date().toISOString().split('T')[0]
+    const referenceDate = calculateReferenceDate()
 
     const fetchTeam = useCallback(async () => {
         if (!storeId) {
@@ -19,54 +20,129 @@ export function useTeam(storeIdOverride?: string) {
         }
         setLoading(true)
 
-        const { data: members } = await supabase
-            .from('memberships')
-            .select('user_id, role, users(*)')
+        const { data: tenures } = await supabase
+            .from('store_sellers')
+            .select('seller_user_id, started_at, ended_at, is_active, closing_month_grace, users:seller_user_id(*)')
             .eq('store_id', storeId)
-            .eq('role', 'vendedor')
+
+        const { data: fallbackMembers } = (!tenures || tenures.length === 0)
+            ? await supabase
+                .from('memberships')
+                .select('user_id, role, users(*)')
+                .eq('store_id', storeId)
+                .eq('role', 'vendedor')
+            : { data: null }
 
         const { data: todayCheckins } = await supabase
             .from('daily_checkins')
-            .select('user_id')
+            .select('seller_user_id')
             .eq('store_id', storeId)
-            .eq('date', today)
+            .eq('reference_date', referenceDate)
 
-        const checkedIn = new Set((todayCheckins || []).map(c => c.user_id))
+        const checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
+        const sourceRows = (tenures && tenures.length > 0)
+            ? tenures.map((item: any) => ({ 
+                user_id: item.seller_user_id, 
+                users: item.users,
+                tenure: {
+                    started_at: item.started_at,
+                    ended_at: item.ended_at,
+                    is_active: item.is_active,
+                    closing_month_grace: item.closing_month_grace
+                }
+            }))
+            : (fallbackMembers || [])
 
-        if (members) {
-            setSellers(members.map((m: any) => ({
+        if (sourceRows) {
+            setSellers(sourceRows.map((m: any) => ({
                 ...m.users,
                 checkin_today: checkedIn.has(m.user_id),
+                started_at: m.tenure?.started_at,
+                ended_at: m.tenure?.ended_at,
+                is_active: m.tenure?.is_active ?? m.users?.active ?? true,
+                closing_month_grace: m.tenure?.closing_month_grace ?? false,
             })))
         }
         setLoading(false)
-    }, [storeId, today])
+    }, [storeId, referenceDate])
 
     useEffect(() => { fetchTeam() }, [fetchTeam])
     return { sellers, loading, refetch: fetchTeam }
 }
 
 export function useStores() {
+    const { role, memberships, storeId } = useAuth()
     const [stores, setStores] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchStores = useCallback(async () => {
         setLoading(true)
-        const { data } = await supabase.from('stores').select('*').eq('active', true).order('name')
+        let query = supabase.from('stores').select('*').eq('active', true).order('name')
+        if (role === 'dono') {
+            const storeIds = memberships.map(m => m.store_id)
+            if (!storeIds.length) {
+                setStores([])
+                setLoading(false)
+                return
+            }
+            query = query.in('id', storeIds)
+        } else if ((role === 'gerente' || role === 'vendedor') && storeId) {
+            query = query.eq('id', storeId)
+        }
+        const { data } = await query
         if (data) setStores(data)
         setLoading(false)
-    }, [])
+    }, [role, memberships, storeId])
 
     const createStore = async (name: string, managerEmail?: string) => {
-        const { error } = await supabase.from('stores').insert({ name, manager_email: managerEmail || null })
-        if (!error) await fetchStores()
-        return { error: error?.message || null }
+        if (role !== 'admin') return { error: 'Apenas admin pode criar lojas.' }
+        const { data: store, error } = await supabase
+            .from('stores')
+            .insert({ name, manager_email: managerEmail || null })
+            .select('id')
+            .single()
+
+        if (error) return { error: error.message }
+
+        if (store?.id) {
+            const recipients = managerEmail ? [managerEmail] : []
+            const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
+                store_id: store.id,
+                matinal_recipients: recipients,
+                weekly_recipients: recipients,
+                monthly_recipients: recipients,
+                timezone: 'America/Sao_Paulo',
+                active: true,
+            }, { onConflict: 'store_id' })
+
+            if (deliveryError) return { error: deliveryError.message }
+        }
+
+        await fetchStores()
+        return { error: null }
     }
 
     const updateStore = async (id: string, updates: { name?: string; manager_email?: string; active?: boolean }) => {
+        if (role !== 'admin') return { error: 'Apenas admin pode editar lojas.' }
         const { error } = await supabase.from('stores').update(updates).eq('id', id)
-        if (!error) await fetchStores()
-        return { error: error?.message || null }
+        if (error) return { error: error.message }
+
+        if (typeof updates.manager_email !== 'undefined') {
+            const recipients = updates.manager_email ? [updates.manager_email] : []
+            const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
+                store_id: id,
+                matinal_recipients: recipients,
+                weekly_recipients: recipients,
+                monthly_recipients: recipients,
+                timezone: 'America/Sao_Paulo',
+                active: true,
+            }, { onConflict: 'store_id' })
+
+            if (deliveryError) return { error: deliveryError.message }
+        }
+
+        await fetchStores()
+        return { error: null }
     }
 
     useEffect(() => { fetchStores() }, [fetchStores])

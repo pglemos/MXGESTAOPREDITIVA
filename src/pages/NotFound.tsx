@@ -6,7 +6,7 @@ export default function NotFound() {
     const navigate = useNavigate()
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 sm:p-8 selection:bg-[#1A1D20] selection:text-white relative overflow-hidden">
+        <div className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-8 selection:bg-brand-secondary selection:text-white relative overflow-hidden">
 
             {/* Background Decorations */}
             <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-rose-50/50 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
@@ -18,7 +18,7 @@ export default function NotFound() {
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full max-w-2xl bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden flex flex-col relative z-10 border border-gray-100"
             >
-                <div className="bg-[#1A1D20] p-10 md:p-14 relative overflow-hidden text-center">
+                <div className="bg-brand-secondary p-10 md:p-14 relative overflow-hidden text-center">
                     <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent z-0 pointer-events-none" />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
 
@@ -46,7 +46,7 @@ export default function NotFound() {
                     <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                         <button
                             onClick={() => navigate(-1)}
-                            className="w-full sm:w-auto px-8 py-5 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#1A1D20] hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all flex items-center justify-center gap-3"
+                            className="w-full sm:w-auto px-8 py-5 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-text-primary hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all flex items-center justify-center gap-3"
                         >
                             <ArrowLeft size={16} /> Voltar
                         </button>
@@ -59,7 +59,7 @@ export default function NotFound() {
                     </div>
 
                     <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest text-center mt-4">
-                        MX Gestão Preditiva © {new Date().getFullYear()}
+                        MX PERFORMANCE © {new Date().getFullYear()}
                     </p>
                 </div>
             </motion.div>
