@@ -20,8 +20,8 @@ type SellerRow = {
     email: string | null;
     is_venda_loja: boolean;
     leads: number;
-    agd_prev: number;
-    agd_today: number;
+    agd_cart_today: number;
+    agd_net_today: number;
     vis: number;
     vp: number;
     vc: number;
@@ -59,7 +59,7 @@ Deno.serve(async (req: Request) => {
             const payload = await buildMorningPayload(store, dates);
             const html = generateHTML(payload);
             const xlsxBase64 = generateXLSX(payload.ranking);
-            const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${dates.today}.xlsx`;
+            const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${formatPtBrDate(dates.referenceDate).replace(/\//g, "-")}.xlsx`;
 
             let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
             let warnings: string[] = [];
@@ -233,8 +233,8 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
             email: user?.email || null,
             is_venda_loja: user?.is_venda_loja || false,
             leads: 0,
-            agd_prev: 0,
-            agd_today: 0,
+            agd_cart_today: 0,
+            agd_net_today: 0,
             vis: 0,
             vp: 0,
             vc: 0,
@@ -248,8 +248,8 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
         if (!seller) continue;
 
         seller.leads += checkin.leads_prev_day || 0;
-        seller.agd_prev += (checkin.agd_cart_prev_day || 0) + (checkin.agd_net_prev_day || 0);
-        seller.agd_today += (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0);
+        seller.agd_cart_today += checkin.agd_cart_today || 0;
+        seller.agd_net_today += checkin.agd_net_today || 0;
         seller.vis += checkin.visit_prev_day || 0;
         seller.vp += checkin.vnd_porta_prev_day || 0;
         seller.vc += checkin.vnd_cart_prev_day || 0;
@@ -308,22 +308,24 @@ function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
   <Table>
    <Row ss:StyleID="Header">
     <Cell><Data ss:Type="String">Vendedor</Data></Cell>
-    <Cell><Data ss:Type="String">Leads</Data></Cell>
-    <Cell><Data ss:Type="String">Agendamentos Hoje</Data></Cell>
-    <Cell><Data ss:Type="String">Agendamentos D-1</Data></Cell>
-    <Cell><Data ss:Type="String">Visitas D-1</Data></Cell>
-    <Cell><Data ss:Type="String">Vendas D-1</Data></Cell>
-    <Cell><Data ss:Type="String">Status Registro</Data></Cell>
+    <Cell><Data ss:Type="String">LEADS NOVOS RECEBIDOS NO DIA ANTERIOR</Data></Cell>
+    <Cell><Data ss:Type="String">AGENDAMENTOS CARTEIRA ( HOJE )</Data></Cell>
+    <Cell><Data ss:Type="String">AGENDAMENTOS INTERNET ( HOJE )</Data></Cell>
+    <Cell><Data ss:Type="String">VENDA PORTA ( ONTEM )</Data></Cell>
+    <Cell><Data ss:Type="String">VENDAS CARTEIRA VENDEDOR ( ONTEM )</Data></Cell>
+    <Cell><Data ss:Type="String">VENDA INTERNET ( ONTEM )</Data></Cell>
+    <Cell><Data ss:Type="String">STATUS REGISTRO</Data></Cell>
    </Row>
    ${ranking.map(row => `
    <Row>
     <Cell><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
     <Cell><Data ss:Type="Number">${row.leads}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.agd_today}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.agd_prev}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vis}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vt}</Data></Cell>
-    <Cell><Data ss:Type="String">${row.sem_registro ? "Sem Registro" : "OK"}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.agd_cart_today}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.agd_net_today}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vp}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vc}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vn}</Data></Cell>
+    <Cell><Data ss:Type="String">${row.sem_registro ? "PENDENTE" : "REGISTRADO"}</Data></Cell>
    </Row>`).join('')}
   </Table>
  </Worksheet>
@@ -396,7 +398,7 @@ ${payload.semRegistro.length > 0 ? `<div class="sr">Atencao: ${payload.semRegist
 </div>
 <div class="alert">Faltam ${payload.gap} vendas em ${payload.daysRemaining} dias (${payload.daysRemaining > 0 ? (payload.gap / payload.daysRemaining).toFixed(1) : 0}/dia)</div>
 <table><thead><tr><th>Vendedor</th><th>Leads</th><th>AGD Hoje</th><th>Visitas D-1</th><th>VND</th><th>Registro</th></tr></thead>
-<tbody>${payload.ranking.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${row.leads}</td><td>${row.agd_today}</td><td>${row.vis}</td><td>${row.vt}</td><td>${row.sem_registro ? "Sem registro" : "OK"}</td></tr>`).join("")}</tbody></table>
+<tbody>${payload.ranking.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${row.leads}</td><td>${row.agd_cart_today + row.agd_net_today}</td><td>${row.vis}</td><td>${row.vt}</td><td>${row.sem_registro ? "Sem registro" : "OK"}</td></tr>`).join("")}</tbody></table>
 <a href="${wppLink}" class="btn">Enviar no WhatsApp</a>
 </div>
 <div class="f">MX PERFORMANCE © ${payload.year}</div>

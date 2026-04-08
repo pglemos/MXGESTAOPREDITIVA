@@ -1,8 +1,13 @@
 import { useStores } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
+import { useStorePerformance } from '@/hooks/useRanking'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Store, Plus, X, Save, Mail, Building2, ChevronRight, Search, RefreshCw, Activity, Database, Globe, Zap } from 'lucide-react'
+import { 
+    Store, Plus, X, Save, Mail, Building2, ChevronRight, 
+    Search, RefreshCw, Activity, Database, Globe, Zap,
+    Target, TrendingUp, AlertCircle, CheckCircle2, LayoutGrid, List
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
@@ -16,15 +21,19 @@ const storeSchema = z.object({
 })
 
 export default function Lojas() {
-    const { role, setActiveStoreId } = useAuth()
-    const { stores, loading, createStore } = useStores()
+    const { profile, role, setActiveStoreId } = useAuth()
+    const { stores, loading: storesLoading, createStore } = useStores()
+    const { performance, loading: perfLoading, refetch: refetchPerf } = useStorePerformance()
     const canManageStores = role === 'admin'
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
     const [showForm, setShowForm] = useState(false)
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
     const [saving, setSaving] = useState(false)
     const [formErrors, setFormErrors] = useState<{name?: string, email?: string}>({})
+
+    const loading = storesLoading || perfLoading
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -50,14 +59,14 @@ export default function Lojas() {
         toast.success('Loja operacional ativada na rede!')
         setShowForm(false)
         setName(''); setEmail('')
+        refetchPerf()
     }
 
-    const filteredStores = useMemo(() => {
-        return (stores || []).filter(s => 
-            s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (s.manager_email && s.manager_email.toLowerCase().includes(searchTerm.toLowerCase()))
-        )
-    }, [stores, searchTerm])
+    const filteredPerformance = useMemo(() => {
+        return (performance || []).filter(p => 
+            p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        ).sort((a, b) => b.realizado - a.realizado)
+    }, [performance, searchTerm])
 
     return (
         <div className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-white">
@@ -65,19 +74,27 @@ export default function Lojas() {
             {/* Header / Toolbar - Elite Aligned */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div>
-                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">{canManageStores ? 'GESTOR DE REDE' : 'VISÃO EXECUTIVA'}</span>
+                    <span className="mx-text-caption text-brand-primary mb-2 block font-black tracking-[0.3em]">{canManageStores ? 'GEOFENCING COMANDO CENTRAL' : 'VISÃO EXECUTIVA'}</span>
                     <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">{canManageStores ? 'Gestão de Unidades' : 'Minhas Lojas'}</h1>
                     <div className="flex items-center gap-2 mt-4">
                         <div className="w-2 h-2 rounded-full bg-status-success animate-pulse" />
-                        <div className="mx-text-caption !text-[10px] opacity-60 uppercase">{loading ? <Skeleton className="h-3 w-20" /> : `${stores.length} Lojas Ativas na Rede`}</div>
+                        <div className="mx-text-caption !text-[10px] opacity-60 uppercase">{loading ? <Skeleton className="h-3 w-20" /> : `${performance.length} Lojas Ativas na Rede`}</div>
                     </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
+                    <div className="flex bg-mx-slate-50 p-1 rounded-xl border border-border-default mr-2">
+                        <button onClick={() => setViewMode('table')} className={cn("p-2 rounded-lg transition-all", viewMode === 'table' ? "bg-white text-brand-primary shadow-sm" : "text-text-tertiary")}>
+                            <List size={20} />
+                        </button>
+                        <button onClick={() => setViewMode('grid')} className={cn("p-2 rounded-lg transition-all", viewMode === 'grid' ? "bg-white text-brand-primary shadow-sm" : "text-text-tertiary")}>
+                            <LayoutGrid size={20} />
+                        </button>
+                    </div>
                     <div className="relative w-full sm:w-72 group">
                         <Search size={18} className="absolute left-mx-md top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                         <input 
-                            type="text" placeholder="BUSCAR LOJA..." value={searchTerm}
+                            type="text" placeholder="BUSCAR UNIDADE..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="mx-input !h-14 !pl-14 !text-[10px] !font-black !tracking-widest uppercase"
                         />
@@ -93,6 +110,7 @@ export default function Lojas() {
             <AnimatePresence>
                 {showForm && canManageStores && (
                     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="shrink-0 z-50 rounded-[2.5rem] p-1 bg-gradient-to-b from-mx-indigo-50 to-white shadow-mx-xl mb-mx-lg">
+                        {/* ... form content ... */}
                         <form onSubmit={handleCreate} className="bg-white rounded-[2.4rem] p-mx-xl space-y-mx-lg relative overflow-hidden">
                             <div className="flex items-center justify-between border-b border-border-subtle pb-mx-lg">
                                 <div className="flex items-center gap-mx-md">
@@ -128,63 +146,140 @@ export default function Lojas() {
 
             <div className="flex-1 min-h-0 pb-mx-xl">
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="mx-card p-mx-xl flex flex-col justify-between h-[300px]">
-                                <div className="flex items-start justify-between">
-                                    <Skeleton className="w-20 h-20 rounded-[2rem]" />
-                                    <Skeleton className="w-24 h-8 rounded-full" />
-                                </div>
-                                <div className="space-y-4">
-                                    <Skeleton className="h-4 w-1/2" />
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-12 w-full rounded-mx-xl" />
-                                </div>
-                                <div className="pt-mx-lg border-t flex items-center justify-between">
-                                    <Skeleton className="h-4 w-1/3" />
-                                    <Skeleton className="w-12 h-12 rounded-mx-lg" />
-                                </div>
-                            </div>
-                        ))}
+                    <div className="grid gap-mx-md">
+                        {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-[2rem]" />)}
                     </div>
-                ) : filteredStores.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
-                        {filteredStores.map((s, i) => (
-                            <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="mx-card p-mx-xl flex flex-col justify-between group hover:shadow-mx-xl hover:-translate-y-1 transition-all relative overflow-hidden">
-                                <div className="flex items-start justify-between mb-mx-xl">
-                                    <div className="w-20 h-20 rounded-[2rem] bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-3xl text-text-primary group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-sm">
-                                        {s.name.charAt(0)}
+                ) : filteredPerformance.length > 0 ? (
+                    viewMode === 'grid' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
+                            {filteredPerformance.map((p, i) => (
+                                <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="mx-card p-mx-xl flex flex-col group hover:shadow-mx-xl transition-all relative overflow-hidden">
+                                     <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[60px] -mr-16 -mt-16 opacity-20", 
+                                        p.status === 'green' ? 'bg-status-success' : p.status === 'yellow' ? 'bg-status-warning' : 'bg-status-error'
+                                    )} />
+                                    
+                                    <div className="flex items-start justify-between mb-8">
+                                        <div className="w-16 h-16 rounded-[1.5rem] bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-2xl group-hover:bg-slate-950 group-hover:text-white transition-all">
+                                            {p.name.charAt(0)}
+                                        </div>
+                                        <Badge className={cn("text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-none", 
+                                            p.status === 'green' ? 'bg-status-success text-white' : p.status === 'yellow' ? 'bg-status-warning text-white' : 'bg-status-error text-white'
+                                        )}>
+                                            {p.status === 'green' ? 'NO RITMO' : p.status === 'yellow' ? 'ALERTA' : 'CRÍTICO'}
+                                        </Badge>
                                     </div>
-                                    <Badge className={cn("text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border-none shadow-sm", s.active ? 'bg-status-success-surface text-status-success' : 'bg-status-error-surface text-status-error')}>
-                                        {s.active ? 'OPERACIONAL' : 'INATIVO'}
-                                    </Badge>
-                                </div>
 
-                                <div className="flex-1 mb-mx-xl">
-                                    <p className="mx-text-caption !text-[9px] mb-2 opacity-40 uppercase tracking-[0.2em]">IDENTIFICADOR DA UNIDADE</p>
-                                    <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">{s.name}</h3>
-                                    <div className="flex items-center gap-3 p-4 rounded-mx-xl bg-mx-slate-50 border border-border-subtle mt-mx-lg group-hover:bg-white group-hover:border-mx-indigo-100 transition-colors">
-                                        <div className="w-10 h-10 rounded-mx-lg bg-white flex items-center justify-center text-brand-primary shadow-sm"><Mail size={18} /></div>
-                                        <span className="text-xs font-black text-text-primary truncate uppercase tracking-tight">{s.manager_email || 'S/ GESTOR DESIGNADO'}</span>
-                                    </div>
-                                </div>
+                                    <h3 className="text-2xl font-black text-text-primary tracking-tighter uppercase mb-6 truncate">{p.name}</h3>
 
-                                <div className="pt-mx-lg border-t border-border-default flex items-center justify-between">
-                                    <div className="flex items-center gap-2 mx-text-caption !text-[9px] font-black text-brand-primary">
-                                        <Activity size={14} strokeWidth={3} className="animate-pulse" /> MONITORAMENTO LIVE
+                                    <div className="grid grid-cols-2 gap-4 mb-8">
+                                        <div className="p-4 rounded-mx-xl bg-mx-slate-50">
+                                            <p className="text-[8px] font-black tracking-widest text-text-tertiary uppercase mb-1">Vendido</p>
+                                            <p className="text-xl font-black text-text-primary">{p.realizado}</p>
+                                        </div>
+                                        <div className="p-4 rounded-mx-xl bg-mx-slate-50">
+                                            <p className="text-[8px] font-black tracking-widest text-text-tertiary uppercase mb-1">Meta</p>
+                                            <p className="text-xl font-black text-brand-primary">{p.meta}</p>
+                                        </div>
                                     </div>
-                                    <Link to={`/loja?id=${s.id}`} onClick={() => setActiveStoreId(s.id)} className="w-12 h-12 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-white hover:bg-brand-secondary transition-all flex items-center justify-center shadow-sm">
-                                        <ChevronRight size={22} strokeWidth={2.5} />
-                                    </Link>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+
+                                    <div className="pt-mx-lg border-t border-border-default flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-text-tertiary uppercase">Projeção</span>
+                                            <span className="text-sm font-black text-text-primary">{p.projecao} Und.</span>
+                                        </div>
+                                        <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} className="w-10 h-10 rounded-mx-lg bg-slate-950 text-white flex items-center justify-center hover:scale-110 transition-all">
+                                            <ChevronRight size={20} />
+                                        </Link>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="bg-white border border-border-default rounded-[2.5rem] overflow-hidden shadow-mx-sm">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-mx-slate-50/50">
+                                        <th className="px-8 py-6 text-[9px] font-black text-text-tertiary uppercase tracking-widest">Unidade Operacional</th>
+                                        <th className="px-8 py-6 text-[9px] font-black text-text-tertiary uppercase tracking-widest">Semáforo</th>
+                                        <th className="px-8 py-6 text-[9px] font-black text-text-tertiary uppercase tracking-widest">Realizado / Meta</th>
+                                        <th className="px-8 py-6 text-[9px] font-black text-text-tertiary uppercase tracking-widest">Falta (GAP)</th>
+                                        <th className="px-8 py-6 text-[9px] font-black text-text-tertiary uppercase tracking-widest">Projeção Final</th>
+                                        <th className="px-8 py-6 text-[9px] font-black text-text-tertiary uppercase tracking-widest text-center">Disciplina</th>
+                                        <th className="px-8 py-6 text-right"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <AnimatePresence mode="popLayout">
+                                        {filteredPerformance.map((p, i) => (
+                                            <motion.tr 
+                                                key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
+                                                className="border-t border-border-subtle hover:bg-mx-slate-50/30 transition-colors group"
+                                            >
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-mx-lg bg-mx-slate-100 flex items-center justify-center font-black text-text-primary group-hover:bg-slate-950 group-hover:text-white transition-all">{p.name.charAt(0)}</div>
+                                                        <span className="text-sm font-black text-text-primary uppercase tracking-tight">{p.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={cn("w-3 h-3 rounded-full animate-pulse shadow-sm", 
+                                                            p.status === 'green' ? 'bg-status-success shadow-status-success/20' : 
+                                                            p.status === 'yellow' ? 'bg-status-warning shadow-status-warning/20' : 
+                                                            'bg-status-error shadow-status-error/20'
+                                                        )} />
+                                                        <span className={cn("text-[10px] font-black uppercase tracking-widest",
+                                                            p.status === 'green' ? 'text-status-success' : 
+                                                            p.status === 'yellow' ? 'text-status-warning' : 
+                                                            'text-status-error'
+                                                        )}>
+                                                            {p.efficiency}% Ritmo
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-lg font-black text-text-primary">{p.realizado}</span>
+                                                        <span className="text-[10px] font-bold text-text-tertiary uppercase">de {p.meta}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <Badge className="bg-rose-50 text-rose-600 border-none font-black text-[10px] px-3 py-1">-{p.gap} UND</Badge>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex flex-col">
+                                                         <span className="text-sm font-black text-text-primary uppercase tracking-tight">{p.projecao}</span>
+                                                         <span className="text-[8px] font-bold text-brand-primary uppercase tracking-widest">Est. Fechamento</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="flex items-center gap-1">
+                                                            {p.disciplina.ok ? <CheckCircle2 size={14} className="text-status-success" /> : <AlertCircle size={14} className="text-status-error" />}
+                                                            <span className={cn("text-[10px] font-black", p.disciplina.ok ? "text-status-success" : "text-status-error")}>{p.disciplina.done}/{p.disciplina.total}</span>
+                                                        </div>
+                                                        <div className="w-16 h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                                                            <div className={cn("h-full transition-all", p.disciplina.ok ? "bg-status-success" : "bg-status-error")} style={{ width: `${(p.disciplina.done / Math.max(p.disciplina.total, 1)) * 100}%` }} />
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6 text-right">
+                                                    <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} className="inline-flex items-center justify-center w-10 h-10 rounded-mx-lg bg-mx-slate-50 border border-border-default text-text-tertiary hover:bg-slate-950 hover:text-white transition-all">
+                                                        <ChevronRight size={18} />
+                                                    </Link>
+                                                </td>
+                                            </motion.tr>
+                                        ))}
+                                    </AnimatePresence>
+                                </tbody>
+                            </table>
+                        </div>
+                    )
                 ) : (
                     <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-mx-slate-50/20 border-2 border-dashed border-border-default rounded-[3rem]">
                         <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-lg flex items-center justify-center mb-mx-lg"><Building2 size={48} className="text-mx-slate-200" /></div>
-                        <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Nenhuma Loja</h3>
-                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Nenhuma unidade operacional localizada na rede atual.</p>
+                        <h3 className="text-3xl font-black text-text-primary tracking-tighter uppercase mb-2">Aquecendo Unidades</h3>
+                        <p className="mx-text-caption text-text-tertiary max-w-xs leading-relaxed uppercase">Aguardando consolidação de dados para liberar a visão operacional.</p>
                     </div>
                 )}
             </div>

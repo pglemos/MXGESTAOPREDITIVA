@@ -57,8 +57,8 @@ Deno.serve(async (req: Request) => {
 
       const payload = await buildMonthlyPayload(store, dates);
       const html = generateMonthlyHTML(payload);
-      const csvBase64 = generateCSV(payload.ranking);
-      const fileName = `fechamento_mensal_MX_${store.name.replace(/\s+/g, "_")}_${dates.year}_${String(dates.month).padStart(2, "0")}.csv`;
+      const xlsxBase64 = generateMonthlyXLSX(payload);
+      const fileName = `fechamento_mensal_MX_${store.name.replace(/\s+/g, "_")}_${dates.year}_${String(dates.month).padStart(2, "0")}.xlsx`;
 
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
@@ -75,7 +75,7 @@ Deno.serve(async (req: Request) => {
               to: payload.recipients,
               subject: `Fechamento Mensal MX: ${store.name} - ${payload.monthLabel.toUpperCase()}`,
               html,
-              attachments: [{ filename: fileName, content: csvBase64 }],
+              attachments: [{ filename: fileName, content: xlsxBase64 }],
             });
 
             if (error) {
@@ -299,22 +299,68 @@ td:last-child{border-right:1px solid #e2e8f0;border-radius:0 14px 14px 0}
 </body></html>`;
 }
 
-function generateCSV(ranking: SellerMonthlyRow[]) {
-  const headers = ["Vendedor", "Leads", "Agendamentos", "Visitas", "Vendas Porta", "Vendas Cartão", "Vendas Net", "Total Vendas"];
-  const rows = ranking.map((row) => [
-    `"${row.name}"`,
-    row.leads,
-    row.agd,
-    row.vis,
-    row.vp,
-    row.vc,
-    row.vn,
-    row.vt,
-  ]);
-  const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
-  const data = new TextEncoder().encode(csvContent);
-  const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
-  return btoa(binString);
+function generateMonthlyXLSX(payload: any) {
+    const { ranking, store, monthLabel } = payload;
+    
+    let xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Header">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="FECHAMENTO MENSAL">
+  <Table>
+   <Row><Cell><Data ss:Type="String">LOJA: ${escapeXml(store.name)}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">MES: ${monthLabel}</Data></Cell></Row>
+   <Row ss:Index="4" ss:StyleID="Header">
+    <Cell><Data ss:Type="String">Vendedor</Data></Cell>
+    <Cell><Data ss:Type="String">Leads</Data></Cell>
+    <Cell><Data ss:Type="String">Agendamentos</Data></Cell>
+    <Cell><Data ss:Type="String">Visitas</Data></Cell>
+    <Cell><Data ss:Type="String">Venda Porta</Data></Cell>
+    <Cell><Data ss:Type="String">Venda Carteira</Data></Cell>
+    <Cell><Data ss:Type="String">Venda Internet</Data></Cell>
+    <Cell><Data ss:Type="String">Total Vendas</Data></Cell>
+   </Row>
+   ${ranking.map((row: any) => `
+   <Row>
+    <Cell><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.leads}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.agd}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vis}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vp}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vc}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vn}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vt}</Data></Cell>
+   </Row>`).join('')}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+    const data = new TextEncoder().encode(xml);
+    const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
+    return btoa(binString);
+}
+
+function escapeXml(unsafe: string) {
+    if (!unsafe) return "";
+    return unsafe.replace(/[<>&'"]/g, (c) => {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+            default: return c;
+        }
+    });
 }
 
 function escapeHtml(value: string) {

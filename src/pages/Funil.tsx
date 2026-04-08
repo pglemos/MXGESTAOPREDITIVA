@@ -23,7 +23,7 @@ export default function Funil() {
     const funil = useMemo(() => calcularFunil(checkins), [checkins])
     
     const defaultBenchmark = useMemo((): Benchmark => ({ 
-        id: '', store_id: storeId || '', lead_to_appt: 30, appt_to_visit: 50, visit_to_sale: 20 
+        id: '', store_id: storeId || '', lead_to_appt: 20, appt_to_visit: 60, visit_to_sale: 33 
     }), [storeId])
 
     const diagnostic = useMemo(() => {
@@ -37,9 +37,9 @@ export default function Funil() {
 
     const steps = useMemo(() => [
         { label: 'Leads', value: funil.leads, pct: 100, bg: 'bg-brand-primary', color: 'text-brand-primary', subColor: 'bg-brand-primary-surface', bench: null },
-        { label: 'Agendamentos', value: funil.agd_total, pct: funil.tx_lead_agd, bg: 'bg-status-info', color: 'text-status-info', subColor: 'bg-status-info-surface', bench: benchmark?.lead_to_appt || 30 },
-        { label: 'Visitas', value: funil.visitas, pct: funil.tx_agd_visita, bg: 'bg-status-warning', color: 'text-status-warning', subColor: 'bg-status-warning-surface', bench: benchmark?.appt_to_visit || 50 },
-        { label: 'Vendas', value: funil.vnd_total, pct: funil.tx_visita_vnd, bg: 'bg-status-success', color: 'text-status-success', subColor: 'bg-status-success-surface', bench: benchmark?.visit_to_sale || 20 },
+        { label: 'Agendamentos', value: funil.agd_total, pct: funil.tx_lead_agd, bg: 'bg-status-info', color: 'text-status-info', subColor: 'bg-status-info-surface', bench: benchmark?.lead_to_appt || 20 },
+        { label: 'Visitas', value: funil.visitas, pct: funil.tx_agd_visita, bg: 'bg-status-warning', color: 'text-status-warning', subColor: 'bg-status-warning-surface', bench: benchmark?.appt_to_visit || 60 },
+        { label: 'Vendas', value: funil.vnd_total, pct: funil.tx_visita_vnd, bg: 'bg-status-success', color: 'text-status-success', subColor: 'bg-status-success-surface', bench: benchmark?.visit_to_sale || 33 },
     ], [funil, benchmark])
 
     const maxValue = Math.max(funil.leads, 1)

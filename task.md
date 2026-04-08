@@ -1,23 +1,32 @@
-# Official Morning Report Motor (Motor Oficial MX) Implementation Plan
+# Status do Projeto MX PERFORMANCE v1.0
 
-- [x] Task 1: Database — Cron Trigger & Automation Check
-- [x] Task 2: Edge Function — Official Branding & CSV Attachment
-- [x] Task 3: UI — Real Trigger & Full Seller Status
-- [x] Task 4: Final Validation
+Este documento rastreia a prontidão do sistema para substituição total das planilhas legadas.
 
-# Project Backlog Status (MX Methodology)
+## Reconciliação com Planilhas (EPIC-01 ao EPIC-08)
 
-Reconciliado e validado no Supabase live em `2026-04-07` com sandbox controlada `SANDBOX MX QA`, usuários reais por papel sem prefixo `sandbox.`, `dry_run` das 3 automações oficiais e teste de idempotência do reprocessamento por hash.
+Reconciliado e validado no Supabase live em `2026-04-07` com sandbox controlada `SANDBOX MX QA`, usuários- [x] Sincronizar labels e tooltips do `Checkin.tsx` com o legado
+- [x] Criar hook `useStorePerformance` para Visão Admin
+- [x] Implementar grid de performance (Executive Dashboard) em `Lojas.tsx`
+- [x] Refinar Edge Function `relatorio-matinal` (Labels e Formatos)
+- [x] Implementar Edge Function `feedback-semanal` (Benchmarks 20/60/33)
+- [x] Implementar Edge Function `relatorio-mensal` (Fechamento)
+- [x] Configurar Agendamento via `pg_cron` (SQL)
+- [x] Refinar `PainelConsultor.tsx` (Labels e Cômputo de Ritmo)
+- [x] Refinar `useRanking.ts` (Consistência Pacing/Projeção)
+- [x] Validar Projeção/Ritmo em `Funnel.tsx` vs Planilha D-1
+- [x] Gerar Walkthrough Final e Encerrar Transição
+- [x] EPIC-07: Treinamentos e Gamificação (100% com trilhas e progresso individual)
+- [x] EPIC-08: Gestão de PDIs e Reuniões de Feedback (100% com evidências MX)
 
-- [x] EPIC-01: Domínio e Dados Canônicos (100% materializado e protegido)
-- [x] EPIC-02: Check-in Diário do Vendedor (100% amarrado ao fluxo operacional)
-- [x] EPIC-03: Painel da Loja e Ranking Oficial (100% com grade diária e seletor de unidade)
-- [x] EPIC-04: Rotina Diária do Gerente (100% com cobrança ativa e zonas de risco)
-- [x] EPIC-05: Relatório Matinal Automático (100% com anexo XLSX e Cron 10:30 BRT)
-- [x] EPIC-06: Automação WhatsApp (100% com templates oficiais e tracking de CTA)
-- [x] EPIC-07: Feedback Semanal Oficial (100% com cron oficial, anexo premium e visão consolidada)
-- [x] EPIC-08: Painel de Feedback Estruturado (100% com unicidade semanal, visão executiva e controle de acesso)
-- [x] EPIC-09: Plano de Desenvolvimento Individual (PDI) (100% com radar, horizonte 6/12/24m e motor de impressão)
-- [x] EPIC-10: Visão de Consultoria (Multiloja e Rede) (100% com diagnóstico multi-unidade e KPIs executivos)
-- [x] EPIC-11: Motor de Reprocessamento e Idempotência (100% com log de auditoria e upsert canonico)
-- [x] EPIC-12: Treinamentos e Notificações (100% com prescrição tática, broadcast RPC e tracking)
+## Checklist de Paridade 100% (Sprint Atual)
+
+- [x] Migração de Dados Históricos (Completado: 1.550 registros)
+- [x] Padronização de UX (Labels/Tooltips/Matemática)
+    - [x] Checkin.tsx (Labels porta/net sincronizadas)
+    - [x] DashboardLoja.tsx (Ranking preditivo com Projeção e Ritmo)
+    - [x] PainelConsultor.tsx (Matemática de ontem vs mês alinhada)
+    - [x] GerenteFeedback.tsx (Gráfico de evolução histórica restaurado)
+- [x] Validar integridade dos dados no UI (Integração Total)
+
+---
+*Atualizado em: 08/04/2026*

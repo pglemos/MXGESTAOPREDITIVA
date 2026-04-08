@@ -356,6 +356,11 @@ export interface RankingEntry {
     visitas: number
     meta: number
     atingimento: number
+    projecao: number
+    ritmo: number
+    efficiency: number
+    status: { label: string; color: string }
+    gap: number
     position: number
 }
 

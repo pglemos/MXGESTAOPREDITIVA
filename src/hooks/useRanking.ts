@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { RankingEntry } from '@/types/database'
-import { calcularAtingimento } from '@/lib/calculations'
+import { calcularAtingimento, getDiasInfo, getOperationalStatus } from '@/lib/calculations'
 
 export function useRanking(storeIdOverride?: string, filters?: { startDate?: string; endDate?: string }) {
     const { storeId: authStoreId } = useAuth()
@@ -115,7 +115,25 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             })
             .map((e, i) => {
                 const atingimento = e.meta > 0 ? calcularAtingimento(e.vnd_total, e.meta) : 0
-                return { ...e, atingimento, position: i + 1 }
+                const diasInfo = getDiasInfo()
+                const targetToday = (e.meta / diasInfo.total) * diasInfo.decorridos
+                const efficiency = targetToday > 0 ? (e.vnd_total / targetToday) * 100 : 100
+                const status = getOperationalStatus(efficiency, 100) // Ranking presume check-in p/ quem aparece
+
+                const projecao = e.is_venda_loja ? e.vnd_total : Math.round((e.vnd_total / Math.max(diasInfo.decorridos, 1)) * diasInfo.total)
+                const ritmo = e.is_venda_loja ? 0 : Math.max(0, Math.ceil((e.meta - e.vnd_total) / Math.max(diasInfo.restantes, 1)))
+                const gap = e.is_venda_loja ? 0 : Math.max(0, e.meta - e.vnd_total)
+
+                return { 
+                    ...e, 
+                    atingimento, 
+                    projecao, 
+                    ritmo, 
+                    efficiency,
+                    status,
+                    gap,
+                    position: i + 1 
+                }
             })
 
         setRanking(entries)
@@ -179,14 +197,22 @@ export function useGlobalRanking() {
                 visitas: d.vis, 
                 meta: 0, 
                 atingimento: 0, 
+                projecao: d.vnd,
+                ritmo: 0,
+                gap: 0,
                 position: 0 
-            }))
+              }))
             .sort((a, b) => {
                 if (b.vnd_total !== a.vnd_total) return b.vnd_total - a.vnd_total
                 if (a.is_venda_loja !== b.is_venda_loja) return a.is_venda_loja ? 1 : -1
                 return b.visitas - a.visitas
             })
-            .map((e, i) => ({ ...e, position: i + 1 }))
+            .map((e, i) => ({ 
+                ...e, 
+                position: i + 1,
+                efficiency: 0,
+                status: { label: '-', color: 'bg-gray-100 text-gray-400' }
+            }))
 
         setRanking(entries)
         setLoading(false)
@@ -195,4 +221,80 @@ export function useGlobalRanking() {
     useEffect(() => { fetchGlobal() }, [fetchGlobal])
 
     return { ranking, loading, refetch: fetchGlobal }
+}
+
+export function useStorePerformance() {
+    const [performance, setPerformance] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchPerformance = useCallback(async () => {
+        setLoading(true)
+        const now = new Date()
+        const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+        const dias = getDiasInfo()
+
+        const [{ data: stores }, { data: rules }, { data: checkins }, { data: sellers }, { data: yesterdayCheckins }] = await Promise.all([
+            supabase.from('stores').select('id, name'),
+            supabase.from('store_meta_rules').select('store_id, monthly_goal'),
+            supabase.from('daily_checkins')
+                .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
+                .eq('metric_scope', 'daily')
+                .gte('reference_date', startOfMonth),
+            supabase.from('store_sellers').select('store_id, is_active').eq('is_active', true),
+            supabase.from('daily_checkins')
+                .select('store_id, seller_user_id')
+                .eq('metric_scope', 'daily')
+                .eq('reference_date', dias.referencia) // Yesterday
+        ])
+
+        if (!stores) { setLoading(false); return }
+
+        const rulesMap = new Map(rules?.map(r => [r.store_id, r.monthly_goal]) || [])
+        const salesMap = new Map<string, number>()
+        checkins?.forEach(c => {
+            const v = (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
+            salesMap.set(c.store_id, (salesMap.get(c.store_id) || 0) + v)
+        })
+
+        const sellersCountMap = new Map<string, number>()
+        sellers?.forEach(s => sellersCountMap.set(s.store_id, (sellersCountMap.get(s.store_id) || 0) + 1))
+
+        const checkinsYesterdayMap = new Map<string, number>()
+        yesterdayCheckins?.forEach(c => checkinsYesterdayMap.set(c.store_id, (checkinsYesterdayMap.get(c.store_id) || 0) + 1))
+
+        const perf = stores.map(s => {
+            const meta = rulesMap.get(s.id) || 0
+            const realizado = salesMap.get(s.id) || 0
+            const projecao = Math.round((realizado / Math.max(dias.decorridos, 1)) * dias.total)
+            const gap = Math.max(0, meta - realizado)
+            
+            // Disciplina
+            const totalSellers = sellersCountMap.get(s.id) || 0
+            const doneSellers = checkinsYesterdayMap.get(s.id) || 0
+            const isDisciplined = totalSellers > 0 ? doneSellers >= totalSellers : true
+            
+            // Semáforo logic
+            const targetToday = (meta / dias.total) * dias.decorridos
+            const efficiency = targetToday > 0 ? realizado / targetToday : 1
+            const status = efficiency >= 1 ? 'green' : efficiency >= 0.8 ? 'yellow' : 'red'
+
+            return {
+                id: s.id,
+                name: s.name,
+                meta,
+                realizado,
+                projecao,
+                gap,
+                status,
+                disciplina: { total: totalSellers, done: doneSellers, ok: isDisciplined },
+                efficiency: Math.round(efficiency * 100)
+            }
+        })
+
+        setPerformance(perf)
+        setLoading(false)
+    }, [])
+
+    useEffect(() => { fetchPerformance() }, [fetchPerformance])
+    return { performance, loading, refetch: fetchPerformance }
 }

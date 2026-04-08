@@ -38,22 +38,23 @@ export function calcularProjecao(vendas: number, diasDecorridos: number, totalDi
     return Math.round((vendas / diasDecorridos) * totalDias)
 }
 
-/** Ritmo diário = (meta - vendas) / dias_restantes */
+/** Ritmo diário (Necessário para a Meta) = (meta - vendas) / dias_restantes */
 export function calcularRitmo(meta: number, vendas: number, diasRestantes: number): number {
     if (diasRestantes <= 0) return 0
     const falta = Math.max(meta - vendas, 0)
     return Math.round(falta / diasRestantes * 10) / 10
 }
 
-/** Get days info for the current month */
-export function getDiasInfo(date?: Date): { total: number; decorridos: number; restantes: number } {
-    const now = date || new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth()
+/** Get days info for the current month. If date is provided, use it for 'decorridos' */
+export function getDiasInfo(referenceDate?: Date | string): { total: number; decorridos: number; restantes: number; referencia: string } {
+    const ref = typeof referenceDate === 'string' ? new Date(referenceDate + 'T12:00:00') : (referenceDate || new Date())
+    const year = ref.getFullYear()
+    const month = ref.getMonth()
     const total = new Date(year, month + 1, 0).getDate()
-    const decorridos = now.getDate()
+    const decorridos = ref.getDate()
     const restantes = total - decorridos
-    return { total, decorridos, restantes }
+    const referencia = ref.toISOString().split('T')[0]
+    return { total, decorridos, restantes, referencia }
 }
 
 /** Calculate funnel data from aggregated checkins */

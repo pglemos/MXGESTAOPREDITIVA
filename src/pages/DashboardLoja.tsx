@@ -4,7 +4,7 @@ import { useTeam } from '@/hooks/useTeam'
 import { useRanking } from '@/hooks/useRanking'
 import { useAuth } from '@/hooks/useAuth'
 import { 
-    calcularAtingimento, calcularProjecao, calcularFaltaX, getDiasInfo, somarVendas, somarVendasPorCanal, calcularFunil 
+    calcularAtingimento, calcularProjecao, calcularFaltaX, getDiasInfo, somarVendas, somarVendasPorCanal, calcularFunil, calcularRitmo 
 } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import { 
@@ -115,14 +115,18 @@ export default function DashboardLoja() {
         const vendasPeriodo = somarVendas(checkinsForStoreTotal)
         const porCanal = somarVendasPorCanal(checkinsForStoreTotal)
         const atingimento = calcularAtingimento(vendasPeriodo, meta)
-        const dias = getDiasInfo()
+        
+        // Regra MX: A projeção deve ser baseada no último dia consolidado (ontem)
+        const dias = getDiasInfo(referenceDate) 
         const projecao = calcularProjecao(vendasPeriodo, dias.decorridos, dias.total)
         const faltaX = calcularFaltaX(meta, vendasPeriodo)
+        const ritmo = calcularRitmo(meta, vendasPeriodo, dias.restantes)
+        
         const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
         const semRegistroCount = Math.max((sellers || []).length - checkedInCount, 0)
         
         return { 
-            meta, vendasPeriodo, vendidoOntem, porCanal, atingimento, projecao, faltaX, 
+            meta, vendasPeriodo, vendidoOntem, porCanal, atingimento, projecao, faltaX, ritmo,
             checkedInCount, semRegistroCount, 
             storeName: membership?.store?.name || 'UNIDADE' 
         }
@@ -288,6 +292,8 @@ export default function DashboardLoja() {
                                         <th className="px-4 py-4 w-10 text-center border-r border-slate-800">Pos</th>
                                         <th className="px-4 py-4 border-r border-slate-800">Especialista</th>
                                         <th className="py-4 text-center border-r border-slate-800">Vendas</th>
+                                        <th className="py-4 text-center border-r border-slate-800 hidden md:table-cell">Projeção</th>
+                                        <th className="py-4 text-center border-r border-slate-800 hidden md:table-cell">Ritmo</th>
                                         <th className="px-4 py-4 text-right">Disciplina</th>
                                     </tr>
                                 </thead>
@@ -300,6 +306,8 @@ export default function DashboardLoja() {
                                                 <td className="px-2 text-center font-black text-xs text-slate-400 font-mono-numbers border-r border-gray-100">{(i + 1).toString().padStart(2, '0')}</td>
                                                 <td className="px-4 border-r border-gray-100 font-black text-[11px] truncate uppercase">{r.user_name}</td>
                                                 <td className="text-center font-black text-lg font-mono-numbers text-indigo-600 border-r border-gray-100 bg-indigo-50/30">{r.vnd_total}</td>
+                                                <td className="text-center font-black text-xs font-mono-numbers text-blue-600 border-r border-gray-100 bg-blue-50/20 hidden md:table-cell">{r.projecao}</td>
+                                                <td className="text-center font-black text-xs font-mono-numbers text-amber-600 border-r border-gray-100 bg-amber-50/20 hidden md:table-cell">{r.ritmo}</td>
                                                 <td className="px-4 text-right">
                                                     <span className={cn("text-[8px] font-black uppercase tracking-widest", isCheckedIn ? "text-emerald-600" : "text-rose-500")}>
                                                         {isCheckedIn ? 'OK' : 'PENDENTE'}
@@ -369,10 +377,17 @@ export default function DashboardLoja() {
 
                     <div className="bg-slate-950 p-8 rounded-[2.5rem] text-white shadow-xl shadow-slate-200 text-center space-y-4">
                         <TrendingUp size={32} className="mx-auto text-indigo-400 opacity-40" />
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-2">Ritmo de Escoamento</p>
-                            <h5 className="text-4xl font-black tracking-tighter tabular-nums">{metrics.faltaX}</h5>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-2">Unidades para o Alvo</p>
+                        <div className="flex flex-col gap-6">
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-2">Gap para Alvo</p>
+                                <h5 className="text-4xl font-black tracking-tighter tabular-nums text-rose-500">-{metrics.faltaX}</h5>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400 mt-2">Unidades Faltantes</p>
+                            </div>
+                            <div className="pt-6 border-t border-white/5">
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-2">Ritmo Diário</p>
+                                <h5 className="text-4xl font-black tracking-tighter tabular-nums">{metrics.ritmo}</h5>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mt-2">Vendas/Dia Necessárias</p>
+                            </div>
                         </div>
                     </div>
                 </div>

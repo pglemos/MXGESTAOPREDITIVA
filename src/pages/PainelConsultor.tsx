@@ -14,9 +14,9 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { getOperationalStatus } from '@/lib/calculations'
+import { getOperationalStatus, getDiasInfo, calcularProjecao } from '@/lib/calculations'
 
-type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; ritmo: number; sellers: number; checkedInToday: number; disciplinePct: number }
+type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; ritmo: number; efficiency: number; sellers: number; checkedInToday: number; disciplinePct: number }
 
 type SortConfig = {
     key: keyof StoreDiagnostic;
@@ -99,23 +99,29 @@ export default function PainelConsultor() {
             for (const c of todayCheckins || []) checkedInMap.set(c.store_id, (checkedInMap.get(c.store_id) || 0) + 1)
 
             const diagnosticsMap: Record<string, StoreDiagnostic> = {}
-            const daysElapsed = now.getDate()
-            const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+            const dias = getDiasInfo(yesterday)
+            const daysElapsed = dias.decorridos
+            const totalDays = dias.total
 
             for (const store of stores) {
                 const s = salesMap[store.id] || { total: 0, leads: 0, agd: 0, vis: 0 }
                 const goal = goals.find(item => item.store_id === store.id)?.target || 0
-                const proj = daysElapsed > 0 ? Math.round((s.total / daysElapsed) * totalDays) : 0
+                const proj = calcularProjecao(s.total, daysElapsed, totalDays)
                 const numSellers = sellerMap.get(store.id) || 0
                 const numCheckedIn = checkedInMap.get(store.id) || 0
                 
+                const targetToday = (goal / totalDays) * daysElapsed
+                const efficiency = targetToday > 0 ? (s.total / targetToday) * 100 : 100
+                const ritmoNominal = Math.max(0, (goal - s.total) / Math.max(dias.restantes, 1))
+
                 diagnosticsMap[store.id] = {
                     id: store.id, name: store.name, 
                     sales: s.total, leads: s.leads, agd: s.agd, vis: s.vis,
                     goal, 
                     gap: Math.max(goal - s.total, 0),
                     proj,
-                    ritmo: goal > 0 ? Math.round((s.total / goal) * 100) : 0,
+                    ritmo: Math.round(ritmoNominal * 10) / 10,
+                    efficiency: Math.round(efficiency),
                     sellers: numSellers,
                     checkedInToday: numCheckedIn,
                     disciplinePct: numSellers > 0 ? (numCheckedIn / numSellers) * 100 : 100
@@ -146,10 +152,10 @@ export default function PainelConsultor() {
         // 2. Status filter
         if (statusFilter !== 'all') {
             result = result.filter(s => {
-                const status = getOperationalStatus(s.ritmo, s.disciplinePct)
-                if (statusFilter === 'alert') return status.label === 'ALERTA'
+                const status = getOperationalStatus(s.efficiency, s.disciplinePct)
+                if (statusFilter === 'alert') return status.label.includes('ALERTA')
                 if (statusFilter === 'critical') return status.label === 'CRÍTICO'
-                if (statusFilter === 'target') return status.label === 'NO RITMO' || status.label === 'NO ALVO'
+                if (statusFilter === 'target') return status.label === 'NO RITMO' || status.label === 'EXCELÊNCIA'
                 return true
             })
         }
@@ -367,6 +373,9 @@ export default function PainelConsultor() {
                                             <div className="flex items-center justify-center gap-2">Projeção <ArrowUpDown size={10} /></div>
                                         </th>
                                         <th className="px-4 py-6 text-center cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('ritmo')}>
+                                            <div className="flex items-center justify-center gap-2">Ritmo <ArrowUpDown size={10} /></div>
+                                        </th>
+                                        <th className="px-4 py-6 text-center cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('efficiency')}>
                                             <div className="flex items-center justify-center gap-2">Status <ArrowUpDown size={10} /></div>
                                         </th>
                                         <th className="pr-10 py-6 text-center cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('disciplinePct')}>
@@ -395,10 +404,15 @@ export default function PainelConsultor() {
                                                 <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-slate-950">{store.goal}</td>
                                                 <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-rose-600">-{store.gap}</td>
                                                 <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-indigo-600">{store.proj}</td>
+                                                <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-slate-600">
+                                                    {store.ritmo}
+                                                    <p className="text-[8px] font-black uppercase text-gray-400">Vnd/Dia</p>
+                                                </td>
                                                 <td className="px-4 py-2 text-center">
                                                     <Badge className={cn("text-[9px] font-black px-4 py-2 rounded-full uppercase tracking-widest border-none shadow-sm", status.color)}>
-                                                        {status.label === 'NO RITMO' ? 'NO ALVO' : status.label}
+                                                        {status.label}
                                                     </Badge>
+                                                    <p className="text-[8px] font-black text-slate-400 mt-1 uppercase">{store.efficiency}% EFIC.</p>
                                                 </td>
                                                 <td className="pr-10 py-2 text-center">
                                                     <div className="flex flex-col items-center">

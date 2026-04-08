@@ -160,7 +160,7 @@ export default function Checkin() {
     const todayDisplay = new Date(referenceDate + 'T12:00:00')
     const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
-    const NumberInput = ({ label, icon: Icon, field, color, bg }: { label: string; icon: any; field: keyof CheckinForm; color: string; bg: string }) => (
+    const NumberInput = ({ label, icon: Icon, field, color, bg, tooltip }: { label: string; icon: any; field: keyof CheckinForm; color: string; bg: string; tooltip?: string }) => (
         <div className={cn(
             "flex flex-col gap-4 rounded-[2rem] border p-5 shadow-sm transition-all group/input hover:shadow-lg sm:flex-row sm:items-center sm:justify-between",
             changedFields.has(field) ? "border-electric-blue/30 bg-white" : "border-gray-100 bg-white/80"
@@ -170,7 +170,18 @@ export default function Checkin() {
                     <Icon size={24} strokeWidth={2.5} />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-gray-400 font-black text-[9px] uppercase tracking-[0.2em] mb-1">{label}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-gray-400 font-black text-[9px] uppercase tracking-[0.2em]">{label}</span>
+                        {tooltip && (
+                            <div className="relative group/tooltip flex items-center justify-center">
+                                <Info size={12} className="text-gray-300 hover:text-emerald-500 cursor-help transition-colors" />
+                                <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] w-56 p-3 rounded-2xl bg-slate-900 border border-slate-700 text-white text-[9px] uppercase font-black tracking-widest leading-relaxed shadow-2xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all pointer-events-none text-center">
+                                    {tooltip}
+                                    <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45 border-r border-b border-slate-700" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <span className="text-4xl font-black tabular-nums tracking-tighter text-pure-black leading-none">{form[field] as number}</span>
                 </div>
             </div>
@@ -320,12 +331,12 @@ export default function Checkin() {
                             <div className="bg-emerald-50/20 border border-emerald-100/50 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/30 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                                    <NumberInput label="Leads Recebidos (Ontem)" icon={Users} field="leads" bg="bg-white" color="text-indigo-600" />
-                                    <NumberInput label="Visitas Realizadas (Ontem)" icon={Eye} field="visitas" bg="bg-white" color="text-amber-600" />
+                                    <NumberInput label="LEADS NOVOS RECEBIDOS NO DIA ANTERIOR" icon={Users} field="leads" bg="bg-white" color="text-indigo-600" tooltip="Contabilize todos os contatos novos que entraram na sua base ontem (WhatsApp, Telefone, Porta)." />
+                                    <NumberInput label="COMPARECIMENTO DE VISITAS (ONTEM)" icon={Eye} field="visitas" bg="bg-white" color="text-amber-600" tooltip="Número total de pessoas que estiveram fisicamente na loja ontem para atendimento com você." />
                                     <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-emerald-100/50">
-                                        <NumberInput label="Vendas Porta" icon={Car} field="vnd_porta" bg="bg-white" color="text-emerald-600" />
-                                        <NumberInput label="Vendas Carteira" icon={Users} field="vnd_cart" bg="bg-white" color="text-emerald-600" />
-                                        <NumberInput label="Vendas Digital" icon={Globe} field="vnd_net" bg="bg-white" color="text-emerald-600" />
+                                        <NumberInput label="VENDAS PORTA (ONTEM)" icon={Car} field="vnd_porta" bg="bg-white" color="text-emerald-600" tooltip="Votos de confiança e contratos fechados de clientes que vieram por fluxo de porta ontem." />
+                                        <NumberInput label="VENDAS CARTEIRA VENDEDOR (ONTEM)" icon={Users} field="vnd_cart" bg="bg-white" color="text-emerald-600" tooltip="Fechamentos realizados através de prospecção ativa da sua própria carteira ontem." />
+                                        <NumberInput label="VENDAS INTERNET (ONTEM)" icon={Globe} field="vnd_net" bg="bg-white" color="text-emerald-600" tooltip="Vendas convertidas oriundas de leads digitais (Net) ontem." />
                                     </div>
                                 </div>
                             </div>
@@ -350,8 +361,8 @@ export default function Checkin() {
                             <div className="bg-indigo-50/20 border border-indigo-100/50 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/30 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                                    <NumberInput label="Agendamentos Carteira (Hoje)" icon={Users} field="agd_cart" bg="bg-white" color="text-indigo-600" />
-                                    <NumberInput label="Agendamentos Digital (Hoje)" icon={Globe} field="agd_net" bg="bg-indigo-600" color="text-white" />
+                                    <NumberInput label="AGENDAMENTOS CARTEIRA (HOJE)" icon={Users} field="agd_cart" bg="bg-white" color="text-indigo-600" tooltip="Clientes da sua base que confirmaram visita presencial para o dia de HOJE." />
+                                    <NumberInput label="AGENDAMENTOS INTERNET (HOJE)" icon={Globe} field="agd_net" bg="bg-indigo-600" color="text-white" tooltip="Leads digitais que agendaram comparecimento físico para o dia de HOJE." />
                                 </div>
                             </div>
                         </div>

@@ -64,8 +64,7 @@ Deno.serve(async (req: Request) => {
 
             const payload = await buildWeeklyPayload(store, dates);
             const html = generateWeeklyHTML(payload);
-            const csvBase64 = generateCSV(payload.ranking);
-            const jsonBase64 = btoa(JSON.stringify(payload, null, 2));
+            const xlsxBase64 = generateWeeklyXLSX(payload);
             const baseFileName = `feedback_semanal_MX_${store.name.replace(/\s+/g, "_")}_${dates.weekEnd}`;
             let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
             let warnings: string[] = [];
@@ -83,8 +82,7 @@ Deno.serve(async (req: Request) => {
                             subject: `Feedback Semanal MX: ${store.name} (${formatPtBrDate(dates.weekStart)} a ${formatPtBrDate(dates.weekEnd)})`,
                             html,
                             attachments: [
-                                { filename: `${baseFileName}.csv`, content: csvBase64 },
-                                { filename: `${baseFileName}.json`, content: jsonBase64 },
+                                { filename: `${baseFileName}.xlsx`, content: xlsxBase64 }
                             ],
                         });
 
@@ -351,28 +349,99 @@ function rate(numerator: number, denominator: number) {
     return Math.round((numerator / denominator) * 100);
 }
 
-function generateCSV(ranking: RankingRow[]) {
-    const headers = ["Vendedor", "Leads", "Agendamentos", "Visitas", "Vendas", "Lead->Agd", "Agd->Visita", "Visita->Venda", "Diagnostico", "Acao"];
-    const rows = ranking.map((row) => [
-        csvCell(row.name),
-        row.leads,
-        row.agd,
-        row.vis,
-        row.vnd,
-        `${row.txLeadAgd}%`,
-        `${row.txAgdVis}%`,
-        `${row.txVisVnd}%`,
-        csvCell(row.diagnostic),
-        csvCell(row.action),
-    ]);
-    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const data = new TextEncoder().encode(csvContent);
+function generateWeeklyXLSX(payload: any) {
+    const { ranking, teamAvg, benchmark, store, weekStart, weekEnd } = payload;
+    
+    let xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="Header">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="Benchmark">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#1E3A8A" ss:Bold="1"/>
+   <Interior ss:Color="#DBEAFE" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="RESUMO DA LOJA">
+  <Table>
+   <Row><Cell><Data ss:Type="String">LOJA: ${escapeXml(store.name)}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">PERIODO: ${weekStart} a ${weekEnd}</Data></Cell></Row>
+   <Row ss:Index="4" ss:StyleID="Header">
+    <Cell><Data ss:Type="String">Vendedor</Data></Cell>
+    <Cell><Data ss:Type="String">Leads</Data></Cell>
+    <Cell><Data ss:Type="String">Agendamentos</Data></Cell>
+    <Cell><Data ss:Type="String">Visitas</Data></Cell>
+    <Cell><Data ss:Type="String">Vendas</Data></Cell>
+    <Cell><Data ss:Type="String">Tx Conversao</Data></Cell>
+   </Row>
+   ${ranking.map((row: any) => `
+   <Row>
+    <Cell><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.leads}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.agd}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vis}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vnd}</Data></Cell>
+    <Cell><Data ss:Type="String">${row.txVisVnd}%</Data></Cell>
+   </Row>`).join('')}
+  </Table>
+ </Worksheet>`;
+
+    for (const seller of ranking) {
+        const safeName = escapeXml(seller.name).substring(0, 30).replace(/[\\/?*\[\]]/g, '');
+        xml += `
+ <Worksheet ss:Name="${safeName}">
+  <Table ss:ExpandedColumnCount="2">
+   <Row><Cell ss:MergeAcross="1" ss:StyleID="Header"><Data ss:Type="String">ANÁLISE DE FUNIL: ${escapeXml(seller.name)}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Métrica</Data></Cell><Cell><Data ss:Type="String">Valor</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Leads</Data></Cell><Cell><Data ss:Type="Number">${seller.leads}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Agendamentos</Data></Cell><Cell><Data ss:Type="Number">${seller.agd}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Visitas</Data></Cell><Cell><Data ss:Type="Number">${seller.vis}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Vendas</Data></Cell><Cell><Data ss:Type="Number">${seller.vnd}</Data></Cell></Row>
+   <Row ss:Index="8" ss:StyleID="Benchmark"><Cell><Data ss:Type="String">TAXA REAL VS CRITERIO MX</Data></Cell><Cell><Data ss:Type="String">${benchmark.lead_to_agend}% / ${benchmark.agend_to_visit}% / ${benchmark.visit_to_sale}%</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">L -> A</Data></Cell><Cell><Data ss:Type="String">${seller.txLeadAgd}%</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">A -> V</Data></Cell><Cell><Data ss:Type="String">${seller.txAgdVis}%</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">V -> V</Data></Cell><Cell><Data ss:Type="String">${seller.txVisVnd}%</Data></Cell></Row>
+   <Row ss:Index="13" ss:StyleID="Header"><Cell ss:MergeAcross="1"><Data ss:Type="String">DIAGNÓSTICO E PLANO DE AÇÃO</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">${escapeXml(seller.diagnostic)}</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">${escapeXml(seller.action)}</Data></Cell></Row>
+  </Table>
+ </Worksheet>`;
+    }
+
+    xml += `\n</Workbook>`;
+
+    const data = new TextEncoder().encode(xml);
     const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
     return btoa(binString);
 }
 
-function csvCell(value: string) {
-    return `"${value.replaceAll('"', '""')}"`;
+function escapeXml(unsafe: string) {
+    if (!unsafe) return "";
+    return unsafe.replace(/[<>&'"]/g, (c) => {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+            default: return c;
+        }
+    });
 }
 
 function generateWeeklyWhatsAppText(payload: Awaited<ReturnType<typeof buildWeeklyPayload>>) {

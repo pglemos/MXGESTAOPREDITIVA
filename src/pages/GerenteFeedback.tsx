@@ -5,12 +5,16 @@ import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
 import { MessageSquare, Plus, X, Send, CheckCircle, Clock, User, Award, AlertCircle, Zap, ChevronRight, LayoutDashboard, Target, TrendingUp, Sparkles, Filter, RefreshCw, Search, History, FileText, ExternalLink, Calendar } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { format, subDays, subWeeks, startOfWeek, endOfWeek, parseISO, addDays } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { Area, AreaChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { addDays, format, startOfWeek, subDays, parseISO } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS } from '@/lib/calculations'
 import type { FunnelData, FeedbackFormData } from '@/types/database'
-import { Badge } from '@/components/ui/badge'
 
 function getPreviousWeekRange(baseDate = new Date()) {
     const currentWeekStart = startOfWeek(baseDate, { weekStartsOn: 1 })
@@ -116,6 +120,28 @@ export default function GerenteFeedback() {
             }))
         }
     }, [form.seller_id, checkins, previousWeek.endKey, previousWeek.startKey, weeklyTeamSnapshot])
+
+    const sellerHistory = useMemo(() => {
+        if (!form.seller_id) return []
+        
+        // Vamos pegar as últimas 6 semanas
+        const history = []
+        for (let i = 5; i >= 0; i--) {
+            const date = subWeeks(new Date(), i)
+            const wStart = format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+            const wEnd = format(endOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+            const label = format(startOfWeek(date, { weekStartsOn: 1 }), 'dd/MM')
+            
+            const weekSales = checkins.filter(c => 
+                c.seller_user_id === form.seller_id &&
+                c.reference_date >= wStart &&
+                c.reference_date <= wEnd
+            ).reduce((sum, c) => sum + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
+            
+            history.push({ week: label, sales: weekSales })
+        }
+        return history
+    }, [form.seller_id, checkins])
 
     const filteredFeedbacks = useMemo(() => {
         return feedbacks.filter(f => 
@@ -303,8 +329,8 @@ export default function GerenteFeedback() {
                                                     <Sparkles size={24} className="text-indigo-400" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Feedback Estruturado MX</h3>
-                                                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Auditoria de Performance Operacional</p>
+                                                    <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2 uppercase">Auditoria de Performance MX</h3>
+                                                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Feedback Estruturado • Ciclo Semanal</p>
                                                 </div>
                                             </div>
                                             <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
@@ -342,9 +368,9 @@ export default function GerenteFeedback() {
 
                                                             <div className="grid grid-cols-1 gap-6 relative z-10">
                                                                 {[
-                                                                    { label: 'Lead → Agendamento', val: weeklySnapshot.tx_lead_agd, bench: MX_BENCHMARKS.lead_agd, avg: weeklyTeamSnapshot.tx_lead_agd },
-                                                                    { label: 'Agendamento → Visita', val: weeklySnapshot.tx_agd_visita, bench: MX_BENCHMARKS.agd_visita, avg: weeklyTeamSnapshot.tx_agd_visita },
-                                                                    { label: 'Visita → Venda', val: weeklySnapshot.tx_visita_vnd, bench: MX_BENCHMARKS.visita_vnd, avg: weeklyTeamSnapshot.tx_visita_vnd },
+                                                                    { label: 'Leads → Agendamentos', val: weeklySnapshot.tx_lead_agd, bench: MX_BENCHMARKS.lead_agd, avg: weeklyTeamSnapshot.tx_lead_agd },
+                                                                    { label: 'Agendamentos → Visitas', val: weeklySnapshot.tx_agd_visita, bench: MX_BENCHMARKS.agd_visita, avg: weeklyTeamSnapshot.tx_agd_visita },
+                                                                    { label: 'Visitas → Vendas (Porta/Net)', val: weeklySnapshot.tx_visita_vnd, bench: MX_BENCHMARKS.visita_vnd, avg: weeklyTeamSnapshot.tx_visita_vnd },
                                                                 ].map(metric => {
                                                                     const isAboveAvg = metric.val >= metric.avg
                                                                     return (
@@ -373,26 +399,76 @@ export default function GerenteFeedback() {
                                                             </div>
                                                         </motion.div>
                                                         
-                                                        {/* Histórico do Vendedor */}
-                                                        <SellerHistory />
+                                                        {/* Evolução Histórica (Vendas Semanais) */}
+                                                         <motion.div 
+                                                            initial={{ opacity: 0, scale: 0.95 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            className="bg-slate-950 rounded-[2.5rem] p-8 border border-white/10"
+                                                         >
+                                                             <div className="flex items-center justify-between mb-8">
+                                                                 <div className="flex flex-col gap-1">
+                                                                     <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">Tendência de Entrega</h4>
+                                                                     <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">Vendas Totais / Últimas 6 Semanas</p>
+                                                                 </div>
+                                                                 <TrendingUp size={16} className="text-white/20" />
+                                                             </div>
+
+                                                             <div className="h-48 w-full mt-4">
+                                                                 <ChartContainer config={{ sales: { label: 'Vendas', color: '#6366f1' } }}>
+                                                                    <ResponsiveContainer width="100%" height="100%">
+                                                                        <AreaChart data={sellerHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                                                            <defs>
+                                                                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                                                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                                                                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                                                                </linearGradient>
+                                                                            </defs>
+                                                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                                                            <XAxis 
+                                                                                dataKey="week" 
+                                                                                axisLine={false} 
+                                                                                tickLine={false} 
+                                                                                tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: 900 }} 
+                                                                                dy={10}
+                                                                            />
+                                                                            <YAxis 
+                                                                                axisLine={false} 
+                                                                                tickLine={false} 
+                                                                                tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: 900 }} 
+                                                                            />
+                                                                            <Tooltip content={<ChartTooltipContent />} />
+                                                                            <Area 
+                                                                                type="monotone" 
+                                                                                dataKey="sales" 
+                                                                                stroke="#6366f1" 
+                                                                                strokeWidth={4}
+                                                                                fillOpacity={1} 
+                                                                                fill="url(#colorSales)" 
+                                                                                animationDuration={2000}
+                                                                            />
+                                                                        </AreaChart>
+                                                                    </ResponsiveContainer>
+                                                                 </ChartContainer>
+                                                             </div>
+                                                         </motion.div>
                                                     </div>
                                                 )}
 
 
                                                 <div className="space-y-4">
                                                     <label className="flex items-center gap-2 text-[10px] font-black text-amber-600 uppercase tracking-widest ml-2 leading-none">
-                                                        <Target size={14} /> Meta Compromisso Semanal
+                                                        <Target size={14} /> Meta Compromisso (Próxima Semana)
                                                     </label>
                                                     <input
                                                         type="number"
                                                         value={form.meta_compromisso}
                                                         onChange={e => setForm(p => ({ ...p, meta_compromisso: Number(e.target.value) }))}
                                                         required
-                                                        placeholder="Sugerido: Média dos últimos 15 dias..."
+                                                        placeholder="Vendas pactuadas..."
                                                         className="mx-input"
                                                     />
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">
-                                                        Sugerido pelos últimos 15 dias: {commitmentSuggested} venda(s). O gerente pode ajustar manualmente.
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal ml-2 leading-tight">
+                                                        Sugerido pela média recente: <span className="text-amber-600">{commitmentSuggested} venda(s)</span>.
                                                     </p>
                                                 </div>
 
@@ -404,36 +480,34 @@ export default function GerenteFeedback() {
                                                         value={form.positives}
                                                         onChange={e => setForm(p => ({ ...p, positives: e.target.value }))}
                                                         rows={3} required
-                                                        placeholder="Descreva resultados acima da média ou conquistas..."
+                                                        placeholder="O que o consultor fez de bom na semana?"
                                                         className="mx-input !rounded-[2rem] h-32 resize-none py-6"
                                                     />
                                                 </div>
-                                            </div>
 
-                                            <div className="space-y-8">
                                                 <div className="space-y-4">
                                                     <label className="flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase tracking-widest ml-2 leading-none">
-                                                        <AlertCircle size={14} /> Diagnóstico de Performance (Automático)
+                                                        <AlertCircle size={14} /> Gargalo Identificado (Atenção)
                                                     </label>
                                                     <textarea
                                                         value={form.attention_points}
                                                         onChange={e => setForm(p => ({ ...p, attention_points: e.target.value }))}
                                                         rows={3} required
-                                                        placeholder="Quais indicadores ou comportamentos precisam de ajuste?"
+                                                        placeholder="Onde a performance está travada?"
                                                         className="mx-input !rounded-[2rem] h-32 resize-none py-6"
                                                     />
                                                 </div>
 
                                                 <div className="space-y-4">
                                                     <label className="flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest ml-2 leading-none">
-                                                        <Zap size={14} /> Orientação de Ação
+                                                        <Zap size={14} /> Missão & Plano de Ação
                                                     </label>
                                                     <textarea
                                                         value={form.action}
                                                         onChange={e => setForm(p => ({ ...p, action: e.target.value }))}
                                                         rows={3} required
-                                                        placeholder="Qual o plano tático imediato para este vendedor?"
-                                                        className="mx-input !rounded-[2rem] h-32 resize-none py-6"
+                                                        placeholder="Qual a tarefa prática para girar a chave?"
+                                                        className="mx-input !rounded-[2rem) h-32 resize-none py-6"
                                                     />
                                                 </div>
                                             </div>
