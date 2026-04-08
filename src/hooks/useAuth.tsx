@@ -156,15 +156,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         let mounted = true;
+        let timeoutId: any;
 
         async function loadUserData(userId: string) {
+            // Safety timeout: force stop loading after 10s even if query hangs
+            timeoutId = setTimeout(() => {
+                if (mounted) {
+                    console.warn("Audit Warn [useAuth]: loadUserData timeout reached. Forcing loading false.")
+                    setLoading(false)
+                }
+            }, 10000);
+
             try {
+                console.log(`Audit Info [useAuth]: loading data for user ${userId}...`)
                 const [loadedProfile, loadedMemberships] = await Promise.all([
                     fetchProfile(userId),
                     fetchMemberships(userId)
                 ])
                 
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+                console.log(`Audit Info [useAuth]: data loaded. Role: ${currentRole}, Memberships: ${loadedMemberships.length}`)
                 
                 if (!loadedMemberships.length && currentRole === 'admin') {
                     await fetchFallbackStoreId()
@@ -175,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.error("Audit Error [useAuth]: loadUserData fail ->", err)
             } finally {
                 if (mounted) {
+                    clearTimeout(timeoutId)
                     setLoading(false)
                 }
             }
@@ -193,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return () => {
             mounted = false;
+            if (timeoutId) clearTimeout(timeoutId)
         }
     }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId])
 
