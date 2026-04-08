@@ -34,3 +34,4 @@ Thumbs.db
 .aiox/install-log.txt
 .gemini/mcp.json
 .gemini/settings.json
+.worktrees/
