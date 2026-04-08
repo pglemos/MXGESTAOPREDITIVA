@@ -30,6 +30,8 @@ export default function MorningReport() {
     const { metaRules, loading: loadingMetaRules, fetchMetaRules } = useStoreMetaRules()
     const { ranking, loading: loadingRanking, refetch: refetchRanking } = useRanking()
     const { sellers, loading: loadingTeam, refetch: refetchTeam } = useTeam()
+
+    const sellersMap = useMemo(() => new Map((sellers || []).map(s => [s.id, s])), [sellers])
     const { deliveryRules, loading: loadingDelivery } = useStoreDeliveryRules()
 
     const sellersMap = useMemo(() => {
