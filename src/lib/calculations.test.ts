@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test'
 import {
+  calcularFunil,
   calcularAtingimento,
   calcularFaltaX,
   calcularProjecao,
@@ -143,5 +144,113 @@ describe('somarVendas', () => {
     ] as Partial<DailyCheckin>[]
 
     expect(somarVendas(checkins as DailyCheckin[])).toBe(6)
+  })
+})
+
+describe('calcularFunil', () => {
+  it('should return all zeros for an empty array', () => {
+    const result = calcularFunil([])
+    expect(result).toEqual({
+      leads: 0,
+      agd_total: 0,
+      visitas: 0,
+      vnd_total: 0,
+      tx_lead_agd: 0,
+      tx_agd_visita: 0,
+      tx_visita_vnd: 0,
+    })
+  })
+
+  it('should calculate funnel totals and rates correctly', () => {
+    const checkins = [
+      {
+        leads_prev_day: 10,
+        agd_cart_prev_day: 1,
+        agd_net_prev_day: 2,
+        visit_prev_day: 2,
+        vnd_porta_prev_day: 1,
+        vnd_cart_prev_day: 0,
+        vnd_net_prev_day: 0,
+      },
+      {
+        leads_prev_day: 10,
+        agd_cart_prev_day: 0,
+        agd_net_prev_day: 1,
+        visit_prev_day: 1,
+        vnd_porta_prev_day: 0,
+        vnd_cart_prev_day: 0,
+        vnd_net_prev_day: 1,
+      }
+    ] as Partial<DailyCheckin>[]
+
+    // totals:
+    // leads = 20
+    // agd_total = (1+2) + (0+1) = 4
+    // visitas = 2 + 1 = 3
+    // vnd_total = (1+0+0) + (0+0+1) = 2
+    // tx_lead_agd = (4 / 20) * 100 = 20
+    // tx_agd_visita = (3 / 4) * 100 = 75
+    // tx_visita_vnd = (2 / 3) * 100 = 66.666... -> 67
+
+    const result = calcularFunil(checkins as DailyCheckin[])
+    expect(result).toEqual({
+      leads: 20,
+      agd_total: 4,
+      visitas: 3,
+      vnd_total: 2,
+      tx_lead_agd: 20,
+      tx_agd_visita: 75,
+      tx_visita_vnd: 67,
+    })
+  })
+
+  it('should handle undefined or null fields gracefully', () => {
+    const checkins = [
+      {
+        leads_prev_day: undefined,
+        agd_cart_prev_day: 5,
+        // missing agd_net_prev_day
+        visit_prev_day: null,
+        vnd_porta_prev_day: undefined,
+        vnd_cart_prev_day: null,
+        vnd_net_prev_day: 2,
+      }
+    ] as unknown as DailyCheckin[]
+
+    const result = calcularFunil(checkins)
+    expect(result).toEqual({
+      leads: 0,
+      agd_total: 5,
+      visitas: 0,
+      vnd_total: 2,
+      tx_lead_agd: 0,   // leads = 0
+      tx_agd_visita: 0, // agd_total = 5, but visitas = 0
+      tx_visita_vnd: 0, // visitas = 0
+    })
+  })
+
+  it('should not divide by zero for rates', () => {
+    const checkins = [
+      {
+        leads_prev_day: 0,
+        agd_cart_prev_day: 5,
+        agd_net_prev_day: 0,
+        visit_prev_day: 2,
+        vnd_porta_prev_day: 1,
+        vnd_cart_prev_day: 0,
+        vnd_net_prev_day: 0,
+      }
+    ] as Partial<DailyCheckin>[]
+
+    const result = calcularFunil(checkins as DailyCheckin[])
+
+    // leads = 0 -> tx_lead_agd should be 0
+    expect(result.tx_lead_agd).toBe(0)
+
+    // agd = 5 -> tx_agd_visita = (2 / 5) * 100 = 40
+    expect(result.tx_agd_visita).toBe(40)
+
+    // visitas = 2 -> tx_visita_vnd = (1 / 2) * 100 = 50
+    expect(result.tx_visita_vnd).toBe(50)
   })
 })
