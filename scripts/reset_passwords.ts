@@ -10,10 +10,10 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
 
 const LOGINS = [
-    'admin@mxgestaopreditiva.com.br',
-    'dono@mxgestaopreditiva.com.br',
-    'gerente@mxgestaopreditiva.com.br',
-    'vendedor@mxgestaopreditiva.com.br'
+    'admin@mxperformance.com.br',
+    'dono@mxperformance.com.br',
+    'gerente@mxperformance.com.br',
+    'vendedor@mxperformance.com.br'
 ]
 const NEW_PASSWORD = 'Mx#2026!'
 
