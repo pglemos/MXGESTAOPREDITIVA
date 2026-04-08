@@ -30,6 +30,8 @@ export default function MorningReport() {
     const { metaRules, loading: loadingMetaRules, fetchMetaRules } = useStoreMetaRules()
     const { ranking, loading: loadingRanking, refetch: refetchRanking } = useRanking()
     const { sellers, loading: loadingTeam, refetch: refetchTeam } = useTeam()
+
+    const sellersMap = useMemo(() => new Map((sellers || []).map(s => [s.id, s])), [sellers])
     const { deliveryRules, loading: loadingDelivery } = useStoreDeliveryRules()
     
     const [isRefetching, setIsRefetching] = useState(false)
@@ -199,7 +201,7 @@ export default function MorningReport() {
     const handleExportSpreadsheet = () => {
         const headers = ["Vendedor", "Leads", "Agendamentos Hoje", "Visitas D-1", "Vendas D-1", "Atingimento", "Status"]
         const rows = (ranking || []).map(r => {
-            const seller = sellers?.find(s => s.id === r.user_id)
+            const seller = sellersMap.get(r.user_id)
             return [
                 r.user_name,
                 r.leads,
@@ -344,7 +346,7 @@ export default function MorningReport() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {(ranking || []).map((r) => {
-                                        const seller = sellers?.find(s => s.id === r.user_id)
+                                        const seller = sellersMap.get(r.user_id)
                                         const isRegistered = seller?.checkin_today
                                         return (
                                             <tr key={r.user_id} className="hover:bg-slate-50/30 transition-colors group">
