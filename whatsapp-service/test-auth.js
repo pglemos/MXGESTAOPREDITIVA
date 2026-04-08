@@ -66,7 +66,6 @@ const testConfigError = () => {
         const LOCAL_API_KEY = undefined;
 
         if (!LOCAL_API_KEY) {
-            // console.error('CRITICAL: VITE_WHATSAPP_API_KEY is not set in environment variables.');
             return res.status(500).json({ error: 'Server configuration error' });
         }
         next();
