@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS, formatStructuredWhatsAppFeedback } from '@/lib/calculations'
 import { PrintableFeedback } from '@/components/feedback/PrintableFeedback'
+import { WeeklyStoreReport } from '@/components/feedback/WeeklyStoreReport'
 import { supabase } from '@/lib/supabase'
 import type { FunnelData, FeedbackFormData } from '@/types/database'
 
@@ -43,6 +44,7 @@ export default function GerenteFeedback() {
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
     const [printingFeedback, setPrintingFeedback] = useState<any>(null)
+    const [printingWeeklyReport, setPrintingWeeklyReport] = useState<any>(null)
     const [sendingEmail, setSendingEmail] = useState<string | null>(null)
     const canCreateFeedback = role === 'admin' || role === 'gerente'
     const isExecutiveView = role === 'dono'
@@ -241,6 +243,14 @@ export default function GerenteFeedback() {
         setTimeout(() => {
             window.print()
             setPrintingFeedback(null)
+        }, 500)
+    }
+
+    const handlePrintWeekly = (report: any) => {
+        setPrintingWeeklyReport(report)
+        setTimeout(() => {
+            window.print()
+            setPrintingWeeklyReport(null)
         }, 500)
     }
 
@@ -649,6 +659,7 @@ export default function GerenteFeedback() {
                             <div className="hidden">
                                 <div id="printable-area">
                                     {printingFeedback && <PrintableFeedback feedback={printingFeedback} />}
+                                    {printingWeeklyReport && <WeeklyStoreReport report={printingWeeklyReport} />}
                                 </div>
                             </div>
                             <style>{`
@@ -746,14 +757,22 @@ export default function GerenteFeedback() {
                                             )}
                                         </div>
                                         
-                                        <a
-                                            href={report.report_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors"
-                                        >
-                                            Relatório <ExternalLink size={12} />
-                                        </a>
+                                        <div className="flex items-center gap-3">
+                                            <a
+                                                href={report.report_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors"
+                                            >
+                                                CSV <ExternalLink size={12} />
+                                            </a>
+                                            <button 
+                                                onClick={() => handlePrintWeekly(report)}
+                                                className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-colors"
+                                            >
+                                                PDF <FileText size={12} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
