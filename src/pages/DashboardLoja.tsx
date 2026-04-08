@@ -282,38 +282,39 @@ export default function DashboardLoja() {
                             </div>
                         </CardHeader>
                         <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left min-w-[800px]">
-                            <div className="overflow-x-auto -mx-6 sm:mx-0">
-                                <table className="w-full text-left border-collapse min-w-[600px]">
-                                    <thead className="bg-slate-950 border-b border-gray-800">
-                                        <tr className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                                            <th className="px-4 py-4 w-10 text-center border-r border-slate-800">Pos</th>
-                                            <th className="px-4 py-4 border-r border-slate-800">Especialista</th>
-                                            <th className="py-4 text-center border-r border-slate-800">Vendas</th>
-                                            <th className="px-4 py-4 text-right">Disciplina</th>
+                            <table className="w-full text-left min-w-[800px] border-collapse">
+                                <thead className="bg-slate-950 border-b border-gray-800">
+                                    <tr className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                                        <th className="px-4 py-4 w-10 text-center border-r border-slate-800">Pos</th>
+                                        <th className="px-4 py-4 border-r border-slate-800">Especialista</th>
+                                        <th className="py-4 text-center border-r border-slate-800">Vendas</th>
+                                        <th className="px-4 py-4 text-right">Disciplina</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {filteredRanking.map((r, i) => {
+                                        const seller = sellers?.find(s => s.id === r.user_id)
+                                        const isCheckedIn = seller?.checkin_today
+                                        return (
+                                            <tr key={r.user_id} className={cn("transition-all h-14 group border-l-4", isCheckedIn ? "border-l-transparent" : "border-l-rose-500", r.is_venda_loja && "bg-amber-50/50")}>
+                                                <td className="px-2 text-center font-black text-xs text-slate-400 font-mono-numbers border-r border-gray-100">{(i + 1).toString().padStart(2, '0')}</td>
+                                                <td className="px-4 border-r border-gray-100 font-black text-[11px] truncate uppercase">{r.user_name}</td>
+                                                <td className="text-center font-black text-lg font-mono-numbers text-indigo-600 border-r border-gray-100 bg-indigo-50/30">{r.vnd_total}</td>
+                                                <td className="px-4 text-right">
+                                                    <span className={cn("text-[8px] font-black uppercase tracking-widest", isCheckedIn ? "text-emerald-600" : "text-rose-500")}>
+                                                        {isCheckedIn ? 'OK' : 'PENDENTE'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                    {filteredRanking.length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} className="py-20 text-center text-[10px] uppercase text-gray-400 font-black tracking-[0.3em] bg-gray-50/50">
+                                                Nenhum registro encontrado no período
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                        {filteredRanking.map((r, i) => {
-                                            const seller = sellers?.find(s => s.id === r.user_id)
-                                            const isCheckedIn = seller?.checkin_today
-                                            return (
-                                                <tr key={r.user_id} className={cn("transition-all h-14 group border-l-4", isCheckedIn ? "border-l-transparent" : "border-l-rose-500", r.is_venda_loja && "bg-amber-50/50")}>
-                                                    <td className="px-2 text-center font-black text-xs text-slate-400 font-mono-numbers border-r border-gray-100">{(i + 1).toString().padStart(2, '0')}</td>
-                                                    <td className="px-4 border-r border-gray-100 font-black text-[11px] truncate uppercase">{r.user_name}</td>
-                                                    <td className="text-center font-black text-lg font-mono-numbers text-indigo-600 border-r border-gray-100 bg-indigo-50/30">{r.vnd_total}</td>
-                                                    <td className="px-4 text-right">
-                                                        <span className={cn("text-[8px] font-black uppercase tracking-widest", isCheckedIn ? "text-emerald-600" : "text-rose-500")}>
-                                                            {isCheckedIn ? 'OK' : 'PENDENTE'}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                                    {filteredRanking.length === 0 && <tr><td colSpan={9} className="py-20 text-center text-[10px] uppercase text-gray-400 font-black tracking-[0.3em] bg-gray-50/50">Nenhum registro encontrado no período</td></tr>}
+                                    )}
                                 </tbody>
                             </table>
                         </div>
