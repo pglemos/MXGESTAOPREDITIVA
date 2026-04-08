@@ -59,9 +59,6 @@ export default function GerenteFeedback() {
 
     const [weeklySnapshot, setWeeklySnapshot] = useState<FunnelData | null>(null)
     const [commitmentSuggested, setCommitmentSuggested] = useState(0)
-    
-    // Instância dedicada para histórico do vendedor selecionado
-    const { feedbacks: sellerHistory, refetch: refetchHistory } = useFeedbacks({ sellerId: form.seller_id || undefined })
 
     const weeklyTeamCheckins = useMemo(() => {
         return checkins.filter(c => c.reference_date >= previousWeek.startKey && c.reference_date <= previousWeek.endKey)
@@ -117,9 +114,8 @@ export default function GerenteFeedback() {
                 attention_points: diagnostico.diagnostico,
                 action: diagnostico.sugestao
             }))
-            refetchHistory()
         }
-    }, [form.seller_id, checkins, previousWeek.endKey, previousWeek.startKey, refetchHistory, weeklyTeamSnapshot])
+    }, [form.seller_id, checkins, previousWeek.endKey, previousWeek.startKey, weeklyTeamSnapshot])
 
     const filteredFeedbacks = useMemo(() => {
         return feedbacks.filter(f => 
@@ -183,62 +179,8 @@ export default function GerenteFeedback() {
         </div>
     )
 
-    const SellerHistory = () => {
-        if (!form.seller_id || sellerHistory.length === 0) return null
-        return (
-            <div className="space-y-6 pt-8 border-t border-white/10">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10"><History size={16} className="text-indigo-400" /></div>
-                    <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em]">Histórico Analítico (Últimas Semanas)</h4>
-                </div>
-                <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-white/5 border-b border-white/10">
-                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Semana</th>
-                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Meta</th>
-                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest text-center">Status</th>
-                                <th className="px-6 py-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Ação Corretiva</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {sellerHistory.slice(0, 4).map((h) => (
-                                <tr key={h.id} className="hover:bg-white/5 transition-all group">
-                                    <td className="px-6 py-4">
-                                        <span className="text-[10px] font-black text-indigo-400 uppercase">{format(parseISO(h.week_reference), 'dd/MM')}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-[10px] font-bold text-white/60">{h.meta_compromisso}</span>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        {h.acknowledged ? <CheckCircle size={12} className="text-emerald-500 mx-auto" /> : <Clock size={12} className="text-amber-500 mx-auto" />}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-[9px] font-bold text-white/40 line-clamp-1 group-hover:text-white/80 transition-colors uppercase tracking-tight">{h.action}</p>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        )
-    }
-
-    const teamStatus = useMemo(() => {
-        if (!sellers || !feedbacks) return { total: 0, done: 0, acknowledged: 0, missing: 0 }
-        const currentWeekFeedbacks = feedbacks.filter(f => f.week_reference === previousWeek.startKey)
-        return {
-            total: (sellers || []).length,
-            done: currentWeekFeedbacks.length,
-            acknowledged: currentWeekFeedbacks.filter(f => f.acknowledged).length,
-            missing: Math.max(0, (sellers || []).length - currentWeekFeedbacks.length)
-        }
-    }, [sellers, feedbacks, previousWeek.startKey])
-
     return (
         <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
-
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
