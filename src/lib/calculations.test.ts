@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { calcularAtingimento } from './calculations'
+import { calcularAtingimento, calcularTotais } from './calculations'
 
 describe('calcularAtingimento', () => {
   it('should calculate standard attainment percentage', () => {
@@ -29,5 +29,81 @@ describe('calcularAtingimento', () => {
 
   it('should return 0 when target is negative', () => {
     expect(calcularAtingimento(50, -10)).toBe(0)
+  })
+})
+
+describe('calcularTotais', () => {
+  it('should calculate correctly for CheckinFormData (has leads)', () => {
+    const formData = {
+      leads: 10,
+      agd_cart: 5,
+      agd_net: 3,
+      vnd_porta: 2,
+      vnd_cart: 1,
+      vnd_net: 4,
+    } as any // using any to bypass full type requirement for this specific test
+
+    const result = calcularTotais(formData)
+    expect(result).toEqual({
+      agd_total: 8, // 5 + 3
+      vnd_total: 7, // 2 + 1 + 4
+    })
+  })
+
+  it('should handle missing values for CheckinFormData', () => {
+    const formData = {
+      leads: 5,
+      agd_cart: undefined,
+      agd_net: 2,
+      vnd_porta: undefined,
+      vnd_cart: undefined,
+      vnd_net: undefined,
+    } as any
+
+    const result = calcularTotais(formData)
+    expect(result).toEqual({
+      agd_total: 2,
+      vnd_total: 0,
+    })
+  })
+
+  it('should calculate correctly for DailyCheckin (no leads)', () => {
+    const dailyCheckin = {
+      agd_cart_today: 4,
+      agd_net_today: 6,
+      vnd_porta_prev_day: 1,
+      vnd_cart_prev_day: 2,
+      vnd_net_prev_day: 3,
+    } as any
+
+    const result = calcularTotais(dailyCheckin)
+    expect(result).toEqual({
+      agd_total: 10, // 4 + 6
+      vnd_total: 6,  // 1 + 2 + 3
+    })
+  })
+
+  it('should handle missing values for DailyCheckin', () => {
+    const dailyCheckin = {
+      agd_cart_today: undefined,
+      agd_net_today: 5,
+      vnd_porta_prev_day: undefined,
+      vnd_cart_prev_day: undefined,
+      vnd_net_prev_day: undefined,
+    } as any
+
+    const result = calcularTotais(dailyCheckin)
+    expect(result).toEqual({
+      agd_total: 5,
+      vnd_total: 0,
+    })
+  })
+
+  it('should handle empty object as DailyCheckin', () => {
+    const result = calcularTotais({})
+    expect(result).toEqual({
+      agd_total: 0,
+      vnd_total: 0,
+    })
   })
 })
