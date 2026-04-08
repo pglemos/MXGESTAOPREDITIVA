@@ -22,6 +22,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
+        { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
         { label: 'Funil', path: '/funil', icon: <TrendingUp size={16} /> },
       ]
     },
