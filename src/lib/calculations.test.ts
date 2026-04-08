@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test'
 import {
+  calcularTotais,
   calcularAtingimento,
   calcularFaltaX,
   calcularProjecao,
@@ -7,6 +8,69 @@ import {
   somarVendas
 } from './calculations'
 import type { DailyCheckin } from '@/types/database'
+
+
+describe('calcularTotais', () => {
+  describe('when using CheckinFormData (has leads property)', () => {
+    it('should calculate totals correctly with all values present', () => {
+      const data = {
+        leads: 10,
+        agd_cart: 2,
+        agd_net: 3,
+        vnd_porta: 1,
+        vnd_cart: 2,
+        vnd_net: 1
+      };
+      const result = calcularTotais(data as any);
+      expect(result).toEqual({
+        agd_total: 5,
+        vnd_total: 4
+      });
+    });
+
+    it('should handle missing or undefined values by defaulting to 0', () => {
+      const data = {
+        leads: 5,
+        agd_cart: 2
+        // missing other fields
+      };
+      const result = calcularTotais(data as any);
+      expect(result).toEqual({
+        agd_total: 2,
+        vnd_total: 0
+      });
+    });
+  });
+
+  describe('when using DailyCheckin (does not have leads property)', () => {
+    it('should calculate totals correctly with all values present', () => {
+      const data = {
+        agd_cart_today: 4,
+        agd_net_today: 2,
+        vnd_porta_prev_day: 1,
+        vnd_cart_prev_day: 1,
+        vnd_net_prev_day: 1
+      };
+      const result = calcularTotais(data as any);
+      expect(result).toEqual({
+        agd_total: 6,
+        vnd_total: 3
+      });
+    });
+
+    it('should handle missing or undefined values by defaulting to 0', () => {
+      const data = {
+        agd_cart_today: 3
+        // missing other fields
+      };
+      const result = calcularTotais(data as any);
+      expect(result).toEqual({
+        agd_total: 3,
+        vnd_total: 0
+      });
+    });
+  });
+});
 
 describe('calcularAtingimento', () => {
   it('should calculate standard attainment percentage', () => {
