@@ -13,7 +13,9 @@ import { Area, AreaChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS } from '@/lib/calculations'
+import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS, formatStructuredWhatsAppFeedback } from '@/lib/calculations'
+import { PrintableFeedback } from '@/components/feedback/PrintableFeedback'
+import { supabase } from '@/lib/supabase'
 import type { FunnelData, FeedbackFormData } from '@/types/database'
 
 function getPreviousWeekRange(baseDate = new Date()) {
@@ -40,6 +42,8 @@ export default function GerenteFeedback() {
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
+    const [printingFeedback, setPrintingFeedback] = useState<any>(null)
+    const [sendingEmail, setSendingEmail] = useState<string | null>(null)
     const canCreateFeedback = role === 'admin' || role === 'gerente'
     const isExecutiveView = role === 'dono'
     const previousWeek = useMemo(() => getPreviousWeekRange(), [])
@@ -208,7 +212,36 @@ export default function GerenteFeedback() {
             commitment_suggested: 0,
         })
         setCommitmentSuggested(0)
+        setCommitmentSuggested(0)
         setWeeklySnapshot(null)
+    }
+
+    const handleSendWhatsApp = (f: any) => {
+        const text = formatStructuredWhatsAppFeedback(f)
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    }
+
+    const handleSendEmail = async (f: any) => {
+        setSendingEmail(f.id)
+        try {
+            const { data, error } = await supabase.functions.invoke('send-individual-feedback', {
+                body: { feedbackId: f.id }
+            })
+            if (error) throw error
+            toast.success('Feedback enviado para o e-mail dos gestores!')
+        } catch (err: any) {
+            toast.error('Erro ao enviar e-mail: ' + err.message)
+        } finally {
+            setSendingEmail(null)
+        }
+    }
+
+    const handlePrint = (f: any) => {
+        setPrintingFeedback(f)
+        setTimeout(() => {
+            window.print()
+            setPrintingFeedback(null)
+        }, 500)
     }
 
     if (feedbacksLoading || reportsLoading) return (
@@ -582,9 +615,49 @@ export default function GerenteFeedback() {
                                                 <p className="text-base font-black text-pure-black leading-tight uppercase tracking-tight">{f.action}</p>
                                             </div>
                                         </div>
+
+                                        <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => handleSendWhatsApp(f)}
+                                                    className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                                    title="Enviar via WhatsApp"
+                                                >
+                                                    <MessageSquare size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleSendEmail(f)}
+                                                    disabled={sendingEmail === f.id}
+                                                    className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm disabled:opacity-50"
+                                                    title="Enviar p/ E-mail"
+                                                >
+                                                    {sendingEmail === f.id ? <RefreshCw size={16} className="animate-spin" /> : <Send size={16} />}
+                                                </button>
+                                            </div>
+                                            <button 
+                                                onClick={() => handlePrint(f)}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 text-gray-400 hover:text-pure-black hover:bg-white border border-transparent hover:border-gray-100 transition-all text-[9px] font-black uppercase tracking-widest shadow-sm"
+                                            >
+                                                <FileText size={14} /> Design Legado (PDF)
+                                            </button>
+                                        </div>
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
+
+                            {/* Printable Hidden View */}
+                            <div className="hidden">
+                                <div id="printable-area">
+                                    {printingFeedback && <PrintableFeedback feedback={printingFeedback} />}
+                                </div>
+                            </div>
+                            <style>{`
+                                @media print {
+                                    body * { visibility: hidden; }
+                                    #printable-area, #printable-area * { visibility: visible; }
+                                    #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+                                }
+                            `}</style>
 
                             {filteredFeedbacks.length === 0 && (
                                 <div className="col-span-full py-40 rounded-[4rem] text-center border-dashed border-2 border-gray-200 bg-gray-50/30 flex flex-col items-center justify-center relative overflow-hidden group">

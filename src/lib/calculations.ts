@@ -189,3 +189,28 @@ export function somarVendasPorCanal(checkins: DailyCheckin[]) {
     }
 }
 
+/** Formata o texto do WhatsApp seguindo o template "Feedback Estruturado" */
+export function formatStructuredWhatsAppFeedback(f: any): string {
+    const dataRef = f.week_reference ? new Date(f.week_reference).toLocaleDateString('pt-BR') : 'XX/XX/XXXX'
+    const meta = f.meta_compromisso || 0
+    const sugerido = f.commitment_suggested || 0
+
+    return `*🚗 FEEDBACK ESTRUTURADO*
+
+*Data:* ${dataRef}
+*Meta individual:* ${meta}
+*Meta Compromisso:* ${sugerido}
+
+*📝 Orientação para a Semana:*
+
+${f.action}
+
+*✅ Pontos Positivos*
+
+${f.positives}
+
+*🚨 Pontos de Atenção*
+
+${f.attention_points}`
+}
+

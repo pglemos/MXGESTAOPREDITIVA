@@ -12,16 +12,16 @@
 - [x] Criar script de migração `scripts/migrate-legacy-data.ts`
 - [x] Importar Lojas e Metas (Configuração Base)
 - [x] Importar Vendedores (Perfis de Loja)
-- [ ] Importar Histórico de Check-ins (Normalizando Datas 0026 -> 2026)
-- [ ] Vincular metas mensais às lojas e vendedores
+- [x] Importar Histórico de Check-ins (Normalizando Datas 0026 -> 2026)
+- [x] Vincular metas mensais às lojas e vendedores
 
 ## [Fase 3] Validação de Paridade
-- [ ] Rodar script de auditoria (Soma Vendas Supabase vs Excel)
+- [x] Rodar script de auditoria (Soma Vendas Supabase vs Excel)
 - [x] Verificar visibilidade dos dados no Dashboard Administrativo
 - [x] Refatorar Dashboard Admin para refletir dados legados
 - [x] Implementar "Share Hub" por loja (WhatsApp links)
 - [x] Validar persistência de metas e projeções
-- [ ] Validar cálculos de Ritmo e Projeção com dados reais
+- [x] Validar cálculos de Ritmo e Projeção com dados reais
 
 ## [Fase 4] Automação (Review)
 - [x] Configurar `automate_reports.sql`
