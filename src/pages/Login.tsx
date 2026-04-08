@@ -74,7 +74,7 @@ export default function Login() {
                             <div className="w-12 h-12 rounded-[1.5rem] bg-white text-text-primary flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
                                 <Building2 size={24} />
                             </div>
-                            <span className="tracking-tighter">MX GESTÃO</span>
+                            <span className="tracking-tighter uppercase">MX PERFORMANCE</span>
                         </div>
                     </div>
 
@@ -86,12 +86,11 @@ export default function Login() {
                             className="max-w-md"
                         >
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-black uppercase tracking-widest mb-8">
-                                <Sparkles size={12} className="fill-indigo-400" /> Sistema Preditivo v2.0
+                                <Sparkles size={12} className="fill-indigo-400" /> Sistema de Performance v2.0
                             </div>
                             <h1 className="text-6xl font-black tracking-tighter text-white mb-8 leading-[0.9]">
-                                Gestão que <br />
-                                <span className="text-indigo-400">antecipa</span> <br />
-                                resultados.
+                                Performance <br />
+                                <span className="text-indigo-400">sob controle.</span>
                             </h1>
                             <p className="text-gray-400 text-lg leading-relaxed font-bold mb-12 opacity-80">
                                 A sua central de inteligência para monitoramento de metas em tempo real e análise de performance corporativa.
@@ -122,7 +121,7 @@ export default function Login() {
                             <div className="w-12 h-12 rounded-2xl bg-brand-secondary text-white flex items-center justify-center shadow-2xl">
                                 <Building2 size={24} />
                             </div>
-                            <span className="tracking-tighter uppercase">MX Gestão</span>
+                            <span className="tracking-tighter uppercase">MX PERFORMANCE</span>
                         </div>
 
                         <div className="mb-12 text-center lg:text-left">
