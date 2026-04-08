@@ -1,0 +1,745 @@
+[
+  {
+    "id": "ADMIN_001",
+    "title": "Admin Login UI Flow",
+    "description": "Verify that an Admin can enter credentials and reach the dashboard.",
+    "category": "Admin Module - Auth",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3000/login"
+      },
+      {
+        "type": "action",
+        "description": "Enter admin@mxperformance.com.br in the email field"
+      },
+      {
+        "type": "action",
+        "description": "Enter Mx#2026! in the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the login button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL changes to include /painel or /lojas"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_002",
+    "title": "Admin can view Painel Consultor",
+    "description": "Verify that the Painel Consultor page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/painel"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Painel Consultor is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_003",
+    "title": "Admin can view Lojas",
+    "description": "Verify that the Lojas page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/lojas"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Lojas is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_004",
+    "title": "Admin can view Produtos Digitais",
+    "description": "Verify that the Produtos Digitais page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/produtos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Produtos Digitais is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_005",
+    "title": "Admin can view Configuracoes",
+    "description": "Verify that the Configuracoes page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/configuracoes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Configuracoes is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_006",
+    "title": "Admin can view Operational Settings",
+    "description": "Verify that the Operational Settings page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/configuracoes/operacional"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Operational Settings is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_007",
+    "title": "Admin can view Reprocessamento",
+    "description": "Verify that the Reprocessamento page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/configuracoes/reprocessamento"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Reprocessamento is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_008",
+    "title": "Admin can view Morning Report",
+    "description": "Verify that the Morning Report page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/relatorio-matinal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Morning Report is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_009",
+    "title": "Admin can view Ai Diagnostics",
+    "description": "Verify that the Ai Diagnostics page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/auditoria"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Ai Diagnostics is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_010",
+    "title": "Admin can view Agenda (Legacy)",
+    "description": "Verify that the Agenda (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/agenda"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Agenda (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_011",
+    "title": "Admin can view Commission Rules (Legacy)",
+    "description": "Verify that the Commission Rules (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/configuracoes/comissoes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Commission Rules (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_012",
+    "title": "Admin can view Communication (Legacy)",
+    "description": "Verify that the Communication (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/communication"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Communication (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_013",
+    "title": "Admin can view Cross Sales Reports (Legacy)",
+    "description": "Verify that the Cross Sales Reports (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/relatorios/vendas-cruzados"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Cross Sales Reports (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_014",
+    "title": "Admin can view Financeiro (Legacy)",
+    "description": "Verify that the Financeiro (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/financeiro"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Financeiro (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_015",
+    "title": "Admin can view Inventory (Legacy)",
+    "description": "Verify that the Inventory (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/inventory"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Inventory (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_016",
+    "title": "Admin can view LeadOps (Legacy)",
+    "description": "Verify that the LeadOps (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/leadops"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for LeadOps (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_017",
+    "title": "Admin can view Leads (Legacy)",
+    "description": "Verify that the Leads (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/leads"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Leads (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_018",
+    "title": "Admin can view Reports (Legacy)",
+    "description": "Verify that the Reports (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/reports"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Reports (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_019",
+    "title": "Admin can view Stock Reports (Legacy)",
+    "description": "Verify that the Stock Reports (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/reports/stock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Stock Reports (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_020",
+    "title": "Admin can view Sales Performance (Legacy)",
+    "description": "Verify that the Sales Performance (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/relatorios/performance-vendas"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Sales Performance (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_021",
+    "title": "Admin can view Seller Performance (Legacy)",
+    "description": "Verify that the Seller Performance (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/relatorios/performance-vendedores"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Seller Performance (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_022",
+    "title": "Admin can view Tarefas (Legacy)",
+    "description": "Verify that the Tarefas (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/tarefas"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Tarefas (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_023",
+    "title": "Admin can view Gamification (Legacy)",
+    "description": "Verify that the Gamification (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/gamification"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Gamification (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_024",
+    "title": "Admin can view Activities (Legacy)",
+    "description": "Verify that the Activities (Legacy) page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/legacy/activities"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Activities (Legacy) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_025",
+    "title": "Admin can view Perfil",
+    "description": "Verify that the Perfil page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/perfil"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Perfil is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_026",
+    "title": "Admin can view Notificacoes",
+    "description": "Verify that the Notificacoes page is accessible and displays content for Admin.",
+    "category": "Admin Module - Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+      },
+      {
+        "type": "action",
+        "description": "Directly navigate to http://localhost:3000/notificacoes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page title or a specific element for Notificacoes is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "ADMIN_027",
+    "title": "Admin Tab switching 27",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_028",
+    "title": "Admin Tab switching 28",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_029",
+    "title": "Admin Tab switching 29",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_030",
+    "title": "Admin Tab switching 30",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_031",
+    "title": "Admin Tab switching 31",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_032",
+    "title": "Admin Tab switching 32",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_033",
+    "title": "Admin Tab switching 33",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_034",
+    "title": "Admin Tab switching 34",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "ADMIN_035",
+    "title": "Admin Tab switching 35",
+    "description": "Verify switching between dashboard tabs works.",
+    "category": "Admin Module - UI",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin"
+      },
+      {
+        "type": "action",
+        "description": "Click on a sidebar navigation link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view updates"
+      }
+    ],
+    "priority": "Medium"
+  }
+]

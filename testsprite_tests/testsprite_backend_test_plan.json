@@ -1,0 +1,177 @@
+[
+  {
+    "id": "TC001",
+    "title": "Login Admin",
+    "description": "Admin login with admin@mxperformance.com.br / Mx#2026!"
+  },
+  {
+    "id": "TC002",
+    "title": "Login Dono",
+    "description": "Dono login with dono@mxperformance.com.br / Mx#2026!"
+  },
+  {
+    "id": "TC003",
+    "title": "Login Gerente",
+    "description": "Gerente login with gerente@mxperformance.com.br / Mx#2026!"
+  },
+  {
+    "id": "TC004",
+    "title": "Login Vendedor",
+    "description": "Vendedor login with vendedor@mxperformance.com.br / Mx#2026!"
+  },
+  {
+    "id": "TC005",
+    "title": "Auth User Details",
+    "description": "Verify GET /auth/v1/user returns correct profile for logged in user."
+  },
+  {
+    "id": "TC006",
+    "title": "Verify Stores List endpoint",
+    "description": "Perform GET on /rest/v1/stores and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC007",
+    "title": "Verify Stores List unauthorized",
+    "description": "Perform GET on /rest/v1/stores without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC008",
+    "title": "Verify Checkins List endpoint",
+    "description": "Perform GET on /rest/v1/daily_checkins and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC009",
+    "title": "Verify Checkins List unauthorized",
+    "description": "Perform GET on /rest/v1/daily_checkins without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC010",
+    "title": "Verify Feedbacks List endpoint",
+    "description": "Perform GET on /rest/v1/feedbacks and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC011",
+    "title": "Verify Feedbacks List unauthorized",
+    "description": "Perform GET on /rest/v1/feedbacks without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC012",
+    "title": "Verify PDIs List endpoint",
+    "description": "Perform GET on /rest/v1/pdis and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC013",
+    "title": "Verify PDIs List unauthorized",
+    "description": "Perform GET on /rest/v1/pdis without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC014",
+    "title": "Verify Training Progress List endpoint",
+    "description": "Perform GET on /rest/v1/training_progress and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC015",
+    "title": "Verify Training Progress List unauthorized",
+    "description": "Perform GET on /rest/v1/training_progress without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC016",
+    "title": "Verify Notifications List endpoint",
+    "description": "Perform GET on /rest/v1/notifications and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC017",
+    "title": "Verify Notifications List unauthorized",
+    "description": "Perform GET on /rest/v1/notifications without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC018",
+    "title": "Verify Memberships List endpoint",
+    "description": "Perform GET on /rest/v1/memberships and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC019",
+    "title": "Verify Memberships List unauthorized",
+    "description": "Perform GET on /rest/v1/memberships without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC020",
+    "title": "Verify Reprocessing Logs endpoint",
+    "description": "Perform GET on /rest/v1/reprocessing_logs and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC021",
+    "title": "Verify Reprocessing Logs unauthorized",
+    "description": "Perform GET on /rest/v1/reprocessing_logs without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC022",
+    "title": "Verify Benchmarks List endpoint",
+    "description": "Perform GET on /rest/v1/store_benchmarks and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC023",
+    "title": "Verify Benchmarks List unauthorized",
+    "description": "Perform GET on /rest/v1/store_benchmarks without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC024",
+    "title": "Verify Meta Rules List endpoint",
+    "description": "Perform GET on /rest/v1/store_meta_rules and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC025",
+    "title": "Verify Meta Rules List unauthorized",
+    "description": "Perform GET on /rest/v1/store_meta_rules without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC026",
+    "title": "Verify Delivery Rules List endpoint",
+    "description": "Perform GET on /rest/v1/store_delivery_rules and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC027",
+    "title": "Verify Delivery Rules List unauthorized",
+    "description": "Perform GET on /rest/v1/store_delivery_rules without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC028",
+    "title": "Verify Sellers List endpoint",
+    "description": "Perform GET on /rest/v1/store_sellers and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC029",
+    "title": "Verify Sellers List unauthorized",
+    "description": "Perform GET on /rest/v1/store_sellers without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC030",
+    "title": "Verify Trainings List endpoint",
+    "description": "Perform GET on /rest/v1/trainings and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC031",
+    "title": "Verify Trainings List unauthorized",
+    "description": "Perform GET on /rest/v1/trainings without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC032",
+    "title": "Verify PDI Reviews List endpoint",
+    "description": "Perform GET on /rest/v1/pdi_reviews and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC033",
+    "title": "Verify PDI Reviews List unauthorized",
+    "description": "Perform GET on /rest/v1/pdi_reviews without token and verify 401 Unauthorized."
+  },
+  {
+    "id": "TC034",
+    "title": "Verify Weekly Reports List endpoint",
+    "description": "Perform GET on /rest/v1/weekly_feedback_reports and verify 200 OK with appropriate RLS for Admin."
+  },
+  {
+    "id": "TC035",
+    "title": "Verify Weekly Reports List unauthorized",
+    "description": "Perform GET on /rest/v1/weekly_feedback_reports without token and verify 401 Unauthorized."
+  }
+]

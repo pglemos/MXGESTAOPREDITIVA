@@ -10,7 +10,7 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl!, supabaseAnonKey!)
 
 async function testLogin() {
-    const email = 'admin@mxperformance.com.br'
+    const email = 'admin@mxgestaopreditiva.com.br'
     const password = 'Mx#2026!'
     
     console.log(`Testing login for ${email}...`)

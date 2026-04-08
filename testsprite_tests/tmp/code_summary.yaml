@@ -1,0 +1,248 @@
+version: "2"
+type: backend
+tech_stack:
+  - postgresql
+  - supabase
+  - typescript
+features:
+  - name: Auth Login
+    description: Sign in with email and password
+    files: []
+    endpoints:
+      - method: POST
+        path: /auth/v1/token?grant_type=password
+        description: Sign in
+        auth_required: false
+  - name: Auth User
+    description: Get authenticated user details
+    files: []
+    endpoints:
+      - method: GET
+        path: /auth/v1/user
+        description: User details
+        auth_required: true
+  - name: Stores List
+    description: List available stores
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/stores
+        description: List stores
+        auth_required: true
+  - name: Store Create
+    description: Create a new store
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/stores
+        description: Create store
+        auth_required: true
+  - name: Store Update
+    description: Update store details
+    files: []
+    endpoints:
+      - method: PATCH
+        path: /rest/v1/stores
+        description: Update store
+        auth_required: true
+  - name: Checkin List
+    description: List daily check-ins
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/daily_checkins
+        description: List checkins
+        auth_required: true
+  - name: Checkin Create
+    description: Record a new daily check-in
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/daily_checkins
+        description: Create checkin
+        auth_required: true
+  - name: Checkin Delete
+    description: Delete a check-in
+    files: []
+    endpoints:
+      - method: DELETE
+        path: /rest/v1/daily_checkins
+        description: Delete checkin
+        auth_required: true
+  - name: Feedback List
+    description: List performance feedbacks
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/feedbacks
+        description: List feedbacks
+        auth_required: true
+  - name: Feedback Create
+    description: Create a new feedback
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/feedbacks
+        description: Create feedback
+        auth_required: true
+  - name: PDI List
+    description: List performance development plans
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/pdis
+        description: List PDIs
+        auth_required: true
+  - name: PDI Create
+    description: Create a new PDI
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/pdis
+        description: Create PDI
+        auth_required: true
+  - name: Training Progress List
+    description: List user training progress
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/training_progress
+        description: List progress
+        auth_required: true
+  - name: Training Progress Create
+    description: Update user training progress
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/training_progress
+        description: Record progress
+        auth_required: true
+  - name: Notifications List
+    description: List system notifications
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/notifications
+        description: List notifications
+        auth_required: true
+  - name: Notification Read
+    description: Mark notification as read
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/notification_reads
+        description: Mark as read
+        auth_required: true
+  - name: Memberships List
+    description: List user store memberships
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/memberships
+        description: List memberships
+        auth_required: true
+  - name: Reprocessing Jobs List
+    description: List administrative reprocessing jobs
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/reprocessing_logs
+        description: List logs
+        auth_required: true
+  - name: RPC Send Broadcast
+    description: RPC to send broadcast notifications
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/rpc/send_broadcast_notification
+        description: Broadcast
+        auth_required: true
+  - name: RPC Get Ranking
+    description: RPC to get store rankings
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/rpc/get_store_ranking
+        description: Store Ranking
+        auth_required: true
+  - name: User Profile Update
+    description: Update user profile data
+    files: []
+    endpoints:
+      - method: PATCH
+        path: /rest/v1/users
+        description: Update user
+        auth_required: true
+  - name: Benchmark CRUD
+    description: Manage store benchmarks
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/store_benchmarks
+        description: List benchmarks
+        auth_required: true
+  - name: Benchmark Update
+    description: Update store benchmarks
+    files: []
+    endpoints:
+      - method: PATCH
+        path: /rest/v1/store_benchmarks
+        description: Update benchmarks
+        auth_required: true
+  - name: Meta Rules List
+    description: List store meta rules
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/store_meta_rules
+        description: List meta rules
+        auth_required: true
+  - name: Delivery Rules List
+    description: List store delivery rules
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/store_delivery_rules
+        description: List delivery rules
+        auth_required: true
+  - name: Seller List
+    description: List store sellers
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/store_sellers
+        description: List sellers
+        auth_required: true
+  - name: Trainings List
+    description: List available training modules
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/trainings
+        description: List trainings
+        auth_required: true
+  - name: PDI Review List
+    description: List PDI reviews
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/pdi_reviews
+        description: List reviews
+        auth_required: true
+  - name: Weekly Report List
+    description: List weekly feedback reports
+    files: []
+    endpoints:
+      - method: GET
+        path: /rest/v1/weekly_feedback_reports
+        description: List weekly reports
+        auth_required: true
+  - name: System Health RPC
+    description: Check system health via RPC
+    files: []
+    endpoints:
+      - method: POST
+        path: /rest/v1/rpc/verify_system_health
+        description: Health Check
+        auth_required: true
+known_limitations: []
