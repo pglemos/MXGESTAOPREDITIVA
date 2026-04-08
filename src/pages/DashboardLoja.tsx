@@ -134,6 +134,17 @@ export default function DashboardLoja() {
         } finally { setIsRefetching(false) }
     }, [refetchCheckins, filters, refetchGoals, fetchMetaRules, refetchTeam, refetchRanking])
 
+
+    const sellersMap = useMemo(() => {
+        const map = new Map();
+        if (sellers) {
+            for (const seller of sellers) {
+                map.set(seller.id, seller);
+            }
+        }
+        return map;
+    }, [sellers])
+
     const filteredRanking = useMemo(() => {
         if (!sellerSearch) return ranking || []
         const lowerSearch = sellerSearch.toLowerCase()
@@ -304,7 +315,7 @@ export default function DashboardLoja() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
                                     {filteredRanking.map((r, i) => {
-                                        const seller = sellers?.find(s => s.id === r.user_id)
+                                        const seller = sellersMap.get(r.user_id)
                                         const isCheckedIn = seller?.checkin_today
                                         const conversao = r.leads > 0 ? Math.round((r.vnd_total / r.leads) * 100) : 0
                                         return (
