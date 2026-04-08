@@ -102,9 +102,16 @@ export default function PainelConsultor() {
             const daysElapsed = now.getDate()
             const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
 
+            const goalsMap = new Map<string, number>()
+            for (const goal of goals || []) {
+                if (!goalsMap.has(goal.store_id)) {
+                    goalsMap.set(goal.store_id, goal.target)
+                }
+            }
+
             for (const store of stores) {
                 const s = salesMap[store.id] || { total: 0, leads: 0, agd: 0, vis: 0 }
-                const goal = goals.find(item => item.store_id === store.id)?.target || 0
+                const goal = goalsMap.get(store.id) || 0
                 const proj = daysElapsed > 0 ? Math.round((s.total / daysElapsed) * totalDays) : 0
                 const numSellers = sellerMap.get(store.id) || 0
                 const numCheckedIn = checkedInMap.get(store.id) || 0
