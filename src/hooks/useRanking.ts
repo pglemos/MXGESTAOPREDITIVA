@@ -54,7 +54,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             .from('store_meta_rules')
             .select('monthly_goal, include_venda_loja_in_individual_goal')
             .eq('store_id', storeId)
-            .single()
+            .maybeSingle()
 
         const members = (tenures && tenures.length > 0)
             ? tenures.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))

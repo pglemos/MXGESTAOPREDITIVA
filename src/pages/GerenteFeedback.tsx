@@ -125,6 +125,19 @@ export default function GerenteFeedback() {
         )
     }, [feedbacks, searchTerm])
 
+    const teamStatus = useMemo(() => {
+        const total = sellers.length
+        const weeklyFeedbacks = feedbacks.filter(f => f.week_reference === previousWeek.startKey)
+        const done = new Set(weeklyFeedbacks.map(f => f.seller_id)).size
+        const acknowledged = weeklyFeedbacks.filter(f => f.acknowledged).length
+        return {
+            total,
+            done,
+            missing: Math.max(0, total - done),
+            acknowledged
+        }
+    }, [sellers, feedbacks, previousWeek.startKey])
+
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
         if (activeTab === 'individual') await refetchFeedbacks()

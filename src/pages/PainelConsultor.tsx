@@ -222,21 +222,21 @@ export default function PainelConsultor() {
                 <div className="flex flex-wrap items-center gap-3 shrink-0">
                     <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm mr-2">
                         <button 
-                            onClick={() => triggerReport('matinal')} 
+                            onClick={() => { console.log('Disparo Matinal clicked'); triggerReport('matinal'); }} 
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50"
                         >
                             {isTriggering === 'matinal' ? '…' : 'Disparo Matinal'}
                         </button>
                         <button 
-                            onClick={() => triggerReport('semanal')} 
+                            onClick={() => { console.log('Ciclo Feedback clicked'); triggerReport('semanal'); }} 
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50"
                         >
                             {isTriggering === 'semanal' ? '…' : 'Ciclo Feedback'}
                         </button>
                         <button
-                            onClick={() => triggerReport('mensal')}
+                            onClick={() => { console.log('Fechamento Mensal clicked'); triggerReport('mensal'); }}
                             disabled={isTriggering !== null}
                             className="text-[9px] font-black uppercase tracking-widest px-4 h-10 rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50"
                         >
