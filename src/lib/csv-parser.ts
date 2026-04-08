@@ -41,7 +41,7 @@ export function parseCSV(text: string): ParsedCSVRow[] {
 }
 
 export function validateHeaders(headers: string[]): { valid: boolean; missing: string[] } {
-    const upperHeaders = headers.map(h => h.toUpperCase());
+    const upperHeaders = headers.map(h => h.trim().toUpperCase());
     const missing = MANDATORY_HEADERS.filter(h => !upperHeaders.includes(h));
     
     return {
