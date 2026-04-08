@@ -86,7 +86,7 @@ app.get('/api/whatsapp/status', authenticate, (req, res) => {
     });
 });
 
-app.post('/api/whatsapp/restart', async (req, res) => {
+app.post('/api/whatsapp/restart', authenticate, async (req, res) => {
     console.log('Restarting WhatsApp Client...');
     try {
         if (client) {
