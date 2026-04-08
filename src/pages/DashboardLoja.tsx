@@ -19,11 +19,13 @@ import { Badge } from '@/components/ui/badge'
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+import { Skeleton } from '@/components/ui/skeleton'
+
 interface StatProps {
-    icon: any; label: string; value: string | number; sub?: string; bg: string; color: string; trend?: string; delay?: number; highlight?: boolean
+    icon: any; label: string; value: string | number; sub?: string; bg: string; color: string; trend?: string; delay?: number; highlight?: boolean; loading?: boolean
 }
 
-const Stat = ({ icon: Icon, label, value, sub, bg, color, trend, delay = 0, highlight = false }: StatProps) => (
+const Stat = ({ icon: Icon, label, value, sub, bg, color, trend, delay = 0, highlight = false, loading = false }: StatProps) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.5 }}
         className={cn(
@@ -43,8 +45,8 @@ const Stat = ({ icon: Icon, label, value, sub, bg, color, trend, delay = 0, high
         <div className="relative z-10">
             <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black mb-1">{label}</p>
             <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-black text-slate-950 tracking-tighter leading-none font-mono-numbers">{value}</p>
-                {sub && <span className="text-[10px] font-black text-gray-500 bg-gray-50 px-2 py-0.5 rounded uppercase tracking-widest">{sub}</span>}
+                {loading ? <Skeleton className="h-8 w-20" /> : <p className="text-3xl font-black text-slate-950 tracking-tighter leading-none font-mono-numbers">{value}</p>}
+                {sub && !loading && <span className="text-[10px] font-black text-gray-500 bg-gray-50 px-2 py-0.5 rounded uppercase tracking-widest">{sub}</span>}
             </div>
         </div>
     </motion.div>
@@ -141,13 +143,6 @@ export default function DashboardLoja() {
     }, [ranking, sellerSearch])
 
     const loading = checkinsLoading || rankingLoading
-
-    if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="animate-spin text-indigo-600 mb-4" size={32} />
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Consolidando métricas...</p>
-        </div>
-    )
 
     return (
         <div className="w-full h-full flex flex-col gap-8 p-4 md:p-8 overflow-y-auto no-scrollbar bg-gray-50/30">

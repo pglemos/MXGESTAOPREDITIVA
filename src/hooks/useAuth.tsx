@@ -56,13 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true)
     const [initialized, setInitialized] = useState(false)
     const authBootstrapCompleteRef = useRef(false)
+    const lastLoadedUserIdRef = useRef<string | null>(null)
 
     const fetchProfile = useCallback(async (userId: string): Promise<AppUser | null> => {
-        const { data, error } = await supabase.from('users').select('*').eq('id', userId).single()
+        const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
         if (error && !isTransientFetchError(error)) {
             console.error('Audit Error [useAuth]: fetchProfile fail ->', error.message)
         }
         if (data) setProfile(data as AppUser)
+        else setProfile(null)
         return (data as AppUser) || null
     }, [])
 
@@ -113,12 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true)
 
             const { data: { session } } = await supabase.auth.getSession()
-            let nextUser = session?.user || null
-
-            if (!nextUser) {
-                const { data, error } = await supabase.auth.getUser()
-                if (!error) nextUser = data.user || null
-            }
+            const nextUser = session?.user || null
 
             if (!mounted) return
 
@@ -136,14 +133,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setSupabaseUser(nextUser)
                 if (nextUser) {
                     setInitialized(true)
-                    setLoading(true)
+                    // Only set loading if user changed
+                    if (nextUser.id !== lastLoadedUserIdRef.current) {
+                        setLoading(true)
+                    }
                 } else if (authBootstrapCompleteRef.current) {
-                    // Force state cleanup on logout
                     setProfile(null)
                     setMemberships([])
                     setActiveStoreId(null)
                     setFallbackStoreId(null)
                     setLoading(false)
+                    lastLoadedUserIdRef.current = null
                 }
             }
         })
@@ -159,29 +159,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let timeoutId: any;
 
         async function loadUserData(userId: string) {
-            // Safety timeout: force stop loading after 10s even if query hangs
+            if (userId === lastLoadedUserIdRef.current && profile) {
+                setLoading(false)
+                return
+            }
+
+            // Safety timeout: force stop loading after 8s
             timeoutId = setTimeout(() => {
                 if (mounted) {
-                    console.warn("Audit Warn [useAuth]: loadUserData timeout reached. Forcing loading false.")
+                    console.warn("Audit Warn [useAuth]: loadUserData timeout reached.")
                     setLoading(false)
                 }
-            }, 10000);
+            }, 8000);
 
             try {
-                console.log(`Audit Info [useAuth]: loading data for user ${userId}...`)
                 const [loadedProfile, loadedMemberships] = await Promise.all([
                     fetchProfile(userId),
                     fetchMemberships(userId)
                 ])
                 
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
-                console.log(`Audit Info [useAuth]: data loaded. Role: ${currentRole}, Memberships: ${loadedMemberships.length}`)
                 
                 if (!loadedMemberships.length && currentRole === 'admin') {
                     await fetchFallbackStoreId()
                 } else {
                     setFallbackStoreId(null)
                 }
+                lastLoadedUserIdRef.current = userId
             } catch (err) {
                 console.error("Audit Error [useAuth]: loadUserData fail ->", err)
             } finally {
@@ -193,13 +197,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (supabaseUser) {
-            setLoading(true)
             loadUserData(supabaseUser.id)
         } else if (initialized) {
-            setProfile(null)
-            setMemberships([])
-            setActiveStoreId(null)
-            setFallbackStoreId(null)
             setLoading(false)
         }
 
@@ -207,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             mounted = false;
             if (timeoutId) clearTimeout(timeoutId)
         }
-    }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId])
+    }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId, profile])
 
     const signIn = async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password })

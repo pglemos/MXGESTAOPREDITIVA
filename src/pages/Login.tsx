@@ -25,14 +25,19 @@ export default function Login() {
         if (loading) return
         setError('')
         setLoading(true)
-        const { error: err } = await signIn(email, password)
-        if (err) { 
-            setError(err)
+        try {
+            const { error: err } = await signIn(email, password)
+            if (err) { 
+                setError(err)
+                setLoading(false)
+                return 
+            }
+            // After successful sign in, wait a bit for profile loading
+            // The useAuth hook will handle the loading state
+        } catch (err: any) {
+            setError(err.message || 'Erro inesperado ao realizar login.')
             setLoading(false)
-            return 
         }
-        // Use navigate instead of window.location for SPA consistency
-        navigate('/', { replace: true })
     }
 
     const Feature = ({ icon: Icon, text }: { icon: any, text: string }) => (
@@ -44,10 +49,29 @@ export default function Login() {
         </div>
     )
 
+    // If loading but we have a user and NO profile after some time, it might be a data issue
+    const [showProfileError, setShowProfileError] = useState(false)
+    useEffect(() => {
+        let tid: any;
+        if (authLoading && !profile) {
+            tid = setTimeout(() => setShowProfileError(true), 5000)
+        } else {
+            setShowProfileError(false)
+        }
+        return () => clearTimeout(tid)
+    }, [authLoading, profile])
+
     if (authLoading && !profile) {
         return (
-            <div className="min-h-screen bg-off-white flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-electric-blue/10 border-t-electric-blue rounded-full animate-spin"></div>
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-12 h-12 border-4 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin mb-6"></div>
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Sincronizando Perfil MX...</p>
+                {showProfileError && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 max-w-xs">
+                        <p className="text-xs text-rose-400 font-bold mb-4">A sincronização está demorando mais que o esperado.</p>
+                        <button onClick={() => window.location.reload()} className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all">Tentar Novamente</button>
+                    </motion.div>
+                )}
             </div>
         )
     }

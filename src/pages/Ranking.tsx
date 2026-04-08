@@ -8,6 +8,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Ranking() {
     const { profile } = useAuth()
@@ -22,13 +23,10 @@ export default function Ranking() {
 
     const sortedRanking = useMemo(() => {
         return [...(ranking || [])].sort((a, b) => {
-            // Venda Loja sempre pro final se empatar, ou segue a regra de volume
             if (b.vnd_total !== a.vnd_total) return b.vnd_total - a.vnd_total
             return b.visitas - a.visitas
         })
     }, [ranking])
-
-    if (loading) return <div className="h-full w-full flex items-center justify-center bg-white"><RefreshCw className="animate-spin text-brand-primary" /></div>
 
     return (
         <div className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-white">
@@ -42,17 +40,40 @@ export default function Ranking() {
 
                 <div className="flex items-center gap-mx-sm shrink-0">
                     <button onClick={handleRefresh} className="w-14 h-14 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary active:scale-95 transition-all">
-                        <RefreshCw size={24} className={cn(isRefetching && "animate-spin")} />
+                        <RefreshCw size={24} className={cn((isRefetching || loading) && "animate-spin")} />
                     </button>
                     <div className="flex items-center justify-center gap-3 rounded-full border border-border-default bg-white px-8 py-4 shadow-mx-sm">
                         <Trophy size={20} className="text-status-warning" />
-                        <span className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">{sortedRanking.filter(r => !r.is_venda_loja).length} Vendedores em Arena</span>
+                        <span className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em]">
+                            {loading ? <Skeleton className="h-3 w-20" /> : `${sortedRanking.filter(r => !r.is_venda_loja).length} Vendedores em Arena`}
+                        </span>
                     </div>
                 </div>
             </div>
 
             <div className="flex-1 min-h-0 pb-mx-xl">
-                {sortedRanking.length > 0 ? (
+                {loading ? (
+                    <div className="grid gap-mx-md">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="p-8 flex flex-col lg:flex-row lg:items-center gap-10 border rounded-[2.5rem] bg-gray-50/50">
+                                <div className="flex items-center gap-8 flex-1">
+                                    <Skeleton className="w-20 h-20 rounded-[2rem]" />
+                                    <div className="space-y-3 flex-1">
+                                        <Skeleton className="h-8 w-1/3" />
+                                        <Skeleton className="h-4 w-1/2" />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-10">
+                                    <div className="text-right space-y-2">
+                                        <Skeleton className="h-3 w-16 ml-auto" />
+                                        <Skeleton className="h-12 w-24 ml-auto" />
+                                    </div>
+                                    <Skeleton className="w-16 h-16 rounded-[1.5rem]" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : sortedRanking.length > 0 ? (
                     <div className="grid gap-mx-md">
                         <AnimatePresence mode="popLayout">
                             {sortedRanking.map((r, i) => {

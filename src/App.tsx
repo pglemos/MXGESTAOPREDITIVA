@@ -60,8 +60,12 @@ const Gamification = lazy(() => import('@/pages/Gamification'))
 const Activities = lazy(() => import('@/pages/Activities'))
 
 const Spinner = () => (
-  <div className="min-h-[50vh] flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+  <div className="flex flex-col items-center gap-6">
+    <div className="relative w-16 h-16">
+      <div className="absolute inset-0 border-4 border-indigo-500/10 rounded-full"></div>
+      <div className="absolute inset-0 border-4 border-t-indigo-500 rounded-full animate-spin"></div>
+    </div>
+    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">MX PERFORMANCE</p>
   </div>
 )
 
@@ -70,10 +74,19 @@ const withLegacyShell = (node: React.ReactNode) => (
 )
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading, initialized } = useAuth()
+  const { profile, loading, initialized, supabaseUser } = useAuth()
   const location = useLocation()
+  
+  // Debug log for auth state
+  React.useEffect(() => {
+    console.log('Audit Info [ProtectedRoute]:', { initialized, loading, hasSupabaseUser: !!supabaseUser, hasProfile: !!profile })
+  }, [initialized, loading, supabaseUser, profile])
+
   if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-slate-950"><Spinner /></div>
-  if (!profile) return <Navigate to="/login" state={{ from: location }} replace />
+  if (!profile) {
+    console.warn('Audit Warn [ProtectedRoute]: No profile found, redirecting to login.')
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
   return <>{children}</>
 }
 
