@@ -206,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             mounted = false;
             if (timeoutId) clearTimeout(timeoutId)
         }
-    }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId, profile])
+    }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId])
 
     const signIn = async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
