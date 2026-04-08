@@ -78,16 +78,16 @@ type StoreState = {
     chainedFunnel: boolean
 }
 
-const storeState: StoreState = {
-    tasks: [...mockTasks] as any[],
-    commissions: [...mockCommissions],
-    commissionRules: [...mockCommissionRules],
-    goals: [...mockGoals] as any[],
-    team: [...mockTeam],
-    leads: [...mockLeads] as any[],
-    inventory: [...mockInventory] as any[],
-    agencies: [...mockAgencies],
-    auditLogs: [...mockAuditLogs],
+let storeState: StoreState = {
+    tasks: JSON.parse(JSON.stringify(mockTasks)),
+    commissions: JSON.parse(JSON.stringify(mockCommissions)),
+    commissionRules: JSON.parse(JSON.stringify(mockCommissionRules)),
+    goals: JSON.parse(JSON.stringify(mockGoals)),
+    team: JSON.parse(JSON.stringify(mockTeam)),
+    leads: JSON.parse(JSON.stringify(mockLeads)),
+    inventory: JSON.parse(JSON.stringify(mockInventory)),
+    agencies: JSON.parse(JSON.stringify(mockAgencies)),
+    auditLogs: JSON.parse(JSON.stringify(mockAuditLogs)),
     activeAgencyId: mockAgencies[0]?.id || null,
     chainedFunnel: true,
 }
@@ -138,76 +138,76 @@ function createLead(data: Omit<Lead, 'id'>): Lead {
 const actions = {
     refetch: async () => {},
     addTask(data: Omit<Task, 'id' | 'status'> & { status?: TaskStatus }) {
-        storeState.tasks = [createTask(data), ...storeState.tasks]
+        storeState = { ...storeState, tasks: [createTask(data), ...storeState.tasks] }
         emit()
     },
     updateTask(idValue: string, updates: Partial<Task>) {
-        storeState.tasks = storeState.tasks.map(task => task.id === idValue ? { ...task, ...updates } : task) as any[]
+        storeState = { ...storeState, tasks: storeState.tasks.map(task => task.id === idValue ? { ...task, ...updates } : task) as any[] }
         emit()
     },
     deleteTask(idValue: string) {
-        storeState.tasks = storeState.tasks.filter(task => task.id !== idValue)
+        storeState = { ...storeState, tasks: storeState.tasks.filter(task => task.id !== idValue) }
         emit()
     },
     addCommissionRule(data: Omit<CommissionRule, 'id'>) {
-        storeState.commissionRules = [createCommissionRule(data), ...storeState.commissionRules]
+        storeState = { ...storeState, commissionRules: [createCommissionRule(data), ...storeState.commissionRules] }
         emit()
     },
     updateCommissionRule(idValue: string, updates: Partial<CommissionRule>) {
-        storeState.commissionRules = storeState.commissionRules.map(rule => rule.id === idValue ? { ...rule, ...updates } : rule)
+        storeState = { ...storeState, commissionRules: storeState.commissionRules.map(rule => rule.id === idValue ? { ...rule, ...updates } : rule) }
         emit()
     },
     deleteCommissionRule(idValue: string) {
-        storeState.commissionRules = storeState.commissionRules.filter(rule => rule.id !== idValue)
+        storeState = { ...storeState, commissionRules: storeState.commissionRules.filter(rule => rule.id !== idValue) }
         emit()
     },
 
     setGoal(goal: Omit<Goal, 'id'> & { id?: string }) {
         if (goal.id) {
-            storeState.goals = storeState.goals.map(item => item.id === goal.id ? { ...item, ...goal } : item)
+            storeState = { ...storeState, goals: storeState.goals.map(item => item.id === goal.id ? { ...item, ...goal } : item) }
         } else {
-            storeState.goals = [createGoal(goal), ...storeState.goals]
+            storeState = { ...storeState, goals: [createGoal(goal), ...storeState.goals] }
         }
         emit()
     },
     deleteGoal(idValue: string) {
-        storeState.goals = storeState.goals.filter(goal => goal.id !== idValue)
+        storeState = { ...storeState, goals: storeState.goals.filter(goal => goal.id !== idValue) }
         emit()
     },
     addCommission(data: Omit<Commission, 'id'>) {
-        storeState.commissions = [createCommission(data), ...storeState.commissions]
+        storeState = { ...storeState, commissions: [createCommission(data), ...storeState.commissions] }
         emit()
     },
     addLead(data: Omit<Lead, 'id'>) {
-        storeState.leads = [createLead(data), ...storeState.leads]
+        storeState = { ...storeState, leads: [createLead(data), ...storeState.leads] }
         emit()
     },
     updateLead(idValue: string, updates: Partial<Lead>) {
-        storeState.leads = storeState.leads.map(lead => lead.id === idValue ? { ...lead, ...updates } : lead)
+        storeState = { ...storeState, leads: storeState.leads.map(lead => lead.id === idValue ? { ...lead, ...updates } : lead) }
         emit()
     },
     deleteLead(idValue: string) {
-        storeState.leads = storeState.leads.filter(lead => lead.id !== idValue)
+        storeState = { ...storeState, leads: storeState.leads.filter(lead => lead.id !== idValue) }
         emit()
     },
     addTeamMember(member: TeamMember) {
-        storeState.team = [{ ...member, id: member.id || id('team') }, ...storeState.team]
+        storeState = { ...storeState, team: [{ ...member, id: member.id || id('team') }, ...storeState.team] }
         emit()
     },
     updateTeamMember(idValue: string, updates: Partial<TeamMember>) {
-        storeState.team = storeState.team.map(member => member.id === idValue ? { ...member, ...updates } : member)
+        storeState = { ...storeState, team: storeState.team.map(member => member.id === idValue ? { ...member, ...updates } : member) }
         emit()
     },
     deleteTeamMember(idValue: string) {
-        storeState.team = storeState.team.filter(member => member.id !== idValue)
+        storeState = { ...storeState, team: storeState.team.filter(member => member.id !== idValue) }
         emit()
     },
     setActiveAgency(idValue: string | null) {
-        storeState.activeAgencyId = idValue
+        storeState = { ...storeState, activeAgencyId: idValue }
         emit()
     },
     toggleChainedFunnel(value?: boolean) {
-        storeState.chainedFunnel = value ?? !storeState.chainedFunnel
+        storeState = { ...storeState, chainedFunnel: value ?? !storeState.chainedFunnel }
         emit()
     },
 }
@@ -243,3 +243,22 @@ export default function useAppStore() {
 }
 
 export type { Agency, Commission, CommissionRule, Goal, Task, TaskPriority, TaskStatus, TeamMember }
+
+export const _test_resetStore = () => {
+    storeState = {
+        tasks: JSON.parse(JSON.stringify(mockTasks)),
+        commissions: JSON.parse(JSON.stringify(mockCommissions)),
+        commissionRules: JSON.parse(JSON.stringify(mockCommissionRules)),
+        goals: JSON.parse(JSON.stringify(mockGoals)),
+        team: JSON.parse(JSON.stringify(mockTeam)),
+        leads: JSON.parse(JSON.stringify(mockLeads)),
+        inventory: JSON.parse(JSON.stringify(mockInventory)),
+        agencies: JSON.parse(JSON.stringify(mockAgencies)),
+        auditLogs: JSON.parse(JSON.stringify(mockAuditLogs)),
+        activeAgencyId: mockAgencies[0]?.id || null,
+        chainedFunnel: true,
+    }
+
+    // Also re-assign actions reference to storeState if needed, but actions accesses storeState directly
+    emit()
+}
