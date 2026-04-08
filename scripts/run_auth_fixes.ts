@@ -16,7 +16,8 @@ const sql = postgres(connectionString, { ssl: 'require' })
 async function runFixes() {
     const files = [
         'supabase/migrations/20260407170000_fix_auth_rls.sql',
-        'supabase/migrations/20260407180000_fix_meta_rules_rls.sql'
+        'supabase/migrations/20260407180000_fix_meta_rules_rls.sql',
+        'supabase/migrations/20260407190000_optimize_rls_performance.sql'
     ]
     
     for (const file of files) {

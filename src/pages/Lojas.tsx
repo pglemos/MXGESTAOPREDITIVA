@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const storeSchema = z.object({
     name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -58,8 +59,6 @@ export default function Lojas() {
         )
     }, [stores, searchTerm])
 
-    if (loading) return <div className="h-full w-full flex items-center justify-center bg-white"><RefreshCw className="animate-spin text-brand-primary" /></div>
-
     return (
         <div className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-white">
             
@@ -70,7 +69,7 @@ export default function Lojas() {
                     <h1 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none">{canManageStores ? 'Gestão de Unidades' : 'Minhas Lojas'}</h1>
                     <div className="flex items-center gap-2 mt-4">
                         <div className="w-2 h-2 rounded-full bg-status-success animate-pulse" />
-                        <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{stores.length} Lojas Ativas na Rede</p>
+                        <p className="mx-text-caption !text-[10px] opacity-60 uppercase">{loading ? <Skeleton className="h-3 w-20" /> : `${stores.length} Lojas Ativas na Rede`}</p>
                     </div>
                 </div>
 
@@ -128,7 +127,27 @@ export default function Lojas() {
             </AnimatePresence>
 
             <div className="flex-1 min-h-0 pb-mx-xl">
-                {filteredStores.length > 0 ? (
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="mx-card p-mx-xl flex flex-col justify-between h-[300px]">
+                                <div className="flex items-start justify-between">
+                                    <Skeleton className="w-20 h-20 rounded-[2rem]" />
+                                    <Skeleton className="w-24 h-8 rounded-full" />
+                                </div>
+                                <div className="space-y-4">
+                                    <Skeleton className="h-4 w-1/2" />
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-12 w-full rounded-mx-xl" />
+                                </div>
+                                <div className="pt-mx-lg border-t flex items-center justify-between">
+                                    <Skeleton className="h-4 w-1/3" />
+                                    <Skeleton className="w-12 h-12 rounded-mx-lg" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : filteredStores.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
                         {filteredStores.map((s, i) => (
                             <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="mx-card p-mx-xl flex flex-col justify-between group hover:shadow-mx-xl hover:-translate-y-1 transition-all relative overflow-hidden">
