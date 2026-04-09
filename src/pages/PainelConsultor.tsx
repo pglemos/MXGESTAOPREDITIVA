@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'motion/react'
 import {
-    Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar
+    Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar, X, Check
 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import { supabase as originalSupabase, supabaseAdmin } from '@/lib/supabase'
@@ -37,10 +37,11 @@ export default function PainelConsultor() {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'critical' | 'target'>('all')
     const [timeframe, setTimeframe] = useState<Timeframe>('mensal')
-    const [customRange] = useState<{ start: string; end: string }>({
+    const [customRange, setCustomRange] = useState<{ start: string; end: string }>({
         start: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
         end: format(endOfMonth(new Date()), 'yyyy-MM-dd')
     })
+    const [showCustomPicker, setShowCustomPicker] = useState(false)
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'sales', direction: 'desc' })
 
     const triggerReport = async (type: 'matinal' | 'semanal' | 'mensal') => {
@@ -242,12 +243,64 @@ export default function PainelConsultor() {
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0">
-                    <div className="flex items-center gap-1 md:gap-2 bg-white p-1.5 md:p-2 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm" role="group" aria-label="Filtro temporal">
+                    <div className="flex items-center gap-1 md:gap-2 bg-white p-1.5 md:p-2 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm relative" role="group" aria-label="Filtro temporal">
                         <Calendar size={12} className="text-gray-500 ml-1" aria-hidden="true" />
                         <button onClick={() => setTimeframe('hoje')} aria-pressed={timeframe === 'hoje'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'hoje' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-500 hover:bg-gray-50")}>Hoje</button>
                         <button onClick={() => setTimeframe('ontem')} aria-pressed={timeframe === 'ontem'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'ontem' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-500 hover:bg-gray-50")}>Ontem</button>
                         <button onClick={() => setTimeframe('semanal')} aria-pressed={timeframe === 'semanal'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'semanal' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-400 hover:bg-gray-50")}>Semanal</button>
                         <button onClick={() => setTimeframe('mensal')} aria-pressed={timeframe === 'mensal'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'mensal' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-400 hover:bg-gray-50")}>Mensal</button>
+                        <button 
+                            onClick={() => setShowCustomPicker(!showCustomPicker)} 
+                            aria-pressed={timeframe === 'personalizada'} 
+                            className={cn(
+                                "px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", 
+                                timeframe === 'personalizada' ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "text-gray-400 hover:bg-gray-50"
+                            )}
+                        >
+                            Personalizado
+                        </button>
+
+                        {/* Custom Date Picker Popover */}
+                        {showCustomPicker && (
+                            <div className="absolute top-full mt-4 right-0 z-50 bg-white border border-gray-100 shadow-2xl rounded-2xl p-6 min-w-[320px] animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center justify-between mb-6">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Período Customizado</p>
+                                    <button onClick={() => setShowCustomPicker(false)} className="w-8 h-8 rounded-lg hover:bg-gray-50 flex items-center justify-center text-gray-400">
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">Início</label>
+                                        <input 
+                                            type="date" 
+                                            value={customRange.start} 
+                                            onChange={e => setCustomRange(prev => ({ ...prev, start: e.target.value }))}
+                                            className="w-full h-10 px-4 rounded-xl border border-gray-100 bg-gray-50 text-xs font-bold outline-none focus:border-indigo-300 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">Fim</label>
+                                        <input 
+                                            type="date" 
+                                            value={customRange.end} 
+                                            onChange={e => setCustomRange(prev => ({ ...prev, end: e.target.value }))}
+                                            className="w-full h-10 px-4 rounded-xl border border-gray-100 bg-gray-50 text-xs font-bold outline-none focus:border-indigo-300 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            setTimeframe('personalizada')
+                                            setShowCustomPicker(false)
+                                            fetchNetworkSnapshot()
+                                        }}
+                                        className="w-full h-12 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"
+                                    >
+                                        <Check size={14} /> Aplicar Período
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-1 md:gap-2 bg-white p-1.5 md:p-2 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm" role="group" aria-label="Disparar relatórios">
