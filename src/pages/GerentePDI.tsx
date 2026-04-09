@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { usePDIs } from '@/hooks/useData'
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
@@ -133,9 +134,11 @@ export default function GerentePDI() {
                                                             {p.due_date ? format(parseISO(p.due_date), 'dd/MM/yy') : '--/--'}
                                                         </Typography>
                                                     </div>
-                                                    <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default">
-                                                        <Printer size={18} />
-                                                    </Button>
+                                                    <Link to={`/pdi/print/${p.id}`}>
+                                                        <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default">
+                                                            <Printer size={18} />
+                                                        </Button>
+                                                    </Link>
                                                 </div>
                                                 <Button variant="secondary" size="icon" className="w-12 h-12 rounded-xl shadow-mx-md hover:scale-110 active:scale-95 transition-all">
                                                     <ChevronRight size={24} strokeWidth={2.5} />
