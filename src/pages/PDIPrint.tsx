@@ -1,173 +1,259 @@
-import { usePDIs } from '@/hooks/useData'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
-import { Target, Calendar, User, Award, CheckCircle2, ShieldCheck, Zap, History } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { usePDI_MX } from '@/hooks/usePDI_MX'
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
+import { Target, History, Printer, ChevronLeft, Sparkles, User, Calendar, Award } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
 import { Typography } from '@/components/atoms/Typography'
-import { Badge } from '@/components/atoms/Badge'
-import { Card } from '@/components/molecules/Card'
 
 export default function PDIPrint() {
     const { id } = useParams()
-    const { pdis } = usePDIs()
     const navigate = useNavigate()
-    const pdi = pdis.find(p => p.id === id)
-    const [isPrinting, setIsPrinting] = useState(false)
+    const { fetchPrintBundle, loading } = usePDI_MX()
+    const [bundle, setBundle] = useState<any>(null)
+    const [error, setError] = useState(false)
+    const printRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        if (pdi && !isPrinting) {
-            setIsPrinting(true)
-            setTimeout(() => { window.print() }, 1000)
+        if (id) {
+            fetchPrintBundle(id).then(data => {
+                setBundle(data)
+            }).catch(err => {
+                console.error(err)
+                setError(true)
+            })
         }
-    }, [pdi, isPrinting])
+    }, [id, fetchPrintBundle])
 
-    if (!pdi) return (
-        <div className="p-20 text-center flex flex-col items-center justify-center">
-            <History size={48} className="text-text-tertiary mb-6 opacity-20" />
-            <Typography variant="h3" tone="muted">Plano não localizado na malha...</Typography>
+    if (loading) return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-surface-alt">
+            <Typography variant="h3" className="animate-pulse uppercase tracking-widest font-black">Carregando Bundle Documental...</Typography>
         </div>
     )
 
-    const radarData = [
-        { subject: 'Prospecção', A: pdi.comp_prospeccao },
-        { subject: 'Abordagem', A: pdi.comp_abordagem },
-        { subject: 'Demonstração', A: pdi.comp_demonstracao },
-        { subject: 'Fechamento', A: pdi.comp_fechamento },
-        { subject: 'CRM', A: pdi.comp_crm },
-        { subject: 'Digital', A: pdi.comp_digital },
-        { subject: 'Disciplina', A: pdi.comp_disciplina },
-        { subject: 'Organização', A: pdi.comp_organizacao },
-        { subject: 'Negociação', A: pdi.comp_negociacao },
-        { subject: 'Produto', A: pdi.comp_produto },
-    ]
+    if (error || !bundle) return (
+        <div className="min-h-screen p-20 text-center flex flex-col items-center justify-center bg-surface-alt">
+            <History size={48} className="text-text-tertiary mb-6 opacity-20" />
+            <Typography variant="h3" tone="muted" className="uppercase tracking-tighter">Plano ou permissão não localizados.</Typography>
+            <button onClick={() => navigate(-1)} className="mt-8 px-8 py-4 bg-brand-primary text-white rounded-full font-black text-xs uppercase tracking-widest">VOLTAR</button>
+        </div>
+    )
+
+    const handlePrint = () => {
+        window.print()
+    }
+
+    const radarData = bundle.avaliacoes.map((av: any) => ({
+        subject: av.competencia,
+        A: av.nota,
+        alvo: av.alvo,
+        fullMark: av.alvo
+    }))
+
+    const metas6 = bundle.metas.filter((m: any) => m.prazo === '6_meses')
+    const metas12 = bundle.metas.filter((m: any) => m.prazo === '12_meses')
+    const metas24 = bundle.metas.filter((m: any) => m.prazo === '24_meses')
 
     return (
-        <div className="min-h-screen bg-white p-10 md:p-20 text-text-primary font-sans print:p-0">
-            {/* Header / Brand */}
-            <header className="border-b-8 border-mx-black pb-14 mb-16 flex justify-between items-end">
-                <div className="space-y-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-mx-black rounded-mx-2xl flex items-center justify-center text-white shadow-mx-xl">
-                            <Target size={32} />
-                        </div>
-                        <Typography variant="h2" className="text-2xl tracking-tighter">MX <span className="text-brand-primary">PERFORMANCE</span></Typography>
-                    </div>
-                    <Typography variant="h1" className="text-6xl leading-none">Certificado de <span className="text-brand-primary">Compromisso</span></Typography>
-                    <Typography variant="caption" tone="muted" className="text-xs font-black tracking-[0.4em] mt-4 block">PLANO DE DESENVOLVIMENTO INDIVIDUAL (PDI 4.0)</Typography>
-                </div>
-                <div className="text-right space-y-2">
-                    <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase">Protocolo de Rede</Typography>
-                    <Typography variant="mono" className="text-sm font-black uppercase bg-surface-alt px-4 py-2 rounded-lg">{pdi.id.split('-')[0]}</Typography>
-                </div>
-            </header>
-
-            {/* Specialist Info */}
-            <div className="grid grid-cols-3 gap-10 mb-20">
-                <Card className="p-8 bg-surface-alt border-none shadow-inner">
-                    <Typography variant="caption" tone="muted" className="mb-3 flex items-center gap-2 font-black uppercase tracking-widest"><User size={14}/> Especialista</Typography>
-                    <Typography variant="h3" className="text-xl uppercase">{(pdi as any).seller_name}</Typography>
-                </Card>
-                <Card className="p-8 bg-surface-alt border-none shadow-inner">
-                    <Typography variant="caption" tone="muted" className="mb-3 flex items-center gap-2 font-black uppercase tracking-widest"><Briefcase size={14}/> Unidade</Typography>
-                    <Typography variant="h3" className="text-xl uppercase">MATRIZ OPERACIONAL</Typography>
-                </Card>
-                <Card className="p-8 bg-surface-alt border-none shadow-inner">
-                    <Typography variant="caption" tone="muted" className="mb-3 flex items-center gap-2 font-black uppercase tracking-widest"><Calendar size={14}/> Data de Emissão</Typography>
-                    <Typography variant="h3" className="text-xl uppercase font-mono-numbers">{new Date().toLocaleDateString('pt-BR')}</Typography>
-                </Card>
+        <div className="min-h-screen bg-mx-indigo-50 font-sans print:bg-white flex flex-col items-center py-10 print:py-0 overflow-x-hidden">
+            
+            {/* Action Bar (Not Printed) */}
+            <div className="w-full max-w-[210mm] flex items-center justify-between mb-8 print:hidden px-4">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-2 px-6 py-3 bg-white border border-border-default rounded-full text-xs font-black uppercase tracking-widest shadow-sm hover:bg-surface-alt">
+                    <ChevronLeft size={16} /> Voltar
+                </button>
+                <button onClick={handlePrint} className="flex items-center gap-2 px-8 py-3 bg-brand-secondary text-white rounded-full text-xs font-black uppercase tracking-widest shadow-mx-lg hover:scale-105 active:scale-95 transition-transform">
+                    <Printer size={16} /> Imprimir Bundle PDI (A4)
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb-24">
-                {/* Radar Capability */}
-                <section className="space-y-10">
-                    <header className="border-b-2 border-border-default pb-4">
-                        <Typography variant="caption" className="text-xs font-black uppercase tracking-[0.3em]">Radar de Capacidade Técnica</Typography>
+            {/* A4 Document Container */}
+            <div ref={printRef} className="w-[210mm] bg-white shadow-2xl print:shadow-none print:w-full print:max-w-none text-text-primary flex flex-col gap-y-[20mm]">
+                
+                {/* --- PÁGINA 1: CAPA --- */}
+                <div className="p-[20mm] h-[297mm] relative break-after-page flex flex-col border border-border-default print:border-none">
+                    <div className="absolute top-0 left-0 w-full h-8 bg-brand-secondary" />
+                    <header className="flex justify-between items-start mt-10 mb-20 border-b-4 border-mx-black pb-8">
+                        <div>
+                            <div className="flex items-center gap-4 mb-4">
+                                <div className="w-12 h-12 bg-mx-black text-white flex items-center justify-center rounded-xl shadow-md"><Target size={24} /></div>
+                                <Typography variant="h2" className="text-xl tracking-tighter">MX <span className="text-brand-primary">PERFORMANCE</span></Typography>
+                            </div>
+                            <Typography variant="h1" className="text-4xl font-black uppercase tracking-tighter leading-none">Plano de Desenvolvimento<br/>Individual <span className="text-brand-primary">(PDI)</span></Typography>
+                        </div>
+                        <div className="text-right">
+                            <Typography variant="mono" className="text-xs uppercase font-black bg-surface-alt px-4 py-2 rounded">Protocolo: {bundle.sessao.id.split('-')[0]}</Typography>
+                        </div>
                     </header>
-                    <div className="h-[450px] w-full bg-surface-alt/30 rounded-[3rem] p-10 border border-border-subtle">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                <PolarGrid stroke="#e2e8f0" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 900 }} />
-                                <Radar
-                                    name="Especialista" dataKey="A"
-                                    stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.15} strokeWidth={3}
-                                />
-                            </RadarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </section>
 
-                {/* Horizons */}
-                <section className="space-y-14">
-                    <header className="border-b-2 border-border-default pb-4">
-                        <Typography variant="caption" className="text-xs font-black uppercase tracking-[0.3em]">Horizontes de Crescimento</Typography>
+                    <div className="mb-14 flex gap-6 items-center">
+                        <div className="w-16 h-16 rounded-full bg-surface-alt border border-border-default flex items-center justify-center">
+                            <User size={24} className="text-text-tertiary" />
+                        </div>
+                        <div>
+                            <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest">Colaborador (Especialista)</Typography>
+                            <Typography variant="h2" className="text-2xl font-black uppercase border-b-2 border-brand-primary inline-block pb-1 mt-1">{bundle.sessao.colaborador_id}</Typography>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col justify-center space-y-12">
+                        <div>
+                            <Typography variant="h3" className="uppercase font-black tracking-widest text-brand-secondary border-l-4 border-brand-primary pl-4 mb-4">Metas de Curto Prazo (6 Meses)</Typography>
+                            <ul className="space-y-3 pl-8 list-none">
+                                {metas6.map((m: any, i: number) => (
+                                    <li key={i} className="text-sm font-bold uppercase relative before:content-[''] before:absolute before:-left-5 before:top-1.5 before:w-2 before:h-2 before:bg-brand-primary before:rounded-full">
+                                        <span className="text-brand-primary text-xs mr-2">[{m.tipo}]</span> {m.descricao}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div>
+                            <Typography variant="h3" className="uppercase font-black tracking-widest text-brand-secondary border-l-4 border-brand-primary pl-4 mb-4">Metas de Médio Prazo (12 Meses)</Typography>
+                            <ul className="space-y-3 pl-8 list-none">
+                                {metas12.map((m: any, i: number) => (
+                                    <li key={i} className="text-sm font-bold uppercase relative before:content-[''] before:absolute before:-left-5 before:top-1.5 before:w-2 before:h-2 before:bg-brand-primary before:rounded-full">
+                                        <span className="text-brand-primary text-xs mr-2">[{m.tipo}]</span> {m.descricao}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div>
+                            <Typography variant="h3" className="uppercase font-black tracking-widest text-brand-secondary border-l-4 border-brand-primary pl-4 mb-4">Metas de Longo Prazo (24 Meses)</Typography>
+                            <ul className="space-y-3 pl-8 list-none">
+                                {metas24.map((m: any, i: number) => (
+                                    <li key={i} className="text-sm font-bold uppercase relative before:content-[''] before:absolute before:-left-5 before:top-1.5 before:w-2 before:h-2 before:bg-brand-primary before:rounded-full">
+                                        <span className="text-brand-primary text-xs mr-2">[{m.tipo}]</span> {m.descricao}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <footer className="mt-auto pt-10 text-center space-y-4">
+                        <Sparkles size={24} className="mx-auto text-brand-primary opacity-30" />
+                        <Typography variant="p" className="text-sm font-bold italic leading-relaxed uppercase">
+                            "Comprometa-se com suas metas e encare os obstáculos como etapas para atingir o objetivo final. 
+                            Disciplina é a ponte entre metas e realizações."
+                        </Typography>
+                    </footer>
+                </div>
+
+                {/* --- PÁGINA 2: VENDEDOR 1 / MAPA DE COMPETÊNCIAS --- */}
+                <div className="p-[20mm] min-h-[297mm] break-after-page flex flex-col border border-border-default print:border-none relative">
+                    <header className="flex justify-between items-end border-b-2 border-mx-black pb-4 mb-10">
+                        <Typography variant="h2" className="text-2xl font-black uppercase tracking-tighter">Mapa de Competências</Typography>
+                        <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase tracking-[0.2em]">Página 2 / Vendedor 1</Typography>
                     </header>
-                    
-                    <div className="space-y-12">
-                        <div className="relative pl-10 border-l-8 border-brand-primary">
-                            <Typography variant="caption" tone="brand" className="text-[10px] font-black uppercase tracking-widest block mb-2">06 Meses — Curto Prazo</Typography>
-                            <Typography variant="p" className="text-lg font-bold text-text-secondary italic leading-relaxed">"{(pdi as any).meta_6m || pdi.objective}"</Typography>
+
+                    <div className="grid grid-cols-2 gap-10 mb-10">
+                        <div className="space-y-4">
+                            <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">Mapeamento Técnico & Comportamental</Typography>
+                            <table className="w-full text-xs font-bold border-collapse">
+                                <thead>
+                                    <tr className="bg-surface-alt border-b-2 border-mx-black">
+                                        <th className="py-2 px-3 text-left uppercase">Competência</th>
+                                        <th className="py-2 px-3 text-center uppercase">Nota</th>
+                                        <th className="py-2 px-3 text-center uppercase">Alvo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {bundle.avaliacoes.map((av: any, i: number) => (
+                                        <tr key={i} className="border-b border-border-default">
+                                            <td className="py-2 px-3">{av.competencia}</td>
+                                            <td className="py-2 px-3 text-center text-brand-primary">{av.nota}</td>
+                                            <td className="py-2 px-3 text-center text-text-tertiary">{av.alvo}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                        <div className="relative pl-10 border-l-8 border-status-warning">
-                            <Typography variant="caption" tone="warning" className="text-[10px] font-black uppercase tracking-widest block mb-2">12 Meses — Médio Prazo</Typography>
-                            <Typography variant="p" className="text-lg font-bold text-text-secondary italic leading-relaxed">"{(pdi as any).meta_12m || 'Definir na revisão tática'}"</Typography>
-                        </div>
-                        <div className="relative pl-10 border-l-8 border-status-error">
-                            <Typography variant="caption" tone="error" className="text-[10px] font-black uppercase tracking-widest block mb-2">24 Meses — Visão de Futuro</Typography>
-                            <Typography variant="p" className="text-lg font-bold text-text-secondary italic leading-relaxed">"{(pdi as any).meta_24m || 'Plano em expansão'}"</Typography>
+
+                        <div className="flex flex-col items-center justify-center border-l-2 border-border-default pl-10">
+                            <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary mb-4 text-center">Gráfico Radar (Atigimento vs. Alvo)</Typography>
+                            <div className="w-full h-[300px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
+                                        <PolarGrid stroke="#e2e8f0" />
+                                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 8, fontWeight: 900 }} />
+                                        <Radar name="Alvo" dataKey="alvo" stroke="#94a3b8" strokeDasharray="3 3" fill="transparent" />
+                                        <Radar name="Nota" dataKey="A" stroke="#4f46e5" strokeWidth={2} fill="#4f46e5" fillOpacity={0.2} />
+                                    </RadarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
-                </section>
+
+                    <div className="mt-auto">
+                        <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-error mb-4">Top 5 Maiores Lacunas (Gaps) Identificadas</Typography>
+                        <div className="grid grid-cols-2 gap-4">
+                            {bundle.top_5_gaps.map((gap: any, i: number) => (
+                                <div key={i} className="bg-red-50 p-4 border-l-4 border-status-error flex justify-between items-center">
+                                    <Typography variant="p" className="text-xs font-bold uppercase">{gap.competencia}</Typography>
+                                    <Typography variant="h3" tone="error" className="text-lg">-{gap.gap}</Typography>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- PÁGINA 3: PLANO DE AÇÃO (PDI TABULAR) --- */}
+                <div className="p-[20mm] min-h-[297mm] flex flex-col border border-border-default print:border-none">
+                    <header className="flex justify-between items-end border-b-2 border-mx-black pb-4 mb-10">
+                        <Typography variant="h2" className="text-2xl font-black uppercase tracking-tighter">Plano de Desenvolvimento Individual</Typography>
+                        <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase tracking-[0.2em]">Página 3 / Ações Mandatórias</Typography>
+                    </header>
+
+                    <div className="mb-14">
+                        <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary mb-6 block">Ações de Desenvolvimento (Próximos 6 Meses)</Typography>
+                        <table className="w-full text-xs border-collapse">
+                            <thead>
+                                <tr className="bg-mx-black text-white text-left">
+                                    <th className="py-4 px-4 font-black uppercase tracking-widest">Item a Desenvolver</th>
+                                    <th className="py-4 px-4 font-black uppercase tracking-widest w-1/3">Ação de Desenvolvimento</th>
+                                    <th className="py-4 px-4 font-black uppercase tracking-widest text-center">Prazo</th>
+                                    <th className="py-4 px-4 font-black uppercase tracking-widest text-center">Impacto</th>
+                                    <th className="py-4 px-4 font-black uppercase tracking-widest text-center">Custo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bundle.plano_acao.map((acao: any, i: number) => (
+                                    <tr key={i} className="border-b-2 border-border-default">
+                                        <td className="py-4 px-4 font-bold uppercase text-text-secondary">{acao.competencia}</td>
+                                        <td className="py-4 px-4 font-bold text-text-primary">{acao.descricao_acao}</td>
+                                        <td className="py-4 px-4 font-bold text-center text-brand-primary">{format(parseISO(acao.data_conclusao), 'dd/MM/yyyy')}</td>
+                                        <td className="py-4 px-4 font-black text-center uppercase">{acao.impacto}</td>
+                                        <td className="py-4 px-4 font-black text-center uppercase">{acao.custo}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="mt-10 p-8 border-4 border-mx-black rounded-2xl flex flex-col items-center justify-center text-center space-y-4">
+                        <Typography variant="h3" className="uppercase font-black tracking-widest">A Equação da Motivação no Trabalho</Typography>
+                        <Typography variant="h1" tone="brand" className="text-5xl font-black font-mono-numbers my-4">$ = QI + DC</Typography>
+                        <Typography variant="p" className="text-sm font-bold uppercase text-text-secondary">
+                            (Remuneração) = (Qualificação Individual) + (Demanda do Cargo)
+                        </Typography>
+                    </div>
+
+                    <footer className="mt-auto pt-24 grid grid-cols-2 gap-20">
+                        <div className="text-center space-y-4">
+                            <div className="border-t-2 border-mx-black pt-4">
+                                <Typography variant="p" className="text-sm font-black uppercase tracking-widest">Assinatura do Gestor (MX)</Typography>
+                                <Typography variant="tiny" tone="muted" className="text-[9px] uppercase font-bold mt-1 block">Responsável Técnico</Typography>
+                            </div>
+                        </div>
+                        <div className="text-center space-y-4">
+                            <div className="border-t-2 border-mx-black pt-4">
+                                <Typography variant="p" className="text-sm font-black uppercase tracking-widest">Assinatura do Vendedor</Typography>
+                                <Typography variant="tiny" tone="muted" className="text-[9px] uppercase font-bold mt-1 block">Concordância com as Metas</Typography>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+
             </div>
-
-            {/* Mandatory Actions */}
-            <section className="mb-24">
-                <header className="border-b-2 border-border-default pb-4 mb-10">
-                    <Typography variant="caption" className="text-xs font-black uppercase tracking-[0.3em]">Plano de Ação Mandatário (Próximos 180 Dias)</Typography>
-                </header>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {[pdi.action_1, pdi.action_2, pdi.action_3, pdi.action_4, pdi.action_5].filter(Boolean).map((action, i) => (
-                        <Card key={i} className="flex gap-8 p-10 bg-surface-alt border border-border-default rounded-mx-3xl items-start shadow-inner">
-                            <div className="w-10 h-10 rounded-xl bg-mx-black text-white flex items-center justify-center text-xs font-black shrink-0 shadow-mx-lg">0{i+1}</div>
-                            <Typography variant="p" className="text-sm font-bold text-text-secondary leading-relaxed uppercase tracking-tight">{action}</Typography>
-                        </Card>
-                    ))}
-                </div>
-            </section>
-
-            {/* Signatures */}
-            <footer className="pt-32 mt-auto grid grid-cols-2 gap-24">
-                <div className="text-center space-y-6">
-                    <div className="border-t-4 border-mx-black pt-6">
-                        <Typography variant="caption" className="text-[11px] font-black uppercase tracking-[0.2em]">Assinatura do Especialista</Typography>
-                        <Typography variant="caption" tone="muted" className="text-[8px] uppercase mt-2 block">Concordância com as metas e prazos estipulados</Typography>
-                    </div>
-                </div>
-                <div className="text-center space-y-6">
-                    <div className="border-t-4 border-mx-black pt-6">
-                        <Typography variant="caption" className="text-[11px] font-black uppercase tracking-[0.2em]">Responsável Técnico (MX)</Typography>
-                        <Typography variant="caption" tone="muted" className="text-[8px] uppercase mt-2 block">Validação metodológica e suporte tático</Typography>
-                    </div>
-                </div>
-            </footer>
-
-            <div className="mt-24 text-center">
-                <Typography variant="caption" tone="muted" className="text-[9px] font-black uppercase tracking-[0.6em] opacity-30">MX PERFORMANCE — AIOX MASTER CERTIFIED SYSTEM</Typography>
-            </div>
-
-            <button 
-                onClick={() => navigate(-1)}
-                className="fixed bottom-10 right-10 px-10 py-5 bg-mx-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-mx-elite hover:scale-105 active:scale-95 transition-all print:hidden"
-            >
-                Retornar ao Painel
-            </button>
         </div>
     )
 }
-
-const Briefcase = ({ size, className }: { size?: number, className?: string }) => (
-    <svg width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-    </svg>
-)
