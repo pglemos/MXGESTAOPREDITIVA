@@ -99,7 +99,7 @@ export default function Reprocessamento() {
 
                         <div className="space-y-10 relative z-10">
                             <div className="space-y-4">
-                                <label htmlFor="store-select" className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-2">Unidade Alvo</label>
+                                <Typography variant="tiny" tone="white" as="label" htmlFor="store-select" className="opacity-40 ml-2 font-black uppercase tracking-widest">Unidade Alvo</Typography>
                                 <div className="relative">
                                     <select 
                                         id="store-select"
@@ -142,10 +142,12 @@ export default function Reprocessamento() {
                             <Button 
                                 onClick={handleUpload} 
                                 disabled={processing || !file || !selectedStoreId} 
-                                className="w-full h-16 rounded-full bg-brand-primary shadow-mx-xl border border-white/10 active:scale-95 transition-all font-black uppercase tracking-widest text-xs"
+                                className="w-full h-16 rounded-full bg-brand-primary shadow-mx-xl border border-white/10 active:scale-95 transition-all"
                             >
-                                {processing ? <RefreshCw className="animate-spin mr-3" /> : <Layers size={20} className="mr-3" aria-hidden="true" />} 
-                                INJETAR MASSA
+                                <Typography variant="tiny" as="span" tone="white" className="font-black tracking-widest uppercase">
+                                    {processing ? <RefreshCw className="animate-spin mr-3 inline-block" /> : <Layers size={20} className="mr-3 inline-block" aria-hidden="true" />} 
+                                    INJETAR MASSA
+                                </Typography>
                             </Button>
                         </div>
                     </Card>
@@ -155,14 +157,14 @@ export default function Reprocessamento() {
                             <TerminalIcon size={18} className="text-brand-primary" aria-hidden="true" />
                             <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase tracking-widest">Log do Compilador</Typography>
                         </div>
-                        <div className="bg-mx-black rounded-mx-2xl p-6 font-mono text-[10px] leading-relaxed h-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner" aria-live="polite">
+                        <div className="bg-mx-black rounded-mx-2xl p-6 font-mono text-sm leading-relaxed h-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner" aria-live="polite">
                             {logs.map((log, idx) => (
-                                <p key={idx} className={cn("font-black tracking-tight mb-2 uppercase", 
+                                <Typography key={idx} variant="tiny" as="p" className={cn("font-black tracking-tight mb-2 uppercase", 
                                     log.type === 'error' ? 'text-status-error' : 
                                     log.type === 'warning' ? 'text-status-warning' : 
                                     log.type === 'success' ? 'text-status-success' : 
                                     'text-brand-primary'
-                                )}>{log.msg}</p>
+                                )}>{log.msg}</Typography>
                             ))}
                             <div ref={terminalEndRef} />
                         </div>
@@ -179,18 +181,20 @@ export default function Reprocessamento() {
                                     <Typography variant="tiny" tone="muted" className="tracking-widest mt-1 font-black uppercase opacity-40">LOG DE INJEÇÕES OPERACIONAIS</Typography>
                                 </div>
                             </div>
-                            <Badge variant="outline" className="px-6 py-2 rounded-full font-black border-border-strong uppercase text-xs">{history.length} EVENTOS</Badge>
+                            <Badge variant="outline" className="px-6 py-2 rounded-full font-black border-border-strong uppercase">
+                                <Typography variant="tiny" as="span">{history.length} EVENTOS</Typography>
+                            </Badge>
                         </header>
 
                         <div className="overflow-x-auto flex-1 no-scrollbar">
                             <table className="w-full text-left">
                                 <caption className="sr-only">Histórico consolidado de reprocessamento de dados</caption>
                                 <thead>
-                                    <tr className="bg-surface-alt/50 border-b border-border-default text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
-                                        <th scope="col" className="pl-10 py-6">DATA / HORA</th>
-                                        <th scope="col" className="px-6 py-6">UNIDADE OPERACIONAL</th>
-                                        <th scope="col" className="px-6 py-6 text-center">REGISTROS</th>
-                                        <th scope="col" className="pr-10 py-6 text-right">STATUS</th>
+                                    <tr className="bg-surface-alt/50 border-b border-border-default">
+                                        <th scope="col" className="pl-10 py-6"><Typography variant="caption" className="font-black uppercase tracking-[0.2em]">DATA / HORA</Typography></th>
+                                        <th scope="col" className="px-6 py-6"><Typography variant="caption" className="font-black uppercase tracking-[0.2em]">UNIDADE OPERACIONAL</Typography></th>
+                                        <th scope="col" className="px-6 py-6 text-center"><Typography variant="caption" className="font-black uppercase tracking-[0.2em]">REGISTROS</Typography></th>
+                                        <th scope="col" className="pr-10 py-6 text-right"><Typography variant="caption" className="font-black uppercase tracking-[0.2em]">STATUS</Typography></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-default bg-white">
@@ -199,12 +203,14 @@ export default function Reprocessamento() {
                                             <td className="pl-10">
                                                 <div className="flex flex-col">
                                                     <Typography variant="h3" className="text-base leading-none mb-1 font-black uppercase tracking-tight">{format(parseISO(h.created_at), 'dd/MM/yyyy')}</Typography>
-                                                    <Typography variant="tiny" tone="muted" className="text-[10px] font-black uppercase opacity-40">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
                                                 </div>
                                             </td>
                                             <td className="px-6">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-surface-alt border border-border-default flex items-center justify-center text-[10px] font-black group-hover:bg-brand-primary group-hover:text-white transition-all uppercase shadow-mx-inner" aria-hidden="true">{h.store_name?.charAt(0)}</div>
+                                                    <div className="w-8 h-8 rounded-lg bg-surface-alt border border-border-default flex items-center justify-center group-hover:bg-brand-primary transition-all shadow-mx-inner" aria-hidden="true">
+                                                        <Typography variant="tiny" className="font-black group-hover:text-white uppercase">{h.store_name?.charAt(0)}</Typography>
+                                                    </div>
                                                     <Typography variant="h3" className="text-sm uppercase tracking-tight font-black">{h.store_name}</Typography>
                                                 </div>
                                             </td>
@@ -212,8 +218,8 @@ export default function Reprocessamento() {
                                                 <Typography variant="mono" tone="brand" className="text-lg font-black">{h.rows_count || 0}</Typography>
                                             </td>
                                             <td className="pr-10 text-right">
-                                                <Badge variant={h.status === 'success' ? 'success' : 'danger'} className="px-6 py-1.5 rounded-lg shadow-sm border uppercase font-black tracking-widest text-[8px] border-none">
-                                                    {h.status === 'success' ? 'CONCLUÍDO' : 'FALHA'}
+                                                <Badge variant={h.status === 'success' ? 'success' : 'danger'} className="px-6 py-1.5 rounded-lg shadow-sm border uppercase border-none">
+                                                    <Typography variant="tiny" as="span" className="font-black tracking-widest">{h.status === 'success' ? 'CONCLUÍDO' : 'FALHA'}</Typography>
                                                 </Badge>
                                             </td>
                                         </tr>

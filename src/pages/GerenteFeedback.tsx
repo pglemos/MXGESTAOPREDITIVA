@@ -8,7 +8,7 @@ import {
     MessageSquare, Plus, X, Send, Award, AlertCircle, Zap, 
     ChevronRight, LayoutDashboard, Target, TrendingUp, 
     Sparkles, RefreshCw, Search, FileText, ExternalLink, 
-    Calendar, ShieldCheck, User 
+    Calendar, ShieldCheck, User, ChevronDown
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'

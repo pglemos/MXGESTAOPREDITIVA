@@ -51,7 +51,7 @@ export default function ConsultorTreinamentos() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Curadoria <span className="text-brand-primary">Academy</span></Typography>
+                        <Typography variant="h1">Curadoria <Typography as="span" className="text-brand-primary">Academy</Typography></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">GESTÃO DE CONHECIMENTO & ALTA PERFORMANCE</Typography>
                 </div>
@@ -61,7 +61,7 @@ export default function ConsultorTreinamentos() {
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     <Button onClick={() => setShowForm(true)} className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
-                        <Plus size={18} className="mr-2" /> NOVO CONTEÚDO
+                        <Plus size={18} className="mr-2" /> <Typography as="span">NOVO CONTEÚDO</Typography>
                     </Button>
                 </div>
             </header>
@@ -123,8 +123,8 @@ export default function ConsultorTreinamentos() {
                                 </div>
 
                                 <footer className="pt-10 flex justify-end gap-4 border-t border-border-default mt-10 relative z-10">
-                                    <Button type="submit" disabled={saving} className="h-16 px-14 rounded-full shadow-mx-xl font-black uppercase tracking-[0.2em] text-[10px]">
-                                        {saving ? <RefreshCw className="animate-spin mr-3" /> : <Save size={20} className="mr-3" />} PUBLICAR TREINAMENTO
+                                    <Button type="submit" disabled={saving} className="h-16 px-14 rounded-full shadow-mx-xl font-black uppercase tracking-[0.2em]">
+                                        {saving ? <RefreshCw className="animate-spin mr-3" /> : <Save size={20} className="mr-3" />} <Typography variant="caption" as="span">PUBLICAR TREINAMENTO</Typography>
                                     </Button>
                                 </footer>
                             </Card>
@@ -145,27 +145,31 @@ export default function ConsultorTreinamentos() {
                                     {t.watched ? <CheckCircle size={20} /> : <Play size={20} className="ml-1" />}
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
-                                    <Badge variant="brand" className="px-4 py-1 rounded-full uppercase text-[8px] font-black">{t.type}</Badge>
-                                    {t.watched && <Typography variant="caption" tone="success" className="text-[7px] font-black tracking-widest uppercase">CONCLUÍDO</Typography>}
+                                    <Badge variant="brand" className="px-4 py-1 rounded-full">{t.type}</Badge>
+                                    {t.watched && <Typography variant="tiny" tone="success" className="font-black tracking-widest uppercase">CONCLUÍDO</Typography>}
                                 </div>
                             </div>
 
                             <div className="flex-1 mb-8 relative z-10 space-y-3">
-                                <Typography variant="h3" className="text-lg uppercase leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">{t.title}</Typography>
-                                <Typography variant="p" tone="muted" className="text-xs font-bold leading-relaxed line-clamp-3 italic">"{t.description}"</Typography>
+                                <Typography variant="h3" className="uppercase leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">{t.title}</Typography>
+                                <Typography variant="p" tone="muted" className="leading-relaxed line-clamp-3 italic">"{t.description}"</Typography>
                                 
                                 <div className="flex flex-wrap gap-2 pt-4">
-                                    <Badge variant="outline" className="text-[7px] border-border-strong px-3"><Users size={10} className="mr-1.5" /> {t.target_audience?.toUpperCase()}</Badge>
-                                    <Badge variant="outline" className="text-[7px] border-border-strong px-3"><Clock size={10} className="mr-1.5" /> 12 MIN</Badge>
+                                    <Badge variant="outline" className="border-border-strong px-3"><Users size={10} className="mr-1.5" /> <Typography variant="tiny" as="span">{t.target_audience?.toUpperCase()}</Typography></Badge>
+                                    <Badge variant="outline" className="border-border-strong px-3"><Clock size={10} className="mr-1.5" /> <Typography variant="tiny" as="span">12 MIN</Typography></Badge>
                                 </div>
                             </div>
 
                             <footer className="pt-6 border-t border-border-default flex items-center justify-between mt-auto relative z-10">
                                 <div className="flex -space-x-2">
                                     {[1, 2, 3].map(j => (
-                                        <div key={j} className="w-8 h-8 rounded-full border-2 border-white bg-surface-alt flex items-center justify-center text-[10px] font-black text-text-tertiary uppercase">{String.fromCharCode(64 + j)}</div>
+                                        <div key={j} className="w-8 h-8 rounded-full border-2 border-white bg-surface-alt flex items-center justify-center text-text-tertiary uppercase">
+                                            <Typography variant="caption" as="span">{String.fromCharCode(64 + j)}</Typography>
+                                        </div>
                                     ))}
-                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-mx-indigo-50 flex items-center justify-center text-[8px] font-black text-brand-primary shadow-sm">+12</div>
+                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-mx-indigo-50 flex items-center justify-center text-brand-primary shadow-sm">
+                                        <Typography variant="tiny" as="span">+12</Typography>
+                                    </div>
                                 </div>
                                 <Button asChild size="icon" variant="secondary" className="w-12 h-12 rounded-xl shadow-mx-md group-hover:scale-110 transition-transform">
                                     <a href={t.video_url} target="_blank" rel="noopener noreferrer">

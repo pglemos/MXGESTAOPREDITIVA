@@ -67,14 +67,17 @@ export default function Funil() {
                         <Button 
                             variant={activeTab === 'general' ? 'secondary' : 'ghost'} size="sm" 
                             onClick={() => setActiveTab('general')}
-                            className="h-10 rounded-full px-6 text-[10px] font-black uppercase shadow-sm"
-                        >Visão Geral</Button>
-                        <Button 
-                            variant={activeTab === 'seller' ? 'secondary' : 'ghost'} size="sm" 
+                            className="h-10 rounded-full px-6 font-black uppercase shadow-sm"
+                            >
+                            <Typography variant="tiny" as="span" className="font-black">Visão Geral</Typography>
+                            </Button>
+                            <Button
+                            variant={activeTab === 'seller' ? 'secondary' : 'ghost'} size="sm"
                             onClick={() => setActiveTab('seller')}
-                            className="h-10 rounded-full px-6 text-[10px] font-black uppercase"
-                        >Por Vendedor</Button>
-                    </div>
+                            className="h-10 rounded-full px-6 font-black uppercase"
+                            >
+                            <Typography variant="tiny" as="span" className="font-black">Por Vendedor</Typography>
+                            </Button>                    </div>
                 </div>
             </header>
 

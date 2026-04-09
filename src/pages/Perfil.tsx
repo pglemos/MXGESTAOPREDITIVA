@@ -40,7 +40,7 @@ export default function Perfil() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-4">
             <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">Painel de <span className="text-brand-primary">Identidade</span></Typography>
+            <Typography variant="h1">Painel de <Typography as="span" className="text-brand-primary">Identidade</Typography></Typography>
           </div>
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">GESTÃO DE CREDENCIAIS & SEGURANÇA MX</Typography>
         </div>
@@ -49,8 +49,9 @@ export default function Perfil() {
           <Button variant="outline" size="icon" onClick={() => signOut()} className="w-14 h-14 rounded-xl text-status-error border-status-error/20 hover:bg-status-error-surface shadow-mx-sm bg-white">
             <LogOut size={24} />
           </Button>
-          <Button onClick={handleSave} disabled={loading} className="h-14 px-10 rounded-full shadow-mx-xl font-black uppercase text-xs tracking-widest">
-            {loading ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck size={18} className="mr-2" />} FIRMAR ALTERAÇÕES
+          <Button onClick={handleSave} disabled={loading} className="h-14 px-10 rounded-full shadow-mx-xl">
+            {loading ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck size={18} className="mr-2" />} 
+            <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">FIRMAR ALTERAÇÕES</Typography>
           </Button>
         </div>
       </header>
@@ -73,9 +74,11 @@ export default function Perfil() {
               </div>
               
               <div>
-                <Typography variant="h2" className="text-2xl uppercase tracking-tighter">{profile.name}</Typography>
+                <Typography variant="h2" className="text-2xl uppercase tracking-tighter font-black">{profile.name}</Typography>
                 <div className="flex items-center justify-center gap-3 mt-3">
-                    <Badge variant="brand" className="px-4 py-1 uppercase font-black text-tiny shadow-sm">{role} tier</Badge>
+                    <Badge variant="brand" className="px-4 py-1 shadow-sm">
+                        <Typography variant="tiny" as="span" className="font-black uppercase">{role} tier</Typography>
+                    </Badge>
                     <div className="w-1.5 h-1.5 rounded-full bg-status-success shadow-mx-sm animate-pulse" />
                 </div>
               </div>
@@ -83,12 +86,12 @@ export default function Perfil() {
 
             <div className="w-full mt-14 pt-10 border-t border-border-default grid grid-cols-2 gap-6 relative z-10">
               <div className="bg-surface-alt p-6 rounded-mx-2xl border border-border-default shadow-inner text-center">
-                <Typography variant="tiny" tone="muted" className="mb-2 block tracking-widest font-black">XP SEASON</Typography>
-                <Typography variant="h1" className="text-2xl tabular-nums">12.4K</Typography>
+                <Typography variant="tiny" tone="muted" className="mb-2 block tracking-widest font-black opacity-40 uppercase">XP SEASON</Typography>
+                <Typography variant="h1" className="text-2xl tabular-nums font-black">12.4K</Typography>
               </div>
               <div className="bg-surface-alt p-6 rounded-mx-2xl border border-border-default shadow-inner text-center">
-                <Typography variant="tiny" tone="muted" className="mb-2 block tracking-widest font-black">ARENA RANK</Typography>
-                <Typography variant="h1" tone="brand" className="text-2xl tabular-nums">#04</Typography>
+                <Typography variant="tiny" tone="muted" className="mb-2 block tracking-widest font-black opacity-40 uppercase">ARENA RANK</Typography>
+                <Typography variant="h1" tone="brand" className="text-2xl tabular-nums font-black">#04</Typography>
               </div>
             </div>
           </Card>
@@ -178,7 +181,9 @@ export default function Perfil() {
                         <div className="w-12 h-12 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-success shadow-mx-sm"><ShieldCheck size={20} /></div>
                         <Typography variant="tiny" className="font-black uppercase tracking-widest">Double Factor</Typography>
                     </div>
-                    <Badge variant="success" className="px-4 py-1 rounded-full text-tiny font-black border-none uppercase">Ativo</Badge>
+                    <Badge variant="success" className="px-4 py-1 rounded-full border-none">
+                        <Typography variant="tiny" as="span" className="font-black uppercase">Ativo</Typography>
+                    </Badge>
                   </Card>
                 </div>
               </div>

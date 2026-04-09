@@ -1,6 +1,11 @@
 // ============================================
-// MX PERFORMANCE — Database Types
+// MX PERFORMANCE — Canonical Database Types (EPIC-01)
 // ============================================
+
+/**
+ * Tipos base vindos diretamente do schema do Postgres/Supabase.
+ * Devem ser mantidos em sincronia com as migrações SQL.
+ */
 
 export type UserRole = 'admin' | 'dono' | 'gerente' | 'vendedor'
 export type MembershipRole = 'dono' | 'gerente' | 'vendedor'
@@ -11,6 +16,7 @@ export type CheckinScope = 'daily' | 'adjustment' | 'historical'
 export type CheckinSubmissionStatus = 'on_time' | 'late'
 export type StoreSourceMode = 'legacy_forms' | 'native_app' | 'hybrid'
 
+/** Interface de Usuário Canônica */
 export interface User {
     id: string
     name: string
@@ -24,6 +30,7 @@ export interface User {
     store_id?: string
 }
 
+/** Interface de Unidade/Loja */
 export interface Store {
     id: string
     name: string
@@ -34,39 +41,7 @@ export interface Store {
     updated_at: string
 }
 
-export interface StoreSeller {
-    id: string
-    store_id: string
-    seller_user_id: string
-    started_at: string
-    ended_at: string | null
-    is_active: boolean
-    closing_month_grace: boolean
-    created_at: string
-    updated_at: string
-}
-
-export interface StoreBenchmark {
-    store_id: string
-    lead_to_agend: number
-    agend_to_visit: number
-    visit_to_sale: number
-    updated_by: string | null
-    updated_at: string
-}
-
-export interface StoreDeliveryRules {
-    store_id: string
-    matinal_recipients: string[]
-    weekly_recipients: string[]
-    monthly_recipients: string[]
-    whatsapp_group_ref: string | null
-    timezone: string
-    active: boolean
-    updated_by: string | null
-    updated_at: string
-}
-
+/** Regras de Meta da Unidade (Crucial para cálculos de performance) */
 export interface StoreMetaRules {
     store_id: string
     monthly_goal: number
@@ -80,24 +55,18 @@ export interface StoreMetaRules {
     updated_at: string
 }
 
-export interface Membership {
-    id: string
-    user_id: string
-    store_id: string
-    role: MembershipRole
-    created_at: string
-}
-
+/** Check-in Diário Operacional */
 export interface DailyCheckin {
     id: string
     seller_user_id: string
     store_id: string
-    reference_date: string
-    submitted_at: string
-    submitted_late: boolean
-    submission_status: CheckinSubmissionStatus
-    edit_locked_at: string | null
+    reference_date: string // format: YYYY-MM-DD
+    submitted_at: string   // ISO 8601
     metric_scope: CheckinScope
+    submission_status: CheckinSubmissionStatus
+    is_venda_loja: boolean
+    
+    // Métricas de Produção
     leads_prev_day: number
     agd_cart_prev_day: number
     agd_net_prev_day: number
@@ -107,46 +76,13 @@ export interface DailyCheckin {
     vnd_cart_prev_day: number
     vnd_net_prev_day: number
     visit_prev_day: number
+    
     zero_reason: string | null
     note: string | null
     updated_at: string
 }
 
-export interface Benchmark {
-    id: string
-    store_id: string
-    lead_to_appt: number
-    appt_to_visit: number
-    visit_to_sale: number
-}
-
-export interface Training {
-    id: string
-    title: string
-    description: string | null
-    type: TrainingType
-    video_url: string
-    target_audience: TargetAudience
-    active: boolean
-    created_at: string
-}
-
-export interface TrainingProgress {
-    id: string
-    user_id: string
-    training_id: string
-    watched_at: string
-}
-
-export interface DigitalProduct {
-    id: string
-    name: string
-    description: string | null
-    link: string
-    target_store_id: string | null
-    created_at: string
-}
-
+/** Feedback Estruturado Semanal */
 export interface Feedback {
     id: string
     store_id: string
@@ -165,37 +101,20 @@ export interface Feedback {
     attention_points: string
     action: string
     notes: string | null
-    team_avg_json: Record<string, unknown>
-    diagnostic_json: Record<string, unknown>
+    team_avg_json: Record<string, any>
+    diagnostic_json: Record<string, any>
     commitment_suggested: number
     acknowledged: boolean
     acknowledged_at: string | null
     created_at: string
 }
 
-export interface WeeklyFeedbackReport {
-    id: string
-    store_id: string
-    week_start: string
-    week_end: string
-    team_avg_json: Record<string, unknown>
-    ranking_json: unknown[]
-    benchmark_json: Record<string, unknown>
-    weekly_goal: number
-    report_url: string | null
-    email_status: 'dry_run' | 'sent' | 'failed' | 'not_sent'
-    recipients: string[]
-    warnings: string[]
-    created_at: string
-    updated_at: string
-}
-
+/** Plano de Desenvolvimento Individual (PDI) */
 export interface PDI {
     id: string
     store_id: string
     manager_id: string
     seller_id: string
-    // Radar de Competências (0-10)
     comp_prospeccao: number
     comp_abordagem: number
     comp_demonstracao: number
@@ -206,11 +125,9 @@ export interface PDI {
     comp_organizacao: number
     comp_negociacao: number
     comp_produto: number
-    // Horizontes
     meta_6m: string
     meta_12m: string
     meta_24m: string
-    // 5 Ações Mandatórias
     action_1: string
     action_2: string | null
     action_3: string | null
@@ -221,137 +138,20 @@ export interface PDI {
     acknowledged: boolean
     created_at: string
     updated_at: string
-    objective?: string | null
-    action?: string | null
-}
-
-export interface PDIReview {
-    id: string
-    pdi_id: string
-    evolution: string
-    difficulties: string | null
-    adjustments: string | null
-    next_review_date: string | null
-    created_at: string
-}
-
-export type NotificationType = 'discipline' | 'alert' | 'performance' | 'system'
-export type NotificationPriority = 'high' | 'medium' | 'low'
-
-export interface Notification {
-    id: string
-    recipient_id: string | null
-    store_id: string | null
-    title: string
-    message: string
-    type: NotificationType
-    priority: NotificationPriority
-    link: string | null
-    read: boolean
-    created_at: string
-    sender_id?: string | null
-    broadcast_id?: string | null
-    target_type?: 'all' | 'store' | 'individual' | null
-    target_store_id?: string | null
-    target_role?: string | null
-    sent_at?: string | null
-}
-
-export interface AuditLog {
-    id: string
-    user_id: string | null
-    action: string
-    entity: string
-    entity_id: string | null
-    details_json: Record<string, unknown> | null
-    created_at: string
-}
-
-export interface ReprocessLog {
-    id: string
-    store_id: string | null
-    source_type: string
-    triggered_by: string | null
-    status: 'pending' | 'processing' | 'completed' | 'failed'
-    rows_processed: number
-    records_processed: number
-    records_failed: number
-    warnings: unknown[]
-    errors: unknown[]
-    error_log: unknown[]
-    started_at: string
-    finished_at: string | null
-    file_hash?: string | null
-    processed_at?: string | null
-}
-
-export interface ManagerRoutineLog {
-    id: string
-    store_id: string
-    manager_id: string
-    routine_date: string
-    reference_date: string
-    checkins_pending_count: number
-    sem_registro_count: number
-    agd_cart_today: number
-    agd_net_today: number
-    previous_day_leads: number
-    previous_day_sales: number
-    ranking_snapshot: unknown[]
-    notes: string | null
-    status: 'completed'
-    executed_at: string
-    created_at: string
-    updated_at: string
-}
-
-export interface WhatsAppShareLog {
-    id: string
-    store_id: string
-    user_id: string
-    reference_date: string
-    source: 'morning_report'
-    message_text: string
-    shared_via: 'whatsapp' | 'native_share'
-    created_at: string
-}
-
-export interface RawImport {
-    id: string
-    log_id: string
-    raw_data: Record<string, unknown>
-    created_at: string
 }
 
 // ============================================
-// Derived Types
+// Derived & UI Types
 // ============================================
 
-export interface CheckinTotals {
-    agd_total: number
-    vnd_total: number
-}
-
-export interface CheckinWithTotals extends DailyCheckin, CheckinTotals {
-    seller_id: string
-    is_venda_loja?: boolean
-    type: 'daily' | 'venda' | 'visita' | 'agendamento'
-}
-
-export interface StoreWithStats extends Store {
-    vendedores_count: number
-    vendas_mes: number
-    meta: number
-    atingimento: number
-    projecao: number
-}
-
+/** Resultado Processado do Ranking */
 export interface RankingEntry {
     user_id: string
     user_name: string
     store_name?: string
     is_venda_loja: boolean
     vnd_total: number
+    vnd_yesterday?: number
     leads: number
     agd_total: number
     visitas: number
@@ -365,6 +165,7 @@ export interface RankingEntry {
     position: number
 }
 
+/** Dados do Funil de Vendas */
 export interface FunnelData {
     leads: number
     agd_total: number
@@ -375,16 +176,7 @@ export interface FunnelData {
     tx_visita_vnd: number
 }
 
-export interface FunnelDiagnostic {
-    gargalo: string | null
-    mensagem: string
-    etapa_problema: 'lead_agd' | 'agd_visita' | 'visita_vnd' | null
-}
-
-// ============================================
-// Form Types
-// ============================================
-
+/** Tipos de Formulários */
 export interface CheckinFormData {
     leads?: number
     agd_cart_prev?: number
@@ -398,84 +190,4 @@ export interface CheckinFormData {
     note?: string
     zero_reason?: string
     reference_date?: string
-    leads_prev_day?: number
-    agd_cart_prev_day?: number
-    agd_net_prev_day?: number
-    visit_prev_day?: number
-    vnd_porta_prev_day?: number
-    vnd_cart_prev_day?: number
-    vnd_net_prev_day?: number
-    agd_cart_today?: number
-    agd_net_today?: number
-}
-
-export interface GoalFormData {
-    store_id: string
-    user_id: string | null
-    month: number
-    year: number
-    target: number
-}
-
-export interface FeedbackFormData {
-    seller_id: string
-    week_reference: string
-    leads_week: number
-    agd_week: number
-    visit_week: number
-    vnd_week: number
-    tx_lead_agd: number
-    tx_agd_visita: number
-    tx_visita_vnd: number
-    meta_compromisso: number
-    positives: string
-    attention_points: string
-    action: string
-    notes: string
-    team_avg_json?: Record<string, unknown>
-    diagnostic_json?: Record<string, unknown>
-    commitment_suggested?: number
-}
-
-export interface PDIFormData {
-    seller_id: string
-    meta_6m: string
-    meta_12m: string
-    meta_24m: string
-    comp_prospeccao: number
-    comp_abordagem: number
-    comp_demonstracao: number
-    comp_fechamento: number
-    comp_crm: number
-    comp_digital: number
-    comp_disciplina: number
-    comp_organizacao: number
-    comp_negociacao: number
-    comp_produto: number
-    action_1: string
-    action_2: string
-    action_3: string
-    action_4: string
-    action_5: string
-    due_date: string
-}
-
-export interface StoreFormData {
-    name: string
-    manager_email: string
-}
-
-export interface TrainingFormData {
-    title: string
-    description: string
-    type: TrainingType
-    video_url: string
-    target_audience: TargetAudience
-}
-
-export interface NotificationFormData {
-    title: string
-    message: string
-    target_type: 'all' | 'store'
-    target_store_id: string | null
 }

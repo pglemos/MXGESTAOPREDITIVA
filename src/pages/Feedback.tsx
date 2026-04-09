@@ -53,7 +53,7 @@ export default function Feedback() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-4">
             <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">Matriz de <span className="text-brand-primary">Feedback</span></Typography>
+            <Typography variant="h1">Matriz de <Typography as="span" className="text-brand-primary">Feedback</Typography></Typography>
           </div>
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">EVOLUÇÃO & DESENVOLVIMENTO CONTÍNUO</Typography>
         </div>
@@ -63,7 +63,7 @@ export default function Feedback() {
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
           </Button>
           <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
-            SOLICITAR MENTORIA
+            <Typography as="span">SOLICITAR MENTORIA</Typography>
           </Button>
         </div>
       </header>
@@ -76,7 +76,7 @@ export default function Feedback() {
             <div className="flex items-center justify-between relative z-10">
               <div className="space-y-1">
                 <Typography variant="caption" tone="muted" className="block uppercase tracking-widest">{item.label}</Typography>
-                <Typography variant="h1" className="text-4xl tabular-nums">{item.value}</Typography>
+                <Typography variant="h1" className="tabular-nums">{item.value}</Typography>
               </div>
               <div className={cn(
                 'h-14 w-14 rounded-mx-2xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110',
@@ -104,11 +104,11 @@ export default function Feedback() {
               <div className="flex items-center gap-6">
                 <div className="w-16 h-16 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl"><MessageSquare size={32} /></div>
                 <div>
-                  <Typography variant="h2" className="text-2xl uppercase">Linha do Tempo</Typography>
+                  <Typography variant="h2" className="uppercase">Linha do Tempo</Typography>
                   <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">ACOMPANHAMENTO DO CONSULTOR</Typography>
                 </div>
               </div>
-              <Badge variant="brand" className="px-6 py-2 rounded-full font-black shadow-mx-sm uppercase">Performance OK</Badge>
+              <Badge variant="brand" className="px-6 py-2 rounded-full shadow-mx-sm">Performance OK</Badge>
             </CardHeader>
 
             <CardContent className="flex-1 overflow-y-auto no-scrollbar p-10 md:p-14 relative z-10">
@@ -116,7 +116,7 @@ export default function Feedback() {
                 <div className="h-full flex flex-col items-center justify-center text-center py-20">
                     <History size={48} className="text-text-tertiary/20 mb-6" />
                     <Typography variant="h3" tone="muted">Vácuo de Mentoria</Typography>
-                    <Typography variant="p" tone="muted" className="text-xs uppercase mt-2">Nenhum registro de feedback localizado.</Typography>
+                    <Typography variant="caption" tone="muted" className="mt-2">Nenhum registro de feedback localizado.</Typography>
                 </div>
               ) : (
                 <div className="space-y-8">
@@ -128,21 +128,21 @@ export default function Feedback() {
                             <div className="flex items-center gap-6">
                               <div className="w-12 h-12 rounded-mx-xl bg-white border border-border-default flex items-center justify-center shadow-mx-sm group-hover/item:scale-110 transition-transform"><User size={24} className="text-text-tertiary" /></div>
                               <div>
-                                <Typography variant="h3" className="text-sm uppercase tracking-tight">{f.manager_name || 'Gestão MX'}</Typography>
-                                <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase">{new Date(f.created_at).toLocaleDateString('pt-BR')} • FEEDBACK</Typography>
+                                <Typography variant="h3" className="uppercase">{f.manager_name || 'Gestão MX'}</Typography>
+                                <Typography variant="caption" tone="muted">{new Date(f.created_at).toLocaleDateString('pt-BR')} • FEEDBACK</Typography>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
                               {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} className={cn(s <= (f.score || 5) ? "text-status-warning fill-current" : "text-border-strong opacity-30")} />)}
                             </div>
                           </header>
-                          <Typography variant="p" className="text-base font-bold text-text-secondary leading-relaxed italic border-none bg-transparent p-0 mb-8">
+                          <Typography variant="p" className="leading-relaxed italic border-none bg-transparent p-0 mb-8">
                             "{f.content}"
                           </Typography>
                           <footer className="pt-6 border-t border-border-default flex items-center gap-6">
-                            <Button variant="ghost" size="sm" className="h-8 px-4 text-[9px] font-black text-brand-primary uppercase tracking-widest hover:underline hover:bg-transparent">Reconhecer</Button>
+                            <Button variant="ghost" size="sm" className="h-8 px-4 hover:underline hover:bg-transparent">RECONHECER</Button>
                             <div className="w-1.5 h-1.5 rounded-full bg-border-strong opacity-20" />
-                            <Button variant="ghost" size="sm" className="h-8 px-4 text-[9px] font-black text-text-tertiary uppercase tracking-widest hover:text-text-primary hover:bg-transparent">Discutir em 1:1</Button>
+                            <Button variant="ghost" size="sm" className="h-8 px-4 hover:text-text-primary hover:bg-transparent">DISCUTIR EM 1:1</Button>
                           </footer>
                         </Card>
                       </motion.article>
@@ -174,8 +174,8 @@ export default function Feedback() {
               ].map((skill, i) => (
                 <div key={i} className="space-y-4">
                   <div className="flex justify-between items-end">
-                    <Typography variant="caption" tone="white" className="text-[10px] font-black uppercase opacity-60">{skill.label}</Typography>
-                    <Typography variant="mono" tone="white" className="text-xs font-black">{skill.val}%</Typography>
+                    <Typography variant="caption" tone="white" className="opacity-60">{skill.label}</Typography>
+                    <Typography variant="mono" tone="white">{skill.val}%</Typography>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden p-0.5 shadow-inner border border-white/5">
                     <motion.div 
@@ -191,8 +191,8 @@ export default function Feedback() {
             </div>
             
             <footer className="pt-10 mt-auto relative z-10">
-                <Button variant="outline" className="w-full h-16 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 font-black uppercase tracking-[0.2em] text-[10px] shadow-mx-lg">
-                    SOLICITAR AVALIAÇÃO 360º
+                <Button variant="outline" className="w-full h-16 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 shadow-mx-lg">
+                    <Typography variant="caption" as="span" tone="white">SOLICITAR AVALIAÇÃO 360º</Typography>
                 </Button>
             </footer>
           </Card>

@@ -71,7 +71,7 @@ export default function Notificacoes() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-4">
             <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">Central de <span className="text-brand-primary">Alertas</span></Typography>
+            <Typography variant="h1">Central de <Typography as="span" className="text-brand-primary">Alertas</Typography></Typography>
           </div>
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">MOTOR DE DISCIPLINA & INTELIGÊNCIA MX</Typography>
         </div>

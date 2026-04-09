@@ -2,12 +2,14 @@ import { useMemberships, useSellersByStore } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { useStoreGoal } from '@/hooks/useGoals'
+import { useStoreSales } from '@/hooks/useStoreSales'
 import { useState, useMemo, useCallback } from 'react'
 import { 
     Target, RefreshCw, Search, Globe, ChevronDown, Calendar, History
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, parseISO, startOfMonth, endOfMonth, subDays } from 'date-fns'
+import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { ptBR } from 'date-fns/locale'
 import { motion, AnimatePresence } from 'motion/react'
 import { Badge } from '@/components/atoms/Badge'
@@ -43,44 +45,60 @@ export default function DashboardLoja() {
     )
 
     const handleRefresh = useCallback(async () => {
-        setIsRefetching(true); await refetch(); setIsRefetching(false)
-        toast.success('Performance sincronizada!')
+        setIsRefetching(true)
+        try {
+            await refetch()
+            toast.success('Performance sincronizada!')
+        } finally {
+            setIsRefetching(false)
+        }
     }, [refetch])
 
+    // Lógica centralizada de Vendas e Ranking (Memoized)
+    const storeSalesParams = useMemo(() => ({
+        checkins: checkins as any,
+        ranking: (sellers || []).map(s => ({
+            user_id: s.id,
+            user_name: s.name,
+            is_venda_loja: s.is_venda_loja || false,
+            vnd_total: somarVendas(checkins.filter(c => c.seller_user_id === s.id) as any),
+            leads: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
+            agd_total: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0), 0),
+            visitas: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
+            meta: storeGoal?.target || 0,
+            atingimento: 0,
+            projecao: 0,
+            ritmo: 0,
+            efficiency: 0,
+            status: { label: '', color: '' },
+            gap: 0,
+            position: 0
+        })),
+        rules: { monthly_goal: storeGoal?.target || 0 } as any
+    }), [checkins, sellers, storeGoal])
+
+    const storeSales = useStoreSales(storeSalesParams)
+
     const metrics = useMemo(() => {
-        const totalSales = checkins.reduce((acc, c) => acc + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
-        const totalLeads = checkins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0)
-        const totalAgd = checkins.reduce((acc, c) => acc + (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0), 0)
-        const totalVis = checkins.reduce((acc, c) => acc + (c.visit_prev_day || 0), 0)
-        
-        const goalValue = storeGoal?.target || 0
-        const attainment = goalValue > 0 ? Math.round((totalSales / goalValue) * 100) : 0
         const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
         
-        const salesBySeller = new Map()
-        checkins.forEach(c => {
-            const sid = c.seller_user_id
-            if (!salesBySeller.has(sid)) salesBySeller.set(sid, { total: 0, leads: 0, agd: 0, vis: 0, is_venda_loja: c.is_venda_loja })
-            const current = salesBySeller.get(sid)
-            current.total += (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
-            current.leads += (c.leads_prev_day || 0)
-            current.agd += (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0)
-            current.vis += (c.visit_prev_day || 0)
-        })
-
-        const ranking = Array.from(salesBySeller.entries()).map(([uid, s]) => ({
-            user_id: uid,
-            user_name: sellers?.find(sl => sl.id === uid)?.name || (s.is_venda_loja ? 'VENDA LOJA' : 'Vendedor'),
-            ...s
-        })).sort((a, b) => b.total - a.total)
-
         return {
-            totalSales, totalLeads, totalAgd, totalVis,
-            attainment, goalValue, checkedInCount,
-            ranking,
+            totalSales: storeSales.storeTotalVendas,
+            totalLeads: storeSales.storeTotalLeads,
+            totalAgd: storeSales.storeTotalAgd,
+            totalVis: storeSales.storeTotalVis,
+            attainment: storeSales.storeAttainment,
+            goalValue: storeSales.storeGoal,
+            checkedInCount,
+            ranking: storeSales.processedRanking,
             storeName: memberships?.find(m => m.store_id === storeId)?.store?.name || 'Unidade MX'
         }
-    }, [checkins, storeGoal, sellers, memberships, storeId])
+    }, [storeSales, sellers, memberships, storeId])
+
+    const diagnostics = useMemo(() => {
+        const funil = calcularFunil(checkins as any)
+        return gerarDiagnosticoMX(funil)
+    }, [checkins])
 
     const filteredRanking = useMemo(() => {
         return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
@@ -237,11 +255,11 @@ export default function DashboardLoja() {
                                                 </div>
                                             </td>
                                             <td className="px-6 text-center font-black text-sm text-text-primary font-mono-numbers opacity-60">{r.leads}</td>
-                                            <td className="px-6 text-center font-black text-sm text-text-primary font-mono-numbers opacity-60">{r.vis}</td>
-                                            <td className="px-6 text-center font-black text-2xl text-brand-primary font-mono-numbers bg-mx-indigo-50/30">{r.total}</td>
+                                            <td className="px-6 text-center font-black text-sm text-text-primary font-mono-numbers opacity-60">{r.visitas}</td>
+                                            <td className="px-6 text-center font-black text-2xl text-brand-primary font-mono-numbers bg-mx-indigo-50/30">{r.vnd_total}</td>
                                             <td className="pr-10 text-right">
-                                                <Badge variant={r.total > 0 ? 'success' : 'outline'} className="px-4 py-1.5 rounded-lg font-black text-[8px] tracking-widest shadow-sm uppercase border-none">
-                                                    {r.total > 0 ? 'CONVERSÃO' : 'EM AGUARDO'}
+                                                <Badge variant={r.vnd_total > 0 ? 'success' : 'outline'} className="px-4 py-1.5 rounded-lg font-black text-[8px] tracking-widest shadow-sm uppercase border-none">
+                                                    {r.vnd_total > 0 ? 'CONVERSÃO' : 'EM AGUARDO'}
                                                 </Badge>
                                             </td>
                                         </tr>
@@ -288,7 +306,7 @@ export default function DashboardLoja() {
                             <History className="mx-auto mb-8 opacity-30 transform group-hover:scale-110 transition-transform" size={48} aria-hidden="true" />
                             <Typography variant="h2" tone="white" className="text-xl mb-6 uppercase tracking-tight font-black">Diagnóstico Unidade</Typography>
                             <Typography variant="caption" tone="white" className="text-xs font-black italic opacity-80 leading-relaxed uppercase tracking-widest max-w-xs mx-auto block">
-                                "A unidade opera com 85% de eficiência disciplinar. O gargalo técnico identificado é o agendamento de leads digitais."
+                                "{diagnostics.diagnostico} {diagnostics.sugestao}"
                             </Typography>
                         </div>
                     </Card>

@@ -17,12 +17,31 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
     const startDate = filters?.startDate || defaultStartOfMonth
     const endDate = filters?.endDate || defaultEndOfMonth
 
-    const fetchRanking = useCallback(async () => {
+    const fetchRanking = useCallback(async (forceRefresh = false) => {
         if (!storeId) {
             setRanking([])
             setLoading(false)
             return
         }
+
+        const cacheKey = `ranking_${storeId}_${startDate}_${endDate}`
+        if (!forceRefresh) {
+            const cached = localStorage.getItem(cacheKey)
+            if (cached) {
+                try {
+                    const { data, timestamp } = JSON.parse(cached)
+                    const isExpired = Date.now() - timestamp > 5 * 60 * 1000 // 5 minutos
+                    if (!isExpired) {
+                        setRanking(data)
+                        setLoading(false)
+                        return
+                    }
+                } catch (e) {
+                    console.error('Falha ao ler cache do ranking:', e)
+                }
+            }
+        }
+
         setLoading(true)
 
         // Get checkins for the month using canonical EPIC-01 columns
@@ -30,9 +49,11 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             .from('daily_checkins')
             .select('seller_user_id, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
-            .eq('metric_scope', 'daily') // Garante que apenas produção diária conte para o ranking
+            .eq('metric_scope', 'daily') 
             .gte('reference_date', startDate)
             .lte('reference_date', endDate)
+
+
 
         // Get active sellers by operational tenure. Fallback keeps old data readable until stores are configured.
         const { data: tenures } = await supabase
@@ -65,14 +86,16 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         const storeGoal = rules?.monthly_goal || 0
         const includeVendaLojaInGoal = rules?.include_venda_loja_in_individual_goal || false
         
-        const aggregated = new Map<string, { leads: number; agd: number; visitas: number; vnd: number; name: string; isVendaLoja: boolean }>()
+        const aggregated = new Map<string, { leads: number; agd: number; visitas: number; vnd: number; vnd_yesterday: number; name: string; isVendaLoja: boolean }>()
         const realSellersCount = members.filter((m: any) => !m.users?.is_venda_loja).length
         const goalDivisor = realSellersCount + (includeVendaLojaInGoal ? members.filter((m: any) => m.users?.is_venda_loja).length : 0)
+
+        const daysInfo = getDiasInfo()
 
         for (const m of members) {
             const user = (m as any).users
             aggregated.set(m.user_id, { 
-                leads: 0, agd: 0, visitas: 0, vnd: 0, 
+                leads: 0, agd: 0, visitas: 0, vnd: 0, vnd_yesterday: 0,
                 name: user?.name || 'Vendedor',
                 isVendaLoja: user?.is_venda_loja || false
             })
@@ -84,7 +107,11 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
                 current.leads += c.leads_prev_day || 0
                 current.agd += (c.agd_cart_today || 0) + (c.agd_net_today || 0)
                 current.visitas += c.visit_prev_day || 0
-                current.vnd += (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
+                const dayVnd = (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
+                current.vnd += dayVnd
+                if ((c as any).reference_date === daysInfo.referencia) {
+                    current.vnd_yesterday += dayVnd
+                }
             }
         }
 
@@ -99,6 +126,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
                     user_name: data.name,
                     is_venda_loja: data.isVendaLoja,
                     vnd_total: data.vnd,
+                    vnd_yesterday: data.vnd_yesterday,
                     leads: data.leads,
                     agd_total: data.agd,
                     visitas: data.visitas,
@@ -137,11 +165,22 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             })
 
         setRanking(entries)
+        
+        // Cache local (5 minutos)
+        localStorage.setItem(cacheKey, JSON.stringify({
+            data: entries,
+            timestamp: Date.now()
+        }))
+
         setLoading(false)
     }, [storeId, startDate, endDate])
 
     useEffect(() => { fetchRanking() }, [fetchRanking])
-    return { ranking, loading, refetch: fetchRanking }
+    return { 
+        ranking, 
+        loading, 
+        refetch: (force = true) => fetchRanking(force) 
+    }
 }
 
 export function useGlobalRanking() {

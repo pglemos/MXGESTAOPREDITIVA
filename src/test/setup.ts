@@ -40,4 +40,24 @@ globalAny.ResizeObserver = class ResizeObserver {
     disconnect() {}
 };
 
-console.log("Happy DOM environment set up");
+// Mock IntersectionObserver
+globalAny.IntersectionObserver = class IntersectionObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+};
+
+// Mock matchMedia for motion/react
+globalAny.window.matchMedia = (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => true,
+});
+
+// Mock scrollTo
+globalAny.window.scrollTo = () => {};

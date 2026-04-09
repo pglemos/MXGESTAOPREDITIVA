@@ -51,8 +51,9 @@ export function useCheckins(storeIdOverride?: string) {
         }
         setLoading(true)
 
+        // Otimização: Selecionar apenas colunas de métricas e identificação
         let query = supabase.from('daily_checkins')
-            .select('*')
+            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, is_venda_loja')
             .eq('store_id', storeId)
             .order('reference_date', { ascending: false })
 
@@ -62,8 +63,8 @@ export function useCheckins(storeIdOverride?: string) {
 
         const { data, error } = await query
         if (!error && data) {
-            const withTotals = data.map(c => ({ ...c, ...calcularTotais(c) }))
-            setCheckins(withTotals)
+            const withTotals = data.map(c => ({ ...c, ...calcularTotais(c as any) }))
+            setCheckins(withTotals as any)
         }
         setLoading(false)
     }, [storeId])
@@ -75,14 +76,14 @@ export function useCheckins(storeIdOverride?: string) {
         }
         const { data } = await supabase
             .from('daily_checkins')
-            .select('*')
+            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, is_venda_loja')
             .eq('seller_user_id', profile.id)
             .eq('store_id', storeId)
             .eq('reference_date', referenceDate)
             .eq('metric_scope', 'daily')
             .maybeSingle()
         
-        if (data) setTodayCheckin({ ...data, ...calcularTotais(data) })
+        if (data) setTodayCheckin({ ...data, ...calcularTotais(data as any) } as any)
         else setTodayCheckin(null)
     }, [profile, storeId, referenceDate])
 
@@ -110,6 +111,10 @@ export function useCheckins(storeIdOverride?: string) {
             return { error: `Correções do check-in diário ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
         }
 
+        const sanitize = (str?: string | null) => str ? str.replace(/[&<>"']/g, (m) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m] || m)) : null
+
         const submittedAt = new Date()
         const payload = {
             seller_user_id: profile.id,
@@ -129,8 +134,8 @@ export function useCheckins(storeIdOverride?: string) {
             vnd_cart_prev_day: formData.vnd_cart_prev_day ?? formData.vnd_cart,
             vnd_net_prev_day: formData.vnd_net_prev_day ?? formData.vnd_net,
             visit_prev_day: formData.visit_prev_day ?? formData.visitas,
-            zero_reason: formData.zero_reason || null,
-            note: formData.note || null,
+            zero_reason: sanitize(formData.zero_reason) || null,
+            note: sanitize(formData.note) || null,
         }
 
         const { error } = await supabase.from('daily_checkins').upsert(payload, { 
@@ -198,14 +203,14 @@ export function useCheckinsByDateRange(storeId: string | null, startDate: string
         setLoading(true)
         const { data, error } = await supabase
             .from('daily_checkins')
-            .select('*')
+            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, is_venda_loja')
             .eq('store_id', storeId)
             .gte('reference_date', startDate)
             .lte('reference_date', endDate)
             .order('reference_date', { ascending: false })
 
         if (!error && data) {
-            setCheckins(data.map(c => ({ ...c, ...calcularTotais(c) })))
+            setCheckins(data.map(c => ({ ...c, ...calcularTotais(c as any) })) as any)
         }
         setLoading(false)
     }, [storeId, startDate, endDate])

@@ -61,7 +61,7 @@ export default function AiDiagnostics() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-indigo-400 rounded-full shadow-[0_0_20px_rgba(129,140,248,0.5)] animate-pulse" aria-hidden="true" />
-                        <Typography variant="h1" tone="white">Auditoria <span className="text-indigo-400">Forense</span></Typography>
+                        <Typography variant="h1" tone="white">Auditoria <Typography as="span" className="text-indigo-400">Forense</Typography></Typography>
                     </div>
                     <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0</Typography>
                 </div>
@@ -69,8 +69,8 @@ export default function AiDiagnostics() {
                 <div className="flex items-center gap-6 shrink-0">
                     <div className="flex flex-col items-end">
                         <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-widest font-black">Status do Motor</Typography>
-                        <Badge variant={isScanning ? 'warning' : 'success'} className="mt-1 shadow-mx-lg px-6 py-2 rounded-full font-black border-none text-[8px]">
-                            {isScanning ? 'PROCESSANDO...' : 'SISTEMA EM STANDBY'}
+                        <Badge variant={isScanning ? 'warning' : 'success'} className="mt-1 shadow-mx-lg px-6 py-2 rounded-full font-black border-none">
+                            <Typography variant="tiny" as="span">{isScanning ? 'PROCESSANDO...' : 'SISTEMA EM STANDBY'}</Typography>
                         </Badge>
                     </div>
                     <Button 
@@ -99,16 +99,16 @@ export default function AiDiagnostics() {
                             </div>
                         </div>
 
-                        <div className="flex-1 font-mono text-[11px] leading-relaxed space-y-3 overflow-y-auto pr-4 no-scrollbar border-t border-white/5 pt-8 relative z-10" aria-live="polite">
+                        <div className="flex-1 font-mono text-sm leading-relaxed space-y-3 overflow-y-auto pr-4 no-scrollbar border-t border-white/5 pt-8 relative z-10" aria-live="polite">
                             {logs.map((log, idx) => (
                                 <div key={idx} className="flex gap-4 group hover:bg-white/5 p-2 rounded-mx-sm transition-colors">
-                                    <span className="text-white/10 font-black" aria-hidden="true">{(idx + 1).toString().padStart(3, '0')}</span>
-                                    <span className={cn("font-black tracking-tight uppercase", 
+                                    <Typography variant="tiny" tone="muted" as="span" className="font-black opacity-10" aria-hidden="true">{(idx + 1).toString().padStart(3, '0')}</Typography>
+                                    <Typography as="span" variant="caption" className={cn("font-black tracking-tight uppercase", 
                                         log.type === 'error' ? 'text-status-error' : 
                                         log.type === 'warning' ? 'text-status-warning' : 
                                         log.type === 'success' ? 'text-status-success' : 
                                         'text-indigo-300'
-                                    )}>{log.msg}</span>
+                                    )}>{log.msg}</Typography>
                                 </div>
                             ))}
                             <div ref={terminalEndRef} />
@@ -160,7 +160,7 @@ export default function AiDiagnostics() {
                         </div>
                         
                         <footer className="pt-8 border-t border-border-default">
-                            <Typography variant="tiny" tone="muted" className="text-[8px] text-center block uppercase tracking-widest font-black opacity-20">Heurística Baseada no Critério 20/60/33</Typography>
+                            <Typography variant="tiny" tone="muted" className="text-center block uppercase tracking-widest font-black opacity-20">Heurística Baseada no Critério 20/60/33</Typography>
                         </footer>
                     </Card>
                 </aside>

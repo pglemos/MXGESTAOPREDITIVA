@@ -3,8 +3,10 @@ import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
+import { Typography } from '@/components/atoms/Typography'
+
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-mx-md text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-11 px-6 sm:h-10 sm:px-4", 
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-mx-md font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-11 px-6 sm:h-10 sm:px-4", 
   {
     variants: {
       variant: {
@@ -38,14 +40,22 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, children, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
-      />
+      >
+        {!asChild && typeof children === 'string' ? (
+          <Typography variant="caption" className="text-inherit tracking-inherit">
+            {children}
+          </Typography>
+        ) : (
+          children
+        )}
+      </Comp>
     )
   }
 )

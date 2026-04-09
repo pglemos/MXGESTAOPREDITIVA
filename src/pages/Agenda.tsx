@@ -72,7 +72,7 @@ export default function Agenda() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Agenda <span className="text-brand-primary">Operacional</span></Typography>
+                        <Typography variant="h1">Agenda <Typography as="span" className="text-brand-primary">Operacional</Typography></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">PLANEJAMENTO TÁTICO DE CICLO</Typography>
                 </div>

@@ -1,5 +1,7 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const express = require('express');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const corsOptions = require('./cors-config');
 const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -8,8 +10,18 @@ const { createClient } = require('@supabase/supabase-js');
 const cron = require('node-cron');
 
 const app = express();
+
+// Segurança: Rate Limiting (100 pedidos a cada 15 minutos por IP)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use(limiter);
+
+app.use(compression()); // Otimização: Gzip compression para payloads QR e JSON
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' })); // Segurança e Perf: Limitar tamanho do JSON
 
 const PORT = process.env.PORT || 3001;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || '';
@@ -86,7 +98,7 @@ app.get('/api/whatsapp/status', authenticate, (req, res) => {
     });
 });
 
-app.post('/api/whatsapp/restart', async (req, res) => {
+app.post('/api/whatsapp/restart', authenticate, async (req, res) => {
     console.log('Restarting WhatsApp Client...');
     try {
         if (client) {

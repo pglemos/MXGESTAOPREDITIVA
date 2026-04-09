@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
     Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar, X, Check
 } from 'lucide-react'
-import { supabase as originalSupabase, supabaseAdmin } from '@/lib/supabase'
+import { supabase as originalSupabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useAllStoreGoals } from '@/hooks/useGoals'
 import { useNotifications } from '@/hooks/useData'
@@ -113,8 +113,8 @@ export default function PainelConsultor() {
             let allCheckins: any[] = [];
             let from = 0;
             while (true) {
-                const { data, error } = await supabaseAdmin.from('daily_checkins')
-                    .select('store_id, vnd_net, vnd_porta, vnd_cart, leads, agd_net, agd_cart, visitas')
+                const { data, error } = await originalSupabase.from('daily_checkins')
+                    .select('store_id, vnd_net_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, leads_prev_day, agd_net_prev_day, agd_cart_prev_day, visit_prev_day')
                     .gte('reference_date', range.start)
                     .lte('reference_date', range.end)
                     .range(from, from + 999);
@@ -131,9 +131,9 @@ export default function PainelConsultor() {
                 { data: sellers },
                 { data: todayCheckins },
             ] = await Promise.all([
-                supabaseAdmin.from('stores').select('id, name'),
-                supabaseAdmin.from('store_sellers').select('*').eq('is_active', true),
-                supabaseAdmin.from('daily_checkins').select('store_id, seller_user_id').eq('reference_date', yesterday),
+                originalSupabase.from('stores').select('id, name'),
+                originalSupabase.from('store_sellers').select('*').eq('is_active', true),
+                originalSupabase.from('daily_checkins').select('store_id, seller_user_id').eq('reference_date', yesterday),
             ])
 
             const salesMap: Record<string, any> = {}
@@ -240,10 +240,12 @@ export default function PainelConsultor() {
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Rede <span className="text-brand-primary">Operacional</span></Typography>
+                        <Typography variant="h1">Rede <Typography as="span" className="text-brand-primary">Operacional</Typography></Typography>
                     </div>
                     <div className="flex items-center gap-4 pl-6">
-                        <Badge variant="danger" className="px-4 py-1 font-black">Gap Global: {globalStats.totalGap} UNIDADES</Badge>
+                        <Badge variant="danger" className="px-4 py-1 font-black">
+                            <Typography variant="tiny" as="span" className="font-black">Gap Global: {globalStats.totalGap} UNIDADES</Typography>
+                        </Badge>
                         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</Typography>
                     </div>
                 </div>
@@ -257,20 +259,20 @@ export default function PainelConsultor() {
                                 variant={timeframe === t ? 'secondary' : 'ghost'}
                                 size="sm"
                                 onClick={() => setTimeframe(t)}
-                                className="rounded-full px-4 h-8 uppercase text-[10px] font-black"
+                                className="rounded-full px-4 h-8 uppercase font-black"
                                 aria-pressed={timeframe === t}
                             >
-                                {t}
+                                <Typography variant="tiny" as="span" className="font-black">{t}</Typography>
                             </Button>
                         ))}
                         <Button
                             variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => setShowCustomPicker(!showCustomPicker)}
-                            className="rounded-full px-4 h-8 uppercase text-[10px] font-black"
+                            className="rounded-full px-4 h-8 uppercase font-black"
                             aria-expanded={showCustomPicker}
                         >
-                            Custom
+                            <Typography variant="tiny" as="span" className="font-black">Custom</Typography>
                         </Button>
 
                         <AnimatePresence>
@@ -283,14 +285,16 @@ export default function PainelConsultor() {
                                         </header>
                                         <div className="space-y-4">
                                             <div className="space-y-2">
-                                                <label htmlFor="start-date" className="text-tiny font-black uppercase tracking-widest text-text-tertiary ml-1">Início</label>
-                                                <Input id="start-date" type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-10 !px-4 !text-xs" />
+                                                <Typography variant="tiny" tone="muted" as="label" htmlFor="start-date" className="font-black uppercase tracking-widest ml-1">Início</Typography>
+                                                <Input id="start-date" type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-10 !px-4 !text-xs font-black" />
                                             </div>
                                             <div className="space-y-2">
-                                                <label htmlFor="end-date" className="text-tiny font-black uppercase tracking-widest text-text-tertiary ml-1">Fim</label>
-                                                <Input id="end-date" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-10 !px-4 !text-xs" />
+                                                <Typography variant="tiny" tone="muted" as="label" htmlFor="end-date" className="font-black uppercase tracking-widest ml-1">Fim</Typography>
+                                                <Input id="end-date" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-10 !px-4 !text-xs font-black" />
                                             </div>
-                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-12 shadow-mx-lg font-black uppercase text-xs">APLICAR PERÍODO</Button>
+                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-12 shadow-mx-lg font-black uppercase text-xs">
+                                                <Typography variant="tiny" as="span" className="font-black">APLICAR PERÍODO</Typography>
+                                            </Button>
                                         </div>
                                     </Card>
                                 </motion.div>
@@ -304,10 +308,10 @@ export default function PainelConsultor() {
                                 key={r} variant="ghost" size="sm" 
                                 onClick={() => triggerReport(r)} 
                                 disabled={isTriggering !== null} 
-                                className="rounded-full px-4 h-8 text-brand-primary uppercase text-[9px] font-black"
+                                className="rounded-full px-4 h-8 text-brand-primary uppercase font-black"
                                 aria-label={`Disparar relatório ${r}`}
                             >
-                                {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : r}
+                                {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : <Typography variant="tiny" as="span" className="font-black">{r}</Typography>}
                             </Button>
                         ))}
                     </nav>
@@ -365,18 +369,18 @@ export default function PainelConsultor() {
                     <div className="flex flex-wrap items-center gap-mx-xs">
                         <div className="relative group w-full sm:w-64">
                             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" aria-hidden="true" />
-                            <label htmlFor="search-store" className="sr-only">Buscar Unidade</label>
-                            <Input id="search-store" placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10 !h-12 !text-xs uppercase font-black tracking-widest" />
+                            <Typography variant="tiny" as="label" htmlFor="search-store" className="sr-only">Buscar Unidade</Typography>
+                            <Input id="search-store" placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10 !h-12 uppercase font-black tracking-widest !text-xs" />
                         </div>
                         <div className="flex items-center gap-1 bg-surface-alt border border-border-default p-1 rounded-mx-md h-12 shadow-inner" role="group" aria-label="Filtro de Status">
                             {(['all', 'alert', 'critical'] as const).map(f => (
-                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-full rounded-mx-sm px-4 text-[10px] font-black uppercase">
-                                    {f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}
+                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-full rounded-mx-sm px-4 uppercase font-black">
+                                    <Typography variant="tiny" as="span" className="font-black">{f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}</Typography>
                                 </Button>
                             ))}
                         </div>
-                        <Button asChild variant="secondary" className="h-12 px-6 shadow-mx-md font-black uppercase text-xs">
-                            <Link to="/lojas">GESTÃO LOJAS</Link>
+                        <Button asChild variant="secondary" className="h-12 px-6 shadow-mx-md uppercase">
+                            <Link to="/lojas"><Typography variant="tiny" as="span" className="font-black">GESTÃO LOJAS</Typography></Link>
                         </Button>
                     </div>
                 </CardHeader>
@@ -384,18 +388,18 @@ export default function PainelConsultor() {
                     <table className="w-full text-left min-w-[1200px]">
                         <caption className="sr-only">Consolidado operacional de todas as unidades da rede</caption>
                         <thead className="bg-surface-alt/50 border-y border-border-default">
-                            <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
-                                <th scope="col" className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}>Unidade</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('leads')}>Leads</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('agd')}>Agend.</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('vis')}>Visitas</th>
-                                <th scope="col" className="px-4 py-6 text-center text-brand-primary cursor-pointer" onClick={() => handleSort('sales')}>Vendas</th>
-                                <th scope="col" className="px-4 py-6 text-center">Meta</th>
-                                <th scope="col" className="px-4 py-6 text-center text-status-error cursor-pointer" onClick={() => handleSort('gap')}>Gap</th>
-                                <th scope="col" className="px-4 py-6 text-center text-brand-primary cursor-pointer" onClick={() => handleSort('proj')}>Projeção</th>
-                                <th scope="col" className="px-4 py-6 text-center">Ritmo</th>
-                                <th scope="col" className="px-4 py-6 text-center">Status</th>
-                                <th scope="col" className="pr-10 py-6 text-center">Disciplina</th>
+                            <tr className="uppercase tracking-[0.2em]">
+                                <th scope="col" className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}><Typography variant="caption" className="font-black">Unidade</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('leads')}><Typography variant="caption" className="font-black">Leads</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('agd')}><Typography variant="caption" className="font-black">Agend.</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('vis')}><Typography variant="caption" className="font-black">Visitas</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('sales')}><Typography variant="caption" tone="brand" className="font-black">Vendas</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Meta</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('gap')}><Typography variant="caption" tone="error" className="font-black">Gap</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('proj')}><Typography variant="caption" tone="brand" className="font-black">Projeção</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Ritmo</Typography></th>
+                                <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Status</Typography></th>
+                                <th scope="col" className="pr-10 py-6 text-center"><Typography variant="caption" className="font-black">Disciplina</Typography></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border-default">
@@ -431,8 +435,8 @@ export default function PainelConsultor() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 text-center">
-                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1 mb-1 font-black shadow-sm uppercase border-none text-[8px]">
-                                                {status.label}
+                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1 mb-1 font-black shadow-sm uppercase border-none">
+                                                <Typography variant="tiny" as="span" className="font-black">{status.label}</Typography>
                                             </Badge>
                                             <Typography variant="tiny" tone="muted" className="font-black block uppercase opacity-40">{store.efficiency}% EFIC.</Typography>
                                         </td>

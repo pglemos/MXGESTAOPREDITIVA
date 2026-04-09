@@ -98,7 +98,7 @@ export default function Lojas() {
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1 bg-surface-alt/50 p-4 rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
-                                                    <Typography variant="tiny" tone="muted" className="text-[10px] font-black uppercase opacity-40">Eficiência</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">Eficiência</Typography>
                                                     <div className="flex items-center gap-2">
                                                         <Typography variant="h2" tone="success" className="text-xl font-mono-numbers leading-none">94%</Typography>
                                                     </div>

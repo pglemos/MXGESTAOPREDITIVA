@@ -80,7 +80,7 @@ export default function GerenteTreinamentos() {
     if (isLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Módulos...</Typography>
+            <Typography variant="caption" tone="muted" className="animate-pulse uppercase font-black tracking-widest">Sincronizando Módulos...</Typography>
         </div>
     )
 
@@ -92,28 +92,28 @@ export default function GerenteTreinamentos() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Evolução de <span className="text-brand-primary">Tropa</span></Typography>
+                        <Typography variant="h1">Evolução de <Typography as="span" className="text-brand-primary">Tropa</Typography></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">GESTÃO DE CONHECIMENTO ESTRATÉGICO • MX ACADEMY</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">GESTÃO DE CONHECIMENTO ESTRATÉGICO • MX ACADEMY</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
                     <div className="bg-white p-1 rounded-mx-full flex border border-border-default shadow-mx-sm" role="tablist">
                         <Button 
                             variant={tab === 'equipe' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setTab('equipe')} className="h-10 px-6 rounded-full text-[10px] font-black uppercase"
+                            onClick={() => setTab('equipe')} className="h-10 px-6 rounded-full uppercase"
                         >
-                            <Users size={14} className="mr-2" /> Equipe
+                            <Users size={14} className="mr-2" /> <Typography variant="tiny" as="span" className="font-black">Equipe</Typography>
                         </Button>
                         <Button 
                             variant={tab === 'meus' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setTab('meus')} className="h-10 px-6 rounded-full text-[10px] font-black uppercase"
+                            onClick={() => setTab('meus')} className="h-10 px-6 rounded-full uppercase"
                         >
-                            <Target size={14} className="mr-2" /> Meu Plano
+                            <Target size={14} className="mr-2" /> <Typography variant="tiny" as="span" className="font-black">Meu Plano</Typography>
                         </Button>
                     </div>
                     
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-12 h-12 rounded-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-12 h-12 rounded-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>
@@ -125,14 +125,14 @@ export default function GerenteTreinamentos() {
                     <Input
                         placeholder={tab === 'equipe' ? "BUSCAR ESPECIALISTA..." : "BUSCAR AULA OU TEMA..."}
                         value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                        className="!pl-14 !h-14 !text-[10px] uppercase tracking-widest"
+                        className="!pl-14 !h-14 uppercase tracking-widest font-black !text-xs"
                     />
                 </div>
                 
                 {tab === 'meus' && (
                     <Card className="flex items-center gap-6 px-8 py-4 bg-mx-indigo-50 border-mx-indigo-100 shadow-inner rounded-mx-2xl">
                         <div className="flex flex-col items-end">
-                            <Typography variant="caption" tone="brand" className="leading-none mb-1">Seu Progresso</Typography>
+                            <Typography variant="caption" tone="brand" className="leading-none mb-1 font-black">Seu Progresso</Typography>
                             <Typography variant="mono" className="text-sm font-black">{watched} / {trainings?.length || 0}</Typography>
                         </div>
                         <div className="w-32 h-2 bg-white rounded-full overflow-hidden p-0.5 shadow-inner">
@@ -158,7 +158,9 @@ export default function GerenteTreinamentos() {
                                                 )}>
                                                     {t.watched ? <CheckCircle size={24} /> : <Play size={24} className="ml-1" />}
                                                 </div>
-                                                <Badge variant="brand" className="px-4 py-1 rounded-full uppercase text-[8px] font-black">{t.type}</Badge>
+                                                <Badge variant="brand" className="px-4 py-1 rounded-full shadow-sm">
+                                                    <Typography variant="tiny" as="span" className="font-black uppercase">{t.type}</Typography>
+                                                </Badge>
                                             </header>
 
                                             <div className="space-y-4 relative z-10">
@@ -171,9 +173,9 @@ export default function GerenteTreinamentos() {
                                             <Button 
                                                 variant="outline" size="sm" 
                                                 onClick={() => window.open(t.video_url, '_blank')}
-                                                className="flex-1 h-12 rounded-mx-xl font-black uppercase text-[10px] shadow-sm"
+                                                className="flex-1 h-12 rounded-mx-xl shadow-sm bg-white"
                                             >
-                                                <Play size={16} className="mr-2" /> ASSISTIR
+                                                <Typography variant="tiny" as="span" className="font-black uppercase"><Play size={16} className="mr-2 inline-block" /> ASSISTIR</Typography>
                                             </Button>
                                             {!t.watched && (
                                                 <Button
@@ -196,8 +198,8 @@ export default function GerenteTreinamentos() {
                                     <Card className="p-8 h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col gap-10">
                                         <header className="flex items-center justify-between border-b border-border-default pb-6">
                                             <div className="flex items-center gap-4 min-w-0">
-                                                <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm shadow-inner group-hover:bg-pure-black group-hover:text-white transition-all uppercase">{p.seller_name.charAt(0)}</div>
-                                                <Typography variant="h3" className="text-base uppercase tracking-tight truncate">{p.seller_name}</Typography>
+                                                <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm shadow-inner group-hover:bg-pure-black group-hover:text-white transition-all uppercase" aria-hidden="true">{p.seller_name.charAt(0)}</div>
+                                                <Typography variant="h3" className="text-base uppercase tracking-tight truncate font-black">{p.seller_name}</Typography>
                                             </div>
                                             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm", 
                                                 p.percentage === 100 ? 'bg-status-success-surface text-status-success border-mx-emerald-100' : 'bg-surface-alt text-text-tertiary'
@@ -208,7 +210,7 @@ export default function GerenteTreinamentos() {
 
                                         <div className="space-y-6">
                                             <div className="flex justify-between items-end">
-                                                <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase tracking-widest leading-none">Absorção Técnica</Typography>
+                                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest leading-none">Absorção Técnica</Typography>
                                                 <Typography variant="mono" tone={p.percentage === 100 ? 'success' : 'brand'} className="text-sm font-black">{Math.round(p.percentage)}%</Typography>
                                             </div>
                                             <div className="w-full h-2 bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-inner p-0.5">
@@ -218,25 +220,29 @@ export default function GerenteTreinamentos() {
                                             {p.current_gap && (
                                                 <Card className={cn("p-6 border-none flex flex-col gap-3", p.gap_training_completed ? "bg-status-success-surface shadow-inner" : "bg-status-error-surface animate-pulse shadow-mx-lg shadow-rose-100")}>
                                                     <div className="flex justify-between items-center">
-                                                        <Typography variant="caption" className="text-[8px] font-black uppercase tracking-widest text-text-tertiary">Gargalo Atual</Typography>
-                                                        <Badge variant={p.gap_training_completed ? 'success' : 'danger'} className="text-[7px] border-none font-black uppercase">{p.current_gap}</Badge>
+                                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest block opacity-40">Gargalo Atual</Typography>
+                                                        <Badge variant={p.gap_training_completed ? 'success' : 'danger'} className="border-none shadow-sm">
+                                                            <Typography variant="tiny" as="span" className="font-black uppercase">{p.current_gap}</Typography>
+                                                        </Badge>
                                                     </div>
-                                                    <Typography variant="p" tone={p.gap_training_completed ? 'success' : 'error'} className="text-[10px] font-black uppercase tracking-tight">
+                                                    <Typography variant="tiny" tone={p.gap_training_completed ? 'success' : 'error'} className="font-black uppercase tracking-tight">
                                                         {p.gap_training_completed ? "✔ Correção Concluída" : "⚠️ Correção Pendente"}
                                                     </Typography>
                                                 </Card>
                                             )}
 
-                                            <Typography variant="caption" tone="muted" className="text-[9px] uppercase font-black tracking-widest text-center block bg-surface-alt py-3 rounded-xl border border-border-default">
-                                                {p.watched.length} de {p.total_trainings} Módulos OK
-                                            </Typography>
+                                            <div className="bg-surface-alt py-3 rounded-xl border border-border-default">
+                                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest text-center block">
+                                                    {p.watched.length} de {p.total_trainings} Módulos OK
+                                                </Typography>
+                                            </div>
 
                                             <Button 
                                                 variant="outline" size="sm" 
                                                 onClick={() => setAssigningTo(p.seller_id)}
-                                                className="w-full h-12 rounded-xl font-black uppercase text-[10px] mt-4 border-2 border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all shadow-sm"
+                                                className="w-full h-12 rounded-xl mt-4 border-2 border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all shadow-sm bg-white"
                                             >
-                                                <Target size={14} className="mr-2" /> Atribuir Reforço
+                                                <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest"><Target size={14} className="mr-2 inline-block" /> Atribuir Reforço</Typography>
                                             </Button>
                                         </div>
                                     </Card>
@@ -259,8 +265,8 @@ export default function GerenteTreinamentos() {
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Target size={20} /></div>
                                     <div>
-                                        <Typography variant="h3">Atribuir Reforço</Typography>
-                                        <Typography variant="caption" tone="muted">Selecione o módulo para {teamProgress.find(p => p.seller_id === assigningTo)?.seller_name}</Typography>
+                                        <Typography variant="h3" className="font-black uppercase">Atribuir Reforço</Typography>
+                                        <Typography variant="caption" tone="muted" className="font-black uppercase opacity-40">Selecione o módulo para {teamProgress.find(p => p.seller_id === assigningTo)?.seller_name}</Typography>
                                     </div>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => setAssigningTo(null)} className="rounded-full w-10 h-10 hover:bg-surface-alt"><X size={20} /></Button>
@@ -280,7 +286,9 @@ export default function GerenteTreinamentos() {
                                             </div>
                                             <div>
                                                 <Typography variant="p" className="font-black uppercase text-xs leading-none mb-1 group-hover:text-brand-primary transition-colors">{t.title}</Typography>
-                                                <Badge variant="outline" className="text-[7px] uppercase h-4 px-2">{t.type}</Badge>
+                                                <Badge variant="outline" className="shadow-none border-border-default">
+                                                    <Typography variant="tiny" as="span" className="font-black uppercase">{t.type}</Typography>
+                                                </Badge>
                                             </div>
                                         </div>
                                         <Send size={16} className="text-text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />

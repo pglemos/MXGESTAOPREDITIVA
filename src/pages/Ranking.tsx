@@ -1,9 +1,12 @@
 import { useRanking } from '@/hooks/useRanking'
 import { useAuth } from '@/hooks/useAuth'
+import { useStoreSales } from '@/hooks/useStoreSales'
+import { useCheckins } from '@/hooks/useCheckins'
+import { useStoreMetaRules } from '@/hooks/useGoals'
 import { useState, useMemo, useCallback } from 'react'
 import { 
     Trophy, Medal, Award, Crown, TrendingUp, RefreshCw, 
-    ChevronRight, Search, Building2, Filter, Calendar
+    ChevronRight, Search, Building2, Filter, Calendar, Zap, Target
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -17,20 +20,31 @@ import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function Ranking() {
-    const { ranking, loading, refetch } = useRanking()
-    const { profile } = useAuth()
+    const { profile, storeId } = useAuth()
+    const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
+    const { checkins, loading: checkinsLoading, fetchCheckins } = useCheckins()
+    const { metaRules, fetchMetaRules } = useStoreMetaRules()
+    
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
 
     const handleRefresh = useCallback(async () => {
-        setIsRefetching(true); await refetch(); setIsRefetching(false)
-    }, [refetch])
+        setIsRefetching(true)
+        await Promise.all([refetchRanking(), fetchCheckins(), fetchMetaRules()])
+        setIsRefetching(false)
+    }, [refetchRanking, fetchCheckins, fetchMetaRules])
+
+    const storeSales = useStoreSales({
+        checkins: checkins as any,
+        ranking: ranking,
+        rules: metaRules as any
+    })
 
     const sortedRanking = useMemo(() => {
-        return ranking.filter(r => r.user_name.toLowerCase().includes(searchTerm.toLowerCase()))
-    }, [ranking, searchTerm])
+        return storeSales.processedRanking.filter(r => r.user_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    }, [storeSales.processedRanking, searchTerm])
 
-    if (loading) return (
+    if (rankingLoading || checkinsLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Arena...</Typography>
@@ -98,31 +112,36 @@ export default function Ranking() {
                                                 </div>
                                                 <div className="flex items-center gap-10">
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="mb-1">EFICIÊNCIA</Typography>
-                                                        <Typography variant="h3" tone={isTop1 ? 'white' : 'success'} className="text-xl">{r.atingimento}%</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px]">Realizado</Typography>
+                                                        <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-2xl font-mono-numbers">{r.vnd_total} v</Typography>
                                                     </div>
-                                                    <div className="w-px h-8 bg-border-default/20" aria-hidden="true" />
+                                                    <div className="w-px h-8 bg-current opacity-10" />
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="mb-1">RITMO</Typography>
-                                                        <Typography variant="h3" tone={isTop1 ? 'white' : 'default'} className="text-xl">{r.ritmo}</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px]">Objetivo</Typography>
+                                                        <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-2xl font-mono-numbers">{r.meta} v</Typography>
+                                                    </div>
+                                                    <div className="w-px h-8 bg-current opacity-10" />
+                                                    <div className="flex flex-col">
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px]">Ritmo</Typography>
+                                                        <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-2xl font-mono-numbers">{r.ritmo} v/d</Typography>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className={cn(
-                                            "flex items-center gap-10 border-t lg:border-t-0 lg:border-l pt-8 lg:pt-0 lg:pl-10",
-                                            isTop1 ? "border-white/10" : "border-border-default"
-                                        )}>
+                                        <div className="flex items-center gap-10 shrink-0">
                                             <div className="text-right">
-                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'brand'} className="mb-1 block">VENDAS</Typography>
-                                                <Typography variant="h1" tone={isTop1 ? 'white' : 'default'} className="text-7xl tabular-nums leading-none tracking-tighter">{r.vnd_total}</Typography>
+                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px] mb-1">Atingimento</Typography>
+                                                <div className="flex items-center gap-2">
+                                                    <Typography variant="h1" tone={isTop1 ? 'white' : 'brand'} className="text-5xl font-mono-numbers tracking-tighter leading-none">{r.atingimento}%</Typography>
+                                                </div>
                                             </div>
-                                            <Button asChild size="icon" variant={isTop1 ? 'secondary' : 'primary'} className="w-16 h-16 rounded-mx-xl shadow-mx-xl hover:scale-110 active:scale-95 transition-all">
-                                                <Link to={`/dashboard?id=${r.user_id}`} aria-label={`Analisar performance de ${r.user_name}`}>
-                                                    <ChevronRight size={32} strokeWidth={3} />
-                                                </Link>
-                                            </Button>
+                                            <div className={cn(
+                                                "w-16 h-16 rounded-mx-2xl flex items-center justify-center border shadow-inner",
+                                                isTop1 ? "bg-white/10 border-white/20 text-white" : "bg-surface-alt border-border-default text-brand-primary"
+                                            )}>
+                                                <TrendingUp size={28} className={cn(r.atingimento < 50 && "rotate-180 text-status-error")} />
+                                            </div>
                                         </div>
                                     </Card>
                                 </motion.li>

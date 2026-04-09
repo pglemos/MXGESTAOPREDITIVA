@@ -27,6 +27,9 @@ import { Textarea } from '@/components/atoms/Textarea'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { supabase } from '@/lib/supabase'
 
+import { useStoreSales } from '@/hooks/useStoreSales'
+import { useStoreMetaRules } from '@/hooks/useGoals'
+
 type RoutineTab = 'diario' | 'semanal' | 'mensal'
 
 export default function RotinaGerente() {
@@ -35,6 +38,7 @@ export default function RotinaGerente() {
     const { membership } = useAuth()
     const { checkins, fetchCheckins } = useCheckins()
     const { storeGoal, fetchGoals } = useGoals()
+    const { metaRules, fetchMetaRules } = useStoreMetaRules()
     const { ranking, refetch: refetchRanking } = useRanking()
     const { routineLog, registerRoutine } = useManagerRoutine()
     const { feedbacks, refetch: refetchFeedbacks } = useFeedbacks()
@@ -51,11 +55,17 @@ export default function RotinaGerente() {
     const diasInfo = useMemo(() => getDiasInfo(), [])
     const expectedAttainment = useMemo(() => (diasInfo.decorridos / diasInfo.total) * 100, [diasInfo])
 
+    const storeSales = useStoreSales({
+        checkins: checkins as any,
+        ranking: ranking,
+        rules: metaRules || { monthly_goal: storeGoal?.target || 0 } as any
+    })
+
     const atRiskSellers = useMemo(() => {
-        return ranking
+        return storeSales.processedRanking
             .filter(item => !item.is_venda_loja && item.atingimento < (expectedAttainment - 10))
             .sort((a, b) => a.atingimento - b.atingimento)
-    }, [ranking, expectedAttainment])
+    }, [storeSales.processedRanking, expectedAttainment])
 
     const referenceDate = calculateReferenceDate()
     const previousDayCheckins = useMemo(() => checkins.filter(c => c.reference_date === referenceDate), [checkins, referenceDate])

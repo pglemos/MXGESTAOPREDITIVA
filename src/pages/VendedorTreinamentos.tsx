@@ -174,8 +174,8 @@ export default function VendedorTreinamentos() {
                                                 CONCLUIR MÓDULO
                                             </Button>
                                         ) : (
-                                            <div className="flex-1 h-12 rounded-xl bg-status-success-surface text-status-success border border-status-success/20 flex items-center justify-center font-black uppercase text-[9px] shadow-inner gap-2">
-                                                <ShieldCheck size={14} /> CERTIFICADO
+                                            <div className="flex-1 h-12 rounded-xl bg-status-success-surface text-status-success border border-status-success/20 flex items-center justify-center shadow-inner gap-2">
+                                                <Typography variant="tiny" as="span" className="font-black uppercase"><ShieldCheck size={14} className="inline-block" /> CERTIFICADO</Typography>
                                             </div>
                                         )}
                                     </footer>

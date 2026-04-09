@@ -49,13 +49,13 @@ export default function SellerPerformance() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Performance <span className="text-brand-primary">Individual</span></Typography>
+                        <Typography variant="h1">Performance <Typography as="span" className="text-brand-primary">Individual</Typography></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md opacity-60 uppercase tracking-widest">Métricas de Especialistas • Live Audit</Typography>
+                    <Typography variant="caption" className="pl-mx-md opacity-60 uppercase tracking-widest font-black">Métricas de Especialistas • Live Audit</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12 bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     <div className="relative group w-full sm:w-64">
@@ -63,11 +63,11 @@ export default function SellerPerformance() {
                         <Input
                             placeholder="BUSCAR ESPECIALISTA..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
+                            className="!pl-11 !h-12 uppercase tracking-widest font-black !text-xs"
                         />
                     </div>
-                    <Button variant="secondary" className="h-12 px-8 rounded-full shadow-mx-xl uppercase tracking-widest text-[10px] font-black">
-                        <Download size={18} className="mr-2" /> EXPORTAR
+                    <Button variant="secondary" className="h-12 px-8 rounded-full shadow-mx-xl uppercase tracking-widest">
+                        <Download size={18} className="mr-2" /> <Typography variant="tiny" as="span" className="font-black">EXPORTAR</Typography>
                     </Button>
                 </div>
             </header>
@@ -88,19 +88,19 @@ export default function SellerPerformance() {
                                     <User size={32} />
                                 </div>
                                 <div className="min-w-0">
-                                    <Typography variant="h3" className="text-xl uppercase tracking-tight truncate group-hover:text-brand-primary transition-colors">{member.user_name}</Typography>
-                                    <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase tracking-widest">{i === 0 ? '🏆 Top Performer' : 'Especialista'}</Typography>
+                                    <Typography variant="h3" className="text-xl uppercase tracking-tight truncate group-hover:text-brand-primary transition-colors font-black">{member.user_name}</Typography>
+                                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest block opacity-40">{i === 0 ? '🏆 Top Performer' : 'Especialista'}</Typography>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-6 mb-8 relative z-10">
                                 <div>
-                                    <Typography variant="caption" tone="muted" className="text-[8px] mb-1 block uppercase font-black">Vendas</Typography>
-                                    <Typography variant="h1" className="text-3xl font-mono-numbers tracking-tighter">{member.vnd_total}</Typography>
+                                    <Typography variant="tiny" tone="muted" className="text-center mb-1 block uppercase font-black opacity-40">Vendas</Typography>
+                                    <Typography variant="h1" className="text-3xl font-mono-numbers tracking-tighter text-center">{member.vnd_total}</Typography>
                                 </div>
                                 <div>
-                                    <Typography variant="caption" tone="muted" className="text-[8px] mb-1 block uppercase font-black">Atingimento</Typography>
-                                    <Typography variant="h1" className="text-3xl font-mono-numbers tracking-tighter">{member.atingimento}%</Typography>
+                                    <Typography variant="tiny" tone="muted" className="text-center mb-1 block uppercase font-black opacity-40">Atingimento</Typography>
+                                    <Typography variant="h1" className="text-3xl font-mono-numbers tracking-tighter text-center">{member.atingimento}%</Typography>
                                 </div>
                             </div>
 
@@ -120,8 +120,8 @@ export default function SellerPerformance() {
             <Card className="mb-32 border-none shadow-mx-lg bg-white overflow-hidden group">
                 <CardHeader className="bg-surface-alt/30 border-b border-border-default p-10 flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="text-2xl uppercase">Matriz de Eficiência</CardTitle>
-                        <CardDescription className="uppercase tracking-widest font-black text-[10px] mt-1">CONVERSÃO (%) POR CONSULTOR EM TEMPO REAL</CardDescription>
+                        <CardTitle className="text-2xl uppercase tracking-tighter">Matriz de Eficiência</CardTitle>
+                        <Typography variant="tiny" tone="muted" className="uppercase tracking-widest font-black block mt-1 opacity-40">CONVERSÃO (%) POR CONSULTOR EM TEMPO REAL</Typography>
                     </div>
                     <Target size={24} className="text-brand-primary opacity-40" />
                 </CardHeader>
@@ -130,8 +130,8 @@ export default function SellerPerformance() {
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={filteredRanking} layout="vertical" margin={{ left: 0, right: 30, top: 0, bottom: 0 }}>
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="user_name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#1A1D20', fontWeight: 900, fontSize: 10 }} width={120} />
-                                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1.5rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900 }} />
+                                <YAxis dataKey="user_name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#1A1D20', fontWeight: 900, fontSize: 8 }} width={120} />
+                                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1.5rem', border: 'none', color: '#fff', fontSize: '8px', fontWeight: 900 }} />
                                 <Bar dataKey="atingimento" radius={[0, 12, 12, 0]} barSize={24}>
                                     {filteredRanking.map((_, i) => (
                                         <Cell key={i} fill={i === 0 ? '#4f46e5' : i === 1 ? '#6366f1' : '#818cf8'} />

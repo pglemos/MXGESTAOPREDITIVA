@@ -76,21 +76,23 @@ export default function DailyCheckin() {
                     <ShieldCheck size={48} strokeWidth={2.5} />
                 </div>
                 <div className="space-y-4">
-                    <Typography variant="h1">Check-in <span className="text-emerald-600">Firmado</span></Typography>
+                    <Typography variant="h1">Check-in <Typography as="span" className="text-emerald-600">Firmado</Typography></Typography>
                     <Typography variant="p" tone="muted" className="max-w-xs mx-auto uppercase">Seu registro operacional para {referenceDateLabel} já está na malha.</Typography>
                 </div>
                 <Card className="p-8 border-none bg-white shadow-mx-lg">
                     <div className="flex items-center justify-between mb-6">
-                        <Typography variant="caption" tone="muted">Status da Tropa</Typography>
-                        <Badge variant="success">OK</Badge>
+                        <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Status da Tropa</Typography>
+                        <Badge variant="success">
+                            <Typography variant="tiny" as="span" className="font-black">OK</Typography>
+                        </Badge>
                     </div>
                     <Typography variant="p" className="text-sm font-bold text-slate-700 leading-relaxed italic">
                         "{todayCheckin.note || 'Operação em andamento. Foco no fechamento.'}"
                     </Typography>
                 </Card>
                 <div className="flex flex-col gap-4">
-                    <Button variant="outline" onClick={handleRefresh} className="rounded-full h-14 uppercase tracking-widest text-[10px]">
-                        <RefreshCw size={16} className={cn("mr-2", isRefetching && "animate-spin")} /> Sincronizar Nuvem
+                    <Button variant="outline" onClick={handleRefresh} className="rounded-full h-14 uppercase tracking-widest bg-white">
+                        <RefreshCw size={16} className={cn("mr-2", isRefetching && "animate-spin")} /> <Typography variant="tiny" as="span" className="font-black">Sincronizar Nuvem</Typography>
                     </Button>
                 </div>
             </motion.div>
@@ -104,16 +106,18 @@ export default function DailyCheckin() {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Terminal <span className="text-brand-primary">MX</span></Typography>
+                        <Typography variant="h1">Terminal <Typography as="span" className="text-brand-primary">MX</Typography></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md">Operational Check-in • {referenceDateLabel}</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">Operational Check-in • {referenceDateLabel}</Typography>
                 </div>
                 
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <Badge variant="brand" className="px-6 py-3 rounded-full shadow-mx-sm uppercase tracking-widest">Aguardando Registro</Badge>
+                    <Badge variant="brand" className="px-6 py-3 rounded-full shadow-mx-sm">
+                        <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">Aguardando Registro</Typography>
+                    </Badge>
                 </div>
             </header>
 
