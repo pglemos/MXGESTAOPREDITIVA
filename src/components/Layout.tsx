@@ -134,10 +134,10 @@ export default function Layout() {
   if (!profile || !role) return null
 
   return (
-    <div className="h-[100dvh] bg-surface-alt flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-surface-alt flex flex-col">
 
       {/* Top Header - Alinhamento Corrigido */}
-      <header className="h-20 w-full px-mx-lg flex items-center justify-between z-40 bg-white border-b border-border-default shrink-0">
+      <header className="h-20 w-full px-mx-lg flex items-center justify-between z-40 bg-white border-b border-border-default shrink-0 sticky top-0">
         <div className="flex items-center gap-mx-md min-w-0">
           <button
             type="button"
@@ -182,10 +182,10 @@ export default function Layout() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden p-mx-md gap-mx-md relative">
+      <div className="flex flex-1 p-mx-md gap-mx-md relative">
 
         {/* Sidebar Minimalista */}
-        <aside className="hidden md:flex w-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm">
+        <aside className="hidden md:flex w-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-24 h-[calc(100vh-120px)]">
           {categories.map((cat) => (
             <button
               type="button"
@@ -209,7 +209,7 @@ export default function Layout() {
         </aside>
 
         {/* Workspace Root - Sem o botão fantasma */}
-        <main className="flex-1 h-full bg-white border border-border-default rounded-mx-3xl overflow-hidden relative shadow-mx-sm">
+        <main className="flex-1 bg-white border border-border-default rounded-mx-3xl relative shadow-mx-sm">
           <Outlet />
         </main>
 

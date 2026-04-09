@@ -103,7 +103,7 @@ export default function PainelConsultor() {
             let from = 0;
             while (true) {
                 const { data, error } = await supabaseAdmin.from('daily_checkins')
-                    .select('store_id, vnd_net, leads, agd_net, visitas')
+                    .select('store_id, vnd_net, vnd_porta, vnd_cart, leads, agd_net, agd_cart, visitas')
                     .gte('reference_date', range.start)
                     .lte('reference_date', range.end)
                     .range(from, from + 999);
@@ -130,9 +130,11 @@ export default function PainelConsultor() {
             for (const checkin of allCheckins) {
                 const sid = checkin.store_id
                 if (!salesMap[sid]) salesMap[sid] = { total: 0, leads: 0, agd: 0, vis: 0 }
-                salesMap[sid].total += Number(checkin.vnd_net || 0)
+                // Soma de todos os canais de venda
+                salesMap[sid].total += Number(checkin.vnd_net || 0) + Number(checkin.vnd_porta || 0) + Number(checkin.vnd_cart || 0)
                 salesMap[sid].leads += Number(checkin.leads || 0)
-                salesMap[sid].agd += Number(checkin.agd_net || 0)
+                // Soma de agendamentos
+                salesMap[sid].agd += Number(checkin.agd_net || 0) + Number(checkin.agd_cart || 0)
                 salesMap[sid].vis += Number(checkin.visitas || 0)
             }
 
@@ -223,101 +225,101 @@ export default function PainelConsultor() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-10 p-4 md:p-10 overflow-y-auto no-scrollbar bg-slate-50/30">
+        <main className="w-full flex flex-col gap-4 md:gap-10 p-2 md:p-10 bg-slate-50/30">
             
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 border-b border-gray-200 pb-10 shrink-0">
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-4">
-                        <div className="w-3 h-12 bg-slate-950 rounded-full shadow-lg" aria-hidden="true" />
-                        <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tighter uppercase leading-none">Rede Operacional</h1>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-8 border-b border-gray-200 pb-4 md:pb-10 shrink-0">
+                <div className="flex flex-col gap-1 md:gap-2">
+                    <div className="flex items-center gap-2 md:gap-4">
+                        <div className="w-1.5 h-8 md:w-3 md:h-12 bg-slate-950 rounded-full shadow-lg" aria-hidden="true" />
+                        <h1 className="text-xl sm:text-4xl md:text-5xl font-black text-slate-950 tracking-tighter uppercase leading-none">Rede Operacional</h1>
                     </div>
-                    <div className="flex items-center gap-4 pl-6">
-                        <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-100 px-3 py-1 font-black text-[10px] tracking-widest uppercase">
+                    <div className="flex items-center gap-2 md:gap-4 pl-3 md:pl-6">
+                        <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-100 px-1.5 md:px-3 py-0.5 font-black text-[7px] md:text-[10px] tracking-widest uppercase">
                            Gap Global: {globalStats.totalGap} UNIDADES
                         </Badge>
-                        <p className="text-gray-600 text-[10px] font-black uppercase tracking-[0.4em]">Matriz de Governança MX • Dados Sincronizados ({filteredAndSortedStores.length} LOJAS)</p>
+                        <p className="text-gray-600 text-[7px] md:text-[10px] font-black uppercase tracking-tight md:tracking-[0.4em]">Matriz de Governança MX • Dados Sincronizados ({filteredAndSortedStores.length} LOJAS)</p>
                     </div>
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
-                    <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm" role="group" aria-label="Filtro temporal">
-                        <Calendar size={14} className="text-gray-500 ml-2" aria-hidden="true" />
-                        <button onClick={() => setTimeframe('hoje')} aria-pressed={timeframe === 'hoje'} className={cn("px-3 h-8 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'hoje' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-500 hover:bg-gray-50")}>Hoje</button>
-                        <button onClick={() => setTimeframe('ontem')} aria-pressed={timeframe === 'ontem'} className={cn("px-3 h-8 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'ontem' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-500 hover:bg-gray-50")}>Ontem</button>
-                        <button onClick={() => setTimeframe('semanal')} aria-pressed={timeframe === 'semanal'} className={cn("px-3 h-8 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'semanal' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-400 hover:bg-gray-50")}>Semanal</button>
-                        <button onClick={() => setTimeframe('mensal')} aria-pressed={timeframe === 'mensal'} className={cn("px-3 h-8 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'mensal' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-400 hover:bg-gray-50")}>Mensal</button>
+                <div className="flex flex-wrap items-center gap-2 md:gap-3 shrink-0">
+                    <div className="flex items-center gap-1 md:gap-2 bg-white p-1.5 md:p-2 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm" role="group" aria-label="Filtro temporal">
+                        <Calendar size={12} className="text-gray-500 ml-1" aria-hidden="true" />
+                        <button onClick={() => setTimeframe('hoje')} aria-pressed={timeframe === 'hoje'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'hoje' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-500 hover:bg-gray-50")}>Hoje</button>
+                        <button onClick={() => setTimeframe('ontem')} aria-pressed={timeframe === 'ontem'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'ontem' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-500 hover:bg-gray-50")}>Ontem</button>
+                        <button onClick={() => setTimeframe('semanal')} aria-pressed={timeframe === 'semanal'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'semanal' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-400 hover:bg-gray-50")}>Semanal</button>
+                        <button onClick={() => setTimeframe('mensal')} aria-pressed={timeframe === 'mensal'} className={cn("px-2 md:px-3 h-7 md:h-8 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none", timeframe === 'mensal' ? "bg-slate-900 text-white shadow-md shadow-slate-200" : "text-gray-400 hover:bg-gray-50")}>Mensal</button>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm" role="group" aria-label="Disparar relatórios">
-                        <button onClick={() => triggerReport('matinal')} disabled={isTriggering !== null} aria-label="Disparar relatório matinal" className="text-[10px] font-black uppercase tracking-widest px-4 h-8 rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
+                    <div className="flex items-center gap-1 md:gap-2 bg-white p-1.5 md:p-2 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm" role="group" aria-label="Disparar relatórios">
+                        <button onClick={() => triggerReport('matinal')} disabled={isTriggering !== null} aria-label="Disparar relatório matinal" className="text-[8px] md:text-[10px] font-black uppercase tracking-widest px-2 md:px-4 h-7 md:h-8 rounded-lg md:rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
                             {isTriggering === 'matinal' ? '…' : 'Matinal'}
                         </button>
-                        <button onClick={() => triggerReport('semanal')} disabled={isTriggering !== null} aria-label="Disparar relatório de feedback" className="text-[10px] font-black uppercase tracking-widest px-4 h-8 rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
+                        <button onClick={() => triggerReport('semanal')} disabled={isTriggering !== null} aria-label="Disparar relatório de feedback" className="text-[8px] md:text-[10px] font-black uppercase tracking-widest px-2 md:px-4 h-7 md:h-8 rounded-lg md:rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
                             {isTriggering === 'semanal' ? '…' : 'Feedback'}
                         </button>
-                        <button onClick={() => triggerReport('mensal')} disabled={isTriggering !== null} aria-label="Disparar relatório mensal" className="text-[10px] font-black uppercase tracking-widest px-4 h-8 rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
+                        <button onClick={() => triggerReport('mensal')} disabled={isTriggering !== null} aria-label="Disparar relatório mensal" className="text-[8px] md:text-[10px] font-black uppercase tracking-widest px-2 md:px-4 h-7 md:h-8 rounded-lg md:rounded-xl bg-gray-50 border border-transparent hover:border-indigo-200 hover:bg-white hover:text-indigo-600 transition-all disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
                             {isTriggering === 'mensal' ? '…' : 'Mensal'}
                         </button>
                     </div>
 
-                    <button type="button" onClick={() => fetchNetworkSnapshot(true)} aria-label="Sincronizar dados da rede" className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all active:scale-95 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
-                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                    <button type="button" onClick={() => fetchNetworkSnapshot(true)} aria-label="Sincronizar dados da rede" className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all active:scale-95 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none">
+                        <RefreshCw size={16} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 shrink-0">
-                <Card className="bg-slate-950 border-none rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6 shrink-0">
+                <Card className="bg-slate-950 border-none rounded-[1.2rem] md:rounded-[2.5rem] p-4 md:p-8 shadow-2xl relative overflow-hidden group">
                     <div className="relative z-10">
-                        <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-4">Venda {timeframe.toUpperCase()}</p>
+                        <p className="text-[7px] md:text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1 md:mb-4">Venda {timeframe.toUpperCase()}</p>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-4xl font-black text-white tracking-tighter tabular-nums leading-none">{globalStats.totalSales}</span>
-                            {timeframe === 'mensal' && <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">{globalStats.globalRitmo}%</span>}
+                            <span className="text-2xl md:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">{globalStats.totalSales}</span>
+                            {timeframe === 'mensal' && <span className="text-[8px] md:text-xs font-bold text-emerald-400 uppercase tracking-widest">{globalStats.globalRitmo}%</span>}
                         </div>
-                        {timeframe === 'mensal' && <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-4">Meta da Rede: {globalStats.totalGoal}</p>}
+                        {timeframe === 'mensal' && <p className="text-[7px] md:text-[10px] font-bold text-white/30 uppercase tracking-widest mt-2 md:mt-4">Meta da Rede: {globalStats.totalGoal}</p>}
                     </div>
                 </Card>
 
-                <Card className="bg-white border-gray-100 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group">
+                <Card className="bg-white border-gray-100 rounded-[1.2rem] md:rounded-[2.5rem] p-4 md:p-8 shadow-sm relative overflow-hidden group">
                     <div className="relative z-10 text-center flex flex-col items-center">
-                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4">Escoamento Rede</p>
-                        <div className="grid grid-cols-3 gap-8">
-                            <div><p className="text-xl font-black text-slate-950 tabular-nums">{globalStats.totalLeads}</p><p className="text-[10px] font-black text-gray-500 uppercase">Leads</p></div>
-                            <div><p className="text-xl font-black text-slate-950 tabular-nums">{globalStats.totalAgd}</p><p className="text-[10px] font-black text-gray-500 uppercase">Agd</p></div>
-                            <div><p className="text-xl font-black text-slate-950 tabular-nums">{globalStats.totalVis}</p><p className="text-[10px] font-black text-gray-500 uppercase">Vis</p></div>
+                        <p className="text-[7px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1 md:mb-4">Escoamento Rede</p>
+                        <div className="grid grid-cols-3 gap-3 md:gap-8">
+                            <div><p className="text-base md:text-xl font-black text-slate-950 tabular-nums">{globalStats.totalLeads}</p><p className="text-[7px] md:text-[10px] font-black text-gray-500 uppercase">Leads</p></div>
+                            <div><p className="text-base md:text-xl font-black text-slate-950 tabular-nums">{globalStats.totalAgd}</p><p className="text-[7px] md:text-[10px] font-black text-gray-500 uppercase">Agd</p></div>
+                            <div><p className="text-base md:text-xl font-black text-slate-950 tabular-nums">{globalStats.totalVis}</p><p className="text-[7px] md:text-[10px] font-black text-gray-500 uppercase">Vis</p></div>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="bg-white border-gray-100 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group">
+                <Card className="bg-white border-gray-100 rounded-[1.2rem] md:rounded-[2.5rem] p-4 md:p-8 shadow-sm relative overflow-hidden group">
                     <div className="relative z-10">
-                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4">Unidades Críticas</p>
-                        <span className="text-4xl font-black text-rose-600 tracking-tighter tabular-nums leading-none">
+                        <p className="text-[7px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1 md:mb-4">Unidades Críticas</p>
+                        <span className="text-2xl md:text-4xl font-black text-rose-600 tracking-tighter tabular-nums leading-none">
                             {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
                         </span>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-4">Ação Imediata Necessária</p>
+                        <p className="text-[7px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-2 md:mt-4">Ação Imediata Necessária</p>
                     </div>
                 </Card>
 
-                <Card className="bg-white border-gray-100 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group">
+                <Card className="bg-white border-gray-100 rounded-[1.2rem] md:rounded-[2.5rem] p-4 md:p-8 shadow-sm relative overflow-hidden group">
                     <div className="relative z-10">
-                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4">Saúde Disciplinar</p>
-                        <span className="text-4xl font-black text-emerald-600 tracking-tighter tabular-nums leading-none">
+                        <p className="text-[7px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1 md:mb-4">Saúde Disciplinar</p>
+                        <span className="text-2xl md:text-4xl font-black text-emerald-600 tracking-tighter tabular-nums leading-none">
                             {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
                         </span>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-4">Aderência aos Check-ins</p>
+                        <p className="text-[7px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-2 md:mt-4">Aderência aos Check-ins</p>
                     </div>
                 </Card>
             </div>
 
-            <Card className="flex-1 overflow-hidden border border-gray-100 shadow-sm rounded-[2.5rem] bg-white pb-20">
-                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-50 bg-gray-50/30 p-8 gap-6">
+            <Card className="w-full border border-gray-100 shadow-sm rounded-[1.5rem] md:rounded-[2.5rem] bg-white mb-20">
+                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-50 bg-gray-50/30 p-6 md:p-8 gap-4 md:gap-6">
                     <div>
-                        <h2 className="text-2xl font-black uppercase tracking-tight text-slate-950">Performance Estratégica</h2>
-                        <CardDescription className="font-bold text-gray-500 uppercase text-[10px] tracking-widest mt-1">Malha de Controle de Unidades MX.</CardDescription>
+                        <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-950">Performance Estratégica</h2>
+                        <CardDescription className="font-bold text-gray-500 uppercase text-[8px] md:text-[10px] tracking-widest mt-1">Malha de Controle de Unidades MX.</CardDescription>
                     </div>
-                    <div className="flex flex-wrap items-center gap-4">
-                        <div className="relative group">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                        <div className="relative group flex-1 sm:flex-none">
                             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" aria-hidden="true" />
                             <label htmlFor="search-units" className="sr-only">Localizar unidade operacional</label>
                             <input 
@@ -327,19 +329,19 @@ export default function PainelConsultor() {
                                 placeholder="Localizar unidade..." 
                                 value={searchTerm} 
                                 onChange={e => setSearchTerm(e.target.value)} 
-                                className="pl-10 pr-4 h-12 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/5 w-full sm:w-48 shadow-sm transition-all" 
+                                className="pl-10 pr-4 h-10 md:h-12 bg-white border border-gray-200 rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold focus:outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/5 w-full sm:w-48 shadow-sm transition-all" 
                             />
                         </div>
-                        <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm h-12" role="group" aria-label="Filtro de status">
-                            <button onClick={() => setStatusFilter('all')} aria-pressed={statusFilter === 'all'} className={cn("px-3 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none", statusFilter === 'all' ? "bg-slate-900 text-white shadow-sm" : "text-gray-500 hover:text-slate-900")}>Todos</button>
-                            <button onClick={() => setStatusFilter('alert')} aria-pressed={statusFilter === 'alert'} className={cn("px-3 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-amber-500 outline-none", statusFilter === 'alert' ? "bg-amber-500 text-white shadow-sm" : "text-gray-500 hover:text-amber-500")}>Alertas</button>
-                            <button onClick={() => setStatusFilter('critical')} aria-pressed={statusFilter === 'critical'} className={cn("px-3 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-rose-500 outline-none", statusFilter === 'critical' ? "bg-rose-600 text-white shadow-sm" : "text-gray-500 hover:text-rose-600")}>Críticos</button>
+                        <div className="flex items-center gap-1 bg-white border border-gray-200 p-1 rounded-lg md:rounded-xl shadow-sm h-10 md:h-12" role="group" aria-label="Filtro de status">
+                            <button onClick={() => setStatusFilter('all')} aria-pressed={statusFilter === 'all'} className={cn("px-2 md:px-3 h-full rounded-md md:rounded-lg text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none", statusFilter === 'all' ? "bg-slate-900 text-white shadow-sm" : "text-gray-500 hover:text-slate-900")}>Todos</button>
+                            <button onClick={() => setStatusFilter('alert')} aria-pressed={statusFilter === 'alert'} className={cn("px-2 md:px-3 h-full rounded-md md:rounded-lg text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-amber-500 outline-none", statusFilter === 'alert' ? "bg-amber-500 text-white shadow-sm" : "text-gray-500 hover:text-amber-500")}>Alertas</button>
+                            <button onClick={() => setStatusFilter('critical')} aria-pressed={statusFilter === 'critical'} className={cn("px-2 md:px-3 h-full rounded-md md:rounded-lg text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-rose-500 outline-none", statusFilter === 'critical' ? "bg-rose-600 text-white shadow-sm" : "text-gray-500 hover:text-rose-600")}>Críticos</button>
                         </div>
-                        <Link to="/lojas" className="text-[10px] font-black uppercase tracking-widest bg-slate-950 text-white px-6 h-12 rounded-xl flex items-center justify-center hover:bg-black transition-all shadow-md focus-visible:ring-4 focus-visible:ring-slate-500/20 outline-none">Gestão de Lojas</Link>
+                        <Link to="/lojas" className="text-[8px] md:text-[10px] font-black uppercase tracking-widest bg-slate-950 text-white px-4 md:px-6 h-10 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center hover:bg-black transition-all shadow-md focus-visible:ring-4 focus-visible:ring-slate-500/20 outline-none">Gestão de Lojas</Link>
                     </div>
                 </CardHeader>
-                <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left min-w-[1200px]">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[1000px] md:min-w-[1200px]">
                         <caption className="sr-only">Tabela de desempenho operacional das lojas da rede</caption>
                         <thead className="bg-gray-50 border-b border-gray-100">
                             <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
