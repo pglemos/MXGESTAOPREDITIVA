@@ -12,6 +12,7 @@ const typographyVariants = cva(
         h3: "text-xl font-black tracking-tight uppercase leading-none text-text-primary",
         p: "text-sm font-bold leading-relaxed text-text-secondary uppercase tracking-tight",
         caption: "text-[10px] font-black uppercase tracking-[0.3em] text-text-tertiary",
+        tiny: "text-[8px] font-black uppercase tracking-widest",
         mono: "font-mono-numbers text-sm font-black",
       },
       tone: {
@@ -40,7 +41,7 @@ interface TypographyProps
 
 const Typography = React.forwardRef<HTMLElement, TypographyProps>(
   ({ className, variant, tone, as, ...props }, ref) => {
-    const Component = as || (variant === 'caption' || variant === 'mono' ? 'span' : (variant as any) || 'p')
+    const Component = as || (variant === 'caption' || variant === 'tiny' || variant === 'mono' ? 'span' : (variant as any) || 'p')
     return (
       <Comp
         as={Component}
@@ -52,7 +53,6 @@ const Typography = React.forwardRef<HTMLElement, TypographyProps>(
   }
 )
 
-// Helper component to avoid ref issues with custom components
 const Comp = ({ as: Component, ...props }: any) => <Component {...props} />
 
 Typography.displayName = "Typography"

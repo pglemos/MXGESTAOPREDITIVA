@@ -3,67 +3,51 @@ import {
     TrendingUp, Target, Zap, AlertTriangle, CheckCircle2, 
     RefreshCw, MessageCircle, BarChart3, Mail, FileDown,
     Users, UserCheck, Calendar, ArrowRight, Smartphone,
-    Globe, Eye, History, Award, Activity
+    ChevronRight, ExternalLink
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
-import { format, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { useCheckins, calculateReferenceDate } from '@/hooks/useCheckins'
-import { useGoals } from '@/hooks/useGoals'
-import { useTeam } from '@/hooks/useTeam'
-import { useRanking } from '@/hooks/useRanking'
-import { somarVendas, calcularProjecao, getDiasInfo, calcularAtingimento } from '@/lib/calculations'
+import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Badge } from '@/components/atoms/Badge'
+import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
+import { motion, AnimatePresence } from 'motion/react'
+import { toast } from 'sonner'
+import { useCheckins, calculateReferenceDate } from '@/hooks/useCheckins'
+import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
+import { useRanking } from '@/hooks/useRanking'
+import { useTeam } from '@/hooks/useTeam'
+import { useAuth } from '@/hooks/useAuth'
+import { format, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { calcularProjecao, getDiasInfo, calcularAtingimento, somarVendas } from '@/lib/calculations'
 
 export default function MorningReport() {
-    const { checkins, loading: loadingCheckins, fetchCheckins } = useCheckins()
-    const { storeGoal, loading: loadingGoals, fetchGoals } = useGoals()
-    const { ranking, loading: loadingRanking, refetch: refetchRanking } = useRanking()
+    const { profile, storeId } = useAuth()
+    const { checkins, loading: loadingCheckins, fetchCheckins: refetchCheckins } = useCheckins()
+    const { storeGoal, loading: loadingGoals, fetchGoals: refetchGoals } = useGoals()
+    const { metaRules, fetchMetaRules } = useStoreMetaRules()
+    const { ranking, refetch: refetchRanking } = useRanking()
     const { sellers, refetch: refetchTeam } = useTeam()
-
-    const daysInfo = useMemo(() => getDiasInfo(), [])
-    const referenceDate = useMemo(() => calculateReferenceDate(), [])
-    const referenceDateLabel = useMemo(() => format(parseISO(referenceDate), 'dd/MM/yyyy', { locale: ptBR }), [referenceDate])
-    
-    const metrics = useMemo(() => {
-        const currentSales = somarVendas(checkins)
-        const teamGoal = storeGoal?.target || 0
-        const projection = calcularProjecao(currentSales, daysInfo.decorridos, daysInfo.total)
-        const reaching = calcularAtingimento(currentSales, teamGoal)
-        
-        return {
-            currentSales,
-            teamGoal,
-            projection,
-            reaching,
-            gap: Math.max(0, teamGoal - currentSales)
-        }
-    }, [checkins, storeGoal, daysInfo])
 
     const [isRefetching, setIsRefetching] = useState(false)
     const [isSendingEmail, setIsSendingEmail] = useState(false)
 
     const handleShareWhatsApp = useCallback(() => {
-        const text = `*MATINAL OFICIAL MX — ${referenceDateLabel}*\n\n` +
-            `🎯 *META MENSAL:* ${metrics.teamGoal}\n` +
-            `📈 *REALIZADO:* ${metrics.currentSales} (${metrics.reaching}%)\n` +
-            `🚀 *PROJEÇÃO:* ${metrics.projection}\n\n` +
-            `📊 *GRADE OPERACIONAL:*\n` +
-            ranking.map(r => `• ${r.user_name}: ${r.vnd_total}v | ${r.agd_total} agd`).join('\n') +
-            `\n\n*FOCO DO DIA:* Validar agenda digital D-0.`
-        
+        const text = formatWhatsAppMorningReport(
+            'Nome da Loja', // Idealmente viria do context ou props
+            referenceDateLabel,
+            metrics,
+            ranking
+        )
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     }, [referenceDateLabel, metrics, ranking])
 
     const handleSendEmail = useCallback(async () => {
         setIsSendingEmail(true)
         try {
-            // Simular chamada ao backend/edge function
+            // No futuro, isso chamará uma edge function que executa o runMatinalWorkflow()
             await new Promise(r => setTimeout(r, 2000))
             toast.success('Relatório enviado para a Direção MX!')
         } catch (e) {
@@ -73,172 +57,230 @@ export default function MorningReport() {
         }
     }, [])
 
-    const handleDownloadXlsx = useCallback(() => {
+    const handleDownloadXlsx = useCallback(async () => {
         toast.info('Gerando planilha operacional...')
-        // Futura integração com xlsx-generator.ts
+        // Futura integração real com xlsx-generator.ts via download no navegador
     }, [])
+
+    const daysInfo = useMemo(() => getDiasInfo(), [])
+    const referenceDate = useMemo(() => calculateReferenceDate(), [])
+    const referenceDateLabel = useMemo(() => format(parseISO(referenceDate), 'dd/MM/yyyy', { locale: ptBR }), [referenceDate])
+    
+    const metrics = useMemo(() => {
+        const currentSales = somarVendas(checkins)
+        const teamGoal = metaRules?.monthly_goal ?? storeGoal?.target ?? 0
+        const projection = calcularProjecao(currentSales, daysInfo.decorridos, daysInfo.total)
+        const reaching = calcularAtingimento(currentSales, teamGoal)
+        const gap = Math.max(teamGoal - currentSales, 0)
+        const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
+        const pendingSellers = (sellers || []).filter(s => !s.checkin_today)
+        
+        return { currentSales, teamGoal, projection, reaching, gap, checkedInCount, pendingSellers }
+    }, [checkins, metaRules, storeGoal, daysInfo, sellers])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        await Promise.all([fetchCheckins(), fetchGoals(), refetchRanking(), refetchTeam()])
-        setIsRefetching(false)
-        toast.success('Matinal Atualizado!')
-    }, [fetchCheckins, fetchGoals, refetchRanking, refetchTeam])
+        try {
+            await Promise.all([refetchCheckins(), refetchGoals(), fetchMetaRules(), refetchRanking(), refetchTeam()])
+            toast.success('Snapshot operacional atualizado!')
+        } finally { setIsRefetching(false) }
+    }, [refetchCheckins, refetchGoals, fetchMetaRules, refetchRanking, refetchTeam])
 
-    const loading = loadingCheckins || loadingGoals || loadingRanking
-
-    if (loading) return (
+    if (loadingCheckins || loadingGoals) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse tracking-[0.3em] font-black uppercase">Consolidando Matinal...</Typography>
+            <Typography variant="caption" tone="muted" className="animate-pulse uppercase font-black tracking-widest">Consolidando Matinal...</Typography>
         </div>
     )
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            {/* Header / Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Matinal <span className="text-brand-primary">Oficial</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">RITUAL DE ALINHAMENTO MX • {referenceDateLabel}</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">Unidade Operacional • Ritual D+1 • {referenceDateLabel}</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm h-12 w-12">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm h-12 w-12 bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
-                    <Button variant="outline" onClick={handleDownloadXlsx} className="h-12 px-6 rounded-full shadow-mx-sm uppercase tracking-widest text-[10px] font-black">
+                    <Button variant="outline" onClick={handleDownloadXlsx} className="h-12 px-6 rounded-full shadow-mx-sm uppercase tracking-widest text-tiny font-black bg-white">
                         <FileDown size={16} className="mr-2" /> PLANILHA
                     </Button>
-                    <Button onClick={handleShareWhatsApp} className="h-12 px-8 rounded-full bg-status-success shadow-mx-lg uppercase tracking-widest text-[10px] font-black hover:bg-status-success/90">
+                    <Button onClick={handleShareWhatsApp} className="h-12 px-8 rounded-full bg-status-success shadow-mx-lg uppercase tracking-widest text-tiny font-black hover:bg-status-success/90">
                         <MessageCircle size={16} className="mr-2 fill-white/20" /> WHATSAPP
                     </Button>
-                    <Button variant="secondary" onClick={handleSendEmail} className="h-12 px-8 rounded-full shadow-mx-xl uppercase tracking-widest text-[10px] font-black" disabled={isSendingEmail}>
+                    <Button variant="secondary" onClick={handleSendEmail} className="h-12 px-8 rounded-full shadow-mx-xl uppercase tracking-widest text-tiny font-black" disabled={isSendingEmail}>
                         {isSendingEmail ? <RefreshCw size={16} className="animate-spin mr-2" /> : <Mail size={16} className="mr-2" />}
                         DIREÇÃO MX
                     </Button>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0">
-                {/* Main Stats */}
-                <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-mx-lg">
-                    {[
-                        { label: 'Realizado', val: metrics.currentSales, icon: Zap, tone: 'brand' },
-                        { label: 'Projeção', val: metrics.projection, icon: TrendingUp, tone: 'success' },
-                        { label: 'Atingimento', val: `${metrics.reaching}%`, icon: Target, tone: 'info' },
-                    ].map((stat, i) => (
-                        <Card key={i} className="p-8 border-none shadow-mx-md bg-white overflow-hidden relative group">
-                            <div className="flex flex-col gap-6 relative z-10">
-                                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border shadow-inner group-hover:rotate-6 transition-transform", 
-                                    stat.tone === 'brand' ? 'bg-mx-indigo-50 text-brand-primary border-mx-indigo-100' :
-                                    stat.tone === 'info' ? 'bg-status-info-surface text-status-info border-mx-blue-100' :
-                                    'bg-status-success-surface text-status-success border-mx-emerald-100'
-                                )}>
-                                    <stat.icon size={24} strokeWidth={2.5} />
-                                </div>
-                                <div>
-                                    <Typography variant="caption" tone="muted" className="mb-1 block uppercase font-black tracking-widest text-[9px]">{stat.label}</Typography>
-                                    <Typography variant="h1" className="text-4xl tabular-nums leading-none tracking-tighter">{stat.val}</Typography>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-
-                {/* Network Health Side */}
-                <aside className="lg:col-span-4">
-                    <Card className="p-10 bg-brand-secondary text-white border-none shadow-mx-xl h-full flex flex-col justify-between relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -mr-24 -mt-24" />
-                        <div className="relative z-10">
-                            <div className="w-14 h-14 rounded-2xl bg-white/10 text-white flex items-center justify-center border border-white/10 shadow-inner mb-8"><Activity size={28} /></div>
-                            <Typography variant="h2" tone="white" className="text-3xl mb-2">Gap Residual</Typography>
-                            <Typography variant="p" tone="white" className="opacity-60 text-xs font-bold uppercase tracking-widest leading-relaxed">Faltam <span className="text-white font-black">{metrics.gap} unidades</span> para bater a meta do mês.</Typography>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg shrink-0">
+                <Card className="p-8 md:p-10 group relative overflow-hidden border-none shadow-mx-lg bg-white">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="w-14 h-14 rounded-mx-2xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center shadow-inner border border-mx-indigo-100"><Target size={24} /></div>
+                            <Badge variant="brand" className="px-4 py-1 uppercase font-black text-tiny shadow-sm">META MENSAL</Badge>
                         </div>
-                        
-                        <div className="pt-10 border-t border-white/10 mt-10 relative z-10">
-                            <div className="flex justify-between items-center mb-4">
-                                <Typography variant="caption" tone="white" className="opacity-60 font-black uppercase">Esforço Diário Sugerido</Typography>
-                                <Badge variant="brand" className="bg-white/20 border-none text-[8px] px-2">{Math.ceil(metrics.gap / Math.max(daysInfo.restantes, 1))}v / dia</Badge>
+                        <Typography variant="h1" className="text-6xl tabular-nums leading-none mb-3 tracking-tighter">{metrics.teamGoal}</Typography>
+                        <div className="flex items-center gap-3">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">REALIZADO: {metrics.currentSales}</Typography>
+                            <div className="w-1 h-1 rounded-full bg-border-strong opacity-20" />
+                            <Typography variant="h3" tone="brand" className="text-sm font-black">{metrics.reaching}%</Typography>
+                        </div>
+                    </div>
+                </Card>
+
+                <Card className="p-8 md:p-10 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -mr-24 -mt-24" />
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="w-14 h-14 rounded-mx-2xl bg-white/10 text-white flex items-center justify-center border border-white/10 shadow-inner"><TrendingUp size={24} /></div>
+                            <Badge variant="outline" className="text-white border-white/20 px-4 py-1 uppercase font-black text-tiny">PROJEÇÃO MX</Badge>
+                        </div>
+                        <Typography variant="h1" tone="white" className="text-6xl tabular-nums leading-none mb-3 tracking-tighter">{metrics.projection}</Typography>
+                        <Typography variant="tiny" tone="white" className="opacity-50 font-black uppercase tracking-widest">GAP RESIDUAL: {metrics.gap} UNIDADES</Typography>
+                    </div>
+                </Card>
+
+                <Card className="p-8 md:p-10 transition-all border-none shadow-mx-lg relative overflow-hidden bg-white">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-status-success-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className={cn("w-14 h-14 rounded-mx-2xl flex items-center justify-center shadow-inner border transition-all", 
+                                metrics.pendingSellers.length > 0 ? "bg-status-error-surface text-status-error border-mx-rose-100" : "bg-status-success-surface text-status-success border-mx-emerald-100"
+                            )}>
+                                {metrics.pendingSellers.length > 0 ? <AlertTriangle size={24} className="animate-pulse" /> : <UserCheck size={24} />}
                             </div>
-                            <Typography variant="caption" tone="white" className="text-[9px] opacity-40 uppercase font-black leading-relaxed">
+                            <Badge variant={metrics.pendingSellers.length > 0 ? 'danger' : 'success'} className="px-4 py-1 uppercase font-black text-tiny shadow-sm">DISCIPLINA</Badge>
+                        </div>
+                        <Typography variant="h1" tone={metrics.pendingSellers.length > 0 ? 'error' : 'success'} className="text-6xl tabular-nums leading-none mb-3 tracking-tighter">
+                            {metrics.checkedInCount}<Typography as="span" variant="h3" tone="muted" className="text-2xl font-black ml-1">/{sellers.length}</Typography>
+                        </Typography>
+                        <Typography variant="tiny" tone={metrics.pendingSellers.length > 0 ? 'error' : 'success'} className="font-black uppercase tracking-widest">
+                            {metrics.pendingSellers.length > 0 ? `${metrics.pendingSellers.length} PENDÊNCIAS EM MALHA` : 'TROPA 100% SINCRONIZADA'}
+                        </Typography>
+                    </div>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
+                <section className="xl:col-span-8">
+                    <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
+                        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-10 bg-surface-alt/20 border-b border-border-default">
+                            <div>
+                                <CardTitle className="text-3xl uppercase tracking-tighter">Grade Operacional</CardTitle>
+                                <CardDescription className="uppercase font-black tracking-widest mt-1 opacity-60 text-tiny">CONSOLIDAÇÃO INDIVIDUAL • CICLO MX</CardDescription>
+                            </div>
+                            <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full border border-border-default shadow-mx-sm">
+                                <Calendar size={16} className="text-brand-primary" />
+                                <Typography variant="tiny" className="font-black uppercase tracking-widest">{referenceDateLabel}</Typography>
+                            </div>
+                        </CardHeader>
+                        <div className="overflow-x-auto no-scrollbar">
+                            <table className="w-full text-left">
+                                <caption className="sr-only">Desempenho operacional detalhado</caption>
+                                <thead>
+                                    <tr className="bg-surface-alt/50 border-b border-border-default text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
+                                        <th scope="col" className="pl-10 py-6">ESPECIALISTA</th>
+                                        <th scope="col" className="py-6 text-center">LEADS</th>
+                                        <th scope="col" className="py-6 text-center">AGEND.</th>
+                                        <th scope="col" className="py-6 text-center text-brand-primary">VENDAS</th>
+                                        <th scope="col" className="pr-10 py-6 text-right">STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border-default bg-white">
+                                    {(ranking || []).map((r) => {
+                                        const isDone = sellers.find(s => s.id === r.user_id)?.checkin_today
+                                        return (
+                                            <tr key={r.user_id} className="hover:bg-surface-alt/30 transition-colors group h-24">
+                                                <td className="pl-10">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner uppercase">{r.user_name.substring(0, 2)}</div>
+                                                        <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight">{r.user_name}</Typography>
+                                                    </div>
+                                                </td>
+                                                <td className="text-center font-black text-lg tabular-nums text-text-primary opacity-60">{r.leads}</td>
+                                                <td className="text-center font-black text-lg tabular-nums text-text-primary opacity-60">{r.agd_total}</td>
+                                                <td className="text-center font-black text-2xl tabular-nums text-brand-primary">{r.vnd_total}</td>
+                                                <td className="pr-10 text-right">
+                                                    <Badge variant={isDone ? 'success' : 'danger'} className="px-6 py-1.5 rounded-lg shadow-sm border uppercase font-black tracking-widest text-[8px]">
+                                                        {isDone ? 'SINCRONIZADO' : 'PENDENTE'}
+                                                    </Badge>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                </section>
+
+                <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
+                    <Card className="p-10 md:p-14 space-y-10 border-none shadow-mx-lg bg-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                        <header className="flex items-center gap-4 border-b border-border-default pb-8 relative z-10">
+                            <div className="w-14 h-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center shadow-mx-sm"><Zap size={28} /></div>
+                            <Typography variant="h3" className="uppercase tracking-tight">Foco do Dia</Typography>
+                        </header>
+                        
+                        <div className="space-y-6 relative z-10">
+                            {metrics.pendingSellers.length > 0 && (
+                                <Card className="p-8 bg-status-error-surface border-none shadow-inner space-y-6">
+                                    <header className="flex justify-between items-start">
+                                        <div className="space-y-1">
+                                            <Typography variant="h3" className="text-base text-status-error leading-none uppercase tracking-tight">COBRAR REGISTRO</Typography>
+                                            <Typography variant="tiny" className="font-black text-status-error/60 uppercase tracking-widest">Ação Imediata Necessária</Typography>
+                                        </div>
+                                        <Badge variant="danger" className="animate-pulse uppercase font-black text-tiny">CRÍTICO</Badge>
+                                    </header>
+                                    <div className="flex flex-wrap gap-3">
+                                        {metrics.pendingSellers.slice(0, 4).map(s => (
+                                            <Button key={s.id} variant="outline" size="sm" className="h-10 rounded-mx-lg bg-white text-status-error border-status-error/20 hover:bg-status-error-surface shadow-sm text-tiny font-black px-4 uppercase">
+                                                <Smartphone size={14} className="mr-2" /> {s.name.split(' ')[0]}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </Card>
+                            )}
+                            
+                            <Card className="p-8 bg-surface-alt border border-border-default shadow-inner space-y-4 group hover:bg-white hover:shadow-mx-sm transition-all">
+                                <header className="flex items-center justify-between">
+                                    <Typography variant="h3" className="text-base uppercase tracking-tight">VALIDAR AGENDAMENTOS</Typography>
+                                    <ChevronRight size={18} className="text-text-tertiary group-hover:translate-x-1 transition-transform" />
+                                </header>
+                                <Typography variant="tiny" tone="muted" className="italic leading-relaxed uppercase tracking-tight font-black">Conferir agenda digital D-0 e confirmar comparecimento para hoje.</Typography>
+                            </Card>
+                        </div>
+                    </Card>
+
+                    <Card className="bg-brand-primary rounded-[3rem] p-12 text-white shadow-mx-xl text-center border-none relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
+                        <div className="relative z-10">
+                            <BarChart3 className="mx-auto mb-8 opacity-30 transform group-hover:scale-110 transition-transform" size={48} />
+                            <Typography variant="tiny" tone="white" className="opacity-50 mb-4 block font-black uppercase tracking-widest">RITMO DE TRAÇÃO IDEAL</Typography>
+                            <div className="flex items-baseline justify-center gap-3 mb-4">
+                                <Typography variant="h1" tone="white" className="text-8xl tabular-nums leading-none tracking-tighter">
+                                    {(metrics.gap / Math.max(daysInfo.total - daysInfo.decorridos, 1)).toFixed(1)}
+                                </Typography>
+                                <Typography variant="h3" tone="white" className="text-2xl opacity-40 uppercase font-black">VND/DIA</Typography>
+                            </div>
+                            <Typography variant="tiny" tone="white" className="opacity-60 leading-relaxed uppercase tracking-widest font-black max-w-xs mx-auto block italic">
                                 Produção necessária por dia para atingimento da meta oficial.
                             </Typography>
                         </div>
                     </Card>
                 </aside>
             </div>
-
-            {/* Performance Ranking */}
-            <Card className="flex-1 border-none shadow-mx-lg bg-white overflow-hidden mb-32">
-                <CardHeader className="bg-surface-alt/30 border-b border-border-default p-10 flex flex-row items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-white border border-border-default flex items-center justify-center shadow-sm"><BarChart3 size={24} className="text-brand-primary" /></div>
-                        <div>
-                            <CardTitle className="text-xl uppercase">Grade Operacional do Time</CardTitle>
-                            <CardDescription className="uppercase tracking-widest font-black text-[9px] mt-1">PRODUÇÃO INDIVIDUAL ACUMULADA</CardDescription>
-                        </div>
-                    </div>
-                    <Badge variant="brand" className="px-4 py-1.5 rounded-full text-[8px] font-black uppercase">Atualizado D-0</Badge>
-                </CardHeader>
-                <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead>
-                            <tr className="bg-surface-alt/50 border-b border-border-default">
-                                <th className="px-10 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest">Especialista</th>
-                                <th className="px-10 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Ritmo</th>
-                                <th className="px-10 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Vendas</th>
-                                <th className="px-10 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Agendamentos</th>
-                                <th className="px-10 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Visitas</th>
-                                <th className="px-10 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Eficiência</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border-subtle">
-                            {ranking.map((r, i) => (
-                                <tr key={r.user_id} className={cn("hover:bg-surface-alt transition-colors group h-24", i === 0 && "bg-mx-indigo-50/20")}>
-                                    <td className="px-10">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{r.user_name.charAt(0)}</div>
-                                            <div className="flex flex-col">
-                                                <Typography variant="h3" className="text-base truncate max-w-[180px]">{r.user_name}</Typography>
-                                                <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase tracking-widest">{i === 0 ? '🏆 TOP PERFORMER' : 'ESPECIALISTA'}</Typography>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-10 text-center">
-                                        <div className="flex justify-center">
-                                            <Badge variant={r.atingimento >= 100 ? 'success' : r.atingimento >= 70 ? 'warning' : 'danger'} className="px-4 py-1.5 rounded-lg font-mono-numbers text-[10px]">
-                                                {r.atingimento}%
-                                            </Badge>
-                                        </div>
-                                    </td>
-                                    <td className="px-10 text-center">
-                                        <Typography variant="h3" className="text-xl tabular-nums">{r.vnd_total}</Typography>
-                                    </td>
-                                    <td className="px-10 text-center">
-                                        <Typography variant="h3" className="text-xl tabular-nums opacity-40 group-hover:opacity-100 transition-opacity">{r.agd_total}</Typography>
-                                    </td>
-                                    <td className="px-10 text-center">
-                                        <Typography variant="h3" className="text-xl tabular-nums opacity-40 group-hover:opacity-100 transition-opacity">{r.visitas}</Typography>
-                                    </td>
-                                    <td className="px-10">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className="w-24 h-1.5 bg-surface-alt rounded-full overflow-hidden border border-border-default p-px">
-                                                <div className={cn("h-full rounded-full transition-all duration-1000", r.atingimento >= 100 ? "bg-status-success" : "bg-brand-primary")} style={{ width: `${Math.min(r.atingimento, 100)}%` }} />
-                                            </div>
-                                            <Typography variant="caption" className="text-[8px] font-black opacity-40">PERFORMANCE ATUAL</Typography>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
         </main>
     )
 }

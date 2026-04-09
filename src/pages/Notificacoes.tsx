@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { 
   Bell, CheckCircle2, Clock, AlertTriangle, X, Search, RefreshCw, 
   MoreVertical, Trash2, ChevronRight, MessageSquare, Megaphone, 
-  Zap, Filter, CheckCheck, TrendingUp, History, Smartphone, ShieldCheck
+  Zap, Filter, CheckCheck, TrendingUp, History, Smartphone
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
@@ -67,28 +67,26 @@ export default function Notificacoes() {
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
-      {/* Header / Inbox Toolbar */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-4">
             <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
             <Typography variant="h1">Central de <span className="text-brand-primary">Alertas</span></Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">MOTOR DE DISCIPLINA & INTELIGÊNCIA MX</Typography>
+          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">MOTOR DE DISCIPLINA & INTELIGÊNCIA MX</Typography>
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
-          <Button variant="outline" size="icon" onClick={handleRefresh} className="w-12 h-12 rounded-xl shadow-mx-sm">
+          <Button variant="outline" size="icon" onClick={handleRefresh} className="w-12 h-12 rounded-xl shadow-mx-sm bg-white">
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
           </Button>
-          <Button variant="outline" onClick={() => {markAllAsRead(); toast.success('Tudo lido!')}} className="h-12 px-6 rounded-full shadow-mx-sm uppercase font-black text-[10px]">
+          <Button variant="outline" onClick={() => {markAllAsRead(); toast.success('Tudo lido!')}} className="h-12 px-6 rounded-full shadow-mx-sm uppercase font-black text-xs bg-white tracking-widest">
             <CheckCheck size={18} className="mr-2" /> MARCAR TUDO
           </Button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
-        {/* Inbox Section */}
         <section className="lg:col-span-8 flex flex-col">
           <Card className="border-none shadow-mx-xl bg-white overflow-hidden h-full flex flex-col group relative">
             <div className="absolute top-0 right-0 p-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors">
@@ -99,11 +97,11 @@ export default function Notificacoes() {
               <div className="flex items-center gap-6">
                 <div className="w-16 h-16 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl"><Bell size={32} strokeWidth={2.5} /></div>
                 <div>
-                  <Typography variant="h2" className="text-2xl uppercase">Meu Inbox</Typography>
-                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">SINALIZAÇÕES DE AUDITORIA</Typography>
+                  <Typography variant="h2" className="text-2xl uppercase tracking-tighter leading-none">Meu Inbox</Typography>
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SINALIZAÇÕES DE AUDITORIA</Typography>
                 </div>
               </div>
-              <Badge variant="brand" className="px-6 py-2 rounded-full font-black shadow-mx-sm">{unreadCount} NOVAS</Badge>
+              <Badge variant="brand" className="px-6 py-2 rounded-full font-black shadow-mx-sm uppercase text-xs">{unreadCount} NOVAS</Badge>
             </CardHeader>
 
             <CardContent className="flex-1 overflow-y-auto no-scrollbar p-10 md:p-14 relative z-10">
@@ -111,13 +109,13 @@ export default function Notificacoes() {
                 {Object.entries(grouped).length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-40">
                         <ShieldCheck size={64} className="text-text-tertiary mb-8" />
-                        <Typography variant="h2">Inbox Limpo</Typography>
-                        <Typography variant="p" tone="muted" className="max-w-xs mt-4 uppercase">Nenhuma sinalização pendente na malha operacional.</Typography>
+                        <Typography variant="h2" className="uppercase tracking-tighter">Inbox Limpo</Typography>
+                        <Typography variant="caption" tone="muted" className="max-w-xs mt-4 uppercase font-black tracking-widest">Nenhuma sinalização pendente na malha operacional.</Typography>
                     </div>
                 ) : Object.entries(grouped).map(([group, list]) => (
                   <div key={group} className="space-y-6 mb-14 last:mb-0">
                     <div className="flex items-center gap-6 px-4">
-                      <Typography variant="caption" tone="muted" className="font-black tracking-[0.3em] uppercase whitespace-nowrap">{group}</Typography>
+                      <Typography variant="caption" tone="muted" className="font-black tracking-widest uppercase whitespace-nowrap">{group}</Typography>
                       <div className="h-px flex-1 bg-border-default opacity-50" />
                     </div>
                     {list.map((n, i) => (
@@ -139,24 +137,24 @@ export default function Notificacoes() {
                         <div className="flex-1 min-w-0">
                           <header className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-4">
-                              <Typography variant="h3" className="text-base group-hover/item:text-brand-primary transition-colors truncate uppercase">{n.title}</Typography>
-                              {!n.read && n.priority === 'high' && <Badge variant="danger" className="text-[7px] font-black h-4 px-2 rounded-full animate-pulse shadow-sm">CRÍTICO</Badge>}
+                              <Typography variant="h3" className="text-base group-hover/item:text-brand-primary transition-colors truncate uppercase font-black tracking-tight">{n.title}</Typography>
+                              {!n.read && n.priority === 'high' && <Badge variant="danger" className="text-xs font-black h-5 px-3 rounded-full animate-pulse shadow-sm">CRÍTICO</Badge>}
                             </div>
-                            <Typography variant="mono" tone="muted" className="text-[10px] font-black uppercase tracking-widest">{format(new Date(n.created_at), 'HH:mm')}</Typography>
+                            <Typography variant="mono" tone="muted" className="text-xs font-black uppercase tracking-widest">{format(new Date(n.created_at), 'HH:mm')}</Typography>
                           </header>
-                          <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed italic line-clamp-2">"{n.message}"</Typography>
+                          <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed italic line-clamp-2 uppercase tracking-tight opacity-60">"{n.message}"</Typography>
                           <footer className="flex items-center gap-6 mt-6">
-                            {n.link && <Typography variant="caption" tone="brand" className="text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2 group-hover/item:translate-x-1 transition-transform">Ação Imediata <ChevronRight size={12} strokeWidth={3} /></Typography>}
+                            {n.link && <Typography variant="caption" tone="brand" className="text-xs font-black uppercase tracking-widest flex items-center gap-2 group-hover/item:translate-x-1 transition-transform">Ação Imediata <ChevronRight size={12} strokeWidth={3} /></Typography>}
                             <Button 
                               variant="ghost" size="sm" 
                               onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); toast.success('Alerta removido!') }} 
-                              className="text-[9px] font-black text-text-tertiary hover:text-status-error uppercase tracking-widest p-0 h-auto hover:bg-transparent"
+                              className="text-xs font-black text-text-tertiary hover:text-status-error uppercase tracking-widest p-0 h-auto hover:bg-transparent"
                             >
                               Remover
                             </Button>
                           </footer>
                         </div>
-                        {!n.read && <div className="absolute right-8 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-brand-primary shadow-[0_0_10px_rgba(79,70,229,0.5)] animate-pulse" />}
+                        {!n.read && <div className="absolute right-8 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-brand-primary shadow-mx-md animate-pulse" />}
                       </motion.article>
                     ))}
                   </div>
@@ -166,12 +164,11 @@ export default function Notificacoes() {
           </Card>
         </section>
 
-        {/* Sidebar Filters */}
         <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
           <Card className="p-10 border-none shadow-mx-lg bg-white space-y-10">
             <header className="border-b border-border-default pb-8">
-                <Typography variant="h3">Filtro Disciplinar</Typography>
-                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">SEGMENTAÇÃO DE ALERTAS</Typography>
+                <Typography variant="h3" className="uppercase tracking-tight">Filtro Disciplinar</Typography>
+                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SEGMENTAÇÃO DE ALERTAS</Typography>
             </header>
             
             <div className="relative group">
@@ -179,7 +176,7 @@ export default function Notificacoes() {
                 <Input 
                     placeholder="LOCALIZAR ALERTA..." value={searchTerm} 
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
+                    className="!pl-11 !h-12 uppercase tracking-widest text-xs"
                 />
             </div>
 
@@ -208,13 +205,13 @@ export default function Notificacoes() {
             </nav>
 
             {filterType && (
-              <Button variant="ghost" onClick={() => setFilterType(null)} className="w-full text-[9px] font-black uppercase tracking-widest text-brand-primary hover:bg-mx-indigo-50">
+              <Button variant="ghost" onClick={() => setFilterType(null)} className="w-full text-xs font-black uppercase tracking-widest text-brand-primary hover:bg-mx-indigo-50">
                 LIMPAR FILTROS
               </Button>
             )}
 
             <footer className="pt-8 border-t border-border-default">
-                <Button variant="outline" className="w-full h-14 rounded-full shadow-sm font-black uppercase tracking-widest text-[10px]">
+                <Button variant="outline" className="w-full h-14 rounded-full shadow-sm font-black uppercase tracking-widest text-xs bg-white border-border-strong hover:border-brand-primary">
                     AJUSTES DE ALERTA
                 </Button>
             </footer>

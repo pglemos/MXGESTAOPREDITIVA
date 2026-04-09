@@ -9,6 +9,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Select } from '@/components/atoms/Select'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { mockInventory } from '@/lib/mock-data'
 import { useAuth } from '@/hooks/useAuth'
@@ -53,18 +54,17 @@ export default function Inventory() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            {/* Header / Inventory Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Gestão de <span className="text-brand-primary">Estoque</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">MONITORAMENTO DE ATIVOS OPERACIONAIS • MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">MONITORAMENTO DE ATIVOS OPERACIONAIS • MX</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12 bg-white border-border-strong">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     <div className="bg-white p-1 rounded-mx-full flex border border-border-default shadow-mx-sm">
@@ -81,18 +81,17 @@ export default function Inventory() {
                             <List size={18} />
                         </Button>
                     </div>
-                    <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
+                    <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
                         <Plus size={18} className="mr-2" /> NOVO ATIVO
                     </Button>
                 </div>
             </header>
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-lg shrink-0">
                 {stats.map((stat, i) => (
                     <motion.div key={stat.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                         <Card className="p-8 border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12 opacity-50" />
                             <div className="flex items-center gap-6 relative z-10">
                                 <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
                                     stat.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
@@ -102,8 +101,8 @@ export default function Inventory() {
                                     <stat.icon size={24} strokeWidth={2.5} />
                                 </div>
                                 <div className="space-y-1">
-                                    <Typography variant="caption" tone="muted" className="block uppercase tracking-widest">{stat.title}</Typography>
-                                    <Typography variant="h1" className="text-3xl tabular-nums leading-none">{stat.value}</Typography>
+                                    <Typography variant="tiny" tone="muted" className="block uppercase tracking-widest font-black">{stat.title}</Typography>
+                                    <Typography variant="h1" className="text-3xl tabular-nums leading-none tracking-tighter">{stat.value}</Typography>
                                 </div>
                             </div>
                         </Card>
@@ -112,28 +111,25 @@ export default function Inventory() {
             </div>
 
             <div className="flex flex-col md:flex-row gap-mx-md items-center justify-between shrink-0 mb-4">
-                <div className="relative w-full lg:w-[480px] group">
+                <div className="relative w-full lg:max-w-mx-2xl group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
                     <Input 
                         placeholder="BUSCAR MODELO OU PLACA..." value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="!h-14 !pl-12 !text-[10px] uppercase tracking-widest"
+                        className="!h-14 !pl-12 uppercase tracking-widest text-xs"
                     />
                 </div>
                 
                 <div className="flex items-center gap-mx-sm w-full md:w-auto">
-                    <div className="relative group flex-1 sm:flex-none">
-                        <select 
-                            value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}
-                            className="w-full sm:w-64 h-14 bg-white border border-border-default rounded-mx-xl px-6 text-[10px] font-black uppercase tracking-widest text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-mx-sm"
-                        >
-                            <option value="all">TODOS OS STATUS</option>
-                            <option value="Normal">SAUDÁVEL</option>
-                            <option value="Crítico">CRÍTICO (AGING)</option>
-                        </select>
-                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary" />
-                    </div>
-                    <Button variant="outline" size="icon" className="w-14 h-14 rounded-xl shadow-mx-sm border-border-default hover:text-brand-primary">
+                    <Select 
+                        value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}
+                        className="!h-14 sm:!w-mx-2xl uppercase tracking-widest font-black text-xs"
+                    >
+                        <option value="all">TODOS OS STATUS</option>
+                        <option value="Normal">SAUDÁVEL</option>
+                        <option value="Crítico">CRÍTICO (AGING)</option>
+                    </Select>
+                    <Button variant="outline" size="icon" className="w-14 h-14 rounded-xl shadow-mx-sm border-border-strong hover:text-brand-primary bg-white">
                         <Download size={20} />
                     </Button>
                 </div>
@@ -146,35 +142,39 @@ export default function Inventory() {
                             {filteredInventory.map((item, i) => (
                                 <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}>
                                     <Card className="overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 cursor-pointer flex flex-col h-full border-none shadow-mx-lg bg-white">
-                                        <div className="aspect-[16/10] bg-surface-alt relative flex items-center justify-center border-b border-border-default overflow-hidden">
-                                            <Badge variant={item.status === 'Normal' ? 'success' : 'danger'} className="absolute top-4 left-4 font-black text-[8px] px-3 h-6 rounded-lg shadow-sm border-none">
+                                        <div className="aspect-video bg-surface-alt relative flex items-center justify-center border-b border-border-default overflow-hidden">
+                                            <Badge variant={item.status === 'Normal' ? 'success' : 'danger'} className="absolute top-4 left-4 font-black text-xs px-3 h-6 rounded-lg shadow-sm border-none uppercase">
                                                 {item.status === 'Normal' ? 'SAUDÁVEL' : 'CRÍTICO'}
                                             </Badge>
                                             <Car size={64} className="text-text-tertiary/20 group-hover:scale-110 transition-transform duration-700" strokeWidth={2.5} />
-                                            <div className="absolute bottom-4 right-4 text-[10px] font-black bg-white/90 backdrop-blur-sm border border-border-default px-4 py-1.5 rounded-full text-text-primary uppercase tracking-widest shadow-mx-sm">
-                                                {item.plate}
+                                            <div className="absolute bottom-4 right-4 shadow-mx-sm bg-white/90 backdrop-blur-sm border border-border-default px-4 py-1.5 rounded-full">
+                                                <Typography variant="tiny" className="font-black text-text-primary uppercase tracking-widest">
+                                                    {item.plate}
+                                                </Typography>
                                             </div>
                                         </div>
                                         <div className="p-8 flex flex-col justify-between flex-1">
                                             <div className="mb-8">
                                                 <Typography variant="h3" className="text-lg uppercase group-hover:text-brand-primary transition-colors truncate">{item.model}</Typography>
-                                                <Typography variant="caption" tone="muted" className="text-[8px] mt-1 opacity-60 uppercase tracking-widest font-black">ANO {item.year} • AUTO • FLEX</Typography>
+                                                <Typography variant="tiny" tone="muted" className="mt-1 opacity-60 font-black">ANO {item.year} • AUTO • FLEX</Typography>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 mb-8">
-                                                <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase bg-surface-alt p-3 rounded-mx-lg border border-border-default shadow-inner">
-                                                    <Gauge size={12} className="text-brand-primary" /> {Math.floor(Math.random() * 50)}K KM
+                                                <div className="flex items-center gap-2 bg-surface-alt p-3 rounded-mx-lg border border-border-default shadow-inner">
+                                                    <Gauge size={12} className="text-brand-primary" />
+                                                    <Typography variant="tiny" className="font-black uppercase tracking-widest">{Math.floor(Math.random() * 50)}K KM</Typography>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase bg-surface-alt p-3 rounded-mx-lg border border-border-default shadow-inner">
-                                                    <Fuel size={12} className="text-brand-primary" /> OPTIMIZED
+                                                <div className="flex items-center gap-2 bg-surface-alt p-3 rounded-mx-lg border border-border-default shadow-inner">
+                                                    <Fuel size={12} className="text-brand-primary" />
+                                                    <Typography variant="tiny" className="font-black uppercase tracking-widest">OPTIMIZED</Typography>
                                                 </div>
                                             </div>
                                             <footer className="pt-6 border-t border-border-default flex items-end justify-between">
                                                 <div>
-                                                    <Typography variant="caption" tone="muted" className="text-[8px] mb-1 opacity-40 uppercase tracking-widest">Preço Venda</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="mb-1 opacity-40 font-black">Preço Venda</Typography>
                                                     <Typography variant="h1" className="text-2xl tabular-nums tracking-tighter leading-none">R$ {(item.price / 1000).toFixed(0)}k</Typography>
                                                 </div>
                                                 <div className="text-right">
-                                                    <Typography variant="caption" tone="muted" className="text-[8px] mb-1 opacity-40 uppercase tracking-widest">Aging</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="mb-1 opacity-40 font-black">Aging</Typography>
                                                     <Typography variant="mono" tone={item.aging > 45 ? 'error' : 'success'} className="text-lg leading-none">{item.aging}d</Typography>
                                                 </div>
                                             </footer>
@@ -186,9 +186,9 @@ export default function Inventory() {
                     ) : (
                         <Card className="overflow-hidden border-none shadow-mx-lg bg-white">
                             <div className="overflow-x-auto no-scrollbar">
-                                <table className="w-full text-left min-w-[900px]">
+                                <table className="w-full text-left">
                                     <thead>
-                                        <tr className="bg-surface-alt/50 border-b border-border-default text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
+                                        <tr className="bg-surface-alt/50 border-b border-border-default text-tiny font-black uppercase tracking-widest text-text-tertiary">
                                             <th scope="col" className="pl-10 py-6">ATIVO COMERCIAL</th>
                                             <th scope="col" className="px-6 py-6 text-center">AGING OPERACIONAL</th>
                                             <th scope="col" className="px-6 py-6 text-center">VALOR UNITÁRIO</th>
@@ -206,14 +206,14 @@ export default function Inventory() {
                                                         </div>
                                                         <div>
                                                             <Typography variant="h3" className="text-sm uppercase tracking-tight group-hover:text-brand-primary transition-colors">{item.model}</Typography>
-                                                            <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase mt-1">{item.plate} • {item.year}</Typography>
+                                                            <Typography variant="tiny" tone="muted" className="font-black uppercase mt-1">{item.plate} • {item.year}</Typography>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 py-4 text-center">
                                                     <div className="flex flex-col items-center gap-2">
-                                                        <Typography variant="mono" tone={item.aging > 45 ? 'error' : 'success'} className="text-sm font-black">{item.aging} DIAS</Typography>
-                                                        <div className="w-32 h-1.5 bg-surface-alt rounded-full overflow-hidden shadow-inner p-px border border-border-default">
+                                                        <Typography variant="mono" tone={item.aging > 45 ? 'error' : 'success'} className="text-sm font-black uppercase">{item.aging} DIAS</Typography>
+                                                        <div className="w-24 h-1.5 bg-surface-alt rounded-full overflow-hidden shadow-inner p-px border border-border-default">
                                                             <div className={cn("h-full rounded-full transition-all duration-1000", item.aging > 45 ? "bg-status-error" : "bg-status-success")} style={{ width: `${Math.min(item.aging * 2, 100)}%` }}></div>
                                                         </div>
                                                     </div>
@@ -222,10 +222,10 @@ export default function Inventory() {
                                                     <Typography variant="h3" className="text-lg font-mono-numbers tracking-tight">R$ {(item.price / 1000).toFixed(0)}k</Typography>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <Badge variant={item.status === 'Normal' ? 'success' : 'danger'} className="text-[8px] font-black px-4 shadow-sm border-none uppercase">{item.status}</Badge>
+                                                    <Badge variant={item.status === 'Normal' ? 'success' : 'danger'} className="text-xs font-black px-4 shadow-sm border-none uppercase">{item.status}</Badge>
                                                 </td>
                                                 <td className="pr-10 py-4 text-right">
-                                                    <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 shadow-sm">
+                                                    <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 shadow-sm bg-white">
                                                         <MoreHorizontal size={20} />
                                                     </Button>
                                                 </td>

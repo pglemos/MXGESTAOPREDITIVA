@@ -11,9 +11,8 @@ export default function NotFound() {
     return (
         <main className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-10 selection:bg-brand-primary selection:text-white relative overflow-hidden">
 
-            {/* Background Decorations */}
-            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-brand-primary/5 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-status-error-surface rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-mx-hero h-mx-hero bg-brand-primary/5 rounded-full blur-mx-xl -mr-mx-lg -mt-mx-lg pointer-events-none" aria-hidden="true" />
+            <div className="absolute bottom-0 left-0 w-mx-xl h-mx-xl bg-status-error-surface rounded-full blur-mx-lg -ml-mx-lg -mb-mx-lg pointer-events-none" aria-hidden="true" />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98, y: 20 }}
@@ -33,14 +32,14 @@ export default function NotFound() {
                         >
                             <ShieldAlert size={48} strokeWidth={2.5} />
                         </motion.div>
-                        <Typography variant="h1" tone="white" className="text-7xl md:text-9xl mb-4 relative z-10 font-mono-numbers">404</Typography>
-                        <Typography variant="p" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 uppercase tracking-[0.4em] font-black text-xs">Ponto Fora da Malha</Typography>
+                        <Typography variant="h1" tone="white" className="text-7xl md:text-9xl mb-4 relative z-10 font-mono-numbers leading-none">404</Typography>
+                        <Typography variant="caption" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 uppercase tracking-widest font-black block">Ponto Fora da Malha</Typography>
                     </header>
 
                     <CardContent className="p-10 md:p-16 text-center flex flex-col items-center gap-10">
                         <div className="max-w-md space-y-4">
-                            <Typography variant="h2" className="text-2xl">Destino Inexistente</Typography>
-                            <Typography variant="p" tone="muted" className="text-base leading-relaxed font-bold italic opacity-60">
+                            <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Destino Inexistente</Typography>
+                            <Typography variant="p" tone="muted" className="text-base leading-relaxed font-bold italic opacity-60 uppercase tracking-tight">
                                 "A coordenada solicitada não foi localizada nos servidores de inteligência MX. A rota pode ter sido alterada ou o acesso expirou."
                             </Typography>
                         </div>
@@ -48,20 +47,20 @@ export default function NotFound() {
                         <div className="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto">
                             <Button 
                                 variant="outline" onClick={() => navigate(-1)} 
-                                className="w-full sm:w-auto h-14 px-10 rounded-full font-black uppercase tracking-widest text-[10px] shadow-sm bg-white"
+                                className="w-full sm:w-auto h-14 px-10 rounded-full font-black uppercase tracking-widest text-xs shadow-sm bg-white border-border-strong hover:border-brand-primary"
                             >
                                 <ArrowLeft size={16} className="mr-2" /> RECUAR
                             </Button>
                             <Button 
                                 onClick={() => navigate('/')} 
-                                className="w-full sm:w-auto h-14 px-12 rounded-full shadow-mx-xl font-black uppercase tracking-widest text-[10px]"
+                                className="w-full sm:w-auto h-14 px-12 rounded-full shadow-mx-xl font-black uppercase tracking-widest text-xs bg-brand-primary"
                             >
                                 <Zap size={16} className="mr-2 fill-current" /> CENTRAL DE COMANDO
                             </Button>
                         </div>
 
                         <footer className="pt-10 border-t border-border-default w-full">
-                            <Typography variant="caption" tone="muted" className="text-[9px] font-black uppercase tracking-[0.6em] opacity-20">MX PERFORMANCE • PROTOCOLO AIOX</Typography>
+                            <Typography variant="caption" tone="muted" className="text-xs font-black uppercase tracking-widest opacity-20">MX PERFORMANCE • PROTOCOLO AIOX SECURITY</Typography>
                         </footer>
                     </CardContent>
                 </Card>

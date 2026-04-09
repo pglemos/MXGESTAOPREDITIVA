@@ -12,13 +12,13 @@ export default function Financeiro() {
                     <AlertTriangle size={40} strokeWidth={2.5} />
                 </div>
                 
-                <Typography variant="h2" className="mb-4">Módulo <span className="text-status-warning">Descontinuado</span></Typography>
-                <Typography variant="p" tone="muted" className="max-w-xs mx-auto uppercase tracking-widest leading-relaxed mb-10 opacity-60">
+                <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Módulo <span className="text-status-warning">Descontinuado</span></Typography>
+                <Typography variant="caption" tone="muted" className="max-w-xs mx-auto uppercase tracking-widest leading-relaxed mb-10 opacity-60 font-black text-xs">
                     O ambiente financeiro foi movido para o ecossistema legado (ERP) conforme diretrizes de governança MX.
                 </Typography>
 
                 <div className="w-full pt-8 border-t border-border-default">
-                    <Button asChild variant="outline" className="w-full h-14 rounded-full font-black uppercase tracking-widest text-[10px] shadow-sm">
+                    <Button asChild variant="outline" className="w-full h-14 rounded-full font-black uppercase tracking-widest text-xs shadow-sm bg-white border-border-strong hover:border-brand-primary">
                         <Link to="/home">Retornar ao Cockpit</Link>
                     </Button>
                 </div>
@@ -26,7 +26,7 @@ export default function Financeiro() {
             
             <footer className="mt-8 flex items-center gap-2 opacity-20">
                 <ShieldCheck size={14} />
-                <Typography variant="caption" className="text-[8px] font-black uppercase tracking-[0.4em]">Protocolo de Segurança MX</Typography>
+                <Typography variant="caption" className="text-xs font-black uppercase tracking-widest">Protocolo de Segurança MX</Typography>
             </footer>
         </main>
     )

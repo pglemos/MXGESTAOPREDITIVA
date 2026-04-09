@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { 
     CalendarDays, Plus, ChevronLeft, ChevronRight, Clock, MapPin, 
     User, MoreVertical, CheckCircle2, AlertTriangle, Search, 
-    RefreshCw, X, History, Target, Calendar, BarChart3
+    RefreshCw, X, History, Target, Calendar
 } from 'lucide-react'
 import { toast } from 'sonner'
 import useAppStore, { Task } from '@/stores/main'
@@ -68,7 +68,6 @@ export default function Agenda() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            {/* Header / Agenda Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
@@ -83,26 +82,27 @@ export default function Agenda() {
                         <Button variant="ghost" size="icon" onClick={prevMonth} className="w-10 h-10 rounded-full hover:bg-surface-alt transition-all">
                             <ChevronLeft size={18} strokeWidth={3} />
                         </Button>
-                        <Typography variant="caption" className="px-6 font-black text-text-primary min-w-[160px] text-center">
-                            {format(viewDate, 'MMMM yyyy', { locale: ptBR })}
-                        </Typography>
+                        <div className="px-6 min-w-mx-xl text-center">
+                            <Typography variant="caption" tone="default" className="font-black">
+                                {format(viewDate, 'MMMM yyyy', { locale: ptBR })}
+                            </Typography>
+                        </div>
                         <Button variant="ghost" size="icon" onClick={nextMonth} className="w-10 h-10 rounded-full hover:bg-surface-alt transition-all">
                             <ChevronRight size={18} strokeWidth={3} />
                         </Button>
                     </div>
                     
                     <div className="flex items-center gap-mx-sm w-full sm:w-auto">
-                        <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetchTasks?.().then(()=>setIsRefetching(false))}} className="w-12 h-12 rounded-xl shadow-mx-sm">
+                        <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetchTasks?.().then(()=>setIsRefetching(false))}} className="w-12 h-12 rounded-xl shadow-mx-sm bg-white border-border-strong">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                         </Button>
-                        <Button onClick={() => setIsDialogOpen(true)} className="h-12 px-8 shadow-mx-lg flex-1 sm:flex-none">
+                        <Button onClick={() => setIsDialogOpen(true)} className="h-12 px-8 shadow-mx-lg flex-1 sm:flex-none uppercase font-black tracking-widest text-xs">
                             <Plus size={18} className="mr-2" /> NOVO REGISTRO
                         </Button>
                     </div>
                 </div>
             </header>
 
-            {/* Calendar Strip */}
             <div className="grid grid-cols-7 gap-mx-sm shrink-0">
                 {weekDays.map((day, i) => {
                     const isSelected = isSameDay(day, selectedDate)
@@ -127,17 +127,15 @@ export default function Agenda() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
-                
-                {/* Main Agenda Area */}
                 <section className="lg:col-span-8 space-y-mx-lg">
                     <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-8 mb-4">
                         <div className="flex items-center gap-4">
                             <div className="w-1.5 h-8 bg-brand-secondary rounded-full" />
-                            <Typography variant="h2" className="text-2xl uppercase">{format(selectedDate, "eeee, d 'de' MMMM", { locale: ptBR })}</Typography>
+                            <Typography variant="h2" className="text-2xl uppercase tracking-tighter">{format(selectedDate, "eeee, d 'de' MMMM", { locale: ptBR })}</Typography>
                         </div>
                         <div className="relative group w-full sm:w-72">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={16} />
-                            <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="FILTRAR EVENTOS..." className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest" />
+                            <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="FILTRAR EVENTOS..." className="!pl-11 !h-12 !text-xs uppercase tracking-widest" />
                         </div>
                     </header>
 
@@ -153,9 +151,9 @@ export default function Agenda() {
                                             </div>
                                             <div className="flex-1 min-w-0 space-y-2 relative z-10">
                                                 <div className="flex flex-wrap items-center gap-3">
-                                                    <Typography variant="h3" className={cn("text-xl leading-none", task.status === 'Concluída' && "line-through opacity-30")}>{task.title}</Typography>
-                                                    <Badge variant={task.priority === 'Alta' ? 'danger' : task.priority === 'Média' ? 'warning' : 'success'} className="px-3 py-0.5 rounded-lg text-[8px]">
-                                                        {task.priority.toUpperCase()}
+                                                    <Typography variant="h3" className={cn("text-xl leading-none uppercase tracking-tight", task.status === 'Concluída' && "line-through opacity-30")}>{task.title}</Typography>
+                                                    <Badge variant={task.priority === 'Alta' ? 'danger' : task.priority === 'Média' ? 'warning' : 'success'} className="px-3 py-0.5 rounded-lg text-xs uppercase font-black shadow-sm">
+                                                        {task.priority}
                                                     </Badge>
                                                 </div>
                                                 <Typography variant="p" tone="muted" className="text-sm line-clamp-2 leading-relaxed italic uppercase tracking-tight opacity-60">
@@ -163,10 +161,10 @@ export default function Agenda() {
                                                 </Typography>
                                             </div>
                                             <div className="flex gap-3 relative z-10 shrink-0">
-                                                <Button variant="outline" size="icon" onClick={() => updateTask(task.id, { status: 'Concluída' })} className="w-12 h-12 rounded-xl text-text-tertiary hover:text-status-success hover:bg-status-success-surface transition-all shadow-sm">
+                                                <Button variant="outline" size="icon" onClick={() => updateTask(task.id, { status: 'Concluída' })} className="w-12 h-12 rounded-xl text-text-tertiary hover:text-status-success hover:bg-status-success-surface transition-all shadow-sm bg-white border-border-strong">
                                                     <CheckCircle2 size={24} />
                                                 </Button>
-                                                <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl text-text-tertiary shadow-sm">
+                                                <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl text-text-tertiary shadow-sm bg-white border-border-strong">
                                                     <MoreVertical size={20} />
                                                 </Button>
                                             </div>
@@ -176,16 +174,15 @@ export default function Agenda() {
                             ) : (
                                 <div className="py-24 flex flex-col items-center justify-center text-center bg-white rounded-[3rem] border-dashed border-2 border-border-default group shadow-inner">
                                     <CalendarDays size={48} className="text-text-tertiary mb-8 group-hover:rotate-12 transition-transform duration-500 opacity-20" />
-                                    <Typography variant="h2" className="mb-2">Ciclo Livre</Typography>
-                                    <Typography variant="p" tone="muted" className="max-w-xs mx-auto mb-10 uppercase">Nenhuma missão tática confirmada para esta data.</Typography>
-                                    <Button onClick={() => setIsDialogOpen(true)} className="rounded-full px-10 h-14 shadow-mx-xl">Novo Registro</Button>
+                                    <Typography variant="h2" className="mb-2 uppercase tracking-tighter">Ciclo Livre</Typography>
+                                    <Typography variant="caption" tone="muted" className="max-w-xs mx-auto mb-10 uppercase tracking-widest font-black opacity-40">Nenhuma missão tática confirmada para esta data.</Typography>
+                                    <Button onClick={() => setIsDialogOpen(true)} className="rounded-full px-10 h-14 shadow-mx-xl font-black uppercase text-xs tracking-widest bg-brand-primary">Novo Registro</Button>
                                 </div>
                             )}
                         </AnimatePresence>
                     </div>
                 </section>
 
-                {/* Critical Aside */}
                 <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
                     <Card className="p-10 border-none shadow-mx-lg bg-white relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-status-error-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
@@ -193,15 +190,15 @@ export default function Agenda() {
                             <div className="w-14 h-14 rounded-mx-xl bg-status-error-surface text-status-error border border-mx-rose-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                                 <AlertTriangle size={28} strokeWidth={2.5} />
                             </div>
-                            <Typography variant="h3">Alertas Críticos</Typography>
+                            <Typography variant="h3" className="uppercase tracking-tight">Alertas Críticos</Typography>
                         </header>
                         
                         <div className="space-y-4 relative z-10">
                             {criticalTasks.length > 0 ? criticalTasks.slice(0, 4).map((task) => (
                                 <Card key={task.id} className="p-6 bg-surface-alt/50 border border-border-subtle group/item hover:bg-white hover:shadow-mx-lg transition-all cursor-pointer">
                                     <header className="flex justify-between items-center mb-3">
-                                        <Badge variant="danger" className="text-[8px] font-black px-3 py-1">EXPIRADO</Badge>
-                                        <Typography variant="mono" className="text-[10px] opacity-40">{format(new Date(task.dueDate), 'dd/MM')}</Typography>
+                                        <Badge variant="danger" className="text-xs font-black px-3 py-1 uppercase shadow-sm">EXPIRADO</Badge>
+                                        <Typography variant="mono" className="text-xs font-black opacity-40 uppercase">{format(new Date(task.dueDate), 'dd/MM')}</Typography>
                                     </header>
                                     <Typography variant="h3" className="text-sm uppercase tracking-tight group-hover/item:text-status-error transition-colors truncate">{task.title}</Typography>
                                 </Card>
@@ -214,11 +211,10 @@ export default function Agenda() {
                         </div>
                     </Card>
 
-                    <Card className="bg-brand-primary p-10 rounded-[2.5rem] text-white shadow-mx-xl text-center border-none relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-50" />
-                        <BarChart3 className="mx-auto mb-6 opacity-30 transform group-hover:rotate-12 transition-transform" size={40} />
-                        <Typography variant="h3" tone="white" className="mb-2">Eficácia Temporal</Typography>
-                        <Typography variant="p" tone="white" className="text-xs opacity-60 leading-relaxed uppercase tracking-widest italic">
+                    <Card className="bg-mx-black p-10 rounded-[2.5rem] text-white shadow-mx-xl text-center border-none relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 to-transparent opacity-50" />
+                        <Typography variant="h3" tone="white" className="mb-2 uppercase tracking-tighter">Saúde Temporal</Typography>
+                        <Typography variant="caption" tone="white" className="opacity-60 leading-relaxed uppercase tracking-widest italic font-black block mt-4">
                             "A agenda é o esqueleto da alta performance."
                         </Typography>
                     </Card>

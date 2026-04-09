@@ -3,400 +3,141 @@ import { useAuth } from '@/hooks/useAuth'
 import { useStorePerformance } from '@/hooks/useRanking'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { 
-    LayoutGrid, List, Plus, Search, RefreshCw, Database, 
-    Building2, X, ChevronRight, Share2, MessageCircle, 
-    CheckCircle2, AlertCircle, Zap, Target, TrendingUp, Activity
-} from 'lucide-react'
+import { Building2, Search, Filter, Plus, ChevronRight, RefreshCw, X, TrendingUp, Users, Target, Globe, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { Link } from 'react-router-dom'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Badge } from '@/components/atoms/Badge'
+import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { FormField } from '@/components/molecules/FormField'
+import { Link } from 'react-router-dom'
 
 export default function Lojas() {
-    const { role, storeId: activeStoreId, setActiveStoreId } = useAuth()
-    const { stores, loading: storesLoading, createStore, refetch } = useStores()
-    const { performance, loading: performanceLoading } = useStorePerformance()
-    
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+    const { stores, loading, refetch } = useStores()
+    const { role } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
-    const [showForm, setShowForm] = useState(false)
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [saving, setSaving] = useState(false)
-    const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+    const [isRefetching, setIsRefetching] = useState(false)
 
-    const canManageStores = role === 'admin' || role === 'dono'
+    const filteredStores = useMemo(() => {
+        return stores.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    }, [stores, searchTerm])
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setFormErrors({})
-        if (!name) { setFormErrors({ name: 'Nome obrigatório' }); return }
-        
-        setSaving(true)
-        const { error } = await createStore(name, email)
-        setSaving(false)
-        
-        if (error) {
-            toast.error(`Falha ao implantar unidade: ${error}`)
-        } else {
-            toast.success('Unidade MX implantada com sucesso!')
-            setShowForm(false); setName(''); setEmail('')
-            refetch()
-        }
-    }
+    const handleRefresh = useCallback(async () => {
+        setIsRefetching(true); await refetch(); setIsRefetching(false)
+        toast.success('Rede sincronizada!')
+    }, [refetch])
 
-    const filteredPerformance = useMemo(() => {
-        return performance.filter(p => 
-            p.name.toLowerCase().includes(searchTerm.toLowerCase())
-        ).sort((a, b) => a.name.localeCompare(b.name))
-    }, [performance, searchTerm])
-
-    const loading = storesLoading || performanceLoading
-
-    const networkStats = useMemo(() => {
-        const totalSales = performance.reduce((acc, curr) => acc + curr.realizado, 0)
-        const totalGoal = performance.reduce((acc, curr) => acc + curr.meta, 0)
-        const avgEfficiency = Math.round(performance.reduce((acc, curr) => acc + curr.efficiency, 0) / Math.max(performance.length, 1))
-        const totalProjection = performance.reduce((acc, curr) => acc + curr.projecao, 0)
-        
-        return { totalSales, totalGoal, avgEfficiency, totalProjection }
-    }, [performance])
+    if (loading) return (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
+            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Escaneando Unidades...</Typography>
+        </div>
+    )
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            {/* Network Executive Dashboard */}
-            {role === 'dono' && !loading && performance.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-mx-lg shrink-0">
-                    {[
-                        { label: 'Vendas Rede', val: networkStats.totalSales, icon: Zap, tone: 'brand' },
-                        { label: 'Meta Global', val: networkStats.totalGoal, icon: Target, tone: 'info' },
-                        { label: 'Projeção Grupo', val: networkStats.totalProjection, icon: TrendingUp, tone: 'success' },
-                        { label: 'Eficiência Média', val: `${networkStats.avgEfficiency}%`, icon: Activity, tone: 'warning' },
-                    ].map((stat, i) => (
-                        <Card key={i} className="p-6 border-none shadow-mx-md bg-white overflow-hidden relative group">
-                            <div className="flex items-center gap-4 relative z-10">
-                                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border shadow-inner group-hover:scale-110 transition-transform", 
-                                    stat.tone === 'brand' ? 'bg-mx-indigo-50 text-brand-primary border-mx-indigo-100' :
-                                    stat.tone === 'info' ? 'bg-status-info-surface text-status-info border-mx-blue-100' :
-                                    stat.tone === 'success' ? 'bg-status-success-surface text-status-success border-mx-emerald-100' :
-                                    'bg-status-warning-surface text-status-warning border-mx-amber-100'
-                                )}>
-                                    <stat.icon size={20} strokeWidth={2.5} />
-                                </div>
-                                <div>
-                                    <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase tracking-widest">{stat.label}</Typography>
-                                    <Typography variant="h2" className="text-xl tabular-nums leading-none">{stat.val}</Typography>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            )}
-
-            {/* Header / Toolbar */}
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
-                <div className="flex flex-col gap-2">
-                    <Typography variant="caption" tone="brand">{canManageStores ? 'GEOFENCING COMANDO CENTRAL' : 'VISÃO EXECUTIVA'}</Typography>
-                    <Typography variant="h1">{canManageStores ? 'Gestão de Unidades' : 'Minhas Lojas'}</Typography>
-                    <div className="flex items-center gap-2 mt-4">
-                        <div className="w-2 h-2 rounded-full bg-status-success animate-pulse" aria-hidden="true" />
-                        <Typography variant="caption">{loading ? <Skeleton className="h-3 w-20" /> : `${performance.length} Lojas Ativas na Rede`}</Typography>
+            {/* Header / Network Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Gestão de <span className="text-brand-primary">Unidades</span></Typography>
                     </div>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CONTROLE DE FILIAIS & GOVERNANÇA MX</Typography>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <div className="flex bg-surface-alt p-1 rounded-full border border-border-default mr-2" role="tablist">
-                        <Button 
-                            variant={viewMode === 'table' ? 'secondary' : 'ghost'} 
-                            size="sm" 
-                            onClick={() => setViewMode('table')}
-                            className="rounded-full px-4"
-                            aria-label="Visualizar em lista"
-                        >
-                            <List size={20} aria-hidden="true" />
-                        </Button>
-                        <Button 
-                            variant={viewMode === 'grid' ? 'secondary' : 'ghost'} 
-                            size="sm" 
-                            onClick={() => setViewMode('grid')}
-                            className="rounded-full px-4"
-                            aria-label="Visualizar em grade"
-                        >
-                            <LayoutGrid size={20} aria-hidden="true" />
-                        </Button>
-                    </div>
-                    <div className="relative w-full sm:w-72 group">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
-                        <label htmlFor="search-store" className="sr-only">Buscar unidade por nome</label>
-                        <input 
-                            id="search-store"
-                            name="search-store"
-                            type="text" 
-                            placeholder="BUSCAR UNIDADE..." 
-                            value={searchTerm}
+                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12 bg-white border-border-strong">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </Button>
+                    <div className="relative group w-full sm:w-64">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                        <Input 
+                            placeholder="LOCALIZAR LOJA..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white border border-border-default rounded-mx-md h-14 pl-12 pr-4 text-xs font-black tracking-widest uppercase focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all"
+                            className="!pl-11 !h-12 uppercase tracking-widest text-xs"
                         />
                     </div>
-                    {canManageStores && (
-                        <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto h-14 px-8 shadow-mx-lg">
-                            <Plus size={20} aria-hidden="true" /> NOVA LOJA
+                    {role === 'admin' && (
+                        <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
+                            <Plus size={18} className="mr-2" /> NOVA UNIDADE
                         </Button>
                     )}
                 </div>
             </header>
 
-            <AnimatePresence>
-                {showForm && canManageStores && (
-                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="shrink-0 z-50 rounded-[2.5rem] p-1 bg-gradient-to-b from-indigo-50 to-white shadow-mx-xl mb-mx-lg">
-                        <form onSubmit={handleCreate} className="bg-white rounded-[2.4rem] p-mx-xl space-y-mx-lg relative overflow-hidden" aria-labelledby="form-create-store-title">
-                            <div className="flex items-center justify-between border-b border-gray-100 pb-mx-lg">
-                                <div className="flex items-center gap-mx-md">
-                                    <div className="w-14 h-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg" aria-hidden="true"><Database size={24} /></div>
-                                    <div>
-                                        <Typography variant="h2" id="form-create-store-title">Implantar Unidade</Typography>
-                                        <Typography variant="caption">Configuração de Ponto Operacional</Typography>
-                                    </div>
-                                </div>
-                                <Button variant="ghost" size="sm" onClick={() => setShowForm(false)} aria-label="Fechar formulário" className="rounded-full w-12 h-12"><X size={20} aria-hidden="true" /></Button>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-mx-lg">
-                                <FormField 
-                                    id="new-store-name" 
-                                    label="Nome da Unidade" 
-                                    value={name} 
-                                    onChange={e => setName(e.target.value)} 
-                                    placeholder="EX: MX CAMPINAS" 
-                                    error={formErrors.name} 
-                                />
-                                <FormField 
-                                    id="new-store-email" 
-                                    label="E-mail do Gestor" 
-                                    type="email"
-                                    value={email} 
-                                    onChange={e => setEmail(e.target.value)} 
-                                    placeholder="GESTOR@UNIDADE.MX" 
-                                    error={formErrors.email} 
-                                />
-                            </div>
-
-                            <div className="pt-mx-lg flex justify-end gap-mx-sm border-t border-gray-100">
-                                <Button type="submit" disabled={saving} className="h-14 px-12">
-                                    {saving ? <RefreshCw className="animate-spin" aria-hidden="true" /> : 'CONFIRMAR IMPLANTAÇÃO'}
-                                </Button>
-                            </div>
-                        </form>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            <div className="flex-1 min-h-0 pb-mx-xl" aria-live="polite">
-                {loading ? (
-                    <div className="grid gap-mx-md" role="status" aria-label="Carregando lojas">
-                        {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-[2rem]" />)}
-                    </div>
-                ) : filteredPerformance.length > 0 ? (
-                    viewMode === 'grid' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
-                            {filteredPerformance.map((p, i) => (
-                                <motion.article key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-mx-2xl border border-border-default p-8 flex flex-col group hover:shadow-mx-xl transition-all relative overflow-hidden bg-white">
-                                     <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[60px] -mr-16 -mt-16 opacity-20", 
-                                        p.status === 'green' ? 'bg-status-success' : p.status === 'yellow' ? 'bg-status-warning' : 'bg-status-error'
-                                    )} aria-hidden="true" />
-                                    
-                                    <div className="flex items-start justify-between mb-8 relative z-10">
-                                        <div className="w-16 h-16 rounded-[1.5rem] bg-surface-alt border border-border-default flex items-center justify-center font-black text-2xl group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner" aria-hidden="true">
-                                            {p.name.charAt(0)}
-                                        </div>
-                                        <Badge variant={p.status === 'green' ? 'success' : p.status === 'yellow' ? 'warning' : 'danger'}>
-                                            {p.status === 'green' ? 'NO RITMO' : p.status === 'yellow' ? 'ALERTA' : 'CRÍTICO'}
-                                        </Badge>
-                                    </div>
-
-                                    <Typography variant="h3" className="mb-6 truncate relative z-10">{p.name}</Typography>
-
-                                    <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
-                                        <div className="p-5 rounded-2xl bg-surface-alt border border-border-default shadow-inner">
-                                            <Typography variant="caption" className="mb-1">Vendido</Typography>
-                                            <Typography variant="h2" className="font-mono-numbers">{p.realizado}</Typography>
-                                        </div>
-                                        <div className="p-5 rounded-2xl bg-surface-alt border border-border-default shadow-inner">
-                                            <Typography variant="caption" className="mb-1">Meta</Typography>
-                                            <Typography variant="h2" tone="brand" className="font-mono-numbers">{p.meta}</Typography>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-mx-lg border-t border-border-default flex items-center justify-between relative z-10">
-                                        <div className="flex flex-col">
-                                            <Typography variant="caption">Projeção Final</Typography>
-                                            <Typography variant="h3" className="text-sm">{p.projecao} Unidades</Typography>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button 
-                                                    variant="ghost" size="sm"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        const url = `${window.location.origin}/dashboard/${p.id}`;
-                                                        navigator.clipboard.writeText(url);
-                                                        toast.success('Link da unidade copiado!');
-                                                    }}
-                                                    className="w-10 h-10 p-0 rounded-xl"
-                                                    aria-label={`Copiar link da unidade ${p.name}`}
-                                                >
-                                                    <Share2 size={16} aria-hidden="true" />
-                                                </Button>
-                                                <Button 
-                                                    variant="ghost" size="sm"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        const url = `${window.location.origin}/dashboard/${p.id}`;
-                                                        const text = `Acesse o Painel MX da unidade ${p.name}: ${url}`;
-                                                        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-                                                    }}
-                                                    className="w-10 h-10 p-0 rounded-xl text-status-success hover:bg-status-success-surface"
-                                                    aria-label={`Compartilhar unidade ${p.name} no WhatsApp`}
-                                                >
-                                                    <MessageCircle size={16} aria-hidden="true" />
-                                                </Button>
+            <div className="flex-1 min-h-0 pb-32" aria-live="polite">
+                {filteredStores.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
+                        <AnimatePresence mode="popLayout">
+                            {filteredStores.map((store, i) => (
+                                <motion.div key={store.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }}>
+                                    <Card className="overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg bg-white flex flex-col h-full">
+                                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-8 flex flex-row items-center justify-between relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="flex items-center gap-4 relative z-10">
+                                                <div className="w-14 h-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3">
+                                                    <Building2 size={24} />
+                                                </div>
+                                                <div>
+                                                    <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-[140px]">{store.name}</Typography>
+                                                    <Typography variant="caption" tone="muted" className="text-xs font-black uppercase mt-1">ID: {store.id.split('-')[0]}</Typography>
+                                                </div>
                                             </div>
-                                            <Button asChild size="icon" variant="secondary" className="w-12 h-12 rounded-xl">
-                                                <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} aria-label={`Ver dashboard da loja ${p.name}`}>
-                                                    <ChevronRight size={24} aria-hidden="true" />
-                                                </Link>
+                                            <Badge variant="success" className="px-3 py-1 rounded-full text-xs font-black shadow-sm uppercase border-none">Ativa</Badge>
+                                        </CardHeader>
+
+                                        <CardContent className="p-8 space-y-10 flex-1 relative z-10 flex flex-col justify-between">
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="space-y-1 bg-surface-alt/50 p-4 rounded-mx-xl border border-border-subtle shadow-inner group-hover:bg-white transition-all">
+                                                    <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase opacity-40">Especialistas</Typography>
+                                                    <div className="flex items-center gap-2">
+                                                        <Users size={12} className="text-brand-primary" />
+                                                        <Typography variant="h2" className="text-xl font-mono-numbers leading-none">12</Typography>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1 bg-surface-alt/50 p-4 rounded-mx-xl border border-border-subtle shadow-inner group-hover:bg-white transition-all">
+                                                    <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase opacity-40">Eficiência</Typography>
+                                                    <div className="flex items-center gap-2">
+                                                        <TrendingUp size={12} className="text-status-success" />
+                                                        <Typography variant="h2" tone="success" className="text-xl font-mono-numbers leading-none">94%</Typography>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-end">
+                                                    <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase tracking-widest">Aderência aos Rituais</Typography>
+                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">100%</Typography>
+                                                </div>
+                                                <div className="h-2 w-full bg-surface-alt rounded-full overflow-hidden p-0.5 shadow-inner border border-border-default">
+                                                    <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} className="h-full bg-status-success rounded-full shadow-mx-sm" />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+
+                                        <footer className="p-6 border-t border-border-default bg-surface-alt/20 flex gap-3 relative z-10 mt-auto">
+                                            <Button asChild variant="outline" size="sm" className="flex-1 h-12 rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary">
+                                                <Link to={`/goal-management?id=${store.id}`}>METAS</Link>
                                             </Button>
-                                        </div>
-                                    </div>
-                                </motion.article>
+                                            <Button asChild variant="secondary" size="sm" className="flex-1 h-12 rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
+                                                <Link to={`/dashboard?id=${store.id}`}>DASHBOARD</Link>
+                                            </Button>
+                                        </footer>
+                                    </Card>
+                                </motion.div>
                             ))}
-                        </div>
-                    ) : (
-                        <div className="bg-white border border-border-default rounded-[2.5rem] overflow-hidden shadow-mx-sm">
-                            <table className="w-full text-left border-collapse">
-                                <caption className="sr-only">Listagem consolidada do desempenho de todas as unidades da rede</caption>
-                                <thead>
-                                    <tr className="bg-surface-alt border-b border-border-default">
-                                        <th scope="col" className="px-8 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest">Unidade Operacional</th>
-                                        <th scope="col" className="px-8 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Status Ritmo</th>
-                                        <th scope="col" className="px-8 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Realizado / Meta</th>
-                                        <th scope="col" className="px-8 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">GAP Residual</th>
-                                        <th scope="col" className="px-8 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Projeção</th>
-                                        <th scope="col" className="px-8 py-6 text-[10px] font-black text-text-tertiary uppercase tracking-widest text-center">Disciplina</th>
-                                        <th scope="col" className="px-8 py-6 text-right" aria-label="Ações"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <AnimatePresence mode="popLayout">
-                                        {filteredPerformance.map((p, i) => (
-                                            <motion.tr 
-                                                key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                                                className="border-t border-border-default hover:bg-surface-alt transition-colors group h-24"
-                                            >
-                                                <td className="px-8 py-4">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner" aria-hidden="true">{p.name.charAt(0)}</div>
-                                                        <Typography variant="h3" className="text-base">{p.name}</Typography>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-4 text-center">
-                                                    <div className="flex items-center justify-center gap-3">
-                                                        <div className={cn("w-3 h-3 rounded-full animate-pulse shadow-sm", 
-                                                            p.status === 'green' ? 'bg-status-success shadow-status-success/20' : 
-                                                            p.status === 'yellow' ? 'bg-status-warning shadow-status-warning/20' : 
-                                                            'bg-status-error shadow-status-error/20'
-                                                        )} aria-hidden="true" />
-                                                        <Typography variant="caption" tone={p.status === 'green' ? 'success' : p.status === 'yellow' ? 'brand' : 'error'}>
-                                                            {p.efficiency}% Eficiência
-                                                        </Typography>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-4 text-center">
-                                                    <div className="flex flex-col items-center">
-                                                        <div className="flex items-baseline gap-2">
-                                                            <Typography variant="h3" className="text-xl tabular-nums">{p.realizado}</Typography>
-                                                            <Typography variant="caption" tone="muted">de {p.meta}</Typography>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-4 text-center">
-                                                    <Badge variant="danger" className="px-4 py-1.5 rounded-lg shadow-sm border">-{p.gap} UNIDADES</Badge>
-                                                </td>
-                                                <td className="px-8 py-4 text-center">
-                                                    <div className="flex flex-col items-center">
-                                                         <Typography variant="h3" className="text-lg tabular-nums">{p.projecao}</Typography>
-                                                         <Typography variant="caption" tone="brand">FECHAMENTO</Typography>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-4">
-                                                    <div className="flex flex-col items-center">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            {p.disciplina.ok ? <CheckCircle2 size={14} className="text-status-success" aria-hidden="true" /> : <AlertCircle size={14} className="text-status-error" aria-hidden="true" />}
-                                                            <Typography variant="caption" tone={p.disciplina.ok ? 'success' : 'error'}>
-                                                                {p.disciplina.done}/{p.disciplina.total} <span className="sr-only">especialistas registraram</span>
-                                                            </Typography>
-                                                        </div>
-                                                        <div className="w-20 h-2 bg-surface-alt rounded-full overflow-hidden border border-border-default shadow-inner">
-                                                            <div className={cn("h-full transition-all duration-1000", p.disciplina.ok ? "bg-status-success" : "bg-status-error")} style={{ width: `${(p.disciplina.done / Math.max(p.disciplina.total, 1)) * 100}%` }} />
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-3">
-                                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <Button 
-                                                                variant="ghost" size="sm"
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    const url = `${window.location.origin}/dashboard/${p.id}`;
-                                                                    navigator.clipboard.writeText(url);
-                                                                    toast.success('Link copiado!');
-                                                                }}
-                                                                className="w-10 h-10 p-0 rounded-xl"
-                                                                aria-label="Copiar link"
-                                                            >
-                                                                <Share2 size={16} aria-hidden="true" />
-                                                            </Button>
-                                                            <Button 
-                                                                variant="ghost" size="sm"
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    const url = `${window.location.origin}/dashboard/${p.id}`;
-                                                                    const text = `Acesse o Painel MX: ${url}`;
-                                                                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-                                                                }}
-                                                                className="w-10 h-10 p-0 rounded-xl text-status-success hover:bg-status-success-surface"
-                                                                aria-label="WhatsApp"
-                                                            >
-                                                                <MessageCircle size={16} aria-hidden="true" />
-                                                            </Button>
-                                                        </div>
-                                                        <Button asChild size="icon" variant="ghost" className="w-12 h-12 rounded-xl hover:bg-brand-secondary hover:text-white">
-                                                            <Link to={`/loja?id=${p.id}`} onClick={() => setActiveStoreId(p.id)} aria-label={`Ver dashboard de ${p.name}`}>
-                                                                <ChevronRight size={20} aria-hidden="true" />
-                                                            </Link>
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            </motion.tr>
-                                        ))}
-                                    </AnimatePresence>
-                                </tbody>
-                            </table>
-                        </div>
-                    )
+                        </AnimatePresence>
+                    </div>
                 ) : (
-                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-surface-alt/50 border-2 border-dashed border-border-default rounded-[3rem]">
-                        <div className="w-24 h-24 rounded-[2.5rem] bg-white shadow-xl flex items-center justify-center mb-mx-lg border border-border-default" aria-hidden="true"><Building2 size={48} className="text-text-tertiary" /></div>
-                        <Typography variant="h2" className="mb-2">Aquecendo Unidades</Typography>
-                        <Typography variant="p" tone="muted" className="max-w-xs uppercase">Aguardando consolidação de dados para liberar a visão operacional da rede.</Typography>
+                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-[3rem] group hover:bg-surface-alt/20 transition-all">
+                        <div className="w-24 h-24 rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default group-hover:scale-110 transition-transform">
+                            <Building2 size={48} className="text-text-tertiary opacity-20" />
+                        </div>
+                        <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Vácuo Operacional</Typography>
+                        <Typography variant="caption" tone="muted" className="max-w-xs uppercase tracking-widest font-black text-xs leading-relaxed opacity-40">Aguardando consolidação de dados para liberar a visão operacional da rede.</Typography>
                     </div>
                 )}
             </div>

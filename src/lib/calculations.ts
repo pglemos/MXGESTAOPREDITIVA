@@ -189,28 +189,25 @@ export function somarVendasPorCanal(checkins: DailyCheckin[]) {
     }
 }
 
-/** Formata o texto do WhatsApp seguindo o template "Feedback Estruturado" */
-export function formatStructuredWhatsAppFeedback(f: any): string {
-    const dataRef = f.week_reference ? new Date(f.week_reference).toLocaleDateString('pt-BR') : 'XX/XX/XXXX'
-    const meta = f.meta_compromisso || 0
-    const sugerido = f.commitment_suggested || 0
+/** Formata o texto do WhatsApp para o Matinal Oficial */
+export function formatWhatsAppMorningReport(storeName: string, dateLabel: string, metrics: any, ranking: any[]): string {
+    const statusEmoji = metrics.reaching >= 100 ? '✅' : metrics.reaching >= 70 ? '⚠️' : '🚨';
+    
+    return `*📊 MATINAL OFICIAL MX — ${storeName.toUpperCase()}*
+*Ref:* ${dateLabel}
 
-    return `*🚗 FEEDBACK ESTRUTURADO*
+*${statusEmoji} STATUS ATUAL:*
+🎯 *META MENSAL:* ${metrics.teamGoal}
+📈 *REALIZADO:* ${metrics.currentSales} (${metrics.reaching}%)
+🚀 *PROJEÇÃO:* ${metrics.projection}
+🔎 *FALTA POUCO:* ${metrics.gap} CARROS
 
-*Data:* ${dataRef}
-*Meta individual:* ${meta}
-*Meta Compromisso:* ${sugerido}
+*📊 GRADE OPERACIONAL:*
+${ranking.map(r => `• ${r.user_name}: ${r.vnd_total}v | ${r.agd_total} agd`).join('\n')}
 
-*📝 Orientação para a Semana:*
+${metrics.pendingSellers?.length > 0 ? `*⚠️ SEM REGISTRO HOJE:* \n${metrics.pendingSellers.join(', ')}` : '*✅ Time 100% ativo hoje.*'}
 
-${f.action}
-
-*✅ Pontos Positivos*
-
-${f.positives}
-
-*🚨 Pontos de Atenção*
-
-${f.attention_points}`
+*FOCO DO DIA:* Validar agenda digital D-0.
+_Sistema Automático MX_`
 }
 

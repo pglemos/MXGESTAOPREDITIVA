@@ -14,17 +14,26 @@ import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
-import { Select } from '@/components/atoms/Select'
-import { Textarea } from '@/components/atoms/Textarea'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { format, subDays, subWeeks, startOfWeek, endOfWeek, parseISO, addDays } from 'date-fns'
+import { format, subWeeks, startOfWeek, endOfWeek, parseISO, isSameWeek } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Area, AreaChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { calcularFunil, gerarDiagnosticoMX, MX_BENCHMARKS, formatStructuredWhatsAppFeedback } from '@/lib/calculations'
-import { supabase } from '@/lib/supabase'
-import type { FunnelData, FeedbackFormData } from '@/types/database'
+import { calcularFunil, formatStructuredWhatsAppFeedback } from '@/lib/calculations'
+import type { FeedbackFormData } from '@/types/database'
+
+function getPreviousWeekRange() {
+    const now = new Date()
+    const lastWeek = subWeeks(now, 1)
+    const start = startOfWeek(lastWeek, { weekStartsOn: 1 })
+    const end = endOfWeek(lastWeek, { weekStartsOn: 1 })
+    return {
+        start,
+        end,
+        startKey: format(start, 'yyyy-MM-dd'),
+        label: `${format(start, 'dd/MM')} a ${format(end, 'dd/MM')}`
+    }
+}
 
 export default function GerenteFeedback() {
     const { role } = useAuth()
@@ -32,18 +41,74 @@ export default function GerenteFeedback() {
     const { reports, loading: reportsLoading, refetch: refetchReports } = useWeeklyFeedbackReports()
     const { sellers } = useTeam()
     const { checkins } = useCheckins()
+    const previousWeek = useMemo(() => getPreviousWeekRange(), [])
+
     const [activeTab, setActiveTab] = useState<'individual' | 'weekly'>('individual')
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
     
+    const [formData, setFormData] = useState<FeedbackFormData>({
+        seller_id: '',
+        week_reference: previousWeek.startKey,
+        leads_week: 0, agd_week: 0, visit_week: 0, vnd_week: 0,
+        tx_lead_agd: 0, tx_agd_visita: 0, tx_visita_vnd: 0,
+        meta_compromisso: 0, positives: '', attention_points: '', action: '', notes: ''
+    })
+
+    const handleSellerSelect = useCallback((sellerId: string) => {
+        if (!sellerId) {
+            setFormData(f => ({ ...f, seller_id: '' }))
+            return
+        }
+
+        const weekCheckins = checkins.filter(c => 
+            c.seller_user_id === sellerId && 
+            isSameWeek(parseISO(c.reference_date), previousWeek.start, { weekStartsOn: 1 })
+        )
+
+        const funnel = calcularFunil(weekCheckins as any)
+        setFormData(f => ({
+            ...f,
+            seller_id: sellerId,
+            leads_week: funnel.leads,
+            agd_week: funnel.agd_total,
+            visit_week: funnel.visitas,
+            vnd_week: funnel.vnd_total,
+            tx_lead_agd: funnel.tx_lead_agd,
+            tx_agd_visita: funnel.tx_agd_visita,
+            tx_visita_vnd: funnel.tx_visita_vnd,
+            meta_compromisso: Math.ceil(funnel.vnd_total * 1.2) || 1
+        }))
+    }, [checkins, previousWeek])
+
+    const handleSubmit = async () => {
+        setSaving(true)
+        const { error } = await createFeedback(formData)
+        setSaving(false)
+        if (error) toast.error(error)
+        else {
+            toast.success('Mentoria registrada com sucesso!')
+            setShowForm(false)
+            refetchFeedbacks()
+        }
+    }
+
+    const handleShareWhatsApp = (f: any) => {
+        const text = formatStructuredWhatsAppFeedback({
+            ...f,
+            commitment_suggested: f.meta_compromisso // Fallback se o campo no DB for diferente
+        })
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    }
+
     const canCreateFeedback = role === 'admin' || role === 'gerente'
 
     const filteredFeedbacks = useMemo(() => {
         return feedbacks.filter(f => 
             (f as any).seller_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            f.positives.toLowerCase().includes(searchTerm.toLowerCase())
+            f.week_reference.includes(searchTerm)
         )
     }, [feedbacks, searchTerm])
 
@@ -58,7 +123,7 @@ export default function GerenteFeedback() {
     if (feedbacksLoading || reportsLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Auditando Mentorias...</Typography>
+            <Typography variant="caption" tone="muted" className="animate-pulse uppercase font-black tracking-widest">Auditando Mentorias...</Typography>
         </div>
     )
 
@@ -72,29 +137,25 @@ export default function GerenteFeedback() {
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Gestão de <span className="text-brand-primary">Feedback</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md">Rotina Semanal Mandatória • Critério 20/60/33</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">Rotina Semanal Mandatória • Metodologia MX</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <div className="flex p-1 bg-white border border-border-default rounded-mx-full shadow-mx-sm" role="tablist">
+                    <div className="flex p-1 bg-white border border-border-default rounded-mx-full shadow-mx-sm mr-2" role="tablist">
                         <Button
                             variant={activeTab === 'individual' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setActiveTab('individual')} className="h-9 rounded-full px-6 text-[10px]"
-                        >
-                            <User size={14} className="mr-2" /> INDIVIDUAL
-                        </Button>
+                            onClick={() => setActiveTab('individual')} className="h-9 rounded-full px-6 text-[10px] font-black"
+                        >Individual</Button>
                         <Button
                             variant={activeTab === 'weekly' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setActiveTab('weekly')} className="h-9 rounded-full px-6 text-[10px]"
-                        >
-                            <FileText size={14} className="mr-2" /> RELATÓRIOS
-                        </Button>
+                            onClick={() => setActiveTab('weekly')} className="h-9 rounded-full px-6 text-[10px] font-black"
+                        >Relatórios</Button>
                     </div>
 
                     <div className="relative group w-full sm:w-64">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                         <Input 
-                            placeholder="BUSCAR..." value={searchTerm}
+                            placeholder="BUSCAR MENTORIA..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
                         />
@@ -112,54 +173,157 @@ export default function GerenteFeedback() {
                 </div>
             </header>
 
+            <AnimatePresence>
+                {showForm && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10 bg-mx-black/60 backdrop-blur-sm"
+                    >
+                        <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-[2.5rem]">
+                            <header className="p-8 md:p-10 border-b border-border-default flex items-center justify-between sticky top-0 bg-white z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg"><MessageSquare size={24} /></div>
+                                    <div>
+                                        <Typography variant="h2">Nova Mentoria</Typography>
+                                        <Typography variant="caption" tone="muted">Ciclo de Feedback Semanal</Typography>
+                                    </div>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-full w-12 h-12 hover:bg-surface-alt"><X size={24} /></Button>
+                            </header>
+
+                            <div className="p-8 md:p-10 space-y-12">
+                                <div className="grid md:grid-cols-2 gap-mx-lg">
+                                    <div className="space-y-3">
+                                        <Typography variant="caption" tone="muted" className="ml-2 uppercase font-black tracking-widest">Especialista Alvo</Typography>
+                                        <select 
+                                            value={formData.seller_id}
+                                            onChange={(e) => handleSellerSelect(e.target.value)}
+                                            className="w-full h-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer"
+                                        >
+                                            <option value="">Selecione um vendedor...</option>
+                                            {sellers.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Typography variant="caption" tone="muted" className="ml-2 uppercase font-black tracking-widest">Semana de Referência</Typography>
+                                        <div className="h-14 px-6 bg-surface-alt border border-border-default rounded-mx-md flex items-center text-sm font-black text-brand-primary shadow-inner">
+                                            <Calendar size={18} className="mr-3 opacity-40" />
+                                            {previousWeek.label} (ANTERIOR)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {formData.seller_id && (
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+                                        <div className="p-8 bg-surface-alt rounded-[2rem] border border-border-default space-y-8 shadow-inner">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                                {[
+                                                    { label: 'Leads', val: formData.leads_week, icon: Zap, tone: 'brand' },
+                                                    { label: 'Agend.', val: formData.agd_week, icon: Calendar, tone: 'info' },
+                                                    { label: 'Visitas', val: formData.visit_week, icon: ShieldCheck, tone: 'warning' },
+                                                    { label: 'Vendas', val: formData.vnd_week, icon: Award, tone: 'success' },
+                                                ].map(item => (
+                                                    <div key={item.label} className="bg-white p-5 rounded-2xl border border-border-default shadow-sm">
+                                                        <Typography variant="caption" tone="muted" className="mb-1 block uppercase text-[9px] font-black">{item.label}</Typography>
+                                                        <Typography variant="h2" className="text-xl font-mono-numbers">{item.val}</Typography>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+                                            <div className="space-y-4">
+                                                <Typography variant="caption" tone="success" className="ml-2 flex items-center gap-2 font-black uppercase tracking-widest"><Award size={14} /> Pontos Fortes</Typography>
+                                                <textarea 
+                                                    value={formData.positives}
+                                                    onChange={e => setFormData(f => ({ ...f, positives: e.target.value }))}
+                                                    placeholder="O que o especialista fez de excelente?"
+                                                    className="w-full h-32 p-6 bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-success transition-all shadow-sm outline-none resize-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-4">
+                                                <Typography variant="caption" tone="error" className="ml-2 flex items-center gap-2 font-black uppercase tracking-widest"><AlertCircle size={14} /> Pontos de Atenção</Typography>
+                                                <textarea 
+                                                    value={formData.attention_points}
+                                                    onChange={e => setFormData(f => ({ ...f, attention_points: e.target.value }))}
+                                                    placeholder="Quais os gargalos identificados?"
+                                                    className="w-full h-32 p-6 bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-error transition-all shadow-sm outline-none resize-none"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="brand" className="ml-2 flex items-center gap-2 font-black uppercase tracking-widest"><Target size={16} /> Próximo Passo Prático (Ação)</Typography>
+                                            <textarea 
+                                                value={formData.action}
+                                                onChange={e => setFormData(f => ({ ...f, action: e.target.value }))}
+                                                placeholder="Qual a ÚNICA COISA que ele deve focar esta semana?"
+                                                className="w-full h-24 p-6 bg-white border-2 border-brand-primary/20 rounded-mx-2xl text-base font-black focus:border-brand-primary transition-all shadow-mx-lg outline-none resize-none"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+
+                            <footer className="p-8 md:p-10 border-t border-border-default sticky bottom-0 bg-white z-10 flex justify-end gap-mx-sm">
+                                <Button variant="ghost" onClick={() => setShowForm(false)} className="h-14 px-8 rounded-full font-black uppercase tracking-widest">CANCELAR</Button>
+                                <Button 
+                                    onClick={handleSubmit}
+                                    disabled={saving || !formData.seller_id || !formData.action}
+                                    className="h-14 px-12 rounded-full shadow-mx-xl font-black uppercase tracking-widest"
+                                >
+                                    {saving ? <RefreshCw className="animate-spin mr-2" /> : <Send size={18} className="mr-2" />}
+                                    REGISTRAR MENTORIA
+                                </Button>
+                            </footer>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 {activeTab === 'individual' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
                         <AnimatePresence mode="popLayout">
                             {filteredFeedbacks.map((f, i) => (
-                                <motion.div key={f.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
+                                <motion.article key={f.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
                                     <Card className="p-8 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         
                                         <div>
                                             <header className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{(f as any).seller_name?.charAt(0)}</div>
+                                                    <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{(f as any).seller_name?.substring(0, 2)}</div>
                                                     <div>
                                                         <Typography variant="h3" className="text-base">{(f as any).seller_name}</Typography>
-                                                        <Typography variant="caption" tone="muted">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
+                                                        <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
                                                     </div>
                                                 </div>
-                                                <Badge variant={f.acknowledged ? 'success' : 'warning'}>{f.acknowledged ? 'LIDO' : 'PENDENTE'}</Badge>
+                                                <Badge variant={f.acknowledged ? 'success' : 'danger'} className="px-4 py-1 rounded-lg text-[8px] font-black uppercase shadow-sm">{f.acknowledged ? 'LIDO' : 'PENDENTE'}</Badge>
                                             </header>
 
-                                            <div className="space-y-8 relative z-10">
-                                                <div className="space-y-2">
-                                                    <Typography variant="caption" tone="success" className="flex items-center gap-2 font-black uppercase tracking-widest"><Award size={14} /> PONTOS FORTES</Typography>
-                                                    <p className="text-sm font-bold text-text-secondary line-clamp-3 italic bg-status-success-surface/30 p-5 rounded-mx-2xl border border-status-success-surface shadow-inner">"{f.positives}"</p>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Typography variant="caption" tone="error" className="flex items-center gap-2 font-black uppercase tracking-widest"><AlertCircle size={14} /> OPORTUNIDADES</Typography>
-                                                    <p className="text-sm font-bold text-text-secondary line-clamp-3 italic bg-status-error-surface/30 p-5 rounded-mx-2xl border border-status-error-surface shadow-inner">"{f.attention_points}"</p>
-                                                </div>
-                                                <div className="pt-8 border-t border-border-default">
-                                                    <Typography variant="caption" tone="brand" className="mb-3 flex items-center gap-2 font-black uppercase tracking-widest"><Target size={16} /> PRÓXIMO PASSO</Typography>
-                                                    <Typography variant="h3" className="text-base text-brand-primary leading-tight">{f.action}</Typography>
+                                            <div className="space-y-6 relative z-10">
+                                                <div className="p-6 bg-surface-alt border-none shadow-inner group-hover:bg-white group-hover:shadow-mx-sm transition-all rounded-mx-2xl">
+                                                    <header className="flex items-center justify-between mb-4 border-b border-border-strong/10 pb-3">
+                                                        <Typography variant="caption" tone="brand" className="font-black uppercase tracking-widest text-[8px]">Plano de Ação</Typography>
+                                                        <Zap size={14} className="text-brand-primary" />
+                                                    </header>
+                                                    <Typography variant="p" className="text-xs font-bold leading-relaxed italic uppercase tracking-tight text-text-secondary line-clamp-3">"{f.action}"</Typography>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <footer className="mt-10 pt-8 border-t border-border-default flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all relative z-10">
+                                        <footer className="mt-10 pt-8 border-t border-border-default flex items-center justify-between relative z-10">
                                             <div className="flex gap-2">
-                                                <Button variant="ghost" size="icon" className="w-10 h-10 p-0 text-status-success hover:bg-status-success-surface rounded-xl"><MessageSquare size={16} /></Button>
-                                                <Button variant="ghost" size="icon" className="w-10 h-10 p-0 text-brand-primary hover:bg-mx-indigo-50 rounded-xl"><Send size={16} /></Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleShareWhatsApp(f)} className="w-10 h-10 p-0 text-status-success hover:bg-status-success-surface rounded-xl border border-border-default shadow-sm"><MessageSquare size={18} /></Button>
+                                                <Button variant="ghost" size="icon" className="w-10 h-10 p-0 text-brand-primary hover:bg-mx-indigo-50 rounded-xl border border-border-default shadow-sm"><Send size={18} /></Button>
                                             </div>
-                                            <Button variant="outline" size="sm" className="h-10 px-4 text-[9px] uppercase tracking-widest rounded-xl shadow-sm bg-white">
-                                                <FileText size={14} className="mr-2" /> Exportar PDF
+                                            <Button variant="outline" size="sm" className="h-10 px-4 text-[9px] uppercase tracking-widest rounded-xl shadow-sm bg-white font-black">
+                                                <FileText size={14} className="mr-2" /> PDF
                                             </Button>
                                         </footer>
                                     </Card>
-                                </motion.div>
+                                </motion.article>
                             ))}
                         </AnimatePresence>
                     </div>
@@ -168,17 +332,15 @@ export default function GerenteFeedback() {
                         {reports.map((report) => (
                             <motion.div key={report.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                                 <Card className="p-8 md:p-10 hover:shadow-mx-xl transition-all h-full border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-secondary/5 rounded-full blur-[60px] -mr-16 -mt-16" />
-                                    
                                     <div className="flex items-center justify-between mb-10 relative z-10">
                                         <div className="flex items-center gap-4">
                                             <div className="w-14 h-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><Calendar size={24} /></div>
                                             <div>
-                                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">PERÍODO SEMANAL</Typography>
-                                                <Typography variant="h3" className="text-lg">{format(parseISO(report.week_start), 'dd/MM')} a {format(parseISO(report.week_end), 'dd/MM')}</Typography>
+                                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black text-[8px]">FECHAMENTO SEMANAL</Typography>
+                                                <Typography variant="h3" className="text-lg uppercase">{format(parseISO(report.week_start), 'dd/MM')} - {format(parseISO(report.week_end), 'dd/MM')}</Typography>
                                             </div>
                                         </div>
-                                        <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'}>{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>
+                                        <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'} className="px-4 py-1 rounded-lg text-[8px] font-black shadow-sm uppercase">{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>
                                     </div>
                                     <div className="grid grid-cols-2 gap-6 py-8 border-y border-border-default relative z-10">
                                         <div className="bg-surface-alt rounded-mx-2xl p-6 shadow-inner text-center">
@@ -191,8 +353,7 @@ export default function GerenteFeedback() {
                                         </div>
                                     </div>
                                     <div className="pt-10 flex justify-end gap-4 mt-auto relative z-10">
-                                        <Button variant="ghost" size="sm" className="h-10 px-6 text-[10px] uppercase rounded-full font-black tracking-widest">CSV</Button>
-                                        <Button variant="outline" size="sm" className="h-10 px-6 text-[10px] uppercase rounded-full font-black tracking-widest shadow-sm bg-white">VER COMPLETO</Button>
+                                        <Button variant="outline" size="sm" className="h-10 px-6 text-[10px] uppercase rounded-full font-black tracking-widest shadow-sm bg-white">DETALHES</Button>
                                     </div>
                                 </Card>
                             </motion.div>

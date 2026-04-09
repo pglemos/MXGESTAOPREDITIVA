@@ -10,16 +10,26 @@ import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import useAppStore from '@/stores/main'
 
+const COLORS = {
+    brand: 'var(--color-brand-primary)',
+    success: 'var(--color-status-success)',
+    warning: 'var(--color-status-warning)',
+    error: 'var(--color-status-error)',
+    info: 'var(--color-status-info)',
+    text: 'var(--color-text-tertiary)',
+    grid: 'var(--color-border-subtle)'
+}
+
 export default function CrossSalesReports() {
     const { refetch: refetchAll } = useAppStore()
     const [isRefetching, setIsRefetching] = useState(false)
 
     const crossSalesData = [
-        { name: 'Financiamento', value: 78, color: '#4f46e5' },
-        { name: 'Seguros', value: 45, color: '#10b981' },
-        { name: 'Blindagem', value: 12, color: '#f59e0b' },
+        { name: 'Financiamento', value: 78, color: COLORS.brand },
+        { name: 'Seguros', value: 45, color: COLORS.success },
+        { name: 'Blindagem', value: 12, color: COLORS.warning },
         { name: 'Acessórios', value: 92, color: '#6366f1' },
-        { name: 'Garantia Ext', value: 34, color: '#ef4444' },
+        { name: 'Garantia Ext', value: 34, color: COLORS.error },
     ]
 
     const opportunities = [
@@ -43,24 +53,23 @@ export default function CrossSalesReports() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            {/* Header / BI Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Vendas <span className="text-brand-primary">Cruzadas</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">REVENUE MAXIMIZATION • BUSINESS INTELLIGENCE</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">REVENUE MAXIMIZATION • BUSINESS INTELLIGENCE</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12 bg-white border-border-strong">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
-                    <Button variant="outline" className="h-12 px-6 rounded-full shadow-mx-sm uppercase font-black tracking-widest text-[10px]">
+                    <Button variant="outline" className="h-12 px-6 rounded-full shadow-mx-sm uppercase font-black tracking-widest text-xs bg-white border-border-strong hover:border-brand-primary">
                         <Filter size={16} className="mr-2" /> CONFIGURAR MIX
                     </Button>
-                    <Button onClick={() => toast.info('Scan de propensões ativo...')} className="h-12 px-8 rounded-full shadow-mx-lg bg-brand-secondary">
+                    <Button onClick={() => toast.info('Scan de propensões ativo...')} className="h-12 px-8 rounded-full shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
                         <Zap size={18} className="mr-2" /> IDENTIFICAR NOVOS
                     </Button>
                 </div>
@@ -69,23 +78,24 @@ export default function CrossSalesReports() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0">
                 <section className="lg:col-span-8">
                     <Card className="h-full border-none shadow-mx-lg bg-white overflow-hidden group">
-                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-8 flex flex-row items-center justify-between">
-                            <div className="flex items-center gap-4">
+                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-8 flex flex-row items-center justify-between relative overflow-hidden">
+                            <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-brand-primary/5 to-transparent pointer-events-none" />
+                            <div className="flex items-center gap-4 relative z-10">
                                 <div className="w-12 h-12 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 transition-transform"><BarChart3 size={24} strokeWidth={2.5} /></div>
                                 <div>
-                                    <Typography variant="h3">Penetração de Adicionais</Typography>
-                                    <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">PRODUTOS AGREGADOS POR VOLUME</Typography>
+                                    <Typography variant="h3" className="uppercase tracking-tight">Penetração de Adicionais</Typography>
+                                    <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">PRODUTOS AGREGADOS POR VOLUME</Typography>
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-10 h-[420px]">
+                        <CardContent className="p-10 h-mx-chart">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={crossSalesData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} tickFormatter={(val) => `${val}%`} />
                                     <Tooltip 
-                                        cursor={{fill: '#f8fafc'}} 
+                                        cursor={{fill: 'var(--color-surface-alt)'}} 
                                         contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '12px' }} 
                                     />
                                     <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40}>
@@ -99,13 +109,13 @@ export default function CrossSalesReports() {
 
                 <aside className="lg:col-span-4">
                     <Card className="h-full border-none shadow-mx-lg bg-white relative overflow-hidden group flex flex-col">
-                        <div className="absolute right-0 top-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-opacity group-hover:opacity-100" />
+                        <div className="absolute right-0 top-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-mx-xl -mr-32 -mt-32 transition-opacity group-hover:opacity-100" />
                         
                         <CardHeader className="bg-surface-alt/30 border-b border-border-default p-8 flex flex-row items-center gap-4 relative z-10">
-                            <div className="w-12 h-12 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform -rotate-2"><Bot size={24} /></div>
+                            <div className="w-12 h-12 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform -rotate-2 group-hover:rotate-0 transition-transform"><Bot size={24} /></div>
                             <div>
-                                <Typography variant="h3">Oportunidades IA</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">PROPENSÃO HIGH-END</Typography>
+                                <Typography variant="h3" className="uppercase tracking-tight">Oportunidades IA</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">PROPENSÃO HIGH-END</Typography>
                             </div>
                         </CardHeader>
 
@@ -114,13 +124,13 @@ export default function CrossSalesReports() {
                                 {opportunities.map((opt, i) => (
                                     <motion.article key={i} whileHover={{ x: 5 }} className="bg-surface-alt/50 border border-border-default p-6 rounded-mx-xl hover:bg-white hover:shadow-mx-md transition-all cursor-pointer group/item">
                                         <div className="flex justify-between items-start mb-4">
-                                            <Typography variant="h3" className="text-sm uppercase tracking-tight">{opt.client}</Typography>
-                                            <Badge variant={opt.tone as any} className="text-[9px] font-black border-none px-3 py-1 rounded-full shadow-sm">{opt.score}% SCORE</Badge>
+                                            <Typography variant="h3" className="text-sm uppercase tracking-tight group-hover/item:text-brand-primary transition-colors">{opt.client}</Typography>
+                                            <Badge variant={opt.tone as any} className="text-tiny font-black border-none px-3 py-1 rounded-full shadow-sm uppercase">{opt.score}% Score</Badge>
                                         </div>
-                                        <Typography variant="caption" tone="muted" className="text-[8px] opacity-60 mb-6 block uppercase">{opt.car}</Typography>
-                                        <div className="flex items-center justify-between border-t border-border-default pt-4">
-                                            <Typography variant="caption" tone="brand" className="text-[9px] font-black uppercase tracking-widest">{opt.potential}</Typography>
-                                            <ArrowRight size={14} className="text-text-tertiary group-hover/item:text-brand-primary group-hover/item:translate-x-1 transition-all" />
+                                        <Typography variant="caption" tone="muted" className="text-tiny opacity-60 mb-6 block uppercase font-black">{opt.car}</Typography>
+                                        <div className="flex items-center justify-between border-t border-border-subtle pt-4">
+                                            <Typography variant="caption" tone="brand" className="text-tiny font-black uppercase tracking-widest">{opt.potential}</Typography>
+                                            <ArrowRight size={14} className="text-text-tertiary opacity-30 group-hover/item:text-brand-primary group-hover/item:translate-x-1 transition-all" />
                                         </div>
                                     </motion.article>
                                 ))}
@@ -128,7 +138,7 @@ export default function CrossSalesReports() {
                         </CardContent>
                         
                         <footer className="p-8 pt-0 relative z-10 mt-auto">
-                            <Button className="w-full h-14 rounded-full shadow-mx-lg bg-brand-secondary font-black uppercase tracking-widest text-[10px]">
+                            <Button className="w-full h-14 rounded-full shadow-mx-lg bg-brand-secondary font-black uppercase tracking-widest text-xs">
                                 <MessageCircle size={16} className="mr-2" /> DISPARAR INSIGHTS
                             </Button>
                         </footer>
@@ -140,9 +150,9 @@ export default function CrossSalesReports() {
                 {stats.map((card, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                         <Card className="p-8 border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12 opacity-50" />
                             <div className="flex justify-between items-start mb-10 relative z-10">
-                                <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
+                                <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border shadow-mx-inner transition-transform group-hover:scale-110", 
                                     card.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                                     card.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                                     card.tone === 'error' ? 'bg-status-error-surface border-mx-rose-100 text-status-error' :
@@ -150,14 +160,14 @@ export default function CrossSalesReports() {
                                 )}>
                                     <card.icon size={24} strokeWidth={2.5} />
                                 </div>
-                                <div className="flex items-center gap-1.5 text-[9px] font-black text-status-success bg-status-success-surface px-4 py-1.5 rounded-full border border-mx-emerald-100 uppercase tracking-widest shadow-sm">
+                                <div className="flex items-center gap-1.5 text-tiny font-black text-status-success bg-status-success-surface px-4 py-1.5 rounded-full border border-mx-emerald-100 uppercase tracking-widest shadow-sm">
                                     <TrendingUp size={12} strokeWidth={3} /> {card.trend}
                                 </div>
                             </div>
                             <div className="relative z-10">
-                                <Typography variant="caption" tone="muted" className="mb-1 block uppercase tracking-widest">{card.title}</Typography>
-                                <Typography variant="h1" className="text-4xl tabular-nums leading-none mb-2">{card.value}</Typography>
-                                <Typography variant="caption" tone="muted" className="text-[8px] font-black tracking-tighter opacity-40">{card.sub}</Typography>
+                                <Typography variant="caption" tone="muted" className="mb-1 block uppercase tracking-widest font-black opacity-40">{card.title}</Typography>
+                                <Typography variant="h1" className="text-4xl tabular-nums leading-none mb-2 tracking-tighter">{card.value}</Typography>
+                                <Typography variant="caption" tone="muted" className="font-black tracking-tighter opacity-20 uppercase">{card.sub}</Typography>
                             </div>
                         </Card>
                     </motion.div>

@@ -36,7 +36,7 @@ export default function RotinaGerente() {
     const { checkins, fetchCheckins } = useCheckins()
     const { storeGoal, fetchGoals } = useGoals()
     const { ranking, refetch: refetchRanking } = useRanking()
-    const { routineLog, history: routineHistory, registerRoutine } = useManagerRoutine()
+    const { routineLog, registerRoutine } = useManagerRoutine()
     const { feedbacks, refetch: refetchFeedbacks } = useFeedbacks()
     const { pdis, refetch: refetchPDIs } = usePDIs()
     const { sendNotification } = useNotifications()
@@ -91,7 +91,7 @@ export default function RotinaGerente() {
             notes: routineNotes,
         })
         setSavingRoutine(false)
-        if (error) toast.error(error); else toast.success('Rotina diária firmada!')
+        if (error) toast.error(error); else { toast.success('Rotina diária firmada!'); refetchTeam() }
     }
 
     return (
@@ -111,7 +111,7 @@ export default function RotinaGerente() {
                         {(['diario', 'semanal', 'mensal'] as const).map((t) => (
                             <Button 
                                 key={t} variant={tab === t ? 'secondary' : 'ghost'} size="sm"
-                                onClick={() => setTab(t)} className="h-10 px-8 rounded-full text-[10px] font-black uppercase"
+                                onClick={() => setTab(t)} className="h-10 px-8 rounded-full font-black uppercase text-tiny"
                             >
                                 {t === 'diario' ? <Zap size={14} className="mr-2" /> : t === 'semanal' ? <BarChart3 size={14} className="mr-2" /> : <Target size={14} className="mr-2" />}
                                 {t}
@@ -131,16 +131,16 @@ export default function RotinaGerente() {
                             
                             <section className="lg:col-span-7 flex flex-col gap-mx-lg">
                                 <Card className="p-10 md:p-14 space-y-12 border-none shadow-mx-xl bg-white relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-[100px] -mr-32 -mt-32" />
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-mx-xl -mr-32 -mt-32" aria-hidden="true" />
                                     <header className="flex items-center justify-between border-b border-border-default pb-8 relative z-10">
                                         <div className="flex items-center gap-6">
                                             <div className="w-16 h-16 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl transform -rotate-2"><Zap size={32} /></div>
                                             <div>
-                                                <Typography variant="h2">Ritual Matinal</Typography>
-                                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">SEQUÊNCIA MANDATÁRIA • LIMITE 10:30</Typography>
+                                                <Typography variant="h2" className="uppercase tracking-tighter leading-none">Ritual Matinal</Typography>
+                                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SEQUÊNCIA MANDATÁRIA • LIMITE 10:30</Typography>
                                             </div>
                                         </div>
-                                        <Badge variant="danger" className="animate-pulse shadow-mx-md px-6 py-2 rounded-full font-black uppercase">Prioridade 01</Badge>
+                                        <Badge variant="danger" className="animate-pulse shadow-mx-md px-6 py-2 rounded-full font-black uppercase text-tiny">Prioridade 01</Badge>
                                     </header>
 
                                     <div className="space-y-6 relative z-10">
@@ -155,33 +155,33 @@ export default function RotinaGerente() {
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-6">
-                                                        <div className={cn("w-12 h-12 rounded-mx-xl flex items-center justify-center border shadow-inner transition-all", step.done ? "bg-white text-status-success border-status-success/30" : "bg-white text-text-tertiary border-border-default group-hover:scale-110")}>
-                                                            {step.done ? <CheckCircle2 size={24} strokeWidth={3} /> : <span className="font-black text-sm">{step.idx}</span>}
+                                                        <div className={cn("w-12 h-12 rounded-mx-xl flex items-center justify-center border shadow-mx-inner transition-all", step.done ? "bg-white text-status-success border-status-success/30" : "bg-white text-text-tertiary border-border-default group-hover:scale-110")}>
+                                                            {step.done ? <CheckCircle2 size={24} strokeWidth={3} /> : <Typography variant="h3" className="text-base leading-none">{step.idx}</Typography>}
                                                         </div>
                                                         <div>
                                                             <Typography variant="h3" className={cn("text-base uppercase tracking-tight", step.done && "text-status-success")}>{step.label}</Typography>
-                                                            <Typography variant="p" tone="muted" className="text-xs italic mt-1 opacity-60">"{step.desc}"</Typography>
+                                                            <Typography variant="tiny" tone="muted" className="italic mt-1 opacity-60 font-black">"{step.desc}"</Typography>
                                                         </div>
                                                     </div>
-                                                    {!step.done && <Button variant="outline" size="sm" className="rounded-full px-6 h-10 font-black text-[9px] uppercase tracking-widest bg-white shadow-sm">Concluir</Button>}
+                                                    {!step.done && <Button variant="outline" size="sm" className="rounded-full px-6 h-10 font-black text-tiny uppercase tracking-widest bg-white shadow-sm">Concluir</Button>}
                                                 </div>
                                             </Card>
                                         ))}
 
-                                        <Card className={cn("p-10 border-none transition-all flex flex-col md:flex-row md:items-center justify-between gap-8", canTriggerMatinal ? "bg-pure-black text-white shadow-mx-elite" : "bg-surface-alt opacity-40")}>
+                                        <Card className={cn("p-10 border-none transition-all flex flex-col md:flex-row md:items-center justify-between gap-8", canTriggerMatinal ? "bg-mx-black text-white shadow-mx-elite" : "bg-surface-alt opacity-40")}>
                                             <div className="flex items-center gap-6">
-                                                <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border transition-all", canTriggerMatinal ? "bg-white/10 text-white border-white/10 shadow-inner" : "bg-white text-text-tertiary")}>
+                                                <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border transition-all", canTriggerMatinal ? "bg-white/10 text-white border-white/10 shadow-mx-inner" : "bg-white text-text-tertiary")}>
                                                     <Mail size={28} strokeWidth={2.5} />
                                                 </div>
                                                 <div>
-                                                    <Typography variant="h3" tone={canTriggerMatinal ? 'white' : 'default'} className="text-lg uppercase">Disparar Matinal</Typography>
-                                                    <Typography variant="caption" tone={canTriggerMatinal ? 'white' : 'muted'} className="uppercase tracking-widest mt-1 opacity-40">DIREÇÃO & GOVERNANÇA REDE</Typography>
+                                                    <Typography variant="h3" tone={canTriggerMatinal ? 'white' : 'default'} className="text-lg uppercase tracking-tight leading-none">Disparar Matinal</Typography>
+                                                    <Typography variant="caption" tone={canTriggerMatinal ? 'white' : 'muted'} className="uppercase tracking-widest mt-1 opacity-40 font-black">DIREÇÃO & GOVERNANÇA REDE</Typography>
                                                 </div>
                                             </div>
                                             <Button 
                                                 disabled={!canTriggerMatinal || executing} 
                                                 onClick={handleTriggerMatinal}
-                                                className={cn("h-14 px-10 rounded-full font-black uppercase tracking-[0.2em] text-[10px]", canTriggerMatinal ? "bg-brand-primary shadow-mx-xl" : "bg-white border-border-default")}
+                                                className={cn("h-14 px-10 rounded-full font-black uppercase tracking-widest text-tiny", canTriggerMatinal ? "bg-brand-primary shadow-mx-xl" : "bg-white border-border-default")}
                                             >
                                                 {executing ? <RefreshCw className="animate-spin mr-2" /> : <Zap size={18} className="mr-2" />} DISPARAR AGORA
                                             </Button>
@@ -192,23 +192,23 @@ export default function RotinaGerente() {
 
                             <aside className="lg:col-span-5 flex flex-col gap-mx-lg">
                                 <Card className="p-10 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 via-transparent to-transparent opacity-50" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent opacity-50" aria-hidden="true" />
                                     <div className="relative z-10 space-y-8">
                                         <header className="flex items-center justify-between mb-10 border-b border-white/10 pb-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner"><History size={24} /></div>
-                                                <Typography variant="h3" tone="white">Snapshot Hoje</Typography>
+                                                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-mx-inner"><History size={24} /></div>
+                                                <Typography variant="h3" tone="white" className="uppercase tracking-tight leading-none">Snapshot Hoje</Typography>
                                             </div>
-                                            <Badge variant="outline" className="text-white border-white/20 px-4 py-1 uppercase font-black">Real-time</Badge>
+                                            <Badge variant="outline" className="text-white border-white/20 px-4 py-1 uppercase font-black text-tiny">Real-time</Badge>
                                         </header>
                                         <div className="grid grid-cols-2 gap-10">
                                             <div>
-                                                <Typography variant="caption" tone="white" className="opacity-40 mb-2 block uppercase font-black">AGENDAMENTOS</Typography>
-                                                <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none">{totalAgendamentosHoje}</Typography>
+                                                <Typography variant="tiny" tone="white" className="opacity-40 mb-2 block uppercase font-black">AGENDAMENTOS</Typography>
+                                                <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none tracking-tighter">{totalAgendamentosHoje}</Typography>
                                             </div>
                                             <div>
-                                                <Typography variant="caption" tone="white" className="opacity-40 mb-2 block uppercase font-black">PENDÊNCIAS</Typography>
-                                                <Typography variant="h1" tone={pendingSellers.length > 0 ? 'brand' : 'white'} className="text-5xl tabular-nums leading-none">{pendingSellers.length}</Typography>
+                                                <Typography variant="tiny" tone="white" className="opacity-40 mb-2 block uppercase font-black">PENDÊNCIAS</Typography>
+                                                <Typography variant="h1" tone={pendingSellers.length > 0 ? 'brand' : 'white'} className="text-5xl tabular-nums leading-none tracking-tighter">{pendingSellers.length}</Typography>
                                             </div>
                                         </div>
                                     </div>
@@ -216,21 +216,21 @@ export default function RotinaGerente() {
 
                                 <Card className="p-10 md:p-12 space-y-8 border-none shadow-mx-lg bg-white">
                                     <header className="flex items-center gap-4 mb-4">
-                                        <div className="w-12 h-12 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center border border-status-success/20 shadow-inner"><ShieldCheck size={24} /></div>
+                                        <div className="w-12 h-12 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center border border-status-success/20 shadow-mx-inner"><ShieldCheck size={24} /></div>
                                         <div>
-                                            <Typography variant="h3">Auditoria Diária</Typography>
-                                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[8px] tracking-widest">{routineLog ? 'LOG SINCRONIZADO' : 'AGUARDANDO FIRMA'}</Typography>
+                                            <Typography variant="h3" className="uppercase tracking-tight leading-none">Auditoria Diária</Typography>
+                                            <Typography variant="caption" tone="muted" className="uppercase font-black text-tiny tracking-widest mt-1">{routineLog ? 'LOG SINCRONIZADO' : 'AGUARDANDO FIRMA'}</Typography>
                                         </div>
                                     </header>
                                     <Textarea 
                                         value={routineNotes} onChange={e => setRoutineNotes(e.target.value)}
                                         placeholder="Observações táticas da operação de hoje..."
-                                        className="h-[140px]"
+                                        className="min-h-mx-xl"
                                     />
                                     <Button 
                                         onClick={handleRegisterRoutine} 
                                         disabled={savingRoutine || !!routineLog} 
-                                        className="w-full h-16 rounded-full shadow-mx-xl font-black uppercase tracking-[0.2em] text-[10px]"
+                                        className="w-full h-16 rounded-full shadow-mx-xl font-black uppercase tracking-widest text-tiny"
                                     >
                                         {savingRoutine ? <RefreshCw className="animate-spin mr-2" /> : <FileCheck size={20} className="mr-2" />} FIRMAR AUDITORIA
                                     </Button>

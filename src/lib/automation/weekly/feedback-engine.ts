@@ -1,11 +1,97 @@
 import { supabase } from '@/lib/supabase';
-import { calcularFunil, gerarDiagnosticoMX } from '../../calculations';
+import { calcularFunil, gerarDiagnosticoMX, formatStructuredWhatsAppFeedback } from '../../calculations';
+import { getWeeklyFeedbackEmailTemplate } from '../email/templates/weekly-feedback';
+import { sendEmailReport } from '../email/sender';
+import { startOfWeek, subWeeks, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export async function runWeeklyFeedbackWorkflow() {
-    const { data: stores } = await supabase.from('stores').select('*, store_meta_rules(*)');
+    console.log('🚀 Iniciando Ciclo de Feedback Semanal MX...');
+
+    // 1. Período: Semana Anterior Fechada
+    const now = new Date();
+    const lastWeek = subWeeks(now, 1);
+    const start = startOfWeek(lastWeek, { weekStartsOn: 1 });
+    const end = startOfWeek(now, { weekStartsOn: 1 }); // Até o início desta semana
     
-    for (const store of stores || []) {
-        // Fetch last week's data, calculate funnel, generate diagnosis
-        // Logic mirroring gasWeeklyFeedback()
+    const dateRangeLabel = `${format(start, 'dd/MM', { locale: ptBR })} a ${format(end, 'dd/MM', { locale: ptBR })}`;
+    const startKey = format(start, 'yyyy-MM-dd');
+
+    // 2. Buscar lojas e suas regras de entrega
+    const { data: stores, error: storeErr } = await supabase
+        .from('stores')
+        .select('*, store_delivery_rules(*), store_meta_rules(*)');
+
+    if (storeErr || !stores) {
+        console.error('❌ Erro ao buscar lojas:', storeErr);
+        return;
     }
+
+    for (const store of stores) {
+        console.log(`\n- Processando Loja: ${store.name}`);
+        
+        // 3. Buscar checkins da semana para esta loja
+        const { data: checkins } = await supabase
+            .from('daily_checkins')
+            .select('*')
+            .eq('store_id', store.id)
+            .gte('reference_date', startKey)
+            .lt('reference_date', format(now, 'yyyy-MM-dd'));
+
+        if (!checkins || checkins.length === 0) {
+            console.warn(`  ⚠️ Nenhum checkin localizado para ${store.name}.`);
+            continue;
+        }
+
+        // 4. Buscar vendedores da loja
+        const { data: members } = await supabase
+            .from('memberships')
+            .select('user_id, users(name)')
+            .eq('store_id', store.id)
+            .eq('role', 'vendedor');
+
+        if (!members) continue;
+
+        const feedbackData: any[] = [];
+
+        for (const member of members) {
+            const sellerCheckins = checkins.filter(c => c.seller_user_id === member.user_id);
+            const funnel = calcularFunil(sellerCheckins as any);
+            const diag = gerarDiagnosticoMX(funnel);
+            
+            // Gerar texto do WhatsApp seguindo o padrão
+            const whatsappText = formatStructuredWhatsAppFeedback({
+                week_reference: dateRangeLabel,
+                meta_compromisso: Math.ceil(funnel.vnd_total * 1.2) || 1,
+                commitment_suggested: Math.ceil(funnel.vnd_total * 1.2) || 1,
+                action: diag.sugestao,
+                positives: funnel.vnd_total > 0 ? 'Bom volume de registros e presença em loja.' : 'Disciplina no check-in diário.',
+                attention_points: diag.diagnostico
+            });
+
+            feedbackData.push({
+                seller_id: member.user_id,
+                seller_name: member.users?.name || 'Vendedor',
+                whatsapp_text: whatsappText
+            });
+        }
+
+        // 5. Enviar E-mail Consolidado para o Gerente/Dono
+        const recipients = store.store_delivery_rules?.weekly_recipients;
+        
+        if (recipients && recipients.length > 0) {
+            try {
+                const html = getWeeklyFeedbackEmailTemplate(store.name, dateRangeLabel, feedbackData);
+                // Por enquanto sem anexo para simplificar ou gerar um consolidado depois
+                await sendEmailReport(recipients, `📊 Feedback Semanal: ${store.name}`, html, Buffer.from(''));
+                console.log(`  ✅ E-mail enviado para ${recipients.join(', ')}`);
+            } catch (e) {
+                console.error(`  ❌ Falha no envio:`, e);
+            }
+        } else {
+            console.warn(`  ⚠️ Sem destinatários configurados para ${store.name}.`);
+        }
+    }
+
+    console.log('\n✨ Ciclo de Feedback Finalizado.');
 }

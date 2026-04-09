@@ -12,25 +12,53 @@ import { Button } from '@/components/atoms/Button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { useAuth } from '@/hooks/useAuth'
 import { useStores } from '@/hooks/useTeam'
+import { useStoreDeliveryRules } from '@/hooks/useData'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { 
+    Mail, Send, Plus, X, Globe, MessageSquare
+} from 'lucide-react'
 
 export default function OperationalSettings() {
     const { role } = useAuth()
     const { stores, loading: storesLoading } = useStores()
     const [selectedStoreId, setSelectedStoreId] = useState('')
+    
+    // Configurações Operacionais
     const [settings, setSettings] = useState({ 
         audit_mode: false, 
         strict_checkin: true, 
         morning_report_time: '10:30',
         allow_manual_retro: false 
     })
+
+    // Regras de Entrega (E-mails)
+    const { deliveryRules, loading: rulesLoading, updateDeliveryRules } = useStoreDeliveryRules(selectedStoreId)
+    const [emailLists, setEmailLists] = useState({
+        matinal: '',
+        weekly: '',
+        monthly: ''
+    })
+
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
+
+    useEffect(() => {
+        if (deliveryRules) {
+            setEmailLists({
+                matinal: deliveryRules.matinal_recipients?.join(', ') || '',
+                weekly: deliveryRules.weekly_recipients?.join(', ') || '',
+                monthly: deliveryRules.monthly_recipients?.join(', ') || ''
+            })
+        } else {
+            setEmailLists({ matinal: '', weekly: '', monthly: '' })
+        }
+    }, [deliveryRules])
 
     const fetchSettings = useCallback(async () => {
         if (!selectedStoreId) return
         setIsRefetching(true)
+        // Simular busca de settings operacionais (que viriam de outra tabela ou jsonb)
         await new Promise(r => setTimeout(r, 500))
         setIsRefetching(false)
     }, [selectedStoreId])
@@ -38,10 +66,22 @@ export default function OperationalSettings() {
     useEffect(() => { fetchSettings() }, [fetchSettings])
 
     const handleSave = async () => {
+        if (!selectedStoreId) return
         setSaving(true)
-        await new Promise(r => setTimeout(r, 800))
+        
+        // Salvar Delivery Rules
+        const { error } = await updateDeliveryRules({
+            matinal_recipients: emailLists.matinal.split(',').map(e => e.trim()).filter(e => e.includes('@')),
+            weekly_recipients: emailLists.weekly.split(',').map(e => e.trim()).filter(e => e.includes('@')),
+            monthly_recipients: emailLists.monthly.split(',').map(e => e.trim()).filter(e => e.includes('@'))
+        })
+
+        if (error) {
+            toast.error(error)
+        } else {
+            toast.success('Parâmetros operacionais e listas de e-mail firmados!')
+        }
         setSaving(false)
-        toast.success('Parâmetros operacionais firmados!')
     }
 
     if (role !== 'admin' && role !== 'dono') return (
@@ -163,6 +203,50 @@ export default function OperationalSettings() {
                             <Typography variant="p" tone="muted" className="text-[10px] leading-relaxed uppercase font-bold opacity-60">Qualquer alteração nestes parâmetros será registrada no log de auditoria global com timestamp imutável e ID do administrador responsável.</Typography>
                         </footer>
                     </Card>
+
+                    {/* Email Recipients Section */}
+                    {selectedStoreId && (
+                        <Card className="mt-mx-lg p-10 md:p-14 border-none shadow-mx-xl bg-white space-y-12">
+                            <header className="border-b border-border-default pb-8 flex items-center justify-between">
+                                <div>
+                                    <Typography variant="h2">Destinatários Oficiais</Typography>
+                                    <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">DISTRIBUIÇÃO AUTOMÁTICA DE RELATÓRIOS</Typography>
+                                </div>
+                                <Mail size={24} className="text-brand-primary opacity-20" />
+                            </header>
+
+                            <div className="space-y-10">
+                                {[
+                                    { label: 'Relatório Matinal', key: 'matinal', desc: 'Destinatários do matinal diário (D-0)' },
+                                    { label: 'Ciclo Semanal', key: 'weekly', desc: 'Destinatários das mentorias e fechamentos de semana' },
+                                    { label: 'Estratégico / Direção', key: 'monthly', desc: 'Diretoria e Sócios - Visão de fechamento e BI' },
+                                ].map((list) => (
+                                    <div key={list.key} className="space-y-4">
+                                        <div className="flex items-center justify-between px-2">
+                                            <div className="space-y-1">
+                                                <Typography variant="caption" className="font-black uppercase tracking-widest">{list.label}</Typography>
+                                                <Typography variant="p" tone="muted" className="text-[10px] uppercase font-bold">{list.desc}</Typography>
+                                            </div>
+                                            <Badge variant="outline" className="text-[8px]">{emailLists[list.key as keyof typeof emailLists].split(',').filter(Boolean).length} E-mails</Badge>
+                                        </div>
+                                        <textarea 
+                                            value={emailLists[list.key as keyof typeof emailLists]}
+                                            onChange={e => setEmailLists(prev => ({ ...prev, [list.key]: e.target.value }))}
+                                            placeholder="email1@empresa.com, email2@empresa.com..."
+                                            className="w-full h-24 p-6 bg-surface-alt border border-border-default rounded-mx-2xl text-xs font-bold focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none resize-none shadow-inner"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="bg-mx-indigo-50 p-6 rounded-2xl border border-mx-indigo-100 flex items-center gap-4">
+                                <Info size={18} className="text-brand-primary shrink-0" />
+                                <Typography variant="p" tone="brand" className="text-[9px] font-black uppercase leading-tight">
+                                    Separe os e-mails por vírgula. O sistema validará a sintaxe antes de disparar as automações de rede.
+                                </Typography>
+                            </div>
+                        </Card>
+                    )}
                 </section>
             </div>
         </main>

@@ -2,204 +2,102 @@
 @import "tailwindcss";
 
 @theme {
-  /* ============================================ */
-  /* CORE TOKENS (Base Palette)                   */
-  /* ============================================ */
-  
-  --color-mx-black: #1A1D20;
-  --color-mx-white: #FFFFFF;
-  --color-mx-slate-50: #F8FAFC;
-  --color-mx-slate-100: #F1F5F9;
-  --color-mx-slate-200: #E2E8F0;
-  --color-mx-slate-300: #CBD5E1;
-  --color-mx-slate-400: #94A3B8;
-  --color-mx-slate-500: #64748B;
-  
-  --color-mx-indigo-50: #EEF2FF;
-  --color-mx-indigo-100: #E0E7FF;
-  --color-mx-indigo-400: #818CF8;
-  --color-mx-indigo-500: #6366F1;
-  --color-mx-indigo-600: #4F46E5;
-  --color-mx-indigo-700: #4338CA;
-  
-  --color-mx-emerald-50: #ECFDF5;
-  --color-mx-emerald-100: #D1FAE5;
-  --color-mx-emerald-500: #10B981;
-  --color-mx-emerald-600: #059669;
-  
-  --color-mx-rose-50: #FFF1F2;
-  --color-mx-rose-100: #FFE4E6;
-  --color-mx-rose-200: #FECDD3;
-  --color-mx-rose-500: #F43F5E;
-  --color-mx-rose-600: #E11D48;
-  
-  --color-mx-amber-50: #FFFBEB;
-  --color-mx-amber-100: #FEF3C7;
-  --color-mx-amber-200: #FDE68A;
-  --color-mx-amber-500: #F59E0B;
-  --color-mx-amber-600: #D97706;
+  /* ==========================================================================
+     MX PERFORMANCE DESIGN SYSTEM TOKENS (TAILWIND 4)
+     ========================================================================== */
 
-  /* ============================================ */
-  /* SEMANTIC TOKENS (The "Why")                  */
-  /* ============================================ */
+  /* Palette Core */
+  --color-mx-black: #0A0A0B;
+  --color-pure-black: #000000;
+  --color-brand-primary: #4f46e5;
+  --color-brand-secondary: #1A1D20;
   
-  /* Brand */
-  --color-brand-primary: var(--color-mx-indigo-600);
-  --color-brand-primary-hover: var(--color-mx-indigo-700);
-  --color-brand-primary-surface: var(--color-mx-indigo-50);
-  
-  --color-brand-secondary: var(--color-mx-black);
-  --color-brand-secondary-hover: #000000;
-  --color-pure-black: var(--color-mx-black);
-  --color-off-white: var(--color-mx-slate-50);
-  --color-electric-blue: var(--color-brand-primary);
-  --color-mars-orange: var(--color-mx-amber-500);
-  
-  /* Status */
-  --color-status-success: var(--color-mx-emerald-500);
-  --color-status-success-surface: var(--color-mx-emerald-50);
-  
-  --color-status-warning: var(--color-mx-amber-500);
-  --color-status-warning-surface: var(--color-mx-amber-50);
-  
-  --color-status-error: var(--color-mx-rose-500);
-  --color-status-error-surface: var(--color-mx-rose-50);
-  --color-border-error: var(--color-mx-rose-200);
-  --color-border-error-strong: var(--color-mx-rose-500);
-  
-  --color-status-info: var(--color-mx-indigo-500);
-  --color-status-info-surface: var(--color-mx-indigo-50);
+  /* Status Semantics */
+  --color-status-success: #10b981;
+  --color-status-success-surface: rgba(16, 185, 129, 0.05);
+  --color-status-warning: #f59e0b;
+  --color-status-warning-surface: rgba(245, 158, 11, 0.05);
+  --color-status-error: #ef4444;
+  --color-status-error-surface: rgba(239, 68, 68, 0.05);
+  --color-status-info: #3b82f6;
+  --color-status-info-surface: rgba(59, 130, 246, 0.05);
 
-  /* Surface & Backgrounds */
-  --color-surface-main: var(--color-mx-white);
-  --color-surface-alt: var(--color-mx-slate-50);
-  --color-surface-overlay: rgba(26, 29, 32, 0.55);
-  
-  /* Borders */
-  --color-border-subtle: var(--color-mx-slate-50);
-  --color-border-default: var(--color-mx-slate-100);
-  --color-border-strong: var(--color-mx-slate-200);
-  
-  /* Text (WCAG Compliance) */
-  --color-text-primary: var(--color-mx-black);
-  --color-text-secondary: var(--color-mx-slate-500);
-  --color-text-tertiary: var(--color-mx-slate-400);
-  --color-text-on-brand: var(--color-mx-white);
+  /* Surface & Borders */
+  --color-surface-default: #ffffff;
+  --color-surface-alt: #f8fafc;
+  --color-border-default: #f1f5f9;
+  --color-border-subtle: #f1f5f9;
+  --color-border-strong: #e2e8f0;
 
-  /* ============================================ */
-  /* SPACING SYSTEM (8pt Grid)                    */
-  /* ============================================ */
-  --spacing-mx-xs: 0.5rem;   /* 8px */
-  --spacing-mx-sm: 1rem;     /* 16px */
-  --spacing-mx-md: 1.5rem;   /* 24px */
-  --spacing-mx-lg: 2rem;     /* 32px */
-  --spacing-mx-xl: 2.5rem;   /* 40px */
-  --spacing-mx-2xl: 3rem;    /* 48px */
-  --spacing-mx-3xl: 4rem;    /* 64px */
-  --spacing-mx-4xl: 5rem;    /* 80px */
+  /* Typography Colors */
+  --color-text-primary: #0A0A0B;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94a3b8;
 
-  /* ============================================ */
-  /* RADIUS SYSTEM                                */
-  /* ============================================ */
-  --radius-mx-sm: 0.75rem;
-  --radius-mx-md: 1rem;
-  --radius-mx-lg: 1.5rem;
-  --radius-mx-xl: 2rem;
-  --radius-mx-2xl: 2.5rem;
-  --radius-mx-3xl: 3rem;
+  /* Radius Matrix */
+  --radius-mx-sm: 0.5rem;
+  --radius-mx-md: 0.75rem;
+  --radius-mx-lg: 1rem;
+  --radius-mx-xl: 1.25rem;
+  --radius-mx-2xl: 1.5rem;
+  --radius-mx-3xl: 2rem;
   --radius-mx-full: 9999px;
 
-  /* ============================================ */
-  /* SHADOW SYSTEM                                */
-  /* ============================================ */
-  --shadow-mx-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-mx-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-mx-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
-  --shadow-mx-xl: 0 20px 45px -18px rgba(15, 23, 42, 0.22);
-  --shadow-mx-elite: 0 35px 70px -15px rgba(0, 0, 0, 0.3);
-  --shadow-mx-focus: 0 0 0 4px rgba(79, 70, 229, 0.15);
-  --shadow-elevation: var(--shadow-mx-xl);
-  --shadow-3xl: var(--shadow-mx-elite);
+  /* Spacing Matrix */
+  --spacing-mx-xs: 0.5rem;
+  --spacing-mx-sm: 1rem;
+  --spacing-mx-md: 1.5rem;
+  --spacing-mx-lg: 2rem;
+  --spacing-mx-xl: 3rem;
+  --spacing-mx-2xl: 4rem;
+  --spacing-mx-3xl: 6rem;
 
-  /* Elevation System (Z-Index) */
-  --z-base: 0;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-fixed: 300;
-  --z-overlay: 400;
-  --z-modal: 500;
-  --z-popover: 600;
-  --z-toast: 700;
-  --z-max: 999;
+  /* Shadow Matrix */
+  --shadow-mx-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-mx-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-mx-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-mx-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-mx-elite: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
-  /* Ring System */
-  --ring-brand: var(--color-brand-primary);
-  --ring-offset: var(--color-mx-white);
-  --color-ring-offset: var(--color-mx-white);
-
-  /* Typography */
-  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-mono-numbers: 'JetBrains Mono', monospace;
+  /* Custom Utilities */
+  --width-mx-hero: 50vw;
+  --height-mx-hero: 50vw;
+  --height-mx-chart: 400px;
 }
 
 @layer base {
-  :root {
-    --background: var(--color-surface-alt);
-    --foreground: var(--color-text-primary);
+  * {
+    @apply border-border-default;
   }
-
   body {
-    background-color: var(--color-surface-alt);
-    color: var(--color-text-primary);
-    @apply font-sans antialiased;
-    letter-spacing: -0.01em;
+    @apply bg-surface-alt text-text-primary font-sans antialiased selection:bg-brand-primary selection:text-white;
   }
 }
 
-@layer components {
-  /* High-level semantic classes to simplify 31 screens refactor */
-  .mx-card {
-    @apply bg-white border border-mx-slate-100 rounded-[3rem] shadow-mx-sm transition-all duration-300;
+@layer utilities {
+  .bg-mx-matrix {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
   
-  .mx-card-hover {
-    @apply hover:shadow-mx-xl hover:-translate-y-1;
+  .shadow-mx-inner {
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
   }
 
-  .soft-card {
-    @apply bg-surface-alt/80 border border-border-default rounded-mx-3xl shadow-mx-sm;
+  .font-mono-numbers {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
   }
-
-  .inner-card {
-    @apply bg-surface-main border border-border-default rounded-mx-3xl shadow-mx-md;
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
-
-  .hyper-glass {
-    @apply bg-white/95 backdrop-blur-xl border border-border-default shadow-mx-xl;
-  }
-
-  .mx-heading-hero {
-    @apply text-4xl md:text-5xl font-black tracking-tighter leading-none text-text-primary;
-  }
-
-  .mx-text-caption {
-    @apply text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary antialiased;
-  }
-
-  .mx-button-primary {
-    @apply bg-brand-secondary text-text-on-brand rounded-full px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-secondary-hover transition-all active:scale-95 active:bg-brand-secondary/90 shadow-mx-lg;
-  }
-
-  .mx-input {
-    @apply w-full bg-mx-slate-50 border border-mx-slate-100 rounded-full px-6 py-4 text-sm font-bold placeholder:text-mx-slate-400 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all shadow-mx-sm;
-  }
-
-  .premium-input {
-    @apply w-full bg-mx-slate-50 border border-mx-slate-100 rounded-mx-xl px-6 py-4 text-sm font-bold text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 focus:bg-white transition-all shadow-mx-sm;
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
-/* Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -208,12 +106,4 @@
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }

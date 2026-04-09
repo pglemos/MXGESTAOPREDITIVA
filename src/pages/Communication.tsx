@@ -51,11 +51,11 @@ export default function Communication() {
             <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
             <Typography variant="h1">Hub de <span className="text-brand-primary">Comunicação</span></Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">INFORMATIVOS & ALINHAMENTO TÁTICO</Typography>
+          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">INFORMATIVOS & ALINHAMENTO TÁTICO</Typography>
         </div>
 
         <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-          <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); setTimeout(() => {setIsRefetching(false); toast.success('Sincronizado!')}, 800)}} className="w-12 h-12 rounded-xl shadow-mx-sm">
+          <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); setTimeout(() => {setIsRefetching(false); toast.success('Sincronizado!')}, 800)}} className="w-12 h-12 rounded-xl shadow-mx-sm bg-white">
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
           </Button>
           <div className="relative group w-full sm:w-64">
@@ -63,10 +63,10 @@ export default function Communication() {
             <Input 
                 placeholder="BUSCAR INFORME..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
+                className="!pl-11 !h-12 uppercase tracking-widest"
             />
           </div>
-          <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
+          <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest">
             <Plus size={18} className="mr-2" /> NOVO AVISO
           </Button>
         </div>
@@ -76,20 +76,20 @@ export default function Communication() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         {stats.map((item) => (
           <Card key={item.label} className="p-8 border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12 opacity-50" />
             <div className="flex items-center justify-between relative z-10">
               <div className="space-y-1">
-                <Typography variant="caption" tone="muted" className="block uppercase tracking-widest">{item.label}</Typography>
-                <Typography variant="h1" className="text-4xl tabular-nums">{item.value}</Typography>
+                <Typography variant="caption" tone="muted" className="block uppercase tracking-widest font-black">{item.label}</Typography>
+                <Typography variant="h1" className="text-4xl tabular-nums leading-none">{item.value}</Typography>
               </div>
               <div className={cn(
-                'h-14 w-14 rounded-mx-2xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110',
+                'h-12 w-12 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110',
                 item.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                 item.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                 item.tone === 'error' ? 'bg-status-error-surface border-mx-rose-100 text-status-error' :
                 'bg-status-info-surface border-mx-blue-100 text-status-info'
               )}>
-                <item.icon size={24} strokeWidth={2.5} />
+                <item.icon size={22} strokeWidth={2.5} />
               </div>
             </div>
           </Card>
@@ -106,10 +106,10 @@ export default function Communication() {
 
             <CardHeader className="bg-surface-alt/30 border-b border-border-default p-10 flex flex-row items-center justify-between relative z-10">
               <div className="flex items-center gap-6">
-                <div className="w-16 h-16 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl"><Megaphone size={32} /></div>
+                <div className="w-16 h-16 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl"><Megaphone size={32} /></div>
                 <div>
-                  <Typography variant="h2" className="text-2xl uppercase">Mural de Avisos</Typography>
-                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">Snapshot de Alinhamento Tático</Typography>
+                  <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Mural de Avisos</Typography>
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SINALIZAÇÕES DE REDE</Typography>
                 </div>
               </div>
               <Badge variant="success" className="px-6 py-2 rounded-full font-black shadow-mx-sm uppercase">Rede Ativa</Badge>
@@ -125,26 +125,26 @@ export default function Communication() {
                         <div className={cn("w-14 h-14 rounded-full shrink-0 flex items-center justify-center border-4 border-white shadow-mx-lg transition-transform group-hover/msg:scale-110 group-hover/msg:rotate-3", 
                             m.type === 'system' ? "bg-brand-secondary text-white" : m.type === 'achievement' ? "bg-status-warning text-white" : "bg-surface-alt text-text-primary"
                         )}>
-                          {m.type === 'system' ? <Megaphone size={22} /> : m.type === 'achievement' ? <Sparkles size={22} /> : <MessageSquare size={22} />}
+                          {m.type === 'system' ? <Megaphone size={22} strokeWidth={2.5} /> : m.type === 'achievement' ? <Sparkles size={22} strokeWidth={2.5} /> : <MessageSquare size={22} strokeWidth={2.5} />}
                         </div>
                         <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-8 hover:bg-white hover:shadow-mx-xl transition-all relative">
                           <header className="flex justify-between items-start mb-6">
                             <div className="space-y-1">
                               <div className="flex items-center gap-3">
-                                <Typography variant="h3" className="text-lg leading-none">{m.author}</Typography>
-                                <Badge variant="outline" className="text-[8px] font-black h-5 px-3 rounded-md border-border-strong opacity-60">{m.role.toUpperCase()}</Badge>
+                                <Typography variant="h3" className="text-lg leading-none uppercase tracking-tight font-black">{m.author}</Typography>
+                                <Badge variant="outline" className="rounded-md border-border-strong opacity-60 uppercase font-black">{m.role}</Badge>
                               </div>
-                              <Typography variant="mono" className="text-[10px] opacity-40">{m.date}</Typography>
+                              <Typography variant="mono" tone="muted" className="opacity-40 uppercase font-black tracking-widest">{m.date}</Typography>
                             </div>
-                            <Badge variant={m.priority === 'High' ? 'danger' : 'outline'} className="px-4 py-1 rounded-lg text-[8px] font-black">{m.priority.toUpperCase()}</Badge>
+                            <Badge variant={m.priority === 'High' ? 'danger' : 'outline'} className="px-4 py-1 rounded-lg uppercase font-black shadow-sm">{m.priority}</Badge>
                           </header>
-                          <Typography variant="p" className="text-base font-bold text-text-secondary leading-relaxed border-t border-border-default pt-6 mt-2 italic">
+                          <Typography variant="p" tone="muted" className="text-base font-bold leading-relaxed border-t border-border-default pt-6 mt-2 italic uppercase tracking-tight opacity-60">
                             "{m.content}"
                           </Typography>
                           <footer className="flex items-center gap-6 mt-8">
-                            <Button variant="ghost" size="sm" className="h-8 px-4 text-[9px] font-black text-brand-primary uppercase tracking-widest hover:underline hover:bg-transparent">Confirmar Leitura</Button>
+                            <Button variant="ghost" size="sm" className="px-4 font-black text-brand-primary uppercase tracking-widest hover:underline hover:bg-transparent">Confirmar Leitura</Button>
                             <div className="w-1.5 h-1.5 rounded-full bg-border-strong opacity-20" />
-                            <Button variant="ghost" size="sm" className="h-8 px-4 text-[9px] font-black text-text-tertiary uppercase tracking-widest hover:text-text-primary hover:bg-transparent">Responder</Button>
+                            <Button variant="ghost" size="sm" className="px-4 font-black text-text-tertiary uppercase tracking-widest hover:text-text-primary hover:bg-transparent">Responder</Button>
                           </footer>
                         </div>
                       </motion.div>
@@ -159,13 +159,13 @@ export default function Communication() {
         {/* Sidebar Channels */}
         <aside className="lg:col-span-4 flex flex-col gap-mx-lg h-full">
           <Card className="flex flex-col overflow-hidden group h-full border-none shadow-mx-lg bg-white">
-            <header className="p-8 border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
+            <CardHeader className="p-8 border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
               <Typography variant="h3" className="uppercase tracking-tight">Canais Diretos</Typography>
               <Filter size={18} className="text-text-tertiary" />
-            </header>
+            </CardHeader>
             <CardContent className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-4">
               {['Gerência Geral', 'Marketing & Leads', 'Suporte Técnico', 'RH & Treinamentos'].map((canal) => (
-                <div key={canal} className="p-6 rounded-mx-2xl border border-border-default bg-white hover:border-brand-primary/30 hover:bg-mx-indigo-50/30 transition-all cursor-pointer group/canal flex items-center justify-between shadow-sm hover:shadow-mx-md">
+                <div key={canal} className="p-6 rounded-mx-2xl border border-border-default bg-white hover:border-brand-primary/20 hover:bg-mx-indigo-50/30 transition-all cursor-pointer group/canal flex items-center justify-between shadow-sm hover:shadow-mx-md">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary group-hover/canal:bg-brand-secondary group-hover/canal:text-white transition-all shadow-inner"><MessageSquare size={20} /></div>
                     <Typography variant="h3" className="text-sm uppercase tracking-tight leading-none">{canal}</Typography>
@@ -175,7 +175,7 @@ export default function Communication() {
               ))}
             </CardContent>
             <footer className="p-8 border-t border-border-default bg-surface-alt/30">
-                <Button className="w-full h-14 rounded-full shadow-mx-lg font-black uppercase tracking-[0.2em] text-[10px]">
+                <Button className="w-full h-14 rounded-full shadow-mx-lg font-black uppercase tracking-widest">
                     <Plus size={18} className="mr-2" /> INICIAR NOVA MENSAGEM
                 </Button>
             </footer>

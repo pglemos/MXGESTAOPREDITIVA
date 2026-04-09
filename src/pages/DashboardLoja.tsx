@@ -17,6 +17,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Select } from '@/components/atoms/Select'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -92,17 +93,16 @@ export default function DashboardLoja() {
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Unidade...</Typography>
+            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Consolidando Unidade...</Typography>
         </div>
     )
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            {/* Header / Dashboard Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-2">
-                    <Typography variant="caption" tone="brand" className="pl-6 uppercase tracking-widest font-black">Status de Unidade</Typography>
+                    <Typography variant="tiny" tone="brand">Status de Unidade</Typography>
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
                         {(role === 'admin' || role === 'dono') ? (
@@ -127,13 +127,13 @@ export default function DashboardLoja() {
                     <div className="bg-white p-1 rounded-mx-full shadow-mx-sm border border-border-default flex gap-1" role="tablist">
                         <Button 
                             variant={viewMode === 'month' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setViewMode('month')} className="h-10 px-6 rounded-full text-[10px] font-black uppercase"
+                            onClick={() => setViewMode('month')} className="h-10 px-6 rounded-full uppercase font-black tracking-widest text-tiny"
                         >
                             Mês Atual
                         </Button>
                         <Button 
                             variant={viewMode === 'day' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setViewMode('day')} className="h-10 px-6 rounded-full text-[10px] font-black uppercase"
+                            onClick={() => setViewMode('day')} className="h-10 px-6 rounded-full uppercase font-black tracking-widest text-tiny"
                         >
                             D-1
                         </Button>
@@ -141,77 +141,74 @@ export default function DashboardLoja() {
 
                     <div className="flex items-center gap-2 px-6 bg-white h-14 rounded-mx-xl shadow-mx-sm border border-border-default">
                         <Calendar size={16} className="text-brand-primary" aria-hidden="true" />
-                        <input type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="text-[10px] font-black uppercase text-text-primary bg-transparent outline-none" />
+                        <input type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-tiny" />
                         <div className="w-px h-4 bg-border-strong mx-2" />
-                        <input type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="text-[10px] font-black uppercase text-text-primary bg-transparent outline-none" />
+                        <input type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-tiny" />
                     </div>
 
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-14 h-14 rounded-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-14 h-14 rounded-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>
             </header>
 
-            {/* Tactical Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
                 <Card className="p-8 border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16" />
-                    <Typography variant="caption" tone="white" className="opacity-50 mb-4 block uppercase tracking-widest">Meta de Vendas</Typography>
-                    <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none mb-3">{metrics.goalValue}</Typography>
-                    <Badge variant="outline" className="text-white border-white/20 font-black">{metrics.attainment}% ATINGIDO</Badge>
+                    <Typography variant="tiny" tone="white" className="opacity-50 mb-4 block">Meta de Vendas</Typography>
+                    <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none mb-3 tracking-tighter">{metrics.goalValue}</Typography>
+                    <Badge variant="outline" className="text-white border-white/20 font-black h-6 uppercase text-tiny">{metrics.attainment}% ATINGIDO</Badge>
                 </Card>
 
                 <Card className="p-8 border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
-                    <Typography variant="caption" tone="muted" className="mb-4 block uppercase tracking-widest">Vendido Período</Typography>
-                    <Typography variant="h1" className="text-5xl tabular-nums leading-none mb-3">{metrics.totalSales}</Typography>
-                    <Typography variant="caption" tone="brand" className="font-black">REFERÊNCIA REAL-TIME</Typography>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                    <Typography variant="tiny" tone="muted" className="mb-4 block font-black">Vendido Período</Typography>
+                    <Typography variant="h1" className="text-5xl tabular-nums leading-none mb-3 tracking-tighter">{metrics.totalSales}</Typography>
+                    <Typography variant="tiny" tone="brand" className="font-black">REFERÊNCIA REAL-TIME</Typography>
                 </Card>
 
                 <Card className="p-8 border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-status-info-surface rounded-full blur-3xl -mr-16 -mt-16" />
-                    <Typography variant="caption" tone="muted" className="mb-4 block uppercase tracking-widest">Escoamento Médio</Typography>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-status-info-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                    <Typography variant="tiny" tone="muted" className="mb-4 block font-black">Escoamento Médio</Typography>
                     <div className="flex items-baseline gap-2 mb-3">
-                        <Typography variant="h1" className="text-5xl tabular-nums leading-none">{metrics.totalLeads}</Typography>
-                        <Typography variant="h3" tone="muted" className="text-xl">LEADS</Typography>
+                        <Typography variant="h1" className="text-5xl tabular-nums leading-none tracking-tighter">{metrics.totalLeads}</Typography>
+                        <Typography variant="h3" tone="muted" className="text-xl font-black uppercase">LEADS</Typography>
                     </div>
-                    <Typography variant="caption" tone="info" className="font-black">{metrics.totalVis} VISITAS EFETUADAS</Typography>
+                    <Typography variant="tiny" tone="info" className="font-black">{metrics.totalVis} VISITAS EFETUADAS</Typography>
                 </Card>
 
                 <Card className="p-8 border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-status-success-surface rounded-full blur-3xl -mr-16 -mt-16" />
-                    <Typography variant="caption" tone="muted" className="mb-4 block uppercase tracking-widest">Saúde Disciplinar</Typography>
-                    <Typography variant="h1" tone={metrics.checkedInCount < (sellers || []).length ? 'error' : 'success'} className="text-5xl tabular-nums leading-none mb-3">
-                        {metrics.checkedInCount}<span className="text-text-tertiary text-2xl">/{ (sellers || []).length }</span>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-status-success-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                    <Typography variant="tiny" tone="muted" className="mb-4 block font-black">Saúde Disciplinar</Typography>
+                    <Typography variant="h1" tone={metrics.checkedInCount < (sellers || []).length ? 'error' : 'success'} className="text-5xl tabular-nums leading-none mb-3 tracking-tighter">
+                        {metrics.checkedInCount}<span className="text-text-tertiary text-2xl font-black">/{ (sellers || []).length }</span>
                     </Typography>
-                    <Typography variant="caption" tone="muted" className="font-black">REGISTROS SINCRONIZADOS</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black">REGISTROS SINCRONIZADOS</Typography>
                 </Card>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
-                
-                {/* Ranking Section */}
                 <section className="xl:col-span-8 flex flex-col gap-mx-lg">
                     <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
                         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 p-10 bg-surface-alt/30 border-b border-border-default">
                             <div>
-                                <CardTitle className="text-2xl uppercase">{viewMode === 'day' ? 'Grade Diária' : 'Ranking Unidade'}</CardTitle>
+                                <CardTitle className="text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Ranking Unidade'}</CardTitle>
                                 <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-60">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
                             </div>
-                            <div className="relative group w-full sm:w-72">
+                            <div className="relative group w-full sm:w-mx-2xl">
                                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                                 <Input 
                                     placeholder="BUSCAR ESPECIALISTA..." value={sellerSearch}
                                     onChange={e => setSellerSearch(e.target.value)}
-                                    className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
+                                    className="!pl-11 !h-12 uppercase tracking-widest text-xs"
                                 />
                             </div>
                         </CardHeader>
                         
                         <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left min-w-[1000px]">
+                            <table className="w-full text-left">
                                 <thead>
-                                    <tr className="bg-brand-secondary border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
+                                    <tr className="bg-mx-black border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
                                         <th scope="col" className="pl-10 py-6">POS</th>
                                         <th scope="col" className="px-6 py-6">ESPECIALISTA</th>
                                         <th scope="col" className="px-6 py-6 text-center">LEADS</th>
@@ -234,7 +231,7 @@ export default function DashboardLoja() {
                                             <td className="px-6 text-center font-bold text-sm text-text-primary tabular-nums opacity-60">{r.vis}</td>
                                             <td className="px-6 text-center font-black text-2xl text-brand-primary tabular-nums bg-mx-indigo-50/30">{r.total}</td>
                                             <td className="pr-10 text-right">
-                                                <Badge variant={r.total > 0 ? 'success' : 'outline'} className="px-4 py-1.5 rounded-lg font-black text-[8px] tracking-widest shadow-sm">
+                                                <Badge variant={r.total > 0 ? 'success' : 'outline'} className="px-4 py-1.5 rounded-lg font-black text-[8px] tracking-widest shadow-sm uppercase border-none">
                                                     {r.total > 0 ? 'CONVERSÃO' : 'EM AGUARDO'}
                                                 </Badge>
                                             </td>
@@ -246,13 +243,12 @@ export default function DashboardLoja() {
                     </Card>
                 </section>
 
-                {/* Sidebar Mix */}
                 <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
                     <Card className="p-10 border-none shadow-mx-lg bg-white relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16" aria-hidden="true" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
                         <header className="flex items-center gap-4 mb-10 relative z-10">
                             <div className="w-14 h-14 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary shadow-inner border border-border-default"><Globe size={28} /></div>
-                            <Typography variant="h3">Mix de Canais</Typography>
+                            <Typography variant="h3" className="uppercase tracking-tight">Mix de Canais</Typography>
                         </header>
                         
                         <div className="space-y-8 relative z-10">
@@ -263,13 +259,13 @@ export default function DashboardLoja() {
                             ].map(ch => (
                                 <div key={ch.label} className="space-y-3">
                                     <div className="flex justify-between items-end">
-                                        <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase tracking-widest">{ch.label}</Typography>
+                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{ch.label}</Typography>
                                         <Typography variant="mono" tone={ch.tone as any} className="text-sm font-black">{ch.pct}%</Typography>
                                     </div>
                                     <div className="h-2 w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-inner p-0.5">
                                         <motion.div 
                                             initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5, ease: "circOut" }}
-                                            className={cn("h-full rounded-full shadow-mx-sm transition-all duration-1000", ch.color)} 
+                                            className={cn("h-full rounded-full shadow-sm transition-all duration-1000", ch.color)} 
                                         />
                                     </div>
                                 </div>
@@ -279,10 +275,10 @@ export default function DashboardLoja() {
 
                     <Card className="p-10 bg-brand-primary rounded-[3rem] text-white shadow-mx-xl relative overflow-hidden group border-none">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
-                        <div className="relative z-10">
+                        <div className="relative z-10 text-center">
                             <TrendingUp className="mx-auto mb-8 opacity-30 transform group-hover:scale-110 transition-transform" size={48} />
-                            <Typography variant="h2" tone="white" className="text-xl mb-6 uppercase tracking-tight">Diagnóstico Unidade</Typography>
-                            <Typography variant="p" tone="white" className="text-sm font-black italic opacity-80 leading-relaxed uppercase tracking-widest max-w-xs mx-auto">
+                            <Typography variant="h2" tone="white" className="text-xl mb-6 uppercase tracking-tight font-black">Diagnóstico Unidade</Typography>
+                            <Typography variant="caption" tone="white" className="text-xs font-black italic opacity-80 leading-relaxed uppercase tracking-widest max-w-xs mx-auto block">
                                 "A unidade opera com 85% de eficiência disciplinar. O gargalo técnico identificado é o agendamento de leads digitais."
                             </Typography>
                         </div>

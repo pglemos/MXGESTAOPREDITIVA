@@ -1,46 +1,115 @@
-export const getMatinalEmailTemplate = (storeName: string, funnelData: any, metaInfo: any) => {
-    const statusColor = metaInfo.pacing >= 1 ? '#16a34a' : '#dc2626';
-    const statusText = metaInfo.pacing >= 1 ? 'META EM DIA' : 'ATENÇÃO: ABAIXO DA META';
-
+export const getMatinalEmailTemplate = (storeName: string, dateLabel: string, metrics: any, ranking: any[]) => {
+    const statusColor = metrics.reaching >= 100 ? '#16a34a' : metrics.reaching >= 70 ? '#f59e0b' : '#dc2626';
+    
     return `
+<!DOCTYPE html>
 <html>
-<body style="font-family: sans-serif; line-height: 1.6; color: #333; background: #f4f4f5; padding: 20px;">
-    <div style="max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-        <h1 style="color: #1e3a8a; margin-top: 0;">MX Performance | ${storeName}</h1>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1d20; background-color: #f8fafc; margin: 0; padding: 40px 20px; }
+        .container { max-width: 650px; margin: auto; background: #ffffff; border-radius: 24px; overflow: hidden; shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
+        .header { background-color: #1e293b; color: #ffffff; padding: 40px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+        .header p { margin: 10px 0 0; font-size: 14px; opacity: 0.7; font-weight: 700; }
         
-        <div style="background: ${statusColor}; color: white; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; margin-bottom: 20px;">
-            ${statusText} (Pacing: ${(metaInfo.pacing * 100).toFixed(0)}%)
+        .pacing-bar { background-color: #eff6ff; padding: 25px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        .pacing-title { font-size: 18px; font-weight: 900; color: #1e293b; margin-bottom: 5px; }
+        .pacing-projection { font-size: 14px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .seller-card { padding: 20px 40px; border-bottom: 1px solid #f1f5f9; }
+        .seller-header { background: #334155; color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
+        .stat-item { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .stat-label { font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .stat-value { font-size: 16px; font-weight: 900; color: #1e293b; }
+        
+        .summary-table { width: 100%; border-collapse: collapse; background: #1e293b; color: white; }
+        .summary-table td { padding: 25px; text-align: center; border-right: 1px solid rgba(255,255,255,0.1); }
+        .summary-table td:last-child { border-right: none; }
+        .summary-label { font-size: 10px; font-weight: 900; opacity: 0.6; text-transform: uppercase; display: block; margin-bottom: 8px; }
+        .summary-value { font-size: 24px; font-weight: 900; }
+        .summary-value.highlight { color: #4ade80; }
+        
+        .footer { padding: 30px; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .whatsapp-btn { background-color: #25d366; color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: 900; font-size: 12px; display: inline-flex; align-items: center; text-transform: uppercase; letter-spacing: 1px; }
+        .note { font-size: 11px; color: #94a3b8; font-style: italic; margin-bottom: 25px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 RELATÓRIO MATINAL</h1>
+            <p>${storeName.toUpperCase()} | Ref: ${dateLabel}</p>
         </div>
 
-        <h2 style="font-size: 16px; color: #475569;">Resumo de Funil (D-1)</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-            <tr style="background: #f8fafc;">
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">Leads</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">${funnelData?.leads || 0}</td>
-            </tr>
+        <div class="pacing-bar">
+            <div class="pacing-title">🔎 FALTA POUCO: ${metrics.gap} CARROS</div>
+            <div class="pacing-projection">🔮 PROJEÇÃO ATUAL: FECHAR COM ${metrics.projection} CARROS</div>
+            ${metrics.pendingSellers?.length > 0 ? `<div style="color: #ef4444; font-size: 11px; font-weight: 900; margin-top: 10px; text-transform: uppercase;">⚠️ SEM REGISTRO HOJE: ${metrics.pendingSellers.join(', ')}</div>` : ''}
+        </div>
+
+        ${ranking.map(r => `
+        <div class="seller-card">
+            <div class="seller-header">${r.user_name}</div>
+            <table width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td width="25%" align="center">
+                        <div class="stat-item">
+                            <span class="stat-label">LEADS</span>
+                            <span class="stat-value">${r.leads || 0}</span>
+                        </div>
+                    </td>
+                    <td width="25%" align="center">
+                        <div class="stat-item">
+                            <span class="stat-label">AGD (HOJE)</span>
+                            <span class="stat-value">${r.agd_total || 0}</span>
+                        </div>
+                    </td>
+                    <td width="25%" align="center">
+                        <div class="stat-item">
+                            <span class="stat-label">VND (ONTEM)</span>
+                            <span class="stat-value">${r.vnd_yesterday || 0}</span>
+                        </div>
+                    </td>
+                    <td width="25%" align="center">
+                        <div class="stat-item">
+                            <span class="stat-label">TOTAL (MÊS)</span>
+                            <span class="stat-value">${r.vnd_total || 0}</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        `).join('')}
+
+        <table class="summary-table">
             <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">Agendamentos</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">${funnelData?.agd_total || 0}</td>
-            </tr>
-            <tr style="background: #f8fafc;">
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">Visitas</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">${funnelData?.visitas || 0}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">Vendas</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #1e3a8a;">${funnelData?.vnd_total || 0}</td>
+                <td>
+                    <span class="summary-label">VENDAS</span>
+                    <span class="summary-value">${metrics.currentSales}</span>
+                </td>
+                <td>
+                    <span class="summary-label">META</span>
+                    <span class="summary-value">${metrics.teamGoal}</span>
+                </td>
+                <td>
+                    <span class="summary-label">PROJEÇÃO</span>
+                    <span class="summary-value highlight">${metrics.projection}</span>
+                </td>
+                <td>
+                    <span class="summary-label">ATING</span>
+                    <span class="summary-value" style="color: ${statusColor}">${metrics.reaching}%</span>
+                </td>
             </tr>
         </table>
 
-        <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 20px;">
-            <p style="margin: 0; font-size: 14px;"><strong>Ação sugerida:</strong> ${metaInfo.pacing < 0.9 ? 'Focar em agendamentos de carteira para recuperar gap.' : 'Manter ritmo de fechamento.'}</p>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="https://app.mx-performance.com/dashboard" style="background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Dashboard Completo</a>
+        <div class="footer">
+            <span class="note">*O arquivo anexo contém duas abas: O Painel Visual e a Lista de Vendas Detalhada onde você pode aplicar filtros.</span>
+            <a href="#" class="whatsapp-btn">📲 ENVIAR NO WHATSAPP</a>
         </div>
     </div>
 </body>
 </html>
-`;
+    `;
 };

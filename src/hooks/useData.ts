@@ -446,6 +446,16 @@ export function useStoreDeliveryRules(storeIdOverride?: string) {
         setLoading(false)
     }, [storeId])
 
+    const updateDeliveryRules = async (data: any) => {
+        if (!storeId) return { error: 'Loja não identificada' }
+        const { error } = await supabase.from('store_delivery_rules').upsert({
+            store_id: storeId,
+            ...data
+        }, { onConflict: 'store_id' })
+        if (!error) await fetchRules()
+        return { error: error?.message || null }
+    }
+
     useEffect(() => { fetchRules() }, [fetchRules])
-    return { deliveryRules, loading, refetch: fetchRules }
+    return { deliveryRules, loading, refetch: fetchRules, updateDeliveryRules }
 }

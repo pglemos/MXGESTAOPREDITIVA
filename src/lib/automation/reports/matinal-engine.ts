@@ -1,14 +1,14 @@
 import { supabase } from '@/lib/supabase';
-import { calcularFunil, somarVendas, calcularProjecao, calcularAtingimento, getDiasInfo } from '../calculations';
-import { getMatinalEmailTemplate } from './email/templates/matinal';
-import { sendEmailReport } from './email/sender';
-import { generateMorningReportXlsx } from './reports/xlsx-generator';
+import { calcularFunil, somarVendas, calcularProjecao, calcularAtingimento, getDiasInfo } from '../../calculations';
+import { getMatinalEmailTemplate } from '../email/templates/matinal';
+import { sendEmailReport } from '../email/sender';
+import { generateMorningReportXlsx } from '../reports/xlsx-generator';
 import { calculateReferenceDate } from '@/hooks/useCheckins';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export async function runMatinalWorkflow() {
-    console.log('🚀 Iniciando Ciclo Matinal MX (v2)...');
+export async function runMorningReportWorkflow() {
+    console.log('🚀 Iniciando Ciclo Matinal MX...');
 
     const referenceDate = calculateReferenceDate();
     const dateLabel = format(parseISO(referenceDate), 'dd/MM/yyyy', { locale: ptBR });
@@ -64,7 +64,7 @@ export async function runMatinalWorkflow() {
                 visitas: sellerFunnel.visitas,
                 vnd_total: totalSales,
                 vnd_yesterday: yesterdayCheckin ? (yesterdayCheckin.vnd_porta_prev_day || 0) + (yesterdayCheckin.vnd_cart_prev_day || 0) + (yesterdayCheckin.vnd_net_prev_day || 0) : 0,
-                atingimento: sellerFunnel.vnd_total > 0 ? 100 : 0 // Placeholder simplificado
+                atingimento: 0 // Simplificado para o email
             });
         }
 
