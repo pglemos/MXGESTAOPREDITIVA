@@ -1,6 +1,6 @@
 # Atomic Design Enforcement Todo
 
-- [ ] Task 1: Setup ESLint Token Enforcement
+- [x] Task 1: Setup ESLint Token Enforcement
 - [ ] Task 2: Build the 'Button' Atom (Adaptative Sizing)
 - [ ] Task 3: Build 'Badge', 'Input', and 'Typography' Atoms
 - [ ] Task 4: Build 'Card' and 'FormField' Molecules
