@@ -173,3 +173,32 @@ export function useMyCheckins() {
     useEffect(() => { fetch() }, [fetch])
     return { checkins, loading, refetch: fetch }
 }
+
+export function useCheckinsByDateRange(storeId: string | null, startDate: string, endDate: string) {
+    const [checkins, setCheckins] = useState<CheckinWithTotals[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetch = useCallback(async () => {
+        if (!storeId) {
+            setCheckins([])
+            setLoading(false)
+            return
+        }
+        setLoading(true)
+        const { data, error } = await supabase
+            .from('daily_checkins')
+            .select('*')
+            .eq('store_id', storeId)
+            .gte('reference_date', startDate)
+            .lte('reference_date', endDate)
+            .order('reference_date', { ascending: false })
+
+        if (!error && data) {
+            setCheckins(data.map(c => ({ ...c, ...calcularTotais(c) })))
+        }
+        setLoading(false)
+    }, [storeId, startDate, endDate])
+
+    useEffect(() => { fetch() }, [fetch])
+    return { checkins, loading, refetch: fetch }
+}

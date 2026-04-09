@@ -2,148 +2,155 @@ import { useCheckins } from '@/hooks/useCheckins'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { useEffect, useState, useMemo } from 'react'
-import type { Benchmark } from '@/types/database'
-import { GitBranch, AlertTriangle, CheckCircle, BarChart3, Filter, ChevronRight, LayoutDashboard, Target, TrendingUp, Zap, ArrowUpRight, Store, Users, Globe, RefreshCw } from 'lucide-react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { 
+    Filter, Search, RefreshCw, Zap, TrendingUp, 
+    Target, AlertTriangle, CheckCircle2, ArrowRight,
+    Users, Globe, Eye, History, LayoutDashboard
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Badge } from '@/components/atoms/Badge'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 export default function Funil() {
-    const { storeId } = useAuth()
-    const { checkins, loading, fetchCheckins: refetch } = useCheckins()
-    const [benchmark, setBenchmark] = useState<Benchmark | null>(null)
+    const { role, storeId } = useAuth()
+    const { checkins, loading, fetchCheckins } = useCheckins()
+    const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
 
-    useEffect(() => {
-        if (!storeId) return
-        supabase.from('benchmarks').select('*').eq('store_id', storeId).maybeSingle()
-            .then(({ data }) => { if (data) setBenchmark(data) })
-    }, [storeId])
+    const funilData = useMemo(() => calcularFunil(checkins), [checkins])
+    const diagnostico = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
 
-    const funil = useMemo(() => calcularFunil(checkins), [checkins])
-    
-    const defaultBenchmark = useMemo((): Benchmark => ({ 
-        id: '', store_id: storeId || '', lead_to_appt: 20, appt_to_visit: 60, visit_to_sale: 33 
-    }), [storeId])
-
-    const diagnostic = useMemo(() => {
-        const rules = {
-            bench_lead_agd: benchmark?.lead_to_appt || 20,
-            bench_agd_visita: benchmark?.appt_to_visit || 60,
-            bench_visita_vnd: benchmark?.visit_to_sale || 33
-        } as any
-        return gerarDiagnosticoMX(funil, false, rules)
-    }, [funil, benchmark])
-
-    const steps = useMemo(() => [
-        { label: 'Leads', value: funil.leads, pct: 100, bg: 'bg-brand-primary', color: 'text-brand-primary', subColor: 'bg-brand-primary-surface', bench: null },
-        { label: 'Agendamentos', value: funil.agd_total, pct: funil.tx_lead_agd, bg: 'bg-status-info', color: 'text-status-info', subColor: 'bg-status-info-surface', bench: benchmark?.lead_to_appt || 20 },
-        { label: 'Visitas', value: funil.visitas, pct: funil.tx_agd_visita, bg: 'bg-status-warning', color: 'text-status-warning', subColor: 'bg-status-warning-surface', bench: benchmark?.appt_to_visit || 60 },
-        { label: 'Vendas', value: funil.vnd_total, pct: funil.tx_visita_vnd, bg: 'bg-status-success', color: 'text-status-success', subColor: 'bg-status-success-surface', bench: benchmark?.visit_to_sale || 33 },
-    ], [funil, benchmark])
-
-    const maxValue = Math.max(funil.leads, 1)
+    const handleRefresh = useCallback(async () => {
+        setIsRefetching(true)
+        await fetchCheckins()
+        setIsRefetching(false)
+        toast.success('Funil sincronizado!')
+    }, [fetchCheckins])
 
     if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-surface-alt/50 backdrop-blur-xl">
-            <div className="w-16 h-16 border-4 border-brand-primary/10 border-t-brand-primary rounded-full animate-spin"></div>
-            <p className="mt-mx-md mx-text-caption animate-pulse uppercase">Analizando Fluxo de Conversão...</p>
+        <div className="h-full w-full flex flex-col items-center justify-center bg-white">
+            <RefreshCw className="w-10 h-10 animate-spin text-brand-primary mb-4" />
+            <Typography variant="caption" tone="muted" className="animate-pulse">Auditando Escoamento...</Typography>
         </div>
     )
 
     return (
-        <>
-            <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-white p-2 text-black shadow-md rounded">Pular para o conteúdo principal</a>
-            <main id="main-content" className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl">
-                {/* Header Area */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-mx-xs">
-                            <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-                            <h1 className="mx-heading-hero">Funil de Vendas</h1>
-                        </div>
-                        <p className="mx-text-caption pl-mx-md text-text-secondary">Diagnóstico de Gargalos & Taxas de Conversão</p>
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header Area */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-indigo-600 rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Funil de <span className="text-indigo-600">Vendas</span></Typography>
                     </div>
-
-                    <div className="flex items-center gap-mx-sm shrink-0">
-                        <button onClick={() => { setIsRefetching(true); refetch().then(() => setIsRefetching(false)) }} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all">
-                            <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
-                        </button>
-                        <button className="mx-button-primary bg-white !text-text-primary border border-border-default flex items-center gap-2">
-                            <Filter size={16} aria-hidden="true" /> Período
-                        </button>
-                    </div>
+                    <Typography variant="caption" className="pl-mx-md">Análise de Conversão & Escoamento MX</Typography>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0 pb-mx-3xl">
-                    {/* Diagnostic Panel */}
-                    <div className="lg:col-span-4 flex flex-col gap-mx-lg">
-                        <div className="mx-card p-mx-lg relative overflow-hidden group">
-                            <div className={cn("absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] -mr-20 -mt-20 opacity-20 pointer-events-none", diagnostic.gargalo ? 'bg-status-error' : 'bg-status-success')} />
-                            <div className="flex items-center gap-mx-sm mb-mx-lg relative z-10">
-                                <div className={cn("w-12 h-12 rounded-mx-md flex items-center justify-center shadow-inner border transition-all group-hover:scale-110", diagnostic.gargalo ? 'bg-status-error-surface text-status-error border-mx-rose-100' : 'bg-status-success-surface text-status-success border-mx-emerald-100')}>
-                                    <span className="sr-only">{diagnostic.gargalo ? 'Gargalo identificado' : 'Status positivo'}</span>
-                                    {diagnostic.gargalo ? <AlertTriangle size={24} strokeWidth={2.5} aria-hidden="true" /> : <CheckCircle size={24} strokeWidth={2.5} aria-hidden="true" />}
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1">Diagnóstico</h3>
-                                    <p className="mx-text-caption !text-[8px] text-text-secondary">Motor Preditivo MX</p>
-                                </div>
-                            </div>
-                            <p className="text-lg font-black text-text-primary leading-tight italic mb-mx-lg relative z-10">"{diagnostic.diagnostico}"</p>
-                            <div className="bg-mx-slate-50/50 rounded-mx-xl p-mx-md border border-border-default relative z-10">
-                                <div className="flex items-center gap-2 mb-mx-sm">
-                                    <Zap size={14} className="text-brand-primary" fill="currentColor" aria-hidden="true" />
-                                    <span className="mx-text-caption">Benchmarks Ativos</span>
-                                </div>
-                                <div className="space-y-2">
-                                    {steps.slice(1).map(s => (
-                                        <div key={s.label} className="flex justify-between items-center bg-white border border-border-subtle p-2 px-mx-sm rounded-mx-md shadow-mx-sm">
-                                            <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest">{s.label}</span>
-                                            <span className="bg-brand-primary-surface text-brand-primary px-2 py-0.5 rounded font-black text-[10px]">{s.bench}%</span>
-                                        </div>
-                                    ))}
-                                </div>
+                <div className="flex items-center gap-mx-sm shrink-0">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                    </Button>
+                    <div className="bg-white p-1 rounded-full border border-border-default shadow-mx-sm flex gap-1">
+                        <Button variant="secondary" size="sm" className="h-10 rounded-full px-6 shadow-mx-sm">Visão Geral</Button>
+                        <Button variant="ghost" size="sm" className="h-10 rounded-full px-6">Por Vendedor</Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Diagnóstico da Unidade */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0">
+                <Card className="lg:col-span-8 bg-brand-secondary text-white p-10 shadow-mx-xl relative overflow-hidden border-none group">
+                    <div className="absolute top-0 right-0 w-[400px] h-full bg-gradient-to-l from-indigo-500/10 via-transparent to-transparent pointer-events-none" aria-hidden="true" />
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-10">
+                        <div className="w-20 h-20 rounded-3xl bg-indigo-600 flex items-center justify-center border-4 border-white/10 shadow-2xl group-hover:rotate-12 transition-transform shrink-0" aria-hidden="true">
+                            <Zap size={40} className="text-white" />
+                        </div>
+                        <div className="space-y-4">
+                            <Typography variant="caption" tone="white" className="opacity-50">Diagnóstico Automático</Typography>
+                            <Typography variant="h2" tone="white" className="text-2xl md:text-3xl italic">"{diagnostico.diagnostico}"</Typography>
+                            <div className="flex items-center gap-3 pt-4">
+                                <TrendingUp size={20} className="text-indigo-400" aria-hidden="true" />
+                                <Typography variant="p" tone="white" className="text-sm font-bold opacity-80">{diagnostico.sugestao}</Typography>
                             </div>
                         </div>
                     </div>
+                </Card>
 
-                    {/* Funnel Matrix */}
-                    <div className="lg:col-span-8">
-                        <div className="mx-card p-mx-lg md:p-mx-xl relative overflow-hidden">
-                            <ul role="list" aria-live="polite" className="space-y-mx-2xl relative z-10">
-                                {steps.map((step, i) => (
-                                    <li key={step.label} className="group/step">
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-mx-lg">
-                                            <div className={cn("w-14 h-14 shrink-0 rounded-mx-lg flex items-center justify-center font-black text-white shadow-mx-lg transition-all group-hover/step:rotate-3", step.bg)}>{i + 1}</div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-end mb-mx-sm">
-                                                    <div>
-                                                        <h3 className="font-black text-lg text-text-primary tracking-tight uppercase">{step.label}</h3>
-                                                        <p className="mx-text-caption !text-[8px] text-text-secondary">Volumetria Operacional</p>
-                                                    </div>
-                                                    <div className="flex items-baseline gap-mx-md">
-                                                        <span className="text-4xl font-black text-text-primary tracking-tighter font-mono-numbers">{step.value}</span>
-                                                        {i > 0 && (
-                                                            <div className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black border shadow-mx-sm", step.pct < (step.bench || 0) ? 'bg-status-error-surface text-status-error border-mx-rose-100' : 'bg-status-success-surface text-status-success border-mx-emerald-100')}>
-                                                                <span className="sr-only">{step.pct >= (step.bench || 0) ? 'Acima da meta' : 'Abaixo da meta'}</span>
-                                                                {step.pct}% {step.pct >= (step.bench || 0) ? <ArrowUpRight size={12} strokeWidth={2.5} aria-hidden="true" /> : <AlertTriangle size={12} strokeWidth={2.5} aria-hidden="true" />}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="h-2 bg-mx-slate-50 border border-border-subtle rounded-full overflow-hidden relative shadow-inner p-px" aria-hidden="true">
-                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.max((step.value / maxValue) * 100, 2)}%` }} transition={{ duration: 1.2, delay: i * 0.1 }} className={cn("h-full rounded-full shadow-mx-sm transition-all", step.bg)} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                <Card className="lg:col-span-4 p-10 flex flex-col justify-between">
+                    <div className="space-y-2">
+                        <Typography variant="caption" tone="muted">Eficiência Global</Typography>
+                        <Typography variant="h1" className="text-5xl tabular-nums leading-none">{funilData.tx_visita_vnd}%</Typography>
+                    </div>
+                    <div className="pt-8 border-t border-border-default mt-8">
+                        <div className="flex justify-between items-center mb-2">
+                            <Typography variant="caption">Meta de Conversão</Typography>
+                            <Typography variant="mono" className="text-xs">33%</Typography>
+                        </div>
+                        <div className="h-2 w-full bg-surface-alt rounded-full overflow-hidden" role="progressbar" aria-valuenow={funilData.tx_visita_vnd} aria-valuemin={0} aria-valuemax={100}>
+                            <div className={cn("h-full transition-all duration-1000", funilData.tx_visita_vnd >= 33 ? "bg-status-success" : "bg-status-error")} style={{ width: `${Math.min(funilData.tx_visita_vnd, 100)}%` }} />
                         </div>
                     </div>
-                </div>
-            </main>
-        </>
+                </Card>
+            </div>
+
+            {/* Matrix de Conversão */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
+                {[
+                    { label: 'Leads Novos', value: funilData.leads, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    { label: 'Agendamentos', value: funilData.agd_total, icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { label: 'Visitas Loja', value: funilData.visitas, icon: Eye, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { label: 'Vendas Totais', value: funilData.vnd_total, icon: Car, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                ].map(item => (
+                    <Card key={item.label} className="p-8 group hover:shadow-mx-xl transition-all">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border shadow-inner group-hover:scale-110 transition-transform", item.bg)} aria-hidden="true">
+                                <item.icon size={22} className={item.color} />
+                            </div>
+                            <Typography variant="caption" tone="muted">{item.label}</Typography>
+                        </div>
+                        <Typography variant="h1" className="text-4xl tabular-nums">{item.value}</Typography>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Funil Visual */}
+            <Card className="w-full mb-32">
+                <CardHeader>
+                    <CardTitle>Fluxo de Escoamento</CardTitle>
+                    <CardDescription>Taxas de conversão entre etapas do funil</CardDescription>
+                </CardHeader>
+                <CardContent className="p-10">
+                    <div className="flex flex-col gap-10">
+                        {[
+                            { from: 'Leads', to: 'Agendamentos', val: funilData.tx_lead_agd, bench: 20 },
+                            { from: 'Agendamentos', to: 'Visitas', val: funilData.tx_agd_visita, bench: 60 },
+                            { from: 'Visitas', to: 'Vendas', val: funilData.tx_visita_vnd, bench: 33 },
+                        ].map((step, idx) => (
+                            <div key={idx} className="flex flex-col md:flex-row items-center gap-10">
+                                <div className="flex-1 w-full space-y-4">
+                                    <div className="flex justify-between items-end">
+                                        <Typography variant="h3" className="text-base">{step.from} → {step.to}</Typography>
+                                        <div className="flex items-baseline gap-2">
+                                            <Typography variant="h2" className="text-2xl" tone={step.val >= step.bench ? 'success' : 'error'}>{step.val}%</Typography>
+                                            <Typography variant="caption" tone="muted">Benchmark: {step.bench}%</Typography>
+                                        </div>
+                                    </div>
+                                    <div className="h-4 w-full bg-surface-alt rounded-full overflow-hidden border border-border-default shadow-inner" role="progressbar" aria-valuenow={step.val} aria-valuemin={0} aria-valuemax={100}>
+                                        <div className={cn("h-full transition-all duration-1000", step.val >= step.bench ? "bg-status-success" : "bg-status-error")} style={{ width: `${Math.min(step.val, 100)}%` }} />
+                                    </div>
+                                </div>
+                                {idx < 2 && <ArrowRight size={32} className="text-border-default hidden md:block" aria-hidden="true" />}
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        </main>
     )
 }
