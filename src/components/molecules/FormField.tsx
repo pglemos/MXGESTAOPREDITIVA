@@ -1,0 +1,31 @@
+import * as React from 'react'
+import { cn } from '@/lib/utils'
+import { Typography } from '@/components/atoms/Typography'
+import { Input } from '@/components/atoms/Input'
+
+interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string
+  error?: string
+  id: string
+}
+
+const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
+  ({ label, error, id, className, ...props }, ref) => {
+    return (
+      <div className={cn("space-y-3 w-full", className)}>
+        <label htmlFor={id} className="block ml-2">
+          <Typography variant="caption" tone="muted">{label}</Typography>
+        </label>
+        <Input id={id} ref={ref} {...props} className={cn(error && "border-status-error focus:border-status-error focus:ring-status-error/5")} />
+        {error && (
+          <p className="text-status-error text-[10px] font-black uppercase ml-2 animate-in fade-in slide-in-from-top-1" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    )
+  }
+)
+FormField.displayName = "FormField"
+
+export { FormField }
