@@ -174,12 +174,14 @@ BEGIN
 
     SELECT jsonb_agg(
         jsonb_build_object(
+            'id', pa.id,
             'competencia', c.nome,
             'descricao_acao', pa.descricao_acao,
             'data_conclusao', pa.data_conclusao,
             'impacto', pa.impacto,
             'custo', pa.custo,
-            'status', pa.status
+            'status', pa.status,
+            'evidencia_url', pa.evidencia_url
         )
     ) INTO v_plano_acao
     FROM public.pdi_plano_acao pa
