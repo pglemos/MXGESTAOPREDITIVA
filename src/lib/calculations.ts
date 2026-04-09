@@ -211,3 +211,32 @@ ${metrics.pendingSellers?.length > 0 ? `*⚠️ SEM REGISTRO HOJE:* \n${metrics.
 _Sistema Automático MX_`
 }
 
+/** Formata o feedback estruturado para envio via WhatsApp */
+export function formatStructuredWhatsAppFeedback(data: {
+    sellerName: string;
+    metrics: any;
+    diagnostic: any;
+    actions: string[];
+    periodLabel: string;
+}): string {
+    return `*💎 FEEDBACK ESTRUTURADO — MX PERFORMANCE*
+*Especialista:* ${data.sellerName.toUpperCase()}
+*Período:* ${data.periodLabel}
+
+*📊 MÉTRICAS CONSOLIDADAS:*
+✅ *Vendas:* ${data.metrics.vnd_total}
+📞 *Agendamentos:* ${data.metrics.agd_total}
+👥 *Visitas:* ${data.metrics.visitas}
+📥 *Leads Recebidos:* ${data.metrics.leads}
+
+*🔥 DIAGNÓSTICO TÁTICO:*
+${data.diagnostic.diagnostico}
+
+*🚀 PLANO DE AÇÃO (TOP 3):*
+${data.actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}
+
+*CONSELHO MX:* ${data.diagnostic.sugestao}
+
+_Gerado via Inteligência Operacional MX_`
+}
+
