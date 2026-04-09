@@ -1,16 +1,18 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import {
     Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar, X, Check
 } from 'lucide-react'
 import { supabase as originalSupabase, supabaseAdmin } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 import { useAllStoreGoals } from '@/hooks/useGoals'
 import { useNotifications } from '@/hooks/useData'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
+import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { toast } from 'sonner'
 import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns'
@@ -27,6 +29,8 @@ type SortConfig = {
 type Timeframe = 'hoje' | 'ontem' | 'semanal' | 'mensal' | 'personalizada'
 
 export default function PainelConsultor() {
+    const navigate = useNavigate()
+    const { setActiveStoreId } = useAuth()
     const { goals, loading: goalsLoading } = useAllStoreGoals()
     const { notifications } = useNotifications()
     
@@ -35,7 +39,6 @@ export default function PainelConsultor() {
     const [isRefetching, setIsRefetching] = useState(false)
     const [isTriggering, setIsTriggering] = useState<string | null>(null)
 
-    // Filter & Sort State
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'critical' | 'target'>('all')
     const [timeframe, setTimeframe] = useState<Timeframe>('mensal')
@@ -45,6 +48,12 @@ export default function PainelConsultor() {
     })
     const [showCustomPicker, setShowCustomPicker] = useState(false)
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'sales', direction: 'desc' })
+
+    const handleStoreClick = (storeId: string) => {
+        setActiveStoreId(storeId)
+        navigate('/loja')
+        toast.info('Unidade selecionada para monitoramento.')
+    }
 
     const triggerReport = async (type: 'matinal' | 'semanal' | 'mensal') => {
         setIsTriggering(type)
@@ -217,8 +226,8 @@ export default function PainelConsultor() {
     }, [diagnostics])
 
     if (goalsLoading || networkLoading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="animate-spin text-brand-primary w-10 h-10 mb-4" />
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
+            <RefreshCw className="animate-spin text-brand-primary w-12 h-12 mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Rede...</Typography>
         </div>
     )
@@ -226,31 +235,29 @@ export default function PainelConsultor() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10 shrink-0">
+            {/* Header Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Rede Operacional</Typography>
+                        <Typography variant="h1">Rede <span className="text-brand-primary">Operacional</span></Typography>
                     </div>
                     <div className="flex items-center gap-4 pl-6">
-                        <Badge variant="danger" className="font-black text-[10px] tracking-widest uppercase">
-                           Gap Global: {globalStats.totalGap} UNIDADES
-                        </Badge>
-                        <Typography variant="caption">Matriz de Governança MX • Dados Sincronizados ({filteredAndSortedStores.length} LOJAS)</Typography>
+                        <Badge variant="danger" className="px-4 py-1">Gap Global: {globalStats.totalGap} UNIDADES</Badge>
+                        <Typography variant="caption" tone="muted">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</Typography>
                     </div>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-mx-xs shrink-0">
-                    <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-border-default shadow-mx-sm relative" role="group" aria-label="Filtro temporal">
-                        <Calendar size={14} className="text-text-tertiary ml-3 mr-1" aria-hidden="true" />
+                    <div className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm relative">
+                        <Calendar size={14} className="text-text-tertiary ml-3 mr-1" />
                         {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
                             <Button 
                                 key={t}
                                 variant={timeframe === t ? 'secondary' : 'ghost'}
                                 size="sm"
                                 onClick={() => setTimeframe(t)}
-                                aria-pressed={timeframe === t}
-                                className="rounded-full px-4 h-8"
+                                className="rounded-full px-4 h-8 uppercase text-[10px]"
                             >
                                 {t}
                             </Button>
@@ -259,171 +266,140 @@ export default function PainelConsultor() {
                             variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => setShowCustomPicker(!showCustomPicker)}
-                            aria-pressed={timeframe === 'personalizada'}
-                            className="rounded-full px-4 h-8"
+                            className="rounded-full px-4 h-8 uppercase text-[10px]"
                         >
-                            Personalizado
+                            Custom
                         </Button>
 
                         <AnimatePresence>
                             {showCustomPicker && (
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                                    className="absolute top-full mt-4 right-0 z-50 bg-white border border-border-default shadow-mx-xl rounded-mx-xl p-6 min-w-[320px]"
-                                >
-                                    <div className="flex items-center justify-between mb-6">
-                                        <Typography variant="caption" tone="muted">Período Customizado</Typography>
-                                        <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-8 h-8 p-0 rounded-full">
-                                            <X size={16} aria-hidden="true" />
-                                        </Button>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <Typography variant="caption" className="ml-1">Início</Typography>
-                                            <input type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="w-full h-10 px-4 rounded-mx-md border border-border-default bg-surface-alt text-xs font-bold outline-none focus:border-brand-primary focus:bg-white transition-all" />
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-0 z-50">
+                                    <Card className="p-6 min-w-[320px] shadow-mx-xl">
+                                        <header className="flex items-center justify-between mb-6">
+                                            <Typography variant="caption" tone="muted">Período Customizado</Typography>
+                                            <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-8 h-8 p-0 rounded-full"><X size={16} /></Button>
+                                        </header>
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Typography variant="caption" className="ml-1">Início</Typography>
+                                                <Input type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-10 !px-4 !text-xs" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Typography variant="caption" className="ml-1">Fim</Typography>
+                                                <Input type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-10 !px-4 !text-xs" />
+                                            </div>
+                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-12 shadow-mx-lg">APLICAR PERÍODO</Button>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Typography variant="caption" className="ml-1">Fim</Typography>
-                                            <input type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="w-full h-10 px-4 rounded-mx-md border border-border-default bg-surface-alt text-xs font-bold outline-none focus:border-brand-primary focus:bg-white transition-all" />
-                                        </div>
-                                        <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-12 rounded-mx-lg bg-brand-primary text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-mx-lg active:scale-95">
-                                            <Check size={14} className="mr-2" /> Aplicar Período
-                                        </Button>
-                                    </div>
+                                    </Card>
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
 
-                    <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-border-default shadow-mx-sm" role="group" aria-label="Disparar relatórios">
+                    <div className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm">
                         {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
-                            <Button
-                                key={r}
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => triggerReport(r)}
-                                disabled={isTriggering !== null}
-                                className="rounded-full px-4 h-8 text-brand-primary"
-                            >
+                            <Button key={r} variant="ghost" size="sm" onClick={() => triggerReport(r)} disabled={isTriggering !== null} className="rounded-full px-4 h-8 text-brand-primary uppercase text-[9px]">
                                 {isTriggering === r ? '…' : r}
                             </Button>
                         ))}
                     </div>
 
-                    <Button 
-                        variant="outline"
-                        size="icon"
-                        onClick={() => fetchNetworkSnapshot(true)}
-                        aria-label="Sincronizar dados da rede"
-                        className="rounded-xl shadow-mx-sm"
-                    >
-                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                    <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-xl shadow-mx-sm">
+                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>
-            </div>
+            </header>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-sm md:gap-mx-lg shrink-0">
-                <Card className="bg-brand-secondary border-none p-8 shadow-mx-xl">
-                    <Typography variant="caption" tone="white" className="opacity-50 mb-4">Venda {timeframe.toUpperCase()}</Typography>
+            {/* Global KPIs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
+                <Card className="bg-brand-secondary border-none p-8 shadow-mx-xl text-white">
+                    <Typography variant="caption" tone="white" className="opacity-50 mb-4 block">Venda {timeframe.toUpperCase()}</Typography>
                     <div className="flex items-baseline gap-2">
-                        <Typography variant="h1" tone="white" className="text-4xl md:text-5xl tabular-nums">{globalStats.totalSales}</Typography>
-                        {timeframe === 'mensal' && <Typography variant="mono" className="text-status-success">{globalStats.globalRitmo}%</Typography>}
+                        <Typography variant="h1" tone="white" className="text-5xl font-mono-numbers">{globalStats.totalSales}</Typography>
+                        {timeframe === 'mensal' && <Typography variant="mono" tone="success" className="text-lg">+{globalStats.globalRitmo}%</Typography>}
                     </div>
-                    {timeframe === 'mensal' && <Typography variant="caption" tone="white" className="opacity-30 mt-4 tracking-widest">Meta da Rede: {globalStats.totalGoal}</Typography>}
+                    {timeframe === 'mensal' && <Typography variant="caption" tone="white" className="opacity-30 mt-4 tracking-widest block">META REDE: {globalStats.totalGoal}</Typography>}
                 </Card>
 
                 <Card className="p-8">
-                    <div className="text-center flex flex-col items-center">
-                        <Typography variant="caption" tone="muted" className="mb-4">Escoamento Rede</Typography>
-                        <div className="grid grid-cols-3 gap-mx-md">
-                            <div><Typography variant="h3" className="text-xl md:text-2xl tabular-nums">{globalStats.totalLeads}</Typography><Typography variant="caption" className="text-[8px]">Leads</Typography></div>
-                            <div><Typography variant="h3" className="text-xl md:text-2xl tabular-nums">{globalStats.totalAgd}</Typography><Typography variant="caption" className="text-[8px]">Agd</Typography></div>
-                            <div><Typography variant="h3" className="text-xl md:text-2xl tabular-nums">{globalStats.totalVis}</Typography><Typography variant="caption" className="text-[8px]">Vis</Typography></div>
-                        </div>
+                    <Typography variant="caption" tone="muted" className="mb-6 text-center block">Escoamento Rede</Typography>
+                    <div className="grid grid-cols-3 gap-mx-md">
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1">{globalStats.totalLeads}</Typography><Typography variant="caption" className="text-[8px]">Leads</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1">{globalStats.totalAgd}</Typography><Typography variant="caption" className="text-[8px]">Agd</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1">{globalStats.totalVis}</Typography><Typography variant="caption" className="text-[8px]">Vis</Typography></div>
                     </div>
                 </Card>
 
-                <Card className="p-8">
+                <Card className="p-8 flex flex-col justify-between">
                     <Typography variant="caption" tone="muted" className="mb-4">Unidades Críticas</Typography>
-                    <Typography variant="h1" className="text-4xl md:text-5xl text-status-error tabular-nums">
+                    <Typography variant="h1" tone="error" className="text-5xl font-mono-numbers">
                         {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
                     </Typography>
-                    <Typography variant="caption" className="mt-4 text-status-error opacity-60">Ação Imediata Necessária</Typography>
+                    <Typography variant="caption" tone="error" className="mt-4 opacity-60">Ação Imediata Necessária</Typography>
                 </Card>
 
-                <Card className="p-8">
+                <Card className="p-8 flex flex-col justify-between">
                     <Typography variant="caption" tone="muted" className="mb-4">Saúde Disciplinar</Typography>
-                    <Typography variant="h1" className="text-4xl md:text-5xl text-status-success tabular-nums">
+                    <Typography variant="h1" tone="success" className="text-5xl font-mono-numbers">
                         {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
                     </Typography>
-                    <Typography variant="caption" className="mt-4 text-status-success opacity-60">Aderência aos Check-ins</Typography>
+                    <Typography variant="caption" tone="success" className="mt-4 opacity-60">Aderência aos Check-ins</Typography>
                 </Card>
             </div>
 
-            <Card className="w-full mb-20">
-                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            {/* Strategic Map Table */}
+            <Card className="w-full mb-20 shadow-mx-lg border-none">
+                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-10">
                     <div>
-                        <CardTitle>Performance Estratégica</CardTitle>
-                        <CardDescription>Malha de Controle de Unidades MX.</CardDescription>
+                        <CardTitle className="text-3xl">Malha de Performance</CardTitle>
+                        <CardDescription>Auditoria em Tempo Real de Unidades MX.</CardDescription>
                     </div>
                     <div className="flex flex-wrap items-center gap-mx-xs">
-                        <div className="relative group flex-1 sm:flex-none">
-                            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
-                            <label htmlFor="search-units" className="sr-only">Localizar unidade operacional</label>
-                            <input 
-                                id="search-units"
-                                name="search-units"
-                                type="text" 
-                                placeholder="Localizar unidade..." 
-                                value={searchTerm} 
-                                onChange={e => setSearchTerm(e.target.value)} 
-                                className="pl-10 pr-4 h-12 bg-white border border-border-default rounded-mx-md text-xs font-bold focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 w-full sm:w-48 shadow-sm transition-all" 
-                            />
+                        <div className="relative group w-full sm:w-64">
+                            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" />
+                            <Input placeholder="Localizar unidade..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10 !h-12 !text-[10px]" />
                         </div>
-                        <div className="flex items-center gap-1 bg-white border border-border-default p-1 rounded-mx-md shadow-sm h-12" role="group" aria-label="Filtro de status">
+                        <div className="flex items-center gap-1 bg-surface-alt border border-border-default p-1 rounded-mx-md h-12 shadow-inner">
                             {(['all', 'alert', 'critical'] as const).map(f => (
-                                <Button
-                                    key={f}
-                                    variant={statusFilter === f ? 'secondary' : 'ghost'}
-                                    size="sm"
-                                    onClick={() => setStatusFilter(f)}
-                                    className="h-full rounded-mx-sm px-4"
-                                >
+                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-full rounded-mx-sm px-4 text-[10px] uppercase">
                                     {f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}
                                 </Button>
                             ))}
                         </div>
-                        <Button asChild variant="secondary" className="h-12 px-6 rounded-mx-md shadow-mx-md">
-                            <Link to="/lojas">Gestão de Lojas</Link>
+                        <Button asChild variant="secondary" className="h-12 px-6 shadow-mx-md">
+                            <Link to="/lojas">GESTÃO LOJAS</Link>
                         </Button>
                     </div>
                 </CardHeader>
                 <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-left min-w-[1200px]">
-                        <caption className="sr-only">Tabela de desempenho operacional das lojas da rede</caption>
-                        <thead className="bg-surface-alt border-b border-border-default">
+                        <thead className="bg-surface-alt/50 border-y border-border-default">
                             <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
-                                <th scope="col" className="pl-10 py-6 cursor-pointer hover:text-text-primary transition-colors" onClick={() => handleSort('name')}>Loja</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer hover:text-text-primary" onClick={() => handleSort('leads')}>Leads</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer hover:text-text-primary" onClick={() => handleSort('agd')}>Agend.</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer hover:text-text-primary" onClick={() => handleSort('vis')}>Visitas</th>
-                                <th scope="col" className="px-4 py-6 text-center text-brand-primary font-black cursor-pointer" onClick={() => handleSort('sales')}>Vendas</th>
+                                <th scope="col" className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}>Unidade</th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('leads')}>Leads</th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('agd')}>Agend.</th>
+                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('vis')}>Visitas</th>
+                                <th scope="col" className="px-4 py-6 text-center text-brand-primary cursor-pointer" onClick={() => handleSort('sales')}>Vendas</th>
                                 <th scope="col" className="px-4 py-6 text-center">Meta</th>
                                 <th scope="col" className="px-4 py-6 text-center text-status-error cursor-pointer" onClick={() => handleSort('gap')}>Gap</th>
                                 <th scope="col" className="px-4 py-6 text-center text-brand-primary cursor-pointer" onClick={() => handleSort('proj')}>Projeção</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('ritmo')}>Ritmo</th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('efficiency')}>Status</th>
-                                <th scope="col" className="pr-10 py-6 text-center cursor-pointer" onClick={() => handleSort('disciplinePct')}>Disciplina</th>
+                                <th scope="col" className="px-4 py-6 text-center">Ritmo</th>
+                                <th scope="col" className="px-4 py-6 text-center">Status</th>
+                                <th scope="col" className="pr-10 py-6 text-center">Disciplina</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-border-default bg-white">
+                        <tbody className="divide-y divide-border-default">
                             {filteredAndSortedStores.map(store => {
                                 const status = getOperationalStatus(store.ritmo, store.disciplinePct)
                                 return (
-                                    <tr key={store.id} className="hover:bg-surface-alt transition-colors group h-24">
-                                        <td className="pl-10 py-2">
+                                    <tr 
+                                        key={store.id} 
+                                        className="hover:bg-brand-primary-surface/10 transition-colors group h-24 cursor-pointer"
+                                        onClick={() => handleStoreClick(store.id)}
+                                    >
+                                        <td className="pl-10">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner" aria-hidden="true">{store.name.charAt(0)}</div>
+                                                <div className="w-12 h-12 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner">{store.name.charAt(0)}</div>
                                                 <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors">{store.name}</Typography>
                                             </div>
                                         </td>
@@ -431,27 +407,27 @@ export default function PainelConsultor() {
                                         <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.agd}</td>
                                         <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.vis}</td>
                                         <td className="px-4 py-2 text-center font-black text-2xl font-mono-numbers text-brand-primary">{store.sales}</td>
-                                        <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.goal}</td>
+                                        <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-tertiary">{store.goal}</td>
                                         <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-status-error">-{store.gap}</td>
                                         <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-brand-primary">{store.proj}</td>
                                         <td className="px-4 py-2 text-center">
                                             <div className="flex flex-col items-center">
-                                                <Typography variant="mono" className="text-lg text-slate-700">{store.ritmo}</Typography>
-                                                <Typography variant="caption" className="text-[8px]">Vnd/Dia</Typography>
+                                                <Typography variant="mono" className="text-lg">{store.ritmo}</Typography>
+                                                <Typography variant="caption" className="text-[8px] opacity-50">VND/DIA</Typography>
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 text-center">
-                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1">
+                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1 mb-1">
                                                 {status.label}
                                             </Badge>
-                                            <Typography variant="caption" className="mt-1">{store.efficiency}% EFIC.</Typography>
+                                            <Typography variant="caption" tone="muted" className="text-[8px] block">{store.efficiency}% EFIC.</Typography>
                                         </td>
                                         <td className="pr-10 py-2 text-center">
                                             <div className="flex flex-col items-center">
-                                                <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'}>
+                                                <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'} className="text-base">
                                                     {store.checkedInToday}/{store.sellers}
                                                 </Typography>
-                                                <Typography variant="caption" className="text-[8px] tracking-tighter">{Math.round(store.disciplinePct)}% OK</Typography>
+                                                <Typography variant="caption" tone="muted" className="text-[8px] tracking-tighter">{Math.round(store.disciplinePct)}% OK</Typography>
                                             </div>
                                         </td>
                                     </tr>

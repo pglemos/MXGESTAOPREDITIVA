@@ -1,17 +1,20 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { CalendarDays, Plus, ChevronLeft, ChevronRight, Clock, MapPin, User, MoreVertical, CheckCircle2, AlertTriangle, Search, RefreshCw, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { 
+    CalendarDays, Plus, ChevronLeft, ChevronRight, Clock, MapPin, 
+    User, MoreVertical, CheckCircle2, AlertTriangle, Search, 
+    RefreshCw, X, History, Target, Calendar, BarChart3
+} from 'lucide-react'
 import { toast } from 'sonner'
 import useAppStore, { Task } from '@/stores/main'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
 import { format, addDays, startOfWeek, isSameDay, addMonths, subMonths, isToday, isBefore, startOfDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 export default function Agenda() {
     const { tasks, addTask, updateTask, leads, refetch: refetchTasks } = useAppStore()
@@ -21,7 +24,10 @@ export default function Agenda() {
     const [isRefetching, setIsRefetching] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     
-    const [newTask, setNewTask] = useState<Partial<Task>>({ title: '', description: '', priority: 'Média', dueDate: new Date().toISOString(), leadId: '' })
+    const [newTask, setNewTask] = useState<Partial<Task>>({ 
+        title: '', description: '', priority: 'Média', 
+        dueDate: new Date().toISOString(), leadId: '' 
+    })
 
     const nextMonth = useCallback(() => setViewDate(prev => addMonths(prev, 1)), [])
     const prevMonth = useCallback(() => setViewDate(prev => subMonths(prev, 1)), [])
@@ -45,12 +51,14 @@ export default function Agenda() {
 
     const handleAddTask = async () => {
         if (!newTask.title) return
-        if (isBefore(new Date(newTask.dueDate!), startOfDay(new Date()))) {
-            if (!window.confirm("Confirmar agendamento no passado?")) return
-        }
-
         try {
-            await addTask({ title: newTask.title as string, description: newTask.description || '', dueDate: newTask.dueDate || new Date().toISOString(), priority: newTask.priority as any, leadId: newTask.leadId || '' })
+            await addTask({ 
+                title: newTask.title as string, 
+                description: newTask.description || '', 
+                dueDate: newTask.dueDate || new Date().toISOString(), 
+                priority: newTask.priority as any, 
+                leadId: newTask.leadId || '' 
+            })
             setIsDialogOpen(false)
             setNewTask({ title: '', description: '', priority: 'Média', dueDate: new Date().toISOString(), leadId: '' })
             toast.success('Agendamento confirmado!')
@@ -58,34 +66,43 @@ export default function Agenda() {
     }
 
     return (
-        <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl">
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Agenda Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-mx-xs">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-                        <h1 className="mx-heading-hero">Agenda Operacional</h1>
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Agenda <span className="text-brand-primary">Operacional</span></Typography>
                     </div>
-                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Planejamento Tático de Ciclo</p>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">PLANEJAMENTO TÁTICO DE CICLO</Typography>
                 </div>
 
-                <div className="flex w-full flex-col gap-mx-sm shrink-0 sm:w-auto sm:flex-row sm:items-center">
-                    <div className="flex items-center justify-between bg-white border border-border-default p-1.5 rounded-mx-lg shadow-mx-sm sm:w-auto">
-                        <button onClick={prevMonth} className="w-10 h-10 rounded-mx-md flex items-center justify-center text-text-tertiary hover:bg-mx-slate-50 hover:text-text-primary transition-all"><ChevronLeft size={18} strokeWidth={2.5} /></button>
-                        <span className="px-mx-md font-black text-[10px] uppercase tracking-[0.2em] text-text-primary min-w-[140px] text-center">{format(viewDate, 'MMMM yyyy', { locale: ptBR })}</span>
-                        <button onClick={nextMonth} className="w-10 h-10 rounded-mx-md flex items-center justify-center text-text-tertiary hover:bg-mx-slate-50 hover:text-text-primary transition-all"><ChevronRight size={18} strokeWidth={2.5} /></button>
+                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
+                    <div className="flex items-center bg-white border border-border-default p-1 rounded-mx-full shadow-mx-sm">
+                        <Button variant="ghost" size="icon" onClick={prevMonth} className="w-10 h-10 rounded-full hover:bg-surface-alt transition-all">
+                            <ChevronLeft size={18} strokeWidth={3} />
+                        </Button>
+                        <Typography variant="caption" className="px-6 font-black text-text-primary min-w-[160px] text-center">
+                            {format(viewDate, 'MMMM yyyy', { locale: ptBR })}
+                        </Typography>
+                        <Button variant="ghost" size="icon" onClick={nextMonth} className="w-10 h-10 rounded-full hover:bg-surface-alt transition-all">
+                            <ChevronRight size={18} strokeWidth={3} />
+                        </Button>
                     </div>
                     
-                    <div className="flex items-center gap-mx-sm">
-                        <button onClick={() => refetchTasks?.()} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary active:scale-90 transition-all"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
-                        <button onClick={() => setIsDialogOpen(true)} className="mx-button-primary bg-brand-secondary flex-1 sm:flex-none flex items-center justify-center gap-2">
-                            <Plus size={18} /> Novo Agendamento
-                        </button>
+                    <div className="flex items-center gap-mx-sm w-full sm:w-auto">
+                        <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetchTasks?.().then(()=>setIsRefetching(false))}} className="w-12 h-12 rounded-xl shadow-mx-sm">
+                            <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                        </Button>
+                        <Button onClick={() => setIsDialogOpen(true)} className="h-12 px-8 shadow-mx-lg flex-1 sm:flex-none">
+                            <Plus size={18} className="mr-2" /> NOVO REGISTRO
+                        </Button>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* Calendar Strip - 8pt Grid */}
+            {/* Calendar Strip */}
             <div className="grid grid-cols-7 gap-mx-sm shrink-0">
                 {weekDays.map((day, i) => {
                     const isSelected = isSameDay(day, selectedDate)
@@ -96,83 +113,117 @@ export default function Agenda() {
                         <button
                             key={i} onClick={() => setSelectedDate(day)}
                             className={cn(
-                                "flex flex-col items-center p-mx-md rounded-mx-3xl transition-all border relative group",
-                                isSelected ? "bg-brand-secondary text-white border-brand-secondary shadow-mx-xl scale-105 z-10" : "bg-white border-border-subtle hover:border-mx-indigo-100 hover:bg-brand-primary-surface/20"
+                                "flex flex-col items-center p-6 rounded-mx-3xl transition-all border relative group",
+                                isSelected ? "bg-brand-secondary text-white border-brand-secondary shadow-mx-xl scale-105 z-10" : "bg-white border-border-subtle hover:border-brand-primary/30 hover:bg-mx-indigo-50/30"
                             )}
                         >
-                            <span className={cn("text-[9px] font-black uppercase tracking-[0.2em] mb-mx-sm", isSelected ? "text-mx-indigo-400" : "text-text-tertiary")}>{format(day, 'EEE', { locale: ptBR })}</span>
-                            <span className="text-3xl font-black tracking-tighter font-mono-numbers leading-none">{format(day, 'dd')}</span>
-                            {active && !isSelected && <div className="absolute top-mx-sm right-mx-sm w-1.5 h-1.5 rounded-full bg-brand-primary shadow-mx-md" />}
-                            {hasTasks && <div className={cn("mt-mx-sm w-1.5 h-1.5 rounded-full", isSelected ? "bg-mx-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.5)]" : "bg-brand-primary")} />}
+                            <Typography variant="caption" tone={isSelected ? 'white' : 'muted'} className="mb-2 opacity-60">{format(day, 'EEE', { locale: ptBR })}</Typography>
+                            <Typography variant="h1" tone={isSelected ? 'white' : 'default'} className="text-3xl tabular-nums leading-none">{format(day, 'dd')}</Typography>
+                            {active && !isSelected && <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-brand-primary shadow-mx-md" />}
+                            {hasTasks && <div className={cn("mt-3 w-1.5 h-1.5 rounded-full", isSelected ? "bg-mx-indigo-400 shadow-mx-sm" : "bg-brand-primary")} />}
                         </button>
                     )
                 })}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0 pb-mx-3xl">
-                <div className="lg:col-span-8 space-y-mx-lg">
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-mx-lg">
-                        <div className="flex items-center gap-mx-sm"><div className="w-1.5 h-6 bg-brand-secondary rounded-full" /><h3 className="text-2xl font-black tracking-tight text-text-primary uppercase">{format(selectedDate, "eeee, d 'de' MMMM", { locale: ptBR })}</h3></div>
-                        <div className="relative group w-full sm:w-64">
-                            <Search className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" size={14} />
-                            <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Filtrar eventos..." className="mx-input !h-10 !pl-10 text-[10px]" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
+                
+                {/* Main Agenda Area */}
+                <section className="lg:col-span-8 space-y-mx-lg">
+                    <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-8 mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-1.5 h-8 bg-brand-secondary rounded-full" />
+                            <Typography variant="h2" className="text-2xl uppercase">{format(selectedDate, "eeee, d 'de' MMMM", { locale: ptBR })}</Typography>
                         </div>
-                    </div>
+                        <div className="relative group w-full sm:w-72">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={16} />
+                            <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="FILTRAR EVENTOS..." className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest" />
+                        </div>
+                    </header>
 
-                    <div className="space-y-mx-sm">
+                    <div className="space-y-6" aria-live="polite">
                         <AnimatePresence mode="popLayout">
                             {filteredDayTasks.length > 0 ? (
                                 filteredDayTasks.map((task, idx) => (
-                                    <motion.div key={task.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
-                                        <div className="mx-card p-mx-lg flex flex-col sm:flex-row sm:items-center gap-mx-lg mx-card-hover group relative overflow-hidden">
-                                            <div className="flex flex-col items-center justify-center w-20 h-20 bg-mx-slate-50 border border-border-default rounded-mx-lg shrink-0 shadow-inner group-hover:bg-brand-secondary transition-all">
-                                                <span className="text-xs font-black text-text-tertiary uppercase tracking-widest group-hover:text-white transition-colors">{format(new Date(task.dueDate), 'HH:mm')}</span>
-                                                <Clock className="w-4 h-4 text-brand-primary mt-1.5" strokeWidth={2.5} />
+                                    <motion.div key={task.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}>
+                                        <Card className="p-8 flex flex-col sm:flex-row sm:items-center gap-8 group relative overflow-hidden border-none shadow-mx-lg hover:shadow-mx-xl transition-all bg-white">
+                                            <div className="flex flex-col items-center justify-center w-20 h-20 bg-surface-alt border border-border-default rounded-mx-2xl shrink-0 shadow-inner group-hover:bg-brand-secondary group-hover:border-brand-secondary transition-all">
+                                                <Typography variant="mono" className="text-xs font-black group-hover:text-white transition-colors">{format(new Date(task.dueDate), 'HH:mm')}</Typography>
+                                                <Clock className="w-4 h-4 text-brand-primary mt-2 group-hover:text-white transition-colors" strokeWidth={3} />
                                             </div>
-                                            <div className="flex-1 min-w-0 space-y-mx-xs relative z-10">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <h4 className={cn("font-black text-xl text-text-primary tracking-tight leading-none", task.status === 'Concluída' && "line-through opacity-40")}>{task.title}</h4>
-                                                    <Badge className={cn("text-[8px] border-none px-2 h-5 rounded-md", task.priority === 'Alta' ? "bg-status-error-surface text-status-error" : task.priority === 'Média' ? "bg-status-warning-surface text-status-warning" : "bg-status-success-surface text-status-success")}>{task.priority}</Badge>
+                                            <div className="flex-1 min-w-0 space-y-2 relative z-10">
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                    <Typography variant="h3" className={cn("text-xl leading-none", task.status === 'Concluída' && "line-through opacity-30")}>{task.title}</Typography>
+                                                    <Badge variant={task.priority === 'Alta' ? 'danger' : task.priority === 'Média' ? 'warning' : 'success'} className="px-3 py-0.5 rounded-lg text-[8px]">
+                                                        {task.priority.toUpperCase()}
+                                                    </Badge>
                                                 </div>
-                                                <p className="text-sm font-bold text-text-secondary line-clamp-2 leading-relaxed italic">"{task.description || 'Sem briefing'}"</p>
+                                                <Typography variant="p" tone="muted" className="text-sm line-clamp-2 leading-relaxed italic uppercase tracking-tight opacity-60">
+                                                    "{task.description || 'Sem briefing detalhado para esta missão.'}"
+                                                </Typography>
                                             </div>
-                                            <div className="flex gap-mx-xs relative z-10 shrink-0">
-                                                <button onClick={() => updateTask(task.id, { status: 'Concluída' })} className="w-12 h-12 rounded-mx-md bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-status-success hover:bg-status-success-surface transition-all"><CheckCircle2 size={22} /></button>
-                                                <button className="w-12 h-12 rounded-mx-md bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-brand-secondary hover:bg-white shadow-mx-sm transition-all"><MoreVertical size={20} /></button>
+                                            <div className="flex gap-3 relative z-10 shrink-0">
+                                                <Button variant="outline" size="icon" onClick={() => updateTask(task.id, { status: 'Concluída' })} className="w-12 h-12 rounded-xl text-text-tertiary hover:text-status-success hover:bg-status-success-surface transition-all shadow-sm">
+                                                    <CheckCircle2 size={24} />
+                                                </Button>
+                                                <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl text-text-tertiary shadow-sm">
+                                                    <MoreVertical size={20} />
+                                                </Button>
                                             </div>
-                                        </div>
+                                        </Card>
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="py-mx-3xl flex flex-col items-center justify-center text-center bg-mx-slate-50/30 rounded-mx-3xl border-dashed border-2 border-border-default group">
-                                    <CalendarDays size={40} className="text-mx-slate-200 mb-mx-lg group-hover:rotate-12 transition-transform duration-500" />
-                                    <h4 className="text-2xl font-black text-text-primary tracking-tighter mb-2 uppercase">Ciclo Livre</h4>
-                                    <p className="text-text-tertiary text-sm font-bold max-w-xs mx-auto mb-mx-lg opacity-80">Nenhuma missão tática confirmada para esta data.</p>
-                                    <button onClick={() => setIsDialogOpen(true)} className="mx-button-primary">Novo Registro</button>
+                                <div className="py-24 flex flex-col items-center justify-center text-center bg-white rounded-[3rem] border-dashed border-2 border-border-default group shadow-inner">
+                                    <CalendarDays size={48} className="text-text-tertiary mb-8 group-hover:rotate-12 transition-transform duration-500 opacity-20" />
+                                    <Typography variant="h2" className="mb-2">Ciclo Livre</Typography>
+                                    <Typography variant="p" tone="muted" className="max-w-xs mx-auto mb-10 uppercase">Nenhuma missão tática confirmada para esta data.</Typography>
+                                    <Button onClick={() => setIsDialogOpen(true)} className="rounded-full px-10 h-14 shadow-mx-xl">Novo Registro</Button>
                                 </div>
                             )}
                         </AnimatePresence>
                     </div>
-                </div>
+                </section>
 
-                <div className="lg:col-span-4 space-y-mx-lg">
-                    <div className="mx-card p-mx-lg group relative overflow-hidden">
-                        <div className="flex items-center gap-mx-sm mb-mx-lg relative z-10">
-                            <div className="w-12 h-12 rounded-mx-lg bg-status-error-surface text-status-error border border-mx-rose-100 flex items-center justify-center shadow-inner"><AlertTriangle size={24} /></div>
-                            <h3 className="text-xl font-black tracking-tight text-text-primary uppercase">Críticos</h3>
+                {/* Critical Aside */}
+                <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
+                    <Card className="p-10 border-none shadow-mx-lg bg-white relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-status-error-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                        <header className="flex items-center gap-4 mb-10 relative z-10">
+                            <div className="w-14 h-14 rounded-mx-xl bg-status-error-surface text-status-error border border-mx-rose-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                                <AlertTriangle size={28} strokeWidth={2.5} />
+                            </div>
+                            <Typography variant="h3">Alertas Críticos</Typography>
+                        </header>
+                        
+                        <div className="space-y-4 relative z-10">
+                            {criticalTasks.length > 0 ? criticalTasks.slice(0, 4).map((task) => (
+                                <Card key={task.id} className="p-6 bg-surface-alt/50 border border-border-subtle group/item hover:bg-white hover:shadow-mx-lg transition-all cursor-pointer">
+                                    <header className="flex justify-between items-center mb-3">
+                                        <Badge variant="danger" className="text-[8px] font-black px-3 py-1">EXPIRADO</Badge>
+                                        <Typography variant="mono" className="text-[10px] opacity-40">{format(new Date(task.dueDate), 'dd/MM')}</Typography>
+                                    </header>
+                                    <Typography variant="h3" className="text-sm uppercase tracking-tight group-hover/item:text-status-error transition-colors truncate">{task.title}</Typography>
+                                </Card>
+                            )) : (
+                                <Card className="py-10 text-center bg-status-success-surface/20 border-dashed border border-mx-emerald-100 shadow-inner">
+                                    <CheckCircle2 size={32} className="mx-auto mb-4 text-status-success opacity-40" />
+                                    <Typography variant="caption" tone="success" className="font-black tracking-[0.2em] uppercase">100% Sincronizada ✨</Typography>
+                                </Card>
+                            )}
                         </div>
-                        <div className="space-y-mx-sm relative z-10">
-                            {criticalTasks.slice(0, 3).map((task) => (
-                                <div key={task.id} className="p-mx-md bg-mx-slate-50/50 border border-border-subtle rounded-mx-xl space-y-2 hover:bg-white hover:shadow-mx-lg transition-all cursor-pointer group/gap">
-                                    <div className="flex justify-between items-center"><span className="text-[8px] font-black text-status-error uppercase tracking-widest bg-status-error-surface px-2 h-5 flex items-center rounded border border-mx-rose-100">Expirado</span><span className="text-[10px] font-black text-text-tertiary font-mono-numbers">{format(new Date(task.dueDate), 'dd/MM')}</span></div>
-                                    <h5 className="font-black text-sm text-text-primary group-hover/gap:text-status-error transition-colors truncate uppercase">{task.title}</h5>
-                                </div>
-                            ))}
-                            {criticalTasks.length === 0 && <div className="py-mx-lg text-center bg-status-success-surface/20 border border-dashed border-mx-emerald-100 rounded-mx-xl"><span className="mx-text-caption text-status-success uppercase">Health Check: 100% OK ✨</span></div>}
-                        </div>
-                    </div>
-                </div>
+                    </Card>
+
+                    <Card className="bg-brand-primary p-10 rounded-[2.5rem] text-white shadow-mx-xl text-center border-none relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-50" />
+                        <BarChart3 className="mx-auto mb-6 opacity-30 transform group-hover:rotate-12 transition-transform" size={40} />
+                        <Typography variant="h3" tone="white" className="mb-2">Eficácia Temporal</Typography>
+                        <Typography variant="p" tone="white" className="text-xs opacity-60 leading-relaxed uppercase tracking-widest italic">
+                            "A agenda é o esqueleto da alta performance."
+                        </Typography>
+                    </Card>
+                </aside>
             </div>
-        </div>
+        </main>
     )
 }

@@ -2,20 +2,21 @@ import { useTrainings } from '@/hooks/useData'
 import { useCheckins } from '@/hooks/useCheckins'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
-import { GraduationCap, Play, CheckCircle, ExternalLink, Clock, Users, Target, BookOpen, ChevronRight, Sparkles, RefreshCw, Search, X } from 'lucide-react'
+import { 
+    GraduationCap, Play, CheckCircle, ExternalLink, Clock, 
+    Users, Target, BookOpen, ChevronRight, Sparkles, 
+    RefreshCw, Search, X, Zap, ShieldCheck, History,
+    Smartphone
+} from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { startOfWeek } from 'date-fns'
-
-const typeColors: Record<string, string> = {
-    prospeccao: 'bg-violet-50 text-violet-700 border-violet-100',
-    fechamento: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    atendimento: 'bg-blue-50 text-blue-700 border-blue-100',
-    gestao: 'bg-amber-50 text-amber-700 border-amber-100',
-    'pre-vendas': 'bg-pink-50 text-pink-700 border-pink-100',
-}
 
 export default function VendedorTreinamentos() {
     const { trainings, loading, error, markWatched, refetch } = useTrainings()
@@ -27,7 +28,8 @@ export default function VendedorTreinamentos() {
     const gapAnalysis = useMemo(() => {
         if (!checkins) return null
         const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
-        const recentCheckins = checkins.filter(c => new Date(c.reference_date) >= weekStart)
+        const weekStartStr = weekStart.toISOString().split('T')[0]
+        const recentCheckins = checkins.filter(c => c.reference_date >= weekStartStr)
         if (recentCheckins.length === 0) return null
 
         const funil = calcularFunil(recentCheckins)
@@ -35,7 +37,6 @@ export default function VendedorTreinamentos() {
 
         if (!diag.gargalo) return null
 
-        // Mapear gargalo para categoria de vídeo
         const categoryMap: Record<string, string> = {
             'LEAD_AGD': 'prospeccao',
             'AGD_VISITA': 'atendimento',
@@ -45,242 +46,144 @@ export default function VendedorTreinamentos() {
         const category = categoryMap[diag.gargalo]
         const recommended = trainings?.find(t => t.type === category && !t.watched) || trainings?.find(t => t.type === category)
 
-        return { 
-            gargalo: diag.gargalo, 
-            label: diag.diagnostico, 
-            recommended 
-        }
+        return { gargalo: diag.gargalo, label: diag.diagnostico, recommended }
     }, [checkins, trainings])
 
     const watched = useMemo(() => trainings?.filter(t => t.watched).length || 0, [trainings])
     const progress = useMemo(() => (trainings?.length || 0) > 0 ? (watched / trainings.length) * 100 : 0, [watched, trainings])
 
-    // 4. Search integration
     const filteredTrainings = useMemo(() => {
         if (!trainings) return []
-        return trainings.filter(t => 
-            t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            t.type.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        const term = searchTerm.toLowerCase()
+        return trainings.filter(t => t.title.toLowerCase().includes(term) || t.type.toLowerCase().includes(term))
     }, [trainings, searchTerm])
 
-    const handleRefresh = async () => {
-        setIsRefetching(true)
-        await refetch?.()
-        setIsRefetching(false)
-        toast.success('Plano de treinamento atualizado!')
-    }
-
-    if (error) return (
-        <div role="alert" className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl p-8 text-center">
-            <X size={48} className="text-red-500 mb-4" aria-hidden="true" />
-            <h2 className="text-xl font-bold text-slate-800 mb-2">Erro de Conexão</h2>
-            <p className="text-slate-600">Não foi possível carregar os dados. Por favor, tente novamente.</p>
-        </div>
-    )
+    const handleRefresh = useCallback(async () => {
+        setIsRefetching(true); await refetch?.(); setIsRefetching(false)
+        toast.success('Academy sincronizada!')
+    }, [refetch])
 
     if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl" aria-busy="true" aria-live="polite">
-            <div className="w-16 h-16 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin shadow-xl" aria-hidden="true"></div>
-            <p className="mt-6 text-gray-500 text-xs font-black tracking-[0.2em] uppercase">Preparando sua evolução...</p>
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
+            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Academy...</Typography>
         </div>
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
-
-            {/* Header Area */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Academy Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-violet-600 rounded-full shadow-[0_0_20px_rgba(139,92,246,0.4)]" aria-hidden="true" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none">Minha <span className="text-violet-600">Evolução</span></h1>
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Minha <span className="text-brand-primary">Evolução</span></Typography>
                     </div>
-                    <div className="flex items-center gap-3 pl-6 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" aria-hidden="true" />
-                        <p className="text-gray-500 text-xs font-black uppercase tracking-[0.2em] opacity-80">Academia de Vendas MX</p>
-                    </div>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CURADORIA TÁTICA • MX ACADEMY</Typography>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 shrink-0">
-                    <div className="flex items-center gap-4 bg-white border border-gray-100 px-6 py-3 rounded-2xl shadow-sm" aria-label="Status Global">
+                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                    <Card className="flex items-center gap-6 px-6 py-2 bg-white border border-border-default shadow-mx-sm rounded-mx-xl">
                         <div className="flex flex-col items-end">
-                            <span className="text-xs font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Status Global</span>
-                            <span className="text-sm font-black text-violet-700 font-mono-numbers" aria-label={`${watched} de ${trainings?.length || 0} Módulos`}>{watched} / {trainings?.length || 0} Módulos</span>
+                            <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase">Status Academy</Typography>
+                            <Typography variant="mono" tone="brand" className="text-sm font-black">{watched} / {trainings?.length || 0}</Typography>
                         </div>
-                        <div className="w-24 h-2 bg-gray-50 rounded-full overflow-hidden border border-gray-100 shadow-inner">
-                            <motion.div 
-                                initial={{ width: 0 }} 
-                                animate={{ width: `${progress}%` }} 
-                                className="h-full bg-violet-600" 
-                                role="progressbar"
-                                aria-valuenow={progress}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                            />
+                        <div className="w-20 h-1.5 bg-surface-alt rounded-full overflow-hidden p-0.5 shadow-inner border border-border-default">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-brand-primary rounded-full" />
                         </div>
-                    </div>
-                    
-                    <button 
-                        onClick={handleRefresh}
-                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-500 hover:text-pure-black transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none"
-                        aria-label="Atualizar plano de treinamento"
-                    >
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
-                    </button>
+                    </Card>
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-12 h-12 rounded-xl shadow-mx-sm bg-white">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </Button>
                 </div>
             </header>
 
-            <div className="relative group w-full lg:w-[480px] shrink-0">
-                <label htmlFor="search-input" className="sr-only">Buscar treinamentos</label>
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-600 transition-colors" size={18} aria-hidden="true" />
-                <input
-                    id="search-input"
-                    placeholder="O que você deseja aprender hoje?"
-                    className="w-full pl-14 pr-12 h-14 bg-white border border-gray-100 rounded-full font-bold text-sm shadow-sm focus:outline-none focus:border-violet-200 focus:shadow-lg focus-visible:ring-2 focus-visible:ring-violet-600 transition-all"
-                    value={searchTerm}
+            <div className="relative group w-full lg:w-[480px] shrink-0 mb-4">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
+                <Input
+                    placeholder="BUSCAR TEMA OU HABILIDADE..." value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    className="!pl-14 !h-14 !text-[10px] uppercase tracking-widest"
                 />
-                {searchTerm && (
-                    <button 
-                        onClick={() => setSearchTerm('')} 
-                        className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 focus-visible:ring-2 focus-visible:ring-red-500 focus:outline-none"
-                        aria-label="Limpar busca"
-                    >
-                        <X size={18} aria-hidden="true" />
-                    </button>
-                )}
             </div>
 
-            <section className="flex-1 w-full max-w-7xl mx-auto shrink-0 pb-32">
-                
-                {/* STORY-12.1 / 12.2: Prescrição Direta Baseada em Gargalo REAL */}
+            <section className="flex-1 min-h-0 pb-32" aria-live="polite">
+                {/* AI Prescription Card */}
                 {gapAnalysis?.recommended && !searchTerm && (
-                    <div className="mb-mx-xl">
-                        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600 mb-4 flex items-center gap-2">
-                            <Target size={14} aria-hidden="true" /> Prescrição Tática (Baseada em seu Funil)
-                        </h2>
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-start md:items-center gap-8 relative overflow-hidden group shadow-xl shadow-indigo-500/5">
-                            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-200/20 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-200/30 transition-colors" aria-hidden="true" />
-                            
-                            <div className="w-20 h-20 rounded-2xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-xl shrink-0 relative z-10 transform group-hover:rotate-3 transition-transform" aria-hidden="true">
-                                <Sparkles size={32} aria-hidden="true" />
+                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-14">
+                        <Card className="bg-brand-secondary text-white p-10 md:p-14 border-none shadow-mx-xl relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent pointer-events-none" />
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative z-10">
+                                <div className="w-20 h-20 rounded-mx-3xl bg-white text-brand-secondary flex items-center justify-center shadow-mx-xl group-hover:rotate-6 transition-transform shrink-0">
+                                    <Sparkles size={40} />
+                                </div>
+                                <div className="flex-1 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <Badge variant="danger" className="px-4 py-1 uppercase font-black shadow-sm">Gap Detectado: {gapAnalysis.gargalo}</Badge>
+                                        <Typography variant="caption" tone="white" className="opacity-40 tracking-widest font-black">PRESCRIÇÃO TÁTICA MX</Typography>
+                                    </div>
+                                    <Typography variant="h2" tone="white" className="text-3xl tracking-tight leading-none uppercase">{gapAnalysis.recommended.title}</Typography>
+                                    <Typography variant="p" tone="white" className="text-base opacity-60 max-w-3xl italic">"{gapAnalysis.label} Este módulo foi indexado pela rede para corrigir sua conversão imediata."</Typography>
+                                </div>
+                                <Button size="lg" variant="secondary" onClick={() => window.open(gapAnalysis.recommended?.video_url, '_blank')} className="rounded-full px-12 h-16 shadow-mx-xl font-black uppercase tracking-[0.2em] text-[10px]">
+                                    <Play size={18} className="fill-current mr-2" /> INICIAR CORREÇÃO
+                                </Button>
                             </div>
-                            
-                            <div className="flex-1 relative z-10">
-                                <Badge className="bg-rose-600 text-white border-none text-[10px] px-3 h-6 uppercase font-black tracking-widest mb-3">Gap Detectado: {gapAnalysis.gargalo}</Badge>
-                                <h3 className="text-2xl font-black text-slate-950 uppercase tracking-tight mb-2" title={gapAnalysis.recommended.title}>{gapAnalysis.recommended.title}</h3>
-                                <p className="text-sm font-bold text-slate-600 leading-relaxed max-w-2xl">{gapAnalysis.label} Este módulo foi selecionado pela Metodologia MX para corrigir sua performance imediata.</p>
-                            </div>
-
-                            <div className="shrink-0 w-full md:w-auto relative z-10">
-                                <button 
-                                    onClick={() => window.open(gapAnalysis.recommended?.video_url, '_blank')}
-                                    className="w-full md:w-auto px-10 py-5 rounded-full bg-slate-950 text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all active:scale-95 shadow-lg focus-visible:ring-2 focus-visible:ring-slate-950 focus:outline-none"
-                                    aria-label={`Iniciar correção com o módulo ${gapAnalysis.recommended.title}`}
-                                >
-                                    <Play size={16} strokeWidth={2.5} aria-hidden="true" /> Iniciar Correção
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                        </Card>
+                    </motion.div>
                 )}
 
-                <AnimatePresence mode="popLayout">
-                    <ul className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3" aria-label="Treinamentos disponíveis">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg">
+                    <AnimatePresence mode="popLayout">
                         {filteredTrainings.map((t, i) => (
-                            <motion.li
-                                key={t.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ delay: i * 0.03 }}
-                                className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-violet-600"
-                            >
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-violet-50 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-                                
-                                <div className="flex items-start justify-between mb-8 relative z-10">
-                                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm transition-all group-hover:rotate-3", 
-                                        t.watched ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-gray-50 text-pure-black border-gray-100 group-hover:bg-white shadow-inner"
-                                    )} aria-hidden="true">
-                                        {t.watched ? <CheckCircle size={24} strokeWidth={2.5} aria-hidden="true" /> : <Play size={24} strokeWidth={2.5} className="ml-1" aria-hidden="true" />}
-                                    </div>
-                                    <div className="flex flex-col items-end gap-2">
-                                        {gapAnalysis?.recommended?.id === t.id && (
-                                            <Badge className="bg-rose-600 text-white border-none text-[9px] px-2 h-5 uppercase font-black tracking-widest animate-pulse mb-1">Correção de Gargalo</Badge>
-                                        )}
-                                        <Badge className={cn("font-black text-xs uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm", typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100')}>
-                                            {t.type}
-                                        </Badge>
-                                        {t.watched && (
-                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5" aria-label="Módulo concluído">
-                                                <CheckCircle size={10} strokeWidth={2.5} aria-hidden="true" /> Concluído
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 mb-8 relative z-10">
-                                    <h3 className="text-xl font-black text-pure-black mb-3 tracking-tight group-hover:text-violet-600 transition-colors line-clamp-2 leading-tight uppercase" title={t.title}>{t.title}</h3>
-                                    <p className="text-sm font-bold text-gray-500 line-clamp-3 leading-relaxed opacity-90" title={t.description || 'Domine esta técnica para acelerar seus resultados operacionais.'}>{t.description || 'Domine esta técnica para acelerar seus resultados operacionais.'}</p>
+                            <motion.div key={t.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}>
+                                <Card className="p-8 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     
-                                    <div className="flex flex-wrap gap-3 mt-6">
-                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50/50 border border-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest">
-                                            <Clock size={12} strokeWidth={2.5} aria-hidden="true" /> 15 MIN
-                                        </div>
-                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-50/50 border border-violet-100 text-violet-600 text-[10px] font-black uppercase tracking-widest">
-                                            <Sparkles size={12} strokeWidth={2.5} aria-hidden="true" /> +100 XP
+                                    <div>
+                                        <header className="flex items-start justify-between mb-10 border-b border-border-default pb-6 relative z-10">
+                                            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-inner transition-all transform group-hover:rotate-3", 
+                                                t.watched ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-surface-alt text-text-tertiary group-hover:bg-brand-primary group-hover:text-white"
+                                            )}>
+                                                {t.watched ? <CheckCircle size={24} strokeWidth={2.5} /> : <Play size={24} strokeWidth={2.5} className="ml-1" />}
+                                            </div>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <Badge variant="brand" className="px-4 py-1 rounded-full uppercase text-[8px] font-black">{t.type}</Badge>
+                                                {t.watched && <Typography variant="caption" tone="success" className="text-[7px] font-black tracking-widest uppercase flex items-center gap-1"><CheckCircle size={10} /> VALIDADO</Typography>}
+                                            </div>
+                                        </header>
+
+                                        <div className="mb-8 flex-1 relative z-10 space-y-3">
+                                            <Typography variant="h3" className="text-xl uppercase tracking-tight group-hover:text-brand-primary transition-colors line-clamp-2">{t.title}</Typography>
+                                            <Typography variant="p" tone="muted" className="text-xs font-bold leading-relaxed line-clamp-3 italic opacity-60">"{t.description || 'Domine esta técnica para acelerar seus resultados operacionais.'}"</Typography>
+                                            
+                                            <div className="flex flex-wrap gap-3 pt-4">
+                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-alt border border-border-default text-text-tertiary text-[8px] font-black uppercase tracking-widest"><Clock size={12} /> 15 MIN</div>
+                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-mx-indigo-50 border border-mx-indigo-100 text-brand-primary text-[8px] font-black uppercase tracking-widest"><Sparkles size={12} /> +100 XP</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="pt-8 border-t border-gray-50 flex flex-col sm:flex-row gap-4 mt-auto relative z-10">
-                                    {/* 1. & 3. Video validation and UI */}
-                                    <button 
-                                        onClick={() => {
-                                            if (!t.video_url) { toast.error('Material indisponível'); return }
-                                            window.open(t.video_url, '_blank')
-                                        }}
-                                        className="flex-1 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-pure-black text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white hover:shadow-lg transition-all active:scale-95 shadow-sm group/btn focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none"
-                                        aria-label={`Assistir aula: ${t.title}`}
-                                    >
-                                        <Play size={16} strokeWidth={2.5} className="group-hover/btn:scale-110" aria-hidden="true" /> Assistir Aula
-                                    </button>
-                                    {!t.watched ? (
-                                        <button
-                                            onClick={async () => { await markWatched?.(t.id); toast.success('Evolução Registrada! +100 XP ✨') }}
-                                            className="flex-1 py-4 rounded-2xl bg-pure-black text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-brand-secondary-hover hover:shadow-2xl transition-all active:scale-95 shadow-lg shadow-gray-200 focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none"
-                                            aria-label={`Marcar aula ${t.title} como concluída`}
-                                        >
-                                            <CheckCircle size={16} strokeWidth={2.5} aria-hidden="true" /> Concluir
-                                        </button>
-                                    ) : (
-                                        <div className="flex-1 py-4 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                            <CheckCircle size={16} strokeWidth={2.5} aria-hidden="true" /> Validado
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.li>
+                                    <footer className="pt-8 border-t border-border-default flex flex-col sm:flex-row gap-4 mt-auto relative z-10">
+                                        <Button variant="outline" className="flex-1 h-12 rounded-xl font-black uppercase text-[9px] shadow-sm border-border-strong hover:border-brand-primary" onClick={() => window.open(t.video_url, '_blank')}>
+                                            <Play size={14} className="mr-2" /> ASSISTIR AULA
+                                        </Button>
+                                        {!t.watched ? (
+                                            <Button onClick={() => { markWatched?.(t.id); toast.success('Evolução Registrada! +100 XP ✨') }} className="flex-1 h-12 rounded-xl bg-mx-black text-white hover:bg-brand-primary shadow-mx-lg font-black uppercase text-[9px]">
+                                                CONCLUIR MÓDULO
+                                            </Button>
+                                        ) : (
+                                            <div className="flex-1 h-12 rounded-xl bg-status-success-surface text-status-success border border-status-success/20 flex items-center justify-center font-black uppercase text-[9px] shadow-inner gap-2">
+                                                <ShieldCheck size={14} /> CERTIFICADO
+                                            </div>
+                                        )}
+                                    </footer>
+                                </Card>
+                            </motion.div>
                         ))}
-                    </ul>
-                </AnimatePresence>
-
-                {filteredTrainings.length === 0 && !loading && !error && (
-                    <div className="col-span-full py-40 flex flex-col items-center justify-center text-center bg-gray-50/30 rounded-[3rem] border-dashed border-2 border-gray-200 group">
-                        <div className="w-24 h-24 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl flex items-center justify-center mb-8 group-hover:rotate-12 transition-transform duration-500" aria-hidden="true">
-                            <BookOpen size={40} className="text-gray-300" aria-hidden="true" />
-                        </div>
-                        <h3 className="text-2xl font-black text-pure-black tracking-tighter mb-3">Academia em Recesso</h3>
-                        <p className="text-gray-500 text-sm font-bold max-w-xs mx-auto opacity-90 mb-8">Novos módulos estratégicos estão sendo preparados pelo seu mentor.</p>
-                        <button 
-                            onClick={() => setSearchTerm('')} 
-                            className="px-10 py-4 bg-pure-black text-white rounded-full text-xs font-black uppercase tracking-[0.2em] hover:shadow-3xl transition-all focus-visible:ring-2 focus-visible:ring-pure-black focus:outline-none"
-                        >
-                            Ver Todos
-                        </button>
-                    </div>
-                )}
+                    </AnimatePresence>
+                </div>
             </section>
         </main>
     )

@@ -1,81 +1,90 @@
-import { AlertTriangle, FileText, Lock, ChevronRight, Zap } from 'lucide-react'
+import { AlertTriangle, FileText, Lock, ChevronRight, Zap, ShieldCheck, ArrowLeft } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Card, CardContent } from '@/components/molecules/Card'
 
 export default function Terms() {
     const navigate = useNavigate()
 
     return (
-        <div className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-8 selection:bg-brand-secondary selection:text-white relative overflow-hidden">
+        <main className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-10 selection:bg-brand-primary selection:text-white relative overflow-hidden">
 
             {/* Background Decorations */}
-            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-rose-50/50 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-indigo-50/30 rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-brand-primary/5 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-status-success-surface rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-4xl bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden flex flex-col relative z-10 border border-gray-100"
+                className="w-full max-w-4xl"
             >
-                <div className="bg-brand-secondary p-10 md:p-14 relative overflow-hidden text-center">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent z-0 pointer-events-none" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
+                <Card className="border-none shadow-mx-elite bg-white overflow-hidden flex flex-col relative z-10">
+                    <header className="bg-brand-secondary p-10 md:p-16 relative overflow-hidden text-center">
+                        <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent z-0 pointer-events-none" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
 
-                    <div className="w-20 h-20 rounded-[2rem] bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-6 shadow-[0_20px_40px_-10px_rgba(244,63,94,0.3)] relative z-10 border border-rose-500/30">
-                        <FileText size={32} />
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 relative z-10">Termos de Serviço</h1>
-                    <p className="text-gray-400 font-bold max-w-xl mx-auto opacity-80 relative z-10">Condições gerais de provimento e acesso ao conjunto de ferramentas MX PERFORMANCE.</p>
-                </div>
+                        <div className="w-20 h-20 rounded-mx-3xl bg-white/10 text-white flex items-center justify-center mx-auto mb-8 shadow-mx-xl backdrop-blur-xl relative z-10 border border-white/10">
+                            <FileText size={32} strokeWidth={2.5} />
+                        </div>
+                        <Typography variant="h1" tone="white" className="text-4xl md:text-5xl mb-4 relative z-10">Termos de <span className="text-brand-primary">Serviço</span></Typography>
+                        <Typography variant="p" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 uppercase tracking-widest font-black text-xs">CONTRATO DE LICENCIAMENTO & USO MX PERFORMANCE</Typography>
+                    </header>
 
-                <div className="p-10 md:p-16 space-y-10 text-text-primary">
-                    <div className="prose prose-lg max-w-none">
-                        <p className="text-lg text-gray-500 font-bold mb-8">
-                            O acesso contínuo e a utilização do sistema MX PERFORMANCE caracterizam concordância incondicional com as diretrizes e regras aqui estipuladas. Recomendamos leitura atenta desta documentação.
-                        </p>
+                    <CardContent className="p-10 md:p-20 space-y-14">
+                        <div className="space-y-10">
+                            <Typography variant="p" className="text-xl font-bold text-text-secondary leading-relaxed border-l-4 border-brand-primary pl-8 italic">
+                                "O acesso contínuo e a utilização do sistema MX PERFORMANCE caracterizam concordância incondicional com as diretrizes e protocolos de segurança aqui estipulados."
+                            </Typography>
 
-                        <div className="grid md:grid-cols-2 gap-8 mb-12">
-                            <div className="bg-surface-alt p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-rose-100 transition-all">
-                                <Lock size={24} className="text-rose-500 mb-6 group-hover:scale-110 transition-transform" />
-                                <h2 className="text-xl font-black mb-3 tracking-tight">Autoridade de Acesso</h2>
-                                <p className="text-sm font-bold text-gray-500 leading-relaxed">
-                                    O portal é dedicado restritamente a colaboradores com credenciais validadas pela diretoria da MX Consultoria. Cada agente homologado responde integralmente por manter suas chaves seguras e intransferíveis.
-                                </p>
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <Card className="bg-surface-alt p-10 rounded-[2.5rem] border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
+                                    <div className="w-14 h-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+                                        <Lock size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Autoridade de Acesso</Typography>
+                                    <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed">
+                                        O portal é dedicado restritamente a colaboradores com credenciais validadas. Cada agente responde pela segurança de suas chaves.
+                                    </Typography>
+                                </Card>
+
+                                <Card className="bg-surface-alt p-10 rounded-[2.5rem] border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
+                                    <div className="w-14 h-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+                                        <AlertTriangle size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Obrigações & Sanções</Typography>
+                                    <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed">
+                                        O provimento de dados deve ser factual. Distorções recorrentes autorizam o encerramento do acesso por quebra de governança.
+                                    </Typography>
+                                </Card>
                             </div>
 
-                            <div className="bg-surface-alt p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-amber-100 transition-all">
-                                <AlertTriangle size={24} className="text-amber-500 mb-6 group-hover:scale-110 transition-transform" />
-                                <h2 className="text-xl font-black mb-3 tracking-tight">Obrigações e Sanções</h2>
-                                <p className="text-sm font-bold text-gray-500 leading-relaxed">
-                                    Os membros devem prover a plataforma apenas com dados operativos factuais. O envio recorrente de distorções prejudica a inteligência do sistema e autoriza o encerramento do contrato de acesso sem aviso.
-                                </p>
+                            <div className="space-y-6 pt-10 border-t border-border-default">
+                                <header className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-mx-lg bg-mx-black text-indigo-400 flex items-center justify-center shadow-mx-lg"><Zap size={20} /></div>
+                                    <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Desempenho e Disponibilidade</Typography>
+                                </header>
+                                <Typography variant="p" tone="muted" className="text-base font-bold leading-relaxed">
+                                    As informações transacionadas via interface (Check-ins, Metas, Feedbacks) são estritamente para fins de consultoria operacional. A MX assegura as melhores tecnologias para processamento dos índices preditivos com alta disponibilidade.
+                                </Typography>
                             </div>
                         </div>
 
-                        <div className="space-y-6">
-                            <h2 className="text-2xl font-black tracking-tighter flex items-center gap-3">
-                                <Zap className="text-rose-500" size={24} /> Desempenho
-                            </h2>
-                            <p className="text-gray-500 font-bold leading-relaxed">
-                                As informações transacionadas via interface (Check-ins, Atualizações de Meta, Feedbacks) não servem para processamentos fiscais, sendo estritamente consultórias. A MX assegura as melhores tecnologias para processamento dos índices preditivos com alta disponibilidade.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="pt-10 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-text-primary flex items-center gap-2 transition-colors px-6 py-3 rounded-full hover:bg-gray-50"
-                        >
-                            Voltar ao Sistema
-                        </button>
-                        <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest text-center sm:text-right">
-                            MX CONSULTORIA LTDA © {new Date().getFullYear()} <br /> Plataforma Licenciada.
-                        </p>
-                    </div>
-                </div>
+                        <footer className="pt-10 border-t border-border-default flex flex-col sm:flex-row items-center justify-between gap-10">
+                            <Button variant="ghost" onClick={() => navigate(-1)} className="text-[10px] font-black uppercase tracking-[0.3em] text-text-tertiary hover:text-brand-primary">
+                                <ArrowLeft size={16} className="mr-2" /> VOLTAR AO SISTEMA
+                            </Button>
+                            <div className="text-center sm:text-right space-y-1">
+                                <Typography variant="caption" tone="muted" className="text-[9px] font-black uppercase tracking-widest opacity-40">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
+                                <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase tracking-[0.4em] opacity-20">PLATAFORMA LICENCIADA</Typography>
+                            </div>
+                        </footer>
+                    </CardContent>
+                </Card>
             </motion.div>
-        </div>
+        </main>
     )
 }

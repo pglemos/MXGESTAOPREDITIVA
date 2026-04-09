@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { 
     LayoutGrid, List, Plus, Search, RefreshCw, Database, 
     Building2, X, ChevronRight, Share2, MessageCircle, 
-    CheckCircle2, AlertCircle
+    CheckCircle2, AlertCircle, Zap, Target, TrendingUp, Activity
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -59,11 +59,49 @@ export default function Lojas() {
 
     const loading = storesLoading || performanceLoading
 
+    const networkStats = useMemo(() => {
+        const totalSales = performance.reduce((acc, curr) => acc + curr.realizado, 0)
+        const totalGoal = performance.reduce((acc, curr) => acc + curr.meta, 0)
+        const avgEfficiency = Math.round(performance.reduce((acc, curr) => acc + curr.efficiency, 0) / Math.max(performance.length, 1))
+        const totalProjection = performance.reduce((acc, curr) => acc + curr.projecao, 0)
+        
+        return { totalSales, totalGoal, avgEfficiency, totalProjection }
+    }, [performance])
+
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-white">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
+            {/* Network Executive Dashboard */}
+            {role === 'dono' && !loading && performance.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-mx-lg shrink-0">
+                    {[
+                        { label: 'Vendas Rede', val: networkStats.totalSales, icon: Zap, tone: 'brand' },
+                        { label: 'Meta Global', val: networkStats.totalGoal, icon: Target, tone: 'info' },
+                        { label: 'Projeção Grupo', val: networkStats.totalProjection, icon: TrendingUp, tone: 'success' },
+                        { label: 'Eficiência Média', val: `${networkStats.avgEfficiency}%`, icon: Activity, tone: 'warning' },
+                    ].map((stat, i) => (
+                        <Card key={i} className="p-6 border-none shadow-mx-md bg-white overflow-hidden relative group">
+                            <div className="flex items-center gap-4 relative z-10">
+                                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border shadow-inner group-hover:scale-110 transition-transform", 
+                                    stat.tone === 'brand' ? 'bg-mx-indigo-50 text-brand-primary border-mx-indigo-100' :
+                                    stat.tone === 'info' ? 'bg-status-info-surface text-status-info border-mx-blue-100' :
+                                    stat.tone === 'success' ? 'bg-status-success-surface text-status-success border-mx-emerald-100' :
+                                    'bg-status-warning-surface text-status-warning border-mx-amber-100'
+                                )}>
+                                    <stat.icon size={20} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase tracking-widest">{stat.label}</Typography>
+                                    <Typography variant="h2" className="text-xl tabular-nums leading-none">{stat.val}</Typography>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
             {/* Header / Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div className="flex flex-col gap-2">
                     <Typography variant="caption" tone="brand">{canManageStores ? 'GEOFENCING COMANDO CENTRAL' : 'VISÃO EXECUTIVA'}</Typography>
                     <Typography variant="h1">{canManageStores ? 'Gestão de Unidades' : 'Minhas Lojas'}</Typography>
@@ -113,7 +151,7 @@ export default function Lojas() {
                         </Button>
                     )}
                 </div>
-            </div>
+            </header>
 
             <AnimatePresence>
                 {showForm && canManageStores && (

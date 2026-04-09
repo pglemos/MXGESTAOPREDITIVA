@@ -103,7 +103,7 @@ export function useCheckins(storeIdOverride?: string) {
     const saveCheckin = async (formData: CheckinFormData, scope: any = 'daily', customDate?: string): Promise<{ error: string | null }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
         
-        const finalDate = customDate || referenceDate
+        const finalDate = customDate || formData.reference_date || referenceDate
         const isDaily = scope === 'daily' && finalDate === referenceDate
 
         if (isDaily && todayCheckin && !canEditCurrentCheckin()) {
@@ -120,15 +120,15 @@ export function useCheckins(storeIdOverride?: string) {
             submitted_late: isDaily ? isCheckinLate(submittedAt) : false,
             submission_status: isDaily ? (isCheckinLate(submittedAt) ? 'late' : 'on_time') : 'on_time',
             edit_locked_at: isDaily ? getCheckinEditLockedAt(submittedAt) : null,
-            leads_prev_day: formData.leads,
-            agd_cart_prev_day: formData.agd_cart_prev,
-            agd_net_prev_day: formData.agd_net_prev,
-            agd_cart_today: formData.agd_cart,
-            agd_net_today: formData.agd_net,
-            vnd_porta_prev_day: formData.vnd_porta,
-            vnd_cart_prev_day: formData.vnd_cart,
-            vnd_net_prev_day: formData.vnd_net,
-            visit_prev_day: formData.visitas,
+            leads_prev_day: formData.leads_prev_day ?? formData.leads,
+            agd_cart_prev_day: formData.agd_cart_prev_day ?? formData.agd_cart_prev,
+            agd_net_prev_day: formData.agd_net_prev_day ?? formData.agd_net_prev,
+            agd_cart_today: formData.agd_cart_today ?? formData.agd_cart,
+            agd_net_today: formData.agd_net_today ?? formData.agd_net,
+            vnd_porta_prev_day: formData.vnd_porta_prev_day ?? formData.vnd_porta,
+            vnd_cart_prev_day: formData.vnd_cart_prev_day ?? formData.vnd_cart,
+            vnd_net_prev_day: formData.vnd_net_prev_day ?? formData.vnd_net,
+            visit_prev_day: formData.visit_prev_day ?? formData.visitas,
             zero_reason: formData.zero_reason || null,
             note: formData.note || null,
         }
@@ -145,7 +145,18 @@ export function useCheckins(storeIdOverride?: string) {
     useEffect(() => { fetchCheckins() }, [fetchCheckins])
     useEffect(() => { fetchTodayCheckin() }, [fetchTodayCheckin])
 
-    return { checkins, todayCheckin, loading, fetchCheckins, fetchTodayCheckin, saveCheckin, referenceDate, fetchCheckinByDate }
+    return { 
+        checkins, 
+        todayCheckin, 
+        loading, 
+        fetchCheckins, 
+        fetchTodayCheckin, 
+        saveCheckin, 
+        submitCheckin: saveCheckin, // Alias para consistência MX
+        refetch: fetchTodayCheckin, // Alias para consistência MX
+        referenceDate, 
+        fetchCheckinByDate 
+    }
 }
 
 

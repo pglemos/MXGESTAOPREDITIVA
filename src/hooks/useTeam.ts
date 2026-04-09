@@ -66,8 +66,25 @@ export function useTeam(storeIdOverride?: string) {
         setLoading(false)
     }, [storeId, referenceDate])
 
+    const updateVigencia = async (userId: string, data: any) => {
+        if (!storeId) return { error: 'Loja não identificada' }
+        const { error } = await supabase.from('store_sellers').upsert({
+            store_id: storeId,
+            seller_user_id: userId,
+            ...data
+        }, { onConflict: 'store_id, seller_user_id' })
+        if (!error) await fetchTeam()
+        return { error: error?.message || null }
+    }
+
     useEffect(() => { fetchTeam() }, [fetchTeam])
-    return { sellers, loading, refetch: fetchTeam }
+    return { 
+        sellers, 
+        team: sellers, // Alias para consistência MX
+        loading, 
+        refetch: fetchTeam,
+        updateVigencia 
+    }
 }
 
 export function useStores() {

@@ -1,11 +1,18 @@
 import { useNotifications, useSystemBroadcasts } from '@/hooks/useData';
-import { Badge } from '@/components/ui/badge'
 import { useStores } from '@/hooks/useTeam'
 import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Bell, Plus, X, Send, Building2, Globe, AlertCircle, Calendar, RefreshCw, Zap } from 'lucide-react'
+import { 
+    Bell, Plus, X, Send, Building2, Globe, AlertCircle, 
+    Calendar, RefreshCw, Zap, ShieldCheck, Mail, Users
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 export default function ConsultorNotificacoes() {
     const { sendNotification } = useNotifications()
@@ -24,7 +31,7 @@ export default function ConsultorNotificacoes() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!form.title || !form.message) { toast.error('Preencha título e mensagem corporativa'); return }
+        if (!form.title || !form.message) { toast.error('Preencha os campos obrigatórios.'); return }
         setSaving(true)
         
         const { error } = await sendNotification({ 
@@ -38,236 +45,176 @@ export default function ConsultorNotificacoes() {
         
         setSaving(false)
         if (error) { toast.error(error); return }
-        toast.success('Comunicado disparado para os canais selecionados!')
+        toast.success('Comunicado disparado na rede!')
         setShowForm(false)
         setForm({ title: '', message: '', target_type: 'all', target_store_id: '', target_role: 'todos' })
         refetch()
     }
 
     const handleRefresh = useCallback(async () => {
-        setIsRefetching(true)
-        await refetch()
-        setIsRefetching(false)
+        setIsRefetching(true); await refetch(); setIsRefetching(false)
+        toast.success('Gateway sincronizado!')
     }, [refetch])
 
     if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
-            <div className="w-16 h-16 border-4 border-rose-200 border-t-rose-600 rounded-full animate-spin shadow-xl"></div>
-            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Sincronizando Gateway de Alertas...</p>
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
+            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Gateway...</Typography>
         </div>
     )
 
     return (
-        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
-
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Alerts Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-rose-600 rounded-full shadow-[0_0_20px_rgba(225,29,72,0.4)]" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase">Central de <span className="text-rose-600">Mensagens MX</span></h1>
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Central de <span className="text-brand-primary">Mensagens</span></Typography>
                     </div>
-                    <div className="flex items-center gap-3 pl-6 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Gestão de Comunicação de Rede • {broadcasts.length} Campanhas Enviadas</p>
-                    </div>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">COMUNICAÇÃO ESTRATÉGICA DE REDE</Typography>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0">
-                    <button 
-                        onClick={handleRefresh}
-                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black active:scale-90 transition-all"
-                    >
+                <div className="flex items-center gap-mx-sm shrink-0">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
-                    </button>
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-10 py-4 rounded-full bg-pure-black text-white font-black hover:bg-brand-secondary-hover shadow-3xl transition-all active:scale-95 text-[10px] uppercase tracking-[0.3em] group relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Disparar Alerta
-                    </button>
+                    </Button>
+                    <Button onClick={() => setShowForm(true)} className="h-12 px-8 shadow-mx-lg">
+                        <Plus size={18} className="mr-2" /> DISPARAR ALERTA
+                    </Button>
                 </div>
-            </div>
+            </header>
 
             <AnimatePresence>
                 {showForm && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="shrink-0 z-50 rounded-[2.5rem] p-1 bg-gradient-to-b from-rose-50 to-white shadow-3xl mb-10"
-                    >
-                        <form onSubmit={handleSubmit} className="inner-card p-10 md:p-14 space-y-10 relative overflow-hidden bg-white border-none">
-                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(225,29,72,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
-
-                            <div className="flex items-center justify-between relative z-10 border-b border-gray-50 pb-8">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 rounded-2xl bg-pure-black text-white flex items-center justify-center shadow-2xl transform rotate-2">
-                                        <AlertCircle size={24} className="text-rose-500" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-black text-pure-black tracking-tighter leading-none mb-2">Compor Mensagem</h3>
-                                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Comunicado de Inteligência da Rede</p>
-                                    </div>
-                                </div>
-                                <button type="button" onClick={() => setShowForm(false)} className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:rotate-90 transition-all">
-                                    <X size={20} />
-                                </button>
-                            </div>
-
-                            <div className="grid lg:grid-cols-2 gap-12 relative z-10">
-                                <div className="space-y-8">
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Assunto Estratégico</label>
-                                        <input
-                                            value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                                            placeholder="Ex: Alerta de Ritmo Semanal" required autoFocus
-                                            className="premium-input !rounded-[1.5rem]"
-                                        />
-                                    </div>
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Corpo da Notificação</label>
-                                        <textarea
-                                            value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
-                                            placeholder="Detalhes técnicos ou operacionais para os usuários..." rows={4} required
-                                            className="premium-input !rounded-[2rem] resize-none py-6 h-40"
-                                        />
-                                    </div>
-                                </div>
+                    <motion.section initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 mb-10">
+                        <form onSubmit={handleSubmit}>
+                            <Card className="p-10 md:p-14 border-none shadow-mx-xl bg-white overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 rounded-full blur-[120px] -mr-48 -mt-48" />
                                 
-                                <div className="space-y-8">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Público Alvo (Segmentação)</label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setForm(p => ({ ...p, target_type: 'all' }))}
-                                            className={cn(
-                                                "p-8 rounded-[2.2rem] border-2 transition-all flex flex-col items-center justify-center gap-4 text-center",
-                                                form.target_type === 'all' ? 'bg-indigo-50 border-indigo-200 shadow-xl shadow-indigo-500/10' : 'bg-white border-gray-100 hover:border-indigo-100'
-                                            )}
-                                        >
-                                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-sm", form.target_type === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-50 text-gray-300')}>
-                                                <Globe size={24} />
-                                            </div>
-                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", form.target_type === 'all' ? 'text-indigo-900' : 'text-gray-400')}>Toda a Rede</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setForm(p => ({ ...p, target_type: 'store' }))}
-                                            className={cn(
-                                                "p-8 rounded-[2.2rem] border-2 transition-all flex flex-col items-center justify-center gap-4 text-center",
-                                                form.target_type === 'store' ? 'bg-amber-50 border-amber-200 shadow-xl shadow-amber-500/10' : 'bg-white border-gray-100 hover:border-amber-100'
-                                            )}
-                                        >
-                                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-sm", form.target_type === 'store' ? 'bg-amber-500 text-white' : 'bg-gray-50 text-gray-300')}>
-                                                <Building2 size={24} />
-                                            </div>
-                                            <span className={cn("text-[10px] font-black uppercase tracking-widest", form.target_type === 'store' ? 'text-amber-900' : 'text-gray-400')}>Unidade Específica</span>
-                                        </button>
+                                <header className="flex items-center justify-between border-b border-border-default pb-8 mb-10 relative z-10">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-14 h-14 rounded-mx-xl bg-pure-black text-white flex items-center justify-center shadow-mx-lg transform rotate-2"><Mail size={24} className="text-brand-primary" /></div>
+                                        <div>
+                                            <Typography variant="h3">Compor Comunicado</Typography>
+                                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">INTELIGÊNCIA DE REDE</Typography>
+                                        </div>
                                     </div>
+                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-full w-12 h-12 bg-surface-alt hover:bg-white shadow-sm"><X size={24} /></Button>
+                                </header>
 
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Filtro por Papel (Role)</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
-                                                <button
-                                                    key={role}
-                                                    type="button"
-                                                    onClick={() => setForm(p => ({ ...p, target_role: role as any }))}
-                                                    className={cn(
-                                                        "py-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all",
-                                                        form.target_role === role ? 'bg-slate-950 text-white border-slate-950' : 'bg-gray-50 text-gray-400 border-gray-100 hover:bg-white'
-                                                    )}
-                                                >
-                                                    {role}
-                                                </button>
-                                            ))}
+                                <div className="grid lg:grid-cols-2 gap-14 relative z-10">
+                                    <div className="space-y-8">
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Assunto Estratégico</Typography>
+                                            <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Alerta de Ritmo Semanal" required className="!h-14 px-6 font-bold" />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Corpo da Mensagem</Typography>
+                                            <textarea 
+                                                value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
+                                                className="w-full bg-surface-alt border border-border-default rounded-[2rem] p-8 text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-48"
+                                                placeholder="Detalhes técnicos ou operacionais..." required
+                                            />
                                         </div>
                                     </div>
 
-                                    <AnimatePresence>
-                                        {form.target_type === 'store' && (
-                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="pt-4">
-                                                <select
-                                                    value={form.target_store_id}
-                                                    onChange={e => setForm(p => ({ ...p, target_store_id: e.target.value }))}
-                                                    required
-                                                    className="w-full px-6 py-5 bg-gray-50 border border-amber-200 rounded-[1.5rem] text-sm font-black text-pure-black focus:outline-none focus:bg-white focus:shadow-xl transition-all appearance-none cursor-pointer shadow-inner"
-                                                >
-                                                    <option value="" disabled>Selecionar unidade operacional...</option>
-                                                    {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                                </select>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                            </div>
+                                    <div className="space-y-10">
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Público Alvo (Segmentação)</Typography>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'all' }))} className={cn("p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center justify-center gap-4 text-center group", form.target_type === 'all' ? "bg-mx-indigo-50 border-brand-primary shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
+                                                    <div className={cn("w-12 h-12 rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'all' ? "bg-brand-primary text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
+                                                        <Globe size={22} />
+                                                    </div>
+                                                    <Typography variant="caption" className={cn("font-black tracking-widest", form.target_type === 'all' ? "text-brand-primary" : "text-text-tertiary")}>TODA A REDE</Typography>
+                                                </button>
+                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'store' }))} className={cn("p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center justify-center gap-4 text-center group", form.target_type === 'store' ? "bg-status-warning-surface border-status-warning shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
+                                                    <div className={cn("w-12 h-12 rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'store' ? "bg-status-warning text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
+                                                        <Building2 size={22} />
+                                                    </div>
+                                                    <Typography variant="caption" className={cn("font-black tracking-widest", form.target_type === 'store' ? "text-status-warning" : "text-text-tertiary")}>UNIDADE ALVO</Typography>
+                                                </button>
+                                            </div>
+                                        </div>
 
-                            <div className="pt-8 relative z-10 flex justify-end gap-4 border-t border-gray-50">
-                                <button
-                                    type="submit" disabled={saving}
-                                    className="w-full sm:w-auto px-12 py-5 rounded-full bg-rose-600 text-white font-black flex items-center justify-center gap-4 hover:bg-rose-700 hover:shadow-elevation transition-all disabled:opacity-50 active:scale-95 text-[10px] uppercase tracking-[0.3em] group/btn"
-                                >
-                                    {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <>Disparar na Rede <Send size={18} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" /></>}
-                                </button>
-                            </div>
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nível Hierárquico</Typography>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
+                                                    <Button key={role} type="button" variant={form.target_role === role ? 'secondary' : 'outline'} onClick={() => setForm(p => ({ ...p, target_role: role as any }))} className="h-10 rounded-xl text-[8px] font-black uppercase px-0">{role}</Button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {form.target_type === 'store' && (
+                                            <div className="space-y-4">
+                                                <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Selecionar Loja</Typography>
+                                                <select value={form.target_store_id} onChange={e => setForm(p => ({ ...p, target_store_id: e.target.value }))} required className="w-full h-14 bg-surface-alt border border-status-warning/20 rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-status-warning transition-all appearance-none cursor-pointer shadow-inner">
+                                                    <option value="">Selecione a unidade...</option>
+                                                    {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <footer className="pt-10 flex justify-end gap-4 border-t border-border-default mt-10 relative z-10">
+                                    <Button type="submit" disabled={saving} className="h-16 px-14 rounded-full shadow-mx-xl font-black uppercase tracking-[0.2em] text-[10px]">
+                                        {saving ? <RefreshCw className="animate-spin mr-3" /> : <Send size={20} className="mr-3" />} DISPARAR NA REDE
+                                    </Button>
+                                </footer>
+                            </Card>
                         </form>
-                    </motion.div>
+                    </motion.section>
                 )}
             </AnimatePresence>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-32">
+            {/* Campaign History Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg pb-32" aria-live="polite">
                 {broadcasts.length === 0 ? (
-                    <div className="col-span-full py-40 rounded-[4rem] text-center border-dashed border-2 border-gray-200 bg-gray-50/30 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(26,29,32,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" />
-                        <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center mb-8 border border-gray-100 group-hover:rotate-12 transition-transform duration-500">
-                            <Bell size={40} className="text-gray-200" />
+                    <Card className="col-span-full py-40 rounded-[4rem] text-center border-dashed border-2 border-border-default bg-white/50 flex flex-col items-center justify-center relative overflow-hidden group">
+                        <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:rotate-12 transition-transform duration-500">
+                            <Bell size={40} className="text-text-tertiary/20" />
                         </div>
-                        <h3 className="text-3xl font-black text-pure-black mb-4 tracking-tighter uppercase">Zero Comunicados</h3>
-                        <p className="text-gray-400 text-sm font-bold opacity-80 max-w-sm mx-auto mb-8">Nenhum alerta disparado pelo sistema ou administração no histórico.</p>
-                    </div>
+                        <Typography variant="h2" className="mb-4">Mural Vazio</Typography>
+                        <Typography variant="p" tone="muted" className="max-w-xs mx-auto uppercase tracking-widest">Nenhum comunicado ativo no histórico da malha.</Typography>
+                    </Card>
                 ) : (
                     broadcasts.map((n, i) => (
-                        <motion.div
-                            key={n.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.05 }}
-                            className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full"
-                        >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            
-                            <div className="flex items-start justify-between mb-10 relative z-10 border-b border-gray-50 pb-6">
-                                <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-pure-black group-hover:text-white shadow-inner transition-all transform group-hover:rotate-6">
-                                    <Zap size={24} />
-                                </div>
-                                <div className="flex flex-col items-end gap-2">
-                                    <Badge className={cn(
-                                        "font-black text-[8px] uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm",
-                                        !n.store_id ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'
-                                    )}>
-                                        {!n.store_id ? 'REDE TODA' : 'UNIDADE'}
-                                    </Badge>
-                                    {n.sender_id && <span className="text-[7px] font-black text-gray-300 uppercase tracking-tighter">Enviado por Admin</span>}
-                                </div>
-                            </div>
+                        <motion.article key={n.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                            <Card className="p-8 h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                
+                                <header className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">
+                                    <div className="w-12 h-12 rounded-2xl bg-surface-alt flex items-center justify-center text-text-tertiary group-hover:bg-pure-black group-hover:text-white transition-all shadow-inner transform group-hover:rotate-6">
+                                        <Zap size={20} />
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <Badge variant={!n.store_id ? 'brand' : 'warning'} className="px-4 py-1 rounded-full uppercase text-[8px]">
+                                            {!n.store_id ? 'REDE TODA' : 'UNIDADE'}
+                                        </Badge>
+                                        <Typography variant="caption" className="text-[7px] font-black opacity-30 uppercase">SINC: ADMIN</Typography>
+                                    </div>
+                                </header>
 
-                            <div className="flex-1 mb-8 relative z-10">
-                                <h3 className="text-xl font-black text-pure-black mb-3 tracking-tight group-hover:text-rose-600 transition-colors uppercase leading-tight line-clamp-2">{n.title}</h3>
-                                <p className="text-sm font-bold text-gray-500 line-clamp-4 leading-relaxed opacity-80">{n.message}</p>
-                            </div>
-
-                            <div className="pt-6 border-t border-gray-50 flex items-center justify-between mt-auto relative z-10">
-                                <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                    <Calendar size={14} className="text-rose-500" /> {new Date(n.created_at).toLocaleDateString('pt-BR')}
+                                <div className="flex-1 mb-8 relative z-10 space-y-3">
+                                    <Typography variant="h3" className="text-lg uppercase leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">{n.title}</Typography>
+                                    <Typography variant="p" tone="muted" className="text-xs font-bold leading-relaxed line-clamp-4">"{n.message}"</Typography>
                                 </div>
-                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{new Date(n.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                            </div>
-                        </motion.div>
+
+                                <footer className="pt-6 border-t border-border-default flex items-center justify-between mt-auto relative z-10">
+                                    <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase tracking-widest">
+                                        <Calendar size={14} className="text-brand-primary" /> {new Date(n.created_at).toLocaleDateString('pt-BR')}
+                                    </div>
+                                    <Typography variant="mono" className="text-[10px] opacity-30">{new Date(n.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Typography>
+                                </footer>
+                            </Card>
+                        </motion.article>
                     ))
                 )}
             </div>
-        </div>
+        </main>
     )
 }

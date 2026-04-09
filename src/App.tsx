@@ -118,9 +118,13 @@ export default function App() {
             <Route path="training" element={<Navigate to="/treinamentos" replace />} />
 
             {/* Vendedor */}
-            <Route path="home" element={<Suspense fallback={<Spinner />}><VendedorHome /></Suspense>} />
+            <Route path="home" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorHome />} gerente={<VendedorHome />} dono={<VendedorHome />} admin={<Navigate to="/painel" replace />} />
+            </Suspense>} />
             <Route path="checkin" element={<Suspense fallback={<Spinner />}><Checkin /></Suspense>} />
-            <Route path="historico" element={<Suspense fallback={<Spinner />}><Historico /></Suspense>} />
+            <Route path="historico" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Historico />} gerente={<Historico />} dono={<Historico />} admin={<Navigate to="/painel" replace />} />
+            </Suspense>} />
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<Navigate to="/lojas" replace />} admin={<ConsultorTreinamentos />} />
@@ -152,8 +156,11 @@ export default function App() {
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
-            <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}><Reprocessamento /></Suspense>} />
+            <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Navigate to="/loja" replace />} dono={<Navigate to="/lojas" replace />} admin={<Navigate to="/painel" replace />} />
+            </Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
+            <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}><SalesPerformance /></Suspense>} />
             <Route path="auditoria" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} dono={<Navigate to="/lojas" replace />} admin={<AiDiagnostics />} />
             </Suspense>} />
@@ -169,8 +176,9 @@ export default function App() {
               <Route path="leadops" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<LeadOps />)}</Suspense>} />
               <Route path="leads" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Leads />)}</Suspense>} />
               <Route path="reports" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
-              <Route path="reports/stock" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
-              <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SalesPerformance />)}</Suspense>} />
+              <Route path="reports/stock" element={<Suspense fallback={<Spinner />}>
+                <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Navigate to="/loja" replace />} dono={<Navigate to="/lojas" replace />} admin={<Navigate to="/painel" replace />} />
+              </Suspense>} />
               <Route path="relatorios/performance-vendedores" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SellerPerformance />)}</Suspense>} />
               <Route path="tarefas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Tarefas />)}</Suspense>} />
               <Route path="gamification" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Gamification />)}</Suspense>} />

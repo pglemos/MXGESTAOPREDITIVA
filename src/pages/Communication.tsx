@@ -1,11 +1,19 @@
 import { useState, useMemo } from 'react'
-import { Send, MessageSquare, Megaphone, Users, Search, RefreshCw, X, MoreVertical, Plus, CheckCircle2, Clock, AlertTriangle, ChevronRight, Zap, Sparkles, Filter } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { 
+    Send, MessageSquare, Megaphone, Users, Search, RefreshCw, 
+    X, MoreVertical, Plus, CheckCircle2, Clock, AlertTriangle, 
+    ChevronRight, Zap, Sparkles, Filter, LayoutDashboard,
+    Smartphone, History, ShieldCheck
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import useAppStore from '@/stores/main'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 const INITIAL_MESSAGES = [
   { id: '1', author: 'Admin MX', role: 'System', content: 'Nova campanha de blindagem ativa. Verifique o Mix de Produtos.', date: 'Hoje, 09:00', type: 'system', priority: 'High' },
@@ -20,109 +28,160 @@ export default function Communication() {
   const [isRefetching, setIsRefetching] = useState(false)
 
   const stats = [
-    { label: 'Avisos da Rede', value: '12', icon: Megaphone, tone: 'bg-brand-primary-surface text-brand-primary' },
-    { label: 'Engajamento', value: '94%', icon: Zap, tone: 'bg-status-success-surface text-status-success' },
-    { label: 'Não Lidas', value: '03', icon: MessageSquare, tone: 'bg-status-error-surface text-status-error' },
-    { label: 'Alcance', value: '48', icon: Users, tone: 'bg-mx-slate-50 text-text-tertiary' },
+    { label: 'Avisos da Rede', value: '12', icon: Megaphone, tone: 'brand' },
+    { label: 'Engajamento', value: '94%', icon: Zap, tone: 'success' },
+    { label: 'Não Lidas', value: '03', icon: MessageSquare, tone: 'error' },
+    { label: 'Alcance', value: '48', icon: Users, tone: 'info' },
   ]
 
+  const filteredMessages = useMemo(() => {
+    return messages.filter(m => 
+        m.author.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        m.content.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [messages, searchTerm])
+
   return (
-    <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl text-text-primary">
-      {/* Header Area */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+      
+      {/* Header / Hub Toolbar */}
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-mx-xs">
-            <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-            <h1 className="mx-heading-hero">Hub de <span className="text-brand-primary">Comunicação</span></h1>
+          <div className="flex items-center gap-4">
+            <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+            <Typography variant="h1">Hub de <span className="text-brand-primary">Comunicação</span></Typography>
           </div>
-          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Informativos & Alinhamento Tático</p>
+          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">INFORMATIVOS & ALINHAMENTO TÁTICO</Typography>
         </div>
 
-        <div className="flex items-center gap-mx-sm shrink-0">
-          <button onClick={() => {setIsRefetching(true); setTimeout(() => setIsRefetching(false), 800)}} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
-          <div className="relative group w-48 hidden sm:block">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-            <input type="text" placeholder="Buscar informe..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+        <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+          <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); setTimeout(() => {setIsRefetching(false); toast.success('Sincronizado!')}, 800)}} className="w-12 h-12 rounded-xl shadow-mx-sm">
+            <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+          </Button>
+          <div className="relative group w-full sm:w-64">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+            <Input 
+                placeholder="BUSCAR INFORME..." value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
+            />
           </div>
-          <button className="mx-button-primary bg-brand-secondary flex items-center gap-2"><Plus size={18} /> Novo Aviso</button>
+          <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
+            <Plus size={18} className="mr-2" /> NOVO AVISO
+          </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-sm shrink-0">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         {stats.map((item) => (
-          <div key={item.label} className="mx-card p-mx-md flex flex-col justify-between group relative overflow-hidden">
-            <div className="flex items-center justify-between gap-mx-xs relative z-10">
-              <div><p className="mx-text-caption mb-1">{item.label}</p><p className="text-3xl font-black tracking-tighter font-mono-numbers leading-none">{item.value}</p></div>
-              <div className={cn('h-10 w-10 rounded-mx-md flex items-center justify-center border shadow-sm', item.tone)}><item.icon size={18} /></div>
+          <Card key={item.label} className="p-8 border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+            <div className="flex items-center justify-between relative z-10">
+              <div className="space-y-1">
+                <Typography variant="caption" tone="muted" className="block uppercase tracking-widest">{item.label}</Typography>
+                <Typography variant="h1" className="text-4xl tabular-nums">{item.value}</Typography>
+              </div>
+              <div className={cn(
+                'h-14 w-14 rounded-mx-2xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110',
+                item.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
+                item.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
+                item.tone === 'error' ? 'bg-status-error-surface border-mx-rose-100 text-status-error' :
+                'bg-status-info-surface border-mx-blue-100 text-status-info'
+              )}>
+                <item.icon size={24} strokeWidth={2.5} />
+              </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-mx-3xl">
-        <div className="lg:col-span-8 flex flex-col gap-mx-lg h-full">
-          <div className="mx-card h-full flex flex-col overflow-hidden group">
-            <div className="p-mx-lg border-b border-border-subtle bg-mx-slate-50/30 flex items-center justify-between">
-              <div className="flex items-center gap-mx-sm">
-                <div className="w-12 h-12 rounded-mx-lg bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><Megaphone size={24} /></div>
-                <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1 uppercase">Aviso Ativo</h3><p className="mx-text-caption">Mural de Avisos Prioritários</p></div>
-              </div>
-              <Badge className="bg-status-success-surface text-status-success border-none">SISTEMA ONLINE</Badge>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
+        {/* Messages Feed */}
+        <section className="lg:col-span-8 flex flex-col">
+          <Card className="border-none shadow-mx-xl bg-white overflow-hidden h-full flex flex-col group relative">
+            <div className="absolute top-0 right-0 p-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors">
+              <Megaphone size={240} strokeWidth={2.5} />
             </div>
-            <div className="flex-1 overflow-y-auto no-scrollbar p-mx-lg space-y-mx-lg relative">
-              <div className="absolute left-[calc(2.5rem+24px)] top-mx-lg bottom-0 w-px bg-mx-slate-100" />
-              <div className="space-y-mx-lg">
-                {messages.map((m, i) => (
-                  <motion.div key={m.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="relative z-10 flex gap-mx-lg group/msg">
-                    <div className={cn("w-12 h-12 rounded-full shrink-0 flex items-center justify-center border-4 border-white shadow-mx-md transition-all group-hover/msg:scale-110", m.type === 'system' ? "bg-brand-secondary text-white" : m.type === 'achievement' ? "bg-status-warning-surface text-status-warning border-mx-amber-100" : "bg-mx-slate-50 text-text-primary border-border-default")}>
-                      {m.type === 'system' ? <Megaphone size={20} /> : m.type === 'achievement' ? <Sparkles size={20} /> : <MessageSquare size={20} />}
-                    </div>
-                    <div className="flex-1 bg-mx-slate-50/50 border border-border-subtle rounded-mx-xl p-mx-md hover:bg-white hover:shadow-mx-lg transition-all">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-black text-sm text-text-primary uppercase tracking-tight">{m.author}</h4>
-                            <Badge variant="outline" className="text-[8px] font-black uppercase h-5 rounded-md px-2 opacity-60">{m.role}</Badge>
-                          </div>
-                          <span className="font-black text-[10px] text-text-tertiary font-mono-numbers">{m.date}</span>
-                        </div>
-                        <Badge className={cn("text-[8px] border-none px-2", m.priority === 'High' ? "bg-status-error-surface text-status-error" : "bg-mx-slate-100 text-text-tertiary")}>{m.priority}</Badge>
-                      </div>
-                      <p className="text-sm font-bold text-text-secondary leading-relaxed border-t border-border-subtle pt-3 mt-2">"{m.content}"</p>
-                      <div className="flex items-center gap-mx-sm mt-mx-md">
-                        <button className="text-[9px] font-black text-brand-primary uppercase tracking-widest hover:underline">Confirmar Leitura</button>
-                        <div className="w-1 h-1 rounded-full bg-mx-slate-200" />
-                        <button className="text-[9px] font-black text-text-tertiary uppercase tracking-widest hover:text-text-primary">Responder</button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="lg:col-span-4 flex flex-col gap-mx-lg h-full">
-          <div className="mx-card flex flex-col overflow-hidden group h-full">
-            <div className="p-mx-lg border-b border-border-subtle bg-mx-slate-50/30 flex items-center justify-between">
-              <h3 className="text-xl font-black text-text-primary tracking-tight leading-none uppercase">Canais Diretos</h3>
-              <Filter size={16} className="text-text-tertiary" />
-            </div>
-            <div className="flex-1 overflow-y-auto no-scrollbar p-mx-lg space-y-mx-sm">
-              {['Gerência Geral', 'Marketing & Leads', 'Suporte Técnico', 'RH & Treinamentos'].map((canal, i) => (
-                <div key={canal} className="p-mx-md rounded-mx-lg border border-border-subtle bg-white hover:border-brand-primary/30 hover:bg-brand-primary-surface/10 transition-all cursor-pointer group/canal flex items-center justify-between">
-                  <div className="flex items-center gap-mx-sm">
-                    <div className="w-10 h-10 rounded-mx-md bg-mx-slate-50 flex items-center justify-center text-brand-primary group-hover/canal:bg-brand-secondary group-hover/canal:text-white transition-all shadow-inner"><MessageSquare size={18} /></div>
-                    <span className="text-xs font-black text-text-primary uppercase tracking-tight">{canal}</span>
+            <CardHeader className="bg-surface-alt/30 border-b border-border-default p-10 flex flex-row items-center justify-between relative z-10">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl"><Megaphone size={32} /></div>
+                <div>
+                  <Typography variant="h2" className="text-2xl uppercase">Mural de Avisos</Typography>
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">Snapshot de Alinhamento Tático</Typography>
+                </div>
+              </div>
+              <Badge variant="success" className="px-6 py-2 rounded-full font-black shadow-mx-sm uppercase">Rede Ativa</Badge>
+            </CardHeader>
+
+            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-10 md:p-14 relative z-10">
+              <div className="relative">
+                <div className="absolute left-7 top-0 bottom-0 w-px bg-border-default/50 z-0" />
+                <div className="space-y-14">
+                  <AnimatePresence mode="popLayout">
+                    {filteredMessages.map((m, i) => (
+                      <motion.div key={m.id} layout initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: i * 0.03 }} className="relative z-10 flex gap-10 group/msg">
+                        <div className={cn("w-14 h-14 rounded-full shrink-0 flex items-center justify-center border-4 border-white shadow-mx-lg transition-transform group-hover/msg:scale-110 group-hover/msg:rotate-3", 
+                            m.type === 'system' ? "bg-brand-secondary text-white" : m.type === 'achievement' ? "bg-status-warning text-white" : "bg-surface-alt text-text-primary"
+                        )}>
+                          {m.type === 'system' ? <Megaphone size={22} /> : m.type === 'achievement' ? <Sparkles size={22} /> : <MessageSquare size={22} />}
+                        </div>
+                        <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-8 hover:bg-white hover:shadow-mx-xl transition-all relative">
+                          <header className="flex justify-between items-start mb-6">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-3">
+                                <Typography variant="h3" className="text-lg leading-none">{m.author}</Typography>
+                                <Badge variant="outline" className="text-[8px] font-black h-5 px-3 rounded-md border-border-strong opacity-60">{m.role.toUpperCase()}</Badge>
+                              </div>
+                              <Typography variant="mono" className="text-[10px] opacity-40">{m.date}</Typography>
+                            </div>
+                            <Badge variant={m.priority === 'High' ? 'danger' : 'outline'} className="px-4 py-1 rounded-lg text-[8px] font-black">{m.priority.toUpperCase()}</Badge>
+                          </header>
+                          <Typography variant="p" className="text-base font-bold text-text-secondary leading-relaxed border-t border-border-default pt-6 mt-2 italic">
+                            "{m.content}"
+                          </Typography>
+                          <footer className="flex items-center gap-6 mt-8">
+                            <Button variant="ghost" size="sm" className="h-8 px-4 text-[9px] font-black text-brand-primary uppercase tracking-widest hover:underline hover:bg-transparent">Confirmar Leitura</Button>
+                            <div className="w-1.5 h-1.5 rounded-full bg-border-strong opacity-20" />
+                            <Button variant="ghost" size="sm" className="h-8 px-4 text-[9px] font-black text-text-tertiary uppercase tracking-widest hover:text-text-primary hover:bg-transparent">Responder</Button>
+                          </footer>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Sidebar Channels */}
+        <aside className="lg:col-span-4 flex flex-col gap-mx-lg h-full">
+          <Card className="flex flex-col overflow-hidden group h-full border-none shadow-mx-lg bg-white">
+            <header className="p-8 border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
+              <Typography variant="h3" className="uppercase tracking-tight">Canais Diretos</Typography>
+              <Filter size={18} className="text-text-tertiary" />
+            </header>
+            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-4">
+              {['Gerência Geral', 'Marketing & Leads', 'Suporte Técnico', 'RH & Treinamentos'].map((canal) => (
+                <div key={canal} className="p-6 rounded-mx-2xl border border-border-default bg-white hover:border-brand-primary/30 hover:bg-mx-indigo-50/30 transition-all cursor-pointer group/canal flex items-center justify-between shadow-sm hover:shadow-mx-md">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary group-hover/canal:bg-brand-secondary group-hover/canal:text-white transition-all shadow-inner"><MessageSquare size={20} /></div>
+                    <Typography variant="h3" className="text-sm uppercase tracking-tight leading-none">{canal}</Typography>
                   </div>
-                  <ChevronRight size={16} className="text-mx-slate-200 group-hover/canal:text-brand-primary group-hover/canal:translate-x-1 transition-all" />
+                  <ChevronRight size={18} className="text-text-tertiary/30 group-hover/canal:text-brand-primary group-hover/canal:translate-x-1 transition-all" />
                 </div>
               ))}
-            </div>
-            <div className="p-mx-lg border-t border-border-subtle bg-mx-slate-50/30"><button className="mx-button-primary bg-brand-primary w-full shadow-mx-lg">Iniciar Nova Mensagem</button></div>
-          </div>
-        </div>
+            </CardContent>
+            <footer className="p-8 border-t border-border-default bg-surface-alt/30">
+                <Button className="w-full h-14 rounded-full shadow-mx-lg font-black uppercase tracking-[0.2em] text-[10px]">
+                    <Plus size={18} className="mr-2" /> INICIAR NOVA MENSAGEM
+                </Button>
+            </footer>
+          </Card>
+        </aside>
       </div>
-    </div>
+    </main>
   )
 }

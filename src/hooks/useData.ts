@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { Training, TrainingProgress, Feedback, FeedbackFormData, WeeklyFeedbackReport, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin } from '@/types/database'
@@ -10,20 +10,30 @@ export function useTrainings() {
     const { profile, role } = useAuth()
     const [trainings, setTrainings] = useState<(Training & { watched: boolean })[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const fetchTrainings = useCallback(async () => {
         if (!profile) return
         setLoading(true)
-        const { data: all } = await supabase.from('trainings').select('*').eq('active', true).order('created_at', { ascending: false })
-        const { data: progress } = await supabase.from('training_progress').select('training_id').eq('user_id', profile.id)
-        const watchedSet = new Set((progress || []).map(p => p.training_id))
-        if (all) {
-            const filtered = role === 'admin'
-                ? all
-                : all.filter(t => t.target_audience === 'todos' || t.target_audience === role)
-            setTrainings(filtered.map(t => ({ ...t, watched: watchedSet.has(t.id) })))
+        setError(null)
+        try {
+            const { data: all, error: allErr } = await supabase.from('trainings').select('*').eq('active', true).order('created_at', { ascending: false })
+            if (allErr) throw allErr
+            const { data: progress, error: progErr } = await supabase.from('training_progress').select('training_id').eq('user_id', profile.id)
+            if (progErr) throw progErr
+            
+            const watchedSet = new Set((progress || []).map(p => p.training_id))
+            if (all) {
+                const filtered = role === 'admin'
+                    ? all
+                    : all.filter(t => t.target_audience === 'todos' || t.target_audience === role)
+                setTrainings(filtered.map(t => ({ ...t, watched: watchedSet.has(t.id) })))
+            }
+        } catch (err: any) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }, [profile, role])
 
     const markWatched = async (trainingId: string) => {
@@ -40,7 +50,23 @@ export function useTrainings() {
     }
 
     useEffect(() => { fetchTrainings() }, [fetchTrainings])
-    return { trainings, loading, markWatched, createTraining, refetch: fetchTrainings }
+    return { trainings, loading, error, markWatched, createTraining, refetch: fetchTrainings }
+}
+
+export function useCourses() {
+    const { trainings, loading, refetch } = useTrainings()
+    const courses = useMemo(() => trainings.map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        category: t.type,
+        instructor: 'Especialista MX',
+        duration: '15 min',
+        url: t.video_url,
+        watched: t.watched
+    })), [trainings])
+
+    return { courses, loading, refetch }
 }
 
 // ============ FEEDBACKS ============
@@ -120,7 +146,24 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
     }
 
     useEffect(() => { fetchFeedbacks() }, [fetchFeedbacks])
-    return { feedbacks, loading, createFeedback, acknowledge, refetch: fetchFeedbacks }
+    return { feedbacks, loading, createFeedback, acknowledge, acknowledgeFeedback: acknowledge, refetch: fetchFeedbacks }
+}
+
+export function useMyPDIs() {
+    const { profile, storeId: authStoreId } = useAuth()
+    const [pdis, setPdis] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetch = useCallback(async () => {
+        if (!profile || !authStoreId) return
+        setLoading(true)
+        const { data } = await supabase.from('pdis').select('*').eq('seller_id', profile.id).order('created_at', { ascending: false })
+        if (data) setPdis(data)
+        setLoading(false)
+    }, [profile, authStoreId])
+
+    useEffect(() => { fetch() }, [fetch])
+    return { pdis, loading, refetch: fetch }
 }
 
 export function useWeeklyFeedbackReports(filters?: { storeId?: string }) {
@@ -337,6 +380,7 @@ export function useTeamTrainings() {
     const { storeId } = useAuth()
     const [teamProgress, setTeamProgress] = useState<{ seller_id: string, seller_name: string, watched: string[], total_trainings: number, percentage: number, current_gap: string | null, gap_training_completed: boolean }[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const fetchProgress = useCallback(async () => {
         if (!storeId) {
@@ -345,36 +389,42 @@ export function useTeamTrainings() {
             return
         }
         setLoading(true)
-        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString().split('T')[0]
-        const [ { data: members }, { data: trainings }, { data: checkins } ] = await Promise.all([
-            supabase.from('memberships').select('user_id, users(name)').eq('store_id', storeId).eq('role', 'vendedor'),
-            supabase.from('trainings').select('*').eq('active', true).in('target_audience', ['todos', 'vendedor']),
-            supabase.from('daily_checkins').select('*').eq('store_id', storeId).gte('reference_date', weekStart)
-        ])
-        const totalTrainings = trainings?.length || 0
-        if (members && members.length > 0) {
-            const userIds = members.map(m => m.user_id)
-            const { data: progress } = await supabase.from('training_progress').select('user_id, training_id').in('user_id', userIds)
-            const stats = members.map((m: any) => {
-                const p = (progress || []).filter(pr => pr.user_id === m.user_id)
-                const watchedIds = p.map(pr => pr.training_id)
-                const percentage = totalTrainings > 0 ? (p.length / totalTrainings) * 100 : 0
-                const sellerCheckins = (checkins || []).filter(c => c.seller_user_id === m.user_id) as DailyCheckin[]
-                const funil = calcularFunil(sellerCheckins)
-                const diag = gerarDiagnosticoMX(funil)
-                const categoryMap: any = { 'LEAD_AGD': 'prospeccao', 'AGD_VISITA': 'atendimento', 'VISITA_VND': 'fechamento' }
-                const gapCategory = diag.gargalo ? categoryMap[diag.gargalo] : null
-                const gapTrainings = (trainings || []).filter(t => t.type === gapCategory)
-                const gapCompleted = gapTrainings.length > 0 ? gapTrainings.every(t => watchedIds.includes(t.id)) : true
-                return { seller_id: m.user_id, seller_name: m.users?.name || 'Vendedor', watched: watchedIds, total_trainings: totalTrainings, percentage, current_gap: diag.gargalo, gap_training_completed: gapCompleted }
-            }).sort((a, b) => b.percentage - a.percentage)
-            setTeamProgress(stats)
+        setError(null)
+        try {
+            const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString().split('T')[0]
+            const [ { data: members }, { data: trainings }, { data: checkins } ] = await Promise.all([
+                supabase.from('memberships').select('user_id, users(name)').eq('store_id', storeId).eq('role', 'vendedor'),
+                supabase.from('trainings').select('*').eq('active', true).in('target_audience', ['todos', 'vendedor']),
+                supabase.from('daily_checkins').select('*').eq('store_id', storeId).gte('reference_date', weekStart)
+            ])
+            const totalTrainings = trainings?.length || 0
+            if (members && members.length > 0) {
+                const userIds = members.map(m => m.user_id)
+                const { data: progress } = await supabase.from('training_progress').select('user_id, training_id').in('user_id', userIds)
+                const stats = members.map((m: any) => {
+                    const p = (progress || []).filter(pr => pr.user_id === m.user_id)
+                    const watchedIds = p.map(pr => pr.training_id)
+                    const percentage = totalTrainings > 0 ? (p.length / totalTrainings) * 100 : 0
+                    const sellerCheckins = (checkins || []).filter(c => c.seller_user_id === m.user_id) as DailyCheckin[]
+                    const funil = calcularFunil(sellerCheckins)
+                    const diag = gerarDiagnosticoMX(funil)
+                    const categoryMap: any = { 'LEAD_AGD': 'prospeccao', 'AGD_VISITA': 'atendimento', 'VISITA_VND': 'fechamento' }
+                    const gapCategory = diag.gargalo ? categoryMap[diag.gargalo] : null
+                    const gapTrainings = (trainings || []).filter(t => t.type === gapCategory)
+                    const gapCompleted = gapTrainings.length > 0 ? gapTrainings.every(t => watchedIds.includes(t.id)) : true
+                    return { seller_id: m.user_id, seller_name: m.users?.name || 'Vendedor', watched: watchedIds, total_trainings: totalTrainings, percentage, current_gap: diag.gargalo, gap_training_completed: gapCompleted }
+                }).sort((a, b) => b.percentage - a.percentage)
+                setTeamProgress(stats)
+            }
+        } catch (err: any) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }, [storeId])
 
     useEffect(() => { fetchProgress() }, [fetchProgress])
-    return { teamProgress, loading, refetch: fetchProgress }
+    return { teamProgress, loading, error, refetch: fetchProgress }
 }
 
 // ============ DELIVERY RULES ============

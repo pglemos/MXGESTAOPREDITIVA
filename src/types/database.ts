@@ -334,6 +334,7 @@ export interface CheckinTotals {
 
 export interface CheckinWithTotals extends DailyCheckin, CheckinTotals {
     seller_id: string
+    is_venda_loja?: boolean
     type: 'daily' | 'venda' | 'visita' | 'agendamento'
 }
 
@@ -385,17 +386,27 @@ export interface FunnelDiagnostic {
 // ============================================
 
 export interface CheckinFormData {
-    leads: number
-    agd_cart_prev: number
-    agd_net_prev: number
-    agd_cart: number
-    agd_net: number
-    vnd_porta: number
-    vnd_cart: number
-    vnd_net: number
-    visitas: number
-    note: string
-    zero_reason: string
+    leads?: number
+    agd_cart_prev?: number
+    agd_net_prev?: number
+    agd_cart?: number
+    agd_net?: number
+    vnd_porta?: number
+    vnd_cart?: number
+    vnd_net?: number
+    visitas?: number
+    note?: string
+    zero_reason?: string
+    reference_date?: string
+    leads_prev_day?: number
+    agd_cart_prev_day?: number
+    agd_net_prev_day?: number
+    visit_prev_day?: number
+    vnd_porta_prev_day?: number
+    vnd_cart_prev_day?: number
+    vnd_net_prev_day?: number
+    agd_cart_today?: number
+    agd_net_today?: number
 }
 
 export interface GoalFormData {

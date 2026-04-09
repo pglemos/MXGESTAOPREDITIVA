@@ -117,9 +117,19 @@ export function useStoreMetaRules(storeIdOverride?: string) {
         setLoading(false)
     }, [storeId])
 
+    const updateMetaRules = async (data: Partial<StoreMetaRules>) => {
+        if (!storeId) return { error: 'Loja não selecionada' }
+        const { error } = await supabase.from('store_meta_rules').upsert({
+            store_id: storeId,
+            ...data
+        }, { onConflict: 'store_id' })
+        if (!error) await fetchMetaRules()
+        return { error: error?.message || null }
+    }
+
     useEffect(() => { fetchMetaRules() }, [fetchMetaRules])
 
-    return { metaRules, loading, fetchMetaRules }
+    return { metaRules, loading, fetchMetaRules, updateMetaRules }
 }
 
 export function useStoreGoal(storeId: string | null) {
@@ -144,6 +154,16 @@ export function useStoreGoal(storeId: string | null) {
         setLoading(false)
     }, [storeId])
 
+    const updateGoal = async (target: number) => {
+        if (!storeId) return { error: 'Loja não selecionada' }
+        const { error } = await supabase.from('store_meta_rules').upsert({
+            store_id: storeId,
+            monthly_goal: target
+        }, { onConflict: 'store_id' })
+        if (!error) await fetch()
+        return { error: error?.message || null }
+    }
+
     useEffect(() => { fetch() }, [fetch])
-    return { goal, loading, refetch: fetch }
+    return { goal, loading, refetch: fetch, updateGoal }
 }

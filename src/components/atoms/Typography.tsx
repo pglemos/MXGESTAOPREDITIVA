@@ -7,17 +7,19 @@ const typographyVariants = cva(
   {
     variants: {
       variant: {
-        h1: "text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none text-slate-950",
-        h2: "text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none text-slate-950",
-        h3: "text-xl font-black tracking-tight uppercase leading-none text-slate-950",
-        p: "text-sm font-bold leading-relaxed text-gray-600 uppercase tracking-tight",
-        caption: "text-[10px] font-black uppercase tracking-[0.3em] text-gray-500",
+        h1: "text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none text-text-primary",
+        h2: "text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none text-text-primary",
+        h3: "text-xl font-black tracking-tight uppercase leading-none text-text-primary",
+        p: "text-sm font-bold leading-relaxed text-text-secondary uppercase tracking-tight",
+        caption: "text-[10px] font-black uppercase tracking-[0.3em] text-text-tertiary",
         mono: "font-mono-numbers text-sm font-black",
       },
       tone: {
         default: "",
         brand: "text-brand-primary",
         success: "text-status-success",
+        warning: "text-status-warning",
+        info: "text-status-info",
         error: "text-status-error",
         muted: "text-text-tertiary",
         white: "text-white",
@@ -40,7 +42,8 @@ const Typography = React.forwardRef<HTMLElement, TypographyProps>(
   ({ className, variant, tone, as, ...props }, ref) => {
     const Component = as || (variant === 'caption' || variant === 'mono' ? 'span' : (variant as any) || 'p')
     return (
-      <Component
+      <Comp
+        as={Component}
         className={cn(typographyVariants({ variant, tone, className }))}
         ref={ref as any}
         {...props}
@@ -48,6 +51,10 @@ const Typography = React.forwardRef<HTMLElement, TypographyProps>(
     )
   }
 )
+
+// Helper component to avoid ref issues with custom components
+const Comp = ({ as: Component, ...props }: any) => <Component {...props} />
+
 Typography.displayName = "Typography"
 
 export { Typography, typographyVariants }

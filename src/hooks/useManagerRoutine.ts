@@ -9,12 +9,12 @@ export type RoutineRankingSnapshot = Pick<RankingEntry, 'user_id' | 'user_name' 
 interface RegisterRoutinePayload {
     reference_date: string
     checkins_pending_count: number
-    sem_registro_count: number
-    agd_cart_today: number
-    agd_net_today: number
-    previous_day_leads: number
-    previous_day_sales: number
-    ranking_snapshot: RoutineRankingSnapshot[]
+    sem_registro_count?: number
+    agd_cart_today?: number
+    agd_net_today?: number
+    previous_day_leads?: number
+    previous_day_sales?: number
+    ranking_snapshot?: RoutineRankingSnapshot[]
     notes?: string
 }
 
@@ -59,12 +59,12 @@ export function useManagerRoutine(storeIdOverride?: string) {
                 routine_date: routineDate,
                 reference_date: payload.reference_date,
                 checkins_pending_count: payload.checkins_pending_count,
-                sem_registro_count: payload.sem_registro_count,
-                agd_cart_today: payload.agd_cart_today,
-                agd_net_today: payload.agd_net_today,
-                previous_day_leads: payload.previous_day_leads,
-                previous_day_sales: payload.previous_day_sales,
-                ranking_snapshot: payload.ranking_snapshot,
+                sem_registro_count: payload.sem_registro_count ?? 0,
+                agd_cart_today: payload.agd_cart_today ?? 0,
+                agd_net_today: payload.agd_net_today ?? 0,
+                previous_day_leads: payload.previous_day_leads ?? 0,
+                previous_day_sales: payload.previous_day_sales ?? 0,
+                ranking_snapshot: payload.ranking_snapshot ?? [],
                 notes: payload.notes?.trim() || null,
                 status: 'completed',
                 executed_at: new Date().toISOString(),

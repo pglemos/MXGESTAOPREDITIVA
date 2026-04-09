@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { calcularFunil, gerarDiagnosticoMX } from '../calculations';
+import { calcularFunil, gerarDiagnosticoMX } from '../../calculations';
 
 export async function runWeeklyFeedbackWorkflow() {
     const { data: stores } = await supabase.from('stores').select('*, store_meta_rules(*)');

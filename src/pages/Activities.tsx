@@ -1,29 +1,39 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { AlertTriangle, Calendar, Car, CheckCircle, Clock, FileText, PhoneCall, XCircle, Search, RefreshCw, X, MoreVertical, Trash2, MapPin, UserCheck, Send, Sparkles } from 'lucide-react'
+import { 
+    AlertTriangle, Calendar, Car, CheckCircle, Clock, FileText, 
+    PhoneCall, XCircle, Search, RefreshCw, X, MoreVertical, 
+    Trash2, MapPin, UserCheck, Send, Sparkles, Smartphone,
+    ChevronRight, ArrowRight
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import useAppStore from '@/stores/main'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 const INITIAL_ACTIVITIES = [
-  { id: '1', type: 'attempt', label: 'Tentativa de Contato', icon: PhoneCall, color: 'bg-indigo-50 text-indigo-600 border-indigo-100', lead: 'Carlos Silva', time: '10:30', result: 'Sem sucesso' },
-  { id: '2', type: 'scheduled', label: 'Retorno Agendado', icon: Clock, color: 'bg-amber-50 text-amber-600 border-amber-100', lead: 'Ana Oliveira', time: '11:15', result: 'Para amanhã 14h' },
-  { id: '3', type: 'appointment', label: 'Agendamento Feito', icon: Calendar, color: 'bg-blue-50 text-blue-600 border-blue-100', lead: 'Roberto Santos', time: '14:00', result: 'Sábado 10h' },
-  { id: '4', type: 'visit', label: 'Visita Realizada', icon: UserCheck, color: 'bg-emerald-50 text-emerald-600 border-emerald-100', lead: 'Fernanda Lima', time: '15:45', result: 'Test-drive feito' },
-  { id: '5', type: 'proposal', label: 'Proposta Enviada', icon: FileText, color: 'bg-indigo-50 text-indigo-600 border-indigo-100', lead: 'Lucas Souza', time: '16:20', result: 'Aguardando aprovação' },
-  { id: '6', type: 'won', label: 'Venda Fechada', icon: CheckCircle, color: 'bg-pure-black text-white border-black', lead: 'Juliana Costa', time: '17:00', result: 'R$ 120.000' },
-  { id: '7', type: 'lost', label: 'Lead Perdido', icon: XCircle, color: 'bg-rose-50 text-rose-600 border-rose-100', lead: 'Marcos Paulo', time: '17:30', result: 'Comprou concorrente' },
+  { id: '1', type: 'attempt', label: 'Tentativa de Contato', icon: PhoneCall, tone: 'brand', lead: 'Carlos Silva', time: '10:30', result: 'Sem sucesso' },
+  { id: '2', type: 'scheduled', label: 'Retorno Agendado', icon: Clock, tone: 'warning', lead: 'Ana Oliveira', time: '11:15', result: 'Para amanhã 14h' },
+  { id: '3', type: 'appointment', icon: Calendar, label: 'Agendamento Feito', tone: 'info', lead: 'Roberto Santos', time: '14:00', result: 'Sábado 10h' },
+  { id: '4', type: 'visit', icon: UserCheck, label: 'Visita Realizada', tone: 'success', lead: 'Fernanda Lima', time: '15:45', result: 'Test-drive feito' },
+  { id: '5', type: 'proposal', icon: FileText, label: 'Proposta Enviada', tone: 'brand', lead: 'Lucas Souza', time: '16:20', result: 'Aguardando aprovação' },
+  { id: '6', type: 'won', icon: CheckCircle, label: 'Venda Fechada', tone: 'secondary', lead: 'Juliana Costa', time: '17:00', result: 'R$ 120.000' },
+  { id: '7', type: 'lost', icon: XCircle, label: 'Lead Perdido', tone: 'error', lead: 'Marcos Paulo', time: '17:30', result: 'Comprou concorrente' },
 ]
 
 const QUICK_ACTIONS = [
-  { label: 'Tentei Contato', icon: PhoneCall, tone: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-  { label: 'Retorno Agendado', icon: Clock, tone: 'text-amber-600 bg-amber-50 border-amber-100' },
-  { label: 'Agendamento', icon: Calendar, tone: 'text-blue-600 bg-blue-50 border-blue-100' },
-  { label: 'Visita Feita', icon: UserCheck, tone: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-  { label: 'Proposta', icon: FileText, tone: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-  { label: 'Perdido', icon: XCircle, tone: 'text-rose-600 bg-rose-50 border-rose-100' },
+  { label: 'Tentei Contato', icon: PhoneCall, tone: 'brand' },
+  { label: 'Retorno Agendado', icon: Clock, tone: 'warning' },
+  { label: 'Agendamento', icon: Calendar, tone: 'info' },
+  { label: 'Visita Feita', icon: UserCheck, tone: 'success' },
+  { label: 'Proposta', icon: FileText, tone: 'brand' },
+  { label: 'Perdido', icon: XCircle, tone: 'error' },
 ]
 
 export default function Activities() {
@@ -34,14 +44,11 @@ export default function Activities() {
   const [searchTerm, setSearchTerm] = useState('')
   const undoRef = useRef<(() => void) | null>(null)
 
-  // Atalho Global Ctrl+Z / Cmd+Z
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         if (undoRef.current) {
-          e.preventDefault()
-          undoRef.current()
-          undoRef.current = null
+          e.preventDefault(); undoRef.current(); undoRef.current = null
         }
       }
     }
@@ -49,31 +56,27 @@ export default function Activities() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // 3. UI Failure: Dynamic progress width
   const executionRate = useMemo(() => {
-    const total = 30
-    const current = activities.length
+    const total = 30; const current = activities.length
     return Math.round((current / total) * 100)
   }, [activities])
 
   const handleRefresh = async () => {
-    setIsRefetching(true)
-    await refetchAll?.()
-    setIsRefetching(false)
+    setIsRefetching(true); await refetchAll?.(); setIsRefetching(false)
     toast.success('Linha do tempo operacional atualizada!')
   }
 
-  // 2. & 12. Logic & Mutation logic
   const addActivity = (actionLabel: string) => {
     const lead = leads.find(l => l.id === selectedLeadId)
     if (!lead) { toast.error('Selecione um alvo válido.'); return }
 
+    const config = QUICK_ACTIONS.find(a => a.label === actionLabel)
     const newAct = {
       id: crypto.randomUUID(),
       type: 'manual',
       label: actionLabel,
-      icon: QUICK_ACTIONS.find(a => a.label === actionLabel)?.icon || FileText,
-      color: QUICK_ACTIONS.find(a => a.label === actionLabel)?.tone || 'bg-gray-50',
+      icon: config?.icon || FileText,
+      tone: config?.tone || 'brand',
       lead: lead.name,
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       result: 'Registro manual via cockpit'
@@ -87,27 +90,19 @@ export default function Activities() {
     if (!actToDelete) return;
 
     let wasCanceled = false;
-
     const cancelAction = () => {
-      wasCanceled = true;
-      undoRef.current = null;
-      toast.success(`Registro "${actToDelete.label}" preservado!`, {
-        icon: <RefreshCw size={14} className="animate-spin text-indigo-600" />
-      });
+      wasCanceled = true; undoRef.current = null;
+      toast.success(`Registro "${actToDelete.label}" preservado!`)
     };
 
     undoRef.current = cancelAction;
-
     toast.warning(`Removendo: ${actToDelete.label}`, {
       description: "Pressione Ctrl+Z para desfazer agora.",
-      action: {
-        label: "DESFAZER",
-        onClick: cancelAction
-      },
+      action: { label: "DESFAZER", onClick: cancelAction },
       onAutoClose: () => {
         if (!wasCanceled) {
-          setActivities(prev => prev.filter(a => a.id !== id));
-          if (undoRef.current === cancelAction) undoRef.current = null;
+          setActivities(prev => prev.filter(a => a.id !== id))
+          if (undoRef.current === cancelAction) undoRef.current = null
         }
       },
       duration: 5000,
@@ -122,79 +117,82 @@ export default function Activities() {
   }, [activities, searchTerm])
 
   return (
-    <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
-      {/* Header Area */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+      
+      {/* Header / Cadência Toolbar */}
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-4">
-            <div className="w-2 h-10 bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
-            <h1 className="text-[38px] font-black tracking-tighter leading-none">Cadência <span className="text-indigo-600">Operacional</span></h1>
+            <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+            <Typography variant="h1">Cadência <span className="text-brand-primary">Operacional</span></Typography>
           </div>
-          <div className="flex items-center gap-3 pl-6 mt-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60 italic">Timeline de Atividades Real-time</p>
-          </div>
+          <Typography variant="caption" className="pl-mx-md">Timeline de Atividades Real-time • MX PERFORMANCE</Typography>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 shrink-0">
-          <button 
-            onClick={handleRefresh}
-            className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black active:scale-90 transition-all"
-          >
+        <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+          <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
-          </button>
-          {/* 4. UX Gap: Date selector simulation */}
-          <button className="flex items-center justify-center gap-3 px-8 py-4 rounded-full border border-gray-100 bg-white text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 shadow-sm hover:text-pure-black transition-all">
-            <Calendar size={18} className="text-indigo-600" /> Hoje, {format(new Date(), 'dd MMM', { locale: ptBR })}
-          </button>
+          </Button>
+          <div className="flex items-center gap-4 bg-white border border-border-default px-8 h-12 rounded-full shadow-mx-sm">
+            <Calendar size={18} className="text-brand-primary" />
+            <Typography variant="caption" className="whitespace-nowrap font-black uppercase tracking-widest">Hoje, {format(new Date(), 'dd MMM', { locale: ptBR })}</Typography>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         {[
-          { label: 'Ações Hoje', value: activities.length, icon: PhoneCall, tone: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
-          { label: 'Agendamentos', value: '06', icon: Calendar, tone: 'bg-blue-50 text-blue-600 border-blue-100' },
-          { label: 'Propostas', value: '04', icon: FileText, tone: 'bg-amber-50 text-amber-600 border-amber-100' },
-          { label: 'Pendências', value: '03', icon: AlertTriangle, tone: 'bg-rose-50 text-rose-600 border-rose-100' },
+          { label: 'Ações Hoje', value: activities.length, icon: PhoneCall, tone: 'brand' },
+          { label: 'Agendamentos', value: '06', icon: Calendar, tone: 'info' },
+          { label: 'Propostas', value: '04', icon: FileText, tone: 'warning' },
+          { label: 'Pendências', value: '03', icon: AlertTriangle, tone: 'error' },
         ].map((item) => (
-          <div key={item.label} className="bg-white border border-gray-100 rounded-[2.2rem] p-6 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-            <div className={cn("absolute -right-4 -top-4 w-24 h-24 opacity-5 rounded-full blur-2xl group-hover:opacity-10 transition-opacity", item.tone.split(' ')[1])} />
-            <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border border-white shadow-sm", item.tone)}>
-                <item.icon size={18} strokeWidth={2.5} />
+          <Card key={item.label} className="p-8 border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+            <div className="flex items-center justify-between relative z-10">
+              <div className="space-y-1">
+                <Typography variant="caption" tone="muted" className="block uppercase tracking-widest">{item.label}</Typography>
+                <Typography variant="h1" className="text-4xl tabular-nums">{item.value}</Typography>
               </div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">{item.label}</p>
+              <div className={cn(
+                'h-14 w-14 rounded-mx-2xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110',
+                item.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
+                item.tone === 'info' ? 'bg-status-info-surface border-mx-blue-100 text-status-info' :
+                item.tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
+                'bg-status-error-surface border-mx-rose-100 text-status-error'
+              )}>
+                <item.icon size={24} strokeWidth={2.5} />
+              </div>
             </div>
-            <h3 className="text-3xl font-black text-pure-black tracking-tighter font-mono-numbers relative z-10">{item.value}</h3>
-          </div>
+          </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0 pb-32">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
         
-        {/* Left Column (4/12) */}
-        <div className="lg:col-span-4 flex flex-col gap-8">
-          <div className="bg-white border border-gray-100 rounded-[2.5rem] shadow-elevation overflow-hidden flex flex-col group">
-            <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-              <div>
-                <h3 className="text-xl font-black text-pure-black tracking-tight leading-none mb-1">Registro Rápido</h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Input em um toque</p>
-              </div>
-            </div>
+        {/* Registration Section */}
+        <section className="lg:col-span-4 flex flex-col gap-mx-lg">
+          <Card className="p-10 border-none shadow-mx-lg bg-white space-y-10">
+            <header className="border-b border-border-default pb-8">
+              <Typography variant="h3">Registro Rápido</Typography>
+              <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">INPUT EM UM TOQUE</Typography>
+            </header>
 
-            <div className="p-8 space-y-8">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 ml-2 leading-none">Lead Alvo</label>
-                {/* 14. Dynamic lead selector */}
-                <select
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl h-14 px-6 text-sm font-bold text-pure-black focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer shadow-inner"
-                  value={selectedLeadId}
-                  onChange={(e) => setSelectedLeadId(e.target.value)}
-                >
-                  {leads.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  {leads.length === 0 && <option value="">Nenhum lead disponível</option>}
-                </select>
+            <div className="space-y-10">
+              <div className="space-y-4">
+                <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Lead Alvo</Typography>
+                <div className="relative group">
+                  <select
+                    className="w-full h-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner"
+                    value={selectedLeadId}
+                    onChange={(e) => setSelectedLeadId(e.target.value)}
+                  >
+                    {leads.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                    {leads.length === 0 && <option value="">Nenhum lead disponível</option>}
+                  </select>
+                  <Smartphone size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary transition-colors" />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -202,141 +200,149 @@ export default function Activities() {
                   <button 
                     key={action.label} 
                     onClick={() => addActivity(action.label)}
-                    // 15. Acessibilidade fix
                     aria-label={`Registrar ${action.label}`}
-                    className="group rounded-2xl border border-gray-50 bg-gray-50/50 p-5 transition-all hover:bg-white hover:border-indigo-100 hover:shadow-xl hover:-translate-y-1 text-left relative overflow-hidden"
+                    className="group rounded-mx-2xl border border-border-default bg-surface-alt/50 p-6 transition-all hover:bg-white hover:border-brand-primary/30 hover:shadow-mx-lg hover:-translate-y-1 text-left relative overflow-hidden"
                   >
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all shadow-sm border border-white", action.tone)}>
-                      <action.icon size={18} strokeWidth={2.5} />
+                    <div className={cn(
+                        "w-12 h-12 rounded-mx-xl flex items-center justify-center mb-4 transition-all shadow-mx-sm border border-white group-hover:scale-110",
+                        action.tone === 'brand' ? 'bg-mx-indigo-50 text-brand-primary' :
+                        action.tone === 'warning' ? 'bg-status-warning-surface text-status-warning' :
+                        action.tone === 'info' ? 'bg-status-info-surface text-status-info' :
+                        action.tone === 'success' ? 'bg-status-success-surface text-status-success' :
+                        'bg-status-error-surface text-status-error'
+                    )}>
+                      <action.icon size={20} strokeWidth={2.5} />
                     </div>
-                    <span className="text-[10px] font-black text-pure-black uppercase tracking-widest leading-tight block">{action.label}</span>
+                    <Typography variant="caption" className="font-black leading-tight block">{action.label}</Typography>
                   </button>
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 md:p-10 shadow-sm relative group overflow-hidden">
-            <div className="flex items-center gap-4 mb-10 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center">
-                <AlertTriangle size={24} strokeWidth={2.5} />
+          {/* Discipline Card */}
+          <Card className="p-10 border-none shadow-mx-lg bg-white space-y-10 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-status-warning-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+            <header className="flex items-center gap-4 relative z-10">
+              <div className="w-14 h-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center border border-mx-amber-100 shadow-inner group-hover:scale-110 transition-transform">
+                <AlertTriangle size={28} strokeWidth={2.5} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-pure-black tracking-tight leading-none mb-1">Disciplina</h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Taxa de Execução</p>
+                <Typography variant="h3">Disciplina</Typography>
+                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">TAXA DE EXECUÇÃO</Typography>
               </div>
-            </div>
+            </header>
             
-            <div className="space-y-8 relative z-10">
-              <div>
-                <div className="flex justify-between items-end mb-4">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Ações do Ciclo</span>
-                  <span className="text-sm font-black text-indigo-600 font-mono-numbers leading-none">{activities.length} / 30</span>
+            <div className="space-y-10 relative z-10">
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Ações do Ciclo</Typography>
+                  <Typography variant="mono" tone="brand" className="text-sm font-black">{activities.length} / 30</Typography>
                 </div>
-                <div className="w-full bg-gray-50 border border-gray-100 rounded-full h-2.5 overflow-hidden p-0.5 shadow-inner">
-                  {/* 3. Dynamic progress fixed */}
+                <div className="w-full bg-surface-alt border border-border-default rounded-mx-full h-3 overflow-hidden p-0.5 shadow-inner">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${executionRate}%` }}
                     transition={{ duration: 1.5, ease: "circOut" }}
-                    className="bg-indigo-600 h-full rounded-full shadow-lg shadow-indigo-200" 
+                    className="bg-brand-primary h-full rounded-full shadow-mx-sm" 
                   />
                 </div>
               </div>
               
-              <div className="p-5 bg-amber-50/50 rounded-3xl border border-amber-100 flex gap-4">
-                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" strokeWidth={2.5} />
-                <p className="text-xs font-bold text-amber-900/70 leading-relaxed">
-                  Atenção: A cadência D+3 sugere contato imediato com <span className="text-amber-900 font-black">3 leads estagnados</span> para evitar perda de propensão.
-                </p>
-              </div>
+              <Card className="p-6 bg-status-warning-surface border border-mx-amber-100 shadow-inner">
+                <div className="flex gap-4">
+                    <AlertTriangle className="h-5 w-5 text-status-warning shrink-0" strokeWidth={2.5} />
+                    <Typography variant="p" className="text-xs font-black text-status-warning leading-relaxed uppercase tracking-tight">
+                        A cadência sugere contato com <span className="text-mx-amber-900 underline decoration-2">3 leads estagnados</span> para evitar perda de propensão.
+                    </Typography>
+                </div>
+              </Card>
             </div>
-          </div>
-        </div>
+          </Card>
+        </section>
 
-        {/* Timeline Area (8/12) */}
-        <div className="lg:col-span-8 flex flex-col gap-8">
-          <div className="bg-white border border-gray-100 rounded-[3rem] shadow-elevation overflow-hidden flex flex-col h-full group relative">
-            <div className="absolute top-0 right-0 p-10 text-gray-50 -rotate-12 pointer-events-none group-hover:text-indigo-50/50 transition-colors">
-              <Clock size={160} strokeWidth={2.5} />
+        {/* Timeline Area */}
+        <section className="lg:col-span-8 flex flex-col">
+          <Card className="bg-white border-none shadow-mx-xl overflow-hidden h-full flex flex-col group relative">
+            <div className="absolute top-0 right-0 p-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors">
+              <Clock size={240} strokeWidth={2.5} />
             </div>
 
-            <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between shrink-0 relative z-10">
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-pure-black text-white flex items-center justify-center shadow-2xl">
-                  <Clock size={28} strokeWidth={2.5} />
+            <header className="p-10 md:p-14 border-b border-border-default bg-surface-alt/30 flex flex-col sm:flex-row sm:items-center justify-between gap-8 shrink-0 relative z-10">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
+                  <Clock size={32} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-pure-black tracking-tight leading-none mb-1">Timeline do Dia</h3>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Sequência Operacional Validada</p>
+                  <Typography variant="h2">Timeline do Dia</Typography>
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">SEQUÊNCIA OPERACIONAL VALIDADA</Typography>
                 </div>
               </div>
-              <div className="relative group w-full max-w-[240px] hidden sm:block">
-                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input 
-                  type="text" 
-                  placeholder="Filtrar eventos..." 
-                  value={searchTerm}
+              <div className="relative group w-full sm:w-72">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                <Input 
+                  placeholder="FILTRAR EVENTOS..." value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full bg-white border border-gray-100 rounded-full pl-10 pr-4 py-2.5 text-xs font-bold focus:outline-none focus:border-indigo-200 transition-all shadow-sm"
+                  className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
                 />
               </div>
-            </div>
+            </header>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar p-8 sm:p-12 relative z-10">
+            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-10 md:p-14 relative z-10">
               <div className="relative">
-                {/* 13. & 19. Timeline line fix */}
-                <div className="absolute left-7 top-0 bottom-0 w-px bg-gray-100 z-0" />
+                <div className="absolute left-7 top-0 bottom-0 w-px bg-border-default/50 z-0" />
                 
-                <div className="space-y-12">
+                <div className="space-y-14">
                   <AnimatePresence mode="popLayout">
                     {filteredActivities.map((activity, idx) => (
                       <motion.div
-                        key={activity.id} // 9. Fixed key
-                        layout
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ delay: idx * 0.03 }}
-                        className="relative z-10 flex gap-8 group/item"
+                        key={activity.id}
+                        layout initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: idx * 0.03 }}
+                        className="relative z-10 flex gap-10 group/item"
                       >
                         <div className={cn(
-                          "w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center border-4 border-white shadow-lg transition-transform group-hover/item:scale-110 group-hover/item:rotate-3",
-                          activity.color
+                          "w-14 h-14 rounded-mx-xl shrink-0 flex items-center justify-center border-4 border-white shadow-mx-lg transition-transform group-hover/item:scale-110 group-hover/item:rotate-3",
+                          activity.tone === 'brand' ? 'bg-brand-primary text-white' :
+                          activity.tone === 'warning' ? 'bg-status-warning text-white' :
+                          activity.tone === 'info' ? 'bg-status-info text-white' :
+                          activity.tone === 'success' ? 'bg-status-success text-white' :
+                          activity.tone === 'secondary' ? 'bg-brand-secondary text-white' :
+                          'bg-status-error text-white'
                         )}>
                           <activity.icon size={22} strokeWidth={2.5} />
                         </div>
                         
-                        <div className="flex-1 bg-gray-50/50 border border-gray-100 rounded-[2rem] p-6 hover:bg-white hover:shadow-xl transition-all relative">
-                          <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-8 hover:bg-white hover:shadow-mx-xl transition-all relative">
+                          <header className="flex justify-between items-start mb-6">
                             <div>
-                              {/* 17. Accents fixed */}
-                              <h4 className="font-black text-sm text-pure-black uppercase tracking-tight leading-none mb-1.5">{activity.label}</h4>
-                              <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                <MapPin size={10} className="text-rose-500" /> Showroom Alpha
+                              <Typography variant="h3" className="text-base uppercase tracking-tight mb-2">{activity.label}</Typography>
+                              <div className="flex items-center gap-2">
+                                <MapPin size={12} className="text-status-error" />
+                                <Typography variant="caption" tone="muted" className="text-[9px] font-black uppercase tracking-widest">Showroom Alpha</Typography>
                               </div>
                             </div>
-                            <span className="font-black text-xs text-pure-black font-mono-numbers bg-white border border-gray-100 px-3 py-1 rounded-lg shadow-sm">{activity.time}</span>
-                          </div>
+                            <Badge variant="outline" className="font-mono-numbers px-4 py-1.5 rounded-lg bg-white shadow-mx-sm border-border-default">{activity.time}</Badge>
+                          </header>
                           
-                          <div className="flex items-center justify-between gap-4 border-t border-gray-100 pt-4">
-                            <p className="text-sm font-bold text-gray-500 leading-relaxed">
-                              <span className="text-pure-black font-black">{activity.lead}</span> • {/* 7. Contrast fixed */} <span className="text-gray-400 italic">"{activity.result}"</span>
-                            </p>
-                            <button onClick={() => deleteActivity(activity.id)} className="opacity-0 group-hover/item:opacity-100 text-gray-300 hover:text-rose-500 transition-all p-1">
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                          <footer className="flex items-center justify-between gap-6 border-t border-border-default pt-6">
+                            <Typography variant="p" className="text-sm font-bold text-text-secondary leading-relaxed uppercase tracking-tight">
+                              <span className="text-text-primary font-black mr-2">{activity.lead}</span>
+                              <span className="opacity-40 italic">"{activity.result}"</span>
+                            </Typography>
+                            <Button variant="ghost" size="sm" onClick={() => deleteActivity(activity.id)} className="opacity-0 group-hover/item:opacity-100 text-text-tertiary hover:text-status-error transition-all p-2 h-10 w-10 rounded-full">
+                              <Trash2 size={18} />
+                            </Button>
+                          </footer>
                         </div>
                       </motion.div>
                     ))}
                   </AnimatePresence>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </section>
       </div>
-    </div>
+    </main>
   )
 }

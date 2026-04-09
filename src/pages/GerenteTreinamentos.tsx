@@ -1,23 +1,26 @@
-import { useTrainings, useTeamTrainings } from '@/hooks/useData'
+import { useTrainings, useTeamTrainings, useNotifications } from '@/hooks/useData'
 import { motion, AnimatePresence } from 'motion/react'
 import { useState, useMemo, useCallback } from 'react'
-import { GraduationCap, Play, CheckCircle, Clock, Users, Target, BookOpen, ChevronRight, Sparkles, RefreshCw, Search, X, Filter } from 'lucide-react'
+import { 
+    GraduationCap, Play, CheckCircle, Clock, Users, Target, 
+    BookOpen, ChevronRight, Sparkles, RefreshCw, Search, X, 
+    Filter, LayoutDashboard, History, Smartphone, ShieldCheck,
+    Send, Award
+} from 'lucide-react'
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/atoms/Badge"
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { toast } from 'sonner'
-
-const typeColors: Record<string, string> = {
-    prospeccao: 'bg-violet-50 text-violet-700 border-violet-100',
-    fechamento: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    atendimento: 'bg-blue-50 text-blue-700 border-blue-100',
-    gestao: 'bg-amber-50 text-amber-700 border-amber-100',
-    'pre-vendas': 'bg-pink-50 text-pink-700 border-pink-100',
-}
 
 export default function GerenteTreinamentos() {
     const [tab, setTab] = useState<'meus' | 'equipe'>('equipe')
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+    const [assigningTo, setAssigningTo] = useState<string | null>(null)
+    const [isAssigning, setIsAssigning] = useState(false)
 
     // Meus Treinamentos
     const { trainings, loading: tLoading, error: tError, markWatched, refetch: refetchMe } = useTrainings()
@@ -26,11 +29,36 @@ export default function GerenteTreinamentos() {
 
     // Progresso da Equipe
     const { teamProgress, loading: tpLoading, error: tpError, refetch: refetchTeam } = useTeamTrainings()
+    
+    // Notificações para Atribuição
+    const { sendNotification } = useNotifications()
 
     const isLoading = tab === 'meus' ? tLoading : tpLoading
     const hasError = tab === 'meus' ? tError : tpError
 
-    // 4. Search Filter
+    const handleAssignTraining = async (trainingId: string) => {
+        if (!assigningTo) return
+        const seller = teamProgress.find(p => p.seller_id === assigningTo)
+        const training = trainings.find(t => t.id === trainingId)
+        
+        setIsAssigning(true)
+        const { error } = await sendNotification({
+            recipient_id: assigningTo,
+            title: '🎯 NOVO TREINAMENTO ATRIBUÍDO',
+            message: `Seu gestor solicitou que você assista ao módulo: "${training?.title}". Foco na melhoria do seu gargalo tático.`,
+            type: 'training',
+            priority: 'high',
+            link: '/vendedor/treinamentos'
+        })
+        setIsAssigning(false)
+
+        if (error) toast.error('Falha ao atribuir treinamento.')
+        else {
+            toast.success(`Treinamento atribuído para ${seller?.seller_name}!`)
+            setAssigningTo(null)
+        }
+    }
+
     const filteredMe = useMemo(() => {
         if (!trainings) return []
         return trainings.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()) || t.type.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -46,257 +74,223 @@ export default function GerenteTreinamentos() {
         if (tab === 'meus') await refetchMe?.()
         else await refetchTeam?.()
         setIsRefetching(false)
-        toast.success('Base de conhecimento atualizada!')
+        toast.success('Academy sincronizada!')
     }, [tab, refetchMe, refetchTeam])
 
-    if (hasError) return (
-        <div role="alert" className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl p-8 text-center">
-            <X size={48} className="text-red-500 mb-4" aria-hidden="true" />
-            <h2 className="text-xl font-bold text-slate-800 mb-2">Erro de Conexão</h2>
-            <p className="text-slate-600">Não foi possível carregar os dados. Por favor, tente novamente.</p>
-        </div>
-    )
-
     if (isLoading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl" aria-busy="true" aria-live="polite">
-            <div className="w-16 h-16 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin shadow-xl" aria-hidden="true"></div>
-            <p className="mt-6 text-gray-500 text-xs font-black tracking-[0.2em] uppercase">Sincronizando Módulos...</p>
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
+            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Módulos...</Typography>
         </div>
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
-
-            {/* Header Area */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Academy Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-violet-600 rounded-full shadow-[0_0_20px_rgba(139,92,246,0.4)]" aria-hidden="true" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none">
-                            Evolução de <span className="text-violet-600">Tropa</span>
-                        </h1>
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Evolução de <span className="text-brand-primary">Tropa</span></Typography>
                     </div>
-                    <div className="flex items-center gap-3 pl-6 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" aria-hidden="true" />
-                        <p className="text-gray-500 text-xs font-black uppercase tracking-[0.2em] opacity-80">Gestão de Conhecimento Estratégico</p>
-                    </div>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">GESTÃO DE CONHECIMENTO ESTRATÉGICO • MX ACADEMY</Typography>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
-                    <div className="bg-gray-100/50 p-1 rounded-2xl flex border border-gray-100 shadow-inner" role="tablist" aria-label="Selecione a visualização">
-                        <button 
-                            role="tab"
-                            aria-selected={tab === 'equipe'}
-                            onClick={() => setTab('equipe')} 
-                            className={cn("px-6 py-3 rounded-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none", tab === 'equipe' ? "bg-white text-violet-600 shadow-sm" : "text-gray-500 hover:text-pure-black")}
+                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
+                    <div className="bg-white p-1 rounded-mx-full flex border border-border-default shadow-mx-sm" role="tablist">
+                        <Button 
+                            variant={tab === 'equipe' ? 'secondary' : 'ghost'} size="sm"
+                            onClick={() => setTab('equipe')} className="h-10 px-6 rounded-full text-[10px] font-black uppercase"
                         >
-                            <Users size={16} aria-hidden="true" /> Equipe
-                        </button>
-                        <button 
-                            role="tab"
-                            aria-selected={tab === 'meus'}
-                            onClick={() => setTab('meus')} 
-                            className={cn("px-6 py-3 rounded-xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none", tab === 'meus' ? "bg-white text-violet-600 shadow-sm" : "text-gray-500 hover:text-pure-black")}
+                            <Users size={14} className="mr-2" /> Equipe
+                        </Button>
+                        <Button 
+                            variant={tab === 'meus' ? 'secondary' : 'ghost'} size="sm"
+                            onClick={() => setTab('meus')} className="h-10 px-6 rounded-full text-[10px] font-black uppercase"
                         >
-                            <Target size={16} aria-hidden="true" /> Meu Plano
-                        </button>
+                            <Target size={14} className="mr-2" /> Meu Plano
+                        </Button>
                     </div>
                     
-                    <button 
-                        onClick={handleRefresh}
-                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-500 hover:text-pure-black active:scale-90 transition-all focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none"
-                        aria-label="Atualizar módulos"
-                    >
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
-                    </button>
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-12 h-12 rounded-xl shadow-mx-sm">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </Button>
                 </div>
             </header>
 
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-between shrink-0">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-between shrink-0 mb-4">
                 <div className="relative group w-full lg:w-[480px]">
-                    <label htmlFor="search-input" className="sr-only">Buscar treinamentos</label>
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-600 transition-colors" size={18} aria-hidden="true" />
-                    <input
-                        id="search-input"
-                        placeholder={tab === 'equipe' ? "Buscar especialista..." : "Buscar aula ou tema..."}
-                        className="w-full pl-14 pr-12 h-14 bg-white border border-gray-100 rounded-full font-bold text-sm shadow-sm focus:outline-none focus:border-violet-200 focus:shadow-lg focus-visible:ring-2 focus-visible:ring-violet-600 transition-all"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
+                    <Input
+                        placeholder={tab === 'equipe' ? "BUSCAR ESPECIALISTA..." : "BUSCAR AULA OU TEMA..."}
+                        value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        className="!pl-14 !h-14 !text-[10px] uppercase tracking-widest"
                     />
-                    {searchTerm && (
-                        <button 
-                            onClick={() => setSearchTerm('')} 
-                            className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 focus-visible:ring-2 focus-visible:ring-red-500 focus:outline-none"
-                            aria-label="Limpar busca"
-                        >
-                            <X size={18} aria-hidden="true" />
-                        </button>
-                    )}
                 </div>
                 
                 {tab === 'meus' && (
-                    <div className="flex items-center gap-4 bg-violet-50 border border-violet-100 px-6 py-3 rounded-2xl shadow-sm" aria-label="Progresso do meu plano">
+                    <Card className="flex items-center gap-6 px-8 py-4 bg-mx-indigo-50 border-mx-indigo-100 shadow-inner rounded-mx-2xl">
                         <div className="flex flex-col items-end">
-                            <span className="text-xs font-black text-violet-500 uppercase tracking-widest leading-none mb-1">Seu Progresso</span>
-                            <span className="text-sm font-black text-violet-700 font-mono-numbers" aria-label={`${watched} de ${trainings?.length || 0} concluídos`}>{watched} / {trainings?.length || 0}</span>
+                            <Typography variant="caption" tone="brand" className="leading-none mb-1">Seu Progresso</Typography>
+                            <Typography variant="mono" className="text-sm font-black">{watched} / {trainings?.length || 0}</Typography>
                         </div>
-                        <div className="w-24 h-2 bg-white/50 rounded-full overflow-hidden border border-violet-200/50 shadow-inner">
-                            <motion.div 
-                                initial={{ width: 0 }} 
-                                animate={{ width: `${progress}%` }} 
-                                className="h-full bg-violet-600" 
-                                role="progressbar"
-                                aria-valuenow={progress}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                            />
+                        <div className="w-32 h-2 bg-white rounded-full overflow-hidden p-0.5 shadow-inner">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-brand-primary rounded-full" />
                         </div>
-                    </div>
+                    </Card>
                 )}
             </div>
 
-            <section className="flex-1 w-full max-w-7xl mx-auto shrink-0 pb-32">
+            <section className="flex-1 min-h-0 pb-32" aria-live="polite">
                 <AnimatePresence mode="wait">
                     {tab === 'meus' ? (
-                        <motion.ul
-                            key="meus"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3"
-                            aria-label="Meus Treinamentos"
-                        >
+                        <motion.div key="meus" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg">
                             {filteredMe.map((t, i) => (
-                                <motion.li
-                                    key={t.id}
-                                    layout
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: i * 0.03 }}
-                                    className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full focus-within:ring-2 focus-within:ring-violet-600"
-                                >
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-violet-50 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-                                    
-                                    <div className="flex items-start justify-between mb-8 relative z-10">
-                                        <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm transition-all group-hover:rotate-3", 
-                                            t.watched ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-gray-50 text-pure-black border-gray-100 group-hover:bg-white"
-                                        )} aria-hidden="true">
-                                            {t.watched ? <CheckCircle size={24} strokeWidth={2.5} aria-hidden="true" /> : <Play size={24} strokeWidth={2.5} className="ml-1" aria-hidden="true" />}
-                                        </div>
-                                        <Badge className={cn("font-black text-xs uppercase tracking-widest px-4 py-2 rounded-full border shadow-sm", typeColors[t.type] || 'bg-gray-50 text-gray-500 border-gray-100')}>
-                                            {t.type}
-                                        </Badge>
-                                    </div>
-
-                                    <div className="flex-1 mb-8 relative z-10">
-                                        <h3 className="text-xl font-black text-pure-black mb-3 tracking-tight group-hover:text-violet-600 transition-colors line-clamp-2 leading-tight" title={t.title}>{t.title}</h3>
-                                        <p className="text-sm font-bold text-gray-500 line-clamp-3 leading-relaxed opacity-90" title={t.description || 'Sem ementa detalhada para este módulo.'}>{t.description || 'Sem ementa detalhada para este módulo.'}</p>
-                                    </div>
-
-                                    <div className="pt-8 border-t border-gray-50 flex gap-4 mt-auto relative z-10">
-                                        <button 
-                                            onClick={() => {
-                                                if (!t.video_url) { toast.error('Link indisponível'); return }
-                                                window.open(t.video_url, '_blank')
-                                            }}
-                                            className="flex-1 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-pure-black text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white hover:shadow-lg transition-all active:scale-95 shadow-sm group/btn focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none"
-                                            aria-label={`Assistir aula: ${t.title}`}
-                                        >
-                                            <Play size={16} strokeWidth={2.5} className="group-hover/btn:scale-110" aria-hidden="true" /> Assistir
-                                        </button>
-                                        {!t.watched && (
-                                            <button
-                                                onClick={() => { markWatched?.(t.id); toast.success('Módulo Validado! +100 XP') }}
-                                                className="w-14 rounded-2xl bg-pure-black text-white flex items-center justify-center hover:bg-violet-600 hover:shadow-elevation transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-violet-600 focus:outline-none"
-                                                aria-label={`Marcar módulo ${t.title} como concluído`}
-                                                title="Concluir Etapa"
-                                            >
-                                                <CheckCircle size={20} aria-hidden="true" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </motion.li>
-                            ))}
-                        </motion.ul>
-                    ) : (
-                        <motion.ul
-                            key="equipe"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                            aria-label="Progresso da Equipe"
-                        >
-                            {filteredTeam.map((p, i) => (
-                                <motion.li
-                                    key={p.seller_id}
-                                    layout
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.03 }}
-                                    className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-elevation hover:border-violet-100 transition-all group relative overflow-hidden flex flex-col gap-8 focus-within:ring-2 focus-within:ring-violet-600"
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4 min-w-0">
-                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center font-black text-pure-black text-sm shadow-inner group-hover:bg-pure-black group-hover:text-white transition-all" aria-hidden="true">
-                                                {p.seller_name.charAt(0)}
-                                            </div>
-                                            <h3 className="text-base font-black text-pure-black truncate uppercase tracking-tight" title={p.seller_name}>{p.seller_name}</h3>
-                                        </div>
-                                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm", 
-                                            p.percentage === 100 ? 'bg-emerald-50 border-emerald-100 text-emerald-500' : 
-                                            p.percentage > 0 ? 'bg-blue-50 border-blue-100 text-blue-500' : 
-                                            'bg-gray-50 border-gray-100 text-gray-400'
-                                        )} aria-hidden="true">
-                                            {p.percentage === 100 ? <CheckCircle size={18} strokeWidth={2.5} aria-hidden="true" /> : p.percentage > 0 ? <Clock size={18} strokeWidth={2.5} aria-hidden="true" /> : <BookOpen size={18} strokeWidth={2.5} aria-hidden="true" />}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-xs font-black uppercase tracking-[0.1em] text-gray-500 leading-none">Absorção</span>
-                                            <span className={cn("text-sm font-black font-mono-numbers", p.percentage === 100 ? 'text-emerald-500' : 'text-violet-600')} aria-label={`Absorção: ${Math.round(p.percentage)}%`}>{Math.round(p.percentage)}%</span>
-                                        </div>
-                                        <div className="w-full h-2 bg-gray-50 rounded-full overflow-hidden border border-gray-100 shadow-inner p-0.5">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${p.percentage}%` }}
-                                                transition={{ duration: 1.5, ease: "circOut" }}
-                                                className={cn("h-full rounded-full shadow-sm", p.percentage === 100 ? 'bg-emerald-500' : 'bg-violet-600')}
-                                                role="progressbar"
-                                                aria-valuenow={Math.round(p.percentage)}
-                                                aria-valuemin={0}
-                                                aria-valuemax={100}
-                                            />
-                                        </div>
+                                <motion.div key={t.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}>
+                                    <Card className="p-8 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         
-                                        {/* Diagnóstico de Gargalo Real no Painel do Gerente */}
-                                        {p.current_gap && (
-                                            <div className={cn("mt-4 p-4 rounded-2xl border flex flex-col gap-2", 
-                                                p.gap_training_completed ? "bg-emerald-50 border-emerald-100" : "bg-rose-50 border-rose-100 animate-pulse shadow-lg shadow-rose-100"
-                                            )}>
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-xs font-black uppercase tracking-widest text-gray-500">Gargalo Atual</span>
-                                                    <Badge className={cn("text-[9px] sm:text-xs border-none font-black uppercase", p.gap_training_completed ? "bg-emerald-500 text-white" : "bg-rose-600 text-white")}>
-                                                        {p.current_gap}
-                                                    </Badge>
+                                        <div>
+                                            <header className="flex items-start justify-between mb-10 border-b border-border-default pb-6 relative z-10">
+                                                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-inner transition-all transform group-hover:rotate-3", 
+                                                    t.watched ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-surface-alt text-text-tertiary group-hover:bg-brand-secondary group-hover:text-white"
+                                                )}>
+                                                    {t.watched ? <CheckCircle size={24} /> : <Play size={24} className="ml-1" />}
                                                 </div>
-                                                <p className={cn("text-xs font-bold uppercase tracking-tight", p.gap_training_completed ? "text-emerald-700" : "text-rose-700")}>
-                                                    {p.gap_training_completed ? "✅ Correção Concluída" : "⚠️ Correção Pendente"}
-                                                </p>
-                                            </div>
-                                        )}
+                                                <Badge variant="brand" className="px-4 py-1 rounded-full uppercase text-[8px] font-black">{t.type}</Badge>
+                                            </header>
 
-                                        <p className="text-xs uppercase font-black tracking-widest text-gray-500 text-center bg-gray-50 py-2 rounded-lg border border-gray-100" aria-label={`${p.watched.length} de ${p.total_trainings} Concluídos`}>
-                                            {p.watched.length} de {p.total_trainings} Concluídos
-                                        </p>
-                                    </div>
-                                </motion.li>
+                                            <div className="space-y-4 relative z-10">
+                                                <Typography variant="h3" className="text-xl leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">{t.title}</Typography>
+                                                <Typography variant="p" tone="muted" className="text-xs font-bold leading-relaxed line-clamp-3">"{t.description || 'Sem ementa detalhada para este módulo.'}"</Typography>
+                                            </div>
+                                        </div>
+
+                                        <footer className="pt-8 border-t border-border-default flex gap-4 mt-10 relative z-10">
+                                            <Button 
+                                                variant="outline" size="sm" 
+                                                onClick={() => window.open(t.video_url, '_blank')}
+                                                className="flex-1 h-12 rounded-mx-xl font-black uppercase text-[10px] shadow-sm"
+                                            >
+                                                <Play size={16} className="mr-2" /> ASSISTIR
+                                            </Button>
+                                            {!t.watched && (
+                                                <Button
+                                                    size="icon"
+                                                    onClick={() => { markWatched?.(t.id); toast.success('Módulo Validado! +100 XP') }}
+                                                    className="w-12 h-12 rounded-mx-xl bg-mx-black text-white hover:bg-brand-primary shadow-mx-md"
+                                                >
+                                                    <CheckCircle size={20} />
+                                                </Button>
+                                            )}
+                                        </footer>
+                                    </Card>
+                                </motion.div>
                             ))}
-                        </motion.ul>
+                        </motion.div>
+                    ) : (
+                        <motion.div key="equipe" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
+                            {filteredTeam.map((p, i) => (
+                                <motion.div key={p.seller_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                                    <Card className="p-8 h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col gap-10">
+                                        <header className="flex items-center justify-between border-b border-border-default pb-6">
+                                            <div className="flex items-center gap-4 min-w-0">
+                                                <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm shadow-inner group-hover:bg-pure-black group-hover:text-white transition-all uppercase">{p.seller_name.charAt(0)}</div>
+                                                <Typography variant="h3" className="text-base uppercase tracking-tight truncate">{p.seller_name}</Typography>
+                                            </div>
+                                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm", 
+                                                p.percentage === 100 ? 'bg-status-success-surface text-status-success border-mx-emerald-100' : 'bg-surface-alt text-text-tertiary'
+                                            )}>
+                                                {p.percentage === 100 ? <CheckCircle size={18} /> : <BookOpen size={18} />}
+                                            </div>
+                                        </header>
+
+                                        <div className="space-y-6">
+                                            <div className="flex justify-between items-end">
+                                                <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase tracking-widest leading-none">Absorção Técnica</Typography>
+                                                <Typography variant="mono" tone={p.percentage === 100 ? 'success' : 'brand'} className="text-sm font-black">{Math.round(p.percentage)}%</Typography>
+                                            </div>
+                                            <div className="w-full h-2 bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-inner p-0.5">
+                                                <motion.div initial={{ width: 0 }} animate={{ width: `${p.percentage}%` }} transition={{ duration: 1.5, ease: "circOut" }} className={cn("h-full rounded-full shadow-sm", p.percentage === 100 ? 'bg-status-success' : 'bg-brand-primary')} />
+                                            </div>
+                                            
+                                            {p.current_gap && (
+                                                <Card className={cn("p-6 border-none flex flex-col gap-3", p.gap_training_completed ? "bg-status-success-surface shadow-inner" : "bg-status-error-surface animate-pulse shadow-mx-lg shadow-rose-100")}>
+                                                    <div className="flex justify-between items-center">
+                                                        <Typography variant="caption" className="text-[8px] font-black uppercase tracking-widest text-text-tertiary">Gargalo Atual</Typography>
+                                                        <Badge variant={p.gap_training_completed ? 'success' : 'danger'} className="text-[7px] border-none font-black uppercase">{p.current_gap}</Badge>
+                                                    </div>
+                                                    <Typography variant="p" tone={p.gap_training_completed ? 'success' : 'error'} className="text-[10px] font-black uppercase tracking-tight">
+                                                        {p.gap_training_completed ? "✔ Correção Concluída" : "⚠️ Correção Pendente"}
+                                                    </Typography>
+                                                </Card>
+                                            )}
+
+                                            <Typography variant="caption" tone="muted" className="text-[9px] uppercase font-black tracking-widest text-center block bg-surface-alt py-3 rounded-xl border border-border-default">
+                                                {p.watched.length} de {p.total_trainings} Módulos OK
+                                            </Typography>
+
+                                            <Button 
+                                                variant="outline" size="sm" 
+                                                onClick={() => setAssigningTo(p.seller_id)}
+                                                className="w-full h-12 rounded-xl font-black uppercase text-[10px] mt-4 border-2 border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Target size={14} className="mr-2" /> Atribuir Reforço
+                                            </Button>
+                                        </div>
+                                    </Card>
+                                </motion.div>
+                            ))}
+                        </motion.div>
                     )}
                 </AnimatePresence>
             </section>
+
+            {/* Modal de Atribuição */}
+            <AnimatePresence>
+                {assigningTo && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10 bg-mx-black/60 backdrop-blur-sm"
+                    >
+                        <Card className="w-full max-w-2xl max-h-[80vh] overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-[2.5rem]">
+                            <header className="p-8 border-b border-border-default flex items-center justify-between sticky top-0 bg-white z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Target size={20} /></div>
+                                    <div>
+                                        <Typography variant="h3">Atribuir Reforço</Typography>
+                                        <Typography variant="caption" tone="muted">Selecione o módulo para {teamProgress.find(p => p.seller_id === assigningTo)?.seller_name}</Typography>
+                                    </div>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setAssigningTo(null)} className="rounded-full w-10 h-10 hover:bg-surface-alt"><X size={20} /></Button>
+                            </header>
+
+                            <div className="p-8 space-y-4">
+                                {trainings.map(t => (
+                                    <button 
+                                        key={t.id}
+                                        onClick={() => handleAssignTraining(t.id)}
+                                        disabled={isAssigning}
+                                        className="w-full p-6 bg-surface-alt hover:bg-white border border-border-default hover:border-brand-primary hover:shadow-mx-md rounded-2xl transition-all text-left flex items-center justify-between group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-text-tertiary group-hover:text-brand-primary shadow-sm border border-border-default transition-colors">
+                                                <Play size={18} />
+                                            </div>
+                                            <div>
+                                                <Typography variant="p" className="font-black uppercase text-xs leading-none mb-1 group-hover:text-brand-primary transition-colors">{t.title}</Typography>
+                                                <Badge variant="outline" className="text-[7px] uppercase h-4 px-2">{t.type}</Badge>
+                                            </div>
+                                        </div>
+                                        <Send size={16} className="text-text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                    </button>
+                                ))}
+                            </div>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </main>
     )
 }

@@ -1,21 +1,26 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { Plus, Trash2, CheckSquare, Clock, AlertTriangle, Edit2, Calendar, Search, Filter, MoreVertical, CheckCircle2, Circle, User, ChevronRight, LayoutGrid, List, RefreshCw, X, CalendarDays } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import useAppStore, { Task, TaskPriority, TaskStatus } from '@/stores/main'
+import { 
+    Plus, Trash2, CheckSquare, Clock, AlertTriangle, Edit2, 
+    Calendar, Search, Filter, MoreVertical, CheckCircle2, 
+    Circle, User, ChevronRight, LayoutGrid, List, RefreshCw, X, 
+    CalendarDays, Smartphone, History, ShieldCheck, Zap
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { motion, AnimatePresence } from 'motion/react'
 import { format, isBefore, startOfDay } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import useAppStore, { Task, TaskPriority } from '@/stores/main'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 const priorityConfig = {
-    'Alta': { style: 'bg-status-error-surface text-status-error border-mx-rose-100', icon: <AlertTriangle size={12} /> },
-    'Média': { style: 'bg-status-warning-surface text-status-warning border-mx-amber-100', icon: <Clock size={12} /> },
-    'Baixa': { style: 'bg-status-success-surface text-status-success border-mx-emerald-100', icon: <CheckCircle2 size={12} /> }
+    'Alta': { tone: 'error' as const, icon: <AlertTriangle size={12} strokeWidth={2.5} /> },
+    'Média': { tone: 'warning' as const, icon: <Clock size={12} strokeWidth={2.5} /> },
+    'Baixa': { tone: 'success' as const, icon: <CheckCircle2 size={12} strokeWidth={2.5} /> }
 }
 
 export default function Tarefas() {
@@ -25,18 +30,14 @@ export default function Tarefas() {
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     const [view, setView] = useState<'board' | 'list'>('board')
+    const [isRefetching, setIsRefetching] = useState(false)
 
     const undoRef = useRef<(() => void) | null>(null)
 
-    // Atalho Global Ctrl+Z / Cmd+Z
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-                if (undoRef.current) {
-                    e.preventDefault()
-                    undoRef.current()
-                    undoRef.current = null
-                }
+                if (undoRef.current) { e.preventDefault(); undoRef.current(); undoRef.current = null }
             }
         }
         window.addEventListener('keydown', handleKeyDown)
@@ -49,12 +50,6 @@ export default function Tarefas() {
         setForm({ title: '', description: '', priority: 'Média', leadId: '', dueDate: new Date().toISOString().split('T')[0] })
         setEditMode(false); setSelectedId(null)
     }, [])
-
-    const leadMap = useMemo(() => {
-        const map = new Map();
-        leads.forEach(l => map.set(l.id, l));
-        return map;
-    }, [leads]);
 
     const taskGroups = useMemo(() => {
         const filtered = tasks.filter(t => !searchTerm || t.title.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -70,140 +65,202 @@ export default function Tarefas() {
         try {
             if (editMode && selectedId) await updateTask(selectedId, { ...form })
             else await addTask({ ...form })
-            setOpen(false); resetForm(); toast.success('Operação registrada!')
-        } catch (e) { toast.error('Falha no registro.') }
-    }
-
-    const handleEdit = (task: Task) => {
-        setForm({ title: task.title, description: task.description || '', priority: task.priority, leadId: task.leadId || '', dueDate: new Date(task.dueDate).toISOString().split('T')[0] })
-        setEditMode(true); setSelectedId(task.id); setOpen(true)
+            setOpen(false); resetForm(); toast.success('Missão firmada!')
+        } catch (e) { toast.error('Erro no registro.') }
     }
 
     const handleDelete = (id: string) => {
         const taskToDelete = tasks.find(t => t.id === id);
         if (!taskToDelete) return;
-
         let wasCanceled = false;
-        
-        const cancelAction = () => {
-            wasCanceled = true;
-            undoRef.current = null;
-            toast.success(`Missão "${taskToDelete.title}" preservada!`, {
-                icon: <RefreshCw size={14} className="animate-spin text-brand-primary" />
-            });
-        };
-
+        const cancelAction = () => { wasCanceled = true; undoRef.current = null; toast.success(`Missão preservada!`) };
         undoRef.current = cancelAction;
-
         toast.warning(`Removendo: ${taskToDelete.title}`, {
-            description: "Pressione Ctrl+Z para desfazer agora.",
-            action: {
-                label: "DESFAZER",
-                onClick: cancelAction
-            },
+            description: "Ctrl+Z para desfazer.",
+            action: { label: "DESFAZER", onClick: cancelAction },
             onAutoClose: () => {
-                if (!wasCanceled) {
-                    deleteTask(id);
-                    if (undoRef.current === cancelAction) undoRef.current = null;
-                }
+                if (!wasCanceled) { deleteTask(id); if (undoRef.current === cancelAction) undoRef.current = null }
             },
             duration: 5000,
         });
     }
 
     return (
-        <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl">
-            {/* Header / Toolbar - Tokenized */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
-                <div>
-                    <div className="flex items-center gap-mx-xs mb-mx-sm">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-                        <h1 className="mx-heading-hero">Gerenciador de <span className="text-brand-primary">Missões</span></h1>
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Tasks Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Gestão de <span className="text-brand-primary">Missões</span></Typography>
                     </div>
-                    <p className="mx-text-caption pl-mx-md opacity-60">Fluxo Tático de Alta Performance</p>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">FLUXO TÁTICO DE ALTA PERFORMANCE</Typography>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-mx-sm">
-                    <div className="relative group w-full sm:w-64">
-                        <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" />
-                        <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar missão..." className="mx-input !h-11 !pl-11" />
+                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                    <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetchTasks?.().then(()=>setIsRefetching(false))}} className="rounded-xl shadow-mx-sm h-12 w-12">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </Button>
+                    <div className="bg-white p-1 rounded-mx-full flex border border-border-default shadow-mx-sm">
+                        <Button 
+                            variant={view === 'board' ? 'secondary' : 'ghost'} size="sm"
+                            onClick={() => setView('board')} className="w-10 h-10 p-0 rounded-full"
+                        >
+                            <LayoutGrid size={18} />
+                        </Button>
+                        <Button 
+                            variant={view === 'list' ? 'secondary' : 'ghost'} size="sm"
+                            onClick={() => setView('list')} className="w-10 h-10 p-0 rounded-full"
+                        >
+                            <List size={18} />
+                        </Button>
                     </div>
-                    <div className="bg-mx-slate-50/50 p-1 rounded-mx-lg flex border border-border-default shadow-inner">
-                        <button onClick={() => setView('board')} className={cn("w-10 h-10 rounded-mx-md flex items-center justify-center transition-all", view === 'board' ? "bg-white text-text-primary shadow-mx-sm" : "text-text-tertiary")}><LayoutGrid size={18} /></button>
-                        <button onClick={() => setView('list')} className={cn("w-10 h-10 rounded-mx-md flex items-center justify-center transition-all", view === 'list' ? "bg-white text-text-primary shadow-mx-sm" : "text-text-tertiary")}><List size={18} /></button>
-                    </div>
-                    <button onClick={() => {resetForm(); setOpen(true)}} className="mx-button-primary bg-brand-secondary flex-1 sm:flex-none flex items-center justify-center gap-2"><Plus size={18} /> Nova Missão</button>
+                    <Button onClick={() => {resetForm(); setOpen(true)}} className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
+                        <Plus size={18} className="mr-2" /> NOVA MISSÃO
+                    </Button>
                 </div>
-            </div>
+            </header>
 
-            <div className="flex-1 min-h-[500px]">
+            <div className="flex-1 min-h-[500px] pb-32" aria-live="polite">
                 <AnimatePresence mode="wait">
                     {view === 'board' ? (
-                        <motion.div key="board" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg h-full">
+                        <motion.div key="board" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg h-full">
                             {(['Pendente', 'Concluída', 'Atrasada'] as const).map((status) => (
-                                <div key={status} className="flex flex-col gap-mx-md">
-                                    <div className="flex items-center justify-between px-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className={cn("w-1.5 h-1.5 rounded-full", status === 'Concluída' ? 'bg-status-success' : status === 'Atrasada' ? 'bg-status-error' : 'bg-status-warning')} />
-                                            <h3 className="mx-text-caption text-text-primary">{status}</h3>
-                                            <span className="bg-mx-slate-50 text-text-tertiary font-mono-numbers text-[9px] px-2 py-0.5 rounded-full border border-border-default">{taskGroups[status].length}</span>
+                                <div key={status} className="flex flex-col gap-6">
+                                    <header className="flex items-center justify-between px-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className={cn("w-2 h-2 rounded-full shadow-sm", status === 'Concluída' ? 'bg-status-success' : status === 'Atrasada' ? 'bg-status-error' : 'bg-status-warning')} />
+                                            <Typography variant="caption" className="font-black uppercase tracking-[0.2em]">{status}</Typography>
                                         </div>
-                                    </div>
-                                    <ScrollArea className="flex-1 no-scrollbar pr-2 space-y-mx-sm pb-mx-3xl">
+                                        <Badge variant="outline" className="text-[10px] font-black h-6 px-3 bg-white border-border-default shadow-inner">{taskGroups[status].length}</Badge>
+                                    </header>
+                                    
+                                    <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pr-2 pb-20">
                                         {taskGroups[status].map((task) => (
-                                            <div key={task.id} onClick={() => { setSelectedId(task.id) }} className="mx-card p-mx-md mx-card-hover group cursor-pointer relative overflow-hidden">
-                                                <div className="flex justify-between items-start mb-mx-md">
-                                                    <div className={cn("px-2 py-0.5 rounded-mx-sm text-[8px] font-black uppercase tracking-widest border flex items-center gap-1.5", priorityConfig[task.priority].style)}>
-                                                        {priorityConfig[task.priority].icon} {task.priority}
+                                            <motion.div key={task.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                                                <Card className="p-8 group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col justify-between h-auto cursor-pointer" onClick={() => setSelectedId(task.id)}>
+                                                    <div>
+                                                        <header className="flex justify-between items-start mb-6">
+                                                            <Badge variant={priorityConfig[task.priority].tone as any} className="text-[8px] font-black px-3 h-5 border-none shadow-sm flex items-center gap-1.5 uppercase">
+                                                                {priorityConfig[task.priority].icon} {task.priority}
+                                                            </Badge>
+                                                            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(task.id) }} className="w-8 h-8 rounded-lg text-text-tertiary hover:text-status-error opacity-0 group-hover:opacity-100 transition-all">
+                                                                <Trash2 size={14} />
+                                                            </Button>
+                                                        </header>
+                                                        <Typography variant="h3" className={cn("text-base uppercase tracking-tight mb-2 group-hover:text-brand-primary transition-colors", task.status === 'Concluída' && "line-through opacity-30")}>{task.title}</Typography>
+                                                        <Typography variant="p" tone="muted" className="text-xs italic line-clamp-3 opacity-60 leading-relaxed mb-8">"{task.description || 'Sem briefing.'}"</Typography>
                                                     </div>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(task.id) }} className="w-7 h-7 rounded bg-status-error-surface text-status-error opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Trash2 size={12} /></button>
-                                                </div>
-                                                <h4 className={cn("font-black text-sm text-text-primary mb-1 uppercase tracking-tight", task.status === 'Concluída' && "line-through opacity-40")}>{task.title}</h4>
-                                                <p className="text-[10px] font-bold text-text-tertiary line-clamp-2 leading-relaxed italic">"{task.description || 'Sem briefing'}"</p>
-                                                <div className="pt-mx-md border-t border-border-subtle flex items-center justify-between mt-mx-md">
-                                                    <div className="flex items-center gap-1.5 text-[8px] font-black text-text-tertiary uppercase tracking-widest"><User size={10} className="text-brand-primary" /> {leadMap.get(task.leadId)?.name || 'S/ Alvo'}</div>
-                                                    <span className="text-[8px] font-black text-text-tertiary font-mono-numbers">{format(new Date(task.dueDate), 'dd/MM')}</span>
-                                                </div>
-                                            </div>
+                                                    <footer className="pt-6 border-t border-border-default flex items-center justify-between mt-auto">
+                                                        <div className="flex items-center gap-2">
+                                                            <User size={12} className="text-brand-primary opacity-40" />
+                                                            <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase">{leads.find(l => l.id === task.leadId)?.name || 'Sem Alvo'}</Typography>
+                                                        </div>
+                                                        <Typography variant="mono" tone="muted" className="text-[10px] opacity-40">{format(new Date(task.dueDate), 'dd/MM')}</Typography>
+                                                    </footer>
+                                                </Card>
+                                            </motion.div>
                                         ))}
-                                        <button onClick={() => {resetForm(); setOpen(true)}} className="w-full border-2 border-dashed border-border-default rounded-mx-xl py-mx-lg text-text-tertiary hover:border-brand-primary hover:text-brand-primary transition-all flex flex-col items-center gap-2"><Plus size={18} /><span className="mx-text-caption opacity-60">Adicionar Missão</span></button>
-                                    </ScrollArea>
+                                        <Button variant="outline" onClick={() => {resetForm(); setOpen(true)}} className="w-full h-24 border-2 border-dashed border-border-default rounded-mx-3xl bg-transparent text-text-tertiary hover:border-brand-primary hover:text-brand-primary hover:bg-white transition-all flex flex-col gap-2">
+                                            <Plus size={24} strokeWidth={3} />
+                                            <Typography variant="caption" className="font-black">NOVA MISSÃO</Typography>
+                                        </Button>
+                                    </div>
                                 </div>
                             ))}
                         </motion.div>
                     ) : (
-                        <div className="mx-card overflow-hidden"><table className="w-full text-left min-w-[800px]">
-                            <thead><tr className="bg-mx-slate-50/50 mx-text-caption border-b border-border-default"><th className="pl-mx-lg py-mx-md w-16 text-center">Status</th><th className="py-mx-md">Missão</th><th className="py-mx-md">Lead Alvo</th><th className="py-mx-md text-center">Nível</th><th className="pr-mx-lg py-mx-md text-right">Timeline</th></tr></thead>
-                            <tbody className="divide-y divide-border-subtle bg-white">
-                                {tasks.map((task) => (
-                                    <tr key={task.id} className="hover:bg-mx-slate-50/50 transition-colors group cursor-pointer" onClick={() => {}}>
-                                        <td className="pl-mx-lg py-mx-md text-center"><Circle size={18} className={cn(task.status === 'Concluída' ? "text-status-success fill-status-success/20" : "text-text-tertiary")} /></td>
-                                        <td className="py-mx-md"><p className={cn("font-black text-sm text-text-primary", task.status === 'Concluída' && "line-through opacity-40")}>{task.title}</p></td>
-                                        <td className="py-mx-md"><span className="mx-text-caption opacity-70">{leadMap.get(task.leadId)?.name || '-'}</span></td>
-                                        <td className="py-mx-md text-center"><Badge variant="outline" className={cn("text-[8px] font-black", priorityConfig[task.priority].style)}>{task.priority}</Badge></td>
-                                        <td className="pr-mx-lg py-mx-md text-right font-mono-numbers font-black text-xs text-text-tertiary">{format(new Date(task.dueDate), 'dd/MM/yyyy')}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table></div>
+                        <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
+                            <div className="overflow-x-auto no-scrollbar">
+                                <table className="w-full text-left min-w-[900px]">
+                                    <thead>
+                                        <tr className="bg-surface-alt/50 border-b border-border-default text-[10px] font-black uppercase tracking-[0.3em] text-text-tertiary">
+                                            <th scope="col" className="pl-10 py-6 w-16 text-center">STATUS</th>
+                                            <th scope="col" className="px-6 py-6">MISSÃO OPERACIONAL</th>
+                                            <th scope="col" className="px-6 py-6 text-center">IMPACTO</th>
+                                            <th scope="col" className="pr-10 py-6 text-right">DEADLINE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border-default">
+                                        {tasks.map((task) => (
+                                            <tr key={task.id} className="hover:bg-surface-alt/30 transition-colors h-24 group cursor-pointer">
+                                                <td className="pl-10 text-center">
+                                                    <div className={cn("w-6 h-6 rounded-full mx-auto border-2 flex items-center justify-center transition-all", task.status === 'Concluída' ? "bg-status-success border-status-success text-white shadow-mx-sm" : "border-border-strong")}>
+                                                        {task.status === 'Concluída' && <CheckCircle2 size={14} strokeWidth={3} />}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6">
+                                                    <Typography variant="h3" className={cn("text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors", task.status === 'Concluída' && "line-through opacity-30")}>{task.title}</Typography>
+                                                    <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase mt-1">Lead: {leads.find(l => l.id === task.leadId)?.name || '-'}</Typography>
+                                                </td>
+                                                <td className="px-6 text-center">
+                                                    <Badge variant={priorityConfig[task.priority].tone as any} className="text-[8px] font-black px-4 shadow-sm border-none uppercase">{task.priority}</Badge>
+                                                </td>
+                                                <td className="pr-10 text-right">
+                                                    <Typography variant="mono" tone="muted" className="text-xs font-black">{format(new Date(task.dueDate), 'dd/MM/yyyy')}</Typography>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
                     )}
                 </AnimatePresence>
             </div>
 
-            <Dialog open={open} onOpenChange={v => { setOpen(v); if(!v) resetForm() }}>
-                <DialogContent className="sm:max-w-[520px] rounded-mx-3xl p-0 border-none shadow-mx-elite overflow-hidden">
-                    <div className="bg-brand-secondary p-mx-lg text-white relative overflow-hidden"><DialogTitle className="text-3xl font-black tracking-tighter uppercase mb-1 relative z-10">Ficha de Missão</DialogTitle><p className="mx-text-caption text-white/40">Planejamento Tático MX</p></div>
-                    <div className="p-mx-lg space-y-mx-md bg-white">
-                        <div className="space-y-1"><Label className="mx-text-caption ml-2">Objetivo</Label><input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="mx-input" placeholder="Ex: Resolver pendência Porsche" /></div>
-                        <div className="space-y-1"><Label className="mx-text-caption ml-2">Briefing</Label><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="mx-input !rounded-mx-xl h-24 resize-none" placeholder="Detalhes cruciais..." /></div>
-                        <div className="grid grid-cols-2 gap-mx-sm">
-                            <div className="space-y-1"><Label className="mx-text-caption ml-2">Impacto</Label><Select value={form.priority} onValueChange={v => setForm({...form, priority: v as any})}><SelectTrigger className="mx-input !h-14"><SelectValue /></SelectTrigger><SelectContent className="rounded-mx-lg"><SelectItem value="Alta" className="text-status-error font-black">ALTA</SelectItem><SelectItem value="Média" className="text-status-warning font-black">MÉDIA</SelectItem><SelectItem value="Baixa" className="text-status-success font-black">BAIXA</SelectItem></SelectContent></Select></div>
-                            <div className="space-y-1"><Label className="mx-text-caption ml-2">Data</Label><input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} className="mx-input !h-14 font-mono-numbers" /></div>
-                        </div>
+            {/* Modal de Missão - Atomizado */}
+            <AnimatePresence>
+                {open && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-pure-black/60 backdrop-blur-xl">
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-xl">
+                            <Card className="border-none shadow-mx-xl bg-white overflow-hidden">
+                                <header className="bg-brand-secondary p-10 text-white relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32" />
+                                    <Typography variant="h1" tone="white" className="text-3xl leading-none mb-2">Ficha de Missão</Typography>
+                                    <Typography variant="caption" tone="white" className="opacity-40 uppercase tracking-widest">PLANEJAMENTO TÁTICO MX</Typography>
+                                    <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="absolute top-8 right-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full w-12 h-12 transition-all">
+                                        <X size={24} />
+                                    </Button>
+                                </header>
+
+                                <div className="p-10 space-y-10">
+                                    <div className="space-y-4">
+                                        <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Objetivo Central</Typography>
+                                        <Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Ex: Resolver pendência Porsche" className="!h-14 px-6 font-bold" />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Briefing / Detalhes</Typography>
+                                        <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-6 text-sm font-bold text-text-primary focus:border-brand-primary outline-none transition-all resize-none shadow-inner h-32" placeholder="Detalhes cruciais para a execução..." />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nível de Impacto</Typography>
+                                            <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary outline-none focus:border-brand-primary transition-all cursor-pointer shadow-inner">
+                                                <option value="Alta">ALTA (CRÍTICO)</option>
+                                                <option value="Média">MÉDIA (OPERACIONAL)</option>
+                                                <option value="Baixa">BAIXA (ROTINA)</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Deadline</Typography>
+                                            <Input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} className="!h-14 px-6 font-mono-numbers" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <footer className="p-8 bg-surface-alt border-t border-border-default flex gap-4 mt-4">
+                                    <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 h-14 rounded-full uppercase font-black tracking-widest text-[10px]">ABORTAR</Button>
+                                    <Button onClick={handleSave} className="flex-[2] h-14 rounded-full shadow-mx-xl uppercase font-black tracking-widest text-[10px]">
+                                        <Zap size={18} className="mr-2" /> INICIAR MISSÃO
+                                    </Button>
+                                </footer>
+                            </Card>
+                        </motion.div>
                     </div>
-                    <DialogFooter className="p-mx-md bg-mx-slate-50 border-t border-border-default flex gap-mx-sm"><button onClick={() => setOpen(false)} className="mx-button-primary !bg-white !text-text-tertiary border border-border-default flex-1">Abortar</button><button onClick={handleSave} className="mx-button-primary bg-brand-primary flex-[2]">Iniciar Missão</button></DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
+                )}
+            </AnimatePresence>
+        </main>
     )
 }

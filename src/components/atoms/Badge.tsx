@@ -3,18 +3,19 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-mx-md border px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-mx-md border px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-brand-primary text-white shadow hover:opacity-90",
-        secondary: "border-transparent bg-brand-secondary text-white hover:bg-black",
-        success: "border-transparent bg-status-success text-white",
-        warning: "border-transparent bg-status-warning text-white",
-        info: "border-transparent bg-status-info text-white",
-        danger: "border-transparent bg-status-error text-white",
-        outline: "border-border-strong text-text-primary",
-        ghost: "border-transparent text-text-secondary",
+        default: "border-transparent bg-brand-primary text-white shadow-mx-sm hover:opacity-90",
+        brand: "border-transparent bg-brand-primary text-white shadow-mx-md hover:bg-pure-black",
+        secondary: "border-transparent bg-brand-secondary text-white hover:bg-pure-black",
+        success: "border-transparent bg-status-success text-white shadow-mx-sm",
+        warning: "border-transparent bg-status-warning text-white shadow-mx-sm",
+        info: "border-transparent bg-status-info text-white shadow-mx-sm",
+        danger: "border-transparent bg-status-error text-white shadow-mx-sm",
+        outline: "border-border-strong bg-white text-text-primary hover:bg-surface-alt",
+        ghost: "border-transparent text-text-secondary hover:text-text-primary",
       },
     },
     defaultVariants: {

@@ -1,11 +1,11 @@
-import { BarChart3, LineChart as LineChartIcon, FileText, Download, Timer, Package, TrendingDown, ArrowUpRight, ArrowDownRight, Filter, RefreshCw, X, PieChart as PieChartIcon, Search } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { BarChart3, LineChart as LineChartIcon, FileText, Download, Timer, Package, TrendingDown, ArrowUpRight, ArrowDownRight, Filter, RefreshCw, X, PieChart as PieChartIcon, Search, Target, Zap, History } from 'lucide-react'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { reportLucratividade, reportCiclo, reportDescontos } from '@/lib/mock-data'
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, CartesianGrid } from 'recharts'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, CartesianGrid, AreaChart, Area } from 'recharts'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useState, useMemo, useCallback } from 'react'
@@ -18,16 +18,16 @@ export default function Reports() {
     const [searchTerm, setSearchTerm] = useState('')
 
     const stockAgingData = [
-        { name: '0-15 dias', value: 45, color: 'var(--color-status-success)' },
-        { name: '16-30 dias', value: 30, color: 'var(--color-brand-primary)' },
-        { name: '31-45 dias', value: 15, color: 'var(--color-status-warning)' },
-        { name: '46+ dias', value: 10, color: 'var(--color-status-error)' },
+        { name: '0-15 dias', value: 45, color: '#10b981' },
+        { name: '16-30 dias', value: 30, color: '#4f46e5' },
+        { name: '31-45 dias', value: 15, color: '#f59e0b' },
+        { name: '46+ dias', value: 10, color: '#ef4444' },
     ]
 
     const stockStats = [
-        { title: 'Giro de Estoque', value: '2.4x', trend: '+0.3', icon: Package, color: 'text-brand-primary', bg: 'bg-brand-primary-surface' },
-        { title: 'Permanência Média', value: '18 dias', trend: '-2 dias', icon: Timer, color: 'text-status-success', bg: 'bg-status-success-surface' },
-        { title: 'Custo de Pátio', value: 'R$ 42k', trend: '+5%', icon: TrendingDown, color: 'text-status-error', bg: 'bg-status-error-surface' },
+        { title: 'Giro de Estoque', value: '2.4x', trend: '+0.3', icon: Package, tone: 'brand' },
+        { title: 'Permanência Média', value: '18 dias', trend: '-2 dias', icon: Timer, tone: 'success' },
+        { title: 'Custo de Pátio', value: 'R$ 42k', trend: '+5%', icon: TrendingDown, tone: 'error' },
     ]
 
     const handleRefresh = async () => {
@@ -39,92 +39,168 @@ export default function Reports() {
     }, [searchTerm])
 
     return (
-        <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl text-text-primary">
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Reports Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-mx-xs">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-                        <h1 className="mx-heading-hero">Giro de <span className="text-brand-primary">Estoque</span></h1>
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Giro de <span className="text-brand-primary">Estoque</span></Typography>
                     </div>
-                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Stock Aging & Velocity Matrix</p>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">STOCK AGING & VELOCITY MATRIX • MX PERFORMANCE</Typography>
                 </div>
 
-                <div className="flex items-center gap-mx-sm shrink-0">
-                    <button onClick={handleRefresh} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
-                    <button className="mx-button-primary bg-white !text-text-primary border border-border-default flex items-center gap-2"><Filter size={16} /> Unidades</button>
-                    <button onClick={() => toast.success('Compilando Report...')} className="mx-button-primary bg-brand-secondary"><Download size={18} /> Exportar Report</button>
+                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </Button>
+                    <Button variant="outline" className="h-12 px-6 rounded-full shadow-mx-sm uppercase font-black tracking-widest text-[10px]">
+                        <Filter size={16} className="mr-2" /> UNIDADES
+                    </Button>
+                    <Button onClick={() => toast.success('Compilando Snapshot...')} className="h-12 px-8 rounded-full shadow-mx-lg bg-brand-secondary">
+                        <Download size={18} className="mr-2" /> EXPORTAR REPORT
+                    </Button>
                 </div>
-            </div>
+            </header>
 
+            {/* Quick KPIs Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg shrink-0">
                 {stockStats.map((stat, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="mx-card p-mx-lg hover:shadow-mx-lg transition-all group relative overflow-hidden">
-                        <div className="flex items-center gap-mx-md relative z-10">
-                            <div className={cn("w-14 h-14 rounded-mx-lg flex items-center justify-center border border-border-default shadow-inner transition-transform group-hover:scale-110", stat.bg, stat.color)}><stat.icon size={28} strokeWidth={2.5} /></div>
-                            <div>
-                                <p className="mx-text-caption mb-1">{stat.title}</p>
-                                <div className="flex items-baseline gap-mx-sm">
-                                    <h3 className="text-2xl font-black tracking-tighter font-mono-numbers">{stat.value}</h3>
-                                    <Badge className={cn("text-[8px] border-none px-2", stat.title.includes('Custo') ? 'bg-status-error-surface text-status-error' : 'bg-status-success-surface text-status-success')}>{stat.trend}</Badge>
+                    <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                        <Card className="p-8 border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+                            <div className="flex items-center gap-6 relative z-10">
+                                <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
+                                    stat.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
+                                    stat.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
+                                    'bg-status-error-surface border-mx-rose-100 text-status-error'
+                                )}>
+                                    <stat.icon size={24} strokeWidth={2.5} />
+                                </div>
+                                <div className="flex-1">
+                                    <Typography variant="caption" tone="muted" className="mb-1 block uppercase tracking-widest text-[8px]">{stat.title}</Typography>
+                                    <div className="flex items-center justify-between">
+                                        <Typography variant="h1" className="text-3xl tabular-nums leading-none">{stat.value}</Typography>
+                                        <Badge variant={stat.tone as any} className="text-[8px] px-2 h-5">{stat.trend}</Badge>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     </motion.div>
                 ))}
             </div>
 
+            {/* Main BI Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0 pb-mx-3xl">
-                <div className="lg:col-span-8"><Card className="h-full"><CardHeader className="flex-row items-center justify-between"><div><CardTitle>Maturidade de Saída</CardTitle><CardDescription>Tempo Médio de Escoamento</CardDescription></div><LineChartIcon size={24} className="text-brand-primary" /></CardHeader><div className="p-mx-lg h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={reportCiclo} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 10 }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 800, fontSize: 10 }} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 800 }} />
-                            <Line type="monotone" dataKey="dias" stroke="#4f46e5" strokeWidth={2.5} dot={{ r: 6, fill: '#4f46e5', strokeWidth: 0 }} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div></Card></div>
-
-                <div className="lg:col-span-4"><Card className="h-full flex flex-col"><CardHeader><CardTitle>Distribuição de Idade</CardTitle><CardDescription>Aging Operacional</CardDescription></CardHeader><div className="p-mx-lg flex-1 flex flex-col items-center">
-                    <div className="h-[180px] w-full mb-mx-md">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie data={stockAgingData} innerRadius={60} outerRadius={80} paddingAngle={8} dataKey="value" stroke="none">
-                                    {stockAgingData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
-                                </Pie>
-                                <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="w-full space-y-2">
-                        {stockAgingData.map((item, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 rounded-mx-md bg-mx-slate-50 border border-border-subtle hover:bg-white transition-all">
-                                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} /><span className="text-[10px] font-black uppercase tracking-tight">{item.name}</span></div>
-                                <span className="text-xs font-black font-mono-numbers text-text-tertiary">{item.value}%</span>
+                <section className="lg:col-span-8">
+                    <Card className="h-full border-none shadow-mx-lg bg-white overflow-hidden">
+                        <CardHeader className="bg-surface-alt/20 border-b border-border-default p-8 flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle className="text-xl">Maturidade de Saída</CardTitle>
+                                <CardDescription className="uppercase font-black text-[9px] tracking-widest mt-1">TEMPO MÉDIO DE ESCOAMENTO (D+1)</CardDescription>
                             </div>
-                        ))}
-                    </div>
-                </div></Card></div>
+                            <LineChartIcon size={24} className="text-brand-primary" strokeWidth={2.5} />
+                        </CardHeader>
+                        <CardContent className="p-10 h-[400px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={reportCiclo} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900 }} />
+                                    <Line type="monotone" dataKey="dias" stroke="#4f46e5" strokeWidth={4} dot={{ r: 6, fill: '#4f46e5', strokeWidth: 4, stroke: '#fff' }} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                </section>
+
+                <aside className="lg:col-span-4">
+                    <Card className="h-full border-none shadow-mx-lg bg-white flex flex-col group overflow-hidden">
+                        <CardHeader className="bg-surface-alt/20 border-b border-border-default p-8">
+                            <CardTitle className="text-xl">Distribuição de Idade</CardTitle>
+                            <CardDescription className="uppercase font-black text-[9px] tracking-widest mt-1">AGING OPERACIONAL DA REDE</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8 flex-1 flex flex-col items-center">
+                            <div className="h-[200px] w-full mb-10 group-hover:scale-105 transition-transform duration-700">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={stockAgingData} innerRadius={65} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">
+                                            {stockAgingData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900 }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="w-full space-y-3">
+                                {stockAgingData.map((item, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 rounded-mx-xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-md transition-all group/legend">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
+                                            <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase group-hover/legend:text-text-primary transition-colors">{item.name}</Typography>
+                                        </div>
+                                        <Typography variant="mono" className="text-xs font-black">{item.value}%</Typography>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </aside>
             </div>
 
-            <Card className="mb-mx-3xl overflow-hidden"><CardHeader className="flex-col md:flex-row md:items-center justify-between gap-mx-lg bg-mx-slate-50/30">
-                <div className="flex items-center gap-mx-md"><div className="w-14 h-14 rounded-mx-lg bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform -rotate-3"><RefreshCw size={28} strokeWidth={2.5} /></div><div><CardTitle className="!text-3xl">Giro por Consultor</CardTitle><CardDescription className="!text-xs">Eficiência de escoamento individual da tropa.</CardDescription></div></div>
-                <div className="relative group w-full md:w-80"><Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" /><input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar consultor..." className="mx-input !h-11 !pl-11 !text-[10px]" /></div>
-            </CardHeader><div className="overflow-x-auto no-scrollbar"><table className="w-full text-left min-w-[800px]">
-                <thead><tr className="bg-mx-slate-50/50 mx-text-caption border-b border-border-default"><th className="pl-mx-lg py-mx-md uppercase tracking-[0.3em]">Especialista de Elite</th><th className="py-mx-md uppercase tracking-[0.3em] text-right">Giro Médio (UN)</th><th className="py-mx-md uppercase tracking-[0.3em] text-right">Ticket Médio</th><th className="pr-mx-lg py-mx-md uppercase tracking-[0.3em] text-right">Status</th></tr></thead>
-                <tbody className="divide-y divide-border-subtle bg-white">
-                    {processedDescontos.map((d, i) => (
-                        <tr key={d.seller} className={cn("hover:bg-mx-slate-50/50 transition-colors h-20 group border-none", i % 2 !== 0 && "bg-mx-slate-50/20")}>
-                            <td className="pl-mx-lg py-4"><div className="flex items-center gap-mx-sm"><div className="w-10 h-10 rounded-mx-md bg-mx-slate-50 border border-border-default flex items-center justify-center font-black text-[10px] shadow-inner group-hover:bg-brand-secondary group-hover:text-white transition-all uppercase">{d.seller.substring(0, 2)}</div><span className="font-black text-sm text-text-primary uppercase tracking-tight group-hover:text-brand-primary transition-colors">{d.seller}</span></div></td>
-                            <td className="py-4 text-right"><span className="font-black text-lg text-text-primary font-mono-numbers">{d.totalSales} un</span></td>
-                            <td className="py-4 text-right"><span className="font-bold text-xs text-text-tertiary font-mono-numbers">R$ 184.000</span></td>
-                            <td className="pr-mx-lg py-4 text-right"><Badge className={cn("text-[8px] font-black h-8 rounded-full", i < 2 ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-status-warning-surface text-status-warning border-mx-amber-100")}>{i < 2 ? 'ALTA PERFORMANCE' : 'ESTÁVEL'}</Badge></td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table></div></Card>
-        </div>
+            {/* Performance by Seller Table */}
+            <Card className="mb-20 border-none shadow-mx-xl bg-white overflow-hidden">
+                <CardHeader className="bg-surface-alt/30 border-b border-border-default p-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform -rotate-3"><RefreshCw size={28} /></div>
+                        <div>
+                            <Typography variant="h2" className="text-2xl uppercase">Giro por Consultor</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">AUDITORIA DE ESCOAMENTO INDIVIDUAL</Typography>
+                        </div>
+                    </div>
+                    <div className="relative group w-full md:w-80">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                        <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="BUSCAR ESPECIALISTA..." className="!h-12 !pl-11 !text-[10px] uppercase tracking-widest" />
+                    </div>
+                </CardHeader>
+                
+                <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left min-w-[1000px]">
+                        <thead>
+                            <tr className="bg-surface-alt/50 border-b border-border-default text-[10px] font-black uppercase tracking-[0.3em] text-text-tertiary">
+                                <th scope="col" className="pl-10 py-6">ESPECIALISTA DE ELITE</th>
+                                <th scope="col" className="py-6 text-center">GIRO MÉDIO (UN)</th>
+                                <th scope="col" className="py-6 text-center">TICKET MÉDIO</th>
+                                <th scope="col" className="pr-10 py-6 text-right">STATUS PERFORMANCE</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-default">
+                            {processedDescontos.map((d, i) => (
+                                <tr key={d.seller} className={cn("hover:bg-surface-alt/30 transition-colors h-24 group")}>
+                                    <td className="pl-10 py-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-[11px] text-text-tertiary group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner uppercase">{d.seller.substring(0, 2)}</div>
+                                            <Typography variant="h3" className="text-sm uppercase tracking-tight group-hover:text-brand-primary transition-colors">{d.seller}</Typography>
+                                        </div>
+                                    </td>
+                                    <td className="py-4 text-center">
+                                        <Typography variant="h1" className="text-2xl tabular-nums text-text-primary">{d.totalSales} <span className="text-xs font-black opacity-30">UN</span></Typography>
+                                    </td>
+                                    <td className="py-4 text-center">
+                                        <Typography variant="mono" tone="muted" className="text-sm font-black">R$ 184.000</Typography>
+                                    </td>
+                                    <td className="pr-10 py-4 text-right">
+                                        <Badge variant={i < 2 ? 'success' : 'warning'} className="px-6 py-2 rounded-full font-black text-[8px] tracking-widest shadow-sm border-none uppercase">
+                                            {i < 2 ? 'ALTA PERFORMANCE' : 'ESTÁVEL'}
+                                        </Badge>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+        </main>
     )
 }

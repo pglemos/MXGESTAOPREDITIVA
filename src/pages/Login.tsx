@@ -2,13 +2,21 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { motion, AnimatePresence } from 'motion/react'
-import { Building2, ArrowRight, ShieldCheck, Zap, TrendingUp, Globe, Smartphone, Sparkles, User, Lock, Mail, RefreshCw } from 'lucide-react'
+import { 
+    Building2, ArrowRight, ShieldCheck, Zap, TrendingUp, 
+    Globe, Smartphone, Sparkles, User, Lock, Mail, RefreshCw 
+} from 'lucide-react'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card } from '@/components/molecules/Card'
+import { cn } from '@/lib/utils'
 
 export default function Login() {
     const { signIn, profile, loading: authLoading } = useAuth()
     const navigate = useNavigate()
 
-    // 1. Unified Design System Audit - V2
     useEffect(() => {
         if (profile) {
             navigate('/', { replace: true })
@@ -32,8 +40,6 @@ export default function Login() {
                 setLoading(false)
                 return 
             }
-            // After successful sign in, wait a bit for profile loading
-            // The useAuth hook will handle the loading state
         } catch (err: any) {
             setError(err.message || 'Erro inesperado ao realizar login.')
             setLoading(false)
@@ -41,66 +47,48 @@ export default function Login() {
     }
 
     const Feature = ({ icon: Icon, text }: { icon: any, text: string }) => (
-        <div className="flex items-center gap-4 text-white/60">
-            <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                <Icon size={18} />
+        <div className="flex items-center gap-4 group/feat">
+            <div className="w-10 h-10 rounded-mx-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 transition-all group-hover/feat:bg-brand-primary/20 group-hover/feat:border-brand-primary/30">
+                <Icon size={18} className="text-white/40 group-hover/feat:text-white transition-colors" />
             </div>
-            <span className="text-[11px] font-black uppercase tracking-widest">{text}</span>
+            <Typography variant="caption" tone="white" className="opacity-40 group-hover/feat:opacity-100 transition-opacity">{text}</Typography>
         </div>
     )
 
-    // If loading but we have a user and NO profile after some time, it might be a data issue
-    const [showProfileError, setShowProfileError] = useState(false)
-    useEffect(() => {
-        let tid: any;
-        if (authLoading && !profile) {
-            tid = setTimeout(() => setShowProfileError(true), 5000)
-        } else {
-            setShowProfileError(false)
-        }
-        return () => clearTimeout(tid)
-    }, [authLoading, profile])
-
     if (authLoading && !profile) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-12 h-12 border-4 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin mb-6"></div>
-                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Sincronizando Perfil MX...</p>
-                {showProfileError && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 max-w-xs">
-                        <p className="text-xs text-rose-400 font-bold mb-4">A sincronização está demorando mais que o esperado.</p>
-                        <button onClick={() => window.location.reload()} className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all">Tentar Novamente</button>
-                    </motion.div>
-                )}
-            </div>
+            <main className="min-h-screen bg-brand-secondary flex flex-col items-center justify-center p-6 text-center">
+                <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+                <Typography variant="caption" tone="white" className="animate-pulse tracking-[0.4em]">Sincronizando Perfil MX...</Typography>
+            </main>
         )
     }
 
     return (
-        <div className="min-h-screen bg-surface-alt flex items-center justify-center p-4 selection:bg-brand-secondary selection:text-white relative overflow-hidden">
+        <main className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-10 selection:bg-brand-primary selection:text-white relative overflow-hidden">
 
             {/* Background Decorations */}
-            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-indigo-50/50 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-emerald-50/30 rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-brand-primary/5 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-status-success-surface rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-[1240px] bg-white ring-1 ring-gray-100 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] rounded-[3rem] md:rounded-[4rem] overflow-hidden flex flex-col lg:flex-row relative z-10"
+                className="w-full max-w-[1240px] bg-white ring-1 ring-border-default shadow-mx-elite rounded-[3rem] md:rounded-[4rem] overflow-hidden flex flex-col lg:flex-row relative z-10"
             >
                 {/* Left Side: Brand / Marketing */}
-                <div className="hidden lg:flex lg:w-[45%] bg-brand-secondary p-16 flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent z-0 pointer-events-none" />
+                <section className="hidden lg:flex lg:w-[45%] bg-brand-secondary p-16 flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent z-0 pointer-events-none" />
 
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-4 font-black text-2xl text-white mb-20">
-                            <div className="w-12 h-12 rounded-[1.5rem] bg-white text-text-primary flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                <Building2 size={24} />
+                    <header className="relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-mx-2xl bg-white text-brand-secondary flex items-center justify-center shadow-mx-xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                <Building2 size={28} />
                             </div>
-                            <span className="tracking-tighter uppercase">MX PERFORMANCE</span>
+                            <Typography variant="h2" tone="white" className="text-2xl">MX <span className="text-brand-primary">PERFORMANCE</span></Typography>
                         </div>
-                    </div>
+                    </header>
 
                     <div className="relative z-10">
                         <motion.div
@@ -109,107 +97,114 @@ export default function Login() {
                             transition={{ delay: 0.3, duration: 0.6 }}
                             className="max-w-md"
                         >
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-black uppercase tracking-widest mb-8">
-                                <Sparkles size={12} className="fill-indigo-400" /> Sistema de Performance v2.0
-                            </div>
-                            <h1 className="text-6xl font-black tracking-tighter text-white mb-8 leading-[0.9]">
+                            <Badge variant="outline" className="text-brand-primary border-brand-primary/20 bg-brand-primary/5 px-6 py-2 rounded-full mb-10 shadow-mx-sm">
+                                <Sparkles size={12} className="mr-2 fill-brand-primary" /> SISTEMA DE ELITE v4.0
+                            </Badge>
+                            <Typography variant="h1" tone="white" className="text-7xl leading-[0.9] mb-10">
                                 Performance <br />
-                                <span className="text-indigo-400">sob controle.</span>
-                            </h1>
-                            <p className="text-gray-400 text-lg leading-relaxed font-bold mb-12 opacity-80">
-                                A sua central de inteligência para monitoramento de metas em tempo real e análise de performance corporativa.
-                            </p>
+                                <span className="text-brand-primary underline decoration-indigo-500/20 underline-offset-8">Sob Controle.</span>
+                            </Typography>
+                            <Typography variant="p" tone="white" className="text-lg opacity-60 mb-14 leading-relaxed italic">
+                                "A central de inteligência para quem não aceita nada menos que o topo da arena."
+                            </Typography>
                         </motion.div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                            <Feature icon={Globe} text="Dashboard 100% Online" />
-                            <Feature icon={TrendingUp} text="Ranking Elitizado" />
-                            <Feature icon={Zap} text="Dados Preditivos" />
-                            <Feature icon={Smartphone} text="Mobile Optimized" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                            <Feature icon={Globe} text="Auditória 100% Online" />
+                            <Feature icon={TrendingUp} text="Arena Meritocrática" />
+                            <Feature icon={Zap} text="Protocolos Preditivos" />
+                            <Feature icon={Smartphone} text="Mobile Experience" />
                         </div>
                     </div>
 
-                    <div className="relative z-10 pt-16 border-t border-white/5 flex items-center justify-between">
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">© {new Date().getFullYear()} MX CONSULTORIA</p>
-                        <ShieldCheck size={20} className="text-gray-700 hover:text-indigo-400 transition-colors cursor-help" />
-                    </div>
+                    <footer className="relative z-10 pt-16 border-t border-white/5 flex items-center justify-between">
+                        <Typography variant="caption" tone="white" className="opacity-30 tracking-[0.4em]">© MX CONSULTORIA</Typography>
+                        <ShieldCheck size={20} className="text-white/20 hover:text-brand-primary transition-colors cursor-help" />
+                    </footer>
 
                     {/* Abstract elements */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
-                </div>
+                </section>
 
                 {/* Right Side: Login Form */}
-                <div className="w-full lg:w-[55%] flex items-center justify-center p-10 sm:p-24 relative bg-white">
+                <section className="w-full lg:w-[55%] flex items-center justify-center p-10 sm:p-24 relative bg-white">
                     <div className="w-full max-w-md">
-                        <div className="lg:hidden flex items-center justify-center gap-4 font-black text-3xl mb-16 text-text-primary">
-                            <div className="w-12 h-12 rounded-2xl bg-brand-secondary text-white flex items-center justify-center shadow-2xl">
+                        <header className="lg:hidden flex items-center justify-center gap-4 mb-16">
+                            <div className="w-12 h-12 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg">
                                 <Building2 size={24} />
                             </div>
-                            <span className="tracking-tighter uppercase">MX PERFORMANCE</span>
+                            <Typography variant="h2" className="text-2xl">MX PERFORMANCE</Typography>
+                        </header>
+
+                        <div className="mb-14 text-center lg:text-left">
+                            <Typography variant="h1" className="text-5xl mb-4">Bem-vindo.</Typography>
+                            <Typography variant="p" tone="muted" className="text-base uppercase tracking-widest font-black opacity-40">Identifique-se para acessar a malha.</Typography>
                         </div>
 
-                        <div className="mb-12 text-center lg:text-left">
-                            <h2 className="text-4xl font-black tracking-tighter text-text-primary mb-4">Acesse sua Conta</h2>
-                            <p className="text-gray-400 text-base font-bold leading-relaxed opacity-60">Utilize suas credenciais corporativas para entrar na plataforma de gestão.</p>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-8">
-                            <div className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-10">
+                            <div className="space-y-8">
                                 <div className="space-y-3 group">
-                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 group-focus-within:text-indigo-600 transition-colors">
-                                        <Mail size={12} /> E-mail Institucional
-                                    </label>
-                                    <input
-                                        type="email" value={email} onChange={e => setEmail(e.target.value)}
-                                        placeholder="seu@email.com.br" required autoFocus
-                                        className="w-full px-8 py-5 bg-surface-alt border border-gray-100 rounded-[2rem] text-base font-black text-text-primary placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-brand-primary focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
-                                    />
+                                    <Typography variant="caption" tone="muted" className="ml-4 font-black uppercase tracking-widest group-focus-within:text-brand-primary transition-colors">E-mail Institucional</Typography>
+                                    <div className="relative">
+                                        <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
+                                        <Input
+                                            type="email" value={email} onChange={e => setEmail(e.target.value)}
+                                            placeholder="seu@email.com.br" required autoFocus
+                                            className="!h-16 !pl-16 !rounded-mx-2xl !bg-surface-alt hover:!bg-white focus:!bg-white shadow-inner"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-3 group">
-                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 group-focus-within:text-indigo-600 transition-colors">
-                                        <Lock size={12} /> Código de Acesso
-                                    </label>
-                                    <input
-                                        type="password" value={password} onChange={e => setPassword(e.target.value)}
-                                        placeholder="••••••••" required
-                                        className="w-full px-8 py-5 bg-surface-alt border border-gray-100 rounded-[2rem] text-base font-black text-text-primary placeholder:text-gray-300 focus:outline-none focus:bg-white focus:border-brand-primary focus:shadow-2xl focus:shadow-indigo-500/5 transition-all shadow-sm"
-                                    />
+                                    <Typography variant="caption" tone="muted" className="ml-4 font-black uppercase tracking-widest group-focus-within:text-brand-primary transition-colors">Código de Acesso</Typography>
+                                    <div className="relative">
+                                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
+                                        <Input
+                                            type="password" value={password} onChange={e => setPassword(e.target.value)}
+                                            placeholder="••••••••" required
+                                            className="!h-16 !pl-16 !rounded-mx-2xl !bg-surface-alt hover:!bg-white focus:!bg-white shadow-inner"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
                             <AnimatePresence>
                                 {error && (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        className="px-8 py-5 bg-red-50/50 border border-red-100 text-red-600 text-sm rounded-[2rem] font-black text-center shadow-lg shadow-red-500/5"
-                                    >
-                                        ⚠️ {error}
+                                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
+                                        <Card className="p-6 bg-status-error-surface border-status-error/20 flex items-center justify-center gap-4 shadow-mx-lg">
+                                            <AlertCircle size={20} className="text-status-error" />
+                                            <Typography variant="p" tone="error" className="text-sm font-black uppercase">{error}</Typography>
+                                        </Card>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            <div className="pt-6">
-                                <button
+                            <footer className="pt-6">
+                                <Button
                                     type="submit" disabled={loading}
-                                    className="mx-button-primary w-full !h-20 !text-lg !tracking-widest relative overflow-hidden group"
+                                    className="w-full h-20 text-xl font-black tracking-[0.2em] rounded-mx-3xl shadow-mx-elite hover:-translate-y-1 active:scale-95 transition-all relative overflow-hidden group/btn"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     {loading ? (
-                                        <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+                                        <RefreshCw className="w-8 h-8 animate-spin" />
                                     ) : (
-                                        <>Entrar na Plataforma <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" /></>
+                                        <div className="flex items-center gap-6">
+                                            ENTRAR NA MALHA <ArrowRight size={24} className="group-hover/btn:translate-x-2 transition-transform" strokeWidth={3} />
+                                        </div>
                                     )}
-                                </button>
+                                </Button>
 
-                                <p className="mt-10 text-center text-gray-400 text-[9px] font-black uppercase tracking-[0.4em] opacity-40">Acesso Restrito • MX CONSULTORIA LTDA</p>
-                            </div>
+                                <Typography variant="caption" tone="muted" className="mt-14 text-center block opacity-20 tracking-[0.5em] font-black">ACESSO RESTRITO • MX CONSULTORIA</Typography>
+                            </footer>
                         </form>
                     </div>
-                </div>
+                </section>
             </motion.div>
-        </div>
+        </main>
     )
 }
+
+const AlertCircle = ({ size, className }: { size?: number, className?: string }) => (
+    <svg width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+)

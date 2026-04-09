@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
+import { useStores } from '@/hooks/useTeam'
 import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
-  LogOut, Zap, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal
+  LogOut, Zap, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
+  ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,9 +31,7 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Rituais MX', icon: <Target size={22} />,
       items: [
-        { label: 'Home', path: '/home', icon: <Home size={16} /> },
         { label: 'Checkin', path: '/checkin', icon: <CheckSquare size={16} /> },
-        { label: 'Histórico', path: '/historico', icon: <History size={16} /> },
         { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
         { label: 'Feedback/PDI', path: '/feedback', icon: <MessageSquare size={16} /> },
@@ -44,8 +44,6 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'Sustentação', icon: <Settings size={22} />,
       items: [
         { label: 'Configuração Operacional', path: '/configuracoes/operacional', icon: <SlidersHorizontal size={16} /> },
-        { label: 'Reprocessamento', path: '/configuracoes/reprocessamento', icon: <Database size={16} /> },
-        { label: 'Estoque Legado', path: '/legacy/reports/stock', icon: <Database size={16} /> },
         { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }
@@ -109,8 +107,9 @@ const navConfig: Record<string, NavCategory[]> = {
 }
 
 export default function Layout() {
-  const { profile, role, signOut } = useAuth()
+  const { profile, role, storeId: activeStoreId, setActiveStoreId, signOut } = useAuth()
   const { unreadCount } = useNotifications()
+  const { stores } = useStores()
   const navigate = useNavigate()
   const location = useLocation()
   
@@ -155,6 +154,22 @@ export default function Layout() {
         </div>
 
         <div className="flex items-center gap-mx-md justify-end">
+          {/* Store Switcher - Dono/Admin */}
+          {(role === 'dono' || role === 'admin') && (stores?.length ?? 0) > 1 && (
+            <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-surface-alt rounded-xl border border-border-default shadow-inner group relative">
+              <Building2 size={16} className="text-brand-primary opacity-40" />
+              <select 
+                value={activeStoreId || ''} 
+                onChange={(e) => setActiveStoreId(e.target.value)}
+                className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest outline-none appearance-none cursor-pointer pr-6"
+              >
+                <option value="">TODAS AS LOJAS</option>
+                {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
+            </div>
+          )}
+
           <div className="hidden sm:flex items-center gap-2">
             <button type="button" aria-label="Pesquisar" className="w-10 h-10 bg-mx-slate-50 rounded-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
               <Search size={18} aria-hidden="true" />

@@ -2,14 +2,15 @@ import { supabase } from '@/lib/supabase'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { toast } from 'sonner'
 import type { DigitalProduct } from '@/types/database'
-import { Package, Plus, X, RefreshCw, Smartphone, Laptop, Layers, ExternalLink, Search } from 'lucide-react'
+import { Package, Plus, X, RefreshCw, Smartphone, Laptop, Layers, ExternalLink, Search, Globe, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Card } from '@/components/molecules/Card'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
 import { z } from 'zod'
 
@@ -58,73 +59,93 @@ export default function ProdutosDigitais() {
     }, [products, searchTerm])
 
     if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="w-10 h-10 animate-spin text-brand-primary mb-4" />
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
+            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Vitrine...</Typography>
         </div>
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-white">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+            {/* Header / Showcase Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Vitrine <span className="text-brand-primary">Digital</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md">Catálogo de Soluções Operacionais • {products.length} Ativos</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">CATÁLOGO DE SOLUÇÕES OPERACIONAIS • {products.length} ATIVOS</Typography>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={() => { setIsRefetching(true); fetchProducts().then(() => setIsRefetching(false)) }} className="rounded-xl shadow-mx-sm">
+                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                    <Button variant="outline" size="icon" onClick={() => { setIsRefetching(true); fetchProducts().then(() => setIsRefetching(false)) }} className="rounded-xl shadow-mx-sm h-12 w-12">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <div className="relative w-full sm:w-64 group">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
-                        <input 
-                            type="text" placeholder="BUSCAR..." value={searchTerm} 
+                    <div className="relative group w-full sm:w-64">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
+                        <Input 
+                            placeholder="BUSCAR ATIVO..." value={searchTerm} 
                             onChange={e => setSearchTerm(e.target.value)} 
-                            className="w-full bg-surface-alt border border-border-default rounded-full h-12 pl-11 pr-4 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-brand-primary transition-all shadow-inner" 
+                            className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest" 
                         />
                     </div>
                     {role === 'admin' && (
-                        <Button onClick={() => setShowForm(true)} className="h-12 px-8 shadow-mx-lg">
-                            <Plus size={18} aria-hidden="true" /> NOVO ATIVO
+                        <Button onClick={() => setShowForm(true)} className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
+                            <Plus size={18} className="mr-2" /> NOVO ATIVO
                         </Button>
                     )}
                 </div>
-            </div>
+            </header>
 
             <AnimatePresence>
                 {showForm && (
-                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="shrink-0 z-50 rounded-mx-3xl p-1 bg-gradient-to-b from-brand-primary/10 to-white shadow-mx-xl mb-mx-lg">
-                        <form onSubmit={handleCreate} className="bg-white rounded-[2.8rem] p-mx-lg space-y-mx-lg relative overflow-hidden">
-                            <div className="flex items-center justify-between border-b border-border-default pb-mx-md">
-                                <div className="flex items-center gap-mx-md">
-                                    <div className="w-14 h-14 rounded-mx-lg bg-brand-primary text-white flex items-center justify-center shadow-lg" aria-hidden="true"><Layers size={24} /></div>
-                                    <div>
-                                        <Typography variant="h2">Implantar Ativo</Typography>
-                                        <Typography variant="caption">Vitrine Digital MX</Typography>
+                    <motion.section initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 mb-10">
+                        <form onSubmit={handleCreate}>
+                            <Card className="p-10 md:p-14 border-none shadow-mx-xl bg-white overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 rounded-full blur-[120px] -mr-48 -mt-48" />
+                                
+                                <header className="flex items-center justify-between border-b border-border-default pb-8 mb-10 relative z-10">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-14 h-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform rotate-2"><Layers size={24} /></div>
+                                        <div>
+                                            <Typography variant="h3">Implantar Ativo</Typography>
+                                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">VITRINE DIGITAL MX</Typography>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-full w-12 h-12 bg-surface-alt hover:bg-white shadow-sm transition-all"><X size={24} /></Button>
+                                </header>
+
+                                <div className="grid lg:grid-cols-2 gap-14 relative z-10">
+                                    <div className="space-y-8">
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Título Comercial</Typography>
+                                            <Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Ex: Plataforma de Blindagem" required className="!h-14 px-6 font-bold" />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Gateway URL</Typography>
+                                            <Input value={form.link} onChange={e => setForm(p => ({ ...p, link: e.target.value }))} placeholder="https://gateway.mx/..." required className="!h-14 px-6 font-medium" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Briefing de Solução</Typography>
+                                        <textarea 
+                                            value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+                                            className="w-full bg-surface-alt border border-border-default rounded-[2rem] p-8 text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-40"
+                                            placeholder="Descreva detalhadamente os diferenciais táticos desta solução..."
+                                        />
                                     </div>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={() => setShowForm(false)} className="rounded-full w-12 h-12"><X size={20} aria-hidden="true" /></Button>
-                            </div>
-                            <div className="grid md:grid-cols-2 gap-mx-lg">
-                                <FormField id="prod-name" label="Título Comercial" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
-                                <FormField id="prod-link" label="Gateway URL" value={form.link} onChange={e => setForm(p => ({ ...p, link: e.target.value }))} required />
-                            </div>
-                            <div className="space-y-3">
-                                <Typography variant="caption" tone="muted" className="ml-2">Briefing</Typography>
-                                <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-5 text-sm font-bold text-slate-950 outline-none focus:border-brand-primary focus:bg-white transition-all resize-none shadow-inner" />
-                            </div>
-                            <div className="pt-mx-md flex justify-end">
-                                <Button type="submit" disabled={saving} className="px-10 h-12 rounded-full shadow-mx-xl">
-                                    {saving ? <RefreshCw className="animate-spin" /> : 'ATIVAR ATIVO'}
-                                </Button>
-                            </div>
+
+                                <footer className="pt-10 flex justify-end gap-4 border-t border-border-default mt-10 relative z-10">
+                                    <Button type="submit" disabled={saving} className="h-16 px-14 rounded-full shadow-mx-xl font-black uppercase tracking-[0.2em] text-[10px]">
+                                        {saving ? <RefreshCw className="animate-spin mr-3" /> : <ShieldCheck size={20} className="mr-3" />} ATIVAR SOLUÇÃO
+                                    </Button>
+                                </footer>
+                            </Card>
                         </form>
-                    </motion.div>
+                    </motion.section>
                 )}
             </AnimatePresence>
 
@@ -133,27 +154,35 @@ export default function ProdutosDigitais() {
                     <AnimatePresence mode="popLayout">
                         {filteredProducts.map((p, i) => (
                             <motion.li key={p.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }}>
-                                <Card className="p-8 flex flex-col h-full group hover:shadow-mx-xl transition-all">
-                                    <div className="flex items-start justify-between mb-8 pb-6 border-b border-border-default">
-                                        <div className="w-14 h-14 rounded-2xl bg-surface-alt border border-border-default flex items-center justify-center shadow-inner group-hover:bg-brand-secondary transition-all transform group-hover:rotate-3" aria-hidden="true">
-                                            <Package size={24} className="text-brand-primary group-hover:text-white transition-colors" />
+                                <Card className="p-8 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    
+                                    <div>
+                                        <header className="flex items-start justify-between mb-10 border-b border-border-default pb-6 relative z-10">
+                                            <div className="w-14 h-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center shadow-inner group-hover:bg-brand-secondary transition-all transform group-hover:rotate-3" aria-hidden="true">
+                                                <Package size={24} className="text-brand-primary group-hover:text-white transition-colors" />
+                                            </div>
+                                            <Badge variant="success" className="px-4 py-1 rounded-full uppercase text-[8px] font-black shadow-sm">ATIVO</Badge>
+                                        </header>
+
+                                        <div className="mb-8 flex-1 relative z-10 space-y-3">
+                                            <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors line-clamp-2">{(p.name || '').toUpperCase()}</Typography>
+                                            <Typography variant="p" tone="muted" className="text-xs font-bold leading-relaxed line-clamp-3 italic">"{p.description}"</Typography>
                                         </div>
-                                        <Badge variant="success">ATIVO</Badge>
                                     </div>
-                                    <div className="mb-8 flex-1">
-                                        <Typography variant="h3" className="mb-3 group-hover:text-brand-primary transition-colors line-clamp-2">{(p.name || '').toUpperCase()}</Typography>
-                                        <Typography variant="p" tone="muted" className="text-xs line-clamp-3 italic opacity-80">"{p.description}"</Typography>
-                                    </div>
-                                    <div className="pt-6 border-t border-border-default flex flex-col gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-xl bg-surface-alt flex items-center justify-center text-text-tertiary" aria-hidden="true"><Smartphone size={14} /></div>
-                                            <div className="w-8 h-8 rounded-xl bg-surface-alt flex items-center justify-center text-text-tertiary" aria-hidden="true"><Laptop size={14} /></div>
-                                            <Typography variant="caption" tone="muted" className="ml-auto">Versão 2.4</Typography>
+
+                                    <footer className="pt-6 border-t border-border-default flex flex-col gap-4 relative z-10 mt-auto">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex gap-2">
+                                                <div className="w-8 h-8 rounded-lg bg-surface-alt flex items-center justify-center text-text-tertiary shadow-inner" aria-hidden="true"><Smartphone size={14} /></div>
+                                                <div className="w-8 h-8 rounded-lg bg-surface-alt flex items-center justify-center text-text-tertiary shadow-inner" aria-hidden="true"><Globe size={14} /></div>
+                                            </div>
+                                            <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase opacity-40">Gateway v2.4</Typography>
                                         </div>
-                                        <Button variant="outline" className="w-full h-12 rounded-xl group/btn" onClick={() => window.open(p.link, '_blank')}>
+                                        <Button variant="outline" className="w-full h-12 rounded-xl group/btn font-black uppercase tracking-widest text-[9px] shadow-sm border-border-strong hover:border-brand-primary" onClick={() => window.open(p.link, '_blank')}>
                                             ACESSAR SOLUÇÃO <ExternalLink size={14} className="ml-2 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                                         </Button>
-                                    </div>
+                                    </footer>
                                 </Card>
                             </motion.li>
                         ))}

@@ -2,8 +2,11 @@ import { usePDIs } from '@/hooks/useData'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
-import { Target, Calendar, User, Briefcase, Award, CheckCircle2 } from 'lucide-react'
+import { Target, Calendar, User, Award, CheckCircle2, ShieldCheck, Zap, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Typography } from '@/components/atoms/Typography'
+import { Badge } from '@/components/atoms/Badge'
+import { Card } from '@/components/molecules/Card'
 
 export default function PDIPrint() {
     const { id } = useParams()
@@ -15,13 +18,16 @@ export default function PDIPrint() {
     useEffect(() => {
         if (pdi && !isPrinting) {
             setIsPrinting(true)
-            setTimeout(() => {
-                window.print()
-            }, 1000)
+            setTimeout(() => { window.print() }, 1000)
         }
     }, [pdi, isPrinting])
 
-    if (!pdi) return <div className="p-20 text-center font-black uppercase tracking-widest text-gray-400">Plano não localizado...</div>
+    if (!pdi) return (
+        <div className="p-20 text-center flex flex-col items-center justify-center">
+            <History size={48} className="text-text-tertiary mb-6 opacity-20" />
+            <Typography variant="h3" tone="muted">Plano não localizado na malha...</Typography>
+        </div>
+    )
 
     const radarData = [
         { subject: 'Prospecção', A: pdi.comp_prospeccao },
@@ -37,123 +43,131 @@ export default function PDIPrint() {
     ]
 
     return (
-        <div className="min-h-screen bg-white p-8 md:p-16 text-slate-950 font-sans print:p-0">
+        <div className="min-h-screen bg-white p-10 md:p-20 text-text-primary font-sans print:p-0">
             {/* Header / Brand */}
-            <div className="border-b-4 border-slate-950 pb-10 mb-12 flex justify-between items-end">
-                <div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-slate-950 rounded-xl flex items-center justify-center text-white">
-                            <Target size={24} />
+            <header className="border-b-8 border-mx-black pb-14 mb-16 flex justify-between items-end">
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-mx-black rounded-mx-2xl flex items-center justify-center text-white shadow-mx-xl">
+                            <Target size={32} />
                         </div>
-                        <span className="text-2xl font-black tracking-tighter uppercase">MX PERFORMANCE</span>
+                        <Typography variant="h2" className="text-2xl tracking-tighter">MX <span className="text-brand-primary">PERFORMANCE</span></Typography>
                     </div>
-                    <h1 className="text-5xl font-black tracking-tighter leading-none uppercase">Certificado de <span className="text-indigo-600">Compromisso</span></h1>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-[0.4em] mt-3">Plano de Desenvolvimento Individual (PDI 2.0)</p>
+                    <Typography variant="h1" className="text-6xl leading-none">Certificado de <span className="text-brand-primary">Compromisso</span></Typography>
+                    <Typography variant="caption" tone="muted" className="text-xs font-black tracking-[0.4em] mt-4 block">PLANO DE DESENVOLVIMENTO INDIVIDUAL (PDI 4.0)</Typography>
                 </div>
-                <div className="text-right space-y-1">
-                    <p className="text-[10px] font-black uppercase text-slate-400">ID do Protocolo</p>
-                    <p className="text-xs font-mono font-bold uppercase">{pdi.id.split('-')[0]}</p>
+                <div className="text-right space-y-2">
+                    <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase">Protocolo de Rede</Typography>
+                    <Typography variant="mono" className="text-sm font-black uppercase bg-surface-alt px-4 py-2 rounded-lg">{pdi.id.split('-')[0]}</Typography>
                 </div>
-            </div>
+            </header>
 
             {/* Specialist Info */}
-            <div className="grid grid-cols-3 gap-8 mb-16">
-                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><User size={12}/> Especialista</p>
-                    <p className="text-lg font-black uppercase tracking-tight">{(pdi as any).seller_name}</p>
-                </div>
-                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><Briefcase size={12}/> Unidade</p>
-                    <p className="text-lg font-black uppercase tracking-tight">Matriz MX</p>
-                </div>
-                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><Calendar size={12}/> Data de Emissão</p>
-                    <p className="text-lg font-black uppercase tracking-tight">{new Date().toLocaleDateString('pt-BR')}</p>
-                </div>
+            <div className="grid grid-cols-3 gap-10 mb-20">
+                <Card className="p-8 bg-surface-alt border-none shadow-inner">
+                    <Typography variant="caption" tone="muted" className="mb-3 flex items-center gap-2 font-black uppercase tracking-widest"><User size={14}/> Especialista</Typography>
+                    <Typography variant="h3" className="text-xl uppercase">{(pdi as any).seller_name}</Typography>
+                </Card>
+                <Card className="p-8 bg-surface-alt border-none shadow-inner">
+                    <Typography variant="caption" tone="muted" className="mb-3 flex items-center gap-2 font-black uppercase tracking-widest"><Briefcase size={14}/> Unidade</Typography>
+                    <Typography variant="h3" className="text-xl uppercase">MATRIZ OPERACIONAL</Typography>
+                </Card>
+                <Card className="p-8 bg-surface-alt border-none shadow-inner">
+                    <Typography variant="caption" tone="muted" className="mb-3 flex items-center gap-2 font-black uppercase tracking-widest"><Calendar size={14}/> Data de Emissão</Typography>
+                    <Typography variant="h3" className="text-xl uppercase font-mono-numbers">{new Date().toLocaleDateString('pt-BR')}</Typography>
+                </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 mb-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb-24">
                 {/* Radar Capability */}
-                <div className="space-y-8">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] border-b-2 border-slate-100 pb-4">Radar de Capacidade Técnica</h3>
-                    <div className="h-[400px] w-full">
+                <section className="space-y-10">
+                    <header className="border-b-2 border-border-default pb-4">
+                        <Typography variant="caption" className="text-xs font-black uppercase tracking-[0.3em]">Radar de Capacidade Técnica</Typography>
+                    </header>
+                    <div className="h-[450px] w-full bg-surface-alt/30 rounded-[3rem] p-10 border border-border-subtle">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                                 <PolarGrid stroke="#e2e8f0" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }} />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 900 }} />
                                 <Radar
-                                    name="Especialista"
-                                    dataKey="A"
-                                    stroke="#4f46e5"
-                                    fill="#4f46e5"
-                                    fillOpacity={0.15}
-                                    strokeWidth={2.5}
+                                    name="Especialista" dataKey="A"
+                                    stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.15} strokeWidth={3}
                                 />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
-                </div>
+                </section>
 
                 {/* Horizons */}
-                <div className="space-y-10">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] border-b-2 border-slate-100 pb-4">Horizontes de Crescimento</h3>
+                <section className="space-y-14">
+                    <header className="border-b-2 border-border-default pb-4">
+                        <Typography variant="caption" className="text-xs font-black uppercase tracking-[0.3em]">Horizontes de Crescimento</Typography>
+                    </header>
                     
-                    <div className="space-y-8">
-                        <div className="relative pl-8 border-l-4 border-indigo-600">
-                            <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest block mb-1">06 Meses — Curto Prazo</span>
-                            <p className="text-sm font-bold text-slate-700 italic leading-relaxed">"{pdi.meta_6m}"</p>
+                    <div className="space-y-12">
+                        <div className="relative pl-10 border-l-8 border-brand-primary">
+                            <Typography variant="caption" tone="brand" className="text-[10px] font-black uppercase tracking-widest block mb-2">06 Meses — Curto Prazo</Typography>
+                            <Typography variant="p" className="text-lg font-bold text-text-secondary italic leading-relaxed">"{(pdi as any).meta_6m || pdi.objective}"</Typography>
                         </div>
-                        <div className="relative pl-8 border-l-4 border-amber-500">
-                            <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest block mb-1">12 Meses — Médio Prazo</span>
-                            <p className="text-sm font-bold text-slate-700 italic leading-relaxed">"{pdi.meta_12m}"</p>
+                        <div className="relative pl-10 border-l-8 border-status-warning">
+                            <Typography variant="caption" tone="warning" className="text-[10px] font-black uppercase tracking-widest block mb-2">12 Meses — Médio Prazo</Typography>
+                            <Typography variant="p" className="text-lg font-bold text-text-secondary italic leading-relaxed">"{(pdi as any).meta_12m || 'Definir na revisão tática'}"</Typography>
                         </div>
-                        <div className="relative pl-8 border-l-4 border-rose-500">
-                            <span className="text-[9px] font-black text-rose-600 uppercase tracking-widest block mb-1">24 Meses — Visão de Futuro</span>
-                            <p className="text-sm font-bold text-slate-700 italic leading-relaxed">"{pdi.meta_24m}"</p>
+                        <div className="relative pl-10 border-l-8 border-status-error">
+                            <Typography variant="caption" tone="error" className="text-[10px] font-black uppercase tracking-widest block mb-2">24 Meses — Visão de Futuro</Typography>
+                            <Typography variant="p" className="text-lg font-bold text-text-secondary italic leading-relaxed">"{(pdi as any).meta_24m || 'Plano em expansão'}"</Typography>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
 
             {/* Mandatory Actions */}
-            <div className="mb-20">
-                <h3 className="text-sm font-black uppercase tracking-[0.3em] border-b-2 border-slate-100 pb-4 mb-8">Plano de Ação Mandatário (Próximos 180 Dias)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section className="mb-24">
+                <header className="border-b-2 border-border-default pb-4 mb-10">
+                    <Typography variant="caption" className="text-xs font-black uppercase tracking-[0.3em]">Plano de Ação Mandatário (Próximos 180 Dias)</Typography>
+                </header>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {[pdi.action_1, pdi.action_2, pdi.action_3, pdi.action_4, pdi.action_5].filter(Boolean).map((action, i) => (
-                        <div key={i} className="flex gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 items-start">
-                            <div className="w-8 h-8 rounded-full bg-slate-950 text-white flex items-center justify-center text-[10px] font-black shrink-0">0{i+1}</div>
-                            <p className="text-xs font-bold text-slate-700 leading-relaxed">{action}</p>
-                        </div>
+                        <Card key={i} className="flex gap-8 p-10 bg-surface-alt border border-border-default rounded-mx-3xl items-start shadow-inner">
+                            <div className="w-10 h-10 rounded-xl bg-mx-black text-white flex items-center justify-center text-xs font-black shrink-0 shadow-mx-lg">0{i+1}</div>
+                            <Typography variant="p" className="text-sm font-bold text-text-secondary leading-relaxed uppercase tracking-tight">{action}</Typography>
+                        </Card>
                     ))}
                 </div>
-            </div>
+            </section>
 
             {/* Signatures */}
-            <div className="pt-20 mt-auto grid grid-cols-2 gap-20">
-                <div className="text-center space-y-4">
-                    <div className="border-t-2 border-slate-950 pt-4">
-                        <p className="text-[10px] font-black uppercase tracking-widest">Assinatura do Especialista</p>
-                        <p className="text-[8px] text-slate-400 uppercase mt-1">Concordância com as metas e prazos estipulados</p>
+            <footer className="pt-32 mt-auto grid grid-cols-2 gap-24">
+                <div className="text-center space-y-6">
+                    <div className="border-t-4 border-mx-black pt-6">
+                        <Typography variant="caption" className="text-[11px] font-black uppercase tracking-[0.2em]">Assinatura do Especialista</Typography>
+                        <Typography variant="caption" tone="muted" className="text-[8px] uppercase mt-2 block">Concordância com as metas e prazos estipulados</Typography>
                     </div>
                 </div>
-                <div className="text-center space-y-4">
-                    <div className="border-t-2 border-slate-950 pt-4">
-                        <p className="text-[10px] font-black uppercase tracking-widest">Responsável Técnico (MX)</p>
-                        <p className="text-[8px] text-slate-400 uppercase mt-1">Validação metodológica e suporte tático</p>
+                <div className="text-center space-y-6">
+                    <div className="border-t-4 border-mx-black pt-6">
+                        <Typography variant="caption" className="text-[11px] font-black uppercase tracking-[0.2em]">Responsável Técnico (MX)</Typography>
+                        <Typography variant="caption" tone="muted" className="text-[8px] uppercase mt-2 block">Validação metodológica e suporte tático</Typography>
                     </div>
                 </div>
-            </div>
+            </footer>
 
-            <div className="mt-20 text-center">
-                <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">MX PERFORMANCE — AIOX MASTER CERTIFIED SYSTEM</p>
+            <div className="mt-24 text-center">
+                <Typography variant="caption" tone="muted" className="text-[9px] font-black uppercase tracking-[0.6em] opacity-30">MX PERFORMANCE — AIOX MASTER CERTIFIED SYSTEM</Typography>
             </div>
 
             <button 
                 onClick={() => navigate(-1)}
-                className="fixed bottom-8 right-8 px-8 py-4 bg-slate-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl hover:bg-black transition-all active:scale-95 print:hidden"
+                className="fixed bottom-10 right-10 px-10 py-5 bg-mx-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-mx-elite hover:scale-105 active:scale-95 transition-all print:hidden"
             >
-                Voltar ao Painel
+                Retornar ao Painel
             </button>
         </div>
     )
 }
+
+const Briefcase = ({ size, className }: { size?: number, className?: string }) => (
+    <svg width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+    </svg>
+)

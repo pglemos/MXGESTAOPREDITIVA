@@ -128,6 +128,14 @@ const actions = {
         storeState.tasks = [data, ...storeState.tasks]
         emit()
     },
+    updateTask(id: string, updates: any) {
+        storeState.tasks = storeState.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
+        emit()
+    },
+    deleteTask(id: string) {
+        storeState.tasks = storeState.tasks.filter(t => t.id !== id)
+        emit()
+    },
     setActiveAgency(idValue: string | null) {
         storeState.activeAgencyId = idValue
         emit()

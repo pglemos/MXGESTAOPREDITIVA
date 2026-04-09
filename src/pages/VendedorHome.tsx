@@ -11,7 +11,10 @@ import { useMemo, useCallback, useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { startOfWeek } from 'date-fns'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 export default function VendedorHome() {
     const { profile } = useAuth()
@@ -58,7 +61,6 @@ export default function VendedorHome() {
         return { gargalo: diag.gargalo, label: diag.diagnostico, training: recommended }
     }, [checkins, trainings, profile?.id])
 
-    // 1. & 11. Performance: Memoized metrics
     const metrics = useMemo(() => {
         const myCheckins = checkins.filter(c => c.seller_user_id === profile?.id)
         const vendasMes = somarVendas(myCheckins)
@@ -77,7 +79,6 @@ export default function VendedorHome() {
             below: myRankIndex < ranking.length - 1 ? ranking[myRankIndex + 1] : null
         }
 
-        // Dados de Ontem (D-1)
         const yesterdayStr = new Date(); yesterdayStr.setDate(yesterdayStr.getDate() - 1)
         const yesterdayFormatted = yesterdayStr.toISOString().split('T')[0]
         const checkinOntem = myCheckins.find(c => c.reference_date === yesterdayFormatted)
@@ -89,391 +90,322 @@ export default function VendedorHome() {
         const weekStr = weekAgo.toISOString().split('T')[0]
         const vendasSemana = somarVendas(myCheckins.filter(c => c.reference_date >= weekStr))
 
-        const leadsMes = myCheckins.reduce((s, c) => s + (c.leads_prev_day || 0), 0)
-
         return { 
-            vendasMes, porCanal, dias, meta, atingimento, projecao, faltaX, myRank, 
-            leadsMes, vendasOntem, agendamentosHoje, vendasSemana, competitors 
+            vendasMes, porCanal, meta, atingimento, projecao, myRank, 
+            vendasOntem, agendamentosHoje, vendasSemana, competitors 
         }
     }, [checkins, profile, sellerGoals, storeGoal, ranking, todayCheckin])
 
 
     if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-off-white/50 backdrop-blur-xl">
-            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin shadow-xl"></div>
-            <p className="mt-6 text-gray-400 text-[10px] font-black tracking-[0.4em] uppercase">Sincronizando Suas Metas...</p>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-surface-alt">
+            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Suas Metas...</Typography>
         </div>
     )
 
-    const StatCard = ({ icon: Icon, label, value, sub, color, bg, trend, index }: any) => (
+    const StatCard = ({ icon: Icon, label, value, sub, tone, index }: any) => (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white border border-gray-100 rounded-[2.2rem] p-8 flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden"
         >
-            <div className={cn("absolute -right-4 -top-4 w-32 h-32 opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-all z-0", bg)} />
-            <div className="flex items-start justify-between mb-8 relative z-10">
-                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border border-white shadow-sm transition-transform group-hover:scale-110", bg, color)}>
-                    <Icon size={24} strokeWidth={2.5} />
-                </div>
-                {trend && (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest shadow-sm">
-                        <ArrowUpRight size={14} strokeWidth={2.5} /> {trend}
+            <Card className="p-8 h-full flex flex-col justify-between group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg">
+                <div className="flex items-start justify-between mb-8 relative z-10">
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border shadow-mx-sm transition-transform group-hover:scale-110", 
+                        tone === 'success' ? "bg-status-success-surface border-mx-emerald-100 text-status-success" : 
+                        tone === 'info' ? "bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary" : 
+                        tone === 'warning' ? "bg-status-warning-surface border-mx-amber-100 text-status-warning" : 
+                        "bg-mx-black text-mx-indigo-400 border-white/5")}>
+                        <Icon size={24} strokeWidth={2.5} />
                     </div>
-                )}
-            </div>
-            <div className="relative z-10">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2 leading-none opacity-60">{label}</p>
-                <div className="flex items-baseline gap-3">
-                    <p className="text-4xl font-black text-pure-black tracking-tighter leading-none font-mono-numbers">{value}</p>
-                    {sub && <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">{sub}</span>}
                 </div>
-            </div>
+                <div className="relative z-10">
+                    <Typography variant="caption" tone="muted" className="mb-2 block">{label}</Typography>
+                    <div className="flex items-baseline gap-3">
+                        <Typography variant="h1" className="text-4xl font-mono-numbers">{value}</Typography>
+                        {sub && <Badge variant="outline" className="text-[8px]">{sub}</Badge>}
+                    </div>
+                </div>
+            </Card>
         </motion.div>
     )
 
     return (
-        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
 
-            {/* Top Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
+            {/* Header / Top Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none">
-                            Olá, <span className="text-indigo-600">{profile?.name?.split(' ')[0]}</span> <span className="animate-pulse inline-block">👋</span>
-                        </h1>
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Olá, <span className="text-brand-primary">{profile?.name?.split(' ')[0]}</span> 👋</Typography>
                     </div>
-                    <div className="flex items-center gap-3 pl-6 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Painel de Performance Individual</p>
-                    </div>
+                    <Typography variant="caption" className="pl-mx-md">Painel de Performance Individual • MX ELITE</Typography>
                 </div>
-                <div className="flex items-center gap-4 shrink-0">
-                    <button 
-                        onClick={handleRefresh}
-                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black active:scale-90 transition-all"
-                    >
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
-                    </button>
-                    <div className="flex items-center gap-4 bg-white border border-gray-100 p-2 pr-8 rounded-[2rem] shadow-sm hover:shadow-md transition-all group">
-                        <div className="w-12 h-12 rounded-[1.2rem] bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30 group-hover:rotate-12 transition-transform">
+                
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                    </Button>
+                    <div className="flex items-center gap-4 bg-white border border-border-default p-2 pr-8 rounded-mx-3xl shadow-mx-sm">
+                        <div className="w-12 h-12 rounded-mx-xl bg-status-warning text-white flex items-center justify-center shadow-mx-md">
                             <Trophy size={22} className="fill-white/20" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 opacity-60">Status Elite</p>
-                            <span className="text-lg font-black text-pure-black tracking-tighter uppercase">{metrics.myRank?.position || '--'}º no Ranking Unidade</span>
+                            <Typography variant="caption" tone="muted" className="mb-0.5">Status Arena</Typography>
+                            <Typography variant="h3" className="text-lg">{metrics.myRank?.position || '--'}º POSIÇÃO</Typography>
                         </div>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* Prescrição Tática MX - Mandatory Training Alert */}
+            {/* Prescrição Tática MX */}
             <AnimatePresence>
                 {tacticalPrescription && (
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="shrink-0"
-                    >
-                        <div className="bg-indigo-600 text-white rounded-[3.5rem] p-10 sm:p-12 relative overflow-hidden group shadow-3xl">
-                            <div className="absolute top-0 right-0 w-[40%] h-full bg-gradient-to-l from-white/10 via-white/5 to-transparent pointer-events-none" />
-                            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-colors" />
-                            
+                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="shrink-0">
+                        <Card className="bg-brand-primary text-white p-10 md:p-14 border-none shadow-mx-xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32" aria-hidden="true" />
                             <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative z-10">
-                                <div className="w-20 h-20 rounded-[2rem] bg-white text-indigo-600 flex items-center justify-center shadow-2xl shrink-0 transform group-hover:rotate-6 transition-transform">
+                                <div className="w-20 h-20 rounded-mx-3xl bg-white text-brand-primary flex items-center justify-center shadow-mx-xl transform group-hover:rotate-6 transition-transform">
                                     <GraduationCap size={40} />
                                 </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <Badge className="bg-rose-500 text-white border-none text-[8px] font-black tracking-widest px-3 h-6 uppercase">Correção Obrigatória</Badge>
-                                        <span className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.3em]">Gap: {tacticalPrescription.gargalo}</span>
+                                <div className="flex-1 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <Badge variant="danger" className="px-4 py-1">Correção Obrigatória</Badge>
+                                        <Typography variant="caption" tone="white" className="opacity-60">Gap: {tacticalPrescription.gargalo}</Typography>
                                     </div>
-                                    <h3 className="text-3xl font-black tracking-tighter uppercase leading-none mb-3">Masterize sua {tacticalPrescription.training.type}</h3>
-                                    <p className="text-indigo-100 text-sm font-bold leading-relaxed opacity-80 max-w-2xl">
-                                        {tacticalPrescription.label} Conclua este treinamento hoje para normalizar seu funil.
-                                    </p>
+                                    <Typography variant="h2" tone="white">Masterize sua {tacticalPrescription.training.type}</Typography>
+                                    <Typography variant="p" tone="white" className="opacity-80 max-w-2xl">{tacticalPrescription.label}</Typography>
                                 </div>
-                                <div className="shrink-0 w-full lg:w-auto">
-                                    <button 
-                                        onClick={() => navigate('/treinamentos')}
-                                        className="w-full lg:w-auto px-12 py-6 rounded-full bg-white text-indigo-600 text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:shadow-2xl hover:scale-105 transition-all active:scale-95 group/btn"
-                                    >
-                                        <Play size={18} className="fill-current group-hover/btn:scale-110" /> Iniciar Agora
-                                    </button>
-                                </div>
+                                <Button size="lg" variant="secondary" onClick={() => navigate('/treinamentos')} className="rounded-full px-12 h-16 shadow-mx-xl">
+                                    <Play size={18} className="fill-current mr-2" /> INICIAR AGORA
+                                </Button>
                             </div>
-                        </div>
+                        </Card>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* CTA Check-in */}
-            <div className="shrink-0 mb-2">
-                {!todayCheckin ? (
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ y: -4, scale: 1.005 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={() => navigate('/checkin')}
-                        className="w-full bg-pure-black text-white rounded-[4rem] p-10 sm:p-14 text-left shadow-3xl group relative overflow-hidden"
+            {/* Check-in CTA */}
+            {!todayCheckin && (
+                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="shrink-0">
+                    <Button 
+                        asChild
+                        className="w-full h-auto p-10 md:p-14 bg-pure-black border-none rounded-mx-3xl text-left shadow-mx-xl group relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-10"
                     >
-                        <div className="absolute top-0 right-0 w-[50%] h-full bg-gradient-to-l from-white/5 via-indigo-500/5 to-transparent z-0 pointer-events-none" />
-                        <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-indigo-600 opacity-10 rounded-full blur-[120px] group-hover:opacity-20 transition-all duration-1000" />
-
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative z-10">
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-14">
-                                <div className="w-20 h-20 rounded-3xl bg-indigo-600 flex items-center justify-center shrink-0 border-4 border-white/10 shadow-2xl group-hover:rotate-12 transition-transform">
+                        <Link to="/checkin">
+                            <div className="absolute top-0 right-0 w-[50%] h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative z-10">
+                                <div className="w-20 h-20 rounded-mx-3xl bg-brand-primary flex items-center justify-center border-4 border-white/10 shadow-mx-xl group-hover:rotate-12 transition-transform">
                                     <Zap size={40} className="text-white fill-white/20" />
                                 </div>
-                                <div className="max-w-2xl">
-                                    <h2 className="font-black text-white text-4xl tracking-tighter leading-none mb-4 uppercase">Status Pendente</h2>
-                                    <p className="text-white/60 text-lg font-bold leading-relaxed max-w-xl">
-                                        Sua produção de ontem ainda não foi indexada. Acesse o terminal para consolidar seu run-rate.
-                                    </p>
+                                <div className="max-w-2xl space-y-2">
+                                    <Typography variant="h1" tone="white" className="text-4xl tracking-tighter">Status Pendente</Typography>
+                                    <Typography variant="p" tone="white" className="text-lg opacity-60">Sua produção de ontem ainda não foi indexada no terminal MX.</Typography>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-6 group/btn">
-                                <span className="text-xs font-black uppercase tracking-[0.4em] text-white/40 group-hover/btn:text-white transition-colors">Consolidar Ontem</span>
-                                <div className="w-16 h-16 rounded-full bg-white text-pure-black flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                            <div className="flex items-center gap-6 relative z-10 group/btn">
+                                <Typography variant="caption" tone="white" className="opacity-40 group-hover/btn:opacity-100 transition-opacity">CONSOLIDAR ONTEM</Typography>
+                                <div className="w-16 h-16 rounded-full bg-white text-pure-black flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
                                     <ArrowRight size={28} strokeWidth={2.5} />
                                 </div>
                             </div>
-                        </div>
-                    </motion.button>
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-emerald-50 border border-emerald-100 rounded-[3rem] p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-8 shadow-xl shadow-emerald-500/5 relative overflow-hidden"
-                    >
-                        <div className="flex items-center gap-8 relative z-10">
-                            <div className="relative">
-                                <div className="w-16 h-16 rounded-2xl bg-white border border-emerald-100 flex items-center justify-center shadow-lg">
-                                    <CheckSquare size={28} className="text-emerald-500" />
-                                </div>
-                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center animate-bounce">
-                                    <Sparkles size={10} className="text-white fill-current" />
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="font-black text-emerald-900 text-2xl tracking-tighter leading-none mb-2 uppercase">Produção Consolidada</h3>
-                                <p className="text-emerald-700/60 text-[10px] font-black uppercase tracking-widest bg-emerald-100/50 px-4 py-1 rounded-lg inline-block">Indexação de Ontem Concluída • 100% OK</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => navigate('/checkin')}
-                            className="text-[10px] font-black uppercase tracking-[0.3em] bg-white text-pure-black border-2 border-emerald-100 px-10 py-4 rounded-full hover:bg-pure-black hover:text-white transition-all active:scale-95 shadow-sm"
-                        >
-                            Retificar Lançamento
-                        </button>
-                    </motion.div>
-                )}
-            </div>
-...
-            {/* Stats grid - Cockpit Mode */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 shrink-0">
-                <StatCard index={0} icon={History} label="Produção Ontem" value={metrics.vendasOntem} sub="Consolidado" bg="bg-emerald-50" color="text-emerald-600" trend="Realizado" />
-                <StatCard index={1} icon={CalendarDays} label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="Compromissos" bg="bg-blue-50" color="text-blue-600" />
-                <StatCard index={2} icon={Zap} label="Projeção MX" value={metrics.projecao} sub="Predictive" bg="bg-slate-950" color="text-indigo-400" />
-                <StatCard index={3} icon={Target} label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% atg`} bg="bg-rose-50" color="text-rose-600" />
+                        </Link>
+                    </Button>
+                </motion.div>
+            )}
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
+                <StatCard index={0} icon={History} label="Produção Ontem" value={metrics.vendasOntem} sub="CONSOLIDADO" tone="success" />
+                <StatCard index={1} icon={CalendarDays} label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="COMPROMISSOS" tone="info" />
+                <StatCard index={2} icon={Zap} label="Projeção MX" value={metrics.projecao} sub="PREDICTIVE" />
+                <StatCard index={3} icon={Target} label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} tone="warning" />
             </div>
 
-            {/* Arena de Elite - Meritocracia Real-time */}
-            <div className="bg-gray-50/50 border border-gray-100 rounded-[3rem] p-10 md:p-12 relative overflow-hidden group">
-                <div className="flex items-center justify-between mb-10 relative z-10">
+            {/* Arena de Elite */}
+            <Card className="bg-surface-alt/50 p-10 md:p-14 border-border-default shadow-mx-sm relative overflow-hidden group">
+                <div className="flex items-center justify-between mb-12 relative z-10">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg"><Trophy size={24} /></div>
+                        <div className="w-14 h-14 rounded-2xl bg-status-warning text-white flex items-center justify-center shadow-mx-md"><Trophy size={28} /></div>
                         <div>
-                            <h3 className="text-2xl font-black text-pure-black tracking-tighter uppercase leading-none">Arena de Elite</h3>
-                            <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.3em] mt-1">Sua Posição no Campo de Batalha</p>
+                            <Typography variant="h2">Arena de Elite</Typography>
+                            <Typography variant="caption" tone="muted">Sua Posição no Campo de Batalha</Typography>
                         </div>
                     </div>
-                    <Link to="/ranking" className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">Ver Arena Completa</Link>
+                    <Button variant="ghost" asChild className="rounded-full px-6 uppercase tracking-widest text-[10px]">
+                        <Link to="/ranking">Ver Arena Completa</Link>
+                    </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                    {/* Quem você está caçando */}
-                    <div className={cn("p-8 rounded-[2rem] border-2 border-dashed transition-all", metrics.competitors.above ? "bg-white border-amber-200 shadow-xl" : "bg-gray-100/50 border-gray-200 opacity-40")}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg relative z-10 items-stretch">
+                    {/* Próximo Alvo */}
+                    <Card className={cn("p-8 border-2 border-dashed flex flex-col justify-center", metrics.competitors.above ? "bg-white border-mx-amber-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
                         {metrics.competitors.above ? (
                             <>
-                                <p className="text-[8px] font-black text-amber-600 uppercase tracking-[0.3em] mb-4">Próximo Alvo</p>
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black text-lg border border-amber-100">{metrics.myRank?.position ? metrics.myRank.position - 1 : '--'}º</div>
+                                <Typography variant="caption" tone="warning" className="mb-6 block">Próximo Alvo</Typography>
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="w-14 h-14 rounded-mx-xl bg-mx-amber-50 text-status-warning flex items-center justify-center font-black text-xl border border-mx-amber-100 shadow-inner">{metrics.myRank?.position ? metrics.myRank.position - 1 : '--'}º</div>
                                     <div>
-                                        <p className="font-black text-slate-950 uppercase tracking-tight">{metrics.competitors.above.user_name}</p>
-                                        <p className="text-[10px] font-bold text-gray-400">{metrics.competitors.above.vnd_total} Vendas</p>
+                                        <Typography variant="h3" className="text-base">{metrics.competitors.above.user_name}</Typography>
+                                        <Typography variant="caption" tone="muted">{metrics.competitors.above.vnd_total} VENDAS</Typography>
                                     </div>
                                 </div>
-                                <div className="bg-amber-50 rounded-xl p-3 text-center">
-                                    <p className="text-[9px] font-black text-amber-700 uppercase">Gap: {metrics.competitors.above.vnd_total - metrics.vendasMes} Vendas para superar</p>
+                                <div className="bg-mx-amber-50 rounded-mx-xl p-4 text-center border border-mx-amber-100/50">
+                                    <Typography variant="caption" tone="warning" className="text-[9px]">GAP: {metrics.competitors.above.vnd_total - metrics.vendasMes} VENDAS PARA SUPERAR</Typography>
                                 </div>
                             </>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-center">
-                                <Crown size={32} className="text-amber-500 mb-2" />
-                                <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">VOCÊ É O TOPO DA ARENA</p>
+                            <div className="text-center py-10">
+                                <Crown size={48} className="text-status-warning mx-auto mb-4" />
+                                <Typography variant="caption" tone="brand" className="tracking-[0.4em]">VOCÊ É O TOPO DA ARENA</Typography>
                             </div>
                         )}
-                    </div>
+                    </Card>
 
-                    {/* Sua Posição Central */}
-                    <div className="p-8 rounded-[2rem] bg-slate-950 text-white shadow-2xl transform md:scale-110 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl" />
-                        <p className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4 relative z-10 text-center">Seu Status Atual</p>
+                    {/* Posição Atual */}
+                    <Card className="p-10 bg-pure-black text-white shadow-mx-elite transform md:scale-105 border-none relative overflow-hidden flex flex-col justify-between">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/20 rounded-full blur-3xl" aria-hidden="true" />
                         <div className="text-center relative z-10">
-                            <p className="text-7xl font-black tracking-tighter leading-none mb-2 font-mono-numbers">{metrics.myRank?.position || '--'}º</p>
-                            <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Na Unidade</p>
+                            <Typography variant="caption" tone="brand" className="mb-4 block tracking-[0.4em]">STATUS ATUAL</Typography>
+                            <Typography variant="h1" tone="white" className="text-8xl tabular-nums leading-none mb-2">{metrics.myRank?.position || '--'}º</Typography>
+                            <Typography variant="caption" tone="white" className="opacity-40 uppercase tracking-widest">NA UNIDADE</Typography>
                         </div>
-                        <div className="mt-8 pt-6 border-t border-white/10 flex justify-between items-center relative z-10">
-                            <div className="text-left">
-                                <p className="text-[7px] font-black text-white/40 uppercase">Vendido</p>
-                                <p className="text-lg font-black">{metrics.vendasMes}</p>
+                        <div className="mt-10 pt-8 border-t border-white/10 flex justify-between items-center relative z-10">
+                            <div>
+                                <Typography variant="caption" tone="white" className="opacity-30 mb-1 block">VENDIDO</Typography>
+                                <Typography variant="h3" tone="white" className="text-2xl">{metrics.vendasMes}</Typography>
                             </div>
                             <div className="text-right">
-                                <p className="text-[7px] font-black text-white/40 uppercase">Eficiência</p>
-                                <p className="text-lg font-black text-emerald-400">{metrics.atingimento}%</p>
+                                <Typography variant="caption" tone="white" className="opacity-30 mb-1 block">EFICIÊNCIA</Typography>
+                                <Typography variant="h3" tone="success" className="text-2xl">{metrics.atingimento}%</Typography>
                             </div>
                         </div>
-                    </div>
+                    </Card>
 
-                    {/* Quem está na sua cola */}
-                    <div className={cn("p-8 rounded-[2rem] border-2 border-dashed transition-all", metrics.competitors.below ? "bg-white border-rose-100" : "bg-gray-100/50 border-gray-200 opacity-40")}>
+                    {/* Na Cola */}
+                    <Card className={cn("p-8 border-2 border-dashed flex flex-col justify-center", metrics.competitors.below ? "bg-white border-mx-rose-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
                         {metrics.competitors.below ? (
                             <>
-                                <p className="text-[8px] font-black text-rose-400 uppercase tracking-[0.3em] mb-4">Na sua retaguarda</p>
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-lg border border-rose-100">{metrics.myRank?.position ? metrics.myRank.position + 1 : '--'}º</div>
+                                <Typography variant="caption" tone="error" className="mb-6 block">Na sua retaguarda</Typography>
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="w-14 h-14 rounded-mx-xl bg-mx-rose-50 text-status-error flex items-center justify-center font-black text-xl border border-mx-rose-100 shadow-inner">{metrics.myRank?.position ? metrics.myRank.position + 1 : '--'}º</div>
                                     <div>
-                                        <p className="font-black text-slate-950 uppercase tracking-tight">{metrics.competitors.below.user_name}</p>
-                                        <p className="text-[10px] font-bold text-gray-400">{metrics.competitors.below.vnd_total} Vendas</p>
+                                        <Typography variant="h3" className="text-base">{metrics.competitors.below.user_name}</Typography>
+                                        <Typography variant="caption" tone="muted">{metrics.competitors.below.vnd_total} VENDAS</Typography>
                                     </div>
                                 </div>
-                                <div className="bg-rose-50 rounded-xl p-3 text-center">
-                                    <p className="text-[9px] font-black text-rose-700 uppercase">Vantagem: {metrics.vendasMes - metrics.competitors.below.vnd_total} Vendas</p>
+                                <div className="bg-mx-rose-50 rounded-mx-xl p-4 text-center border border-mx-rose-100/50">
+                                    <Typography variant="caption" tone="error" className="text-[9px]">VANTAGEM: {metrics.vendasMes - metrics.competitors.below.vnd_total} VENDAS</Typography>
                                 </div>
                             </>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-center">
-                                <Flame size={32} className="text-rose-400 mb-2" />
-                                <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">MANTENHA A DISTÂNCIA</p>
+                            <div className="text-center py-10">
+                                <Flame size={48} className="text-status-error mx-auto mb-4" />
+                                <Typography variant="caption" tone="error" className="tracking-[0.4em]">MANTENHA A DISTÂNCIA</Typography>
                             </div>
                         )}
-                    </div>
+                    </Card>
                 </div>
-            </div>
+            </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 shrink-0 pb-20">
-                {/* Mix Section (8/12) */}
-                <div className="lg:col-span-8 flex flex-col gap-10">
-                    <div className="bg-white border border-gray-100 rounded-[3rem] p-10 md:p-12 shadow-elevation relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-50 opacity-20 rounded-full blur-[100px] -mr-48 -mt-48 transition-colors group-hover:bg-indigo-100" />
-                        
-                        <div className="flex items-center justify-between mb-12 relative z-10">
+            {/* Bottom Grid: Channels & Routine */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-20">
+                <div className="lg:col-span-8 space-y-mx-lg">
+                    {/* Matrix de Canais */}
+                    <Card className="p-10 md:p-14 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 rounded-full blur-3xl -mr-48 -mt-48" aria-hidden="true" />
+                        <header className="flex items-center justify-between mb-12 relative z-10">
                             <div>
-                                <h3 className="text-3xl font-black text-pure-black tracking-tighter leading-none mb-3">Sua Matrix de Canais</h3>
-                                <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Distribuição de fechamentos por canal</p>
+                                <Typography variant="h2" className="mb-2">Matrix de Canais</Typography>
+                                <Typography variant="p" tone="muted">Distribuição de fechamentos por origem.</Typography>
                             </div>
-                            <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-200 shadow-inner group-hover:text-indigo-500 transition-all">
-                                <BarChart3 size={28} strokeWidth={2.5} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary shadow-inner"><BarChart3 size={28} /></div>
+                        </header>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-lg relative z-10">
                             {[
-                                { label: 'Porta', value: metrics.porCanal.porta, icon: Car, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100', pct: Math.round((metrics.porCanal.porta / (metrics.vendasMes || 1)) * 100) },
-                                { label: 'Carteira', value: metrics.porCanal.carteira, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100', pct: Math.round((metrics.porCanal.carteira / (metrics.vendasMes || 1)) * 100) },
-                                { label: 'Digital', value: metrics.porCanal.internet, icon: Globe, color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100', pct: Math.round((metrics.porCanal.internet / (metrics.vendasMes || 1)) * 100) },
+                                { label: 'Porta', value: metrics.porCanal.porta, icon: Car, tone: 'success', pct: Math.round((metrics.porCanal.porta / (metrics.vendasMes || 1)) * 100) },
+                                { label: 'Carteira', value: metrics.porCanal.carteira, icon: Users, tone: 'info', pct: Math.round((metrics.porCanal.carteira / (metrics.vendasMes || 1)) * 100) },
+                                { label: 'Digital', value: metrics.porCanal.internet, icon: Globe, tone: 'brand', pct: Math.round((metrics.porCanal.internet / (metrics.vendasMes || 1)) * 100) },
                             ].map(ch => (
-                                <div key={ch.label} className={cn(ch.bg, "border-2 rounded-[2.5rem] p-8 transition-all hover:bg-white hover:shadow-2xl hover:scale-[1.03] group/item")}>
+                                <Card key={ch.label} className="p-8 border border-border-default hover:border-brand-primary/20 hover:shadow-mx-lg transition-all group/item bg-surface-alt/30">
                                     <div className="flex justify-between items-start mb-10">
-                                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg border border-gray-50 group-hover/item:rotate-6 transition-transform">
-                                            <ch.icon size={22} className={ch.color} strokeWidth={2.5} />
+                                        <div className="w-12 h-12 rounded-mx-xl bg-white flex items-center justify-center shadow-mx-sm border border-border-default group-hover/item:rotate-6 transition-transform">
+                                            <ch.icon size={22} className={cn(ch.tone === 'success' ? "text-status-success" : ch.tone === 'brand' ? "text-brand-primary" : "text-status-info")} />
                                         </div>
-                                        <div className={cn("text-[9px] font-black bg-white border border-gray-100 px-2.5 py-1 rounded-full shadow-sm", ch.color)}>{ch.pct}%</div>
+                                        <Badge variant="outline" className="text-[10px] font-mono-numbers">{ch.pct}%</Badge>
                                     </div>
-                                    <p className="text-5xl font-black text-pure-black mb-1 tracking-tighter font-mono-numbers">{ch.value}</p>
-                                    <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gray-400 opacity-80">{ch.label}</p>
-                                </div>
+                                    <Typography variant="h1" className="text-5xl font-mono-numbers mb-1">{ch.value}</Typography>
+                                    <Typography variant="caption" tone="muted" className="tracking-widest">{ch.label}</Typography>
+                                </Card>
                             ))}
                         </div>
-                    </div>
+                    </Card>
 
-                    {/* Timeline de Rotina MX (Basado na Apostila) */}
-                    <div className="bg-white border border-gray-100 rounded-[3rem] p-10 md:p-12 shadow-sm relative overflow-hidden group">
-                        <div className="flex items-center justify-between mb-10 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm"><Clock size={24} /></div>
-                                <div>
-                                    <h3 className="text-2xl font-black text-pure-black tracking-tighter uppercase leading-none">Minha Rotina MX</h3>
-                                    <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.3em] mt-1">Sua Agenda de Alta Performance</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                            {[
-                                { time: '08:00', task: 'Motivacional', desc: 'Leitura, áudio ou playlist energizadora.' },
-                                { time: '08:15', task: 'Organização', desc: 'Estratégia do dia e Terminal MX (Ontem).' },
-                                { time: '08:55', task: 'Novos Leads', desc: 'Boas-vindas e classificação Frio/Morno/Quente.' },
-                                { time: '11:00', task: 'Prospecção', desc: 'Carteira de clientes e redes sociais.' },
-                                { time: '13:00', task: 'Atendimento', desc: 'Atender agendados e confirmar novos.' },
-                                { time: '16:00', task: 'Lista Quente', desc: 'Trabalhar objeções e esquentar negociações.' },
-                                { time: '17:00', task: 'Fechamento', desc: 'Preparação para o próximo dia útil.' },
-                            ].map((r, i) => (
-                                <div key={i} className="flex items-center gap-6 p-5 rounded-2xl border border-gray-50 bg-gray-50/30 hover:bg-white hover:shadow-md transition-all group/task">
-                                    <div className="text-sm font-black text-indigo-600 font-mono-numbers shrink-0">{r.time}</div>
-                                    <div className="w-px h-8 bg-gray-200 group-hover/task:bg-indigo-200 transition-colors" />
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-950 uppercase tracking-tight mb-0.5">{r.task}</p>
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{r.desc}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Growth Section (4/12) */}
-                <div className="lg:col-span-4 flex flex-col gap-10">
-                    <div className="bg-pure-black rounded-[2.5rem] p-10 md:p-12 text-white relative overflow-hidden group shadow-3xl">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 via-transparent to-transparent z-0" />
-                        <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none group-hover:rotate-12 transition-transform duration-700">
-                            <Zap size={200} fill="currentColor" />
-                        </div>
-
-                        <div className="flex items-center justify-between mb-12 relative z-10">
-                            <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:bg-electric-blue transition-colors">
-                                <TrendingUp size={28} className="text-electric-blue" />
-                            </div>
-                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Weekly Sprint</span>
-                        </div>
-
-                        <div className="relative z-10 space-y-10">
+                    {/* Routine */}
+                    <Card className="p-10 md:p-14">
+                        <header className="flex items-center gap-4 mb-12">
+                            <div className="w-14 h-14 rounded-2xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center shadow-mx-sm"><Clock size={28} /></div>
                             <div>
-                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.4em] mb-4 opacity-80">Performance da Semana</p>
-                                <div className="flex items-baseline gap-3 mb-6">
-                                    <p className="text-6xl font-black tracking-tighter leading-none font-mono-numbers">{metrics.vendasSemana}</p>
-                                    <span className="text-sm font-black text-gray-500 uppercase tracking-widest">Unidades</span>
+                                <Typography variant="h2">Rotina MX</Typography>
+                                <Typography variant="caption" tone="muted">Agenda de Alta Performance</Typography>
+                            </div>
+                        </header>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
+                            {[
+                                { time: '08:00', task: 'Motivacional', desc: 'Energização e Foco.' },
+                                { time: '08:15', task: 'Organização', desc: 'Terminal MX e Estratégia.' },
+                                { time: '08:55', task: 'Novos Leads', desc: 'Boas-vindas e Classificação.' },
+                                { time: '11:00', task: 'Prospecção', desc: 'Carteira e Redes Sociais.' },
+                                { time: '13:00', task: 'Atendimento', desc: 'Execução de Agendados.' },
+                                { time: '16:00', task: 'Lista Quente', desc: 'Quebra de Objeções.' },
+                                { time: '17:00', task: 'Fechamento', desc: 'Preparação D+1.' },
+                            ].map((r, i) => (
+                                <div key={i} className="flex items-center gap-6 p-6 rounded-mx-xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all group/task">
+                                    <Typography variant="h3" tone="brand" className="text-sm font-mono-numbers shrink-0">{r.time}</Typography>
+                                    <div className="w-px h-8 bg-border-strong group-hover/task:bg-brand-primary/30 transition-colors" />
+                                    <div>
+                                        <Typography variant="caption" className="text-text-primary block mb-0.5">{r.task}</Typography>
+                                        <Typography variant="p" className="text-[10px] opacity-50 lowercase tracking-normal">{r.desc}</Typography>
+                                    </div>
                                 </div>
-                                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        animate={{ width: '72%' }}
-                                        transition={{ duration: 2, ease: "circOut" }}
-                                        className="h-full bg-gradient-to-r from-electric-blue to-indigo-400 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.5)]"
-                                    />
+                            ))}
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Weekly Sprint */}
+                <aside className="lg:col-span-4">
+                    <Card className="bg-pure-black text-white p-10 md:p-14 h-full border-none shadow-mx-xl relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 via-transparent to-transparent z-0" />
+                        <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:rotate-12 transition-transform duration-700"><Zap size={240} fill="currentColor" /></div>
+                        
+                        <header className="flex items-center justify-between mb-16 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:bg-brand-primary transition-colors">
+                                <TrendingUp size={28} className="text-white" />
+                            </div>
+                            <Badge variant="outline" className="text-white border-white/20 px-4">WEEKLY SPRINT</Badge>
+                        </header>
+
+                        <div className="relative z-10 space-y-12">
+                            <div className="space-y-6">
+                                <Typography variant="caption" tone="white" className="opacity-40 tracking-[0.4em]">PERFORMANCE DA SEMANA</Typography>
+                                <div className="flex items-baseline gap-4">
+                                    <Typography variant="h1" tone="white" className="text-7xl font-mono-numbers leading-none">{metrics.vendasSemana}</Typography>
+                                    <Typography variant="caption" tone="white" className="opacity-40">UNIDADES</Typography>
+                                </div>
+                                <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} transition={{ duration: 2 }} className="h-full bg-gradient-to-r from-brand-primary to-mx-indigo-400 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.5)]" />
                                 </div>
                             </div>
-                            <p className="text-gray-400 text-sm font-bold leading-relaxed italic opacity-60">
+                            <Typography variant="p" tone="white" className="text-base italic opacity-60 leading-relaxed">
                                 "O sucesso é a soma de pequenos esforços repetidos dia após dia."
-                            </p>
+                            </Typography>
                         </div>
-                    </div>
-                </div>
+                    </Card>
+                </aside>
             </div>
-        </div>
+        </main>
     )
 }

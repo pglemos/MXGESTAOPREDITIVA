@@ -1,14 +1,19 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { Plus, Trash2, FileSignature, RefreshCw, AlertTriangle, CheckCircle2, X, ChevronRight, Settings } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
+import { 
+    Plus, Trash2, FileSignature, RefreshCw, AlertTriangle, 
+    CheckCircle2, X, ChevronRight, Settings, Target, TrendingUp,
+    ShieldCheck, Users, Car, ArrowRight
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { useFinance } from '@/stores/FinanceContext'
 import { useUsers } from '@/stores/UsersContext'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
 export default function CommissionRules() {
     const { commissionRules, addCommissionRule, deleteCommissionRule, updateCommissionRule, refetch: refetchFinance } = useFinance()
@@ -18,15 +23,10 @@ export default function CommissionRules() {
     const [editingRuleId, setEditingRuleId] = useState<string | null>(null)
     const undoRef = useRef<(() => void) | null>(null)
 
-    // Atalho Global Ctrl+Z / Cmd+Z
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-                if (undoRef.current) {
-                    e.preventDefault()
-                    undoRef.current()
-                    undoRef.current = null
-                }
+                if (undoRef.current) { e.preventDefault(); undoRef.current(); undoRef.current = null }
             }
         }
         window.addEventListener('keydown', handleKeyDown)
@@ -38,28 +38,14 @@ export default function CommissionRules() {
         if (!ruleToDelete) return;
 
         let wasCanceled = false;
-
-        const cancelAction = () => {
-            wasCanceled = true;
-            undoRef.current = null;
-            toast.success("Diretriz de incentivo preservada!", {
-                icon: <RefreshCw size={14} className="animate-spin text-brand-primary" />
-            });
-        };
-
+        const cancelAction = () => { wasCanceled = true; undoRef.current = null; toast.success("Diretriz preservada!") };
         undoRef.current = cancelAction;
 
         toast.warning(`Removendo diretriz estratégica`, {
-            description: "Pressione Ctrl+Z para desfazer agora.",
-            action: {
-                label: "DESFAZER",
-                onClick: cancelAction
-            },
+            description: "Pressione Ctrl+Z para desfazer.",
+            action: { label: "DESFAZER", onClick: cancelAction },
             onAutoClose: () => {
-                if (!wasCanceled) {
-                    deleteCommissionRule(id);
-                    if (undoRef.current === cancelAction) undoRef.current = null;
-                }
+                if (!wasCanceled) { deleteCommissionRule(id); if (undoRef.current === cancelAction) undoRef.current = null }
             },
             duration: 5000,
         });
@@ -94,41 +80,86 @@ export default function CommissionRules() {
     }
 
     return (
-        <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl text-text-primary">
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Finance Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-mx-xs">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-                        <h1 className="mx-heading-hero">Regras de <span className="text-brand-primary">Incentivo</span></h1>
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Regras de <span className="text-brand-primary">Incentivo</span></Typography>
                     </div>
-                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase">Algoritmo de Comissionamento Operacional</p>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">ALGORITMO DE COMISSIONAMENTO OPERACIONAL</Typography>
                 </div>
 
                 <div className="flex items-center gap-mx-sm shrink-0">
-                    <button onClick={() => refetchFinance?.()} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
-                    <button onClick={() => { resetForm(); setOpen(true) }} className="mx-button-primary bg-brand-secondary flex items-center gap-2"><Plus size={18} /> Nova Diretriz</button>
+                    <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetchFinance?.().then(()=>setIsRefetching(false))}} className="w-12 h-12 rounded-xl shadow-mx-sm">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </Button>
+                    <Button onClick={() => { resetForm(); setOpen(true) }} className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
+                        <Plus size={18} className="mr-2" /> NOVA DIRETRIZ
+                    </Button>
                 </div>
-            </div>
+            </header>
 
-            <Card className="mb-mx-3xl overflow-hidden">
-                <CardHeader className="bg-mx-slate-50/30">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-10 h-10 rounded-mx-md bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><FileSignature size={20} /></div>
-                        <div><CardTitle className="!text-lg">Motor Financeiro</CardTitle><p className="mx-text-caption !text-[8px]">Diretrizes de Performance da Rede</p></div>
+            <Card className="mb-20 overflow-hidden border-none shadow-mx-lg bg-white">
+                <CardHeader className="bg-surface-alt/30 flex flex-row items-center justify-between p-8 border-b border-border-default">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><FileSignature size={24} /></div>
+                        <div>
+                            <Typography variant="h3">Motor Financeiro</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">DIRETRIZES DE PERFORMANCE DA REDE</Typography>
+                        </div>
                     </div>
+                    <Badge variant="brand" className="px-6 py-2 rounded-full font-black shadow-mx-sm">{commissionRules.length} REGRAS ATIVAS</Badge>
                 </CardHeader>
+                
                 <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left min-w-[800px]">
-                        <thead><tr className="bg-mx-slate-50/50 mx-text-caption border-b border-border-default"><th className="pl-mx-lg py-mx-md uppercase tracking-[0.3em]">Especialista</th><th className="py-mx-md uppercase tracking-[0.3em]">Ativo</th><th className="py-mx-md uppercase tracking-[0.3em] text-center">Margem %</th><th className="py-mx-md uppercase tracking-[0.3em] text-center">Incentivo %</th><th className="pr-mx-lg py-mx-md uppercase tracking-[0.3em] text-right">Ação</th></tr></thead>
-                        <tbody className="divide-y divide-border-subtle bg-white">
+                    <table className="w-full text-left min-w-[1000px]">
+                        <thead>
+                            <tr className="bg-surface-alt/50 border-b border-border-default text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
+                                <th scope="col" className="pl-10 py-6">ESPECIALISTA ALVO</th>
+                                <th scope="col" className="px-6 py-6">SEGMENTO ATIVO</th>
+                                <th scope="col" className="px-6 py-6 text-center">RANGE MARGEM</th>
+                                <th scope="col" className="px-6 py-6 text-center">INCENTIVO</th>
+                                <th scope="col" className="pr-10 py-6 text-right">AÇÕES TÁTICAS</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-default">
                             {commissionRules.map((rule) => (
-                                <tr key={rule.id} className="hover:bg-mx-slate-50/50 transition-colors group h-20">
-                                    <td className="pl-mx-lg py-4"><span className="font-black text-sm text-text-primary uppercase tracking-tight">{rule.sellerId ? team.find(t => t.id === rule.sellerId)?.name || 'Especialista' : 'Toda a Equipe'}</span></td>
-                                    <td className="py-4"><Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest">{rule.vehicleType || 'Todos'}</Badge></td>
-                                    <td className="py-4 text-center font-mono-numbers font-bold text-xs text-text-tertiary">{rule.marginMin || 0}% → {rule.marginMax || '∞'}%</td>
-                                    <td className="py-4 text-center"><div className="inline-flex items-center px-mx-sm py-1.5 rounded-mx-md bg-brand-primary-surface text-brand-primary font-black text-sm shadow-mx-sm">{rule.percentage}%</div></td>
-                                    <td className="pr-mx-lg py-4 text-right"><div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleDelete(rule.id)} className="w-9 h-9 rounded-mx-md bg-mx-slate-50 text-text-tertiary hover:text-status-error transition-all flex items-center justify-center"><Trash2 size={16} /></button></div></td>
+                                <tr key={rule.id} className="hover:bg-surface-alt/30 transition-colors group h-24">
+                                    <td className="pl-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-tertiary text-xs group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner uppercase">
+                                                {rule.sellerId ? team.find(t => t.id === rule.sellerId)?.name?.charAt(0) : <Users size={16} />}
+                                            </div>
+                                            <Typography variant="h3" className="text-base uppercase tracking-tight">
+                                                {rule.sellerId ? team.find(t => t.id === rule.sellerId)?.name || 'Especialista' : 'TODA A EQUIPE'}
+                                            </Typography>
+                                        </div>
+                                    </td>
+                                    <td className="px-6">
+                                        <Badge variant="outline" className="px-4 py-1.5 rounded-lg border-border-strong text-[9px] font-black uppercase">
+                                            {rule.vehicleType || 'TODOS OS ATIVOS'}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-6 text-center">
+                                        <Typography variant="mono" tone="muted" className="text-sm">
+                                            {rule.marginMin || 0}% <ArrowRight size={12} className="inline mx-2" /> {rule.marginMax || '∞'}%
+                                        </Typography>
+                                    </td>
+                                    <td className="px-6 text-center">
+                                        <div className="inline-flex items-center px-6 py-2.5 rounded-mx-xl bg-mx-indigo-50 text-brand-primary border border-mx-indigo-100 font-black text-lg tabular-nums shadow-inner">
+                                            {rule.percentage}%
+                                        </div>
+                                    </td>
+                                    <td className="pr-10 text-right">
+                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                                            <Button variant="outline" size="icon" onClick={() => handleDelete(rule.id)} className="w-10 h-10 rounded-xl text-text-tertiary hover:text-status-error hover:bg-status-error-surface transition-all">
+                                                <Trash2 size={18} />
+                                            </Button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -136,20 +167,73 @@ export default function CommissionRules() {
                 </div>
             </Card>
 
-            <Dialog open={open} onOpenChange={v => { setOpen(v); if(!v) resetForm() }}>
-                <DialogContent className="sm:max-w-[520px] rounded-mx-3xl p-0 border-none shadow-mx-elite overflow-hidden">
-                    <div className="bg-brand-secondary p-mx-lg text-white relative overflow-hidden"><DialogTitle className="text-3xl font-black tracking-tighter uppercase mb-1 relative z-10">{editingRuleId ? 'Ajustar Regra' : 'Nova Diretriz'}</DialogTitle><p className="mx-text-caption text-white/40">Algoritmo de Cálculo Operacional</p></div>
-                    <div className="p-mx-lg space-y-mx-md bg-white">
-                        <div className="space-y-1"><label className="mx-text-caption ml-2">Alvo</label><select value={form.sellerId} onChange={e => setForm({...form, sellerId: e.target.value})} className="mx-input appearance-none"><option value="all">Toda a Equipe</option>{team.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
-                        <div className="grid grid-cols-2 gap-mx-sm">
-                            <div className="space-y-1"><label className="mx-text-caption ml-2">Margem Mín %</label><input type="number" value={form.marginMin} onChange={e => setForm({...form, marginMin: e.target.value})} className="mx-input font-mono-numbers text-lg" placeholder="0" /></div>
-                            <div className="space-y-1"><label className="mx-text-caption ml-2">Margem Máx %</label><input type="number" value={form.marginMax} onChange={e => setForm({...form, marginMax: e.target.value})} className="mx-input font-mono-numbers text-lg" placeholder="100" /></div>
-                        </div>
-                        <div className="space-y-1 p-mx-md bg-brand-primary-surface rounded-mx-xl border border-mx-indigo-100"><label className="mx-text-caption text-brand-primary ml-2">Incentivo Final %</label><input type="number" value={form.percentage} onChange={e => setForm({...form, percentage: e.target.value})} className="mx-input !bg-white !text-4xl text-center h-20" placeholder="0" /></div>
+            <AnimatePresence>
+                {open && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-pure-black/60 backdrop-blur-xl">
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-xl">
+                            <Card className="border-none shadow-mx-xl bg-white overflow-hidden relative">
+                                <div className="bg-brand-secondary p-10 text-white relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32" />
+                                    <Typography variant="h1" tone="white" className="text-3xl leading-none mb-2">{editingRuleId ? 'Ajustar Regra' : 'Nova Diretriz'}</Typography>
+                                    <Typography variant="caption" tone="white" className="opacity-40 uppercase tracking-widest">ALGORITMO DE CÁLCULO OPERACIONAL</Typography>
+                                    <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="absolute top-8 right-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full w-12 h-12 transition-all">
+                                        <X size={24} />
+                                    </Button>
+                                </div>
+
+                                <div className="p-10 space-y-10">
+                                    <div className="space-y-4">
+                                        <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Alvo Estratégico</Typography>
+                                        <div className="relative group">
+                                            <select 
+                                                value={form.sellerId} onChange={e => setForm({...form, sellerId: e.target.value})}
+                                                className="w-full h-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary outline-none focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner"
+                                            >
+                                                <option value="all">TODA A EQUIPE</option>
+                                                {team.map(t => <option key={t.id} value={t.id}>{t.name.toUpperCase()}</option>)}
+                                            </select>
+                                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary group-hover:text-brand-primary transition-colors pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Margem Mín (%)</Typography>
+                                            <Input type="number" value={form.marginMin} onChange={e => setForm({...form, marginMin: e.target.value})} className="!h-14 font-mono-numbers text-lg" placeholder="0" />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Margem Máx (%)</Typography>
+                                            <Input type="number" value={form.marginMax} onChange={e => setForm({...form, marginMax: e.target.value})} className="!h-14 font-mono-numbers text-lg" placeholder="100" />
+                                        </div>
+                                    </div>
+
+                                    <Card className="p-8 bg-mx-indigo-50 border-mx-indigo-100 shadow-inner flex flex-col items-center text-center space-y-4">
+                                        <Typography variant="caption" tone="brand" className="font-black uppercase tracking-widest">Percentual de Incentivo</Typography>
+                                        <input 
+                                            type="number" value={form.percentage} onChange={e => setForm({...form, percentage: e.target.value})}
+                                            className="w-full bg-white border-4 border-white focus:border-brand-primary rounded-mx-2xl h-24 text-6xl font-black text-center text-brand-primary transition-all outline-none font-mono-numbers shadow-mx-lg"
+                                            placeholder="0"
+                                        />
+                                    </Card>
+                                </div>
+
+                                <footer className="p-8 bg-surface-alt border-t border-border-default flex gap-4">
+                                    <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 h-14 rounded-full uppercase font-black tracking-widest text-[10px]">DESCARTAR</Button>
+                                    <Button onClick={handleSave} className="flex-[2] h-14 rounded-full shadow-mx-xl uppercase font-black tracking-widest text-[10px]">
+                                        <ShieldCheck size={18} className="mr-2" /> FIXAR DIRETRIZ
+                                    </Button>
+                                </footer>
+                            </Card>
+                        </motion.div>
                     </div>
-                    <DialogFooter className="p-mx-md bg-mx-slate-50 border-t border-border-default flex gap-mx-sm"><button onClick={() => setOpen(false)} className="mx-button-primary !bg-white !text-text-tertiary border border-border-default flex-1">Descartar</button><button onClick={handleSave} className="mx-button-primary bg-brand-primary flex-[2]">Fixar Diretriz</button></DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
+                )}
+            </AnimatePresence>
+        </main>
     )
 }
+
+const ChevronDown = ({ size, className }: { size?: number, className?: string }) => (
+    <svg width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m6 9 6 6 6-6"/>
+    </svg>
+)

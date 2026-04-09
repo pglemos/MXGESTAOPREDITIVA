@@ -1,12 +1,15 @@
 import { useState, useMemo, useCallback } from 'react'
 import {
-    Car, Filter, Search, ChevronDown, ArrowUpRight, ArrowDownRight, MoreHorizontal, Plus, LayoutGrid, List, Calendar, Gauge, Fuel, CircleDollarSign, Box, RefreshCw, X, Download
+    Car, Filter, Search, ChevronDown, ArrowUpRight, ArrowDownRight, 
+    MoreHorizontal, Plus, LayoutGrid, List, Calendar, Gauge, 
+    Fuel, CircleDollarSign, Box, RefreshCw, X, Download,
+    ShieldCheck, TrendingUp
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { mockInventory } from '@/lib/mock-data'
 import { useAuth } from '@/hooks/useAuth'
 import useAppStore from '@/stores/main'
@@ -36,110 +39,205 @@ export default function Inventory() {
         const totalValue = filteredInventory.reduce((sum, item) => sum + item.price, 0)
         const avgAging = filteredInventory.length > 0 ? Math.round(filteredInventory.reduce((sum, item) => sum + item.aging, 0) / filteredInventory.length) : 0
         return [
-            { title: 'Patrimônio em Estoque', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 1 }).format(totalValue / 1000000) + 'M', icon: CircleDollarSign, color: 'text-status-success', bg: 'bg-status-success-surface' },
-            { title: 'Permanência Média', value: `${avgAging} dias`, icon: Box, color: 'text-status-error', bg: 'bg-status-error-surface' },
-            { title: 'Unidades Ativas', value: filteredInventory.length, icon: Car, color: 'text-text-primary', bg: 'bg-mx-slate-50' },
+            { title: 'Patrimônio Ativo', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 1 }).format(totalValue / 1000000) + 'M', icon: CircleDollarSign, tone: 'success' },
+            { title: 'Permanência Média', value: `${avgAging} dias`, icon: Box, tone: 'error' },
+            { title: 'Unidades Ativas', value: filteredInventory.length, icon: Car, tone: 'brand' },
         ]
     }, [filteredInventory])
 
+    const handleRefresh = useCallback(async () => {
+        setIsRefetching(true); await refetchAll?.(); setIsRefetching(false)
+        toast.success('Estoque sincronizado!')
+    }, [refetchAll])
+
     return (
-        <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl text-text-primary">
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {/* Header / Inventory Toolbar */}
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-mx-xs">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-                        <h1 className="mx-heading-hero">Gestão de <span className="text-brand-primary">Estoque</span></h1>
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Gestão de <span className="text-brand-primary">Estoque</span></Typography>
                     </div>
-                    <p className="mx-text-caption pl-mx-md opacity-60 uppercase">Monitoramento de Ativos Operacionais</p>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">MONITORAMENTO DE ATIVOS OPERACIONAIS • MX</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <button onClick={() => refetchAll?.()} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
-                    <div className="bg-mx-slate-50/50 p-1 rounded-mx-lg flex border border-border-default shadow-inner">
-                        <button onClick={() => setView('grid')} className={cn("w-10 h-10 rounded-mx-md flex items-center justify-center transition-all", view === 'grid' ? "bg-white text-text-primary shadow-mx-sm" : "text-text-tertiary")}><LayoutGrid size={18} /></button>
-                        <button onClick={() => setView('list')} className={cn("w-10 h-10 rounded-mx-md flex items-center justify-center transition-all", view === 'list' ? "bg-white text-text-primary shadow-mx-sm" : "text-text-tertiary")}><List size={18} /></button>
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    </Button>
+                    <div className="bg-white p-1 rounded-mx-full flex border border-border-default shadow-mx-sm">
+                        <Button 
+                            variant={view === 'grid' ? 'secondary' : 'ghost'} size="sm"
+                            onClick={() => setView('grid')} className="w-10 h-10 p-0 rounded-full"
+                        >
+                            <LayoutGrid size={18} />
+                        </Button>
+                        <Button 
+                            variant={view === 'list' ? 'secondary' : 'ghost'} size="sm"
+                            onClick={() => setView('list')} className="w-10 h-10 p-0 rounded-full"
+                        >
+                            <List size={18} />
+                        </Button>
                     </div>
-                    <button className="mx-button-primary bg-brand-secondary"><Plus size={18} /> Novo Ativo</button>
+                    <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary">
+                        <Plus size={18} className="mr-2" /> NOVO ATIVO
+                    </Button>
                 </div>
-            </div>
+            </header>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-lg shrink-0">
                 {stats.map((stat, i) => (
-                    <motion.div key={stat.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="mx-card p-mx-md md:p-mx-lg hover:shadow-mx-lg transition-all group relative overflow-hidden">
-                        <div className="flex items-center gap-mx-md relative z-10">
-                            <div className={cn("w-14 h-14 rounded-mx-lg flex items-center justify-center border border-border-default shadow-sm transition-transform group-hover:scale-110", stat.bg, stat.color)}><stat.icon size={24} strokeWidth={2.5} /></div>
-                            <div><p className="mx-text-caption mb-1">{stat.title}</p><h3 className="text-2xl font-black tracking-tighter font-mono-numbers">{stat.value}</h3></div>
-                        </div>
+                    <motion.div key={stat.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                        <Card className="p-8 border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+                            <div className="flex items-center gap-6 relative z-10">
+                                <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
+                                    stat.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
+                                    stat.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
+                                    'bg-status-error-surface border-mx-rose-100 text-status-error'
+                                )}>
+                                    <stat.icon size={24} strokeWidth={2.5} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Typography variant="caption" tone="muted" className="block uppercase tracking-widest">{stat.title}</Typography>
+                                    <Typography variant="h1" className="text-3xl tabular-nums leading-none">{stat.value}</Typography>
+                                </div>
+                            </div>
+                        </Card>
                     </motion.div>
                 ))}
             </div>
 
-            <div className="flex flex-col md:flex-row gap-mx-md items-center justify-between shrink-0">
+            <div className="flex flex-col md:flex-row gap-mx-md items-center justify-between shrink-0 mb-4">
                 <div className="relative w-full lg:w-[480px] group">
-                    <Search className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" size={18} />
-                    <input placeholder="Buscar por modelo ou placa..." className="mx-input !h-14 !pl-14" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
+                    <Input 
+                        placeholder="BUSCAR MODELO OU PLACA..." value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="!h-14 !pl-12 !text-[10px] uppercase tracking-widest"
+                    />
                 </div>
                 
                 <div className="flex items-center gap-mx-sm w-full md:w-auto">
-                    <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-                        <SelectTrigger className="mx-input !h-14 !px-mx-lg mx-text-caption">
-                            <SelectValue placeholder="Status Ativo" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-mx-lg shadow-mx-xl">
-                            <SelectItem value="all">Todos Status</SelectItem>
-                            <SelectItem value="Normal" className="text-status-success font-bold">Saudável</SelectItem>
-                            <SelectItem value="Crítico" className="text-status-error font-bold">Crítico (Aging)</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <button className="w-14 h-14 rounded-mx-lg border border-border-default bg-white text-text-tertiary shadow-mx-sm hover:text-brand-primary flex items-center justify-center shrink-0"><Download size={20} /></button>
+                    <div className="relative group flex-1 sm:flex-none">
+                        <select 
+                            value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}
+                            className="w-full sm:w-64 h-14 bg-white border border-border-default rounded-mx-xl px-6 text-[10px] font-black uppercase tracking-widest text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-mx-sm"
+                        >
+                            <option value="all">TODOS OS STATUS</option>
+                            <option value="Normal">SAUDÁVEL</option>
+                            <option value="Crítico">CRÍTICO (AGING)</option>
+                        </select>
+                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary" />
+                    </div>
+                    <Button variant="outline" size="icon" className="w-14 h-14 rounded-xl shadow-mx-sm border-border-default hover:text-brand-primary">
+                        <Download size={20} />
+                    </Button>
                 </div>
             </div>
 
-            <div className="flex-1 min-h-0 pb-32">
+            <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 <AnimatePresence mode="wait">
                     {view === 'grid' ? (
                         <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
                             {filteredInventory.map((item, i) => (
-                                <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }} className="mx-card overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 cursor-pointer flex flex-col h-full">
-                                    <div className="aspect-[16/10] bg-mx-slate-50 relative flex items-center justify-center border-b border-border-default">
-                                        <Badge className={cn("absolute top-mx-sm left-mx-sm font-black text-[8px] border-none px-3 h-6 rounded-md", item.status === 'Normal' ? "bg-status-success text-white" : "bg-status-error text-white")}>{item.status === 'Normal' ? 'SAUDÁVEL' : 'CRÍTICO'}</Badge>
-                                        <Car size={64} className="text-mx-slate-200 group-hover:scale-110 transition-transform duration-700" strokeWidth={2.5} />
-                                        <div className="absolute bottom-mx-sm right-mx-sm text-[10px] font-black bg-white/80 border border-border-subtle px-3 py-1 rounded-full text-text-primary uppercase tracking-widest">{item.plate}</div>
-                                    </div>
-                                    <div className="p-mx-lg flex flex-col justify-between flex-1">
-                                        <div className="mb-mx-lg"><h4 className="font-black text-lg text-text-primary tracking-tight uppercase group-hover:text-brand-primary transition-colors truncate">{item.model}</h4><p className="mx-text-caption !text-[8px] mt-1 opacity-60">Ano {item.year} • Automático • Flex</p></div>
-                                        <div className="grid grid-cols-2 gap-mx-sm mb-mx-lg">
-                                            <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase bg-mx-slate-50/50 p-2 rounded-mx-md border border-border-subtle"><Gauge size={12} className="text-brand-primary" /> {Math.floor(Math.random() * 50)}k km</div>
-                                            <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase bg-mx-slate-50/50 p-2 rounded-mx-md border border-border-subtle"><Fuel size={12} className="text-brand-primary" /> Optimized</div>
+                                <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}>
+                                    <Card className="overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 cursor-pointer flex flex-col h-full border-none shadow-mx-lg bg-white">
+                                        <div className="aspect-[16/10] bg-surface-alt relative flex items-center justify-center border-b border-border-default overflow-hidden">
+                                            <Badge variant={item.status === 'Normal' ? 'success' : 'danger'} className="absolute top-4 left-4 font-black text-[8px] px-3 h-6 rounded-lg shadow-sm border-none">
+                                                {item.status === 'Normal' ? 'SAUDÁVEL' : 'CRÍTICO'}
+                                            </Badge>
+                                            <Car size={64} className="text-text-tertiary/20 group-hover:scale-110 transition-transform duration-700" strokeWidth={2.5} />
+                                            <div className="absolute bottom-4 right-4 text-[10px] font-black bg-white/90 backdrop-blur-sm border border-border-default px-4 py-1.5 rounded-full text-text-primary uppercase tracking-widest shadow-mx-sm">
+                                                {item.plate}
+                                            </div>
                                         </div>
-                                        <div className="pt-mx-md border-t border-border-subtle flex items-end justify-between">
-                                            <div><p className="mx-text-caption !text-[8px] mb-1 opacity-40 uppercase">Preço Venda</p><p className="font-black text-xl font-mono-numbers text-text-primary tracking-tighter leading-none">R$ {(item.price / 1000).toFixed(0)}k</p></div>
-                                            <div className="text-right"><p className="mx-text-caption !text-[8px] mb-1 opacity-40 uppercase">Aging</p><p className={cn("font-black text-lg font-mono-numbers leading-none", item.aging > 45 ? "text-status-error" : "text-status-success")}>{item.aging}d</p></div>
+                                        <div className="p-8 flex flex-col justify-between flex-1">
+                                            <div className="mb-8">
+                                                <Typography variant="h3" className="text-lg uppercase group-hover:text-brand-primary transition-colors truncate">{item.model}</Typography>
+                                                <Typography variant="caption" tone="muted" className="text-[8px] mt-1 opacity-60 uppercase tracking-widest font-black">ANO {item.year} • AUTO • FLEX</Typography>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                                <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase bg-surface-alt p-3 rounded-mx-lg border border-border-default shadow-inner">
+                                                    <Gauge size={12} className="text-brand-primary" /> {Math.floor(Math.random() * 50)}K KM
+                                                </div>
+                                                <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase bg-surface-alt p-3 rounded-mx-lg border border-border-default shadow-inner">
+                                                    <Fuel size={12} className="text-brand-primary" /> OPTIMIZED
+                                                </div>
+                                            </div>
+                                            <footer className="pt-6 border-t border-border-default flex items-end justify-between">
+                                                <div>
+                                                    <Typography variant="caption" tone="muted" className="text-[8px] mb-1 opacity-40 uppercase tracking-widest">Preço Venda</Typography>
+                                                    <Typography variant="h1" className="text-2xl tabular-nums tracking-tighter leading-none">R$ {(item.price / 1000).toFixed(0)}k</Typography>
+                                                </div>
+                                                <div className="text-right">
+                                                    <Typography variant="caption" tone="muted" className="text-[8px] mb-1 opacity-40 uppercase tracking-widest">Aging</Typography>
+                                                    <Typography variant="mono" tone={item.aging > 45 ? 'error' : 'success'} className="text-lg leading-none">{item.aging}d</Typography>
+                                                </div>
+                                            </footer>
                                         </div>
-                                    </div>
+                                    </Card>
                                 </motion.div>
                             ))}
                         </motion.div>
                     ) : (
-                        <div className="mx-card overflow-hidden"><table className="w-full text-left min-w-[900px]">
-                            <thead><tr className="bg-mx-slate-50/50 mx-text-caption border-b border-border-default"><th className="pl-mx-lg py-mx-md uppercase tracking-[0.3em]">Ativo Comercial</th><th className="py-mx-md uppercase tracking-[0.3em]">Aging Operacional</th><th className="py-mx-md uppercase tracking-[0.3em]">Valor Unitário</th><th className="py-mx-md uppercase tracking-[0.3em] text-center">Status Saúde</th><th className="pr-mx-lg py-mx-md uppercase tracking-[0.3em] text-right">Gestão</th></tr></thead>
-                            <tbody className="divide-y divide-border-subtle bg-white">
-                                {filteredInventory.map((item) => (
-                                    <tr key={item.id} className="hover:bg-mx-slate-50/50 transition-colors h-20 group border-none">
-                                        <td className="pl-mx-lg py-4"><div className="flex items-center gap-mx-sm"><div className="w-10 h-10 rounded-mx-md bg-mx-slate-50 border border-border-default flex items-center justify-center text-text-tertiary group-hover:bg-brand-secondary group-hover:text-white transition-all"><Car size={20} strokeWidth={2.5} /></div><div><p className="font-black text-sm text-text-primary uppercase tracking-tight group-hover:text-brand-primary transition-colors">{item.model}</p><p className="text-[10px] font-bold text-text-tertiary uppercase mt-0.5">{item.plate} • {item.year}</p></div></div></td>
-                                        <td className="py-4"><div className="flex items-center gap-4"><span className={cn("text-sm font-black font-mono-numbers", item.aging > 45 ? "text-status-error" : "text-status-success")}>{item.aging} dias</span><div className="w-24 h-1.5 bg-mx-slate-100 rounded-full overflow-hidden shadow-inner p-px"><div className={cn("h-full rounded-full transition-all duration-1000", item.aging > 45 ? "bg-status-error shadow-mx-sm" : "bg-status-success")} style={{ width: `${Math.min(item.aging * 2, 100)}%` }}></div></div></div></td>
-                                        <td className="py-4"><p className="font-black text-base text-text-primary font-mono-numbers tracking-tight">R$ {(item.price / 1000).toFixed(0)}k</p></td>
-                                        <td className="py-4 text-center"><Badge variant="outline" className={cn("text-[8px] font-black", item.status === 'Normal' ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-status-error-surface text-status-error border-mx-rose-100")}>{item.status}</Badge></td>
-                                        <td className="pr-mx-lg py-4 text-right"><button className="w-10 h-10 rounded-mx-md bg-mx-slate-50 border border-border-default text-text-tertiary hover:text-text-primary transition-all flex items-center justify-center mx-auto mr-0"><MoreHorizontal size={18} /></button></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table></div>
+                        <Card className="overflow-hidden border-none shadow-mx-lg bg-white">
+                            <div className="overflow-x-auto no-scrollbar">
+                                <table className="w-full text-left min-w-[900px]">
+                                    <thead>
+                                        <tr className="bg-surface-alt/50 border-b border-border-default text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
+                                            <th scope="col" className="pl-10 py-6">ATIVO COMERCIAL</th>
+                                            <th scope="col" className="px-6 py-6 text-center">AGING OPERACIONAL</th>
+                                            <th scope="col" className="px-6 py-6 text-center">VALOR UNITÁRIO</th>
+                                            <th scope="col" className="px-6 py-6 text-center">STATUS SAÚDE</th>
+                                            <th scope="col" className="pr-10 py-6 text-right">GESTÃO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border-default">
+                                        {filteredInventory.map((item) => (
+                                            <tr key={item.id} className="hover:bg-surface-alt/30 transition-colors h-24 group">
+                                                <td className="pl-10">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner">
+                                                            <Car size={22} strokeWidth={2.5} />
+                                                        </div>
+                                                        <div>
+                                                            <Typography variant="h3" className="text-sm uppercase tracking-tight group-hover:text-brand-primary transition-colors">{item.model}</Typography>
+                                                            <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase mt-1">{item.plate} • {item.year}</Typography>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <Typography variant="mono" tone={item.aging > 45 ? 'error' : 'success'} className="text-sm font-black">{item.aging} DIAS</Typography>
+                                                        <div className="w-32 h-1.5 bg-surface-alt rounded-full overflow-hidden shadow-inner p-px border border-border-default">
+                                                            <div className={cn("h-full rounded-full transition-all duration-1000", item.aging > 45 ? "bg-status-error" : "bg-status-success")} style={{ width: `${Math.min(item.aging * 2, 100)}%` }}></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <Typography variant="h3" className="text-lg font-mono-numbers tracking-tight">R$ {(item.price / 1000).toFixed(0)}k</Typography>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <Badge variant={item.status === 'Normal' ? 'success' : 'danger'} className="text-[8px] font-black px-4 shadow-sm border-none uppercase">{item.status}</Badge>
+                                                </td>
+                                                <td className="pr-10 py-4 text-right">
+                                                    <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 shadow-sm">
+                                                        <MoreHorizontal size={20} />
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </main>
     )
 }

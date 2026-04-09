@@ -19,5 +19,5 @@ export async function generateMorningReportXlsx(data: DailyCheckin[]): Promise<B
         });
     });
 
-    return await workbook.xlsx.writeBuffer() as Buffer;
+    return await workbook.xlsx.writeBuffer() as any;
 }

@@ -1,81 +1,90 @@
-import { Shield, Lock, FileText, ChevronRight } from 'lucide-react'
+import { Shield, Lock, FileText, ChevronRight, ShieldCheck, ArrowLeft } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Card, CardContent } from '@/components/molecules/Card'
 
 export default function Privacy() {
     const navigate = useNavigate()
 
     return (
-        <div className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-8 selection:bg-brand-secondary selection:text-white relative overflow-hidden">
+        <main className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-10 selection:bg-brand-primary selection:text-white relative overflow-hidden">
 
             {/* Background Decorations */}
-            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-indigo-50/50 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-emerald-50/30 rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-brand-primary/5 rounded-full blur-[120px] -mr-[25vw] -mt-[25vw] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-status-success-surface rounded-full blur-[100px] -ml-[20vw] -mb-[20vw] pointer-events-none" />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-4xl bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden flex flex-col relative z-10 border border-gray-100"
+                className="w-full max-w-4xl"
             >
-                <div className="bg-brand-secondary p-10 md:p-14 relative overflow-hidden text-center">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent z-0 pointer-events-none" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
+                <Card className="border-none shadow-mx-elite bg-white overflow-hidden flex flex-col relative z-10">
+                    <header className="bg-brand-secondary p-10 md:p-16 relative overflow-hidden text-center">
+                        <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent z-0 pointer-events-none" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] opacity-20 pointer-events-none" />
 
-                    <div className="w-20 h-20 rounded-[2rem] bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/20 relative z-10 border border-indigo-500/30">
-                        <Lock size={32} />
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 relative z-10">Política de Privacidade</h1>
-                    <p className="text-gray-400 font-bold max-w-xl mx-auto opacity-80 relative z-10">Diretrizes de proteção e tratamento de dados corporativos no ecossistema MX PERFORMANCE.</p>
-                </div>
+                        <div className="w-20 h-20 rounded-mx-3xl bg-white/10 text-white flex items-center justify-center mx-auto mb-8 shadow-mx-xl backdrop-blur-xl relative z-10 border border-white/10 group-hover:rotate-6 transition-transform">
+                            <Lock size={32} strokeWidth={2.5} />
+                        </div>
+                        <Typography variant="h1" tone="white" className="text-4xl md:text-5xl mb-4 relative z-10">Política de <span className="text-brand-primary">Privacidade</span></Typography>
+                        <Typography variant="p" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 uppercase tracking-widest font-black text-xs">DIRETRIZES DE PROTEÇÃO & TRATAMENTO DE DADOS MX</Typography>
+                    </header>
 
-                <div className="p-10 md:p-16 space-y-10 text-text-primary">
-                    <div className="prose prose-lg max-w-none">
-                        <p className="text-lg text-gray-500 font-bold mb-8">
-                            A MX PERFORMANCE respeita a privacidade dos seus usuários. Esta política descreve como coletamos, usamos e protegemos as informações trafegadas em nosso sistema, assegurando conformidade com as melhores práticas de governança de dados.
-                        </p>
+                    <CardContent className="p-10 md:p-20 space-y-14">
+                        <div className="space-y-10">
+                            <Typography variant="p" className="text-xl font-bold text-text-secondary leading-relaxed border-l-4 border-brand-primary pl-8 italic">
+                                "A MX PERFORMANCE assegura a integridade absoluta dos dados operacionais, utilizando protocolos de criptografia militar e governança baseada em privilégios mínimos."
+                            </Typography>
 
-                        <div className="grid md:grid-cols-2 gap-8 mb-12">
-                            <div className="bg-surface-alt p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-indigo-100 transition-all">
-                                <FileText size={24} className="text-indigo-500 mb-6 group-hover:scale-110 transition-transform" />
-                                <h2 className="text-xl font-black mb-3 tracking-tight">Coleta de Métricas</h2>
-                                <p className="text-sm font-bold text-gray-500 leading-relaxed">
-                                    Registramos dados operacionais (volume de vendas, prospectos, agendamentos, conversões) alimentados voluntariamente pelos usuários em suas rotinas de check-in para gerar inteligência comercial.
-                                </p>
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <Card className="bg-surface-alt p-10 rounded-[2.5rem] border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
+                                    <div className="w-14 h-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+                                        <FileText size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Coleta de Métricas</Typography>
+                                    <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed">
+                                        Registramos volumes transacionais e KPIs operacionais alimentados voluntariamente para gerar a malha de inteligência preditiva da rede.
+                                    </Typography>
+                                </Card>
+
+                                <Card className="bg-surface-alt p-10 rounded-[2.5rem] border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
+                                    <div className="w-14 h-14 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+                                        <Shield size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Privilégios RLS</Typography>
+                                    <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed">
+                                        O acesso é isolado por Row-Level Security, garantindo que cada membro visualize rigorosamente apenas o que compete à sua hierarquia.
+                                    </Typography>
+                                </Card>
                             </div>
 
-                            <div className="bg-surface-alt p-8 rounded-[2.5rem] border border-gray-100 group hover:bg-white hover:shadow-xl hover:border-emerald-100 transition-all">
-                                <Shield size={24} className="text-emerald-500 mb-6 group-hover:scale-110 transition-transform" />
-                                <h2 className="text-xl font-black mb-3 tracking-tight">Aplicação Analítica</h2>
-                                <p className="text-sm font-bold text-gray-500 leading-relaxed">
-                                    As informações formam a base do nosso motor preditivo, alimentando dashboards de performance, matrizes de ranking e diagnósticos gerenciais de forma exclusiva dentro do ambiente do sistema.
-                                </p>
+                            <div className="space-y-6 pt-10 border-t border-border-default">
+                                <header className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-mx-lg bg-mx-black text-indigo-400 flex items-center justify-center shadow-mx-lg"><ShieldCheck size={20} /></div>
+                                    <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Arquitetura de Blindagem</Typography>
+                                </header>
+                                <Typography variant="p" tone="muted" className="text-base font-bold leading-relaxed">
+                                    Implementamos protocolos imutáveis de log para cada alteração no sistema. Os dados são processados em conformidade com as melhores práticas de cibersegurança global, mantendo a soberania da informação dentro do ecossistema corporativo.
+                                </Typography>
                             </div>
                         </div>
 
-                        <div className="space-y-6">
-                            <h2 className="text-2xl font-black tracking-tighter flex items-center gap-3">
-                                <Lock className="text-indigo-500" size={24} /> Arquitetura de Segurança
-                            </h2>
-                            <p className="text-gray-500 font-bold leading-relaxed">
-                                Implementamos protocolos rigorosos de criptografia em trânsito e em repouso. O controle de acesso é gerenciado através de Políticas de Segurança em Nível de Linha (Row-Level Security - RLS), garantindo que os usuários acessem rigorosamente apenas os conjuntos de dados pertinentes às suas credenciais e nível hierárquico.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="pt-10 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-text-primary flex items-center gap-2 transition-colors px-6 py-3 rounded-full hover:bg-gray-50"
-                        >
-                            Voltar ao Sistema
-                        </button>
-                        <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest text-center sm:text-right">
-                            MX CONSULTORIA LTDA © {new Date().getFullYear()} <br /> Todos os direitos reservados.
-                        </p>
-                    </div>
-                </div>
+                        <footer className="pt-10 border-t border-border-default flex flex-col sm:flex-row items-center justify-between gap-10">
+                            <Button variant="ghost" onClick={() => navigate(-1)} className="text-[10px] font-black uppercase tracking-[0.3em] text-text-tertiary hover:text-brand-primary">
+                                <ArrowLeft size={16} className="mr-2" /> VOLTAR AO SISTEMA
+                            </Button>
+                            <div className="text-center sm:text-right space-y-1">
+                                <Typography variant="caption" tone="muted" className="text-[9px] font-black uppercase tracking-widest opacity-40">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
+                                <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase tracking-[0.4em] opacity-20">PROTOCOLO AIOX SECURITY</Typography>
+                            </div>
+                        </footer>
+                    </CardContent>
+                </Card>
             </motion.div>
-        </div>
+        </main>
     )
 }
