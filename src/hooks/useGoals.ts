@@ -121,3 +121,29 @@ export function useStoreMetaRules(storeIdOverride?: string) {
 
     return { metaRules, loading, fetchMetaRules }
 }
+
+export function useStoreGoal(storeId: string | null) {
+    const [goal, setGoal] = useState<{ target: number } | null>(null)
+    const [loading, setLoading] = useState(true)
+
+    const fetch = useCallback(async () => {
+        if (!storeId) {
+            setGoal(null)
+            setLoading(false)
+            return
+        }
+        setLoading(true)
+        const { data } = await supabase
+            .from('store_meta_rules')
+            .select('monthly_goal')
+            .eq('store_id', storeId)
+            .maybeSingle()
+
+        if (data) setGoal({ target: data.monthly_goal || 0 })
+        else setGoal({ target: 0 })
+        setLoading(false)
+    }, [storeId])
+
+    useEffect(() => { fetch() }, [fetch])
+    return { goal, loading, refetch: fetch }
+}

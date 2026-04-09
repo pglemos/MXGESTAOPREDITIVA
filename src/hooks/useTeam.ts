@@ -151,3 +151,58 @@ export function useStores() {
     useEffect(() => { fetchStores() }, [fetchStores])
     return { stores, loading, createStore, updateStore, refetch: fetchStores }
 }
+
+export function useMemberships() {
+    const { role } = useAuth()
+    const [memberships, setMemberships] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetch = useCallback(async () => {
+        setLoading(true)
+        const { data } = await supabase.from('memberships').select('*, store:store_id(name)')
+        if (data) setMemberships(data)
+        setLoading(false)
+    }, [])
+
+    useEffect(() => { fetch() }, [fetch])
+    return { memberships, loading, refetch: fetch }
+}
+
+export function useSellersByStore(storeId: string | null) {
+    const [sellers, setSellers] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const referenceDate = calculateReferenceDate()
+
+    const fetch = useCallback(async () => {
+        if (!storeId) {
+            setSellers([])
+            setLoading(false)
+            return
+        }
+        setLoading(true)
+        const { data: sellersData } = await supabase
+            .from('store_sellers')
+            .select('*, users:seller_user_id(*)')
+            .eq('store_id', storeId)
+            .eq('is_active', true)
+
+        const { data: checkins } = await supabase
+            .from('daily_checkins')
+            .select('seller_user_id')
+            .eq('store_id', storeId)
+            .eq('reference_date', referenceDate)
+
+        const checkedIn = new Set(checkins?.map(c => c.seller_user_id) || [])
+
+        if (sellersData) {
+            setSellers(sellersData.map((s: any) => ({
+                ...s.users,
+                checkin_today: checkedIn.has(s.seller_user_id)
+            })))
+        }
+        setLoading(false)
+    }, [storeId, referenceDate])
+
+    useEffect(() => { fetch() }, [fetch])
+    return { sellers, loading, refetch: fetch }
+}
