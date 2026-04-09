@@ -1,64 +1,168 @@
-# EPIC: Módulo de PDI (Plano de Desenvolvimento Individual) - Sistematização Completa e End-to-End
+# *epic — Módulo PDI MX 360º (Revisado v2)
 
-## 1. Visão Geral e Objetivo
-Digitalizar e sistematizar a Fase 2 do PMR (Programa de Maximização de Resultados) - o PDI. O módulo deve ser a representação exata e fiel dos artefatos da MX Escola de Negócios (Planilhas, PDFs, Matrizes de Competência e Ações), garantindo que o gerente conduza a sessão em 45 minutos com altíssima precisão e que o sistema ofereça as diretrizes, textos inspiracionais e as métricas preditivas exatas da metodologia.
+## 1. Nome do épico
+**PDI MX 360º — Sistematização fiel, operacional e auditável do Plano de Desenvolvimento Individual da MX**
 
-## 2. Dicionário de Dados e Parâmetros Fixos da Metodologia (Obrigatório)
+## 2. Objetivo do épico
+Digitalizar integralmente o PDI legado da MX, com fidelidade metodológica ao workbook e ao documento de aplicação, permitindo:
+- condução da sessão em 45 minutos
+- avaliação por competências e cargo
+- escolha de 5 ações principais
+- geração de bundle documental
+- acompanhamento mensal
+- evidências e aprovação
+- governança por papel
 
-### 2.1. Escala de Níveis de Cargo (A matriz de pontuação)
-O sistema deve suportar as 5 faixas de avaliação, baseadas no cargo:
-*   **Nível 1 (1 a 5 pontos):** Higienizador, Auxiliar de Serviços Gerais, Pré-vendedor
-*   **Nível 2 (6 a 10 pontos):** Consultor de Vendas, Administrativo *(Foco Principal)*
-*   **Nível 3 (11 a 15 pontos):** Gerente Comercial
-*   **Nível 4 (16 a 20 pontos):** Diretor Comercial
-*   **Nível 5 (21 a 25 pontos):** CEO
+## 3. Problema real
+A primeira versão do pacote (plan/epic/stories) evoluiu bem, mas ainda deixava lacunas importantes:
+- não distinguia com rigor o que é **documento de referência interna** do que é **bundle oficial impresso**
+- não travava os **textos exatos** de critérios, indicadores e ações sugeridas
+- não explicitava a página “Vendedor 1” como artefato híbrido:
+  - tabela de competências
+  - radar
+  - ação/data/impacto/custo/competência
+- não tratava com total clareza a coexistência de:
+  - 5 ações principais do plano
+  - ações para medição da competência
+  - ações para alcançar objetivos pessoais
+- não congelava o ritual de 45 minutos como fluxo rigidamente guiado
 
-### 2.2. Catálogo de Competências e Indicadores
-A avaliação deve trazer obrigatoriamente a *Descrição* e o *Indicador* na tela para orientar o gestor.
+## 4. Escopo obrigatório
+### 4.1 Artefatos de referência interna
+Devem existir no sistema como biblioteca metodológica:
+- Critério de Competências
+- Ações de Desenvolvimento
+- Equação da Motivação
+- Frases inspiracionais
+- Catálogo de descritores por nível
+- Catálogo de ações sugeridas por competência
 
-**TÉCNICAS (Alvo sempre o máximo da faixa do cargo, ex: 10 para Vendedor)**
-1.  **Planejamento:** Ser capaz de chegar na loja e organizar o dia, cumprindo rotina de contatos, prospecção e agendamentos. *(Indicador: Qualitativo)*
-2.  **Atendimento ao Cliente:** Gerar conexão (empatia), levantar necessidades, demonstrar produto e escuta ativa. *(Indicador: 1- Conversão atendimento/venda, 2- Volume de indicações)*
-3.  **Agendamento de Visitas:** Agendar diariamente com clientes. *(Indicador: Conversão de leads em visitas)*
-4.  **Fechamento de Venda:** Leitura do cliente (linguagem corporal), conduzir fechamento e quebrar objeções. *(Indicador: Conversão de atendimento em venda)*
-5.  **Carteira de Clientes:** Vender com consistência por meio da carteira. *(Indicador: Volume de vendas na carteira)*
-6.  **Mídias Sociais:** Explorar redes sociais para gerar negócios com consistência. *(Indicador: Volume de vendas na carteira)*
-7.  **Prospecção:** Cumprir rotina diária (contato ativo, redes sociais, etc). *(Indicador: Volume de vendas na carteira)*
-8.  **Avaliação de Carro:** Analisar veículo, verificar condições de mercado e negociar baseado em fatos/dados. *(Indicador: Qualitativo)*
-9.  **Financiamentos:** Compreender regras de cada agente, usar dados do mercado para persuadir. *(Indicador: Qualitativo)*
-10. **Processos:** Cumprir processos da empresa com margem de erro mínima. *(Indicador: Quantidade de erros)*
+### 4.2 Artefatos obrigatórios do bundle final
+Devem ser gerados ao concluir a sessão:
+1. **Capa do PDI**
+2. **Vendedor 1 / Mapa de Competências**
+3. **PDI tabular**
+4. **Equação da Motivação (opcional por configuração, mas suportada pelo sistema)**
 
-**COMPORTAMENTAIS**
-1.  **Pontualidade:** Cumprir horário de chegada. *(Indicador: Qualitativo)*
-2.  **Senso de Urgência:** Entregar a meta no menor tempo possível. *(Indicador: Qualitativo)*
-3.  **Iniciativa:** Ser proativo, cumprir obrigações sem precisar ser orientado. *(Indicador: Qualitativo)*
-4.  **Organização:** Demonstra organização suficiente para rotina da empresa. *(Indicador: Qualitativo)*
-5.  **Liderança:** Promover ambiente agregador e contribuir fora da função. *(Indicador: Qualitativo)*
-6.  **Relacionamento Interpessoal:** Trabalhar em equipe. *(Indicador: Qualitativo)*
-7.  **Persistência:** Não desiste facilmente dos clientes. *(Indicador: Qualitativo)*
-8.  **Resiliência:** Capacidade de superação. *(Indicador: Qualitativo)*
+Importante: o documento de aplicação manda imprimir ao final **Capa, Vendedor 1 e PDI** fileciteturn136file3
 
-### 2.3. Catálogo Automático de Ações de Desenvolvimento
-Baseado na competência que teve a menor nota, o sistema deve **sugerir** as ações exatas da metodologia MX:
-*   *Exemplos:* Para Fechamento de Venda -> "Ler o livro 'A Bíblia de Vendas'"; Para Resiliência -> "Assistir o filme 'A procura da Felicidade' e refletir". (O catálogo completo com as mais de 25 ações predefinidas da planilha deve estar no banco de dados).
+### 4.3 Fluxo obrigatório de 45 minutos
+1. Metas (7 min)
+2. Mapeamento da capacidade (10 min)
+3. Escolha de 5 ações (11 min)
+4. Fechamento, explicação do próximo passo e impressão do PDI fileciteturn136file3
 
-## 3. O Fluxo de 45 Minutos do PDI (Pauta Exata)
+### 4.4 Perfis obrigatórios
+- **Admin**
+- **Dono**
+- **Gerente**
+- **Vendedor**
 
-1.  **PDI – Metas (7 minutos):**
-    *   Coletar 3 metas para 6 meses (Curto Prazo). Mínimo 1 pessoal, 1 profissional.
-    *   Coletar 3 metas para 12 meses (Médio Prazo). Mínimo 1 pessoal, 1 profissional.
-    *   Coletar 3 metas para 24 meses (Longo Prazo). Mínimo 1 pessoal, 1 profissional.
-    *   *Na interface:* Frases para inspirar ("Comprometa-se com suas metas...", "Disciplina é a ponte entre metas e realizações.").
-2.  **Mapeamento de Capacidade (10 minutos):**
-    *   Gestor lê as características (Descrições) e o avaliado dá uma nota (Para Vendedor: 6 a 10).
-3.  **Ações de Desenvolvimento (11 minutos):**
-    *   Gestor escolhe **exatamente 5 ações** para os próximos 6 meses com base nas maiores lacunas (menores notas do Radar).
-    *   Ações devem possuir os atributos da planilha: **Ação, Data de Conclusão, Impacto, Custo, Competência Associada, Status e Evidências**.
-4.  **Fechamento & Impressão:**
-    *   Explicar próximo passo (acompanhamento mensal).
-    *   Exibir a Equação da Motivação: **$ (Remuneração) = QI (Qualificação Individual) + DC (Demanda do Cargo)**.
-    *   Sistema deve gerar PDF completo formatado idêntico à planilha para impressão.
+## 5. Catálogo obrigatório da metodologia
+### 5.1 Níveis de cargo
+- Nível 1: 1–5
+- Nível 2: 6–10
+- Nível 3: 11–15
+- Nível 4: 16–20
+- Nível 5: 21–25
 
-## 4. Acompanhamento (Pós-Sessão)
-*   **Ações para Alcançar Objetivos Pessoais:** Tabela onde o colaborador mapeia Características, Itens a Desenvolver, Ação, Data, Status e insere as **Evidências** (fotos, arquivos).
-*   Dashboard cruzando o Impacto x Custo das ações para priorização.
+### 5.2 Competências obrigatórias
+#### Técnicas
+1. Planejamento
+2. Atendimento ao Cliente
+3. Agendamento de Visitas
+4. Fechamento de Venda
+5. Carteira de Clientes
+6. Mídias Sociais
+7. Prospecção
+8. Avaliação de Carro
+9. Financiamentos
+10. Processos
+
+#### Comportamentais
+1. Pontualidade
+2. Senso de Urgência
+3. Iniciativa
+4. Organização
+5. Liderança
+6. Relacionamento Interpessoal
+7. Persistência
+8. Resiliência
+
+### 5.3 Escala obrigatória
+Ordem fixa:
+- Atingiu plenamente
+- Demonstra na maioria das vezes
+- Demonstra em alguns momentos
+- Demonstra raramente
+- Nunca demonstrou
+
+### 5.4 Ações sugeridas obrigatórias
+O sistema deve conter o catálogo oficial com os textos exatos do legado, tanto para competências técnicas quanto comportamentais.
+
+## 6. Regras de negócio obrigatórias
+1. Cada prazo (6, 12, 24 meses) deve ter **até 3 metas**
+2. Cada prazo exige no mínimo:
+   - 1 meta pessoal
+   - 1 meta profissional
+3. A nota permitida depende do nível/cargo
+4. O alvo da competência é sempre o topo da faixa do cargo
+5. O gerente precisa escolher **exatamente 5 ações principais**
+6. As ações principais precisam registrar:
+   - competência associada
+   - ação
+   - data limite
+   - impacto
+   - custo
+   - status
+   - evidência esperada
+7. O vendedor não pode alterar:
+   - metas
+   - notas
+   - top gaps
+8. O vendedor pode:
+   - atualizar status
+   - anexar evidência
+9. O gerente pode:
+   - aprovar ou rejeitar evidência
+   - revisar mensalmente
+10. O dono acompanha em visão executiva sem operar como gerente
+11. O admin governa catálogos, templates, auditoria e métricas
+
+## 7. Entregáveis do épico
+- domínio PDI completo
+- catálogos oficiais seedados
+- cockpit do gerente
+- motor de critérios e recomendação
+- bundle documental fiel
+- portal do vendedor
+- follow-up mensal
+- workflow de aprovação de evidências
+- observabilidade e auditoria
+- QA/homologação metodológica
+
+## 8. Histórias do épico
+1. Story 01 — Fundação de Domínio, Catálogos, Seeds e RLS
+2. Story 02 — Cockpit do Gerente (Wizard 45 min)
+3. Story 03 — Vendedor 1 / Radar / Gaps / Ações para Medição
+4. Story 04 — Bundle Documental (Capa + Vendedor 1 + PDI)
+5. Story 05 — Motor de Critérios, Escalas e Ações Sugeridas
+6. Story 06 — Portal do Colaborador e Objetivos Pessoais
+7. Story 07 — Follow-up Mensal, Evidências e Aprovação
+8. Story 08 — Governança, Observabilidade e QA MX
+
+## 9. Critério de sucesso do épico
+O épico só termina quando o sistema:
+- reproduzir com fidelidade funcional a metodologia MX
+- conduzir o gerente dentro do ritual de 45 minutos
+- suportar integralmente os 4 perfis
+- imprimir o bundle final correto
+- sustentar o acompanhamento pós-sessão
+- passar em homologação metodológica e visual
+
+## 10. Não-negociáveis
+- nada de “texto aproximado” para competência, indicador e ação sugerida
+- nada de PDF parcial sem Capa + Vendedor 1 + PDI
+- nada de dono operando como gerente
+- nada de vendedor alterando avaliação
+- nada de radar sem top 5 lacunas e alvo por cargo

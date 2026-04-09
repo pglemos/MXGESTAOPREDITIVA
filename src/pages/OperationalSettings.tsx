@@ -171,7 +171,7 @@ export default function OperationalSettings() {
                                         variant={settings[s.field as keyof typeof settings] ? 'secondary' : 'outline'}
                                         onClick={() => setSettings(p => ({ ...p, [s.field]: !p[s.field as keyof typeof settings] }))}
                                         className="w-24 h-12 rounded-full font-black text-[10px] shadow-sm bg-white"
-                                        aria-pressed={settings[s.field as keyof typeof settings]}
+                                        aria-pressed={!!settings[s.field as keyof typeof settings]}
                                     >
                                         {settings[s.field as keyof typeof settings] ? 'ATIVADO' : 'OFF'}
                                     </Button>
