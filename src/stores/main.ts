@@ -1,15 +1,5 @@
 import { ReactNode, useSyncExternalStore } from 'react'
-import {
-    mockLeads,
-    mockInventory,
-    mockTeam,
-    mockTasks,
-    mockCommissions,
-    mockCommissionRules,
-    mockGoals,
-    mockAgencies,
-    mockAuditLogs,
-} from '@/lib/mock-data'
+import { supabase } from '@/lib/supabase'
 import type {
     Agency,
     Commission,
@@ -76,20 +66,24 @@ type StoreState = {
     auditLogs: any[]
     activeAgencyId: string | null
     chainedFunnel: boolean
+    isLoading: boolean
+    error: string | null
 }
 
 const storeState: StoreState = {
-    tasks: [...mockTasks] as any[],
-    commissions: [...mockCommissions],
-    commissionRules: [...mockCommissionRules],
-    goals: [...mockGoals] as any[],
-    team: [...mockTeam],
-    leads: [...mockLeads] as any[],
-    inventory: [...mockInventory] as any[],
-    agencies: [...mockAgencies],
-    auditLogs: [...mockAuditLogs],
-    activeAgencyId: mockAgencies[0]?.id || null,
+    tasks: [],
+    commissions: [],
+    commissionRules: [],
+    goals: [],
+    team: [],
+    leads: [],
+    inventory: [],
+    agencies: [],
+    auditLogs: [],
+    activeAgencyId: null,
     chainedFunnel: true,
+    isLoading: true,
+    error: null,
 }
 
 const listeners = new Set<() => void>()
@@ -111,109 +105,45 @@ function id(prefix: string) {
     return `${prefix}-${crypto.randomUUID()}`
 }
 
-function createTask(data: Omit<Task, 'id' | 'status'> & { status?: TaskStatus }): Task {
-    return {
-        id: id('task'),
-        status: data.status || 'pendente',
-        ...data,
-    } as any
-}
-
-function createCommissionRule(data: Omit<CommissionRule, 'id'>): CommissionRule {
-    return { id: id('rule'), ...data }
-}
-
-function createGoal(data: Omit<Goal, 'id'>): Goal {
-    return { id: id('goal'), ...data }
-}
-
-function createCommission(data: Omit<Commission, 'id'>): Commission {
-    return { id: id('com'), ...data }
-}
-
-function createLead(data: Omit<Lead, 'id'>): Lead {
-    return { id: id('lead'), ...data } as any
-}
-
 const actions = {
-    refetch: async () => {},
-    addTask(data: Omit<Task, 'id' | 'status'> & { status?: TaskStatus }) {
-        storeState.tasks = [createTask(data), ...storeState.tasks]
+    refetch: async () => {
+        storeState.isLoading = true
         emit()
-    },
-    updateTask(idValue: string, updates: Partial<Task>) {
-        storeState.tasks = storeState.tasks.map(task => task.id === idValue ? { ...task, ...updates } : task) as any[]
-        emit()
-    },
-    deleteTask(idValue: string) {
-        storeState.tasks = storeState.tasks.filter(task => task.id !== idValue)
-        emit()
-    },
-    addCommissionRule(data: Omit<CommissionRule, 'id'>) {
-        storeState.commissionRules = [createCommissionRule(data), ...storeState.commissionRules]
-        emit()
-    },
-    updateCommissionRule(idValue: string, updates: Partial<CommissionRule>) {
-        storeState.commissionRules = storeState.commissionRules.map(rule => rule.id === idValue ? { ...rule, ...updates } : rule)
-        emit()
-    },
-    deleteCommissionRule(idValue: string) {
-        storeState.commissionRules = storeState.commissionRules.filter(rule => rule.id !== idValue)
-        emit()
-    },
-
-    setGoal(goal: Omit<Goal, 'id'> & { id?: string }) {
-        if (goal.id) {
-            storeState.goals = storeState.goals.map(item => item.id === goal.id ? { ...item, ...goal } : item)
-        } else {
-            storeState.goals = [createGoal(goal), ...storeState.goals]
+        try {
+            // Buscando todos os registros para uma agregação completa no store
+            const { data, error } = await supabase.from('daily_checkins').select('*')
+            if (error) throw error
+            
+            storeState.leads = data || []
+            storeState.isLoading = false
+            console.log('Dados carregados:', data.length)
+        } catch (error) {
+            console.error('Error refetching:', error)
+            storeState.error = 'Failed to fetch data'
+            storeState.isLoading = false
         }
         emit()
     },
-    deleteGoal(idValue: string) {
-        storeState.goals = storeState.goals.filter(goal => goal.id !== idValue)
-        emit()
-    },
-    addCommission(data: Omit<Commission, 'id'>) {
-        storeState.commissions = [createCommission(data), ...storeState.commissions]
-        emit()
-    },
-    addLead(data: Omit<Lead, 'id'>) {
-        storeState.leads = [createLead(data), ...storeState.leads]
-        emit()
-    },
-    updateLead(idValue: string, updates: Partial<Lead>) {
-        storeState.leads = storeState.leads.map(lead => lead.id === idValue ? { ...lead, ...updates } : lead)
-        emit()
-    },
-    deleteLead(idValue: string) {
-        storeState.leads = storeState.leads.filter(lead => lead.id !== idValue)
-        emit()
-    },
-    addTeamMember(member: TeamMember) {
-        storeState.team = [{ ...member, id: member.id || id('team') }, ...storeState.team]
-        emit()
-    },
-    updateTeamMember(idValue: string, updates: Partial<TeamMember>) {
-        storeState.team = storeState.team.map(member => member.id === idValue ? { ...member, ...updates } : member)
-        emit()
-    },
-    deleteTeamMember(idValue: string) {
-        storeState.team = storeState.team.filter(member => member.id !== idValue)
+    addTask(data: any) {
+        storeState.tasks = [data, ...storeState.tasks]
         emit()
     },
     setActiveAgency(idValue: string | null) {
         storeState.activeAgencyId = idValue
         emit()
     },
-    toggleChainedFunnel(value?: boolean) {
-        storeState.chainedFunnel = value ?? !storeState.chainedFunnel
-        emit()
-    },
 }
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
     return children as any
+}
+
+export default function useAppStore() {
+    const state = useSyncExternalStore(subscribe, snapshot, snapshot)
+    return {
+        ...state,
+        ...actions,
+    }
 }
 
 export function useUsers() {
@@ -227,18 +157,10 @@ export function useFinance() {
         commissions: state.commissions,
         commissionRules: state.commissionRules,
         goals: state.goals,
-        addCommissionRule: state.addCommissionRule,
-        updateCommissionRule: state.updateCommissionRule,
-        deleteCommissionRule: state.deleteCommissionRule,
+        addCommissionRule: (data: any) => {}, 
+        updateCommissionRule: (id: string, updates: any) => {},
+        deleteCommissionRule: (id: string) => {},
         refetch: state.refetch
-    }
-}
-
-export default function useAppStore() {
-    const state = useSyncExternalStore(subscribe, snapshot, snapshot)
-    return {
-        ...state,
-        ...actions,
     }
 }
 

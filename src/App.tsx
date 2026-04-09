@@ -74,17 +74,11 @@ const withLegacyShell = (node: React.ReactNode) => (
 )
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading, initialized, supabaseUser } = useAuth()
+  const { profile, loading, initialized } = useAuth()
   const location = useLocation()
   
-  // Debug log for auth state
-  React.useEffect(() => {
-    console.log('Audit Info [ProtectedRoute]:', { initialized, loading, hasSupabaseUser: !!supabaseUser, hasProfile: !!profile })
-  }, [initialized, loading, supabaseUser, profile])
-
   if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-slate-950"><Spinner /></div>
   if (!profile) {
-    console.warn('Audit Warn [ProtectedRoute]: No profile found, redirecting to login.')
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   return <>{children}</>

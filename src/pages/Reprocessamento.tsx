@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Database, RefreshCw, ShieldAlert, CheckCircle2, AlertTriangle, Clock, Upload, FileType, Table, Download, ShieldCheck, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Database, RefreshCw, ShieldAlert, CheckCircle2, AlertTriangle, Clock, Upload, FileType, Table, Download, ShieldCheck, TrendingUp, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { parseCSV, validateHeaders, MANDATORY_HEADERS, ParsedCSVRow } from '@/lib/csv-parser'
-import { format } from 'date-fns'
 
 type ReprocessLog = {
     id: string
@@ -65,11 +64,11 @@ export default function Reprocessamento() {
 
     if (role !== 'admin') {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] p-10 text-center">
-                <ShieldCheck size={48} className="text-gray-200 mb-6" />
-                <h3 className="text-2xl font-black text-pure-black tracking-tight mb-2">Acesso Restrito</h3>
-                <p className="text-gray-400 text-sm font-bold max-w-xs mx-auto">Reprocessamento é exclusivo do admin da MX PERFORMANCE.</p>
-            </div>
+            <main className="flex flex-col items-center justify-center min-h-[60vh] p-10 text-center bg-white">
+                <ShieldCheck size={48} className="text-gray-200 mb-6" aria-hidden="true" />
+                <h1 className="text-2xl font-black text-pure-black tracking-tight mb-2 uppercase">Acesso Restrito</h1>
+                <p className="text-gray-500 text-sm font-bold max-w-sm mx-auto">Reprocessamento é exclusivo do admin da MX PERFORMANCE.</p>
+            </main>
         )
     }
 
@@ -158,69 +157,71 @@ export default function Reprocessamento() {
 
     const getStatusConfig = (status: string) => {
         switch (status) {
-            case 'completed': return { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Sucesso' }
-            case 'pending': return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', label: 'Aguardando' }
-            case 'processing': return { icon: RefreshCw, color: 'text-indigo-600', bg: 'bg-indigo-50', label: 'Processando' }
-            case 'failed': return { icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-50', label: 'Erro Base' }
-            default: return { icon: Clock, color: 'text-gray-400', bg: 'bg-gray-100', label: status }
+            case 'completed': return { icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-50', label: 'Sucesso' }
+            case 'pending': return { icon: Clock, color: 'text-amber-700', bg: 'bg-amber-50', label: 'Aguardando' }
+            case 'processing': return { icon: RefreshCw, color: 'text-indigo-700', bg: 'bg-indigo-50', label: 'Processando' }
+            case 'failed': return { icon: AlertTriangle, color: 'text-rose-700', bg: 'bg-rose-50', label: 'Erro Base' }
+            default: return { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: status }
         }
     }
 
     return (
-        <div className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10 bg-white">
+        <main className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10 bg-white">
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-rose-600 rounded-full shadow-[0_0_15px_rgba(225,29,72,0.4)]" />
+                        <div className="w-2 h-10 bg-rose-600 rounded-full shadow-[0_0_15px_rgba(225,29,72,0.4)]" aria-hidden="true" />
                         <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase text-slate-950">
                             Motor de <span className="text-rose-600">Reprocessamento</span>
                         </h1>
                     </div>
                     <div className="flex items-center gap-3 pl-6 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-amber-500 shadow-lg animate-pulse" />
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Operações Forenses & Reparo de Base</p>
+                        <div className="w-2 h-2 rounded-full bg-amber-500 shadow-lg animate-pulse" aria-hidden="true" />
+                        <p className="text-gray-500 text-xs font-black uppercase tracking-[0.4em]">Operações Forenses & Reparo de Base</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
-                    <Link to="/configuracoes" className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all active:scale-90">
-                        <ArrowLeft size={20} />
+                    <Link to="/configuracoes" aria-label="Voltar para configurações" className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all active:scale-90 focus-visible:ring-4 focus-visible:ring-indigo-500/10 outline-none">
+                        <ArrowLeft size={20} aria-hidden="true" />
                     </Link>
-                    <button onClick={fetchLogs} className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all active:scale-90">
-                        <RefreshCw size={20} className={cn(loading && "animate-spin")} />
+                    <button onClick={fetchLogs} aria-label="Atualizar logs de reprocessamento" className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black transition-all active:scale-90 focus-visible:ring-4 focus-visible:ring-indigo-500/10 outline-none">
+                        <RefreshCw size={20} className={cn(loading && "animate-spin")} aria-hidden="true" />
                     </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-32">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pb-32">
 
                 {/* Administrative Terminal */}
-                <div className="lg:col-span-5 flex flex-col gap-mx-lg">
+                <section className="lg:col-span-5 flex flex-col gap-10" aria-labelledby="terminal-title">
                     <div className="bg-slate-950 rounded-[2.5rem] p-10 text-white space-y-10 relative overflow-hidden shadow-2xl border border-white/5">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/20 rounded-full blur-[100px] -mr-32 -mt-32 animate-pulse" />
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[80px] -ml-24 -mb-24" />
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/20 rounded-full blur-[100px] -mr-32 -mt-32 animate-pulse" aria-hidden="true" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[80px] -ml-24 -mb-24" aria-hidden="true" />
 
                         <div className="space-y-2 relative z-10">
-                            <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-                                <Database size={24} className="text-rose-500" /> Terminal de Reparo
-                            </h3>
-                            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                            <h2 id="terminal-title" className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                                <Database size={24} className="text-rose-500" aria-hidden="true" /> Terminal de Reparo
+                            </h2>
+                            <p className="text-white/50 text-[10px] font-black uppercase tracking-widest leading-relaxed">
                                 Use esta ferramenta para corrigir inconsistências históricas ou importar dados em massa seguindo a metodologia MX.
                             </p>
                         </div>
 
                         <div className="space-y-8 relative z-10">
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-2">Origem dos Dados</label>
-                                <div 
+                                <label htmlFor="csv-upload-trigger" className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-2">Origem dos Dados</label>
+                                <button 
+                                    id="csv-upload-trigger"
+                                    type="button"
                                     onClick={() => fileInputRef.current?.click()}
                                     className={cn(
-                                        "border-2 border-dashed rounded-[2rem] p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group",
+                                        "w-full border-2 border-dashed rounded-[2rem] p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group outline-none focus-visible:ring-4 focus-visible:ring-rose-500/20",
                                         importData.length > 0 ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/10 hover:border-rose-500/50 hover:bg-white/5"
                                     )}
                                 >
-                                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv" className="hidden" />
+                                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv" className="hidden" aria-hidden="true" />
                                     <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all", importData.length > 0 ? "bg-emerald-500 text-white" : "bg-white/5 text-white/20 group-hover:text-rose-500")}>
                                         {importData.length > 0 ? <ShieldCheck size={28} /> : <Upload size={28} />}
                                     </div>
@@ -228,56 +229,60 @@ export default function Reprocessamento() {
                                         <p className="text-xs font-black uppercase tracking-widest">{importData.length > 0 ? 'Arquivo Validado' : 'Carregar Planilha CSV'}</p>
                                         <p className="text-[9px] font-bold text-white/30 uppercase mt-1">Headers mandatórios: {MANDATORY_HEADERS.join(', ')}</p>
                                     </div>
-                                </div>
+                                </button>
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-2">Escopo do Reparo</label>
-                                <select 
-                                    value={selectedStore}
-                                    onChange={(e) => setSelectedStore(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white focus:outline-none focus:border-rose-500 transition-all appearance-none cursor-pointer backdrop-blur-md hover:bg-white/10"
-                                >
-                                    <option value="all" className="bg-slate-900">TODAS AS UNIDADES OPERACIONAIS</option>
-                                    {stores.map(s => <option key={s.id} value={s.id} className="bg-slate-900 text-white">{s.name.toUpperCase()}</option>)}
-                                </select>
+                                <label htmlFor="scope-select" className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-2">Escopo do Reparo</label>
+                                <div className="relative">
+                                    <select 
+                                        id="scope-select"
+                                        value={selectedStore}
+                                        onChange={(e) => setSelectedStore(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white focus:outline-none focus:border-rose-500 transition-all appearance-none cursor-pointer backdrop-blur-md hover:bg-white/10 outline-none focus-visible:ring-4 focus-visible:ring-rose-500/20"
+                                    >
+                                        <option value="all" className="bg-slate-900">TODAS AS UNIDADES OPERACIONAIS</option>
+                                        {stores.map(s => <option key={s.id} value={s.id} className="bg-slate-900 text-white">{s.name.toUpperCase()}</option>)}
+                                    </select>
+                                </div>
                             </div>
 
                             <button 
                                 onClick={handleReprocess}
                                 disabled={executing || (importData.length === 0 && selectedStore === 'all')}
-                                className="w-full py-6 rounded-full bg-rose-600 text-white font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-30 shadow-xl"
+                                className="w-full py-6 rounded-full bg-rose-600 text-white font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-30 shadow-xl focus-visible:ring-4 focus-visible:ring-rose-500/20 outline-none"
                             >
-                                {executing ? <RefreshCw size={20} className="animate-spin" /> : <><ShieldAlert size={20} strokeWidth={2.5} /> Executar Reconstrução Bruta</>}
+                                {executing ? <RefreshCw size={20} className="animate-spin" aria-hidden="true" /> : <><ShieldAlert size={20} strokeWidth={2.5} aria-hidden="true" /> Executar Reconstrução Bruta</>}
                             </button>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 {/* Historical Audit Trail */}
-                <div className="lg:col-span-7 flex flex-col gap-mx-lg">
-                    <Card className="border-gray-100 shadow-sm rounded-[2.5rem] overflow-hidden flex-1 flex flex-col">
-                        <CardHeader className="bg-gray-50/30 border-b border-gray-100 p-8 flex-row items-center justify-between">
+                <section className="lg:col-span-7 flex flex-col gap-10" aria-labelledby="audit-trail-title">
+                    <Card className="border-gray-100 shadow-sm rounded-[2.5rem] overflow-hidden flex-1 flex flex-col bg-white">
+                        <CardHeader className="bg-slate-50/50 border-b border-gray-100 p-8 flex-row items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-slate-400 shadow-sm"><Table size={24} /></div>
+                                <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-slate-400 shadow-sm" aria-hidden="true"><Table size={24} /></div>
                                 <div>
-                                    <CardTitle className="text-2xl font-black uppercase tracking-tight text-slate-950">Trilha de Auditoria</CardTitle>
-                                    <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest mt-1">Log de operações forenses na base canônica.</CardDescription>
+                                    <CardTitle id="audit-trail-title" className="text-2xl font-black uppercase tracking-tight text-slate-950">Trilha de Auditoria</CardTitle>
+                                    <CardDescription className="font-bold text-gray-500 uppercase text-[10px] tracking-widest mt-1">Log de operações forenses na base canônica.</CardDescription>
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent className="p-0 flex-1">
                             <div className="overflow-x-auto no-scrollbar">
-                                <table className="w-full text-left">
-                                    <thead className="bg-gray-50/50 border-b border-gray-100">
+                                <table className="w-full text-left min-w-[600px]">
+                                    <caption className="sr-only">Histórico de reprocessamentos realizados</caption>
+                                    <thead className="bg-slate-950 border-b border-gray-800">
                                         <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                            <th className="pl-8 py-6">Operação</th>
-                                            <th className="px-4 py-6 text-center">Unidade</th>
-                                            <th className="px-4 py-6 text-center">Registros</th>
-                                            <th className="pr-8 py-6 text-right">Resultado</th>
+                                            <th scope="col" className="pl-8 py-6">Operação</th>
+                                            <th scope="col" className="px-4 py-6 text-center">Unidade</th>
+                                            <th scope="col" className="px-4 py-6 text-center">Registros</th>
+                                            <th scope="col" className="pr-8 py-6 text-right">Resultado</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50 bg-white">
+                                    <tbody className="divide-y divide-gray-100 bg-white" aria-live="polite">
                                         {logs.map((log, i) => {
                                             const st = getStatusConfig(log.status)
                                             return (
@@ -290,43 +295,43 @@ export default function Reprocessamento() {
                                                 >
                                                     <td className="pl-8 py-2">
                                                         <p className="font-black text-xs text-slate-950 uppercase tracking-tight">{log.source_type === 'bulk_csv_import' ? 'Importação Planilha' : 'Reconstrução Manual'}</p>
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{new Date(log.started_at).toLocaleString('pt-BR')}</p>
+                                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1"><time dateTime={log.started_at}>{new Date(log.started_at).toLocaleString('pt-BR')}</time></p>
                                                         {log.error_log && log.error_log.length > 0 && (
                                                             <div className="mt-2 p-3 bg-rose-50 rounded-lg border border-rose-100 max-w-xs">
-                                                                <p className="text-[8px] font-black text-rose-600 uppercase mb-1">Log de Erros:</p>
-                                                                <p className="text-[8px] font-bold text-rose-400 line-clamp-2">{JSON.stringify(log.error_log[0])}</p>
+                                                                <p className="text-[8px] font-black text-rose-700 uppercase mb-1">Detalhamento da Falha:</p>
+                                                                <p className="text-[9px] font-bold text-rose-600 line-clamp-2">{JSON.stringify(log.error_log[0])}</p>
                                                             </div>
                                                         )}
                                                     </td>
                                                     <td className="px-4 py-2 text-center">
-                                                        <Badge variant="outline" className="text-[8px] font-black text-slate-400 border-gray-200 uppercase tracking-widest">
+                                                        <Badge variant="outline" className="text-[9px] font-black text-slate-600 border-gray-200 uppercase tracking-widest bg-gray-50">
                                                             {log.store?.name || 'REDE TODA'}
                                                         </Badge>
                                                     </td>
                                                     <td className="px-4 py-2 text-center">
                                                         <div className="flex flex-col items-center">
-                                                            <span className="text-base font-black font-mono-numbers text-slate-950">{log.rows_processed || 0}</span>
-                                                            {log.warnings && log.warnings.length > 0 && <span className="text-[8px] font-black text-rose-500 uppercase tracking-tighter">-{log.warnings.length} alertas</span>}
+                                                            <span className="text-lg font-black font-mono-numbers text-slate-950">{log.rows_processed || 0}</span>
+                                                            {log.warnings && log.warnings.length > 0 && <span className="text-[9px] font-black text-rose-600 uppercase tracking-tighter">-{log.warnings.length} alertas</span>}
                                                         </div>
                                                     </td>
                                                     <td className="pr-8 py-2 text-right">
-                                                        <Badge className={cn("text-[9px] font-black px-4 py-2 rounded-full uppercase tracking-widest border-none shadow-sm gap-2", st.bg, st.color)}>
-                                                            <st.icon size={12} strokeWidth={3} className={cn(log.status === 'processing' && "animate-spin")} /> {st.label}
+                                                        <Badge className={cn("text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest border-none shadow-sm gap-2", st.bg, st.color)}>
+                                                            <st.icon size={12} strokeWidth={3} aria-hidden="true" className={cn(log.status === 'processing' && "animate-spin")} /> {st.label}
                                                         </Badge>
                                                     </td>
                                                 </motion.tr>
                                             )
                                         })}
                                         {logs.length === 0 && !loading && (
-                                            <tr><td colSpan={4} className="py-20 text-center mx-text-caption opacity-40 uppercase text-slate-300 font-black tracking-[0.4em]">Audit Trail Vazio</td></tr>
+                                            <tr><td colSpan={4} className="py-20 text-center text-gray-400 uppercase text-[10px] font-black tracking-[0.4em]">Audit Trail Vazio</td></tr>
                                         )}
                                     </tbody>
                                 </table>
                             </div>
                         </CardContent>
                     </Card>
-                </div>
+                </section>
             </div>
-        </div>
+        </main>
     )
 }

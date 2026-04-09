@@ -139,10 +139,7 @@ export default function MorningReport() {
         
         if (groupRef) {
             if (groupRef.startsWith('http')) {
-                // Link de convite - não suporta pré-preencher texto em todos os clientes, 
-                // mas podemos tentar o padrão do WhatsApp para links
                 waUrl = groupRef
-                // Nota: Navigator.share é mais confiável para "mandar para algum lugar"
             } else if (/^\d+$/.test(groupRef.replace(/\D/g, ''))) {
                 waUrl = `https://wa.me/${groupRef.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
             }
@@ -230,18 +227,18 @@ export default function MorningReport() {
     const isLoading = loadingCheckins || loadingGoals || loadingMetaRules || loadingRanking || loadingTeam || loadingDelivery
 
     if (isLoading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-white">
-            <RefreshCw className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Consolidando Matinal Oficial...</p>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-white" role="status">
+            <RefreshCw className="w-10 h-10 text-indigo-600 animate-spin mb-4" aria-hidden="true" />
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest animate-pulse">Consolidando Matinal Oficial...</p>
         </div>
     )
 
     return (
-        <div className="w-full h-full flex flex-col gap-8 p-4 md:p-8 overflow-y-auto no-scrollbar bg-slate-50/30">
+        <main className="w-full h-full flex flex-col gap-8 p-4 md:p-8 overflow-y-auto no-scrollbar bg-slate-50/30">
             {/* Action Bar */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-gray-200 pb-8 shrink-0">
                 <div className="flex items-center gap-4">
-                    <div className="w-3 h-12 bg-indigo-600 rounded-full" />
+                    <div className="w-3 h-12 bg-indigo-600 rounded-full" aria-hidden="true" />
                     <div>
                         <span className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.3em] block mb-1">Unidade Operacional</span>
                         <h1 className="text-4xl font-black text-slate-950 tracking-tighter uppercase leading-none">Matinal Oficial</h1>
@@ -252,28 +249,29 @@ export default function MorningReport() {
                     <button 
                         onClick={handleRefresh} 
                         disabled={isRefetching}
-                        className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all shadow-sm"
+                        aria-label="Atualizar dados do relatório"
+                        className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-indigo-600 transition-all shadow-sm focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none"
                     >
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </button>
                     <button 
                         onClick={handleExportSpreadsheet}
-                        className="h-12 px-6 rounded-xl bg-white border border-gray-200 text-slate-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
+                        className="h-12 px-6 rounded-xl bg-white border border-gray-200 text-slate-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none"
                     >
-                        <FileDown size={18} /> Planilha
+                        <FileDown size={18} aria-hidden="true" /> Planilha
                     </button>
                     <button 
                         onClick={handleWhatsAppShare}
-                        className="h-12 px-6 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+                        className="h-12 px-6 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 focus-visible:ring-4 focus-visible:ring-emerald-500/20 outline-none"
                     >
-                        <MessageCircle size={18} /> WhatsApp
+                        <MessageCircle size={18} aria-hidden="true" /> WhatsApp
                     </button>
                     <button 
                         onClick={handleSendEmail} 
                         disabled={isSendingEmail}
-                        className="h-12 px-6 rounded-xl bg-slate-950 text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-lg shadow-slate-200"
+                        className="h-12 px-6 rounded-xl bg-slate-950 text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-lg shadow-slate-200 focus-visible:ring-4 focus-visible:ring-slate-500/20 outline-none"
                     >
-                        {isSendingEmail ? <RefreshCw size={18} className="animate-spin" /> : <Mail size={18} />}
+                        {isSendingEmail ? <RefreshCw size={18} className="animate-spin" aria-hidden="true" /> : <Mail size={18} aria-hidden="true" />}
                         {isSendingEmail ? 'Enviando...' : 'E-mail Oficial'}
                     </button>
                 </div>
@@ -282,26 +280,26 @@ export default function MorningReport() {
             {/* Metrics Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 shrink-0">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
-                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
+                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full blur-2xl group-hover:scale-150 transition-transform" aria-hidden="true" />
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-inner"><Target size={20} /></div>
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-inner"><Target size={20} aria-hidden="true" /></div>
                             <Badge className="bg-indigo-50 text-indigo-600 border-none text-[8px] font-black tracking-widest px-2 py-1 uppercase">Meta Mês</Badge>
                         </div>
                         <p className="text-5xl font-black text-slate-950 tracking-tighter font-mono-numbers leading-none mb-2">{metrics.teamGoal}</p>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Vendido: {metrics.currentSales} ({metrics.reaching}%)</p>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none">Vendido: {metrics.currentSales} ({metrics.reaching}%)</p>
                     </div>
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-slate-950 p-8 rounded-[2.5rem] shadow-xl shadow-slate-200 relative overflow-hidden group">
-                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" aria-hidden="true" />
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shadow-inner"><TrendingUp size={20} /></div>
+                            <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shadow-inner"><TrendingUp size={20} aria-hidden="true" /></div>
                             <Badge className="bg-white/10 text-white border-none text-[8px] font-black tracking-widest px-2 py-1 uppercase">Projeção MX</Badge>
                         </div>
                         <p className="text-5xl font-black text-white tracking-tighter font-mono-numbers leading-none mb-2">{metrics.projection}</p>
-                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none">Falta X: {metrics.gap} unidades</p>
+                        <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest leading-none">Falta X: {metrics.gap} unidades</p>
                     </div>
                 </motion.div>
 
@@ -309,14 +307,14 @@ export default function MorningReport() {
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-6">
                             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-inner", metrics.pendingSellers.length > 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
-                                {metrics.pendingSellers.length > 0 ? <AlertTriangle size={20} /> : <UserCheck size={20} />}
+                                {metrics.pendingSellers.length > 0 ? <AlertTriangle size={20} aria-hidden="true" /> : <UserCheck size={20} aria-hidden="true" />}
                             </div>
                             <Badge className={cn("border-none text-[8px] font-black tracking-widest px-2 py-1 uppercase", metrics.pendingSellers.length > 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>Disciplina</Badge>
                         </div>
                         <p className={cn("text-5xl font-black tracking-tighter font-mono-numbers leading-none mb-2", metrics.pendingSellers.length > 0 ? "text-rose-600" : "text-emerald-600")}>
                             {metrics.checkedInCount}/{sellers.length}
                         </p>
-                        <p className={cn("text-[10px] font-bold uppercase tracking-widest leading-none", metrics.pendingSellers.length > 0 ? "text-rose-400" : "text-emerald-400")}>
+                        <p className={cn("text-[10px] font-bold uppercase tracking-widest leading-none", metrics.pendingSellers.length > 0 ? "text-rose-500" : "text-emerald-600")}>
                             {metrics.pendingSellers.length > 0 ? `${metrics.pendingSellers.length} Sem Registro Hoje` : 'Equipe 100% Sincronizada'}
                         </p>
                     </div>
@@ -328,24 +326,25 @@ export default function MorningReport() {
                     <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
                         <div className="p-8 border-b border-gray-100 bg-slate-50/30 flex items-center justify-between">
                             <div>
-                                <h3 className="text-xl font-black text-slate-950 uppercase tracking-tight">Grade Operacional</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Auditado em {referenceDateLabel}</p>
+                                <h2 className="text-xl font-black text-slate-950 uppercase tracking-tight">Grade Operacional</h2>
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Auditado em {referenceDateLabel}</p>
                             </div>
-                            <div className="flex items-center gap-2 text-slate-400">
-                                <Calendar size={16} />
+                            <div className="flex items-center gap-2 text-slate-500">
+                                <Calendar size={16} aria-hidden="true" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{referenceDateLabel}</span>
                             </div>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
+                                <caption className="sr-only">Detalhamento operacional por especialista de vendas</caption>
                                 <thead>
                                     <tr className="bg-slate-50/50 border-b border-gray-100">
-                                        <th className="px-8 py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Especialista</th>
-                                        <th className="py-4 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Leads</th>
-                                        <th className="py-4 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Agend.</th>
-                                        <th className="py-4 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Visitas</th>
-                                        <th className="py-4 text-center text-[9px] font-black text-indigo-600 uppercase tracking-widest">Vendas</th>
-                                        <th className="px-8 py-4 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">Registro</th>
+                                        <th scope="col" className="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Especialista</th>
+                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Leads</th>
+                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Agend.</th>
+                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Visitas</th>
+                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-indigo-600 uppercase tracking-widest">Vendas</th>
+                                        <th scope="col" className="px-8 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Registro</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
@@ -353,25 +352,26 @@ export default function MorningReport() {
                                         const seller = sellersMap.get(r.user_id)
                                         const isRegistered = seller?.checkin_today
                                         return (
-                                            <tr key={r.user_id} className="hover:bg-slate-50/30 transition-colors group">
+                                            <tr key={r.user_id} className="hover:bg-slate-50/30 transition-colors group h-20">
                                                 <td className="px-8 py-5">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-black uppercase group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-sm">
+                                                        <div className="w-8 h-8 rounded-lg bg-gray-100 text-slate-600 flex items-center justify-center text-xs font-black uppercase group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-inner" aria-hidden="true">
                                                             {r.user_name.substring(0, 2)}
                                                         </div>
-                                                        <span className="text-xs font-black text-slate-900 uppercase tracking-tight">{r.user_name}</span>
+                                                        <span className="text-xs font-black text-slate-950 uppercase tracking-tight">{r.user_name}</span>
                                                     </div>
                                                 </td>
-                                                <td className="text-center font-black text-slate-600 tabular-nums text-sm">{r.leads}</td>
-                                                <td className="text-center font-black text-slate-600 tabular-nums text-sm">{r.agd_total}</td>
-                                                <td className="text-center font-black text-slate-600 tabular-nums text-sm">{r.visitas}</td>
+                                                <td className="text-center font-black text-slate-700 tabular-nums text-sm">{r.leads}</td>
+                                                <td className="text-center font-black text-slate-700 tabular-nums text-sm">{r.agd_total}</td>
+                                                <td className="text-center font-black text-slate-700 tabular-nums text-sm">{r.visitas}</td>
                                                 <td className="text-center font-black text-indigo-600 tabular-nums text-lg">{r.vnd_total}</td>
                                                 <td className="px-8 py-5 text-right">
                                                     <Badge className={cn(
-                                                        "text-[8px] font-black uppercase tracking-widest px-3 py-1 border-none",
+                                                        "text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none",
                                                         isRegistered ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
                                                     )}>
                                                         {isRegistered ? 'OK' : 'FALTA'}
+                                                        <span className="sr-only">{isRegistered ? 'Registro realizado' : 'Registro pendente'}</span>
                                                     </Badge>
                                                 </td>
                                             </tr>
@@ -384,25 +384,26 @@ export default function MorningReport() {
                 </div>
 
                 <div className="xl:col-span-4 flex flex-col gap-8">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                        <h4 className="text-xs font-black text-slate-950 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                            <Zap size={16} className="text-amber-500" /> Foco do Dia
-                        </h4>
+                    <section className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm" aria-labelledby="foco-dia-title">
+                        <h3 id="foco-dia-title" className="text-xs font-black text-slate-950 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                            <Zap size={16} className="text-amber-500" aria-hidden="true" /> Foco do Dia
+                        </h3>
                         <div className="space-y-4">
                             {metrics.pendingSellers.length > 0 && (
                                 <div className="p-5 rounded-2xl bg-rose-50 border border-rose-100 hover:shadow-lg transition-all group">
                                     <div className="flex justify-between items-start mb-1">
-                                        <p className="text-[10px] font-black text-rose-900 uppercase tracking-tight">Cobrar Sem Registro</p>
-                                        <Badge className="bg-white border-rose-200 text-rose-400 text-[7px] font-black uppercase">Alta</Badge>
+                                        <p className="text-xs font-black text-rose-900 uppercase tracking-tight">Cobrar Sem Registro</p>
+                                        <Badge className="bg-white border-rose-200 text-rose-500 text-[10px] font-black uppercase">Alta</Badge>
                                     </div>
                                     <div className="flex flex-wrap gap-2 mt-3">
                                         {metrics.pendingSellers.slice(0, 3).map(s => (
                                             <button 
                                                 key={s.id} 
                                                 onClick={() => handleWhatsAppIndividual(s)}
-                                                className="px-3 py-1 bg-white border border-rose-100 rounded-lg text-[8px] font-black text-rose-600 uppercase hover:bg-rose-600 hover:text-white transition-colors flex items-center gap-1"
+                                                aria-label={`Cobrar registro de ${s.name} via WhatsApp`}
+                                                className="px-3 py-1 bg-white border border-rose-100 rounded-lg text-xs font-black text-rose-600 uppercase hover:bg-rose-600 hover:text-white transition-colors flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-rose-500 outline-none"
                                             >
-                                                <MessageCircle size={10} /> {s.name.split(' ')[0]}
+                                                <MessageCircle size={10} aria-hidden="true" /> {s.name.split(' ')[0]}
                                             </button>
                                         ))}
                                     </div>
@@ -414,30 +415,30 @@ export default function MorningReport() {
                             ].map((task, i) => (
                                 <div key={i} className="p-5 rounded-2xl bg-slate-50 border border-gray-100 hover:bg-white hover:shadow-lg transition-all group">
                                     <div className="flex justify-between items-start mb-1">
-                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{task.title}</p>
-                                        <Badge className="bg-white border-gray-200 text-slate-400 text-[7px] font-black uppercase">{task.priority}</Badge>
+                                        <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{task.title}</p>
+                                        <Badge className="bg-white border-gray-200 text-slate-700 text-[10px] font-black uppercase">{task.priority}</Badge>
                                     </div>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{task.desc}</p>
+                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">{task.desc}</p>
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </section>
 
                     <div className="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
-                        <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+                        <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" aria-hidden="true" />
                         <div className="relative z-10 text-center">
-                            <BarChart3 className="mx-auto mb-4 opacity-40" size={32} />
-                            <h5 className="text-xs font-black uppercase tracking-[0.2em] mb-2 leading-tight">Ritmo Diário Ideal</h5>
+                            <BarChart3 className="mx-auto mb-4 opacity-40" size={32} aria-hidden="true" />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 leading-tight">Ritmo Diário Ideal</h4>
                             <p className="text-3xl font-black tracking-tighter mb-4 tabular-nums">
                                 {(metrics.gap / Math.max(daysInfo.total - daysInfo.decorridos, 1)).toFixed(1)}
                             </p>
-                            <p className="text-[9px] font-black uppercase opacity-60 tracking-widest leading-relaxed">
+                            <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-relaxed">
                                 Vendas necessárias por dia para atingir 100% da meta oficial.
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     )
 }

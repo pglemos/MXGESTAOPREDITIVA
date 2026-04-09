@@ -1,113 +1,166 @@
-import { Play, CheckCircle, Clock, GraduationCap, Trophy, ChevronRight, Search, Filter, RefreshCw, X, Download, Star, Sparkles, BookOpen, Layers } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { cn } from '@/lib/utils'
-import { useState, useMemo } from 'react'
+import { useCourses } from '@/hooks/useData'
+import { useState, useMemo, useCallback } from 'react'
+import { GraduationCap, Search, RefreshCw, Clock, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 
-const trilhas = [
-  { id: 1, title: 'Masterizando o Pitch MX', modules: 8, completed: 5, xp: 450, color: 'text-brand-primary', bg: 'bg-brand-primary-surface', icon: Sparkles },
-  { id: 2, title: 'Gestão de LeadOps', modules: 12, completed: 12, xp: 1200, color: 'text-status-success', bg: 'bg-status-success-surface', icon: GraduationCap },
-  { id: 3, title: 'Negociação High-End', modules: 6, completed: 2, xp: 300, color: 'text-status-warning', bg: 'bg-status-warning-surface', icon: Trophy },
-]
-
 export default function Treinamentos() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isRefetching, setIsRefetching] = useState(false)
+    const { courses, loading, refetch } = useCourses()
+    const [searchTerm, setSearchTerm] = useState('')
+    const [isRefetching, setIsRefetching] = useState(false)
 
-  const stats = [
-    { label: 'Cursos Ativos', value: '14', icon: BookOpen, tone: 'bg-mx-indigo-50 text-mx-indigo-600' },
-    { label: 'XP Conquistado', value: '4.2k', icon: Trophy, tone: 'bg-status-warning-surface text-status-warning' },
-    { label: 'Certificações', value: '08', icon: CheckCircle, tone: 'bg-status-success-surface text-status-success' },
-    { label: 'Horas Aula', value: '32h', icon: Clock, tone: 'bg-mx-slate-50 text-text-tertiary' },
-  ]
+    const handleRefresh = useCallback(async () => {
+        setIsRefetching(true)
+        await refetch()
+        setIsRefetching(false)
+        toast.success('Academy atualizada!')
+    }, [refetch])
 
-  return (
-    <div className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-md sm:p-mx-lg md:p-mx-xl text-text-primary">
-      {/* Header Area */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-mx-xs">
-            <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" />
-            <h1 className="mx-heading-hero">Academia <span className="text-brand-primary">MX</span></h1>
-          </div>
-          <p className="mx-text-caption pl-mx-md opacity-60 uppercase tracking-widest">Centro de Capacitação & Desenvolvimento</p>
-        </div>
+    const filteredCourses = useMemo(() => {
+        return courses.filter(c => 
+            c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.instructor?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    }, [courses, searchTerm])
 
-        <div className="flex items-center gap-mx-sm shrink-0">
-          <button onClick={() => {setIsRefetching(true); setTimeout(() => setIsRefetching(false), 800)}} className="w-12 h-12 rounded-mx-lg bg-white border border-border-default shadow-mx-sm flex items-center justify-center text-text-tertiary hover:text-text-primary"><RefreshCw size={20} className={cn(isRefetching && "animate-spin")} /></button>
-          <div className="relative group w-48 hidden sm:block">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-            <input type="text" placeholder="Buscar treinamento..." className="mx-input !h-9 !pl-9 !text-[10px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-          </div>
-          <button className="mx-button-primary bg-brand-secondary">Minha Jornada</button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-sm shrink-0">
-        {stats.map((item) => (
-          <div key={item.label} className="mx-card p-mx-md flex flex-col justify-between group relative overflow-hidden">
-            <div className="flex items-center justify-between gap-mx-xs relative z-10">
-              <div><p className="mx-text-caption mb-1">{item.label}</p><p className="text-3xl font-black tracking-tighter font-mono-numbers leading-none">{item.value}</p></div>
-              <div className={cn('h-10 w-10 rounded-mx-md flex items-center justify-center border shadow-sm', item.tone)}><item.icon size={18} /></div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-mx-3xl">
-        <div className="lg:col-span-8 flex flex-col gap-mx-lg h-full">
-          <div className="mx-card h-full flex flex-col overflow-hidden group">
-            <div className="p-mx-lg border-b border-border-subtle bg-mx-slate-50/30 flex items-center justify-between">
-              <div className="flex items-center gap-mx-sm">
-                <div className="w-12 h-12 rounded-mx-lg bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><Layers size={24} /></div>
-                <div><h3 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1">Trilhas de Performance</h3><p className="mx-text-caption">Evolução do Consultor</p></div>
-              </div>
-              <Badge className="bg-brand-primary-surface text-brand-primary border-none">3 EM CURSO</Badge>
-            </div>
-            <div className="flex-1 overflow-y-auto no-scrollbar p-mx-lg space-y-mx-lg">
-              {trilhas.map((trilha, i) => (
-                <motion.div key={trilha.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="bg-mx-slate-50/50 border border-border-subtle rounded-mx-2xl p-mx-lg hover:bg-white hover:shadow-mx-lg transition-all cursor-pointer group/item relative overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-mx-lg relative z-10">
-                    <div className={cn("w-16 h-16 rounded-mx-xl flex items-center justify-center border-4 border-white shadow-mx-md shrink-0", trilha.bg, trilha.color)}><trilha.icon size={32} /></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-mx-sm">
-                        <div><h4 className="text-lg font-black text-text-primary uppercase tracking-tight truncate">{trilha.title}</h4><p className="mx-text-caption !text-[8px] opacity-60 uppercase">{trilha.modules} Módulos • {trilha.xp} XP Disponível</p></div>
-                        <span className="font-black text-xs text-brand-primary font-mono-numbers">{Math.round((trilha.completed/trilha.modules)*100)}%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-white border border-border-subtle rounded-full overflow-hidden p-px shadow-inner"><motion.div initial={{ width: 0 }} animate={{ width: `${(trilha.completed/trilha.modules)*100}%` }} transition={{ duration: 1.5 }} className={cn("h-full rounded-full shadow-mx-sm", trilha.bg.replace('-surface', ''))} /></div>
+    return (
+        <main className="w-full h-full flex flex-col gap-10 overflow-y-auto no-scrollbar relative text-pure-black p-4 sm:p-6 md:p-10 bg-white">
+            {/* Action Bar */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10 w-full shrink-0 border-b border-gray-100 pb-10">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-indigo-600 rounded-full shadow-lg" aria-hidden="true" />
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none uppercase">
+                            MX <span className="text-indigo-600">Academy</span>
+                        </h1>
                     </div>
-                    <button className="w-12 h-12 rounded-full bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform group-hover/item:scale-110 group-hover/item:rotate-12 transition-all shrink-0"><Play size={20} fill="currentColor" /></button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-4 flex flex-col gap-mx-lg">
-          <div className="mx-card p-mx-lg flex flex-col h-full bg-brand-secondary text-white relative overflow-hidden group shadow-mx-elite">
-            <div className="absolute -right-8 -bottom-8 w-48 h-48 bg-brand-primary/20 rounded-full blur-[60px] pointer-events-none" />
-            <div className="flex items-center gap-mx-sm mb-mx-xl relative z-10">
-              <div className="w-12 h-12 rounded-mx-lg bg-white/10 flex items-center justify-center border border-white/10 shadow-inner"><Star size={24} className="text-status-warning" fill="currentColor" /></div>
-              <div><h3 className="text-xl font-black text-white tracking-tight uppercase">Ranking Treinos</h3><p className="mx-text-caption text-white/40">Engagement Board</p></div>
-            </div>
-            <div className="space-y-mx-md flex-1 relative z-10">
-              {[1, 2, 3].map(pos => (
-                <div key={pos} className="flex items-center gap-mx-md p-mx-md rounded-mx-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
-                  <div className="w-8 h-8 rounded-mx-md bg-white/10 flex items-center justify-center font-black text-xs text-white/40">{pos}º</div>
-                  <div className="w-10 h-10 rounded-full bg-mx-slate-50 overflow-hidden border-2 border-white/10"><img src={`https://i.pravatar.cc/150?u=${pos}`} alt={`Avatar do participante ${pos}`} width={40} height={40} loading="lazy" /></div>
-                  <div className="flex-1 min-w-0"><p className="text-xs font-black truncate uppercase">Elite Member {pos}</p><p className="mx-text-caption !text-[8px] text-white/30">Master Certified</p></div>
-                  <div className="text-right"><p className="text-xs font-black text-status-warning font-mono-numbers">{(4 - pos) * 1200} XP</p></div>
+                    <div className="flex items-center gap-3 pl-6 mt-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-lg animate-pulse" aria-hidden="true" />
+                        <p className="text-gray-600 text-xs font-black uppercase tracking-[0.4em]">Evolução Técnica & Comportamental</p>
+                    </div>
                 </div>
-              ))}
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
+                    <div className="relative group w-full sm:w-64">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" aria-hidden="true" />
+                        <label htmlFor="search-academy" className="sr-only">Pesquisar na Academy</label>
+                        <input
+                            id="search-academy"
+                            name="search-academy"
+                            type="text"
+                            placeholder="Buscar treinamentos..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-white border border-gray-100 rounded-full pl-11 pr-10 py-3 text-xs font-bold focus:outline-none focus:border-indigo-200 shadow-sm transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/10 outline-none"
+                        />
+                    </div>
+                    <button
+                        onClick={handleRefresh}
+                        aria-label="Atualizar lista de treinamentos"
+                        className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-pure-black active:scale-90 transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/10 outline-none"
+                    >
+                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                    </button>
+                </div>
             </div>
-            <button className="mx-button-primary !bg-white/10 !text-white border border-white/10 mt-mx-lg w-full flex items-center justify-center gap-2 group/btn">Ver Placar Completo <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" /></button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+
+            {/* Courses Feed */}
+            <div className="flex-1 min-h-0 pb-32">
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="status" aria-label="Carregando treinamentos">
+                        {[1, 2, 3, 4, 5, 6].map(i => (
+                            <div key={i} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
+                                <div className="w-14 h-14 rounded-2xl bg-gray-50 animate-pulse mb-8" />
+                                <div className="h-8 w-2/3 bg-gray-50 animate-pulse mb-4 rounded-lg" />
+                                <div className="h-4 w-1/2 bg-gray-50 animate-pulse rounded-lg" />
+                            </div>
+                        ))}
+                    </div>
+                ) : filteredCourses.length > 0 ? (
+                    <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" aria-live="polite">
+                        <AnimatePresence mode="popLayout">
+                            {filteredCourses.map((course, i) => (
+                                <motion.li
+                                    key={course.id}
+                                    layout
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.02 }}
+                                    className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full"
+                                >
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+
+                                    <div className="flex items-start justify-between mb-8 relative z-10">
+                                        <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center shadow-inner group-hover:bg-pure-black transition-all group-hover:rotate-3" aria-hidden="true">
+                                            <GraduationCap size={28} className="text-indigo-600 group-hover:text-white transition-colors" />
+                                        </div>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <Badge className="bg-indigo-50 text-indigo-700 border-none font-black text-[10px] tracking-widest uppercase py-1 px-3">
+                                                {course.category}
+                                            </Badge>
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                                {course.instructor}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 flex-1 relative z-10">
+                                        <h2 className="text-2xl font-black text-slate-950 leading-tight uppercase tracking-tight line-clamp-2">{course.title}</h2>
+                                        <p className="text-sm font-bold text-gray-600 line-clamp-3 leading-relaxed uppercase tracking-tight opacity-80">
+                                            {course.description}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-10 pt-8 border-t border-gray-100 flex flex-col gap-6 relative z-10">
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Progresso do Aluno</span>
+                                                <span className="text-sm font-black text-indigo-600 font-mono-numbers">0%</span>
+                                            </div>
+                                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-100" role="progressbar" aria-valuenow={0} aria-valuemin={0} aria-valuemax={100} aria-label={`Progresso no curso ${course.title}`}>
+                                                <div className="h-full bg-indigo-600 transition-all duration-1000 w-0 shadow-[0_0_10px_rgba(79,70,229,0.4)]" />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                                <Clock size={14} className="text-indigo-600" aria-hidden="true" />
+                                                {course.duration}
+                                            </div>
+                                            <a
+                                                href={course.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-950 text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-lg active:scale-95 focus-visible:ring-4 focus-visible:ring-slate-500/20 outline-none"
+                                                aria-label={`Iniciar treinamento: ${course.title}`}
+                                            >
+                                                Iniciar Aula <ArrowRight size={14} aria-hidden="true" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </motion.li>
+                            ))}
+                        </AnimatePresence>
+                    </ul>
+                ) : (
+                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-slate-50/50 border-2 border-dashed border-gray-200 rounded-[3rem] relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(26,29,32,0.02)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none" aria-hidden="true" />
+                        <div className="w-24 h-24 rounded-[2.5rem] bg-white shadow-xl flex items-center justify-center mb-8 border border-gray-100 group-hover:rotate-12 transition-transform duration-500" aria-hidden="true">
+                            <GraduationCap size={48} className="text-gray-300" />
+                        </div>
+                        <h2 className="text-3xl font-black text-slate-950 mb-4 tracking-tighter uppercase leading-none">Vácuo de Conteúdo</h2>
+                        <p className="text-gray-500 text-sm font-bold max-w-sm mx-auto mb-8 uppercase tracking-wide">
+                            Nenhum treinamento localizado na Academy para "{searchTerm}".
+                        </p>
+                        <button onClick={() => setSearchTerm('')} className="px-10 py-4 bg-slate-950 text-white rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-black transition-all active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-slate-500/20">
+                            Limpar Filtros
+                        </button>
+                    </div>
+                )}
+            </div>
+        </main>
+    )
 }

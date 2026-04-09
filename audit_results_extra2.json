@@ -1,0 +1,46 @@
+{
+  "/treinamentos": {
+    "consoleErrors": [
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "TypeError: Failed to fetch\n    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12419:23\n    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12709:20)\n    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12699:22)\n    at SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:15487:21)\n    at signIn (http://localhost:5173/src/hooks/useAuth.tsx:161:43)\n    at handleSubmit (http://localhost:5173/src/pages/Login.tsx:27:36)\n    at executeDispatch (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:13622:11)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:997:72)\n    at processDispatchQueue (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:13658:37)\n    at http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:14071:11",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "TypeError: Failed to fetch\n    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12419:23\n    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12709:20)\n    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12699:22)\n    at SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:15487:21)\n    at signIn (http://localhost:5173/src/hooks/useAuth.tsx:161:43)\n    at handleSubmit (http://localhost:5173/src/pages/Login.tsx:27:36)\n    at executeDispatch (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:13622:11)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:997:72)\n    at processDispatchQueue (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:13658:37)\n    at http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:14071:11",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login."
+    ],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  },
+  "/produtos": {
+    "consoleErrors": [
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "TypeError: Failed to fetch\n    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12419:23\n    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12709:20)\n    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:12699:22)\n    at SupabaseAuthClient.signInWithPassword (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=ef86e856:15487:21)\n    at signIn (http://localhost:5173/src/hooks/useAuth.tsx:161:43)\n    at handleSubmit (http://localhost:5173/src/pages/Login.tsx:27:36)\n    at executeDispatch (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:13622:11)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:997:72)\n    at processDispatchQueue (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:13658:37)\n    at http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=ef86e856:14071:11",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login."
+    ],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  },
+  "/relatorio-matinal": {
+    "consoleErrors": [],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  }
+}

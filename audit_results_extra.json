@@ -1,0 +1,86 @@
+{
+  "/equipe": {
+    "consoleErrors": [
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login."
+    ],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  },
+  "/funil": {
+    "consoleErrors": [
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login."
+    ],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  },
+  "/treinamentos": {
+    "consoleErrors": [
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login."
+    ],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  },
+  "/produtos": {
+    "consoleErrors": [
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login.",
+      "Audit Warn [ProtectedRoute]: No profile found, redirecting to login."
+    ],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  },
+  "/relatorio-matinal": {
+    "consoleErrors": [],
+    "hasMain": false,
+    "h1Count": 1,
+    "emptyButtons": 0,
+    "missingAlt": 0,
+    "brokenLinks": 0
+  }
+}
