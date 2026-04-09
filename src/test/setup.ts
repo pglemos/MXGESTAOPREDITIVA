@@ -40,4 +40,3 @@ globalAny.ResizeObserver = class ResizeObserver {
     disconnect() {}
 };
 
-console.log("Happy DOM environment set up");
