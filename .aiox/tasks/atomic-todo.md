@@ -5,6 +5,6 @@
 - [x] Task 3: Build 'Badge', 'Input', and 'Typography' Atoms
 - [x] Task 4: Build 'Card' and 'FormField' Molecules
 - [x] Task 5: Refactor Admin Module (Batch 1: First 6 Pages)
-- [ ] Task 6: Refactor Admin Module (Batch 2: Remaining 12 Pages)
+- [x] Task 6: Refactor Admin Module (Batch 2: Remaining 12 Pages)
 - [ ] Task 7: Refactor Dono, Gerente, and Vendedor Modules
 - [ ] Task 8: Automated Browser Capture & Audit

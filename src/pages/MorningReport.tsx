@@ -4,7 +4,10 @@ import {
     RefreshCw, MessageCircle, BarChart3, Mail, FileDown,
     Users, UserCheck, Calendar
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { motion } from 'motion/react'
@@ -14,30 +17,18 @@ import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useTeam } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
-import { useStoreDeliveryRules } from '@/hooks/useData'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { 
-    calcularProjecao, getDiasInfo, calcularAtingimento, somarVendas 
-} from '@/lib/calculations'
+import { calcularProjecao, getDiasInfo, calcularAtingimento, somarVendas } from '@/lib/calculations'
 
 export default function MorningReport() {
     const { profile, membership, storeId, role } = useAuth()
-    
-    // Hooks de dados canônicos
     const { checkins, loading: loadingCheckins, fetchCheckins: refetchCheckins } = useCheckins()
     const { storeGoal, loading: loadingGoals, fetchGoals: refetchGoals } = useGoals()
-    const { metaRules, loading: loadingMetaRules, fetchMetaRules } = useStoreMetaRules()
-    const { ranking, loading: loadingRanking, refetch: refetchRanking } = useRanking()
-    const { sellers, loading: loadingTeam, refetch: refetchTeam } = useTeam()
-    const { deliveryRules, loading: loadingDelivery } = useStoreDeliveryRules()
+    const { metaRules, fetchMetaRules } = useStoreMetaRules()
+    const { ranking, refetch: refetchRanking } = useRanking()
+    const { sellers, refetch: refetchTeam } = useTeam()
 
-    const sellersMap = useMemo(() => {
-        const map = new Map<string, (typeof sellers)[number]>()
-        ;(sellers || []).forEach(s => map.set(s.id, s))
-        return map
-    }, [sellers])
-    
     const [isRefetching, setIsRefetching] = useState(false)
     const [isSendingEmail, setIsSendingEmail] = useState(false)
 
@@ -46,398 +37,183 @@ export default function MorningReport() {
     const referenceDateLabel = useMemo(() => format(parseISO(referenceDate), 'dd/MM/yyyy', { locale: ptBR }), [referenceDate])
     
     const metrics = useMemo(() => {
-        // Vendas do mês (referência até ontem)
         const currentSales = somarVendas(checkins)
         const teamGoal = metaRules?.monthly_goal ?? storeGoal?.target ?? 0
-        
         const projection = calcularProjecao(currentSales, daysInfo.decorridos, daysInfo.total)
         const reaching = calcularAtingimento(currentSales, teamGoal)
-        const projectedReaching = calcularAtingimento(projection, teamGoal)
         const gap = Math.max(teamGoal - currentSales, 0)
-        
-        // Vendedores que já lançaram hoje (referência ao fechamento de ontem)
         const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
         const pendingSellers = (sellers || []).filter(s => !s.checkin_today)
         
-        return {
-            currentSales,
-            teamGoal,
-            projection,
-            reaching,
-            projectedReaching,
-            gap,
-            checkedInCount,
-            pendingSellers
-        }
+        return { currentSales, teamGoal, projection, reaching, gap, checkedInCount, pendingSellers }
     }, [checkins, metaRules, storeGoal, daysInfo, sellers])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
         try {
-            await Promise.all([
-                refetchCheckins(),
-                refetchGoals(),
-                fetchMetaRules(),
-                refetchRanking(),
-                refetchTeam()
-            ])
-            toast.success('Dados sincronizados com sucesso!')
-        } catch (err) {
-            toast.error('Erro ao atualizar dados.')
-        } finally {
-            setIsRefetching(false)
-        }
+            await Promise.all([refetchCheckins(), refetchGoals(), fetchMetaRules(), refetchRanking(), refetchTeam()])
+            toast.success('Sincronizado!')
+        } finally { setIsRefetching(false) }
     }, [refetchCheckins, refetchGoals, fetchMetaRules, refetchRanking, refetchTeam])
 
-    const handleWhatsAppShare = async () => {
-        if (role !== 'admin' && role !== 'gerente') {
-            toast.error('Apenas administradores ou gerentes podem realizar o disparo oficial.')
-            return
-        }
-        if (!profile || !storeId) {
-            toast.error('Sessão inválida para registrar compartilhamento.')
-            return
-        }
-
-        const rankingText = (ranking || []).slice(0, 5)
-            .map(item => `${item.position}º ${item.user_name} - ${item.vnd_total}v (${item.atingimento}%)`)
-            .join('\n') || 'Sem ranking acumulado.'
-            
-        const pendingText = metrics.pendingSellers.length > 0 
-            ? metrics.pendingSellers.map(s => s.name).join(', ') 
-            : 'Todos registraram.'
-            
-        const storeName = membership?.store?.name || 'LOJA MX'
-
-        const message = [
-            `*BOM DIA, EQUIPE!* 🚀`,
-            ``,
-            `*MATINAL OFICIAL - ${storeName}*`,
-            `Referência: ${referenceDateLabel}`,
-            ``,
-            `*FALTA POUCO / META*`,
-            `• Meta do Mês: ${metrics.teamGoal}`,
-            `• Vendido: ${metrics.currentSales} (${metrics.reaching}%)`,
-            `• Projeção: ${metrics.projection}`,
-            `• Gap (Faltam): ${metrics.gap}`,
-            ``,
-            `*DISCIPLINA OPERACIONAL*`,
-            `• Registrados: ${metrics.checkedInCount}/${(sellers || []).length}`,
-            `• Sem Registro: ${pendingText}`,
-            ``,
-            `*RANKING ACUMULADO*`,
-            rankingText,
-            ``,
-            `_Gerado via MX PERFORMANCE_`,
-        ].join('\n')
-
-        const groupRef = deliveryRules?.whatsapp_group_ref
-        
-        // Se for um link de grupo (começa com http), abrimos o link diretamente para postagem manual
-        // Caso contrário, usamos wa.me com o identificador se ele parecer um número de telefone
-        let waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
-        
-        if (groupRef) {
-            if (groupRef.startsWith('http')) {
-                waUrl = groupRef
-            } else if (/^\d+$/.test(groupRef.replace(/\D/g, ''))) {
-                waUrl = `https://wa.me/${groupRef.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
-            }
-        }
-
-        if (navigator.share) {
-            try {
-                await navigator.share({ text: message })
-                await registerShareLog(message, 'native_share')
-            } catch (err) {
-                // User cancelled or error
-            }
-        } else {
-            window.open(waUrl, '_blank')
-            await registerShareLog(message, 'whatsapp')
-        }
-    }
-
-    const registerShareLog = async (text: string, via: string) => {
-        if (!storeId || !profile) return
-        await supabase.from('whatsapp_share_logs').insert({
-            store_id: storeId,
-            user_id: profile.id,
-            reference_date: referenceDate,
-            source: 'morning_report',
-            message_text: text,
-            shared_via: via,
-        })
-        toast.success('Compartilhamento registrado com sucesso.')
-    }
-
-    const handleWhatsAppIndividual = (seller: any) => {
-        const phone = seller.phone?.replace(/\D/g, '')
-        if (!phone) {
-            toast.error(`Vendedor ${seller.name} não possui telefone cadastrado.`)
-            return
-        }
-        
-        const message = encodeURIComponent(`Olá ${seller.name}, notamos que seu check-in operacional MX de hoje ainda não foi realizado. Alguma dificuldade técnica ou operacional que possamos ajudar para mantermos a disciplina da unidade?`)
-        window.open(`https://wa.me/55${phone}?text=${message}`, '_blank')
-        toast.success(`WhatsApp aberto para ${seller.name}`)
-    }
-
-    const handleSendEmail = async () => {
-        setIsSendingEmail(true)
-        try {
-            const { error } = await supabase.functions.invoke('relatorio-matinal', {
-                body: { store_id: storeId, force: true }
-            })
-            if (error) throw error
-            toast.success('Relatório disparado para os destinatários oficiais!')
-        } catch (err: any) {
-            console.error('Erro no Edge Function:', err)
-            toast.error('Falha ao acionar motor de e-mail.')
-        } finally {
-            setIsSendingEmail(false)
-        }
-    }
-
-    const handleExportSpreadsheet = () => {
-        const headers = ["Vendedor", "Leads", "Agendamentos Hoje", "Visitas D-1", "Vendas D-1", "Atingimento", "Status"]
-        const rows = (ranking || []).map(r => {
-            const seller = sellersMap.get(r.user_id)
-            return [
-                r.user_name,
-                r.leads,
-                r.agd_total,
-                r.visitas,
-                r.vnd_total,
-                `${r.atingimento}%`,
-                seller?.checkin_today ? 'OK' : 'SEM REGISTRO'
-            ]
-        })
-
-        const csvContent = [headers.join(","), ...rows.map(row => row.join(","))].join("\n")
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.setAttribute('href', url)
-        link.setAttribute('download', `matinal_mx_${storeId}_${referenceDate}.csv`)
-        link.click()
-        toast.success('Planilha operacional gerada.')
-    }
-
-    const isLoading = loadingCheckins || loadingGoals || loadingMetaRules || loadingRanking || loadingTeam || loadingDelivery
-
-    if (isLoading) return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full h-full bg-white" role="status">
-            <RefreshCw className="w-10 h-10 text-indigo-600 animate-spin mb-4" aria-hidden="true" />
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest animate-pulse">Consolidando Matinal Oficial...</p>
+    if (loadingCheckins || loadingGoals) return (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-white">
+            <RefreshCw className="w-10 h-10 animate-spin text-brand-primary mb-4" />
+            <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Matinal...</Typography>
         </div>
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-8 p-4 md:p-8 overflow-y-auto no-scrollbar bg-slate-50/30">
-            {/* Action Bar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-gray-200 pb-8 shrink-0">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div className="flex items-center gap-4">
-                    <div className="w-3 h-12 bg-indigo-600 rounded-full" aria-hidden="true" />
+                    <div className="w-2 h-10 bg-brand-primary rounded-full" aria-hidden="true" />
                     <div>
-                        <span className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.3em] block mb-1">Unidade Operacional</span>
-                        <h1 className="text-4xl font-black text-slate-950 tracking-tighter uppercase leading-none">Matinal Oficial</h1>
+                        <Typography variant="caption" tone="brand">Unidade Operacional</Typography>
+                        <Typography variant="h1">Matinal Oficial</Typography>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
-                    <button 
-                        onClick={handleRefresh} 
-                        disabled={isRefetching}
-                        aria-label="Atualizar dados do relatório"
-                        className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-indigo-600 transition-all shadow-sm focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none"
-                    >
+                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
-                    </button>
-                    <button 
-                        onClick={handleExportSpreadsheet}
-                        className="h-12 px-6 rounded-xl bg-white border border-gray-200 text-slate-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none"
-                    >
-                        <FileDown size={18} aria-hidden="true" /> Planilha
-                    </button>
-                    <button 
-                        onClick={handleWhatsAppShare}
-                        className="h-12 px-6 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 focus-visible:ring-4 focus-visible:ring-emerald-500/20 outline-none"
-                    >
-                        <MessageCircle size={18} aria-hidden="true" /> WhatsApp
-                    </button>
-                    <button 
-                        onClick={handleSendEmail} 
-                        disabled={isSendingEmail}
-                        className="h-12 px-6 rounded-xl bg-slate-950 text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-lg shadow-slate-200 focus-visible:ring-4 focus-visible:ring-slate-500/20 outline-none"
-                    >
-                        {isSendingEmail ? <RefreshCw size={18} className="animate-spin" aria-hidden="true" /> : <Mail size={18} aria-hidden="true" />}
-                        {isSendingEmail ? 'Enviando...' : 'E-mail Oficial'}
-                    </button>
+                    </Button>
+                    <Button variant="outline" className="h-12 px-6 rounded-xl"><FileDown size={18} className="mr-2" /> Planilha</Button>
+                    <Button variant="success" className="h-12 px-6 rounded-xl text-white shadow-mx-lg"><MessageCircle size={18} className="mr-2" /> WhatsApp</Button>
+                    <Button variant="secondary" className="h-12 px-6 rounded-xl shadow-mx-xl" disabled={isSendingEmail}>
+                        {isSendingEmail ? <RefreshCw size={18} className="animate-spin mr-2" /> : <Mail size={18} className="mr-2" />}
+                        E-mail Direção
+                    </Button>
                 </div>
             </div>
 
-            {/* Metrics Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 shrink-0">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
-                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full blur-2xl group-hover:scale-150 transition-transform" aria-hidden="true" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-mx-lg shrink-0">
+                <Card className="p-8 group relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16" aria-hidden="true" />
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-inner"><Target size={20} aria-hidden="true" /></div>
-                            <Badge className="bg-indigo-50 text-indigo-600 border-none text-[8px] font-black tracking-widest px-2 py-1 uppercase">Meta Mês</Badge>
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-inner" aria-hidden="true"><Target size={20} /></div>
+                            <Badge variant="info">Meta Mês</Badge>
                         </div>
-                        <p className="text-5xl font-black text-slate-950 tracking-tighter font-mono-numbers leading-none mb-2">{metrics.teamGoal}</p>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none">Vendido: {metrics.currentSales} ({metrics.reaching}%)</p>
+                        <Typography variant="h1" className="text-5xl tabular-nums leading-none mb-2">{metrics.teamGoal}</Typography>
+                        <Typography variant="caption" tone="muted">Vendido: {metrics.currentSales} ({metrics.reaching}%)</Typography>
                     </div>
-                </motion.div>
+                </Card>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-slate-950 p-8 rounded-[2.5rem] shadow-xl shadow-slate-200 relative overflow-hidden group">
-                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" aria-hidden="true" />
+                <Card className="p-8 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl" aria-hidden="true" />
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shadow-inner"><TrendingUp size={20} aria-hidden="true" /></div>
-                            <Badge className="bg-white/10 text-white border-none text-[8px] font-black tracking-widest px-2 py-1 uppercase">Projeção MX</Badge>
+                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10" aria-hidden="true"><TrendingUp size={20} /></div>
+                            <Badge variant="outline" className="text-white border-white/20">Projeção MX</Badge>
                         </div>
-                        <p className="text-5xl font-black text-white tracking-tighter font-mono-numbers leading-none mb-2">{metrics.projection}</p>
-                        <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest leading-none">Falta X: {metrics.gap} unidades</p>
+                        <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none mb-2">{metrics.projection}</Typography>
+                        <Typography variant="caption" tone="white" className="opacity-50">Falta X: {metrics.gap} unidades</Typography>
                     </div>
-                </motion.div>
+                </Card>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className={cn("p-8 rounded-[2.5rem] border shadow-sm relative overflow-hidden transition-colors", metrics.pendingSellers.length > 0 ? "bg-rose-50 border-rose-100" : "bg-emerald-50 border-emerald-100")}>
-                    <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-inner", metrics.pendingSellers.length > 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
-                                {metrics.pendingSellers.length > 0 ? <AlertTriangle size={20} aria-hidden="true" /> : <UserCheck size={20} aria-hidden="true" />}
-                            </div>
-                            <Badge className={cn("border-none text-[8px] font-black tracking-widest px-2 py-1 uppercase", metrics.pendingSellers.length > 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>Disciplina</Badge>
+                <Card className={cn("p-8 transition-colors", metrics.pendingSellers.length > 0 ? "bg-rose-50 border-rose-100" : "bg-emerald-50 border-emerald-100")}>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-inner", metrics.pendingSellers.length > 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
+                            {metrics.pendingSellers.length > 0 ? <AlertTriangle size={20} /> : <UserCheck size={20} />}
                         </div>
-                        <p className={cn("text-5xl font-black tracking-tighter font-mono-numbers leading-none mb-2", metrics.pendingSellers.length > 0 ? "text-rose-600" : "text-emerald-600")}>
-                            {metrics.checkedInCount}/{sellers.length}
-                        </p>
-                        <p className={cn("text-[10px] font-bold uppercase tracking-widest leading-none", metrics.pendingSellers.length > 0 ? "text-rose-500" : "text-emerald-600")}>
-                            {metrics.pendingSellers.length > 0 ? `${metrics.pendingSellers.length} Sem Registro Hoje` : 'Equipe 100% Sincronizada'}
-                        </p>
+                        <Badge variant={metrics.pendingSellers.length > 0 ? 'danger' : 'success'}>Disciplina</Badge>
                     </div>
-                </motion.div>
+                    <Typography variant="h1" tone={metrics.pendingSellers.length > 0 ? 'error' : 'success'} className="text-5xl tabular-nums leading-none mb-2">
+                        {metrics.checkedInCount}/{sellers.length}
+                    </Typography>
+                    <Typography variant="caption" tone={metrics.pendingSellers.length > 0 ? 'error' : 'success'}>
+                        {metrics.pendingSellers.length > 0 ? `${metrics.pendingSellers.length} Pendências` : '100% Sincronizada'}
+                    </Typography>
+                </Card>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-20">
-                <div className="xl:col-span-8">
-                    <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
-                        <div className="p-8 border-b border-gray-100 bg-slate-50/30 flex items-center justify-between">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
+                <section className="xl:col-span-8">
+                    <Card className="overflow-hidden">
+                        <div className="p-8 border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
                             <div>
-                                <h2 className="text-xl font-black text-slate-950 uppercase tracking-tight">Grade Operacional</h2>
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Auditado em {referenceDateLabel}</p>
+                                <Typography variant="h3">Grade Operacional</Typography>
+                                <Typography variant="caption" tone="muted" className="mt-1">Auditado em {referenceDateLabel}</Typography>
                             </div>
-                            <div className="flex items-center gap-2 text-slate-500">
+                            <div className="flex items-center gap-2 text-text-tertiary">
                                 <Calendar size={16} aria-hidden="true" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{referenceDateLabel}</span>
+                                <Typography variant="caption">{referenceDateLabel}</Typography>
                             </div>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
-                                <caption className="sr-only">Detalhamento operacional por especialista de vendas</caption>
+                                <caption className="sr-only">Desempenho operacional por especialista</caption>
                                 <thead>
-                                    <tr className="bg-slate-50/50 border-b border-gray-100">
-                                        <th scope="col" className="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Especialista</th>
-                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Leads</th>
-                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Agend.</th>
-                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Visitas</th>
-                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-indigo-600 uppercase tracking-widest">Vendas</th>
-                                        <th scope="col" className="px-8 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Registro</th>
+                                    <tr className="bg-surface-alt border-b border-border-default">
+                                        <th scope="col" className="px-8 py-4 text-[10px] font-black text-text-tertiary uppercase tracking-widest">Especialista</th>
+                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-text-tertiary uppercase tracking-widest">Leads</th>
+                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-text-tertiary uppercase tracking-widest">Agend.</th>
+                                        <th scope="col" className="py-4 text-center text-[10px] font-black text-brand-primary uppercase tracking-widest">Vendas</th>
+                                        <th scope="col" className="px-8 py-4 text-right text-[10px] font-black text-text-tertiary uppercase tracking-widest">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {(ranking || []).map((r) => {
-                                        const seller = sellersMap.get(r.user_id)
-                                        const isRegistered = seller?.checkin_today
-                                        return (
-                                            <tr key={r.user_id} className="hover:bg-slate-50/30 transition-colors group h-20">
-                                                <td className="px-8 py-5">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-gray-100 text-slate-600 flex items-center justify-center text-xs font-black uppercase group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-inner" aria-hidden="true">
-                                                            {r.user_name.substring(0, 2)}
-                                                        </div>
-                                                        <span className="text-xs font-black text-slate-950 uppercase tracking-tight">{r.user_name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="text-center font-black text-slate-700 tabular-nums text-sm">{r.leads}</td>
-                                                <td className="text-center font-black text-slate-700 tabular-nums text-sm">{r.agd_total}</td>
-                                                <td className="text-center font-black text-slate-700 tabular-nums text-sm">{r.visitas}</td>
-                                                <td className="text-center font-black text-indigo-600 tabular-nums text-lg">{r.vnd_total}</td>
-                                                <td className="px-8 py-5 text-right">
-                                                    <Badge className={cn(
-                                                        "text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none",
-                                                        isRegistered ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-                                                    )}>
-                                                        {isRegistered ? 'OK' : 'FALTA'}
-                                                        <span className="sr-only">{isRegistered ? 'Registro realizado' : 'Registro pendente'}</span>
-                                                    </Badge>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
+                                <tbody className="divide-y divide-border-default">
+                                    {(ranking || []).map((r) => (
+                                        <tr key={r.user_id} className="hover:bg-surface-alt transition-colors group h-20">
+                                            <td className="px-8 py-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-surface-alt text-text-tertiary flex items-center justify-center text-[10px] font-black group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner" aria-hidden="true">{r.user_name.substring(0, 2)}</div>
+                                                    <Typography variant="h3" className="text-xs">{r.user_name}</Typography>
+                                                </div>
+                                            </td>
+                                            <td className="text-center font-bold text-slate-700 tabular-nums text-sm">{r.leads}</td>
+                                            <td className="text-center font-bold text-slate-700 tabular-nums text-sm">{r.agd_total}</td>
+                                            <td className="text-center font-black text-brand-primary tabular-nums text-lg">{r.vnd_total}</td>
+                                            <td className="px-8 py-2 text-right">
+                                                <Badge variant={sellers.find(s => s.id === r.user_id)?.checkin_today ? 'success' : 'danger'} className="px-3">
+                                                    {sellers.find(s => s.id === r.user_id)?.checkin_today ? 'OK' : 'FALTA'}
+                                                </Badge>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
+                    </Card>
+                </section>
 
-                <div className="xl:col-span-4 flex flex-col gap-8">
-                    <section className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm" aria-labelledby="foco-dia-title">
-                        <h3 id="foco-dia-title" className="text-xs font-black text-slate-950 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                            <Zap size={16} className="text-amber-500" aria-hidden="true" /> Foco do Dia
-                        </h3>
+                <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
+                    <Card className="p-8 space-y-8">
+                        <Typography variant="h3" className="flex items-center gap-2">
+                            <Zap size={16} className="text-brand-primary" aria-hidden="true" /> Foco do Dia
+                        </Typography>
                         <div className="space-y-4">
                             {metrics.pendingSellers.length > 0 && (
-                                <div className="p-5 rounded-2xl bg-rose-50 border border-rose-100 hover:shadow-lg transition-all group">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <p className="text-xs font-black text-rose-900 uppercase tracking-tight">Cobrar Sem Registro</p>
-                                        <Badge className="bg-white border-rose-200 text-rose-500 text-[10px] font-black uppercase">Alta</Badge>
+                                <div className="p-5 rounded-2xl bg-status-error-surface border border-status-error/10">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <Typography variant="h3" className="text-xs text-status-error">Cobrar Registro</Typography>
+                                        <Badge variant="danger">Alta</Badge>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 mt-3">
+                                    <div className="flex flex-wrap gap-2">
                                         {metrics.pendingSellers.slice(0, 3).map(s => (
-                                            <button 
-                                                key={s.id} 
-                                                onClick={() => handleWhatsAppIndividual(s)}
-                                                aria-label={`Cobrar registro de ${s.name} via WhatsApp`}
-                                                className="px-3 py-1 bg-white border border-rose-100 rounded-lg text-xs font-black text-rose-600 uppercase hover:bg-rose-600 hover:text-white transition-colors flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-rose-500 outline-none"
-                                            >
-                                                <MessageCircle size={10} aria-hidden="true" /> {s.name.split(' ')[0]}
-                                            </button>
+                                            <Button key={s.id} variant="outline" size="sm" className="h-8 rounded-lg bg-white text-status-error border-status-error/20"><MessageCircle size={12} className="mr-1" /> {s.name.split(' ')[0]}</Button>
                                         ))}
                                     </div>
                                 </div>
                             )}
-                            {[
-                                { title: 'Validar Agendamentos', desc: 'Conferir agenda internet D-0', priority: 'Alta' },
-                                { title: 'Recuperar Leads D-1', desc: 'Focar em taxa de visita', priority: 'Média' }
-                            ].map((task, i) => (
-                                <div key={i} className="p-5 rounded-2xl bg-slate-50 border border-gray-100 hover:bg-white hover:shadow-lg transition-all group">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{task.title}</p>
-                                        <Badge className="bg-white border-gray-200 text-slate-700 text-[10px] font-black uppercase">{task.priority}</Badge>
-                                    </div>
-                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">{task.desc}</p>
-                                </div>
-                            ))}
+                            <div className="p-5 rounded-2xl bg-surface-alt border border-border-default space-y-2">
+                                <Typography variant="h3" className="text-xs">Validar Agendamentos</Typography>
+                                <Typography variant="caption" tone="muted">Conferir agenda digital D-0</Typography>
+                            </div>
                         </div>
-                    </section>
+                    </Card>
 
-                    <div className="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
-                        <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" aria-hidden="true" />
-                        <div className="relative z-10 text-center">
-                            <BarChart3 className="mx-auto mb-4 opacity-40" size={32} aria-hidden="true" />
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 leading-tight">Ritmo Diário Ideal</h4>
-                            <p className="text-3xl font-black tracking-tighter mb-4 tabular-nums">
-                                {(metrics.gap / Math.max(daysInfo.total - daysInfo.decorridos, 1)).toFixed(1)}
-                            </p>
-                            <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-relaxed">
-                                Vendas necessárias por dia para atingir 100% da meta oficial.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                    <section className="bg-brand-primary rounded-[2.5rem] p-10 text-white shadow-mx-xl text-center">
+                        <BarChart3 className="mx-auto mb-4 opacity-40" size={32} aria-hidden="true" />
+                        <Typography variant="caption" tone="white" className="opacity-50 mb-2">Ritmo Ideal</Typography>
+                        <Typography variant="h1" tone="white" className="text-4xl tabular-nums">
+                            {(metrics.gap / Math.max(daysInfo.total - daysInfo.decorridos, 1)).toFixed(1)}
+                        </Typography>
+                        <Typography variant="caption" tone="white" className="opacity-30 mt-4 leading-relaxed">Vendas necessárias por dia para meta oficial.</Typography>
+                    </section>
+                </aside>
             </div>
         </main>
     )

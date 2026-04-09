@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react'
 import { useTeam } from '@/hooks/useTeam'
-import { CHECKIN_DEADLINE_LABEL, calculateReferenceDate, useCheckins } from '@/hooks/useCheckins'
+import { calculateReferenceDate, useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useManagerRoutine } from '@/hooks/useManagerRoutine'
 import { useFeedbacks, usePDIs, useNotifications } from '@/hooks/useData'
 import { useAuth } from '@/hooks/useAuth'
-import { somarVendas, calcularAtingimento, calcularFunil, gerarDiagnosticoMX, getDiasInfo } from '@/lib/calculations'
+import { somarVendas, calcularFunil, gerarDiagnosticoMX, getDiasInfo } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import {
     CheckCircle2, Clock, Activity, CalendarDays,
@@ -18,21 +18,24 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
 import { startOfWeek, isSameWeek, parseISO } from 'date-fns'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { supabase } from '@/lib/supabase'
 
 type RoutineTab = 'diario' | 'semanal' | 'mensal'
 
 export default function RotinaGerente() {
     const [tab, setTab] = useState<RoutineTab>('diario')
-    const { sellers, loading: loadingTeam } = useTeam()
+    const { sellers } = useTeam()
     const { membership } = useAuth()
-    const { checkins, loading: loadingCheckins } = useCheckins()
+    const { checkins } = useCheckins()
     const { storeGoal } = useGoals()
-    const { ranking, loading: loadingRanking } = useRanking()
-    const { routineLog, history: routineHistory, loading: loadingRoutine, registerRoutine } = useManagerRoutine()
-    const { feedbacks, loading: loadingFeedbacks } = useFeedbacks()
-    const { pdis, loading: loadingPDIs } = usePDIs()
+    const { ranking } = useRanking()
+    const { routineLog, history: routineHistory, registerRoutine } = useManagerRoutine()
+    const { feedbacks } = useFeedbacks()
+    const { pdis } = usePDIs()
     const { sendNotification } = useNotifications()
     const navigate = useNavigate()
     
@@ -44,57 +47,30 @@ export default function RotinaGerente() {
     const [routineNotes, setRoutineNotes] = useState('')
     const [savingRoutine, setSavingRoutine] = useState(false)
 
-    // Expected attainment calculation (DRR context)
     const diasInfo = useMemo(() => getDiasInfo(), [])
     const expectedAttainment = useMemo(() => (diasInfo.decorridos / diasInfo.total) * 100, [diasInfo])
 
-    // Sellers in risk zone
     const atRiskSellers = useMemo(() => {
         return ranking
             .filter(item => !item.is_venda_loja && item.atingimento < (expectedAttainment - 10))
             .sort((a, b) => a.atingimento - b.atingimento)
     }, [ranking, expectedAttainment])
 
-    // Derived State - Metrics
     const referenceDate = calculateReferenceDate()
     const previousDayCheckins = useMemo(() => checkins.filter(c => c.reference_date === referenceDate), [checkins, referenceDate])
     const pendingSellers = useMemo(() => (sellers || []).filter(s => !s.checkin_today), [sellers])
     const totalAgendamentosHoje = useMemo(() => previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0), [previousDayCheckins])
-    const previousDaySummary = useMemo(() => ({
-        leads: previousDayCheckins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
-        visitas: previousDayCheckins.reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
-        agendamentos: previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0), 0),
-        vendas: somarVendas(previousDayCheckins),
-    }), [previousDayCheckins])
     
-    const todayAgendas = useMemo(() => {
-        const usersMap = new Map()
-        previousDayCheckins.forEach(c => {
-            if ((c.agd_cart_today || 0) > 0 || (c.agd_net_today || 0) > 0) {
-                if (!usersMap.has(c.seller_user_id)) {
-                    usersMap.set(c.seller_user_id, {
-                        id: c.seller_user_id,
-                        seller_name: sellers?.find(s => s.id === c.seller_user_id)?.name || 'Vendedor',
-                        agd_cart_today: 0,
-                        agd_net_today: 0
-                    })
-                }
-                const entry = usersMap.get(c.seller_user_id)
-                entry.agd_cart_today += (c.agd_cart_today || 0)
-                entry.agd_net_today += (c.agd_net_today || 0)
-            }
-        })
-        return Array.from(usersMap.values())
-    }, [previousDayCheckins, sellers])
-
-    const canTriggerMatinal = useMemo(() => {
-        return reuniaoDone && agendaValidated && pendingSellers.length === 0
-    }, [reuniaoDone, agendaValidated, pendingSellers])
-    
+    const canTriggerMatinal = useMemo(() => reuniaoDone && agendaValidated && pendingSellers.length === 0, [reuniaoDone, agendaValidated, pendingSellers])
     const funilUnidade = useMemo(() => calcularFunil(checkins), [checkins])
     const diagUnidade = useMemo(() => gerarDiagnosticoMX(funilUnidade), [funilUnidade])
 
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+    const weekStartDateStr = weekStart.toISOString().split('T')[0]
+
+    const weeklyCheckins = useMemo(() => checkins.filter(c => c.reference_date >= weekStartDateStr), [checkins, weekStartDateStr])
+    const weeklyFunnel = useMemo(() => calcularFunil(weeklyCheckins), [weeklyCheckins])
+
     const feedbackStatus = useMemo(() => {
         return (sellers || []).map(s => {
             const hasFeedback = feedbacks.some(f => f.seller_id === s.id && isSameWeek(parseISO(f.week_reference), weekStart))
@@ -102,35 +78,16 @@ export default function RotinaGerente() {
         })
     }, [sellers, feedbacks, weekStart])
 
+    const pdiStatus = useMemo(() => {
+        return (sellers || []).map(s => {
+            const latestPDI = pdis.find(p => p.seller_id === s.id)
+            return { ...s, latestPDI }
+        })
+    }, [sellers, pdis])
+
     const pdiDueCount = useMemo(() => {
         return pdis.filter(p => p.due_date && new Date(p.due_date).getMonth() === new Date().getMonth()).length
     }, [pdis])
-
-    const handleRegisterRoutine = async () => {
-        setSavingRoutine(true)
-        const { error } = await registerRoutine({
-            reference_date: referenceDate,
-            checkins_pending_count: pendingSellers.length,
-            sem_registro_count: pendingSellers.length,
-            agd_cart_today: previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0), 0),
-            agd_net_today: previousDayCheckins.reduce((acc, c) => acc + (c.agd_net_today || 0), 0),
-            previous_day_leads: previousDaySummary.leads,
-            previous_day_sales: previousDaySummary.vendas,
-            ranking_snapshot: ranking.slice(0, 10).map(item => ({
-                user_id: item.user_id,
-                user_name: item.user_name,
-                position: item.position,
-                vnd_total: item.vnd_total,
-                meta: item.meta,
-                atingimento: item.atingimento,
-            })),
-            notes: routineNotes,
-        })
-        setSavingRoutine(false)
-        if (error) { toast.error(error); return }
-        toast.success('Rotina diária registrada!')
-    }
-
     const handleTriggerMatinal = async () => {
         setExecuting(true)
         try {
@@ -146,7 +103,7 @@ export default function RotinaGerente() {
     const handleWhatsAppShareGroup = () => {
         const storeName = membership?.store?.name || 'Unidade'
         const header = `*MATINAL OFICIAL - ${storeName.toUpperCase()}*\n_Referência: ${referenceDate}_\n\n`
-        const metricsStr = `*Vendas Ontem:* ${previousDaySummary.vendas}\n*Agendamentos Hoje:* ${totalAgendamentosHoje}\n*Gap Unidade:* ${Math.max((storeGoal?.target || 0) - somarVendas(checkins), 0)} un\n\n`
+        const metricsStr = `*Vendas Ontem:* ${somarVendas(previousDayCheckins)}\n*Agendamentos Hoje:* ${totalAgendamentosHoje}\n*Gap Unidade:* ${Math.max((storeGoal?.target || 0) - somarVendas(checkins), 0)} un\n\n`
         const top5 = ranking.slice(0, 5).map(item => `${item.position}º ${item.user_name} - ${item.vnd_total}v (${item.atingimento}%)`).join('\n')
         window.open(`https://wa.me/?text=${encodeURIComponent(header + metricsStr + "*TOP 5 ATUAL:*\n" + top5)}`, '_blank')
     }
@@ -162,7 +119,7 @@ export default function RotinaGerente() {
         setCobrando(true)
         const promises = pendingSellers.map(s => sendNotification({
             recipient_id: s.id, store_id: s.store_id || '', title: 'ALERTA: Check-in Pendente',
-            message: `Registro de produção atrasado (Prazo: ${CHECKIN_DEADLINE_LABEL}).`,
+            message: `Registro de produção atrasado.`,
             type: 'discipline', priority: 'high', link: '/checkin'
         }))
         await Promise.all(promises)
@@ -170,43 +127,41 @@ export default function RotinaGerente() {
         toast.success(`Notificados ${pendingSellers.length} especialistas!`)
     }
 
-    if (loadingTeam || loadingCheckins || loadingRanking || loadingFeedbacks || loadingPDIs || loadingRoutine) {
-        return (
-            <div className="h-full w-full flex flex-col items-center justify-center bg-white" role="status">
-                <RefreshCw className="w-10 h-10 animate-spin text-indigo-600 mb-4" aria-hidden="true" />
-                <p className="text-xs font-black uppercase tracking-widest text-gray-500">Sincronizando Central MX...</p>
-            </div>
-        )
+    const handleRegisterRoutine = async () => {
+        setSavingRoutine(true)
+        const { error } = await registerRoutine({
+            reference_date: referenceDate,
+            checkins_pending_count: pendingSellers.length,
+            notes: routineNotes,
+        })
+        setSavingRoutine(false)
+        if (error) toast.error(error); else toast.success('Rotina diária firmada!')
     }
 
     return (
-        <main className="w-full h-full flex flex-col gap-10 p-4 sm:p-6 md:p-10 overflow-y-auto no-scrollbar bg-white text-pure-black">
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-gray-100 pb-10 shrink-0">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-white">
+            
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div className="flex flex-col gap-1">
-                    <span className="text-[10px] text-indigo-700 mb-2 block font-black tracking-[0.4em] uppercase">Gestão de Unidade • Ciclo Operacional</span>
+                    <Typography variant="caption" tone="brand">Gestão de Unidade • Ciclo Operacional</Typography>
                     <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-slate-950 rounded-full shadow-lg" aria-hidden="true" />
-                        <h1 className="text-[38px] font-black tracking-tighter leading-none uppercase text-slate-950">Central de <span className="text-indigo-600">Rotinas</span></h1>
+                        <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
+                        <Typography variant="h1">Central de <span className="text-brand-primary">Rotinas</span></Typography>
                     </div>
                 </div>
 
-                <nav aria-label="Navegação de Ciclos" className="flex bg-gray-100 p-1.5 rounded-full border border-gray-200 shadow-inner" role="tablist">
+                <nav aria-label="Navegação de Ciclos" className="flex bg-surface-alt p-1.5 rounded-full border border-border-default shadow-inner" role="tablist">
                     {[
                         { id: 'diario', label: 'Diário', icon: Zap },
                         { id: 'semanal', label: 'Semanal', icon: BarChart3 },
                         { id: 'mensal', label: 'Estratégico', icon: Target }
                     ].map((t) => (
                         <button
-                            key={t.id}
-                            id={`tab-${t.id}`}
-                            role="tab"
-                            aria-selected={tab === t.id}
-                            aria-controls={`panel-${t.id}`}
+                            key={t.id} role="tab" aria-selected={tab === t.id}
                             onClick={() => setTab(t.id as RoutineTab)}
                             className={cn(
-                                "px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-slate-500", 
-                                tab === t.id ? "bg-white text-indigo-700 shadow-md" : "text-gray-500 hover:text-slate-900"
+                                "px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary", 
+                                tab === t.id ? "bg-white text-brand-primary shadow-mx-sm" : "text-text-tertiary hover:text-text-primary"
                             )}
                         >
                             <t.icon size={14} aria-hidden="true" /> {t.label}
@@ -218,245 +173,295 @@ export default function RotinaGerente() {
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 <AnimatePresence mode="wait">
                     {tab === 'diario' && (
-                        <motion.div key="diario" id="panel-diario" role="tabpanel" aria-labelledby="tab-diario" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                            {/* Ritual Matinal Checklist */}
-                            <div className="lg:col-span-7 flex flex-col gap-10">
-                                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-10">
+                        <motion.div key="diario" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg">
+                            <div className="lg:col-span-7 flex flex-col gap-mx-lg">
+                                <Card className="p-10 space-y-10">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-inner" aria-hidden="true"><Zap size={24} /></div>
+                                            <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true"><Zap size={24} /></div>
                                             <div>
-                                                <h2 className="text-xl font-black uppercase tracking-tight text-slate-950">Trilha de Comando Matinal</h2>
-                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Sequência Obrigatória • Limite 10:30</p>
+                                                <Typography variant="h3">Trilha de Comando Matinal</Typography>
+                                                <Typography variant="caption" tone="muted">Sequência Obrigatória • Limite 10:30</Typography>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex -space-x-2 mr-4" aria-label="Progresso da trilha">
-                                                <div className={cn("w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black", reuniaoDone ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-500")}>1</div>
-                                                <div className={cn("w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black", agendaValidated ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-500")}>2</div>
-                                                <div className={cn("w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black", pendingSellers.length === 0 ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-500")}>3</div>
-                                            </div>
-                                            <Badge className="bg-rose-600 text-white border-none font-black text-[10px] px-4 py-1.5 rounded-lg animate-pulse">ALTA PRIORIDADE</Badge>
-                                        </div>
+                                        <Badge variant="danger" className="animate-pulse shadow-mx-sm px-4">ALTA PRIORIDADE</Badge>
                                     </div>
 
-                                    <div className="space-y-4" role="list" aria-label="Lista de rituais">
-                                        {/* Passo 1: Reunião */}
-                                        <div 
-                                            role="checkbox"
-                                            aria-checked={reuniaoDone}
-                                            tabIndex={0}
-                                            onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setReuniaoDone(!reuniaoDone)}
-                                            className={cn("flex items-center justify-between p-6 rounded-[1.5rem] border transition-all cursor-pointer group focus-visible:ring-4 focus-visible:ring-indigo-500/10 outline-none", reuniaoDone ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-100 hover:bg-white hover:shadow-lg")} 
-                                            onClick={() => setReuniaoDone(!reuniaoDone)}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", reuniaoDone ? "bg-white text-emerald-600 border-emerald-300 shadow-sm" : "bg-white text-gray-400 border-gray-200")}>
-                                                    {reuniaoDone ? <CheckCircle2 size={20} strokeWidth={3} aria-hidden="true" /> : <span className="font-black text-xs text-slate-400">01</span>}
-                                                </div>
-                                                <div>
-                                                    <p className={cn("text-sm font-black uppercase tracking-tight", reuniaoDone ? "text-emerald-800" : "text-slate-950")}>Reunião Individual (D-0)</p>
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Alinhamento de metas e energia da tropa</p>
-                                                </div>
-                                            </div>
-                                            {!reuniaoDone && <span className="text-[10px] font-black text-indigo-700 uppercase tracking-widest bg-white border border-indigo-200 px-3 py-1.5 rounded-lg shadow-sm">Marcar Concluído</span>}
-                                        </div>
-
-                                        {/* Passo 2: Validação de Agenda */}
-                                        <div 
-                                            role="checkbox"
-                                            aria-checked={agendaValidated}
-                                            tabIndex={0}
-                                            onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && (agendaValidated ? setAgendaDone(false) : setShowAgendaModal(true))}
-                                            className={cn("flex items-center justify-between p-6 rounded-[1.5rem] border transition-all cursor-pointer group focus-visible:ring-4 focus-visible:ring-indigo-500/10 outline-none", agendaValidated ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-100 hover:bg-white hover:shadow-lg")} 
-                                            onClick={() => { if (!agendaValidated) setShowAgendaModal(true); else setAgendaDone(false) }}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", agendaValidated ? "bg-white text-emerald-600 border-emerald-300 shadow-sm" : "bg-white text-gray-400 border-gray-200")}>
-                                                    {agendaValidated ? <CheckCircle2 size={20} strokeWidth={3} aria-hidden="true" /> : <span className="font-black text-xs text-slate-400">02</span>}
-                                                </div>
-                                                <div>
-                                                    <p className={cn("text-sm font-black uppercase tracking-tight", agendaValidated ? "text-emerald-800" : "text-slate-950")}>Fechamento de Agendamentos</p>
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Validar {totalAgendamentosHoje} compromissos registrados</p>
-                                                </div>
-                                            </div>
-                                            {!agendaValidated && <span className="text-[10px] font-black text-indigo-700 uppercase tracking-widest bg-white border border-indigo-200 px-3 py-1.5 rounded-lg shadow-sm">Abrir Validação</span>}
-                                        </div>
-
-                                        {/* Passo 3: Disparo Final */}
-                                        <div className={cn("flex items-center justify-between p-6 rounded-[1.5rem] border transition-all", canTriggerMatinal ? "bg-slate-950 border-slate-800 text-white shadow-2xl" : "bg-gray-50 border-gray-100 opacity-50")}>
-                                            <div className="flex items-center gap-4">
-                                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", canTriggerMatinal ? "bg-white/10 text-indigo-400 border-white/10" : "bg-white text-gray-400 border-gray-200")}>
-                                                    <Mail size={20} aria-hidden="true" />
-                                                </div>
-                                                <div>
-                                                    <p className={cn("text-sm font-black uppercase tracking-tight", canTriggerMatinal ? "text-white" : "text-slate-500")}>Disparar Matinal Direção</p>
-                                                    <p className={cn("text-[10px] font-black uppercase tracking-widest mt-1", canTriggerMatinal ? "text-white/50" : "text-gray-400")}>
-                                                        {pendingSellers.length > 0 ? "Aguardando Check-ins" : "Pronto para Envio"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={handleTriggerMatinal} 
-                                                disabled={executing || !canTriggerMatinal} 
-                                                aria-label="Disparar relatório matinal"
-                                                className={cn(
-                                                    "px-6 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all focus-visible:ring-4 outline-none",
-                                                    canTriggerMatinal ? "bg-indigo-600 hover:bg-indigo-700 text-white focus-visible:ring-indigo-500/20" : "bg-gray-200 text-gray-500 focus-visible:ring-gray-500/10"
-                                                )}
+                                    <div className="space-y-4" role="list">
+                                        {[
+                                            { done: reuniaoDone, set: setReuniaoDone, label: 'Reunião Individual (D-0)', desc: 'Alinhamento de metas e energia', idx: '01' },
+                                            { done: agendaValidated, set: () => setShowAgendaModal(true), label: 'Validação de Agenda', desc: `${totalAgendamentosHoje} compromissos registrados`, idx: '02' }
+                                        ].map(step => (
+                                            <div 
+                                                key={step.idx} role="checkbox" aria-checked={step.done} tabIndex={0}
+                                                className={cn("flex items-center justify-between p-6 rounded-mx-xl border transition-all cursor-pointer group focus-visible:ring-4 focus-visible:ring-brand-primary/10 outline-none", step.done ? "bg-status-success-surface border-status-success/30" : "bg-surface-alt border-border-default hover:bg-white hover:shadow-mx-lg")} 
+                                                onClick={() => step.set(!step.done)}
                                             >
-                                                {executing ? <RefreshCw size={14} className="animate-spin" aria-hidden="true" /> : <FileCheck size={14} aria-hidden="true" />}
-                                                Executar Disparo
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Agenda Consolidada */}
-                                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm">
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200 shadow-inner" aria-hidden="true"><CalendarDays size={20} /></div>
-                                        <h3 className="text-lg font-black uppercase tracking-tight leading-none text-slate-950">Agenda Consolidada (Hoje)</h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-6" role="list" aria-label="Métricas de agendamento">
-                                        <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
-                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Agendamentos Porta</p>
-                                            <p className="text-3xl font-black text-slate-950 font-mono-numbers">{checkins.reduce((s, c) => s + (c.agd_cart_today || 0), 0)}</p>
-                                        </div>
-                                        <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
-                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Agendamentos Digital</p>
-                                            <p className="text-3xl font-black text-slate-950 font-mono-numbers">{checkins.reduce((s, c) => s + (c.agd_net_today || 0), 0)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-                                        <div>
-                                            <h3 className="text-lg font-black uppercase tracking-tight text-slate-950">Vendedores Pendentes</h3>
-                                            <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mt-1">Bloqueio de visibilidade em vigor</p>
-                                        </div>
-                                        {pendingSellers.length > 0 && (
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={handleCobrarTropa} disabled={cobrando} className="px-6 h-10 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition-all border border-slate-200 outline-none focus-visible:ring-4 focus-visible:ring-slate-500/10">Notificar App</button>
-                                                <button onClick={handleCobrarTropaWhatsApp} disabled={cobrando} className="px-6 h-10 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 border border-emerald-500 outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/20">WhatsApp</button>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list" aria-label="Especialistas pendentes">
-                                        {pendingSellers.map(s => (
-                                            <div key={s.id} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between group hover:bg-white hover:border-rose-200 transition-all shadow-sm">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[11px] font-black uppercase shadow-sm group-hover:bg-rose-600 group-hover:text-white transition-all" aria-hidden="true">{s.name.charAt(0)}</div>
+                                                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", step.done ? "bg-white text-status-success border-status-success/30" : "bg-white text-text-tertiary border-border-default")}>
+                                                        {step.done ? <CheckCircle2 size={20} strokeWidth={3} /> : <span className="font-black text-xs">{step.idx}</span>}
+                                                    </div>
                                                     <div>
-                                                        <p className="text-xs font-black uppercase text-slate-950 tracking-tight">{s.name}</p>
-                                                        <span className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Sem Registro</span>
+                                                        <Typography variant="h3" className={cn("text-sm", step.done ? "text-status-success" : "")}>{step.label}</Typography>
+                                                        <Typography variant="caption" tone="muted">{step.desc}</Typography>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => window.open(`https://wa.me/${s.phone?.replace(/\D/g, '')}`, '_blank')} aria-label={`Cobrar ${s.name} no WhatsApp`} className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><MessageSquare size={16} aria-hidden="true" /></button>
+                                                {!step.done && <Typography variant="caption" tone="brand" className="bg-white border border-border-default px-3 py-1.5 rounded-lg shadow-mx-sm">Concluir</Typography>}
                                             </div>
                                         ))}
-                                        {pendingSellers.length === 0 && (
-                                            <div className="col-span-full py-10 text-center border-2 border-dashed border-gray-100 rounded-[2rem] bg-emerald-50/20">
-                                                <CheckCircle2 size={32} className="mx-auto text-emerald-500 mb-2 opacity-40" aria-hidden="true" />
-                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Toda a tropa registrou produção!</p>
+
+                                        <div className={cn("flex items-center justify-between p-6 rounded-mx-xl border transition-all", canTriggerMatinal ? "bg-brand-secondary border-none text-white shadow-mx-xl" : "bg-surface-alt border-border-default opacity-50")}>
+                                            <div className="flex items-center gap-4">
+                                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", canTriggerMatinal ? "bg-white/10 text-white border-white/10" : "bg-white text-text-tertiary")}>
+                                                    <Mail size={20} />
+                                                </div>
+                                                <div>
+                                                    <Typography variant="h3" tone={canTriggerMatinal ? 'white' : 'default'} className="text-sm">Disparar Matinal</Typography>
+                                                    <Typography variant="caption" tone={canTriggerMatinal ? 'white' : 'muted'} className={canTriggerMatinal ? 'opacity-50' : ''}>Direção & Governança</Typography>
+                                                </div>
                                             </div>
-                                        )}
+                                            <Button variant={canTriggerMatinal ? 'primary' : 'outline'} disabled={!canTriggerMatinal} onClick={handleTriggerMatinal} className="h-10 px-6">Disparar</Button>
+                                        </div>
                                     </div>
-                                </div>
+                                </Card>
+
+                                <Card className="p-10">
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="w-10 h-10 rounded-xl bg-status-info-surface text-status-info flex items-center justify-center border border-status-info/20 shadow-inner" aria-hidden="true"><BarChart3 size={20} /></div>
+                                        <Typography variant="h3">Agenda Consolidada (Hoje)</Typography>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6" role="list">
+                                        <div className="p-6 rounded-2xl bg-surface-alt border border-border-default shadow-inner text-center">
+                                            <Typography variant="caption" tone="muted" className="mb-1">Porta</Typography>
+                                            <Typography variant="h1" className="text-3xl tabular-nums">{previousDayCheckins.reduce((s, c) => s + (c.agd_cart_today || 0), 0)}</Typography>
+                                        </div>
+                                        <div className="p-6 rounded-2xl bg-surface-alt border border-border-default shadow-inner text-center">
+                                            <Typography variant="caption" tone="muted" className="mb-1">Digital</Typography>
+                                            <Typography variant="h1" className="text-3xl tabular-nums">{previousDayCheckins.reduce((s, c) => s + (c.agd_net_today || 0), 0)}</Typography>
+                                        </div>
+                                    </div>
+                                </Card>
                             </div>
 
-                            <aside className="lg:col-span-5 flex flex-col gap-10">
-                                <section className="bg-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-indigo-100 relative overflow-hidden" aria-labelledby="status-dia-title">
+                            <aside className="lg:col-span-5 flex flex-col gap-mx-lg">
+                                <section className="bg-brand-primary rounded-[2.5rem] p-10 text-white shadow-mx-xl relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20" aria-hidden="true" />
                                     <div className="relative z-10 space-y-8">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner" aria-hidden="true"><Clock size={24} className="text-white" /></div>
-                                                <h3 id="status-dia-title" className="text-xl font-black uppercase tracking-tight">Status do Dia</h3>
+                                                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner" aria-hidden="true"><Clock size={24} /></div>
+                                                <Typography variant="h3" tone="white">Status do Dia</Typography>
                                             </div>
-                                            <button onClick={handleWhatsAppShareGroup} className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-emerald-500 transition-all shadow-lg" aria-label="Compartilhar no WhatsApp"><MessageSquare size={20} className="text-white" /></button>
+                                            <Button variant="ghost" size="icon" onClick={handleWhatsAppShareGroup} className="text-white hover:bg-emerald-500 rounded-xl"><MessageSquare size={20} /></Button>
                                         </div>
                                         <div className="grid grid-cols-2 gap-8 border-t border-white/10 pt-8">
-                                            <div><p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">Agendamentos D-0</p><p className="text-4xl font-black tracking-tighter tabular-nums">{totalAgendamentosHoje}</p></div>
-                                            <div><p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">Sem Registro</p><p className="text-4xl font-black tracking-tighter tabular-nums">{pendingSellers.length}</p></div>
+                                            <div><Typography variant="caption" tone="white" className="opacity-50 mb-1">Agendamentos</Typography><Typography variant="h1" tone="white" className="text-4xl tabular-nums">{totalAgendamentosHoje}</Typography></div>
+                                            <div><Typography variant="caption" tone="white" className="opacity-50 mb-1">Pendências</Typography><Typography variant="h1" tone="white" className="text-4xl tabular-nums">{pendingSellers.length}</Typography></div>
                                         </div>
                                     </div>
                                 </section>
 
-                                <section className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-8" aria-labelledby="risco-title">
+                                <Card className="p-10 space-y-8">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center border border-rose-200 shadow-inner" aria-hidden="true"><ShieldAlert size={24} className="text-rose-600" /></div>
+                                        <div className="w-12 h-12 rounded-2xl bg-status-error-surface flex items-center justify-center border border-status-error/20 shadow-inner" aria-hidden="true"><ShieldAlert size={24} className="text-status-error" /></div>
                                         <div>
-                                            <h3 id="risco-title" className="text-lg font-black uppercase tracking-tight leading-none text-rose-700">Zonas de Risco</h3>
-                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Ação prioritária necessária</p>
+                                            <Typography variant="h3" className="text-status-error">Zonas de Risco</Typography>
+                                            <Typography variant="caption" tone="muted">Ação prioritária necessária</Typography>
                                         </div>
                                     </div>
-                                    <div className="space-y-4" role="list" aria-label="Vendedores em risco">
+                                    <div className="space-y-4" role="list">
                                         {atRiskSellers.slice(0, 3).map(s => (
-                                            <div key={s.user_id} className="p-5 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all shadow-sm">
+                                            <div key={s.user_id} className="p-5 rounded-2xl bg-status-error-surface border border-status-error/10 flex items-center justify-between group hover:bg-white hover:shadow-mx-lg transition-all" role="listitem">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-rose-200 flex items-center justify-center text-xs font-black text-rose-700" aria-hidden="true">{s.user_name.charAt(0)}</div>
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-border-default flex items-center justify-center text-xs font-black text-status-error shadow-mx-sm" aria-hidden="true">{s.user_name.charAt(0)}</div>
                                                     <div>
-                                                        <p className="text-xs font-black uppercase text-slate-950">{s.user_name}</p>
-                                                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mt-0.5">Ritmo: {s.atingimento}%</p>
+                                                        <Typography variant="h3" className="text-xs">{s.user_name}</Typography>
+                                                        <Typography variant="caption" tone="error" className="text-[8px] mt-0.5">Ritmo: {s.atingimento}%</Typography>
                                                     </div>
                                                 </div>
-                                                <Link to={`/feedback?seller=${s.user_id}`} aria-label={`Dar feedback para ${s.user_name}`} className="w-9 h-9 rounded-lg bg-rose-600 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg"><TrendingUp size={16} /></Link>
+                                                <Button asChild size="icon" variant="ghost" className="text-status-error hover:bg-status-error hover:text-white rounded-xl shadow-mx-sm">
+                                                    <Link to={`/feedback?seller=${s.user_id}`}><TrendingUp size={16} /></Link>
+                                                </Button>
                                             </div>
                                         ))}
                                     </div>
-                                </section>
+                                </Card>
 
-                                <section className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm space-y-6" aria-labelledby="auditoria-title">
+                                <Card className="p-10 space-y-6">
                                     <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-200 shadow-inner" aria-hidden="true"><ShieldCheck size={24} className="text-emerald-600" /></div>
-                                        <div><h3 id="auditoria-title" className="text-lg font-black uppercase tracking-tight leading-none text-slate-950">Registro de Auditoria</h3><p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">{routineLog ? 'Sincronizado Hoje' : 'Auditoria não registrada'}</p></div>
+                                        <div className="w-12 h-12 rounded-2xl bg-status-success-surface flex items-center justify-center border border-status-success/20 shadow-inner" aria-hidden="true"><ShieldCheck size={24} className="text-status-success" /></div>
+                                        <div><Typography variant="h3">Auditoria</Typography><Typography variant="caption" tone="muted">{routineLog ? 'Sincronizado Hoje' : 'Pendente'}</Typography></div>
                                     </div>
-                                    <textarea id="routine-notes" value={routineNotes} onChange={event => setRoutineNotes(event.target.value)} placeholder="Nota operacional do dia..." className="w-full min-h-[80px] rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm font-bold text-slate-800 outline-none focus:border-indigo-300 focus:bg-white transition-all shadow-inner" />
-                                    <button onClick={handleRegisterRoutine} disabled={savingRoutine || !!routineLog} className="h-14 w-full rounded-2xl bg-slate-950 text-white text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 shadow-xl hover:bg-emerald-600 transition-all active:scale-95 focus-visible:ring-4 focus-visible:ring-slate-500/20">
-                                        {savingRoutine ? <RefreshCw size={16} className="animate-spin" /> : <FileCheck size={16} />} {routineLog ? 'Registro Efetuado' : 'Firmar Auditoria'}
-                                    </button>
-                                </section>
+                                    <textarea 
+                                        value={routineNotes} onChange={e => setRoutineNotes(e.target.value)} placeholder="Nota operacional do dia..." 
+                                        className="w-full min-h-[100px] rounded-mx-xl border border-border-default bg-surface-alt p-5 text-sm font-bold text-slate-950 outline-none focus:border-brand-primary focus:bg-white transition-all resize-none shadow-inner" 
+                                    />
+                                    <Button onClick={handleRegisterRoutine} disabled={savingRoutine || !!routineLog} className="w-full h-14 rounded-full shadow-mx-xl">
+                                        {savingRoutine ? <RefreshCw className="animate-spin" /> : <FileCheck size={18} className="mr-2" />} Firmar Auditoria
+                                    </Button>
+                                </Card>
+                            </aside>
+                        </motion.div>
+                    )}
+
+                    {tab === 'semanal' && (
+                        <motion.div key="semanal" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg">
+                            <div className="lg:col-span-8 flex flex-col gap-mx-lg">
+                                <Card className="p-10">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-status-warning-surface text-status-warning flex items-center justify-center border border-status-warning/20 shadow-inner" aria-hidden="true"><MessageSquare size={24} /></div>
+                                            <div>
+                                                <Typography variant="h2" className="text-xl">Mapa de Feedbacks</Typography>
+                                                <Typography variant="caption" tone="muted">Ritual de Segunda • Ciclo Semanal</Typography>
+                                            </div>
+                                        </div>
+                                        <Badge variant="warning">OBRIGATÓRIO</Badge>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {feedbackStatus.map(s => (
+                                            <div key={s.id} className={cn("p-6 rounded-mx-xl border transition-all flex items-center justify-between group", s.hasFeedback ? "bg-status-success-surface border-status-success/20" : "bg-surface-alt border-border-default hover:bg-white hover:shadow-mx-lg")}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black uppercase border shadow-mx-sm transition-all", s.hasFeedback ? "bg-white text-status-success border-status-success/20" : "bg-white text-text-tertiary border-border-default group-hover:bg-status-warning group-hover:text-white")}>{s.name.charAt(0)}</div>
+                                                    <div>
+                                                        <Typography variant="h3" className="text-xs">{s.name}</Typography>
+                                                        <Typography variant="caption" tone={s.hasFeedback ? "success" : "warning"}>{s.hasFeedback ? "Concluído" : "Pendente"}</Typography>
+                                                    </div>
+                                                </div>
+                                                {!s.hasFeedback && (
+                                                    <Button asChild size="icon" variant="ghost" className="hover:bg-status-warning hover:text-white rounded-xl">
+                                                        <Link to={`/feedback?seller=${s.id}`}><ChevronRight size={16} /></Link>
+                                                    </Button>
+                                                )}
+                                                {s.hasFeedback && <CheckCircle2 className="text-status-success" size={20} />}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+
+                                <Card className="p-10">
+                                    <div className="flex items-center gap-4 mb-10">
+                                        <div className="w-12 h-12 rounded-2xl bg-brand-primary/5 text-brand-primary flex items-center justify-center border border-brand-primary/10 shadow-inner" aria-hidden="true"><TrendingUp size={24} /></div>
+                                        <div>
+                                            <Typography variant="h2" className="text-xl">Funil de Performance Semanal</Typography>
+                                            <Typography variant="caption" tone="muted">Heurística de Conversão MX</Typography>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[
+                                            { label: 'Leads', val: weeklyFunnel.leads, icon: Users, tone: 'brand' },
+                                            { label: 'Agend.', val: weeklyFunnel.agendamentos, icon: CalendarDays, tone: 'info' },
+                                            { label: 'Visitas', val: weeklyFunnel.visitas, icon: Award, tone: 'warning' },
+                                            { label: 'Vendas', val: weeklyFunnel.vendas, icon: Zap, tone: 'success' }
+                                        ].map(item => (
+                                            <div key={item.label} className="p-6 rounded-[2rem] bg-surface-alt border border-border-default text-center">
+                                                <item.icon size={16} className={`mx-auto mb-2 text-text-${item.tone as any}`} />
+                                                <Typography variant="caption" tone="muted" className="mb-1">{item.label}</Typography>
+                                                <Typography variant="h1" className="text-2xl tabular-nums">{item.val}</Typography>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            </div>
+
+                            <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
+                                <div className="bg-brand-secondary rounded-[2.5rem] p-10 text-white shadow-mx-xl relative overflow-hidden">
+                                    <div className="relative z-10 space-y-6">
+                                        <Typography variant="h3" tone="white" className="flex items-center gap-3"><Award className="text-status-warning" /> Top Performance</Typography>
+                                        <div className="space-y-4">
+                                            {ranking.slice(0, 3).map((item, idx) => (
+                                                <div key={item.user_id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-black text-white/30">{idx + 1}º</span>
+                                                        <Typography variant="h3" tone="white" className="text-xs">{item.user_name}</Typography>
+                                                    </div>
+                                                    <Typography variant="h3" className="text-xs text-brand-primary">{item.vnd_total}v</Typography>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </aside>
+                        </motion.div>
+                    )}
+
+                    {tab === 'mensal' && (
+                        <motion.div key="mensal" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg">
+                            <div className="lg:col-span-7 flex flex-col gap-mx-lg">
+                                <Card className="p-10">
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="w-12 h-12 rounded-2xl bg-status-error-surface text-status-error flex items-center justify-center border border-status-error/20 shadow-inner" aria-hidden="true"><Target size={24} /></div>
+                                        <div>
+                                            <Typography variant="h2" className="text-xl">Controle de Metas & Sell-out</Typography>
+                                            <Typography variant="caption" tone="muted">Status de Entrega Mensal</Typography>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-10">
+                                        <div>
+                                            <div className="flex justify-between items-end mb-4">
+                                                <div>
+                                                    <Typography variant="caption" tone="muted" className="mb-1">Atingimento Real</Typography>
+                                                    <Typography variant="h1" className="text-4xl tabular-nums">{calcularAtingimento(somarVendas(checkins), storeGoal?.target || 0)}%</Typography>
+                                                </div>
+                                                <div className="text-right">
+                                                    <Typography variant="caption" tone="muted" className="mb-1">Meta: {storeGoal?.target || 0} un</Typography>
+                                                    <Typography variant="h3" tone="brand">{somarVendas(checkins)} / {storeGoal?.target || 0}</Typography>
+                                                </div>
+                                            </div>
+                                            <div className="h-4 bg-surface-alt rounded-full overflow-hidden border border-border-default">
+                                                <motion.div 
+                                                    initial={{ width: 0 }} 
+                                                    animate={{ width: `${Math.min(calcularAtingimento(somarVendas(checkins), storeGoal?.target || 0), 100)}%` }} 
+                                                    className={cn("h-full rounded-full shadow-mx-sm", calcularAtingimento(somarVendas(checkins), storeGoal?.target || 0) >= 100 ? "bg-status-success" : "bg-brand-primary")}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+
+                                <Card className="p-10">
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="w-12 h-12 rounded-2xl bg-brand-primary/5 text-brand-primary flex items-center justify-center border border-brand-primary/10 shadow-inner" aria-hidden="true"><Award size={24} /></div>
+                                        <div>
+                                            <Typography variant="h2" className="text-xl">Mapa de PDIs</Typography>
+                                            <Typography variant="caption" tone="muted">Plano de Desenvolvimento Individual</Typography>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {pdiStatus.map(s => (
+                                            <div key={s.id} className={cn("p-6 rounded-mx-xl border transition-all flex items-center justify-between group", s.latestPDI ? "bg-brand-primary/5 border-brand-primary/10" : "bg-surface-alt border-border-default hover:bg-white hover:shadow-mx-lg")}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black uppercase border shadow-mx-sm transition-all", s.latestPDI ? "bg-white text-brand-primary border-brand-primary/20" : "bg-white text-text-tertiary border-border-default group-hover:bg-brand-primary group-hover:text-white")}>{s.name.charAt(0)}</div>
+                                                    <div>
+                                                        <Typography variant="h3" className="text-xs">{s.name}</Typography>
+                                                        <Typography variant="caption" tone={s.latestPDI ? "brand" : "muted"}>{s.latestPDI ? "PDI ATIVO" : "SEM PDI"}</Typography>
+                                                    </div>
+                                                </div>
+                                                <Button asChild size="icon" variant="ghost" className="hover:bg-brand-primary hover:text-white rounded-xl">
+                                                    <Link to="/pdi"><ChevronRight size={16} /></Link>
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            </div>
+
+                            <aside className="lg:col-span-5 flex flex-col gap-mx-lg">
+                                <div className="bg-brand-primary rounded-[2.5rem] p-10 text-white shadow-mx-xl relative overflow-hidden">
+                                    <div className="relative z-10 space-y-6">
+                                        <Typography variant="h3" tone="white">Projeção Final</Typography>
+                                        <div className="pt-6 border-t border-white/10">
+                                            <Typography variant="h1" tone="white" className="text-5xl tabular-nums mb-2">{Math.round(calcularAtingimento(somarVendas(checkins), storeGoal?.target || 0) * (diasInfo.total / diasInfo.decorridos))}%</Typography>
+                                            <Typography variant="caption" tone="white" className="opacity-50 uppercase tracking-[0.2em]">Atingimento Projetado</Typography>
+                                        </div>
+                                    </div>
+                                </div>
                             </aside>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
-
-            {/* Modal de Validação de Agendamentos D-0 */}
-            <AnimatePresence>
-                {showAgendaModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="modal-agenda-title">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAgendaModal(false)} className="absolute inset-0 bg-slate-950/70 backdrop-blur-md" aria-hidden="true" />
-                        <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-3xl overflow-hidden flex flex-col max-h-[90vh]">
-                            <div className="p-10 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg" aria-hidden="true"><CalendarDays size={24} /></div>
-                                    <h2 id="modal-agenda-title" className="text-xl font-black uppercase tracking-tight text-slate-950">Validação de Agenda D-0</h2>
-                                </div>
-                                <button onClick={() => setShowAgendaModal(false)} aria-label="Fechar modal" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-rose-600 transition-all outline-none shadow-sm"><X size={20} aria-hidden="true" /></button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-10 space-y-8 no-scrollbar">
-                                <div className="space-y-4" role="list" aria-label="Agendamentos por especialista">
-                                    {todayAgendas.map(c => (
-                                        <div key={c.id} className="p-6 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between group hover:bg-white transition-all shadow-sm" role="listitem">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-xs font-black uppercase" aria-hidden="true">{(c as any).seller_name?.charAt(0)}</div>
-                                                <div><p className="text-sm font-black uppercase text-slate-950">{(c as any).seller_name}</p></div>
-                                            </div>
-                                            <Badge className="bg-white border-gray-200 text-gray-500 text-[10px] font-black uppercase h-6 px-3">Auditado</Badge>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="p-10 bg-gray-50 border-t border-gray-100">
-                                <button onClick={() => { setAgendaDone(true); setShowAgendaModal(false); toast.success('Agenda D-0 validada!') }} className="w-full py-6 rounded-full bg-slate-950 text-white text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 shadow-xl focus-visible:ring-8 focus-visible:ring-slate-500/20"><ShieldCheck size={20} strokeWidth={3} aria-hidden="true" /> Confirmar Validação MX</button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </main>
     )
 }
