@@ -116,9 +116,9 @@ export default function Configuracoes() {
                                     <Typography variant="p" tone="muted" className="lowercase tracking-normal italic uppercase tracking-widest font-black opacity-40 text-xs">Alertas de gaps, rituais pendentes e novos feedbacks</Typography>
                                 </div>
                                 <Button 
-                                    variant={form.notifications ? 'brand' : 'outline'}
+                                    variant={form.notifications ? 'primary' : 'outline'}
                                     onClick={() => setForm(p => ({ ...p, notifications: !p.notifications }))}
-                                    className="w-28 h-12 rounded-full font-black shadow-mx-sm uppercase tracking-widest bg-white"
+                                    className="w-24 h-12 rounded-full font-black text-[10px] shadow-mx-sm"
                                 >
                                     {form.notifications ? 'ATIVADO' : 'OFF'}
                                 </Button>

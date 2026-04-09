@@ -59,19 +59,18 @@ export async function runWeeklyFeedbackWorkflow() {
             const funnel = calcularFunil(sellerCheckins as any);
             const diag = gerarDiagnosticoMX(funnel);
             
-            // Gerar texto do WhatsApp seguindo o padrão
+            // Gerar texto do WhatsApp seguindo o novo padrão
             const whatsappText = formatStructuredWhatsAppFeedback({
-                week_reference: dateRangeLabel,
-                meta_compromisso: Math.ceil(funnel.vnd_total * 1.2) || 1,
-                commitment_suggested: Math.ceil(funnel.vnd_total * 1.2) || 1,
-                action: diag.sugestao,
-                positives: funnel.vnd_total > 0 ? 'Bom volume de registros e presença em loja.' : 'Disciplina no check-in diário.',
-                attention_points: diag.diagnostico
+                sellerName: (member.users as any)?.name || 'Vendedor',
+                metrics: funnel,
+                diagnostic: diag,
+                actions: [diag.sugestao],
+                periodLabel: dateRangeLabel
             });
 
             feedbackData.push({
                 seller_id: member.user_id,
-                seller_name: member.users?.name || 'Vendedor',
+                seller_name: (member.users as any)?.name || 'Vendedor',
                 whatsapp_text: whatsappText
             });
         }

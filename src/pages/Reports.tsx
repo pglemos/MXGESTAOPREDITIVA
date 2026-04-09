@@ -1,4 +1,4 @@
-import { Share2, Zap, ArrowRight, ShieldCheck, Heart, Layers, TrendingUp, RefreshCw, X, Download, Filter, MessageCircle, BarChart3, Bot, Star, ChevronRight, Target, History, Calendar } from 'lucide-react'
+import { Share2, Zap, ArrowRight, ShieldCheck, Heart, Layers, TrendingUp, RefreshCw, X, Download, Filter, MessageCircle, BarChart3, Bot, Star, ChevronRight, Target, History, Calendar, Package, Timer, TrendingDown, Search } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'

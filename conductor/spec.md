@@ -1,77 +1,46 @@
-# Track Specification: Legacy to MX Performance Migration (Full Scope)
+# Especificação Técnica: Comprehensive Fix Plan (A11y & Performance)
 
-## 1. Core Data Model (The Canonical Contract)
-- Fields: `DATA`, `LOJA`, `VENDEDOR`, `LEADS`, `VND_PORTA`, `AGD_CART`, `VND_CART`, `AGD_NET`, `VND_NET`, `VISITA`.
-- Must be the "Single Source of Truth" for all derived analytics.
+**Status:** Rascunho Finalizado (Aguardando Aprovação)
+**Track:** `comprehensive-fix`
+**Propósito:** Transformar o MX Performance em um sistema de "Zero Atrito" para acessibilidade e carregamento instantâneo, com 100% de conformidade Lighthouse e ausência total de logs de erro (Hydration/Auth).
 
-## 2. Aggressive Resilient Importer
-- **Features**: 
-    - Flexible column mapping (searching for keywords in headers).
-    - Data sanitization (date normalization, numeric cleaning).
-    - Deduplication (Loja + Vendedor + Data).
-    - Audit logs & Replayability.
+---
 
-## 3. Store Governance Module (Config)
-- **Settings per unit**:
-    - Meta (monthly).
-    - Contacts (Morning/Weekly email lists).
-    - WhatsApp group ID.
-    - Benchmarks/Source Mode/Team tenure (vigência).
+## 🛡️ Critérios de Aceite (AIOX Rigor)
 
-## 4. Operational & Executive Dashboard
-- **Features**: 
-    - Executive KPIs (Meta, Sold, Projected, % Completion, Ranking).
-    - Operational detail (raw grid per seller).
-    - Logic: Exclusion of "VENDA LOJA" from individual divisor for specific metrics.
+### 1. Acessibilidade (WCAG 2.1 AA)
+- **Landmarks:** Todas as páginas devem ter exatamente um `<main>` root (ou dentro de um Layout consistente).
+- **Interactive Elements:**
+    - Botões icon-only devem possuir `aria-label` descritivo.
+    - Ícones decorativos (Lucide) devem ter `aria-hidden="true"`.
+    - `focus-visible:ring-2` obrigatório em todo elemento clicável.
+- **Formulários:**
+    - Todo `Input`, `Select` e `Textarea` deve possuir um `id` único e um `<label htmlFor={id}>`.
+    - Erros de validação devem usar `aria-invalid` e `aria-describedby`.
+- **Tabelas:**
+    - Uso obrigatório de `<caption>` (podendo ser `sr-only`).
+    - `scope="col"` em `<th>` e `scope="row"` no identificador da linha.
+- **Hierarquia:**
+    - Exatamente um `<h1>` por página.
+    - Sequência lógica de `<h2>`, `<h3>` sem pular níveis.
 
-## 5. Manager Command Center
-- **Features**: 
-    - Launch status monitor.
-    - Accountability/Mass-coaching.
-    - Daily routine schedule.
-    - Risk/Ranking view (real-time).
+### 2. Performance (Core Web Vitals)
+- **Skeletons:** Carregamento de dados (loading states) deve usar Skeletons proporcionais ao conteúdo final.
+- **Hydration:** Zero avisos de "Extra attributes from the server" ou "Hydration failed".
+- **Auth Client:** Singleton do `supabase.auth` (evitar múltiplas instâncias de `GoTrueClient`).
+- **Memoization:** Uso de `useMemo` e `useCallback` em cálculos pesados de funil e projeção.
 
-## 6. Official Morning Report (Automated)
-- **Features**: 
-    - Base recalculation engine.
-    - Projection analysis.
-    - Generation of HTML body + Official XLSX attachment.
-    - WhatsApp CTA generation.
-    - Idempotent execution (Cron-driven).
+### 3. UI/UX Hardening
+- **Contrast:** `text-gray-400` proibido em fundos claros (mínimo `text-gray-600` ou tokens `text-secondary`).
+- **Touch Targets:** Mínimo de 44x44px para botões mobile.
 
-## 7. Admin Executive Overview
-- **Features**: 
-    - Real-time Semaphore (Pacing, Gap, Status).
-    - Multi-store comparative analysis.
+---
 
-## 8. Automated Weekly Feedback Loop
-- **Features**: 
-    - Engine triggers Monday 12:30.
-    - Diagnoses bottlenecks automatically.
-    - Actionable training suggestions.
-    - Multi-store PDF/XLSX delivery + WhatsApp script.
+## 🛠️ Stack de Validação
+- **Lighthouse:** Mínimo 95+ em Acessibilidade e Performance.
+- **Axe DevTools:** Zero violações automáticas.
+- **Console Audit:** Zero avisos de `aria-*` inválidos ou `unique key prop`.
 
-## 9. Automated Monthly Close
-- **Features**: 
-    - Trigger Day 1, 10:30.
-    - Memory-aware processing (PropertiesService logic replacement).
-    - Idempotent delivery, storage, and history archive.
+---
 
-## 10. Broadcast & Communication Engine
-- **Features**: 
-    - Rastreio de campanha (Email/WhatsApp).
-    - Message template gallery for managers.
-
-## 11. Bottleneck-Driven Training Engine
-- **Features**: 
-    - Mapping bottleneck to training material.
-    - Consumption tracking by seller.
-
-## 12. Orquestração e Gatilhos (Observability)
-- Native Scheduler (Retry, Logs, Status monitoring).
-
-## 13. Hard Logic Requirements (Non-Negotiable)
-- Benchmarks: 20/60/33.
-- Monthly projection pacing.
-- Status (Batida/Quase/Abaixo).
-- D-1/D-0 data dependency.
+**Assinatura:** — Orion, orquestrando o sistema 🎯

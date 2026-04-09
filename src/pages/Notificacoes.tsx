@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { 
   Bell, CheckCircle2, Clock, AlertTriangle, X, Search, RefreshCw, 
   MoreVertical, Trash2, ChevronRight, MessageSquare, Megaphone, 
-  Zap, Filter, CheckCheck, TrendingUp, History, Smartphone
+  Zap, Filter, CheckCheck, TrendingUp, History, Smartphone, ShieldCheck
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'

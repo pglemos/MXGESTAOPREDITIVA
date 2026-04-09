@@ -233,31 +233,32 @@ export default function PainelConsultor() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
             {/* Header Toolbar */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10 shrink-0">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10 shrink-0" role="banner">
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Rede <span className="text-brand-primary">Operacional</span></Typography>
                     </div>
                     <div className="flex items-center gap-4 pl-6">
-                        <Badge variant="danger" className="px-4 py-1">Gap Global: {globalStats.totalGap} UNIDADES</Badge>
-                        <Typography variant="caption" tone="muted">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</Typography>
+                        <Badge variant="danger" className="px-4 py-1 font-black">Gap Global: {globalStats.totalGap} UNIDADES</Badge>
+                        <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</Typography>
                     </div>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-mx-xs shrink-0">
-                    <div className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm relative">
-                        <Calendar size={14} className="text-text-tertiary ml-3 mr-1" />
+                    <nav className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm relative" aria-label="Filtro de Período">
+                        <Calendar size={14} className="text-text-tertiary ml-3 mr-1" aria-hidden="true" />
                         {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
                             <Button 
                                 key={t}
                                 variant={timeframe === t ? 'secondary' : 'ghost'}
                                 size="sm"
                                 onClick={() => setTimeframe(t)}
-                                className="rounded-full px-4 h-8 uppercase text-[10px]"
+                                className="rounded-full px-4 h-8 uppercase text-[10px] font-black"
+                                aria-pressed={timeframe === t}
                             >
                                 {t}
                             </Button>
@@ -266,7 +267,8 @@ export default function PainelConsultor() {
                             variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => setShowCustomPicker(!showCustomPicker)}
-                            className="rounded-full px-4 h-8 uppercase text-[10px]"
+                            className="rounded-full px-4 h-8 uppercase text-[10px] font-black"
+                            aria-expanded={showCustomPicker}
                         >
                             Custom
                         </Button>
@@ -274,37 +276,43 @@ export default function PainelConsultor() {
                         <AnimatePresence>
                             {showCustomPicker && (
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-0 z-50">
-                                    <Card className="p-6 min-w-[320px] shadow-mx-xl">
+                                    <Card className="p-6 min-w-[320px] shadow-mx-xl border-none">
                                         <header className="flex items-center justify-between mb-6">
-                                            <Typography variant="caption" tone="muted">Período Customizado</Typography>
-                                            <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-8 h-8 p-0 rounded-full"><X size={16} /></Button>
+                                            <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Período Customizado</Typography>
+                                            <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-8 h-8 p-0 rounded-full" aria-label="Fechar seletor"><X size={16} /></Button>
                                         </header>
                                         <div className="space-y-4">
                                             <div className="space-y-2">
-                                                <Typography variant="caption" className="ml-1">Início</Typography>
-                                                <Input type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-10 !px-4 !text-xs" />
+                                                <label htmlFor="start-date" className="text-tiny font-black uppercase tracking-widest text-text-tertiary ml-1">Início</label>
+                                                <Input id="start-date" type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-10 !px-4 !text-xs" />
                                             </div>
                                             <div className="space-y-2">
-                                                <Typography variant="caption" className="ml-1">Fim</Typography>
-                                                <Input type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-10 !px-4 !text-xs" />
+                                                <label htmlFor="end-date" className="text-tiny font-black uppercase tracking-widest text-text-tertiary ml-1">Fim</label>
+                                                <Input id="end-date" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-10 !px-4 !text-xs" />
                                             </div>
-                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-12 shadow-mx-lg">APLICAR PERÍODO</Button>
+                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-12 shadow-mx-lg font-black uppercase text-xs">APLICAR PERÍODO</Button>
                                         </div>
                                     </Card>
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                    </div>
+                    </nav>
 
-                    <div className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm">
+                    <nav className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm" aria-label="Disparos de Relatórios">
                         {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
-                            <Button key={r} variant="ghost" size="sm" onClick={() => triggerReport(r)} disabled={isTriggering !== null} className="rounded-full px-4 h-8 text-brand-primary uppercase text-[9px]">
-                                {isTriggering === r ? '…' : r}
+                            <Button 
+                                key={r} variant="ghost" size="sm" 
+                                onClick={() => triggerReport(r)} 
+                                disabled={isTriggering !== null} 
+                                className="rounded-full px-4 h-8 text-brand-primary uppercase text-[9px] font-black"
+                                aria-label={`Disparar relatório ${r}`}
+                            >
+                                {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : r}
                             </Button>
                         ))}
-                    </div>
+                    </nav>
 
-                    <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-xl shadow-mx-sm h-10 w-10 bg-white" aria-label="Sincronizar dados">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>
@@ -313,66 +321,68 @@ export default function PainelConsultor() {
             {/* Global KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
                 <Card className="bg-brand-secondary border-none p-8 shadow-mx-xl text-white">
-                    <Typography variant="caption" tone="white" className="opacity-50 mb-4 block">Venda {timeframe.toUpperCase()}</Typography>
+                    <Typography variant="caption" tone="white" className="opacity-50 mb-4 block font-black uppercase tracking-widest">Venda {timeframe.toUpperCase()}</Typography>
                     <div className="flex items-baseline gap-2">
-                        <Typography variant="h1" tone="white" className="text-5xl font-mono-numbers">{globalStats.totalSales}</Typography>
-                        {timeframe === 'mensal' && <Typography variant="mono" tone="success" className="text-lg">+{globalStats.globalRitmo}%</Typography>}
+                        <Typography variant="h1" tone="white" className="text-5xl font-mono-numbers tracking-tighter">{globalStats.totalSales}</Typography>
+                        {timeframe === 'mensal' && <Typography variant="mono" tone="success" className="text-lg font-black">+{globalStats.globalRitmo}%</Typography>}
                     </div>
-                    {timeframe === 'mensal' && <Typography variant="caption" tone="white" className="opacity-30 mt-4 tracking-widest block">META REDE: {globalStats.totalGoal}</Typography>}
+                    {timeframe === 'mensal' && <Typography variant="caption" tone="white" className="opacity-30 mt-4 tracking-widest block font-black uppercase">META REDE: {globalStats.totalGoal}</Typography>}
                 </Card>
 
-                <Card className="p-8">
-                    <Typography variant="caption" tone="muted" className="mb-6 text-center block">Escoamento Rede</Typography>
+                <Card className="p-8 border-none shadow-mx-sm bg-white">
+                    <Typography variant="caption" tone="muted" className="mb-6 text-center block font-black uppercase tracking-widest">Escoamento Rede</Typography>
                     <div className="grid grid-cols-3 gap-mx-md">
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1">{globalStats.totalLeads}</Typography><Typography variant="caption" className="text-[8px]">Leads</Typography></div>
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1">{globalStats.totalAgd}</Typography><Typography variant="caption" className="text-[8px]">Agd</Typography></div>
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1">{globalStats.totalVis}</Typography><Typography variant="caption" className="text-[8px]">Vis</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalLeads}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Leads</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalAgd}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Agd</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalVis}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Vis</Typography></div>
                     </div>
                 </Card>
 
-                <Card className="p-8 flex flex-col justify-between">
-                    <Typography variant="caption" tone="muted" className="mb-4">Unidades Críticas</Typography>
-                    <Typography variant="h1" tone="error" className="text-5xl font-mono-numbers">
+                <Card className="p-8 flex flex-col justify-between border-none shadow-mx-sm bg-white">
+                    <Typography variant="caption" tone="muted" className="mb-4 font-black uppercase tracking-widest">Unidades Críticas</Typography>
+                    <Typography variant="h1" tone="error" className="text-5xl font-mono-numbers tracking-tighter">
                         {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
                     </Typography>
-                    <Typography variant="caption" tone="error" className="mt-4 opacity-60">Ação Imediata Necessária</Typography>
+                    <Typography variant="caption" tone="error" className="mt-4 opacity-60 font-black uppercase tracking-widest">Ação Imediata Necessária</Typography>
                 </Card>
 
-                <Card className="p-8 flex flex-col justify-between">
-                    <Typography variant="caption" tone="muted" className="mb-4">Saúde Disciplinar</Typography>
-                    <Typography variant="h1" tone="success" className="text-5xl font-mono-numbers">
+                <Card className="p-8 flex flex-col justify-between border-none shadow-mx-sm bg-white">
+                    <Typography variant="caption" tone="muted" className="mb-4 font-black uppercase tracking-widest">Saúde Disciplinar</Typography>
+                    <Typography variant="h1" tone="success" className="text-5xl font-mono-numbers tracking-tighter">
                         {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
                     </Typography>
-                    <Typography variant="caption" tone="success" className="mt-4 opacity-60">Aderência aos Check-ins</Typography>
+                    <Typography variant="caption" tone="success" className="mt-4 opacity-60 font-black uppercase tracking-widest">Aderência aos Check-ins</Typography>
                 </Card>
             </div>
 
             {/* Strategic Map Table */}
-            <Card className="w-full mb-20 shadow-mx-lg border-none">
+            <Card className="w-full mb-20 shadow-mx-lg border-none bg-white">
                 <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-10">
                     <div>
-                        <CardTitle className="text-3xl">Malha de Performance</CardTitle>
-                        <CardDescription>Auditoria em Tempo Real de Unidades MX.</CardDescription>
+                        <CardTitle className="text-3xl uppercase tracking-tighter">Malha de Performance</CardTitle>
+                        <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40">Auditoria em Tempo Real de Unidades MX.</CardDescription>
                     </div>
                     <div className="flex flex-wrap items-center gap-mx-xs">
                         <div className="relative group w-full sm:w-64">
-                            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" />
-                            <Input placeholder="Localizar unidade..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10 !h-12 !text-[10px]" />
+                            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" aria-hidden="true" />
+                            <label htmlFor="search-store" className="sr-only">Buscar Unidade</label>
+                            <Input id="search-store" placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10 !h-12 !text-xs uppercase font-black tracking-widest" />
                         </div>
-                        <div className="flex items-center gap-1 bg-surface-alt border border-border-default p-1 rounded-mx-md h-12 shadow-inner">
+                        <div className="flex items-center gap-1 bg-surface-alt border border-border-default p-1 rounded-mx-md h-12 shadow-inner" role="group" aria-label="Filtro de Status">
                             {(['all', 'alert', 'critical'] as const).map(f => (
-                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-full rounded-mx-sm px-4 text-[10px] uppercase">
+                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-full rounded-mx-sm px-4 text-[10px] font-black uppercase">
                                     {f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}
                                 </Button>
                             ))}
                         </div>
-                        <Button asChild variant="secondary" className="h-12 px-6 shadow-mx-md">
+                        <Button asChild variant="secondary" className="h-12 px-6 shadow-mx-md font-black uppercase text-xs">
                             <Link to="/lojas">GESTÃO LOJAS</Link>
                         </Button>
                     </div>
                 </CardHeader>
                 <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-left min-w-[1200px]">
+                        <caption className="sr-only">Consolidado operacional de todas as unidades da rede</caption>
                         <thead className="bg-surface-alt/50 border-y border-border-default">
                             <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">
                                 <th scope="col" className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}>Unidade</th>
@@ -396,11 +406,15 @@ export default function PainelConsultor() {
                                         key={store.id} 
                                         className="hover:bg-brand-primary-surface/10 transition-colors group h-24 cursor-pointer"
                                         onClick={() => handleStoreClick(store.id)}
+                                        tabIndex={0}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleStoreClick(store.id)}
+                                        role="button"
+                                        aria-label={`Ver detalhes da unidade ${store.name}`}
                                     >
                                         <td className="pl-10">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner">{store.name.charAt(0)}</div>
-                                                <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors">{store.name}</Typography>
+                                                <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
+                                                <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{store.name}</Typography>
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.leads}</td>
@@ -412,22 +426,22 @@ export default function PainelConsultor() {
                                         <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-brand-primary">{store.proj}</td>
                                         <td className="px-4 py-2 text-center">
                                             <div className="flex flex-col items-center">
-                                                <Typography variant="mono" className="text-lg">{store.ritmo}</Typography>
-                                                <Typography variant="caption" className="text-[8px] opacity-50">VND/DIA</Typography>
+                                                <Typography variant="mono" className="text-lg font-black">{store.ritmo}</Typography>
+                                                <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">VND/DIA</Typography>
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 text-center">
-                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1 mb-1">
+                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1 mb-1 font-black shadow-sm uppercase border-none text-[8px]">
                                                 {status.label}
                                             </Badge>
-                                            <Typography variant="caption" tone="muted" className="text-[8px] block">{store.efficiency}% EFIC.</Typography>
+                                            <Typography variant="tiny" tone="muted" className="font-black block uppercase opacity-40">{store.efficiency}% EFIC.</Typography>
                                         </td>
                                         <td className="pr-10 py-2 text-center">
                                             <div className="flex flex-col items-center">
-                                                <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'} className="text-base">
+                                                <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'} className="text-base font-black">
                                                     {store.checkedInToday}/{store.sellers}
                                                 </Typography>
-                                                <Typography variant="caption" tone="muted" className="text-[8px] tracking-tighter">{Math.round(store.disciplinePct)}% OK</Typography>
+                                                <Typography variant="tiny" tone="muted" className="font-black tracking-tighter uppercase opacity-40">{Math.round(store.disciplinePct)}% OK</Typography>
                                             </div>
                                         </td>
                                     </tr>

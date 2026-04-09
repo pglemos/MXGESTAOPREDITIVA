@@ -46,36 +46,37 @@ export default function AiDiagnostics() {
     useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [logs])
 
     if (role !== 'admin' && role !== 'dono') return (
-        <main className="h-full w-full flex flex-col items-center justify-center text-center p-10 bg-brand-secondary">
+        <main className="h-full w-full flex flex-col items-center justify-center text-center p-10 bg-brand-secondary" id="main-content">
             <ShieldCheck size={48} className="text-white/20 mb-6" aria-hidden="true" />
-            <Typography variant="h2" tone="white">Acesso Restrito</Typography>
-            <Typography variant="p" tone="white" className="max-w-sm mx-auto opacity-40 uppercase tracking-widest mt-4">Motor de inteligência exclusivo para escalão administrativo.</Typography>
+            <Typography variant="h2" tone="white" className="uppercase tracking-tighter">Acesso Restrito</Typography>
+            <Typography variant="caption" tone="white" className="max-w-sm mx-auto opacity-40 uppercase tracking-widest mt-4 font-black">Motor de inteligência exclusivo para escalão administrativo.</Typography>
         </main>
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
             
             {/* Header / Engine Toolbar */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0" role="banner">
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-4">
                         <div className="w-2 h-10 bg-indigo-400 rounded-full shadow-[0_0_20px_rgba(129,140,248,0.5)] animate-pulse" aria-hidden="true" />
                         <Typography variant="h1" tone="white">Auditoria <span className="text-indigo-400">Forense</span></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-[0.2em]">DEEP LEARNING ENGINE v4.0</Typography>
+                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0</Typography>
                 </div>
 
                 <div className="flex items-center gap-6 shrink-0">
                     <div className="flex flex-col items-end">
-                        <Typography variant="caption" tone="white" className="opacity-40 uppercase tracking-widest">Status do Motor</Typography>
-                        <Badge variant={isScanning ? 'warning' : 'success'} className="mt-1 shadow-mx-lg px-6 py-2 rounded-full font-black">
+                        <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-widest font-black">Status do Motor</Typography>
+                        <Badge variant={isScanning ? 'warning' : 'success'} className="mt-1 shadow-mx-lg px-6 py-2 rounded-full font-black border-none text-[8px]">
                             {isScanning ? 'PROCESSANDO...' : 'SISTEMA EM STANDBY'}
                         </Badge>
                     </div>
                     <Button 
                         size="icon" onClick={handleScan} disabled={isScanning} 
                         className="w-16 h-16 rounded-mx-2xl bg-indigo-600 shadow-mx-xl border border-white/10 active:scale-95 transition-all"
+                        aria-label="Reiniciar escaneamento de auditoria"
                     >
                         <Zap size={32} className={cn(isScanning ? "animate-bounce" : "fill-white")} aria-hidden="true" />
                     </Button>
@@ -88,21 +89,21 @@ export default function AiDiagnostics() {
                     <Card className="flex-1 bg-mx-black border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-mx-xl relative overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="flex items-center gap-4">
-                                <TerminalIcon size={18} className="text-indigo-400" />
+                                <TerminalIcon size={18} className="text-indigo-400" aria-hidden="true" />
                                 <Typography variant="caption" tone="white" className="opacity-40 font-black tracking-widest uppercase">Console de Auditoria Real-Time</Typography>
                             </div>
-                            <div className="flex gap-1.5">
-                                <div className="w-2.5 h-2.5 rounded-full bg-mx-rose-500/30" />
-                                <div className="w-2.5 h-2.5 rounded-full bg-mx-amber-500/30" />
-                                <div className="w-2.5 h-2.5 rounded-full bg-mx-emerald-500/30" />
+                            <div className="flex gap-1.5" aria-hidden="true">
+                                <div className="w-2.5 h-2.5 rounded-full bg-status-error opacity-30" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-status-warning opacity-30" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-status-success opacity-30" />
                             </div>
                         </div>
 
                         <div className="flex-1 font-mono text-[11px] leading-relaxed space-y-3 overflow-y-auto pr-4 no-scrollbar border-t border-white/5 pt-8 relative z-10" aria-live="polite">
                             {logs.map((log, idx) => (
                                 <div key={idx} className="flex gap-4 group hover:bg-white/5 p-2 rounded-mx-sm transition-colors">
-                                    <span className="text-white/10 font-black">{(idx + 1).toString().padStart(3, '0')}</span>
-                                    <span className={cn("font-black tracking-tight", 
+                                    <span className="text-white/10 font-black" aria-hidden="true">{(idx + 1).toString().padStart(3, '0')}</span>
+                                    <span className={cn("font-black tracking-tight uppercase", 
                                         log.type === 'error' ? 'text-status-error' : 
                                         log.type === 'warning' ? 'text-status-warning' : 
                                         log.type === 'success' ? 'text-status-success' : 
@@ -113,8 +114,7 @@ export default function AiDiagnostics() {
                             <div ref={terminalEndRef} />
                         </div>
                         
-                        {/* Matrix Grid Effect */}
-                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none" />
+                        <div className="absolute inset-0 bg-mx-matrix opacity-10 pointer-events-none" aria-hidden="true" />
                     </Card>
                 </section>
 
@@ -122,10 +122,10 @@ export default function AiDiagnostics() {
                 <aside className="lg:col-span-5 flex flex-col">
                     <Card className="p-10 md:p-14 bg-white border-none shadow-mx-xl h-full space-y-12">
                         <header className="flex items-center gap-4 border-b border-border-default pb-8">
-                            <div className="w-16 h-16 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg"><ShieldCheck size={32} /></div>
+                            <div className="w-16 h-16 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg" aria-hidden="true"><ShieldCheck size={32} /></div>
                             <div>
-                                <Typography variant="h2" className="text-2xl">Veredito MX</Typography>
-                                <Typography variant="caption" tone="muted" className="tracking-widest">CONCLUSÃO OPERACIONAL</Typography>
+                                <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Veredito MX</Typography>
+                                <Typography variant="caption" tone="muted" className="tracking-widest font-black uppercase opacity-40">CONCLUSÃO OPERACIONAL</Typography>
                             </div>
                         </header>
 
@@ -133,34 +133,34 @@ export default function AiDiagnostics() {
                             <AnimatePresence mode="wait">
                                 {summary ? (
                                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-12">
-                                        <Card className="p-10 bg-mx-indigo-50 border-mx-indigo-100 shadow-inner relative group border-none">
-                                            <Quote size={64} className="absolute -right-4 -bottom-4 text-brand-primary opacity-5 -rotate-12 transition-transform group-hover:scale-110" />
-                                            <Typography variant="p" className="text-xl font-black italic text-brand-primary leading-relaxed relative z-10">
+                                        <Card className="p-10 bg-mx-indigo-50 border-mx-indigo-100 shadow-inner relative group border-none rounded-mx-3xl">
+                                            <Quote size={64} className="absolute -right-4 -bottom-4 text-brand-primary opacity-5 -rotate-12 transition-transform group-hover:scale-110" aria-hidden="true" />
+                                            <Typography variant="p" className="text-xl font-black italic text-brand-primary leading-relaxed relative z-10 uppercase tracking-tight">
                                                 "{summary.diagnostic}"
                                             </Typography>
                                         </Card>
                                         
                                         <div className="space-y-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-mx-lg bg-status-success-surface text-status-success flex items-center justify-center shadow-mx-sm"><TrendingUp size={20} /></div>
-                                                <Typography variant="caption" tone="success" className="font-black uppercase tracking-widest">Plano de Ação Gerencial</Typography>
+                                                <div className="w-10 h-10 rounded-mx-lg bg-status-success-surface text-status-success flex items-center justify-center shadow-mx-sm" aria-hidden="true"><TrendingUp size={20} /></div>
+                                                <Typography variant="tiny" tone="success" className="font-black uppercase tracking-widest">Plano de Ação Gerencial</Typography>
                                             </div>
-                                            <Typography variant="p" className="text-base font-bold text-text-secondary leading-relaxed bg-surface-alt p-8 rounded-mx-2xl border border-border-default shadow-inner">
+                                            <Typography variant="p" className="text-base font-bold text-text-secondary leading-relaxed bg-surface-alt p-8 rounded-mx-2xl border border-border-default shadow-mx-inner uppercase tracking-tight">
                                                 {summary.action}
                                             </Typography>
                                         </div>
                                     </motion.div>
                                 ) : (
                                     <div className="h-full flex flex-col items-center justify-center py-20 text-center space-y-6">
-                                        <div className="w-24 h-24 rounded-full border-4 border-border-default border-t-brand-primary animate-spin" />
-                                        <Typography variant="caption" tone="muted" className="animate-pulse tracking-[0.3em]">ANALISANDO MALHA...</Typography>
+                                        <div className="w-24 h-24 rounded-full border-4 border-border-default border-t-brand-primary animate-spin" aria-hidden="true" />
+                                        <Typography variant="caption" tone="muted" className="animate-pulse tracking-widest font-black uppercase opacity-40">ANALISANDO MALHA...</Typography>
                                     </div>
                                 )}
                             </AnimatePresence>
                         </div>
                         
                         <footer className="pt-8 border-t border-border-default">
-                            <Typography variant="caption" tone="muted" className="text-[8px] text-center block uppercase tracking-[0.4em]">Heurística Baseada no Critério 20/60/33</Typography>
+                            <Typography variant="tiny" tone="muted" className="text-[8px] text-center block uppercase tracking-widest font-black opacity-20">Heurística Baseada no Critério 20/60/33</Typography>
                         </footer>
                     </Card>
                 </aside>

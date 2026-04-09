@@ -1,4 +1,4 @@
-import { Shield, Lock, FileText, ChevronRight, Zap, ShieldCheck, ArrowLeft } from 'lucide-react'
+import { Shield, Lock, FileText, ChevronRight, Zap, ShieldCheck, ArrowLeft, AlertTriangle } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/atoms/Badge'

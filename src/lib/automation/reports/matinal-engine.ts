@@ -50,7 +50,7 @@ export async function runMorningReportWorkflow() {
             const yesterdayCheckin = sellerCheckins.find(c => c.reference_date === referenceDate);
             
             if (!yesterdayCheckin) {
-                pendingSellers.push(member.users?.name || 'Vendedor');
+                pendingSellers.push((member.users as any)?.name || 'Vendedor');
             }
 
             const sellerFunnel = calcularFunil(sellerCheckins as any);
@@ -58,7 +58,7 @@ export async function runMorningReportWorkflow() {
 
             ranking.push({
                 user_id: member.user_id,
-                user_name: member.users?.name,
+                user_name: (member.users as any)?.name,
                 leads: sellerFunnel.leads,
                 agd_total: sellerFunnel.agd_total,
                 visitas: sellerFunnel.visitas,
