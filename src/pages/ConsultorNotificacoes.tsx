@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Bell, Plus, X, Send, Building2, Globe, AlertCircle, Calendar, RefreshCw, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { TARGET_ROLES, TargetRole } from '@/constants/roles'
 
 export default function ConsultorNotificacoes() {
     const { sendNotification } = useNotifications()
@@ -17,7 +18,7 @@ export default function ConsultorNotificacoes() {
         message: '', 
         target_type: 'all' as 'all' | 'store', 
         target_store_id: '',
-        target_role: 'todos' as 'todos' | 'dono' | 'gerente' | 'vendedor'
+        target_role: 'todos' as TargetRole
     })
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
@@ -170,11 +171,11 @@ export default function ConsultorNotificacoes() {
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Filtro por Papel (Role)</label>
                                         <div className="grid grid-cols-3 gap-2">
-                                            {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
+                                            {TARGET_ROLES.map(role => (
                                                 <button
                                                     key={role}
                                                     type="button"
-                                                    onClick={() => setForm(p => ({ ...p, target_role: role as any }))}
+                                                    onClick={() => setForm(p => ({ ...p, target_role: role as TargetRole }))}
                                                     className={cn(
                                                         "py-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all",
                                                         form.target_role === role ? 'bg-slate-950 text-white border-slate-950' : 'bg-gray-50 text-gray-400 border-gray-100 hover:bg-white'
