@@ -10,10 +10,10 @@ export default function Privacy() {
     const navigate = useNavigate()
 
     return (
-        <main className="min-h-screen bg-surface-alt flex items-center justify-center p-4 sm:p-10 selection:bg-brand-primary selection:text-white relative overflow-hidden">
+        <main className="min-h-screen bg-surface-alt flex items-center justify-center p-mx-sm sm:p-10 selection:bg-brand-primary selection:text-white relative overflow-hidden">
 
-            <div className="absolute top-0 right-0 w-mx-hero h-mx-hero bg-brand-primary/5 rounded-full blur-mx-xl -mr-mx-lg -mt-mx-lg pointer-events-none" aria-hidden="true" />
-            <div className="absolute bottom-0 left-0 w-mx-hero h-mx-hero bg-status-success-surface rounded-full blur-mx-xl -ml-mx-lg -mb-mx-lg pointer-events-none" aria-hidden="true" />
+            <div className="absolute top-mx-0 right-mx-0 w-mx-hero h-mx-hero bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-mx-lg -mt-mx-lg pointer-events-none" aria-hidden="true" />
+            <div className="absolute bottom-mx-0 left-mx-0 w-mx-hero h-mx-hero bg-status-success-surface rounded-mx-full blur-mx-xl -ml-mx-lg -mb-mx-lg pointer-events-none" aria-hidden="true" />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.98, y: 20 }}
@@ -22,25 +22,25 @@ export default function Privacy() {
                 className="w-full max-w-4xl"
             >
                 <Card className="border-none shadow-mx-elite bg-white overflow-hidden flex flex-col relative z-10">
-                    <header className="bg-brand-secondary p-10 md:p-16 relative overflow-hidden text-center">
+                    <header className="bg-brand-secondary p-mx-10 md:p-16 relative overflow-hidden text-center">
                         <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent z-0 pointer-events-none" />
                         
-                        <div className="w-20 h-20 rounded-mx-3xl bg-white/10 text-white flex items-center justify-center mx-auto mb-8 shadow-mx-xl backdrop-blur-xl relative z-10 border border-white/10">
+                        <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-white/10 text-white flex items-center justify-center mx-auto mb-8 shadow-mx-xl backdrop-blur-xl relative z-10 border border-white/10">
                             <Lock size={32} strokeWidth={2.5} />
                         </div>
                         <Typography variant="h1" tone="white" className="text-4xl md:text-5xl mb-4 relative z-10 uppercase tracking-tighter">Política de <span className="text-brand-primary">Privacidade</span></Typography>
                         <Typography variant="tiny" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 block font-black">DIRETRIZES DE PROTEÇÃO & TRATAMENTO DE DADOS MX</Typography>
                     </header>
 
-                    <CardContent className="p-10 md:p-20 space-y-14">
-                        <div className="space-y-10">
+                    <CardContent className="p-mx-10 md:p-20 space-y-mx-14">
+                        <div className="space-y-mx-10">
                             <Typography variant="p" className="text-xl font-bold text-text-secondary leading-relaxed border-l-4 border-brand-primary pl-8 italic uppercase tracking-tight">
                                 "A MX PERFORMANCE assegura a integridade absoluta dos dados operacionais, utilizando protocolos de criptografia militar e governança baseada em privilégios mínimos."
                             </Typography>
 
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <Card className="bg-surface-alt p-10 rounded-mx-3xl border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
-                                    <div className="w-14 h-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+                            <div className="grid md:grid-cols-2 gap-mx-lg">
+                                <Card className="bg-surface-alt p-mx-10 rounded-mx-3xl border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
+                                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <FileText size={24} strokeWidth={2.5} />
                                     </div>
                                     <Typography variant="h3" className="mb-4 uppercase tracking-tight">Coleta de Métricas</Typography>
@@ -49,8 +49,8 @@ export default function Privacy() {
                                     </Typography>
                                 </Card>
 
-                                <Card className="bg-surface-alt p-10 rounded-mx-3xl border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
-                                    <div className="w-14 h-14 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+                                <Card className="bg-surface-alt p-mx-10 rounded-mx-3xl border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
+                                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <Shield size={24} strokeWidth={2.5} />
                                     </div>
                                     <Typography variant="h3" className="mb-4 uppercase tracking-tight">Privilégios RLS</Typography>
@@ -60,9 +60,9 @@ export default function Privacy() {
                                 </Card>
                             </div>
 
-                            <div className="space-y-6 pt-10 border-t border-border-default">
-                                <header className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-mx-lg bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg"><ShieldCheck size={20} /></div>
+                            <div className="space-y-mx-md pt-10 border-t border-border-default">
+                                <header className="flex items-center gap-mx-sm">
+                                    <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg"><ShieldCheck size={20} /></div>
                                     <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Arquitetura de Blindagem</Typography>
                                 </header>
                                 <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70">
@@ -71,11 +71,11 @@ export default function Privacy() {
                             </div>
                         </div>
 
-                        <footer className="pt-10 border-t border-border-default flex flex-col sm:flex-row items-center justify-between gap-10">
-                            <Button variant="ghost" onClick={() => navigate(-1)} className="text-tiny font-black uppercase tracking-widest text-text-tertiary hover:text-brand-primary bg-white shadow-sm rounded-full px-8 h-12">
+                        <footer className="pt-10 border-t border-border-default flex flex-col sm:flex-row items-center justify-between gap-mx-10">
+                            <Button variant="ghost" onClick={() => navigate(-1)} className="text-tiny font-black uppercase tracking-widest text-text-tertiary hover:text-brand-primary bg-white shadow-sm rounded-mx-full px-8 h-mx-xl">
                                 <ArrowLeft size={16} className="mr-2" /> VOLTAR AO SISTEMA
                             </Button>
-                            <div className="text-center sm:text-right space-y-1">
+                            <div className="text-center sm:text-right space-y-mx-tiny">
                                 <Typography variant="tiny" tone="muted" className="font-black opacity-40">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
                                 <Typography variant="tiny" tone="muted" className="font-black opacity-20 block tracking-widest">PROTOCOLO AIOX SECURITY</Typography>
                             </div>

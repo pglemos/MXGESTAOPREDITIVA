@@ -98,7 +98,7 @@ export default function VendedorHome() {
 
     if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading) return (
         <div className="flex flex-col items-center justify-center min-h-screen w-full h-full bg-surface-alt">
-            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Sincronizando Suas Metas...</Typography>
         </div>
     )
@@ -109,9 +109,9 @@ export default function VendedorHome() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
         >
-            <Card className="p-8 h-full flex flex-col justify-between group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg bg-white">
+            <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg bg-white">
                 <div className="flex items-start justify-between mb-8 relative z-10">
-                    <div className={cn("w-14 h-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
+                    <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
                         tone === 'success' ? "bg-status-success-surface border-mx-emerald-100 text-status-success" : 
                         tone === 'info' ? "bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary" : 
                         tone === 'warning' ? "bg-status-warning-surface border-mx-amber-100 text-status-warning" : 
@@ -121,7 +121,7 @@ export default function VendedorHome() {
                 </div>
                 <div className="relative z-10">
                     <Typography variant="tiny" tone="muted" className="mb-2 block uppercase font-black">{label}</Typography>
-                    <div className="flex items-baseline gap-3">
+                    <div className="flex items-baseline gap-mx-xs">
                         <Typography variant="h1" className="text-4xl tabular-nums leading-none tracking-tighter">{value}</Typography>
                         {sub && <Badge variant="outline" className="text-tiny font-black uppercase border-border-strong px-2">{sub}</Badge>}
                     </div>
@@ -134,20 +134,20 @@ export default function VendedorHome() {
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
 
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Olá, <span className="text-brand-primary">{profile?.name?.split(' ')[0]}</span> 👋</Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">PAINEL DE PERFORMANCE INDIVIDUAL • MX ELITE</Typography>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="w-14 h-14 rounded-xl shadow-mx-sm bg-white">
+                <div className="flex items-center gap-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
-                    <div className="flex items-center gap-4 bg-white border border-border-default p-2 pr-8 rounded-mx-3xl shadow-mx-sm">
-                        <div className="w-12 h-12 rounded-mx-xl bg-status-warning text-white flex items-center justify-center shadow-mx-md">
+                    <div className="flex items-center gap-mx-sm bg-white border border-border-default p-mx-xs pr-8 rounded-mx-3xl shadow-mx-sm">
+                        <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-status-warning text-white flex items-center justify-center shadow-mx-md">
                             <Trophy size={22} className="fill-white/20" />
                         </div>
                         <div>
@@ -161,21 +161,21 @@ export default function VendedorHome() {
             <AnimatePresence>
                 {tacticalPrescription && (
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="shrink-0">
-                        <Card className="bg-brand-primary text-white p-10 md:p-14 border-none shadow-mx-xl relative overflow-hidden group">
+                        <Card className="bg-brand-primary text-white p-mx-10 md:p-14 border-none shadow-mx-xl relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent pointer-events-none" />
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative z-10">
-                                <div className="w-20 h-20 rounded-mx-3xl bg-white text-brand-primary flex items-center justify-center shadow-mx-xl group-hover:rotate-6 transition-transform shrink-0">
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-10 relative z-10">
+                                <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-white text-brand-primary flex items-center justify-center shadow-mx-xl group-hover:rotate-6 transition-transform shrink-0">
                                     <GraduationCap size={40} />
                                 </div>
-                                <div className="flex-1 space-y-4">
-                                    <div className="flex items-center gap-3">
+                                <div className="flex-1 space-y-mx-sm">
+                                    <div className="flex items-center gap-mx-xs">
                                         <Badge variant="danger" className="px-4 py-1 uppercase font-black text-tiny shadow-sm">Correção Obrigatória</Badge>
                                         <Typography variant="tiny" tone="white" className="opacity-60 uppercase font-black tracking-widest">Gap: {tacticalPrescription.gargalo}</Typography>
                                     </div>
                                     <Typography variant="h2" tone="white" className="text-3xl tracking-tighter uppercase leading-none">Masterize sua {tacticalPrescription.training.type}</Typography>
                                     <Typography variant="p" tone="white" className="opacity-80 max-w-2xl text-base font-bold italic">"{tacticalPrescription.label}"</Typography>
                                 </div>
-                                <Button size="lg" variant="secondary" onClick={() => navigate('/treinamentos')} className="rounded-full px-12 h-16 shadow-mx-xl font-black uppercase tracking-[0.2em] text-xs">
+                                <Button size="lg" variant="secondary" onClick={() => navigate('/treinamentos')} className="rounded-mx-full px-12 h-mx-2xl shadow-mx-xl font-black uppercase tracking-mx-wide text-xs">
                                     <Play size={18} className="fill-current mr-2" /> INICIAR AGORA
                                 </Button>
                             </div>
@@ -188,22 +188,22 @@ export default function VendedorHome() {
                 <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="shrink-0">
                     <Button 
                         asChild
-                        className="w-full h-auto p-10 md:p-14 bg-mx-black border-none rounded-mx-3xl text-left shadow-mx-xl group relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-10"
+                        className="w-full h-auto p-mx-10 md:p-14 bg-mx-black border-none rounded-mx-3xl text-left shadow-mx-xl group relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-mx-10"
                     >
                         <Link to="/checkin">
-                            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative z-10">
-                                <div className="w-20 h-20 rounded-mx-3xl bg-brand-primary flex items-center justify-center border-4 border-white/10 shadow-mx-xl group-hover:rotate-12 transition-transform">
+                            <div className="absolute top-mx-0 right-mx-0 w-1/2 h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-10 relative z-10">
+                                <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-brand-primary flex items-center justify-center border-4 border-white/10 shadow-mx-xl group-hover:rotate-12 transition-transform">
                                     <Zap size={40} className="text-white fill-white/20" />
                                 </div>
-                                <div className="max-w-2xl space-y-2">
+                                <div className="max-w-2xl space-y-mx-xs">
                                     <Typography variant="h1" tone="white" className="text-4xl tracking-tighter uppercase leading-none">Status Pendente</Typography>
                                     <Typography variant="p" tone="white" className="text-lg opacity-60 font-bold uppercase tracking-tight">Sua produção de ontem ainda não foi indexada no terminal MX.</Typography>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-6 relative z-10 group/btn">
+                            <div className="flex items-center gap-mx-md relative z-10 group/btn">
                                 <Typography variant="caption" tone="white" className="opacity-40 group-hover/btn:opacity-100 transition-opacity uppercase font-black text-xs tracking-widest">CONSOLIDAR ONTEM</Typography>
-                                <div className="w-16 h-16 rounded-full bg-white text-mx-black flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
+                                <div className="w-mx-2xl h-mx-2xl rounded-mx-full bg-white text-mx-black flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
                                     <ArrowRight size={28} strokeWidth={2.5} />
                                 </div>
                             </div>
@@ -219,50 +219,50 @@ export default function VendedorHome() {
                 <StatCard index={3} icon={Target} label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} tone="warning" />
             </div>
 
-            <Card className="bg-surface-alt/50 p-10 md:p-14 border-border-default shadow-mx-sm relative overflow-hidden group">
+            <Card className="bg-surface-alt/50 p-mx-10 md:p-14 border-border-default shadow-mx-sm relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-12 relative z-10">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-status-warning text-white flex items-center justify-center shadow-mx-md"><Trophy size={28} /></div>
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-status-warning text-white flex items-center justify-center shadow-mx-md"><Trophy size={28} /></div>
                         <div>
                             <Typography variant="h2" className="uppercase tracking-tighter leading-none">Arena de Elite</Typography>
                             <Typography variant="caption" tone="muted" className="uppercase font-black text-xs tracking-widest opacity-40">SUA POSIÇÃO NO CAMPO DE BATALHA</Typography>
                         </div>
                     </div>
-                    <Button variant="ghost" asChild className="rounded-full px-8 h-12 bg-white border border-border-default shadow-sm uppercase font-black tracking-widest text-xs">
+                    <Button variant="ghost" asChild className="rounded-mx-full px-8 h-mx-xl bg-white border border-border-default shadow-sm uppercase font-black tracking-widest text-xs">
                         <Link to="/ranking">Ver Arena Completa</Link>
                     </Button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg relative z-10 items-stretch">
-                    <Card className={cn("p-8 border-2 border-dashed flex flex-col justify-center", metrics.competitors.above ? "bg-white border-mx-amber-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
+                    <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center", metrics.competitors.above ? "bg-white border-mx-amber-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
                         {metrics.competitors.above ? (
                             <>
                                 <Typography variant="tiny" tone="warning" className="mb-6 block font-black uppercase">Próximo Alvo</Typography>
-                                <div className="flex items-center gap-4 mb-8">
-                                    <div className="w-14 h-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center font-black text-xl border border-mx-amber-100 shadow-inner">{metrics.myRank?.position ? metrics.myRank.position - 1 : '--'}º</div>
+                                <div className="flex items-center gap-mx-sm mb-8">
+                                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center font-black text-xl border border-mx-amber-100 shadow-inner">{metrics.myRank?.position ? metrics.myRank.position - 1 : '--'}º</div>
                                     <div>
                                         <Typography variant="h3" className="text-base uppercase tracking-tight">{metrics.competitors.above.user_name}</Typography>
                                         <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">{metrics.competitors.above.vnd_total} VENDAS</Typography>
                                     </div>
                                 </div>
-                                <div className="bg-status-warning-surface rounded-mx-xl p-4 text-center border border-mx-amber-100/50">
+                                <div className="bg-status-warning-surface rounded-mx-xl p-mx-sm text-center border border-mx-amber-100/50">
                                     <Typography variant="tiny" tone="warning" className="font-black uppercase">GAP: {metrics.competitors.above.vnd_total - metrics.vendasMes} VENDAS PARA SUPERAR</Typography>
                                 </div>
                             </>
                         ) : (
                             <div className="text-center py-10">
                                 <Crown size={48} className="text-status-warning mx-auto mb-4 animate-bounce" />
-                                <Typography variant="caption" tone="brand" className="tracking-[0.4em] font-black uppercase">VOCÊ É O TOPO DA ARENA</Typography>
+                                <Typography variant="caption" tone="brand" className="tracking-mx-widest font-black uppercase">VOCÊ É O TOPO DA ARENA</Typography>
                             </div>
                         )}
                     </Card>
 
-                    <Card className="p-10 bg-mx-black text-white shadow-mx-elite transform md:scale-105 border-none relative overflow-hidden flex flex-col justify-between">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/20 rounded-full blur-3xl" aria-hidden="true" />
+                    <Card className="p-mx-10 bg-mx-black text-white shadow-mx-elite transform md:scale-105 border-none relative overflow-hidden flex flex-col justify-between">
+                        <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/20 rounded-mx-full blur-3xl" aria-hidden="true" />
                         <div className="text-center relative z-10">
-                            <Typography variant="caption" tone="brand" className="mb-4 block tracking-[0.4em] font-black uppercase text-xs">STATUS ATUAL</Typography>
+                            <Typography variant="caption" tone="brand" className="mb-4 block tracking-mx-widest font-black uppercase text-xs">STATUS ATUAL</Typography>
                             <Typography variant="h1" tone="white" className="text-8xl tabular-nums leading-none mb-2 tracking-tighter">{metrics.myRank?.position || '--'}º</Typography>
-                            <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-[0.3em] font-black">NA UNIDADE</Typography>
+                            <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-mx-wider font-black">NA UNIDADE</Typography>
                         </div>
                         <div className="mt-10 pt-8 border-t border-white/10 flex justify-between items-center relative z-10">
                             <div>
@@ -276,25 +276,25 @@ export default function VendedorHome() {
                         </div>
                     </Card>
 
-                    <Card className={cn("p-8 border-2 border-dashed flex flex-col justify-center", metrics.competitors.below ? "bg-white border-mx-rose-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
+                    <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center", metrics.competitors.below ? "bg-white border-mx-rose-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
                         {metrics.competitors.below ? (
                             <>
                                 <Typography variant="tiny" tone="error" className="mb-6 block uppercase font-black">Na sua retaguarda</Typography>
-                                <div className="flex items-center gap-4 mb-8">
-                                    <div className="w-14 h-14 rounded-mx-xl bg-status-error-surface text-status-error flex items-center justify-center font-black text-xl border border-mx-rose-100 shadow-inner">{metrics.myRank?.position ? metrics.myRank.position + 1 : '--'}º</div>
+                                <div className="flex items-center gap-mx-sm mb-8">
+                                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-error-surface text-status-error flex items-center justify-center font-black text-xl border border-mx-rose-100 shadow-inner">{metrics.myRank?.position ? metrics.myRank.position + 1 : '--'}º</div>
                                     <div>
                                         <Typography variant="h3" className="text-base uppercase tracking-tight">{metrics.competitors.below.user_name}</Typography>
                                         <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">{metrics.competitors.below.vnd_total} VENDAS</Typography>
                                     </div>
                                 </div>
-                                <div className="bg-status-error-surface rounded-mx-xl p-4 text-center border border-mx-rose-100/50">
+                                <div className="bg-status-error-surface rounded-mx-xl p-mx-sm text-center border border-mx-rose-100/50">
                                     <Typography variant="tiny" tone="error" className="font-black uppercase">VANTAGEM: {metrics.vendasMes - metrics.competitors.below.vnd_total} VENDAS</Typography>
                                 </div>
                             </>
                         ) : (
                             <div className="text-center py-10">
                                 <Flame size={48} className="text-status-error mx-auto mb-4" />
-                                <Typography variant="caption" tone="error" className="tracking-[0.4em] font-black uppercase">MANTENHA A DISTÂNCIA</Typography>
+                                <Typography variant="caption" tone="error" className="tracking-mx-widest font-black uppercase">MANTENHA A DISTÂNCIA</Typography>
                             </div>
                         )}
                     </Card>
@@ -303,14 +303,14 @@ export default function VendedorHome() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-20">
                 <div className="lg:col-span-8 space-y-mx-lg">
-                    <Card className="p-10 md:p-14 relative overflow-hidden group border-none shadow-mx-lg bg-white">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 rounded-full blur-[120px] -mr-48 -mt-48" aria-hidden="true" />
+                    <Card className="p-mx-10 md:p-14 relative overflow-hidden group border-none shadow-mx-lg bg-white">
+                        <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-48 -mt-48" aria-hidden="true" />
                         <header className="flex items-center justify-between mb-12 relative z-10">
                             <div>
                                 <Typography variant="h2" className="mb-2 uppercase tracking-tighter leading-none">Matrix de Canais</Typography>
                                 <Typography variant="caption" tone="muted" className="uppercase font-black text-xs tracking-widest opacity-40">DISTRIBUIÇÃO DE FECHAMENTOS POR ORIGEM</Typography>
                             </div>
-                            <div className="w-14 h-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary shadow-inner"><BarChart3 size={28} /></div>
+                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary shadow-inner"><BarChart3 size={28} /></div>
                         </header>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-lg relative z-10">
                             {[
@@ -318,23 +318,23 @@ export default function VendedorHome() {
                                 { label: 'Carteira', value: metrics.porCanal.carteira, icon: Users, tone: 'info', pct: Math.round((metrics.porCanal.carteira / (metrics.vendasMes || 1)) * 100) },
                                 { label: 'Digital', value: metrics.porCanal.internet, icon: Globe, tone: 'brand', pct: Math.round((metrics.porCanal.internet / (metrics.vendasMes || 1)) * 100) },
                             ].map(ch => (
-                                <Card key={ch.label} className="p-8 border border-border-default hover:border-brand-primary/20 hover:shadow-mx-lg transition-all group/item bg-surface-alt/30">
+                                <Card key={ch.label} className="p-mx-lg border border-border-default hover:border-brand-primary/20 hover:shadow-mx-lg transition-all group/item bg-surface-alt/30">
                                     <div className="flex justify-between items-start mb-10">
-                                        <div className="w-12 h-12 rounded-mx-xl bg-white flex items-center justify-center shadow-mx-sm border border-border-default group-hover/item:rotate-6 transition-transform">
+                                        <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white flex items-center justify-center shadow-mx-sm border border-border-default group-hover/item:rotate-6 transition-transform">
                                             <ch.icon size={22} className={cn(ch.tone === 'success' ? "text-status-success" : ch.tone === 'brand' ? "text-brand-primary" : "text-status-info")} />
                                         </div>
                                         <Badge variant="outline" className="text-xs font-mono-numbers font-black border-border-strong px-3">{ch.pct}%</Badge>
                                     </div>
                                     <Typography variant="h1" className="text-5xl font-mono-numbers mb-1 leading-none">{ch.value}</Typography>
-                                    <Typography variant="caption" tone="muted" className="tracking-widest uppercase font-black text-[8px] opacity-40">{ch.label}</Typography>
+                                    <Typography variant="caption" tone="muted" className="tracking-widest uppercase font-black text-mx-micro opacity-40">{ch.label}</Typography>
                                 </Card>
                             ))}
                         </div>
                     </Card>
 
-                    <Card className="p-10 md:p-14 border-none shadow-mx-lg bg-white">
-                        <header className="flex items-center gap-4 mb-12">
-                            <div className="w-14 h-14 rounded-mx-xl bg-status-info-surface text-status-info border border-mx-blue-100 flex items-center justify-center shadow-inner"><Clock size={28} /></div>
+                    <Card className="p-mx-10 md:p-14 border-none shadow-mx-lg bg-white">
+                        <header className="flex items-center gap-mx-sm mb-12">
+                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-info-surface text-status-info border border-status-info/20 flex items-center justify-center shadow-inner"><Clock size={28} /></div>
                             <div>
                                 <Typography variant="h2" className="uppercase tracking-tighter leading-none">Rotina MX</Typography>
                                 <Typography variant="caption" tone="muted" className="uppercase font-black text-xs tracking-widest opacity-40">AGENDA DE ALTA PERFORMANCE</Typography>
@@ -350,9 +350,9 @@ export default function VendedorHome() {
                                 { time: '16:00', task: 'Lista Quente', desc: 'Quebra de Objeções.' },
                                 { time: '17:00', task: 'Fechamento', desc: 'Preparação D+1.' },
                             ].map((r, i) => (
-                                <div key={i} className="flex items-center gap-6 p-6 rounded-mx-xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all group/task">
+                                <div key={i} className="flex items-center gap-mx-md p-mx-md rounded-mx-xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all group/task">
                                     <Typography variant="mono" tone="brand" className="text-sm font-black shrink-0">{r.time}</Typography>
-                                    <div className="w-px h-8 bg-border-strong opacity-30 group-hover/task:bg-brand-primary/30 transition-colors" />
+                                    <div className="w-px h-mx-lg bg-border-strong opacity-30 group-hover/task:bg-brand-primary/30 transition-colors" />
                                     <div>
                                         <Typography variant="caption" className="text-text-primary block mb-0.5 uppercase font-black text-xs">{r.task}</Typography>
                                         <Typography variant="tiny" tone="muted" className="lowercase tracking-normal italic opacity-60">"{r.desc}"</Typography>
@@ -364,26 +364,26 @@ export default function VendedorHome() {
                 </div>
 
                 <aside className="lg:col-span-4">
-                    <Card className="bg-mx-black text-white p-10 md:p-14 h-full border-none shadow-mx-xl relative overflow-hidden group">
+                    <Card className="bg-mx-black text-white p-mx-10 md:p-14 h-full border-none shadow-mx-xl relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 via-transparent to-transparent z-0 opacity-50" />
                         <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:rotate-12 transition-transform duration-700 pointer-events-none"><Zap size={240} fill="currentColor" /></div>
                         
                         <header className="flex items-center justify-between mb-16 relative z-10">
-                            <div className="w-14 h-14 rounded-mx-xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:bg-brand-primary transition-colors">
+                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:bg-brand-primary transition-colors">
                                 <TrendingUp size={28} className="text-white" />
                             </div>
-                            <Badge variant="outline" className="text-white border-white/20 px-4 font-black text-[8px] h-6 uppercase">WEEKLY SPRINT</Badge>
+                            <Badge variant="outline" className="text-white border-white/20 px-4 font-black text-mx-micro h-mx-md uppercase">WEEKLY SPRINT</Badge>
                         </header>
 
-                        <div className="relative z-10 space-y-12">
-                            <div className="space-y-6">
-                                <Typography variant="tiny" tone="white" className="opacity-40 tracking-[0.4em] font-black uppercase">PERFORMANCE DA SEMANA</Typography>
-                                <div className="flex items-baseline gap-4">
+                        <div className="relative z-10 space-y-mx-xl">
+                            <div className="space-y-mx-md">
+                                <Typography variant="tiny" tone="white" className="opacity-40 tracking-mx-widest font-black uppercase">PERFORMANCE DA SEMANA</Typography>
+                                <div className="flex items-baseline gap-mx-sm">
                                     <Typography variant="h1" tone="white" className="text-7xl font-mono-numbers leading-none tracking-tighter">{metrics.vendasSemana}</Typography>
                                     <Typography variant="tiny" tone="white" className="opacity-40 uppercase font-black">UNIDADES</Typography>
                                 </div>
-                                <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-1 shadow-inner">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} transition={{ duration: 2 }} className="h-full bg-gradient-to-r from-brand-primary to-mx-indigo-400 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.5)]" />
+                                <div className="h-mx-xs w-full bg-white/5 rounded-mx-full overflow-hidden border border-white/5 p-mx-tiny shadow-inner">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} transition={{ duration: 2 }} className="h-full bg-gradient-to-r from-brand-primary to-mx-indigo-400 rounded-mx-full shadow-mx-glow-brand" />
                                 </div>
                             </div>
                             <Typography variant="p" tone="white" className="text-base italic opacity-60 leading-relaxed uppercase tracking-tight font-bold">

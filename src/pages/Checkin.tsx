@@ -136,36 +136,36 @@ export default function Checkin() {
 
     const NumberInput = ({ label, icon: Icon, field, tone }: { label: string; icon: any; field: keyof CheckinForm; tone: 'brand' | 'success' | 'warning' | 'info' | 'error' }) => (
         <Card className={cn(
-            "flex flex-col gap-6 p-8 border shadow-mx-sm transition-all group/input hover:shadow-mx-lg sm:flex-row sm:items-center sm:justify-between bg-white",
+            "flex flex-col gap-mx-md p-mx-lg border shadow-mx-sm transition-all group/input hover:shadow-mx-lg sm:flex-row sm:items-center sm:justify-between bg-white",
             changedFields.has(field) ? "border-brand-primary/20" : "border-border-default"
         )}>
-            <div className="flex items-center gap-6 flex-1 min-w-0">
-                <div className={cn("w-16 h-16 rounded-mx-2xl flex items-center justify-center border shadow-inner transition-all group-hover/input:scale-110 group-hover/input:rotate-3", 
+            <div className="flex items-center gap-mx-md flex-1 min-w-0">
+                <div className={cn("w-mx-2xl h-mx-2xl rounded-mx-2xl flex items-center justify-center border shadow-inner transition-all group-hover/input:scale-110 group-hover/input:rotate-3", 
                     tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                     tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
-                    tone === 'info' ? 'bg-status-info-surface border-mx-blue-100 text-status-info' :
+                    tone === 'info' ? 'bg-status-info-surface border-status-info/20 text-status-info' :
                     tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
                     'bg-status-error-surface border-mx-rose-100 text-status-error'
                 )}>
                     <Icon size={28} strokeWidth={2.5} />
                 </div>
-                <div className="flex flex-col gap-1 flex-1">
+                <div className="flex flex-col gap-mx-tiny flex-1">
                     <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest leading-none">{label}</Typography>
                     <Typography variant="h1" className="text-5xl tabular-nums leading-none">{form[field] as number}</Typography>
                 </div>
             </div>
-            <div className="flex items-center justify-end gap-4 shrink-0">
+            <div className="flex items-center justify-end gap-mx-sm shrink-0">
                 <Button 
                     type="button" variant="outline" size="icon"
                     onClick={() => updateField(field, (form[field] as number) - 1)}
-                    className="w-14 h-14 rounded-mx-xl border-border-default hover:bg-status-error-surface hover:text-status-error hover:border-mx-rose-100 shadow-sm"
+                    className="w-mx-14 h-mx-14 rounded-mx-xl border-border-default hover:bg-status-error-surface hover:text-status-error hover:border-mx-rose-100 shadow-sm"
                 >
                     <Minus size={24} strokeWidth={3} />
                 </Button>
                 <Button 
                     type="button" variant="outline" size="icon"
                     onClick={() => updateField(field, (form[field] as number) + 1)}
-                    className="w-14 h-14 rounded-mx-xl border-border-default hover:bg-status-success-surface hover:text-status-success hover:border-mx-emerald-100 shadow-sm"
+                    className="w-mx-14 h-mx-14 rounded-mx-xl border-border-default hover:bg-status-success-surface hover:text-status-success hover:border-mx-emerald-100 shadow-sm"
                 >
                     <Plus size={24} strokeWidth={3} />
                 </Button>
@@ -175,7 +175,7 @@ export default function Checkin() {
 
     if (hookLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Terminal...</Typography>
         </div>
     )
@@ -199,57 +199,57 @@ export default function Checkin() {
 
             {/* Header / Engine Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Terminal <span className="text-brand-primary">MX</span></Typography>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-center gap-4 pl-6 mt-2">
-                        <div className="flex p-1 bg-white border border-border-default rounded-mx-full shadow-mx-sm" role="group">
+                    <div className="flex flex-col sm:flex-row items-center gap-mx-sm pl-6 mt-2">
+                        <div className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm" role="group">
                             <Button 
                                 variant={metricScope === 'daily' ? 'secondary' : 'ghost'} size="sm"
                                 onClick={() => setMetricScope('daily')}
-                                className="h-9 px-6 rounded-full text-[10px] uppercase font-black"
+                                className="h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black"
                             >
                                 REGISTRO DIÁRIO
                             </Button>
                             <Button 
                                 variant={metricScope === 'adjustment' ? 'secondary' : 'ghost'} size="sm"
                                 onClick={() => setMetricScope('adjustment')}
-                                className={cn("h-9 px-6 rounded-full text-[10px] uppercase font-black", metricScope === 'adjustment' && "bg-mx-amber-400 text-mx-black")}
+                                className={cn("h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black", metricScope === 'adjustment' && "bg-mx-amber-400 text-mx-black")}
                             >
                                 AJUSTE TÉCNICO
                             </Button>
                         </div>
-                        <div className="flex items-center gap-3 bg-white border border-border-default px-6 h-11 rounded-full shadow-mx-sm">
+                        <div className="flex items-center gap-mx-xs bg-white border border-border-default px-6 h-mx-11 rounded-mx-full shadow-mx-sm">
                             <CalendarDays size={16} className="text-brand-primary" />
-                            <input type="date" value={customReferenceDate} onChange={e => setCustomReferenceDate(e.target.value)} className="bg-transparent border-none outline-none text-[10px] font-black uppercase text-text-primary" />
+                            <input type="date" value={customReferenceDate} onChange={e => setCustomReferenceDate(e.target.value)} className="bg-transparent border-none outline-none text-mx-tiny font-black uppercase text-text-primary" />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-mx-sm shrink-0">
                     {historicalCheckin && (
-                        <Badge variant={canEditExisting || metricScope === 'adjustment' ? 'success' : 'outline'} className="px-6 py-2 rounded-full uppercase tracking-widest font-black">
+                        <Badge variant={canEditExisting || metricScope === 'adjustment' ? 'success' : 'outline'} className="px-6 py-2 rounded-mx-full uppercase tracking-widest font-black">
                             {canEditExisting || metricScope === 'adjustment' ? 'Edição Habilitada' : 'Visualização Somente'}
                         </Badge>
                     )}
-                    <Button variant="outline" size="icon" onClick={() => navigate('/home')} className="w-12 h-12 rounded-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={() => navigate('/home')} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
                         <X size={24} />
                     </Button>
                 </div>
             </header>
 
-            <form onSubmit={handleSubmit} className="flex-1 flex flex-col lg:flex-row gap-mx-lg max-w-[1600px] mx-auto w-full pb-32">
+            <form onSubmit={handleSubmit} className="flex-1 flex flex-col lg:flex-row gap-mx-lg max-w-mx-elite-canvas mx-auto w-full pb-32">
                 
                 {/* Form Core */}
                 <div className="flex-1 space-y-mx-lg">
                     {/* Retro Grid */}
-                    <Card className="p-10 md:p-14 space-y-12 border-none shadow-mx-xl bg-white relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-status-success-surface rounded-full blur-[120px] -mr-48 -mt-48 opacity-50" />
+                    <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden group">
+                        <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-status-success-surface rounded-mx-full blur-mx-xl -mr-48 -mt-48 opacity-50" />
                         <header className="flex items-center justify-between border-b border-border-default pb-10 relative z-10">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-xl transform -rotate-3"><History size={32} strokeWidth={2.5} /></div>
+                            <div className="flex items-center gap-mx-md">
+                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-xl transform -rotate-3"><History size={32} strokeWidth={2.5} /></div>
                                 <div>
                                     <Typography variant="h2">Retrospectiva MX</Typography>
                                     <Typography variant="caption" tone="success" className="tracking-widest mt-1">CONSOLIDAÇÃO DE PRODUÇÃO: ONTEM</Typography>
@@ -273,11 +273,11 @@ export default function Checkin() {
                     </Card>
 
                     {/* Today Grid */}
-                    <Card className="p-10 md:p-14 space-y-12 border-none shadow-mx-xl bg-white relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-mx-indigo-50 rounded-full blur-[120px] -mr-48 -mt-48 opacity-50" />
+                    <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden group">
+                        <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-mx-indigo-50 rounded-mx-full blur-mx-xl -mr-48 -mt-48 opacity-50" />
                         <header className="flex items-center justify-between border-b border-border-default pb-10 relative z-10">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl transform rotate-3"><CalendarDays size={32} strokeWidth={2.5} /></div>
+                            <div className="flex items-center gap-mx-md">
+                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl transform rotate-3"><CalendarDays size={32} strokeWidth={2.5} /></div>
                                 <div>
                                     <Typography variant="h2">Agenda Operacional</Typography>
                                     <Typography variant="caption" tone="brand" className="tracking-widest mt-1">COMPROMISSOS FIRMADOS: HOJE</Typography>
@@ -299,9 +299,9 @@ export default function Checkin() {
                     <AnimatePresence>
                         {funnelError && (
                             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
-                                <Card className="p-8 bg-status-error-surface border-2 border-status-error/20 flex flex-col sm:flex-row sm:items-center gap-8 shadow-mx-xl">
-                                    <div className="w-16 h-16 rounded-mx-2xl bg-status-error text-white flex items-center justify-center shadow-mx-lg transform -rotate-3 shrink-0"><AlertTriangle size={32} strokeWidth={2.5} /></div>
-                                    <div className="space-y-1">
+                                <Card className="p-mx-lg bg-status-error-surface border-2 border-status-error/20 flex flex-col sm:flex-row sm:items-center gap-mx-lg shadow-mx-xl">
+                                    <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-error text-white flex items-center justify-center shadow-mx-lg transform -rotate-3 shrink-0"><AlertTriangle size={32} strokeWidth={2.5} /></div>
+                                    <div className="space-y-mx-tiny">
                                         <Typography variant="h3" tone="error" className="text-xl leading-none">INCONSISTÊNCIA OPERACIONAL</Typography>
                                         <Typography variant="p" tone="error" className="font-bold leading-relaxed">{funnelError}</Typography>
                                     </div>
@@ -314,10 +314,10 @@ export default function Checkin() {
                     <AnimatePresence>
                         {allZero && (
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
-                                <Card className="p-10 border-none shadow-mx-xl bg-mx-amber-400 text-mx-black space-y-10 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-3xl -mr-32 -mt-32" />
-                                    <header className="flex items-center gap-6 relative z-10">
-                                        <div className="w-16 h-16 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-lg group-hover:rotate-12 transition-transform"><AlertTriangle size={32} strokeWidth={2.5} /></div>
+                                <Card className="p-mx-10 border-none shadow-mx-xl bg-mx-amber-400 text-mx-black space-y-mx-10 relative overflow-hidden group">
+                                    <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-white/20 rounded-mx-full blur-3xl -mr-32 -mt-32" />
+                                    <header className="flex items-center gap-mx-md relative z-10">
+                                        <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-lg group-hover:rotate-12 transition-transform"><AlertTriangle size={32} strokeWidth={2.5} /></div>
                                         <div>
                                             <Typography variant="h2" tone="default">Produção Zero</Typography>
                                             <Typography variant="caption" className="font-black uppercase tracking-widest mt-1 opacity-60">JUSTIFICATIVA OBRIGATÓRIA MX</Typography>
@@ -326,7 +326,7 @@ export default function Checkin() {
                                     <div className="relative z-10">
                                         <select 
                                             value={form.zero_reason} onChange={e => updateField('zero_reason', e.target.value)}
-                                            className="w-full h-16 px-8 bg-mx-black text-white rounded-mx-2xl text-lg font-black uppercase tracking-widest outline-none shadow-mx-xl border-none focus:ring-8 focus:ring-white/10 transition-all appearance-none cursor-pointer"
+                                            className="w-full h-mx-2xl px-8 bg-mx-black text-white rounded-mx-2xl text-lg font-black uppercase tracking-widest outline-none shadow-mx-xl border-none focus:ring-8 focus:ring-white/10 transition-all appearance-none cursor-pointer"
                                         >
                                             <option value="">Selecione o motivo...</option>
                                             {ZERO_REASONS.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
@@ -338,61 +338,61 @@ export default function Checkin() {
                     </AnimatePresence>
 
                     {/* Finalization */}
-                    <Card className="p-10 md:p-14 space-y-10 border-none shadow-mx-lg bg-white">
-                        <div className="space-y-4">
-                            <label className="flex items-center gap-3 px-4 text-[10px] font-black text-text-tertiary uppercase tracking-[0.3em]">
+                    <Card className="p-mx-10 md:p-14 space-y-mx-10 border-none shadow-mx-lg bg-white">
+                        <div className="space-y-mx-sm">
+                            <label className="flex items-center gap-mx-xs px-4 text-mx-tiny font-black text-text-tertiary uppercase tracking-mx-wider">
                                 <MessageSquare size={16} className="text-brand-primary" /> OBSERVAÇÕES OPERACIONAIS (Opcional)
                             </label>
                             <textarea
                                 value={form.note} onChange={e => updateField('note', e.target.value)} maxLength={280}
                                 placeholder="Descreva aqui eventos críticos ou detalhes de fechamento estratégico..."
-                                className="w-full bg-surface-alt border border-border-default rounded-[2.5rem] p-10 text-lg font-bold text-text-primary placeholder:text-text-tertiary/30 focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner min-h-[200px]"
+                                className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-10 text-lg font-bold text-text-primary placeholder:text-text-tertiary/30 focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner min-h-[200px]"
                             />
                             <div className="flex justify-end pr-6">
-                                <Typography variant="mono" tone="muted" className="text-[10px]">{form.note.length}/280</Typography>
+                                <Typography variant="mono" tone="muted" className="text-mx-tiny">{form.note.length}/280</Typography>
                             </div>
                         </div>
 
                         <Button 
                             type="submit" 
                             disabled={saving || (!!todayCheckin && !canEditExisting && metricScope === 'daily')}
-                            className="w-full h-24 rounded-[3rem] text-3xl font-black tracking-tighter uppercase shadow-mx-elite hover:-translate-y-2 active:scale-95 transition-all"
+                            className="w-full h-mx-3xl rounded-mx-3xl text-3xl font-black tracking-tighter uppercase shadow-mx-elite hover:-translate-y-2 active:scale-95 transition-all"
                         >
-                            {saving ? <RefreshCw className="w-12 h-12 animate-spin" /> : <><Send size={40} className="mr-6" /> CONGELAR PERFORMANCE</>}
+                            {saving ? <RefreshCw className="w-mx-xl h-mx-xl animate-spin" /> : <><Send size={40} className="mr-6" /> CONGELAR PERFORMANCE</>}
                         </Button>
                     </Card>
                 </div>
 
                 {/* Info Sidebar */}
-                <aside className="lg:w-[420px] space-y-mx-lg shrink-0">
-                    <Card className="p-10 border-none shadow-mx-lg bg-white space-y-10">
-                        <header className="flex items-center gap-4 border-b border-border-default pb-8">
-                            <div className="w-12 h-12 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center shadow-inner"><ShieldCheck size={24} /></div>
+                <aside className="lg:w-mx-aside space-y-mx-lg shrink-0">
+                    <Card className="p-mx-10 border-none shadow-mx-lg bg-white space-y-mx-10">
+                        <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
+                            <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center shadow-inner"><ShieldCheck size={24} /></div>
                             <Typography variant="h3">Contrato MX</Typography>
                         </header>
-                        <ul className="space-y-8" role="list">
+                        <ul className="space-y-mx-lg" role="list">
                             {[
                                 "Dados de ontem são imutáveis após registro.",
                                 "A agenda de hoje determina o ritmo de amanhã.",
                                 "O fechamento do terminal ocorre às 09:00.",
                                 "Justificativa obrigatória para KPIs zerados."
                             ].map((text, i) => (
-                                <li key={i} className="flex gap-4 items-start group">
-                                    <div className="w-6 h-6 rounded-full bg-surface-alt flex items-center justify-center shrink-0 mt-0.5 font-black text-[10px] text-text-tertiary shadow-sm border border-border-default group-hover:bg-brand-primary group-hover:text-white transition-all" aria-hidden="true">{i+1}</div>
+                                <li key={i} className="flex gap-mx-sm items-start group">
+                                    <div className="w-mx-md h-mx-md rounded-mx-full bg-surface-alt flex items-center justify-center shrink-0 mt-0.5 font-black text-mx-tiny text-text-tertiary shadow-sm border border-border-default group-hover:bg-brand-primary group-hover:text-white transition-all" aria-hidden="true">{i+1}</div>
                                     <Typography variant="p" tone="muted" className="text-xs font-black uppercase tracking-tight leading-relaxed group-hover:text-text-primary transition-colors">{text}</Typography>
                                 </li>
                             ))}
                         </ul>
                     </Card>
 
-                    <Card className="p-10 bg-pure-black text-white border-none shadow-mx-xl relative overflow-hidden group">
+                    <Card className="p-mx-10 bg-pure-black text-white border-none shadow-mx-xl relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent pointer-events-none z-0" aria-hidden="true" />
                         <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none group-hover:rotate-12 transition-transform duration-700" aria-hidden="true">
                             <Zap size={240} fill="currentColor" />
                         </div>
                         <div className="relative z-10">
-                            <Typography variant="caption" tone="white" className="opacity-40 tracking-[0.4em] mb-10 block">IMPACTO EM REDE</Typography>
-                            <div className="flex items-baseline gap-4 mb-6">
+                            <Typography variant="caption" tone="white" className="opacity-40 tracking-mx-widest mb-10 block">IMPACTO EM REDE</Typography>
+                            <div className="flex items-baseline gap-mx-sm mb-6">
                                 <Typography variant="h1" tone="white" className="text-8xl tabular-nums leading-none tracking-tighter" aria-live="polite">{totals.vnd_total}</Typography>
                                 <Typography variant="h3" tone="brand" className="text-xl">VENDAS</Typography>
                             </div>

@@ -50,9 +50,21 @@ const AUDIT_URL = `${BASE_URL}/lojas`;
     await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle' });
     await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
     await page.fill('input[type="password"]', 'Jose20161@');
+    
+    await page.screenshot({ path: 'audit-before-login.png' });
+    console.log('📸 Screenshot saved: audit-before-login.png');
+
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/painel', { timeout: 15000 });
-    console.log('✅ Login successful.');
+    
+    try {
+        await page.waitForURL('**/painel', { timeout: 30000 });
+        console.log('✅ Login successful.');
+    } catch (e) {
+        console.log('❌ Login failed or timed out. Taking screenshot...');
+        await page.screenshot({ path: 'audit-login-failure.png' });
+        console.log('📸 Screenshot saved: audit-login-failure.png');
+        throw e;
+    }
 
     console.log(`🚀 Navigating to ${AUDIT_URL}...`);
     const response = await page.goto(AUDIT_URL, { waitUntil: 'networkidle' });

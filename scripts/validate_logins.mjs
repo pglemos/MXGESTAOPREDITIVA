@@ -1,9 +1,9 @@
 import { chromium } from 'playwright';
 
 const users = [
-  { email: 'danieljsvendas@gmail.com', pass: 'WKDTVGWN', name: 'DANIEL JS' },
-  { email: 'luzdirecaoconsultoria@gmail.com', pass: 'R5K2B4AZ', name: 'JOSE ROBERTO' },
-  { email: 'davidgundam081@gmail.com', pass: 'BKAP23', name: 'DAVID' },
+  { email: 'danieljsvendas@gmail.com', pass: 'B9C2KDT8', name: 'DANIEL JS' },
+  { email: 'luzdirecaoconsultoria@gmail.com', pass: 'B9C2KDT8', name: 'JOSE ROBERTO' },
+  { email: 'davidgundam081@gmail.com', pass: 'B9C2KDT8', name: 'DAVID' },
   { email: 'caiio.ce@hotmail.com', pass: 'B9C2KDT8', name: 'CAIO' }
 ];
 

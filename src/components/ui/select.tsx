@@ -14,7 +14,7 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
         ref={ref}
         className={cn(
-            'flex h-11 w-full items-center justify-between whitespace-nowrap rounded-mx-lg border border-border-default bg-surface-main px-4 py-2 text-sm font-bold text-text-primary shadow-mx-sm ring-offset-ring-offset placeholder:text-text-tertiary focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:border-brand-primary/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+            'flex h-mx-11 w-full items-center justify-between whitespace-nowrap rounded-mx-lg border border-border-default bg-surface-main px-4 py-2 text-sm font-bold text-text-primary shadow-mx-sm ring-offset-ring-offset placeholder:text-text-tertiary focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:border-brand-primary/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
             className,
         )}
         {...props}
@@ -64,7 +64,7 @@ const SelectContent = React.forwardRef<
         >
             <SelectScrollUpButton />
             <SelectPrimitive.Viewport
-                className={cn('p-1', position === 'popper' && 'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]')}
+                className={cn('p-mx-tiny', position === 'popper' && 'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]')}
             >
                 {children}
             </SelectPrimitive.Viewport>
@@ -86,7 +86,7 @@ const SelectItem = React.forwardRef<
         )}
         {...props}
     >
-        <span className="absolute right-2 flex size-3.5 items-center justify-center">
+        <span className="absolute right-mx-xs flex size-3.5 items-center justify-center">
             <SelectPrimitive.ItemIndicator>
                 <Check className="size-4" />
             </SelectPrimitive.ItemIndicator>

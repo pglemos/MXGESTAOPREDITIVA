@@ -58,7 +58,7 @@ export default function ConsultorNotificacoes() {
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Gateway...</Typography>
         </div>
     )
@@ -68,19 +68,19 @@ export default function ConsultorNotificacoes() {
             
             {/* Header / Alerts Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Central de <span className="text-brand-primary">Mensagens</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">COMUNICAÇÃO ESTRATÉGICA DE REDE</Typography>
                 </div>
 
                 <div className="flex items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
-                    <Button onClick={() => setShowForm(true)} className="h-12 px-8 shadow-mx-lg">
+                    <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg">
                         <Plus size={18} className="mr-2" /> DISPARAR ALERTA
                     </Button>
                 </div>
@@ -90,48 +90,48 @@ export default function ConsultorNotificacoes() {
                 {showForm && (
                     <motion.section initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="shrink-0 mb-10">
                         <form onSubmit={handleSubmit}>
-                            <Card className="p-10 md:p-14 border-none shadow-mx-xl bg-white overflow-hidden relative">
-                                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 rounded-full blur-[120px] -mr-48 -mt-48" />
+                            <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white overflow-hidden relative">
+                                <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-48 -mt-48" />
                                 
                                 <header className="flex items-center justify-between border-b border-border-default pb-8 mb-10 relative z-10">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-14 h-14 rounded-mx-xl bg-pure-black text-white flex items-center justify-center shadow-mx-lg transform rotate-2"><Mail size={24} className="text-brand-primary" /></div>
+                                    <div className="flex items-center gap-mx-md">
+                                        <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-pure-black text-white flex items-center justify-center shadow-mx-lg transform rotate-2"><Mail size={24} className="text-brand-primary" /></div>
                                         <div>
                                             <Typography variant="h3">Compor Comunicado</Typography>
                                             <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">INTELIGÊNCIA DE REDE</Typography>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-full w-12 h-12 bg-surface-alt hover:bg-white shadow-sm"><X size={24} /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm"><X size={24} /></Button>
                                 </header>
 
-                                <div className="grid lg:grid-cols-2 gap-14 relative z-10">
-                                    <div className="space-y-8">
-                                        <div className="space-y-4">
+                                <div className="grid lg:grid-cols-2 gap-mx-14 relative z-10">
+                                    <div className="space-y-mx-lg">
+                                        <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Assunto Estratégico</Typography>
                                             <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Alerta de Ritmo Semanal" required className="!h-14 px-6 font-bold" />
                                         </div>
-                                        <div className="space-y-4">
+                                        <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Corpo da Mensagem</Typography>
                                             <textarea 
                                                 value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
-                                                className="w-full bg-surface-alt border border-border-default rounded-[2rem] p-8 text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-48"
+                                                className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-mx-lg text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-mx-48"
                                                 placeholder="Detalhes técnicos ou operacionais..." required
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-10">
-                                        <div className="space-y-4">
+                                    <div className="space-y-mx-10">
+                                        <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Público Alvo (Segmentação)</Typography>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'all' }))} className={cn("p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center justify-center gap-4 text-center group", form.target_type === 'all' ? "bg-mx-indigo-50 border-brand-primary shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
-                                                    <div className={cn("w-12 h-12 rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'all' ? "bg-brand-primary text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
+                                            <div className="grid grid-cols-2 gap-mx-sm">
+                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'all' }))} className={cn("p-mx-lg rounded-mx-2xl border-2 transition-all flex flex-col items-center justify-center gap-mx-sm text-center group", form.target_type === 'all' ? "bg-mx-indigo-50 border-brand-primary shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
+                                                    <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'all' ? "bg-brand-primary text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
                                                         <Globe size={22} />
                                                     </div>
                                                     <Typography variant="caption" className={cn("font-black tracking-widest", form.target_type === 'all' ? "text-brand-primary" : "text-text-tertiary")}>TODA A REDE</Typography>
                                                 </button>
-                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'store' }))} className={cn("p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center justify-center gap-4 text-center group", form.target_type === 'store' ? "bg-status-warning-surface border-status-warning shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
-                                                    <div className={cn("w-12 h-12 rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'store' ? "bg-status-warning text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
+                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'store' }))} className={cn("p-mx-lg rounded-mx-2xl border-2 transition-all flex flex-col items-center justify-center gap-mx-sm text-center group", form.target_type === 'store' ? "bg-status-warning-surface border-status-warning shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
+                                                    <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'store' ? "bg-status-warning text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
                                                         <Building2 size={22} />
                                                     </div>
                                                     <Typography variant="caption" className={cn("font-black tracking-widest", form.target_type === 'store' ? "text-status-warning" : "text-text-tertiary")}>UNIDADE ALVO</Typography>
@@ -139,19 +139,19 @@ export default function ConsultorNotificacoes() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nível Hierárquico</Typography>
-                                            <div className="grid grid-cols-4 gap-2">
+                                            <div className="grid grid-cols-4 gap-mx-xs">
                                                 {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
-                                                    <Button key={role} type="button" variant={form.target_role === role ? 'secondary' : 'outline'} onClick={() => setForm(p => ({ ...p, target_role: role as any }))} className="h-10 rounded-xl text-[8px] font-black uppercase px-0">{role}</Button>
+                                                    <Button key={role} type="button" variant={form.target_role === role ? 'secondary' : 'outline'} onClick={() => setForm(p => ({ ...p, target_role: role as any }))} className="h-mx-10 rounded-mx-xl text-mx-micro font-black uppercase px-0">{role}</Button>
                                                 ))}
                                             </div>
                                         </div>
 
                                         {form.target_type === 'store' && (
-                                            <div className="space-y-4">
+                                            <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Selecionar Loja</Typography>
-                                                <select value={form.target_store_id} onChange={e => setForm(p => ({ ...p, target_store_id: e.target.value }))} required className="w-full h-14 bg-surface-alt border border-status-warning/20 rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-status-warning transition-all appearance-none cursor-pointer shadow-inner">
+                                                <select value={form.target_store_id} onChange={e => setForm(p => ({ ...p, target_store_id: e.target.value }))} required className="w-full h-mx-14 bg-surface-alt border border-status-warning/20 rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-status-warning transition-all appearance-none cursor-pointer shadow-inner">
                                                     <option value="">Selecione a unidade...</option>
                                                     {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                                                 </select>
@@ -160,8 +160,8 @@ export default function ConsultorNotificacoes() {
                                     </div>
                                 </div>
 
-                                <footer className="pt-10 flex justify-end gap-4 border-t border-border-default mt-10 relative z-10">
-                                    <Button type="submit" disabled={saving} className="h-16 px-14 rounded-full shadow-mx-xl font-black uppercase tracking-[0.2em] text-[10px]">
+                                <footer className="pt-10 flex justify-end gap-mx-sm border-t border-border-default mt-10 relative z-10">
+                                    <Button type="submit" disabled={saving} className="h-mx-2xl px-14 rounded-mx-full shadow-mx-xl font-black uppercase tracking-mx-wide text-mx-tiny">
                                         {saving ? <RefreshCw className="animate-spin mr-3" /> : <Send size={20} className="mr-3" />} DISPARAR NA REDE
                                     </Button>
                                 </footer>
@@ -174,8 +174,8 @@ export default function ConsultorNotificacoes() {
             {/* Campaign History Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg pb-32" aria-live="polite">
                 {broadcasts.length === 0 ? (
-                    <Card className="col-span-full py-40 rounded-[4rem] text-center border-dashed border-2 border-border-default bg-white/50 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="w-24 h-24 rounded-mx-3xl bg-white shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:rotate-12 transition-transform duration-500">
+                    <Card className="col-span-full py-40 rounded-mx-4xl text-center border-dashed border-2 border-border-default bg-white/50 flex flex-col items-center justify-center relative overflow-hidden group">
+                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-white shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:rotate-12 transition-transform duration-500">
                             <Bell size={40} className="text-text-tertiary/20" />
                         </div>
                         <Typography variant="h2" className="mb-4">Mural Vazio</Typography>
@@ -184,31 +184,31 @@ export default function ConsultorNotificacoes() {
                 ) : (
                     broadcasts.map((n, i) => (
                         <motion.article key={n.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                            <Card className="p-8 h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Card className="p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
+                                <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 
                                 <header className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">
-                                    <div className="w-12 h-12 rounded-2xl bg-surface-alt flex items-center justify-center text-text-tertiary group-hover:bg-pure-black group-hover:text-white transition-all shadow-inner transform group-hover:rotate-6">
+                                    <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-surface-alt flex items-center justify-center text-text-tertiary group-hover:bg-pure-black group-hover:text-white transition-all shadow-inner transform group-hover:rotate-6">
                                         <Zap size={20} />
                                     </div>
-                                    <div className="flex flex-col items-end gap-2">
-                                        <Badge variant={!n.store_id ? 'brand' : 'warning'} className="px-4 py-1 rounded-full uppercase text-[8px]">
+                                    <div className="flex flex-col items-end gap-mx-xs">
+                                        <Badge variant={!n.store_id ? 'brand' : 'warning'} className="px-4 py-1 rounded-mx-full uppercase text-mx-micro">
                                             {!n.store_id ? 'REDE TODA' : 'UNIDADE'}
                                         </Badge>
-                                        <Typography variant="caption" className="text-[7px] font-black opacity-30 uppercase">SINC: ADMIN</Typography>
+                                        <Typography variant="caption" className="text-mx-micro font-black opacity-30 uppercase">SINC: ADMIN</Typography>
                                     </div>
                                 </header>
 
-                                <div className="flex-1 mb-8 relative z-10 space-y-3">
+                                <div className="flex-1 mb-8 relative z-10 space-y-mx-xs">
                                     <Typography variant="h3" className="text-lg uppercase leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">{n.title}</Typography>
                                     <Typography variant="p" tone="muted" className="text-xs font-bold leading-relaxed line-clamp-4">"{n.message}"</Typography>
                                 </div>
 
                                 <footer className="pt-6 border-t border-border-default flex items-center justify-between mt-auto relative z-10">
-                                    <div className="flex items-center gap-2 text-[9px] font-black text-text-tertiary uppercase tracking-widest">
+                                    <div className="flex items-center gap-mx-xs text-mx-micro font-black text-text-tertiary uppercase tracking-widest">
                                         <Calendar size={14} className="text-brand-primary" /> {new Date(n.created_at).toLocaleDateString('pt-BR')}
                                     </div>
-                                    <Typography variant="mono" className="text-[10px] opacity-30">{new Date(n.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Typography>
+                                    <Typography variant="mono" className="text-mx-tiny opacity-30">{new Date(n.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Typography>
                                 </footer>
                             </Card>
                         </motion.article>

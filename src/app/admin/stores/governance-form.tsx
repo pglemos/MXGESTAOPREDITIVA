@@ -13,16 +13,16 @@ export default function StoreGovernanceForm({ storeId, initialData }: { storeId:
     };
 
     return (
-        <div className="p-6 space-y-4">
+        <div className="p-mx-md space-y-mx-sm">
             <h2 className="text-xl font-bold">Governança da Loja</h2>
             <input 
                 type="number" 
                 value={meta.monthly_goal} 
                 onChange={(e) => setMeta({...meta, monthly_goal: Number(e.target.value)})}
                 placeholder="Meta Mensal"
-                className="block border p-2"
+                className="block border p-mx-xs"
             />
-            <button onClick={handleSubmit} className="bg-blue-600 text-white p-2 rounded">
+            <button onClick={handleSubmit} className="bg-brand-primary text-white p-mx-xs rounded">
                 Salvar Configurações
             </button>
         </div>

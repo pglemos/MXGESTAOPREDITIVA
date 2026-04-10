@@ -37,7 +37,7 @@ export default function VendedorFeedback() {
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="w-10 h-10 animate-spin text-brand-primary mb-4" />
+            <RefreshCw className="w-mx-10 h-mx-10 animate-spin text-brand-primary mb-4" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Feedbacks...</Typography>
         </div>
     )
@@ -46,26 +46,26 @@ export default function VendedorFeedback() {
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             {/* Header */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Meus <span className="text-brand-primary">Feedbacks</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md">Histórico de Performance e Ajustes Táticos</Typography>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm">
+                <div className="flex items-center gap-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <Badge variant="brand" className="px-6 py-3 rounded-full shadow-mx-sm uppercase tracking-widest">Atualizado</Badge>
+                    <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm uppercase tracking-widest">Atualizado</Badge>
                 </div>
             </header>
 
             <div className="flex-1 min-h-0 pb-32">
                 {feedbacks.length === 0 ? (
-                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-[3rem]">
-                        <div className="w-24 h-24 rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
+                    <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
+                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
                             <MessageSquare size={48} className="text-text-tertiary" />
                         </div>
                         <Typography variant="h2" className="mb-2">Nenhum Feedback</Typography>
@@ -81,11 +81,11 @@ export default function VendedorFeedback() {
                                     animate={{ opacity: 1, y: 0 }}
                                     className="relative"
                                 >
-                                    <Card className="p-10 md:p-14 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg">
-                                        <div className="space-y-10">
+                                    <Card className="p-mx-10 md:p-14 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg">
+                                        <div className="space-y-mx-10">
                                             <div className="flex items-center justify-between border-b border-border-default pb-8">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true">
+                                                <div className="flex items-center gap-mx-sm">
+                                                    <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true">
                                                         <Calendar size={20} />
                                                     </div>
                                                     <div>
@@ -96,19 +96,19 @@ export default function VendedorFeedback() {
                                                 {!f.acknowledged && <Badge variant="danger" className="animate-pulse">Pendente</Badge>}
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-8">
-                                                <div className="space-y-1">
-                                                    <Typography variant="caption" tone="success" className="flex items-center gap-2 font-black"><TrendingUp size={14} /> Pontos Fortes</Typography>
-                                                    <p className="text-sm font-bold text-slate-700 leading-relaxed italic bg-emerald-50/30 p-5 rounded-2xl border border-emerald-50 shadow-inner">"{f.positives}"</p>
+                                            <div className="grid grid-cols-2 gap-mx-lg">
+                                                <div className="space-y-mx-tiny">
+                                                    <Typography variant="caption" tone="success" className="flex items-center gap-mx-xs font-black"><TrendingUp size={14} /> Pontos Fortes</Typography>
+                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-status-success-surface/30 p-mx-5 rounded-mx-2xl border border-emerald-50 shadow-inner">"{f.positives}"</p>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <Typography variant="caption" tone="error" className="flex items-center gap-2 font-black"><AlertCircle size={14} /> Oportunidades</Typography>
-                                                    <p className="text-sm font-bold text-slate-700 leading-relaxed italic bg-rose-50/30 p-5 rounded-2xl border border-rose-50 shadow-inner">"{f.attention_points}"</p>
+                                                <div className="space-y-mx-tiny">
+                                                    <Typography variant="caption" tone="error" className="flex items-center gap-mx-xs font-black"><AlertCircle size={14} /> Oportunidades</Typography>
+                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-rose-50/30 p-mx-5 rounded-mx-2xl border border-rose-50 shadow-inner">"{f.attention_points}"</p>
                                                 </div>
                                             </div>
 
                                             <div className="pt-8 border-t border-border-default">
-                                                <Typography variant="caption" tone="brand" className="mb-4 flex items-center gap-2 font-black"><Target size={16} /> Próximo Passo</Typography>
+                                                <Typography variant="caption" tone="brand" className="mb-4 flex items-center gap-mx-xs font-black"><Target size={16} /> Próximo Passo</Typography>
                                                 <Typography variant="h3" className="text-base text-brand-primary">{f.action}</Typography>
                                             </div>
                                         </div>
@@ -118,13 +118,13 @@ export default function VendedorFeedback() {
                                                 <Button 
                                                     onClick={() => handleAcknowledge(f.id)}
                                                     disabled={isAcknowledging === f.id}
-                                                    className="w-full h-14 rounded-full shadow-mx-xl"
+                                                    className="w-full h-mx-14 rounded-mx-full shadow-mx-xl"
                                                 >
                                                     {isAcknowledging === f.id ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck size={18} className="mr-2" />}
                                                     CIENTE DO FEEDBACK
                                                 </Button>
                                             ) : (
-                                                <div className="flex items-center justify-center gap-2 text-status-success">
+                                                <div className="flex items-center justify-center gap-mx-xs text-status-success">
                                                     <CheckCircle2 size={16} aria-hidden="true" />
                                                     <Typography variant="caption" tone="success">LEITURA CONFIRMADA EM {format(parseISO(f.acknowledged_at!), 'dd/MM/yy')}</Typography>
                                                 </div>

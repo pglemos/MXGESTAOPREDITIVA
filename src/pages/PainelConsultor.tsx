@@ -227,7 +227,7 @@ export default function PainelConsultor() {
 
     if (goalsLoading || networkLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="animate-spin text-brand-primary w-12 h-12 mb-6" />
+            <RefreshCw className="animate-spin text-brand-primary w-mx-xl h-mx-xl mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Rede...</Typography>
         </div>
     )
@@ -237,12 +237,12 @@ export default function PainelConsultor() {
             
             {/* Header Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-xs">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Rede <Typography as="span" className="text-brand-primary">Operacional</Typography></Typography>
                     </div>
-                    <div className="flex items-center gap-4 pl-6">
+                    <div className="flex items-center gap-mx-sm pl-6">
                         <Badge variant="danger" className="px-4 py-1 font-black">
                             <Typography variant="tiny" as="span" className="font-black">Gap Global: {globalStats.totalGap} UNIDADES</Typography>
                         </Badge>
@@ -251,7 +251,7 @@ export default function PainelConsultor() {
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-mx-xs shrink-0">
-                    <nav className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm relative" aria-label="Filtro de Período">
+                    <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm relative" aria-label="Filtro de Período">
                         <Calendar size={14} className="text-text-tertiary ml-3 mr-1" aria-hidden="true" />
                         {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
                             <Button 
@@ -259,7 +259,7 @@ export default function PainelConsultor() {
                                 variant={timeframe === t ? 'secondary' : 'ghost'}
                                 size="sm"
                                 onClick={() => setTimeframe(t)}
-                                className="rounded-full px-4 h-8 uppercase font-black"
+                                className="rounded-mx-full px-4 h-mx-lg uppercase font-black"
                                 aria-pressed={timeframe === t}
                             >
                                 <Typography variant="tiny" as="span" className="font-black">{t}</Typography>
@@ -269,7 +269,7 @@ export default function PainelConsultor() {
                             variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => setShowCustomPicker(!showCustomPicker)}
-                            className="rounded-full px-4 h-8 uppercase font-black"
+                            className="rounded-mx-full px-4 h-mx-lg uppercase font-black"
                             aria-expanded={showCustomPicker}
                         >
                             <Typography variant="tiny" as="span" className="font-black">Custom</Typography>
@@ -277,22 +277,22 @@ export default function PainelConsultor() {
 
                         <AnimatePresence>
                             {showCustomPicker && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-0 z-50">
-                                    <Card className="p-6 min-w-[320px] shadow-mx-xl border-none">
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-mx-0 z-50">
+                                    <Card className="p-mx-md min-w-mx-card-sm shadow-mx-xl border-none">
                                         <header className="flex items-center justify-between mb-6">
                                             <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Período Customizado</Typography>
-                                            <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-8 h-8 p-0 rounded-full" aria-label="Fechar seletor"><X size={16} /></Button>
+                                            <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-lg h-mx-lg p-mx-0 rounded-mx-full" aria-label="Fechar seletor"><X size={16} /></Button>
                                         </header>
-                                        <div className="space-y-4">
-                                            <div className="space-y-2">
+                                        <div className="space-y-mx-sm">
+                                            <div className="space-y-mx-xs">
                                                 <Typography variant="tiny" tone="muted" as="label" htmlFor="start-date" className="font-black uppercase tracking-widest ml-1">Início</Typography>
                                                 <Input id="start-date" type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-10 !px-4 !text-xs font-black" />
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="space-y-mx-xs">
                                                 <Typography variant="tiny" tone="muted" as="label" htmlFor="end-date" className="font-black uppercase tracking-widest ml-1">Fim</Typography>
                                                 <Input id="end-date" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-10 !px-4 !text-xs font-black" />
                                             </div>
-                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-12 shadow-mx-lg font-black uppercase text-xs">
+                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-xl shadow-mx-lg font-black uppercase text-xs">
                                                 <Typography variant="tiny" as="span" className="font-black">APLICAR PERÍODO</Typography>
                                             </Button>
                                         </div>
@@ -302,13 +302,13 @@ export default function PainelConsultor() {
                         </AnimatePresence>
                     </nav>
 
-                    <nav className="flex items-center gap-1 bg-white p-1 rounded-mx-full border border-border-default shadow-mx-sm" aria-label="Disparos de Relatórios">
+                    <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm" aria-label="Disparos de Relatórios">
                         {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
                             <Button 
                                 key={r} variant="ghost" size="sm" 
                                 onClick={() => triggerReport(r)} 
                                 disabled={isTriggering !== null} 
-                                className="rounded-full px-4 h-8 text-brand-primary uppercase font-black"
+                                className="rounded-mx-full px-4 h-mx-lg text-brand-primary uppercase font-black"
                                 aria-label={`Disparar relatório ${r}`}
                             >
                                 {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : <Typography variant="tiny" as="span" className="font-black">{r}</Typography>}
@@ -316,7 +316,7 @@ export default function PainelConsultor() {
                         ))}
                     </nav>
 
-                    <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-xl shadow-mx-sm h-10 w-10 bg-white" aria-label="Sincronizar dados">
+                    <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-mx-xl shadow-mx-sm h-mx-10 w-mx-10 bg-white" aria-label="Sincronizar dados">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>
@@ -324,16 +324,16 @@ export default function PainelConsultor() {
 
             {/* Global KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
-                <Card className="bg-brand-secondary border-none p-8 shadow-mx-xl text-white">
+                <Card className="bg-brand-secondary border-none p-mx-lg shadow-mx-xl text-white">
                     <Typography variant="caption" tone="white" className="opacity-50 mb-4 block font-black uppercase tracking-widest">Venda {timeframe.toUpperCase()}</Typography>
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline gap-mx-xs">
                         <Typography variant="h1" tone="white" className="text-5xl font-mono-numbers tracking-tighter">{globalStats.totalSales}</Typography>
                         {timeframe === 'mensal' && <Typography variant="mono" tone="success" className="text-lg font-black">+{globalStats.globalRitmo}%</Typography>}
                     </div>
                     {timeframe === 'mensal' && <Typography variant="caption" tone="white" className="opacity-30 mt-4 tracking-widest block font-black uppercase">META REDE: {globalStats.totalGoal}</Typography>}
                 </Card>
 
-                <Card className="p-8 border-none shadow-mx-sm bg-white">
+                <Card className="p-mx-lg border-none shadow-mx-sm bg-white">
                     <Typography variant="caption" tone="muted" className="mb-6 text-center block font-black uppercase tracking-widest">Escoamento Rede</Typography>
                     <div className="grid grid-cols-3 gap-mx-md">
                         <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalLeads}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Leads</Typography></div>
@@ -342,7 +342,7 @@ export default function PainelConsultor() {
                     </div>
                 </Card>
 
-                <Card className="p-8 flex flex-col justify-between border-none shadow-mx-sm bg-white">
+                <Card className="p-mx-lg flex flex-col justify-between border-none shadow-mx-sm bg-white">
                     <Typography variant="caption" tone="muted" className="mb-4 font-black uppercase tracking-widest">Unidades Críticas</Typography>
                     <Typography variant="h1" tone="error" className="text-5xl font-mono-numbers tracking-tighter">
                         {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
@@ -350,7 +350,7 @@ export default function PainelConsultor() {
                     <Typography variant="caption" tone="error" className="mt-4 opacity-60 font-black uppercase tracking-widest">Ação Imediata Necessária</Typography>
                 </Card>
 
-                <Card className="p-8 flex flex-col justify-between border-none shadow-mx-sm bg-white">
+                <Card className="p-mx-lg flex flex-col justify-between border-none shadow-mx-sm bg-white">
                     <Typography variant="caption" tone="muted" className="mb-4 font-black uppercase tracking-widest">Saúde Disciplinar</Typography>
                     <Typography variant="h1" tone="success" className="text-5xl font-mono-numbers tracking-tighter">
                         {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
@@ -361,34 +361,34 @@ export default function PainelConsultor() {
 
             {/* Strategic Map Table */}
             <Card className="w-full mb-20 shadow-mx-lg border-none bg-white">
-                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-10">
+                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md pb-10">
                     <div>
                         <CardTitle className="text-3xl uppercase tracking-tighter">Malha de Performance</CardTitle>
                         <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40">Auditoria em Tempo Real de Unidades MX.</CardDescription>
                     </div>
                     <div className="flex flex-wrap items-center gap-mx-xs">
-                        <div className="relative group w-full sm:w-64">
-                            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" aria-hidden="true" />
+                        <div className="relative group w-full sm:w-mx-sidebar-expanded">
+                            <Search size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" aria-hidden="true" />
                             <Typography variant="tiny" as="label" htmlFor="search-store" className="sr-only">Buscar Unidade</Typography>
                             <Input id="search-store" placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10 !h-12 uppercase font-black tracking-widest !text-xs" />
                         </div>
-                        <div className="flex items-center gap-1 bg-surface-alt border border-border-default p-1 rounded-mx-md h-12 shadow-inner" role="group" aria-label="Filtro de Status">
+                        <div className="flex items-center gap-mx-tiny bg-surface-alt border border-border-default p-mx-tiny rounded-mx-md h-mx-xl shadow-inner" role="group" aria-label="Filtro de Status">
                             {(['all', 'alert', 'critical'] as const).map(f => (
                                 <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-full rounded-mx-sm px-4 uppercase font-black">
                                     <Typography variant="tiny" as="span" className="font-black">{f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}</Typography>
                                 </Button>
                             ))}
                         </div>
-                        <Button asChild variant="secondary" className="h-12 px-6 shadow-mx-md uppercase">
+                        <Button asChild variant="secondary" className="h-mx-xl px-6 shadow-mx-md uppercase">
                             <Link to="/lojas"><Typography variant="tiny" as="span" className="font-black">GESTÃO LOJAS</Typography></Link>
                         </Button>
                     </div>
                 </CardHeader>
                 <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left min-w-[1200px]">
+                    <table className="w-full text-left min-w-mx-elite-wide">
                         <caption className="sr-only">Consolidado operacional de todas as unidades da rede</caption>
                         <thead className="bg-surface-alt/50 border-y border-border-default">
-                            <tr className="uppercase tracking-[0.2em]">
+                            <tr className="uppercase tracking-mx-wide">
                                 <th scope="col" className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}><Typography variant="caption" className="font-black">Unidade</Typography></th>
                                 <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('leads')}><Typography variant="caption" className="font-black">Leads</Typography></th>
                                 <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('agd')}><Typography variant="caption" className="font-black">Agend.</Typography></th>
@@ -408,7 +408,7 @@ export default function PainelConsultor() {
                                 return (
                                     <tr 
                                         key={store.id} 
-                                        className="hover:bg-brand-primary-surface/10 transition-colors group h-24 cursor-pointer"
+                                        className="hover:bg-brand-primary-surface/10 transition-colors group h-mx-3xl cursor-pointer"
                                         onClick={() => handleStoreClick(store.id)}
                                         tabIndex={0}
                                         onKeyDown={(e) => e.key === 'Enter' && handleStoreClick(store.id)}
@@ -416,8 +416,8 @@ export default function PainelConsultor() {
                                         aria-label={`Ver detalhes da unidade ${store.name}`}
                                     >
                                         <td className="pl-10">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
+                                            <div className="flex items-center gap-mx-sm">
+                                                <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
                                                 <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{store.name}</Typography>
                                             </div>
                                         </td>

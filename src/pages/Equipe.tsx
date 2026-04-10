@@ -181,7 +181,7 @@ export default function Equipe() {
             )})}
           </div>
         ) : (
-          <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
+          <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
             <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-10 border border-border-default"><Users size={48} className="text-text-tertiary" /></div>
             <Typography variant="h2" className="mb-2">Vácuo de Tropa</Typography>
             <Typography variant="p" tone="muted" className="max-w-xs uppercase">Nenhum especialista localizado na malha desta unidade.</Typography>
@@ -221,7 +221,7 @@ export default function Equipe() {
                     
                     <div className="md:col-span-2 p-mx-10 rounded-mx-2xl bg-surface-alt border border-border-default space-y-mx-10 shadow-inner">
                       <label className="flex items-center justify-between cursor-pointer group">
-                        <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-mx-5">
                           <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-success shadow-mx-sm group-hover:scale-110 transition-transform"><BadgeCheck size={24} /></div>
                           <div className="space-y-mx-tiny">
                             <Typography variant="h3" className="text-base">Contrato Ativo</Typography>
@@ -232,7 +232,7 @@ export default function Equipe() {
                       </label>
                       
                       <label className="flex items-center justify-between pt-10 border-t border-border-default cursor-pointer group">
-                        <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-mx-5">
                           <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-warning shadow-mx-sm group-hover:scale-110 transition-transform"><ShieldAlert size={24} /></div>
                           <div className="space-y-mx-tiny">
                             <Typography variant="h3" className="text-base">Carência MX</Typography>

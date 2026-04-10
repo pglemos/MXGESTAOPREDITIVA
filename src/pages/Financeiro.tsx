@@ -7,8 +7,8 @@ import { Link } from 'react-router-dom'
 export default function Financeiro() {
     return (
         <main className="h-full w-full flex flex-col items-center justify-center p-mx-lg bg-surface-alt text-center">
-            <Card className="max-w-md w-full p-10 md:p-14 border-none shadow-mx-xl bg-white flex flex-col items-center">
-                <div className="w-20 h-20 rounded-mx-3xl bg-status-warning-surface text-status-warning flex items-center justify-center mb-8 border border-mx-amber-100 shadow-inner" aria-hidden="true">
+            <Card className="max-w-md w-full p-mx-10 md:p-14 border-none shadow-mx-xl bg-white flex flex-col items-center">
+                <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-status-warning-surface text-status-warning flex items-center justify-center mb-8 border border-mx-amber-100 shadow-inner" aria-hidden="true">
                     <AlertTriangle size={40} strokeWidth={2.5} />
                 </div>
                 
@@ -18,13 +18,13 @@ export default function Financeiro() {
                 </Typography>
 
                 <div className="w-full pt-8 border-t border-border-default">
-                    <Button asChild variant="outline" className="w-full h-14 rounded-full font-black uppercase tracking-widest text-xs shadow-sm bg-white border-border-strong hover:border-brand-primary">
+                    <Button asChild variant="outline" className="w-full h-mx-14 rounded-mx-full font-black uppercase tracking-widest text-xs shadow-sm bg-white border-border-strong hover:border-brand-primary">
                         <Link to="/home">Retornar ao Cockpit</Link>
                     </Button>
                 </div>
             </Card>
             
-            <footer className="mt-8 flex items-center gap-2 opacity-20">
+            <footer className="mt-8 flex items-center gap-mx-xs opacity-20">
                 <ShieldCheck size={14} />
                 <Typography variant="caption" className="text-xs font-black uppercase tracking-widest">Protocolo de Segurança MX</Typography>
             </footer>

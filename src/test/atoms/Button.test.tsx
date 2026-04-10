@@ -28,7 +28,7 @@ describe("Button Atom", () => {
   test("applies adaptive sizing classes", () => {
     render(<Button>Sizing</Button>);
     const button = screen.getByRole("button");
-    expect(button.className).toContain("h-11");
+    expect(button.className).toContain("h-mx-11");
     expect(button.className).toContain("sm:h-10");
   });
 

@@ -16,7 +16,7 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
     const weekEnd = r.week_end ? parseISO(r.week_end) : new Date()
 
     return (
-        <div className="weekly-store-report p-8 bg-white text-black font-sans leading-tight">
+        <div className="weekly-store-report p-mx-lg bg-white text-black font-sans leading-tight">
             <style>{`
                 @media print {
                     .weekly-store-report { padding: 0 !important; }
@@ -35,13 +35,13 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
 
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-xl font-black uppercase text-slate-800">Relatório Semanal de Alta Performance</h1>
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                    <h1 className="text-xl font-black uppercase text-text-primary">Relatório Semanal de Alta Performance</h1>
+                    <p className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
                         {r.store_name} | {format(weekStart, 'dd/MM/yyyy')} a {format(weekEnd, 'dd/MM/yyyy')}
                     </p>
                 </div>
                 <div className="text-right">
-                    <span className="text-[10px] font-black bg-slate-100 px-3 py-1 rounded text-slate-600">MX CRITERION: 20 / 60 / 33</span>
+                    <span className="text-mx-tiny font-black bg-slate-100 px-3 py-1 rounded text-text-secondary">MX CRITERION: 20 / 60 / 33</span>
                 </div>
             </div>
 
@@ -92,7 +92,7 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
                 </tbody>
             </table>
 
-            <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-2 gap-mx-md mb-6">
                 <table className="legacy-table">
                     <thead>
                         <tr className="header-yellow">
@@ -133,23 +133,23 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
                     </tbody>
                 </table>
 
-                <div className="border border-gray-200 rounded p-4 bg-gray-50">
-                    <h3 className="text-[10px] font-black uppercase text-slate-800 mb-2">DIAGNÓSTICO E PLANO DE AÇÃO</h3>
-                    <p className="text-[11px] text-gray-700 italic leading-snug">
+                <div className="border border-border-strong rounded p-mx-sm bg-surface-alt">
+                    <h3 className="text-mx-tiny font-black uppercase text-text-primary mb-2">DIAGNÓSTICO E PLANO DE AÇÃO</h3>
+                    <p className="text-mx-tiny text-text-secondary italic leading-snug">
                        {ranking[0]?.diagnostic || "Concluir auditoria individual para gerar o plano de ação consolidado."}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-end">
+            <div className="mt-6 pt-4 border-t border-border-strong flex justify-between items-end">
                  <div>
-                    <p className="font-bold text-[9px] uppercase text-gray-400">MX GESTÃO PREDITIVA</p>
-                    <p className="text-[8px] text-gray-400">Gerado automaticamente via Supabase Cloud Automation</p>
+                    <p className="font-bold text-mx-micro uppercase text-text-tertiary">MX GESTÃO PREDITIVA</p>
+                    <p className="text-mx-micro text-text-tertiary">Gerado automaticamente via Supabase Cloud Automation</p>
                  </div>
                  <div className="text-right">
-                    <p className="text-[9px] font-bold text-gray-500 uppercase">Auditado por:</p>
-                    <div className="w-32 h-px bg-gray-300 mt-4"></div>
-                    <p className="text-[8px] text-gray-400 mt-1">Gestor da Unidade</p>
+                    <p className="text-mx-micro font-bold text-text-tertiary uppercase">Auditado por:</p>
+                    <div className="w-mx-4xl h-px bg-gray-300 mt-4"></div>
+                    <p className="text-mx-micro text-text-tertiary mt-1">Gestor da Unidade</p>
                  </div>
             </div>
         </div>

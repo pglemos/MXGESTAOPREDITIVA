@@ -41,7 +41,7 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn('text-[10px] font-black text-text-tertiary uppercase tracking-widest mt-1', className)}
+      className={cn('text-mx-tiny font-black text-text-tertiary uppercase tracking-widest mt-1', className)}
       {...props}
     />
   )

@@ -21,10 +21,10 @@ export default function ManagerCommandCenter({ storeId }: { storeId: string }) {
     }, [storeId]);
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-mx-md space-y-mx-md">
             <h1 className="text-2xl font-bold">Command Center do Gerente</h1>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 border rounded">
+            <div className="grid grid-cols-2 gap-mx-sm">
+                <div className="p-mx-sm border rounded">
                     <h3 className="font-semibold">Status do Dia</h3>
                     <p>{routine?.status || 'Aguardando Lançamentos...'}</p>
                 </div>

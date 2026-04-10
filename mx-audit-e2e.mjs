@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
   const BASE_URL = 'http://localhost:3000';
   
   // slowMo de 1000ms (1 segundo) para você conseguir ler os dados sendo digitados
-  const browser = await chromium.launch({ headless: false, slowMo: 1000 });
+  const browser = await chromium.launch({ headless: true, slowMo: 100 });
   const context = await browser.newContext();
   const page = await context.newPage();
 

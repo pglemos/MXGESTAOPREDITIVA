@@ -16,7 +16,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
 >(({ className, inset, children, ...props }, ref) => (
     <DropdownMenuPrimitive.SubTrigger
         ref={ref}
-        className={cn('flex cursor-default gap-2 select-none items-center rounded-mx-md px-3 py-2 text-sm font-bold outline-none focus:bg-brand-primary-surface focus:text-brand-primary data-[state=open]:bg-brand-primary-surface [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0', inset && 'pl-8', className)}
+        className={cn('flex cursor-default gap-mx-xs select-none items-center rounded-mx-md px-3 py-2 text-sm font-bold outline-none focus:bg-brand-primary-surface focus:text-brand-primary data-[state=open]:bg-brand-primary-surface [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0', inset && 'pl-8', className)}
         {...props}
     >
         {children}
@@ -29,7 +29,7 @@ const DropdownMenuSubContent = React.forwardRef<
     React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
 >(({ className, ...props }, ref) => (
-    <DropdownMenuPrimitive.SubContent ref={ref} className={cn('z-50 min-w-[8rem] overflow-hidden rounded-mx-xl border border-border-default bg-surface-main p-1 text-text-primary shadow-mx-xl', className)} {...props} />
+    <DropdownMenuPrimitive.SubContent ref={ref} className={cn('z-50 min-w-[8rem] overflow-hidden rounded-mx-xl border border-border-default bg-surface-main p-mx-tiny text-text-primary shadow-mx-xl', className)} {...props} />
 ))
 DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayName
 
@@ -41,7 +41,7 @@ const DropdownMenuContent = React.forwardRef<
         <DropdownMenuPrimitive.Content
             ref={ref}
             sideOffset={sideOffset}
-            className={cn('z-50 min-w-[8rem] overflow-hidden rounded-mx-xl border border-border-default bg-surface-main p-1 text-text-primary shadow-mx-xl', className)}
+            className={cn('z-50 min-w-[8rem] overflow-hidden rounded-mx-xl border border-border-default bg-surface-main p-mx-tiny text-text-primary shadow-mx-xl', className)}
             {...props}
         />
     </DropdownMenuPrimitive.Portal>
@@ -54,7 +54,7 @@ const DropdownMenuItem = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
     <DropdownMenuPrimitive.Item
         ref={ref}
-        className={cn('relative flex cursor-default select-none items-center gap-2 rounded-mx-md px-3 py-2 text-sm font-bold outline-none transition-colors focus:bg-brand-primary-surface focus:text-brand-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0', inset && 'pl-8', className)}
+        className={cn('relative flex cursor-default select-none items-center gap-mx-xs rounded-mx-md px-3 py-2 text-sm font-bold outline-none transition-colors focus:bg-brand-primary-surface focus:text-brand-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0', inset && 'pl-8', className)}
         {...props}
     />
 ))
@@ -65,7 +65,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
 >(({ className, children, checked, ...props }, ref) => (
     <DropdownMenuPrimitive.CheckboxItem ref={ref} className={cn('relative flex cursor-default select-none items-center rounded-mx-md py-2 pl-8 pr-3 text-sm font-bold outline-none transition-colors focus:bg-brand-primary-surface focus:text-brand-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50', className)} checked={checked} {...props}>
-        <span className="absolute left-2 flex size-3.5 items-center justify-center">
+        <span className="absolute left-mx-xs flex size-3.5 items-center justify-center">
             <DropdownMenuPrimitive.ItemIndicator>
                 <Check className="size-4" />
             </DropdownMenuPrimitive.ItemIndicator>
@@ -80,7 +80,7 @@ const DropdownMenuRadioItem = React.forwardRef<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
 >(({ className, children, ...props }, ref) => (
     <DropdownMenuPrimitive.RadioItem ref={ref} className={cn('relative flex cursor-default select-none items-center rounded-mx-md py-2 pl-8 pr-3 text-sm font-bold outline-none transition-colors focus:bg-brand-primary-surface focus:text-brand-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50', className)} {...props}>
-        <span className="absolute left-2 flex size-3.5 items-center justify-center">
+        <span className="absolute left-mx-xs flex size-3.5 items-center justify-center">
             <DropdownMenuPrimitive.ItemIndicator>
                 <Circle className="size-2 fill-current" />
             </DropdownMenuPrimitive.ItemIndicator>

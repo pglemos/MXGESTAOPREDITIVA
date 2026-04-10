@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-mx-md font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-11 px-6 sm:h-10 sm:px-4", 
+  "inline-flex items-center justify-center gap-mx-xs whitespace-nowrap rounded-mx-md font-black uppercase tracking-widest transition-all focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-mx-11 px-6 sm:h-10 sm:px-4", 
   {
     variants: {
       variant: {
@@ -20,10 +20,10 @@ const buttonVariants = cva(
         ghost: "text-text-secondary hover:text-text-primary hover:bg-surface-alt",
       },
       size: {
-        default: "h-11 px-6 sm:h-10 sm:px-4",
-        sm: "h-9 rounded-mx-sm px-3",
-        lg: "h-14 rounded-mx-lg px-8",
-        icon: "h-11 w-11 sm:h-10 sm:w-10",
+        default: "h-mx-11 px-6 sm:h-10 sm:px-4",
+        sm: "h-mx-9 rounded-mx-sm px-3",
+        lg: "h-mx-14 rounded-mx-lg px-8",
+        icon: "h-mx-11 w-mx-11 sm:h-10 sm:w-10",
       },
     },
     defaultVariants: {

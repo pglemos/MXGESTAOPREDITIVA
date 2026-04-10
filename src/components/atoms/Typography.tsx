@@ -11,8 +11,8 @@ const typographyVariants = cva(
         h2: "text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none text-text-primary",
         h3: "text-xl font-black tracking-tight uppercase leading-none text-text-primary",
         p: "text-sm font-bold leading-relaxed text-text-secondary uppercase tracking-tight",
-        caption: "text-[10px] font-black uppercase tracking-[0.3em] text-text-tertiary",
-        tiny: "text-[8px] font-black uppercase tracking-widest",
+        caption: "text-mx-tiny font-black uppercase tracking-mx-wider text-text-tertiary",
+        tiny: "text-mx-micro font-black uppercase tracking-widest",
         mono: "font-mono-numbers text-sm font-black",
       },
       tone: {

@@ -158,7 +158,7 @@ export default function Lojas() {
                         </AnimatePresence>
                     </div>
                 ) : (
-                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl group hover:bg-surface-alt/20 transition-all" role="status">
+                    <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl group hover:bg-surface-alt/20 transition-all" role="status">
                         <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:scale-110 transition-transform" aria-hidden="true">
                             <Building2 size={48} className="text-text-tertiary opacity-20" />
                         </div>

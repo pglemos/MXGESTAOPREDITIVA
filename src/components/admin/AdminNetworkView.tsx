@@ -34,7 +34,7 @@ export function AdminNetworkView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-mx-md">
       {networkData.map((store) => {
         const isExpanded = expandedStoreId === store.store_id
         const operacionais = store.members.filter((m: any) => m.checkin_today).length
@@ -43,11 +43,11 @@ export function AdminNetworkView() {
         return (
           <Card key={store.store_id} className="overflow-hidden shadow-mx-sm border-border-default">
             <div 
-              className="p-6 flex items-center justify-between cursor-pointer hover:bg-surface-alt transition-colors"
+              className="p-mx-md flex items-center justify-between cursor-pointer hover:bg-surface-alt transition-colors"
               onClick={() => setExpandedStoreId(isExpanded ? null : store.store_id)}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-mx-lg bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+              <div className="flex items-center gap-mx-sm">
+                <div className="w-mx-xl h-mx-xl rounded-mx-lg bg-brand-primary/10 flex items-center justify-center text-brand-primary">
                   <Building2 size={24} />
                 </div>
                 <div>
@@ -56,8 +56,8 @@ export function AdminNetworkView() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-8">
-                <div className="flex items-center gap-2 text-status-success">
+              <div className="flex items-center gap-mx-lg">
+                <div className="flex items-center gap-mx-xs text-status-success">
                   <Zap size={18} />
                   <Typography variant="mono" className="font-bold">{operacionais}/{total} Operacionais</Typography>
                 </div>
@@ -73,11 +73,11 @@ export function AdminNetworkView() {
                   exit={{ height: 0, opacity: 0 }}
                   className="border-t border-border-default bg-surface-alt/30"
                 >
-                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-mx-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-sm">
                     {store.members.map((member: any) => (
-                      <div key={member.id} className="bg-white p-4 rounded-mx-lg border border-border-default flex flex-col gap-4 shadow-sm">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-surface-alt flex items-center justify-center border border-border-default overflow-hidden">
+                      <div key={member.id} className="bg-white p-mx-sm rounded-mx-lg border border-border-default flex flex-col gap-mx-sm shadow-sm">
+                        <div className="flex items-center gap-mx-sm">
+                          <div className="w-mx-10 h-mx-10 rounded-mx-full bg-surface-alt flex items-center justify-center border border-border-default overflow-hidden">
                             {member.avatar_url ? <img src={member.avatar_url} alt="" /> : <Users size={16} />}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -87,9 +87,9 @@ export function AdminNetworkView() {
                           {member.checkin_today ? <Zap size={16} className="text-status-success" /> : <Clock size={16} className="text-text-tertiary" />}
                         </div>
                         
-                        <div className="flex gap-2 border-t pt-3">
+                        <div className="flex gap-mx-xs border-t pt-3">
                           <Button 
-                            variant="outline" size="sm" className="flex-1 text-[10px]"
+                            variant="outline" size="sm" className="flex-1 text-mx-tiny"
                             disabled={!!processing}
                             onClick={() => handleRoleChange(member.id, store.store_id, member.role)}
                           >

@@ -6,18 +6,18 @@ export function Toaster() {
     const { toasts, dismiss } = useToast()
 
     return (
-        <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm">
+        <div className="fixed bottom-mx-sm right-mx-sm z-[100] flex flex-col gap-mx-xs w-full max-w-sm">
             {toasts.map((toast) => (
                 <div
                     key={toast.id}
                     className={cn(
-                        'group pointer-events-auto relative flex w-full items-center justify-between gap-4 overflow-hidden rounded-xl border p-4 shadow-lg transition-all animate-in slide-in-from-bottom-5',
+                        'group pointer-events-auto relative flex w-full items-center justify-between gap-mx-sm overflow-hidden rounded-mx-xl border p-mx-sm shadow-lg transition-all animate-in slide-in-from-bottom-5',
                         toast.variant === 'destructive'
                             ? 'border-status-error/30 bg-status-error-surface text-status-error'
                             : 'border-border-default bg-surface-main text-text-primary',
                     )}
                 >
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-mx-tiny">
                         {toast.title && <div className="text-sm font-bold">{toast.title}</div>}
                         {toast.description && <div className="text-xs opacity-80">{toast.description}</div>}
                     </div>

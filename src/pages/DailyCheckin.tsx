@@ -64,34 +64,34 @@ export default function DailyCheckin() {
 
     if (checkinsLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="w-10 h-10 animate-spin text-brand-primary mb-4" />
+            <RefreshCw className="w-mx-10 h-mx-10 animate-spin text-brand-primary mb-4" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Terminal...</Typography>
         </div>
     )
 
     if (todayCheckin) return (
         <main className="w-full h-full flex flex-col items-center justify-center p-mx-lg bg-surface-alt text-center">
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full space-y-10">
-                <div className="w-24 h-24 rounded-mx-3xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-mx-xl" aria-hidden="true">
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full space-y-mx-10">
+                <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-status-success-surface border border-emerald-100 text-status-success flex items-center justify-center mx-auto shadow-mx-xl" aria-hidden="true">
                     <ShieldCheck size={48} strokeWidth={2.5} />
                 </div>
-                <div className="space-y-4">
-                    <Typography variant="h1">Check-in <Typography as="span" className="text-emerald-600">Firmado</Typography></Typography>
+                <div className="space-y-mx-sm">
+                    <Typography variant="h1">Check-in <Typography as="span" className="text-status-success">Firmado</Typography></Typography>
                     <Typography variant="p" tone="muted" className="max-w-xs mx-auto uppercase">Seu registro operacional para {referenceDateLabel} já está na malha.</Typography>
                 </div>
-                <Card className="p-8 border-none bg-white shadow-mx-lg">
+                <Card className="p-mx-lg border-none bg-white shadow-mx-lg">
                     <div className="flex items-center justify-between mb-6">
                         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Status da Tropa</Typography>
                         <Badge variant="success">
                             <Typography variant="tiny" as="span" className="font-black">OK</Typography>
                         </Badge>
                     </div>
-                    <Typography variant="p" className="text-sm font-bold text-slate-700 leading-relaxed italic">
+                    <Typography variant="p" className="text-sm font-bold text-text-secondary leading-relaxed italic">
                         "{todayCheckin.note || 'Operação em andamento. Foco no fechamento.'}"
                     </Typography>
                 </Card>
-                <div className="flex flex-col gap-4">
-                    <Button variant="outline" onClick={handleRefresh} className="rounded-full h-14 uppercase tracking-widest bg-white">
+                <div className="flex flex-col gap-mx-sm">
+                    <Button variant="outline" onClick={handleRefresh} className="rounded-mx-full h-mx-14 uppercase tracking-widest bg-white">
                         <RefreshCw size={16} className={cn("mr-2", isRefetching && "animate-spin")} /> <Typography variant="tiny" as="span" className="font-black">Sincronizar Nuvem</Typography>
                     </Button>
                 </div>
@@ -103,19 +103,19 @@ export default function DailyCheckin() {
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             {/* Header */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Terminal <Typography as="span" className="text-brand-primary">MX</Typography></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">Operational Check-in • {referenceDateLabel}</Typography>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm bg-white">
+                <div className="flex items-center gap-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <Badge variant="brand" className="px-6 py-3 rounded-full shadow-mx-sm">
+                    <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm">
                         <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">Aguardando Registro</Typography>
                     </Badge>
                 </div>
@@ -132,8 +132,8 @@ export default function DailyCheckin() {
                             exit={{ opacity: 0, y: -20 }}
                             className="max-w-4xl mx-auto w-full"
                         >
-                            <Card className="p-10 md:p-14 space-y-12">
-                                <div className="space-y-4">
+                            <Card className="p-mx-10 md:p-14 space-y-mx-xl">
+                                <div className="space-y-mx-sm">
                                     <Typography variant="h2">Resultados de Ontem</Typography>
                                     <Typography variant="p" tone="muted">Informe o volume transacional do último dia de operação.</Typography>
                                 </div>
@@ -153,7 +153,7 @@ export default function DailyCheckin() {
                                         value={form.visit_prev_day}
                                         onChange={(e) => setForm(f => ({ ...f, visit_prev_day: Number(e.target.value) }))}
                                     />
-                                    <div className="p-6 rounded-2xl bg-surface-alt border-2 border-dashed border-border-default flex flex-col items-center justify-center text-center">
+                                    <div className="p-mx-md rounded-mx-2xl bg-surface-alt border-2 border-dashed border-border-default flex flex-col items-center justify-center text-center">
                                         <Typography variant="caption" tone="muted" className="mb-1">Total de Vendas</Typography>
                                         <Typography variant="h1" className="text-brand-primary">
                                             {form.vnd_porta_prev_day + form.vnd_cart_prev_day + form.vnd_net_prev_day}
@@ -183,7 +183,7 @@ export default function DailyCheckin() {
                                 </div>
 
                                 <div className="flex justify-end pt-10">
-                                    <Button size="lg" onClick={() => setStep(2)} className="px-12 rounded-full shadow-mx-xl">
+                                    <Button size="lg" onClick={() => setStep(2)} className="px-12 rounded-mx-full shadow-mx-xl">
                                         Próximo Passo <ArrowRight className="ml-2" />
                                     </Button>
                                 </div>
@@ -199,8 +199,8 @@ export default function DailyCheckin() {
                             exit={{ opacity: 0, y: -20 }}
                             className="max-w-4xl mx-auto w-full"
                         >
-                            <Card className="p-10 md:p-14 space-y-12">
-                                <div className="space-y-4">
+                            <Card className="p-mx-10 md:p-14 space-y-mx-xl">
+                                <div className="space-y-mx-sm">
                                     <Typography variant="h2">Agenda de Hoje</Typography>
                                     <Typography variant="p" tone="muted">Quantos agendamentos você tem confirmados para este dia?</Typography>
                                 </div>
@@ -222,10 +222,10 @@ export default function DailyCheckin() {
                                     />
                                 </div>
 
-                                <div className="space-y-4 pt-8 border-t border-border-default">
+                                <div className="space-y-mx-sm pt-8 border-t border-border-default">
                                     <Typography variant="caption" tone="muted" className="uppercase font-black tracking-widest">Observações Táticas</Typography>
                                     <textarea 
-                                        className="w-full min-h-[120px] p-6 rounded-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-sm outline-none resize-none"
+                                        className="w-full min-h-[120px] p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-sm outline-none resize-none"
                                         placeholder="Algum desafio ou observação para o dia de hoje?"
                                         value={form.note}
                                         onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}
@@ -233,10 +233,10 @@ export default function DailyCheckin() {
                                 </div>
 
                                 <div className="flex justify-between pt-10">
-                                    <Button variant="outline" onClick={() => setStep(1)} className="px-10 rounded-full">
+                                    <Button variant="outline" onClick={() => setStep(1)} className="px-10 rounded-mx-full">
                                         Voltar
                                     </Button>
-                                    <Button size="lg" onClick={handleSubmit} disabled={saving} className="px-16 rounded-full shadow-mx-xl bg-brand-primary hover:bg-brand-primary/90">
+                                    <Button size="lg" onClick={handleSubmit} disabled={saving} className="px-16 rounded-mx-full shadow-mx-xl bg-brand-primary hover:bg-brand-primary/90">
                                         {saving ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck className="mr-2" />}
                                         Firmar Check-in
                                     </Button>

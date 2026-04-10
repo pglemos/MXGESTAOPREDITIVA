@@ -61,7 +61,7 @@ export default function GoalManagement() {
 
     if (storesLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Metas...</Typography>
         </div>
     )
@@ -71,20 +71,20 @@ export default function GoalManagement() {
             
             {/* Header / Governance Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Governança <span className="text-brand-primary">Rede</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md">Configuração de Metas e Benchmarks MX</Typography>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-mx-sm">
                     {canEdit && (
                         <Button
                             onClick={handleSave}
                             disabled={saving || !hasChanges || !selectedStoreId}
-                            className="h-14 px-10 rounded-full shadow-mx-xl"
+                            className="h-mx-14 px-10 rounded-mx-full shadow-mx-xl"
                         >
                             {saving ? <RefreshCw className="animate-spin mr-2" /> : <Save size={18} className="mr-2" />}
                             FIRMAR CONFIGURAÇÕES
@@ -95,33 +95,33 @@ export default function GoalManagement() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg">
                 <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="p-10 space-y-10 border-none shadow-mx-lg bg-white">
-                        <header className="flex items-center gap-4 border-b border-border-default pb-8">
-                            <div className="w-14 h-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-brand-primary shadow-inner" aria-hidden="true"><Settings2 size={28} /></div>
+                    <Card className="p-mx-10 space-y-mx-10 border-none shadow-mx-lg bg-white">
+                        <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
+                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-brand-primary shadow-inner" aria-hidden="true"><Settings2 size={28} /></div>
                             <Typography variant="h3">Unidade Alvo</Typography>
                         </header>
 
-                        <div className="space-y-4">
+                        <div className="space-y-mx-sm">
                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Selecionar Loja</Typography>
                             <div className="relative group">
                                 <select
                                     value={selectedStoreId}
                                     onChange={(e) => setSelectedStoreId(e.target.value)}
-                                    className="w-full h-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner"
+                                    className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner"
                                 >
                                     <option value="">Selecione a unidade...</option>
                                     {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                                 </select>
-                                <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary transition-colors" />
+                                <ChevronDown size={18} className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary transition-colors" />
                             </div>
                         </div>
 
                         {selectedStoreId && (
-                            <div className="pt-10 border-t border-border-default space-y-6">
-                                <Card className="p-6 bg-status-success-surface border border-mx-emerald-100 shadow-inner">
+                            <div className="pt-10 border-t border-border-default space-y-mx-md">
+                                <Card className="p-mx-md bg-status-success-surface border border-mx-emerald-100 shadow-inner">
                                     <Typography variant="caption" tone="success" className="mb-1 block font-black">STATUS DE REDE</Typography>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-status-success animate-pulse shadow-mx-sm" />
+                                    <div className="flex items-center gap-mx-xs">
+                                        <div className="w-2.5 h-2.5 rounded-mx-full bg-status-success animate-pulse shadow-mx-sm" />
                                         <Typography variant="h3" className="text-base text-status-success">ATIVA E OPERACIONAL</Typography>
                                     </div>
                                 </Card>
@@ -132,8 +132,8 @@ export default function GoalManagement() {
 
                 <section className="lg:col-span-8 flex flex-col gap-mx-lg" aria-live="polite">
                     {!selectedStoreId ? (
-                        <div className="h-full min-h-[500px] border-2 border-dashed border-border-default rounded-[3rem] bg-white flex flex-col items-center justify-center text-center p-14 group hover:bg-surface-alt transition-all">
-                            <div className="w-24 h-24 rounded-mx-3xl bg-surface-alt flex items-center justify-center mb-10 border border-border-default group-hover:scale-110 transition-transform">
+                        <div className="h-full min-h-mx-section-lg border-2 border-dashed border-border-default rounded-mx-3xl bg-white flex flex-col items-center justify-center text-center p-mx-14 group hover:bg-surface-alt transition-all">
+                            <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt flex items-center justify-center mb-10 border border-border-default group-hover:scale-110 transition-transform">
                                 <Filter size={48} className="text-text-tertiary group-hover:text-brand-primary" />
                             </div>
                             <Typography variant="h2" className="mb-4">Seleção Obrigatória</Typography>
@@ -142,29 +142,29 @@ export default function GoalManagement() {
                     ) : (
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-mx-lg">
                             {/* Meta Card */}
-                            <Card className="p-10 md:p-14 relative overflow-hidden group border-none shadow-mx-xl bg-white">
-                                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 rounded-full blur-3xl -mr-48 -mt-48" />
+                            <Card className="p-mx-10 md:p-14 relative overflow-hidden group border-none shadow-mx-xl bg-white">
+                                <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-brand-primary/5 rounded-mx-full blur-3xl -mr-48 -mt-48" />
                                 <div className="relative z-10">
-                                    <header className="flex items-center gap-4 mb-14 border-b border-border-default pb-10">
-                                        <div className="w-16 h-16 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl transform group-hover:rotate-3 transition-transform"><Target size={32} className="text-indigo-400" /></div>
+                                    <header className="flex items-center gap-mx-sm mb-14 border-b border-border-default pb-10">
+                                        <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl transform group-hover:rotate-3 transition-transform"><Target size={32} className="text-brand-primary/80" /></div>
                                         <div>
                                             <Typography variant="h2">Meta Mensal de Vendas</Typography>
                                             <Typography variant="caption" tone="muted">Objetivo nominal de sell-out por unidade</Typography>
                                         </div>
                                     </header>
 
-                                    <div className="flex flex-col sm:flex-row items-center gap-12">
+                                    <div className="flex flex-col sm:flex-row items-center gap-mx-xl">
                                         <div className="flex-1 w-full relative">
                                             <input
                                                 type="text" inputMode="numeric"
                                                 value={storeMeta}
                                                 onChange={(e) => { if (!canEdit) return; setStoreMeta(Number(e.target.value.replace(/\D/g, '')) || 0); setHasChanges(true) }}
                                                 disabled={!canEdit}
-                                                className="w-full text-8xl font-black tracking-tighter text-text-primary bg-surface-alt border-4 border-transparent rounded-[2.5rem] py-14 text-center focus:outline-none focus:bg-white focus:border-brand-primary transition-all font-mono-numbers shadow-inner disabled:opacity-50"
+                                                className="w-full text-8xl font-black tracking-tighter text-text-primary bg-surface-alt border-4 border-transparent rounded-mx-2xl py-14 text-center focus:outline-none focus:bg-white focus:border-brand-primary transition-all font-mono-numbers shadow-inner disabled:opacity-50"
                                             />
-                                            <span className="absolute bottom-6 left-1/2 -translate-x-1/2"><Typography variant="caption" tone="muted" className="font-black uppercase tracking-[0.3em]">UNIDADES COMERCIAIS</Typography></span>
+                                            <span className="absolute bottom-mx-md left-1/2 -translate-x-1/2"><Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-wider">UNIDADES COMERCIAIS</Typography></span>
                                         </div>
-                                        <Card className="bg-brand-primary p-10 text-white w-full sm:w-72 shadow-mx-xl flex flex-col justify-center items-center text-center border-none">
+                                        <Card className="bg-brand-primary p-mx-10 text-white w-full sm:w-72 shadow-mx-xl flex flex-col justify-center items-center text-center border-none">
                                             <TrendingUp size={48} className="mb-6 opacity-30" />
                                             <Typography variant="p" tone="white" className="text-sm font-black italic uppercase leading-relaxed opacity-80">"Metas agressivas, porém pautadas no histórico."</Typography>
                                         </Card>
@@ -173,9 +173,9 @@ export default function GoalManagement() {
                             </Card>
 
                             {/* Benchmark Card */}
-                            <Card className="p-10 md:p-14 border-none shadow-mx-lg bg-white">
-                                <header className="flex items-center gap-4 mb-14 border-b border-border-default pb-10">
-                                    <div className="w-16 h-16 rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner"><Zap size={32} /></div>
+                            <Card className="p-mx-10 md:p-14 border-none shadow-mx-lg bg-white">
+                                <header className="flex items-center gap-mx-sm mb-14 border-b border-border-default pb-10">
+                                    <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner"><Zap size={32} /></div>
                                     <div>
                                         <Typography variant="h2">Matriz de Benchmarks (20/60/33)</Typography>
                                         <Typography variant="caption" tone="muted">Taxas de conversão oficiais para auditoria forense</Typography>
@@ -188,9 +188,9 @@ export default function GoalManagement() {
                                         { label: 'Agd → Visita', field: 'agend_to_visit', icon: Calendar, tone: 'warning' },
                                         { label: 'Visita → Vnd', field: 'visit_to_sale', icon: TrendingUp, tone: 'success' },
                                     ].map(b => (
-                                        <Card key={b.field} className="p-10 bg-surface-alt border border-border-default group/item hover:bg-white hover:shadow-mx-xl transition-all shadow-inner">
+                                        <Card key={b.field} className="p-mx-10 bg-surface-alt border border-border-default group/item hover:bg-white hover:shadow-mx-xl transition-all shadow-inner">
                                             <div className={cn(
-                                                "w-14 h-14 rounded-mx-2xl border flex items-center justify-center mb-8 shadow-mx-sm group-hover/item:scale-110 transition-transform",
+                                                "w-mx-14 h-mx-14 rounded-mx-2xl border flex items-center justify-center mb-8 shadow-mx-sm group-hover/item:scale-110 transition-transform",
                                                 b.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                                                 b.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                                                 'bg-status-warning-surface border-mx-amber-100 text-status-warning'
@@ -198,13 +198,13 @@ export default function GoalManagement() {
                                             
                                             <Typography variant="caption" tone="muted" className="mb-4 block font-black tracking-widest">{b.label}</Typography>
                                             
-                                            <div className="flex items-baseline gap-2">
+                                            <div className="flex items-baseline gap-mx-xs">
                                                 <input
                                                     type="text" inputMode="numeric"
                                                     value={storeBench[b.field as keyof typeof storeBench]}
                                                     onChange={(e) => { if (!canEdit) return; setStoreBench(prev => ({ ...prev, [b.field]: Number(e.target.value.replace(/\D/g, '')) || 0 })); setHasChanges(true) }}
                                                     disabled={!canEdit}
-                                                    className="w-24 text-5xl font-black tracking-tighter text-text-primary bg-transparent border-b-4 border-transparent focus:outline-none focus:border-brand-primary transition-all font-mono-numbers disabled:opacity-50"
+                                                    className="w-mx-3xl text-5xl font-black tracking-tighter text-text-primary bg-transparent border-b-4 border-transparent focus:outline-none focus:border-brand-primary transition-all font-mono-numbers disabled:opacity-50"
                                                 />
                                                 <Typography variant="h1" tone="muted" className="text-2xl">%</Typography>
                                             </div>

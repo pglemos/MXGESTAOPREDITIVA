@@ -30,23 +30,23 @@ export default function PDIWizard({ sellerId, storeId }: { sellerId: string, sto
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white shadow-xl rounded-lg border">
+        <div className="max-w-4xl mx-auto p-mx-md bg-white shadow-xl rounded-mx-lg border">
             <div className="flex justify-between mb-8 border-b pb-4">
                 {steps.map((s, i) => (
-                    <div key={s.key} className={`text-xs ${i + 1 === step ? 'font-bold text-blue-600' : 'text-gray-400'}`}>
+                    <div key={s.key} className={`text-xs ${i + 1 === step ? 'font-bold text-brand-primary' : 'text-text-tertiary'}`}>
                         {i + 1}. {s.title}
                     </div>
                 ))}
             </div>
 
-            <div className="min-h-[300px]">
+            <div className="min-h-mx-80">
                 {step === 2 && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-mx-sm">
                         {(['comp_prospeccao', 'comp_abordagem', 'comp_demonstracao', 'comp_fechamento'] as const).map(comp => (
                             <div key={comp} className="flex flex-col">
                                 <label className="capitalize text-sm font-medium">{comp.replace('comp_', '')}</label>
                                 <input type="number" min="6" max="10" 
-                                    className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
+                                    className="border p-mx-xs rounded focus:ring-2 focus:ring-blue-500"
                                     value={formData[comp]}
                                     onChange={(e) => setFormData({...formData, [comp]: parseInt(e.target.value)})} 
                                 />
@@ -57,7 +57,7 @@ export default function PDIWizard({ sellerId, storeId }: { sellerId: string, sto
                 {step === 5 && (
                     <div className="text-center py-10">
                         <h2 className="text-2xl font-bold">PDI concluído com sucesso!</h2>
-                        <p className="text-gray-600 mt-2">Aperte a mão do seu colaborador e clique abaixo para imprimir o relatório.</p>
+                        <p className="text-text-secondary mt-2">Aperte a mão do seu colaborador e clique abaixo para imprimir o relatório.</p>
                     </div>
                 )}
             </div>
@@ -66,11 +66,11 @@ export default function PDIWizard({ sellerId, storeId }: { sellerId: string, sto
                 <button 
                     disabled={step === 1} 
                     onClick={() => setStep(step - 1)} 
-                    className="px-4 py-2 text-gray-600 disabled:opacity-50"
+                    className="px-4 py-2 text-text-secondary disabled:opacity-50"
                 >Voltar</button>
                 <button 
                     onClick={async () => { await saveStep(); step < 5 ? setStep(step + 1) : window.print(); }} 
-                    className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition-colors"
+                    className="px-6 py-2 bg-brand-primary text-white rounded shadow hover:bg-brand-primary/90 transition-colors"
                 >
                     {step === 5 ? 'Finalizar e Imprimir' : 'Próximo Passo'}
                 </button>

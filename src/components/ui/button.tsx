@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-mx-indigo-500/10 disabled:pointer-events-none disabled:opacity-30 [&_svg]:pointer-events-none [&_svg]:shrink-0 active:scale-95 font-black uppercase tracking-[0.2em]',
+    'inline-flex items-center justify-center gap-mx-xs whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-mx-indigo-500/10 disabled:pointer-events-none disabled:opacity-30 [&_svg]:pointer-events-none [&_svg]:shrink-0 active:scale-95 font-black uppercase tracking-mx-wide',
     {
         variants: {
             variant: {
@@ -17,10 +17,10 @@ const buttonVariants = cva(
                 link: 'text-brand-primary underline-offset-4 hover:underline',
             },
             size: {
-                default: 'h-14 px-8 text-[10px] rounded-full',
-                sm: 'h-10 px-6 text-[9px] rounded-xl',
-                lg: 'h-20 px-12 text-xs rounded-full',
-                icon: 'h-12 w-12 rounded-2xl',
+                default: 'h-mx-14 px-8 text-mx-tiny rounded-mx-full',
+                sm: 'h-mx-10 px-6 text-mx-micro rounded-mx-xl',
+                lg: 'h-mx-header px-12 text-xs rounded-mx-full',
+                icon: 'h-mx-xl w-mx-xl rounded-mx-2xl',
             },
         },
         defaultVariants: { variant: 'default', size: 'default' },

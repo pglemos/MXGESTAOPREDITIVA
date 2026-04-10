@@ -60,8 +60,8 @@ export default function Login() {
     }
 
     const Feature = ({ icon: Icon, text }: { icon: any, text: string }) => (
-        <div className="flex items-center gap-4 group/feat">
-            <div className="w-10 h-10 rounded-mx-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 transition-all group-hover/feat:bg-brand-primary/20 group-hover/feat:border-brand-primary/30">
+        <div className="flex items-center gap-mx-sm group/feat">
+            <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 transition-all group-hover/feat:bg-brand-primary/20 group-hover/feat:border-brand-primary/30">
                 <Icon size={18} className="text-white/40 group-hover/feat:text-white transition-colors" />
             </div>
             <Typography variant="tiny" tone="white" className="opacity-40 group-hover/feat:opacity-100 transition-opacity">{text}</Typography>
@@ -70,36 +70,36 @@ export default function Login() {
 
     if (authLoading && !profile) {
         return (
-            <main className="min-h-screen bg-brand-secondary flex flex-col items-center justify-center p-6 text-center">
-                <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <main className="min-h-screen bg-brand-secondary flex flex-col items-center justify-center p-mx-md text-center">
+                <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
                 <Typography variant="caption" tone="white" className="animate-pulse tracking-widest uppercase font-black">Sincronizando Perfil MX...</Typography>
             </main>
         )
     }
 
     return (
-        <main className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-6 selection:bg-brand-primary/20">
+        <main className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-mx-md selection:bg-brand-primary/20">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-[420px]"
+                className="w-full max-w-mx-aside"
             >
                 {/* Header Identidade */}
                 <div className="mb-12 text-center">
-                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-primary to-indigo-600 mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-brand-primary/20">
+                    <div className="w-mx-2xl h-mx-2xl rounded-mx-3xl bg-gradient-to-br from-brand-primary to-indigo-600 mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-brand-primary/20">
                         <Building2 className="text-white" size={32} />
                     </div>
                     <Typography variant="h1" className="text-3xl text-white tracking-tighter mb-2">MX PERFORMANCE</Typography>
-                    <Typography variant="tiny" className="text-white/40 uppercase tracking-[0.2em] font-bold">ACESSO AO SISTEMA DE ELITE</Typography>
+                    <Typography variant="tiny" className="text-white/40 uppercase tracking-mx-wide font-bold">ACESSO AO SISTEMA DE ELITE</Typography>
                 </div>
 
                 {/* Card de Acesso */}
-                <Card className="bg-[#121214] border-white/5 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
-                    <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.15em] ml-1">E-mail</label>
+                <Card className="bg-[#121214] border-white/5 p-mx-lg rounded-mx-3xl shadow-2xl backdrop-blur-xl">
+                    <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="space-y-mx-md">
+                        <div className="space-y-mx-xs">
+                            <label className="text-mx-tiny font-black text-white/30 uppercase tracking-[0.15em] ml-1">E-mail</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                                <Mail className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-white/20" size={18} />
                                 <Input
                                     type="email" value={email} onChange={e => setEmail(e.target.value)}
                                     placeholder="seu@email.com.br" required autoFocus={!email}
@@ -108,10 +108,10 @@ export default function Login() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.15em] ml-1">Senha</label>
+                        <div className="space-y-mx-xs">
+                            <label className="text-mx-tiny font-black text-white/30 uppercase tracking-[0.15em] ml-1">Senha</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                                <Lock className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-white/20" size={18} />
                                 <Input
                                     type="password" ref={passwordRef} value={password} onChange={e => setPassword(e.target.value)}
                                     placeholder="••••••••" required
@@ -122,7 +122,7 @@ export default function Login() {
 
                         <Button
                             type="submit" disabled={loading}
-                            className="w-full h-14 !bg-white !text-black !rounded-2xl !font-black !text-xs !uppercase !tracking-[0.2em] hover:bg-white/90 transition-all mt-4"
+                            className="w-full h-mx-14 !bg-white !text-black !rounded-2xl !font-black !text-xs !uppercase !tracking-mx-wide hover:bg-white/90 transition-all mt-4"
                         >
                             {loading ? 'ACESSANDO...' : 'ENTRAR NA MALHA'}
                         </Button>

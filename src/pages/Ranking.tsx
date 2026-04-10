@@ -46,7 +46,7 @@ export default function Ranking() {
 
     if (rankingLoading || checkinsLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" />
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Arena...</Typography>
         </div>
     )
@@ -56,27 +56,27 @@ export default function Ranking() {
             
             {/* Header / Arena Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Arena de <span className="text-brand-primary">Performance</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md">Meritocracia Real-time • MX ELITE TRACKING</Typography>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <div className="relative group w-full sm:w-64">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                    <div className="relative group w-full sm:w-mx-sidebar-expanded">
+                        <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                         <Input 
                             placeholder="BUSCAR ESPECIALISTA..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="!pl-11 !h-12 !text-[10px] uppercase tracking-widest"
+                            className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest"
                         />
                     </div>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
-                    <div className="flex items-center gap-4 bg-white border border-border-default px-8 h-12 rounded-full shadow-mx-sm">
+                    <div className="flex items-center gap-mx-sm bg-white border border-border-default px-8 h-mx-xl rounded-mx-full shadow-mx-sm">
                         <Trophy size={18} className="text-status-warning" />
                         <Typography variant="caption" className="whitespace-nowrap">{sortedRanking.length} EM ARENA</Typography>
                     </div>
@@ -84,7 +84,7 @@ export default function Ranking() {
             </header>
 
             <div className="flex-1 min-h-0 pb-mx-xl" aria-live="polite">
-                <ol className="grid gap-mx-lg m-0 p-0 list-none">
+                <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none">
                     <AnimatePresence mode="popLayout">
                         {sortedRanking.map((r, i) => {
                             const isMe = r.user_id === profile?.id
@@ -93,51 +93,51 @@ export default function Ranking() {
                             return (
                                 <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
                                     <Card className={cn(
-                                        "p-8 md:p-10 flex flex-col lg:flex-row lg:items-center gap-10 border-none shadow-mx-lg transition-all",
+                                        "p-mx-lg md:p-10 flex flex-col lg:flex-row lg:items-center gap-mx-10 border-none shadow-mx-lg transition-all",
                                         isTop1 ? "bg-brand-secondary text-white shadow-mx-xl ring-2 ring-mx-amber-400 ring-offset-4" : 
                                         isMe ? "bg-mx-indigo-50 border-2 border-brand-primary shadow-mx-sm" : "bg-white"
                                     )}>
-                                        <div className="flex items-center gap-8 flex-1 min-w-0">
+                                        <div className="flex items-center gap-mx-lg flex-1 min-w-0">
                                             <div className={cn(
-                                                "w-20 h-20 rounded-mx-2xl border-4 flex items-center justify-center font-black text-3xl shadow-mx-lg",
+                                                "w-mx-20 h-mx-header rounded-mx-2xl border-4 flex items-center justify-center font-black text-3xl shadow-mx-lg",
                                                 isTop1 ? "bg-mx-amber-400 border-mx-amber-300 text-mx-black rotate-3 scale-110" : "bg-surface-alt border-white text-text-primary"
                                             )}>
                                                 {isTop1 ? <Crown size={36} fill="currentColor" /> : <span>#{i + 1}</span>}
                                             </div>
-                                            <div className="min-w-0 flex-1 space-y-2">
-                                                <div className="flex items-center gap-4">
+                                            <div className="min-w-0 flex-1 space-y-mx-xs">
+                                                <div className="flex items-center gap-mx-sm">
                                                     <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="truncate text-2xl md:text-3xl">{r.user_name}</Typography>
                                                     {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md">LÍDER</Badge>}
                                                     {isMe && !isTop1 && <Badge variant="brand">VOCÊ</Badge>}
                                                 </div>
-                                                <div className="flex items-center gap-10">
+                                                <div className="flex items-center gap-mx-10">
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px]">Realizado</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-micro">Realizado</Typography>
                                                         <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-2xl font-mono-numbers">{r.vnd_total} v</Typography>
                                                     </div>
-                                                    <div className="w-px h-8 bg-current opacity-10" />
+                                                    <div className="w-px h-mx-lg bg-current opacity-10" />
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px]">Objetivo</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-micro">Objetivo</Typography>
                                                         <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-2xl font-mono-numbers">{r.meta} v</Typography>
                                                     </div>
-                                                    <div className="w-px h-8 bg-current opacity-10" />
+                                                    <div className="w-px h-mx-lg bg-current opacity-10" />
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px]">Ritmo</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-micro">Ritmo</Typography>
                                                         <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-2xl font-mono-numbers">{r.ritmo} v/d</Typography>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-10 shrink-0">
+                                        <div className="flex items-center gap-mx-10 shrink-0">
                                             <div className="text-right">
-                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-[8px] mb-1">Atingimento</Typography>
-                                                <div className="flex items-center gap-2">
+                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-micro mb-1">Atingimento</Typography>
+                                                <div className="flex items-center gap-mx-xs">
                                                     <Typography variant="h1" tone={isTop1 ? 'white' : 'brand'} className="text-5xl font-mono-numbers tracking-tighter leading-none">{r.atingimento}%</Typography>
                                                 </div>
                                             </div>
                                             <div className={cn(
-                                                "w-16 h-16 rounded-mx-2xl flex items-center justify-center border shadow-inner",
+                                                "w-mx-2xl h-mx-2xl rounded-mx-2xl flex items-center justify-center border shadow-inner",
                                                 isTop1 ? "bg-white/10 border-white/20 text-white" : "bg-surface-alt border-border-default text-brand-primary"
                                             )}>
                                                 <TrendingUp size={28} className={cn(r.atingimento < 50 && "rotate-180 text-status-error")} />

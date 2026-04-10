@@ -250,7 +250,7 @@ export function useGlobalRanking() {
                 ...e, 
                 position: i + 1,
                 efficiency: 0,
-                status: { label: '-', color: 'bg-gray-100 text-gray-400' }
+                status: { label: '-', color: 'bg-gray-100 text-text-tertiary' }
             }))
 
         setRanking(entries)

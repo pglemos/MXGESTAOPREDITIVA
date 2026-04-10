@@ -16,7 +16,7 @@ export const PrintableFeedback: React.FC<PrintableFeedbackProps> = ({ feedback }
     const weekStart = f.week_reference ? parseISO(f.week_reference) : new Date()
 
     return (
-        <div className="printable-feedback p-8 bg-white text-black font-sans leading-tight">
+        <div className="printable-feedback p-mx-lg bg-white text-black font-sans leading-tight">
             <style>{`
                 @media print {
                     .printable-feedback { padding: 0 !important; }
@@ -39,7 +39,7 @@ export const PrintableFeedback: React.FC<PrintableFeedbackProps> = ({ feedback }
                     <tr className="header-blue">
                         <th colSpan={5}>RESUMO DO VENDEDOR: {f.seller_name || 'VENDEDOR'}</th>
                     </tr>
-                    <tr className="header-gray text-[9px]">
+                    <tr className="header-gray text-mx-micro">
                         <th>Leads Recebidos</th>
                         <th>Agendamentos Feitos</th>
                         <th>Visitas Realizadas</th>
@@ -132,20 +132,20 @@ export const PrintableFeedback: React.FC<PrintableFeedbackProps> = ({ feedback }
                 </tbody>
             </table>
 
-            <div className="mt-6 flex flex-col gap-4">
-                <div className="flex gap-2">
-                    <span className="font-bold uppercase min-w-[150px] text-[10px]">Diagnóstico da Semana:</span>
-                    <span className="diagnostico text-[11px] whitespace-pre-wrap">{f.attention_points}</span>
+            <div className="mt-6 flex flex-col gap-mx-sm">
+                <div className="flex gap-mx-xs">
+                    <span className="font-bold uppercase min-w-[150px] text-mx-tiny">Diagnóstico da Semana:</span>
+                    <span className="diagnostico text-mx-tiny whitespace-pre-wrap">{f.attention_points}</span>
                 </div>
-                <div className="flex gap-2">
-                    <span className="font-bold uppercase min-w-[150px] text-[10px]">Orientação de Ação:</span>
-                    <span className="text-[11px] whitespace-pre-wrap">{f.action}</span>
+                <div className="flex gap-mx-xs">
+                    <span className="font-bold uppercase min-w-[150px] text-mx-tiny">Orientação de Ação:</span>
+                    <span className="text-mx-tiny whitespace-pre-wrap">{f.action}</span>
                 </div>
             </div>
 
-            <div className="mt-10 pt-4 border-t border-gray-200">
-                 <p className="font-bold text-[10px] uppercase text-gray-400 mb-2">Entenda a conta (Boas Práticas do Setor)</p>
-                 <p className="text-[9px] text-gray-500 italic">
+            <div className="mt-10 pt-4 border-t border-border-strong">
+                 <p className="font-bold text-mx-tiny uppercase text-text-tertiary mb-2">Entenda a conta (Boas Práticas do Setor)</p>
+                 <p className="text-mx-micro text-text-tertiary italic">
                     Consideramos como ideal: 20% do volume total de leads vira agendamento | Para cada 5 agendamentos, 3 viram visitas (60%) | Para cada 3 visitas, 1 vira venda (33%).
                  </p>
             </div>

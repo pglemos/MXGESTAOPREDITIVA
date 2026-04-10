@@ -43,7 +43,7 @@ export default function VendedorPDI() {
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="w-10 h-10 animate-spin text-brand-primary mb-4" />
+            <RefreshCw className="w-mx-10 h-mx-10 animate-spin text-brand-primary mb-4" />
             <Typography variant="caption" tone="muted" className="animate-pulse">Auditando Carreira...</Typography>
         </div>
     )
@@ -52,26 +52,26 @@ export default function VendedorPDI() {
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Meu Plano de <span className="text-brand-primary">Carreira</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md">Personal Development Plan • MX ACADEMY</Typography>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-xl shadow-mx-sm">
+                <div className="flex items-center gap-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <Badge variant="brand" className="px-6 py-3 rounded-full shadow-mx-sm uppercase tracking-widest">Ativo</Badge>
+                    <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm uppercase tracking-widest">Ativo</Badge>
                 </div>
             </div>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 {!activePDI ? (
-                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-[3rem]">
-                        <div className="w-24 h-24 rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
+                    <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
+                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
                             <Star size={48} className="text-text-tertiary" />
                         </div>
                         <Typography variant="h2" className="mb-2">Próximo Nível</Typography>
@@ -81,11 +81,11 @@ export default function VendedorPDI() {
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg">
                         
                         <div className="xl:col-span-8 space-y-mx-lg">
-                            <Card className="p-10 md:p-14 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-32 -mt-32" aria-hidden="true" />
-                                <div className="relative z-10 space-y-12">
-                                    <div className="flex items-center gap-4 border-b border-border-default pb-8">
-                                        <div className="w-14 h-14 rounded-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg" aria-hidden="true"><Target size={28} className="text-indigo-400" /></div>
+                            <Card className="p-mx-10 md:p-14 relative overflow-hidden group">
+                                <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-3xl -mr-32 -mt-32" aria-hidden="true" />
+                                <div className="relative z-10 space-y-mx-xl">
+                                    <div className="flex items-center gap-mx-sm border-b border-border-default pb-8">
+                                        <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg" aria-hidden="true"><Target size={28} className="text-brand-primary/80" /></div>
                                         <div>
                                             <Typography variant="h3">Objetivo de Curto Prazo</Typography>
                                             <Typography variant="caption" tone="muted">Horizonte 06 Meses</Typography>
@@ -94,12 +94,12 @@ export default function VendedorPDI() {
                                     <Typography variant="h1" className="text-3xl md:text-4xl leading-tight">
                                         "{(activePDI as any).meta_6m || (activePDI as any).objective}"
                                     </Typography>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
-                                        <div className="p-6 rounded-2xl bg-surface-alt border border-border-default shadow-inner">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg pt-8">
+                                        <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
                                             <Typography variant="caption" tone="muted" className="mb-2 block">12 Meses</Typography>
                                             <Typography variant="h3" className="text-base">{(activePDI as any).meta_12m || 'Definir na próxima revisão'}</Typography>
                                         </div>
-                                        <div className="p-6 rounded-2xl bg-surface-alt border border-border-default shadow-inner">
+                                        <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
                                             <Typography variant="caption" tone="muted" className="mb-2 block">24 Meses</Typography>
                                             <Typography variant="h3" className="text-base">{(activePDI as any).meta_24m || 'Plano em expansão'}</Typography>
                                         </div>
@@ -107,19 +107,19 @@ export default function VendedorPDI() {
                                 </div>
                             </Card>
 
-                            <Card className="p-10 md:p-14 space-y-10">
-                                <div className="flex items-center gap-4 border-b border-border-default pb-8">
-                                    <div className="w-14 h-14 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true"><Zap size={28} /></div>
+                            <Card className="p-mx-10 md:p-14 space-y-mx-10">
+                                <div className="flex items-center gap-mx-sm border-b border-border-default pb-8">
+                                    <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true"><Zap size={28} /></div>
                                     <Typography variant="h3">Plano de Ação Imediato</Typography>
                                 </div>
-                                <div className="grid gap-6">
+                                <div className="grid gap-mx-md">
                                     {[
                                         (activePDI as any).action_1, (activePDI as any).action_2, 
                                         (activePDI as any).action_3, (activePDI as any).action_4
                                     ].filter(Boolean).map((action, idx) => (
-                                        <div key={idx} className="flex items-center gap-6 p-6 rounded-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-lg transition-all group">
-                                            <div className="w-10 h-10 rounded-xl bg-white border border-border-default flex items-center justify-center font-black text-xs text-text-tertiary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all shadow-sm" aria-hidden="true">{idx + 1}</div>
-                                            <Typography variant="p" className="text-sm font-bold text-slate-700 flex-1 uppercase tracking-tight">{action}</Typography>
+                                        <div key={idx} className="flex items-center gap-mx-md p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-lg transition-all group">
+                                            <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center font-black text-xs text-text-tertiary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all shadow-sm" aria-hidden="true">{idx + 1}</div>
+                                            <Typography variant="p" className="text-sm font-bold text-text-secondary flex-1 uppercase tracking-tight">{action}</Typography>
                                             <CheckCircle2 size={20} className="text-text-tertiary/20 group-hover:text-status-success transition-colors" />
                                         </div>
                                     ))}
@@ -128,7 +128,7 @@ export default function VendedorPDI() {
                         </div>
 
                         <aside className="xl:col-span-4 space-y-mx-lg">
-                            <Card className="p-10 flex flex-col items-center">
+                            <Card className="p-mx-10 flex flex-col items-center">
                                 <Typography variant="h3" className="mb-8 w-full border-b border-border-default pb-6">Radar Técnico</Typography>
                                 <div className="w-full aspect-square relative">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -142,11 +142,11 @@ export default function VendedorPDI() {
                                 <Typography variant="caption" tone="muted" className="mt-6 text-center">Referência MX de Alta Performance</Typography>
                             </Card>
 
-                            <Card className="p-10 space-y-8 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
+                            <Card className="p-mx-10 space-y-mx-lg bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
                                 <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12" aria-hidden="true"><TrendingUp size={160} /></div>
                                 <Typography variant="h3" tone="white">Próxima Revisão</Typography>
-                                <div className="flex items-center gap-4">
-                                    <Calendar size={32} className="text-indigo-400" aria-hidden="true" />
+                                <div className="flex items-center gap-mx-sm">
+                                    <Calendar size={32} className="text-brand-primary/80" aria-hidden="true" />
                                     <div>
                                         <Typography variant="h1" tone="white" className="text-3xl tabular-nums">
                                             {activePDI.due_date ? format(parseISO(activePDI.due_date), 'dd/MM/yy') : '--/--'}

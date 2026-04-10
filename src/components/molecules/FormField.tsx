@@ -14,13 +14,13 @@ const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
   ({ label, error, id, icon, className, ...props }, ref) => {
     const fieldId = id || React.useId()
     return (
-      <div className={cn("space-y-3 w-full", className)}>
+      <div className={cn("space-y-mx-xs w-full", className)}>
         <label htmlFor={fieldId} className="block ml-2">
           <Typography variant="caption" tone="muted">{label}</Typography>
         </label>
         <div className="relative group">
           {icon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true">
+            <div className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true">
               {icon}
             </div>
           )}
@@ -35,7 +35,7 @@ const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
           />
         </div>
         {error && (
-          <p className="text-status-error text-[10px] font-black uppercase ml-2 animate-in fade-in slide-in-from-top-1" role="alert">
+          <p className="text-status-error text-mx-tiny font-black uppercase ml-2 animate-in fade-in slide-in-from-top-1" role="alert">
             {error}
           </p>
         )}

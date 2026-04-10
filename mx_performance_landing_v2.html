@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MX Performance - Dealer Performance OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#00b853',
+                            dark: '#0c343d',
+                            surface: '#f8fafc'
+                        },
+                        status: {
+                            success: '#10b981',
+                            warning: '#f59e0b',
+                            critical: '#e11d48'
+                        }
+                    },
+                    borderRadius: {
+                        'mx-xl': '1rem',
+                        'mx-3xl': '2rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0c343d; }
+        .font-black { font-weight: 900; }
+        .tracking-tighter { letter-spacing: -0.05em; }
+        .shadow-mx { box-shadow: 0 20px 40px -10px rgba(12, 52, 61, 0.1); }
+        .vertical-bar { width: 4px; height: 40px; background-color: #00b853; border-radius: 99px; }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+    <!-- Header / Nav -->
+    <nav class="container mx-auto px-8 py-8 flex justify-between items-center relative z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-brand-primary rounded-lg flex items-center justify-center font-black text-white shadow-lg">MX</div>
+            <span class="font-black text-2xl tracking-tighter uppercase">Performance</span>
+        </div>
+        <div class="hidden md:flex gap-10 font-black text-[10px] tracking-[0.2em] uppercase opacity-60">
+            <a href="#" class="hover:text-brand-primary transition">Metodologia</a>
+            <a href="#" class="hover:text-brand-primary transition">Ritual Matinal</a>
+            <a href="#" class="hover:text-brand-primary transition">PDI</a>
+        </div>
+        <button class="bg-brand-dark text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:bg-brand-primary transition shadow-xl">Acessar Cockpit</button>
+    </nav>
+
+    <!-- Hero: O Cockpit de Comando -->
+    <section class="container mx-auto px-8 pt-16 pb-32 flex flex-col lg:flex-row gap-20">
+        <div class="lg:w-1/2 hero-text">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="vertical-bar"></div>
+                <span class="font-black text-xs tracking-[0.3em] uppercase text-brand-primary">Status de Unidade: No Ritmo</span>
+            </div>
+            <h1 class="text-6xl lg:text-8xl font-black tracking-tighter leading-[0.85] mb-8 uppercase">
+                Bata sua meta com <span class="text-brand-primary italic">precisão</span>.
+            </h1>
+            <p class="text-xl text-gray-500 font-medium max-w-lg mb-12 leading-relaxed">
+                Pare de gerenciar pelo feeling. O MX Performance 90D transforma seu funil em rituais de execução diária.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <button class="bg-brand-dark text-white px-10 py-5 rounded-2xl font-black text-lg hover:scale-105 transition shadow-2xl">Fazer Check-in Agora</button>
+                <div class="flex items-center gap-4 px-6 bg-white rounded-2xl shadow-mx border border-gray-100">
+                    <span class="font-black text-xs uppercase opacity-40">Projeção:</span>
+                    <span class="font-black text-2xl text-brand-primary">105%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:w-1/2 relative hero-visual">
+            <!-- Mockup Dashboard Real -->
+            <div class="bg-white rounded-[2.5rem] shadow-mx border border-gray-100 p-8 relative z-10 overflow-hidden">
+                <div class="flex justify-between items-center mb-10">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black uppercase tracking-widest opacity-40">Unidade MX Elite</span>
+                        <h2 class="text-2xl font-black uppercase tracking-tighter">Cockpit Operacional</h2>
+                    </div>
+                    <div class="bg-brand-primary/10 text-brand-primary px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Ativo D-0</div>
+                </div>
+
+                <!-- KPIs Reais -->
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-brand-dark text-white p-6 rounded-3xl">
+                        <span class="text-[9px] font-black uppercase tracking-widest opacity-50">Vendas Mês</span>
+                        <div class="text-4xl font-black mt-1">42</div>
+                        <div class="mt-4 flex items-center gap-2">
+                            <div class="flex-1 bg-white/10 h-1 rounded-full"><div class="bg-brand-primary h-full rounded-full w-3/4"></div></div>
+                            <span class="text-[10px] font-black">75%</span>
+                        </div>
+                    </div>
+                    <div class="bg-brand-surface border border-gray-100 p-6 rounded-3xl">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-gray-400">Falta X</span>
+                        <div class="text-4xl font-black mt-1 text-brand-dark">12</div>
+                        <span class="text-[10px] font-black text-status-warning uppercase mt-4 block">Acelerar Ritmo</span>
+                    </div>
+                </div>
+
+                <!-- Funil 4 Etapas -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-xs">L</div>
+                        <div class="flex-1 font-black text-xs uppercase">Leads Recebidos</div>
+                        <span class="font-black text-lg italic">430</span>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 opacity-80 scale-95 origin-left">
+                        <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white font-black text-xs">A</div>
+                        <div class="flex-1 font-black text-xs uppercase">Agendamentos</div>
+                        <span class="font-black text-lg italic">85</span>
+                        <span class="text-[10px] font-black text-status-critical ml-2">19%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prescrição Tática (IA) -->
+            <div class="absolute -bottom-10 -left-10 bg-white p-6 rounded-3xl shadow-2xl border-l-8 border-brand-primary w-72 z-20 floating-card">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-brand-primary rounded-full flex items-center justify-center text-white">✨</div>
+                    <span class="font-black text-[10px] uppercase tracking-widest">Prescrição Tática</span>
+                </div>
+                <p class="text-xs font-bold leading-relaxed mb-4">
+                    Detectamos gargalo na conversão <span class="text-status-critical">Lead → Agendamento</span>. 
+                </p>
+                <button class="w-full py-3 bg-brand-dark text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Ver Treinamento</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ritual Matinal Section -->
+    <section class="bg-brand-dark py-32 text-white relative overflow-hidden">
+        <div class="container mx-auto px-8 grid lg:grid-cols-2 items-center gap-20">
+            <div>
+                <h2 class="text-5xl font-black tracking-tighter uppercase mb-8 leading-tight">
+                    O Fim da "Conversinha". <br><span class="text-brand-primary">Dados Reais na Mesa.</span>
+                </h2>
+                <div class="space-y-8">
+                    <div class="flex gap-6">
+                        <div class="text-4xl font-black text-brand-primary opacity-20 italic">01</div>
+                        <div>
+                            <h4 class="font-black text-lg uppercase tracking-tighter mb-2">Relatório Matinal D-0</h4>
+                            <p class="text-gray-400 font-medium">Todo dia às 09:45, a grade operacional está pronta. Quem produziu, quem não produziu.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-6">
+                        <div class="text-4xl font-black text-brand-primary opacity-20 italic">02</div>
+                        <div>
+                            <h4 class="font-black text-lg uppercase tracking-tighter mb-2">PDI Baseado em Fatos</h4>
+                            <p class="text-gray-400 font-medium">Feedback estruturado. O gerente para de cobrar "venda" e passa a cobrar "ritmo de visitas".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WhatsApp Report Mockup -->
+            <div class="relative">
+                <div class="bg-white text-brand-dark p-6 rounded-3xl shadow-2xl max-w-sm mx-auto font-mono text-[11px] leading-relaxed transform rotate-3">
+                    <div class="text-brand-primary font-black mb-2">📊 MATINAL OFICIAL MX</div>
+                    <p>*Unidade:* MX ELITE SÃO PAULO<br>
+                    *Ref:* 10/04/2026</p>
+                    <p class="my-2 border-y border-gray-100 py-2">
+                    🎯 *META:* 60<br>
+                    📈 *REALIZADO:* 42 (70%)<br>
+                    🚀 *PROJEÇÃO:* 63 (105%)<br>
+                    🔎 *FALTA:* 18 CARROS
+                    </p>
+                    <p>*GRADE OPERACIONAL:*<br>
+                    • Leandro: 12v | 22 agd<br>
+                    • Roberto: 08v | 15 agd<br>
+                    • Claudia: 07v | 12 agd</p>
+                    <p class="mt-2 text-gray-400 italic">_Gerado via Inteligência MX_</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="py-40 text-center container mx-auto px-8">
+        <span class="font-black text-xs tracking-[0.4em] uppercase opacity-40 mb-8 block">MX Performance 90D</span>
+        <h2 class="text-6xl lg:text-8xl font-black tracking-tighter uppercase mb-16 leading-[0.85]">
+            Não é sobre vender carros.<br>É sobre <span class="text-brand-primary italic">dominar processos</span>.
+        </h2>
+        <div class="flex justify-center gap-6">
+            <button class="bg-brand-dark text-white px-12 py-6 rounded-[2rem] font-black text-2xl hover:scale-105 transition shadow-glow">Implementar na Minha Loja</button>
+        </div>
+    </section>
+
+    <footer class="py-12 border-t border-gray-100 text-center">
+        <p class="font-black text-[10px] tracking-widest opacity-30 uppercase">&copy; 2026 MX PERFORMANCE — O SISTEMA OPERACIONAL DA ALTA PERFORMANCE</p>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.from(".hero-text > *", { y: 50, opacity: 0, duration: 1, stagger: 0.2, ease: "expo.out" });
+        gsap.from(".hero-visual", { x: 100, opacity: 0, duration: 1.5, ease: "expo.out", delay: 0.5 });
+        
+        gsap.to(".floating-card", { 
+            y: -20, 
+            duration: 2, 
+            repeat: -1, 
+            yoyo: true, 
+            ease: "sine.inOut" 
+        });
+
+        gsap.utils.toArray('.vertical-bar').forEach(bar => {
+            gsap.from(bar, {
+                height: 0,
+                duration: 1,
+                scrollTrigger: { trigger: bar, start: "top 80%" }
+            });
+        });
+    </script>
+</body>
+</html>

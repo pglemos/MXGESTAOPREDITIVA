@@ -13,18 +13,18 @@ interface MXScoreCardProps {
 
 export function MXScoreCard({ label, value, sub, icon: Icon, tone }: MXScoreCardProps) {
   return (
-    <Card className="p-8 border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-3xl -mr-12 -mt-12" />
+    <Card className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
+      <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
       <div className="flex items-center justify-between relative z-10">
-        <div className="space-y-1">
-          <Typography variant="caption" tone="muted" className="block uppercase tracking-widest text-[8px]">{label}</Typography>
-          <div className="flex items-baseline gap-2">
+        <div className="space-y-mx-tiny">
+          <Typography variant="caption" tone="muted" className="block uppercase tracking-widest text-mx-micro">{label}</Typography>
+          <div className="flex items-baseline gap-mx-xs">
               <Typography variant="h1" className="text-4xl tabular-nums leading-none">{value}</Typography>
-              <Typography variant="caption" tone="muted" className="text-[8px] font-black uppercase opacity-40">{sub}</Typography>
+              <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase opacity-40">{sub}</Typography>
           </div>
         </div>
         <div className={cn(
-          'h-12 w-12 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110',
+          'h-mx-xl w-mx-xl rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110',
           tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
           tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
           tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :

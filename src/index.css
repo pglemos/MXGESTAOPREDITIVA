@@ -44,6 +44,8 @@
   --radius-mx-full: 9999px;
 
   /* Spacing Matrix */
+  --spacing-mx-0: 0;
+  --spacing-mx-tiny: 0.25rem;
   --spacing-mx-xs: 0.5rem;
   --spacing-mx-sm: 1rem;
   --spacing-mx-md: 1.5rem;
@@ -51,6 +53,14 @@
   --spacing-mx-xl: 3rem;
   --spacing-mx-2xl: 4rem;
   --spacing-mx-3xl: 6rem;
+  --spacing-mx-4xl: 8rem;
+  --spacing-mx-5xl: 12rem;
+  --spacing-mx-10: 2.5rem;
+  --spacing-mx-14: 3.5rem;
+  --spacing-mx-20: 5rem;
+  --spacing-mx-48: 12rem;
+  --spacing-mx-64: 16rem;
+  --spacing-mx-96: 24rem;
 
   /* Shadow Matrix */
   --shadow-mx-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -60,6 +70,48 @@
   --shadow-mx-elite: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
   /* Custom Utilities */
+  /* Typography Scale Expansion */
+  --font-size-mx-tiny: 10px;
+  --font-size-mx-micro: 9px;
+  --letter-spacing-mx-tight: -0.05em;
+  --letter-spacing-mx-wide: 0.2em;
+  --letter-spacing-mx-wider: 0.3em;
+  --letter-spacing-mx-widest: 0.4em;
+
+  /* Layout Matrix Expansion */
+  --width-mx-sidebar-collapsed: 80px;
+  --width-mx-sidebar-expanded: 280px;
+  --width-mx-header: 100%;
+  --height-mx-header: 80px;
+  --width-mx-aside: 420px;
+  --max-width-mx-aside: 420px;
+
+  /* Elite Layout Matrix (High-Density & Reports) */
+  --width-mx-elite-table: 1000px;
+  --width-mx-elite-wide: 1200px;
+  --width-mx-elite-canvas: 1600px;
+  --width-mx-card-lg: 480px;
+  --width-mx-card-md: 400px;
+  --width-mx-card-sm: 320px;
+  
+  --height-mx-section-xl: 600px;
+  --height-mx-section-lg: 500px;
+  --height-mx-section-md: 450px;
+  --height-mx-section-sm: 400px;
+
+  /* Additional Atomic Spacing */
+  --spacing-mx-5: 1.25rem;
+  --spacing-mx-7: 1.75rem;
+  --spacing-mx-9: 2.25rem;
+  --spacing-mx-11: 2.75rem;
+  --spacing-mx-28: 7rem;
+
+  --radius-mx-4xl: 4rem;
+
+  /* Semantic Glows */
+  --shadow-mx-glow-brand: 0 0 20px rgba(79, 70, 229, 0.3);
+  --shadow-mx-glow-white: 0 0 20px rgba(255, 255, 255, 0.5);
+
   --width-mx-hero: 50vw;
   --height-mx-hero: 50vw;
   --height-mx-chart: 400px;
