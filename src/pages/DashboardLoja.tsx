@@ -142,6 +142,10 @@ export default function DashboardLoja() {
         ]
     }, [checkins, metrics.totalSales])
 
+    const filteredRanking = useMemo(() => {
+        return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
+    }, [metrics.ranking, sellerSearch])
+
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
@@ -376,11 +380,7 @@ export default function DashboardLoja() {
                         </header>
                         
                         <div className="space-y-mx-lg relative z-10">
-                            {[
-                                { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: 40, tone: 'success' },
-                                { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: 35, tone: 'info' },
-                                { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: 25, tone: 'brand' },
-                            ].map(ch => (
+                            {mixCanais.map(ch => (
                                 <div key={ch.label} className="space-y-mx-xs">
                                     <div className="flex justify-between items-end">
                                         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">{ch.label}</Typography>
