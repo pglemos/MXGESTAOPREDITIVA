@@ -90,13 +90,6 @@ export default function DashboardLoja() {
         viewMode === 'day' ? referenceDate : endDate
     )
 
-    if (resolving) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status" aria-live="polite">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
-            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Identificando Unidade...</Typography>
-        </div>
-    )
-
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
         try {
@@ -191,6 +184,13 @@ export default function DashboardLoja() {
     const filteredRanking = useMemo(() => {
         return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
     }, [metrics.ranking, sellerSearch])
+
+    if (resolving) return (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status" aria-live="polite">
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
+            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Identificando Unidade...</Typography>
+        </div>
+    )
 
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
