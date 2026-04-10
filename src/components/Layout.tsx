@@ -210,13 +210,14 @@ export default function Layout() {
       <div className="flex flex-1 p-mx-md gap-mx-md relative">
 
         {/* Sidebar Minimalista - Semantic Nav */}
-        <aside className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-mx-3xl h-[calc(100vh-120px)]" aria-label="Navegação Lateral">
-          <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos MX">
+        <aside className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-mx-3xl h-[calc(100vh-120px)]" aria-label="Menu Lateral Principal">
+          <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
             {categories.map((cat) => (
               <button
                 type="button"
-                aria-label={`Módulo: ${cat.category}`}
+                aria-label={`Abrir módulo: ${cat.category}`}
                 aria-expanded={isDrawerOpen && activeCategory === cat.category}
+                aria-controls="drawer-navigation"
                 key={cat.category}
                 onClick={() => { setActiveCategory(cat.category); setIsDrawerOpen(true) }}
                 className={cn(
@@ -233,7 +234,7 @@ export default function Layout() {
           </nav>
           <button 
             type="button" 
-            aria-label="Encerrar Sessão" 
+            aria-label="Encerrar Sessão do Sistema" 
             onClick={() => signOut()} 
             className="mt-auto w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center text-text-tertiary hover:bg-status-error-surface hover:text-status-error transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-error/15"
           >
@@ -242,7 +243,7 @@ export default function Layout() {
         </aside>
 
         {/* Workspace Root */}
-        <main className="flex-1 bg-white border border-border-default rounded-mx-3xl relative shadow-mx-sm overflow-hidden" id="main-content" tabIndex={-1}>
+        <main className="flex-1 bg-white border border-border-default rounded-mx-3xl relative shadow-mx-sm overflow-hidden" id="main-content" role="main">
           <Outlet />
         </main>
 
@@ -250,16 +251,17 @@ export default function Layout() {
         <AnimatePresence>
           {isDrawerOpen && (
             <motion.div
+              id="drawer-navigation"
               initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
               className="absolute left-mx-3xl top-mx-md bottom-mx-md w-mx-sidebar-expanded bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-50 overflow-hidden flex flex-col"
               role="navigation"
-              aria-label={`Menu de ${activeCategoryData?.category}`}
+              aria-label={`Opções do módulo ${activeCategoryData?.category}`}
             >
               <div className="p-mx-lg border-b border-border-subtle flex items-center justify-between bg-surface-alt/30">
                 <Typography variant="caption" className="font-black uppercase tracking-widest">{activeCategoryData?.category}</Typography>
                 <button 
                   type="button" 
-                  aria-label="Fechar menu" 
+                  aria-label="Fechar painel de opções" 
                   onClick={() => setIsDrawerOpen(false)} 
                   className="w-mx-lg h-mx-lg rounded-mx-md hover:bg-surface-alt flex items-center justify-center text-text-tertiary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 transition-all"
                 >
@@ -270,12 +272,13 @@ export default function Layout() {
                 {activeCategoryData?.items.map(item => (
                   <NavLink
                     key={item.path} to={item.path} onClick={() => setIsDrawerOpen(false)}
+                    aria-current={location.pathname === item.path ? 'page' : undefined}
                     className={({ isActive }) => cn(
                       "flex items-center gap-mx-xs px-mx-md py-3 rounded-mx-lg text-xs font-black uppercase tracking-tight transition-all focus-visible:ring-2 focus-visible:ring-brand-primary/20 focus-visible:outline-none",
                       isActive ? 'bg-mx-indigo-50 text-brand-primary' : 'text-text-secondary hover:bg-surface-alt'
                     )}
                   >
-                    <span className="shrink-0">{item.icon}</span>
+                    <span className="shrink-0" aria-hidden="true">{item.icon}</span>
                     <span className="truncate">{item.label}</span>
                   </NavLink>
                 ))}
