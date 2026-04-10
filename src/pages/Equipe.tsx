@@ -25,17 +25,22 @@ export default function Equipe() {
 
   const filteredTeam = useMemo(() => {
     return team.filter(m => 
-      m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.role?.toLowerCase().includes(searchTerm.toLowerCase())
+      m.role === 'vendedor' && (
+        m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.role?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
     )
   }, [team, searchTerm])
 
-  const stats = useMemo(() => [
-    { label: 'Tropa Total', value: team.length, icon: Users, tone: 'brand' },
-    { label: 'Operacionais', value: team.filter(m => m.checkin_today).length, icon: Zap, tone: 'success' },
-    { label: 'Pendentes', value: team.filter(m => !m.checkin_today).length, icon: Clock, tone: 'error' },
-    { label: 'Líderes', value: team.filter(m => m.role === 'gerente').length, icon: Star, tone: 'warning' },
-  ], [team])
+  const stats = useMemo(() => {
+    const vendedores = team.filter(m => m.role === 'vendedor');
+    return [
+        { label: 'Tropa Total', value: vendedores.length, icon: Users, tone: 'brand' },
+        { label: 'Operacionais', value: vendedores.filter(m => m.checkin_today).length, icon: Zap, tone: 'success' },
+        { label: 'Pendentes', value: vendedores.filter(m => !m.checkin_today).length, icon: Clock, tone: 'error' },
+        { label: 'Líderes', value: team.filter(m => m.role === 'gerente').length, icon: Star, tone: 'warning' },
+    ];
+  }, [team])
 
   const handleUpdateVigencia = async (e: React.FormEvent) => {
     e.preventDefault()

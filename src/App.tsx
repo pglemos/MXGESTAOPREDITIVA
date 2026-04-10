@@ -139,7 +139,9 @@ export default function App() {
 
             {/* Gerente */}
             <Route path="loja" element={<Suspense fallback={<Spinner />}><DashboardLoja /></Suspense>} />
-            <Route path="equipe" element={<Suspense fallback={<Spinner />}><Equipe /></Suspense>} />
+            <Route path="equipe" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Equipe />} dono={<Equipe />} admin={<Navigate to="/painel" replace />} />
+            </Suspense>} />
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
             <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}>
