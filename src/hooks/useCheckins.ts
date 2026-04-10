@@ -53,7 +53,7 @@ export function useCheckins(storeIdOverride?: string) {
 
         // Otimização: Selecionar apenas colunas de métricas e identificação
         let query = supabase.from('daily_checkins')
-            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, is_venda_loja')
+            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
             .order('reference_date', { ascending: false })
 
@@ -76,7 +76,7 @@ export function useCheckins(storeIdOverride?: string) {
         }
         const { data } = await supabase
             .from('daily_checkins')
-            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, is_venda_loja')
+            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('seller_user_id', profile.id)
             .eq('store_id', storeId)
             .eq('reference_date', referenceDate)
@@ -203,7 +203,7 @@ export function useCheckinsByDateRange(storeId: string | null, startDate: string
         setLoading(true)
         const { data, error } = await supabase
             .from('daily_checkins')
-            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, is_venda_loja')
+            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
             .gte('reference_date', startDate)
             .lte('reference_date', endDate)
