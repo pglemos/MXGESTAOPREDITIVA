@@ -186,6 +186,7 @@ export function useMemberships() {
 }
 
 export function useStoresStats() {
+    const { role, memberships, storeId: authStoreId } = useAuth()
     const [stats, setStats] = useState<Record<string, { sellers: number; checkedIn: number; disciplinePct: number }>>({})
     const [loading, setLoading] = useState(true)
     const referenceDate = calculateReferenceDate()
@@ -193,9 +194,24 @@ export function useStoresStats() {
     const fetchStats = useCallback(async () => {
         setLoading(true)
         try {
+            let authorizedStoreIds: string[] | null = null
+            if (role === 'dono') {
+                authorizedStoreIds = memberships.map(m => m.store_id)
+            } else if ((role === 'gerente' || role === 'vendedor') && authStoreId) {
+                authorizedStoreIds = [authStoreId]
+            }
+
+            let sellersQuery = supabase.from('store_sellers').select('store_id').eq('is_active', true)
+            let checkinsQuery = supabase.from('daily_checkins').select('store_id').eq('reference_date', referenceDate)
+
+            if (authorizedStoreIds) {
+                sellersQuery = sellersQuery.in('store_id', authorizedStoreIds)
+                checkinsQuery = checkinsQuery.in('store_id', authorizedStoreIds)
+            }
+
             const [sellersRes, checkinsRes] = await Promise.all([
-                supabase.from('store_sellers').select('store_id').eq('is_active', true),
-                supabase.from('daily_checkins').select('store_id').eq('reference_date', referenceDate)
+                sellersQuery,
+                checkinsQuery
             ])
 
             const newStats: Record<string, { sellers: number; checkedIn: number; disciplinePct: number }> = {}
@@ -225,7 +241,7 @@ export function useStoresStats() {
         } finally {
             setLoading(false)
         }
-    }, [referenceDate])
+    }, [referenceDate, role, memberships, authStoreId])
 
     useEffect(() => { fetchStats() }, [fetchStats])
 

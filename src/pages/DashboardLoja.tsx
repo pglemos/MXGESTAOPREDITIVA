@@ -62,27 +62,39 @@ export default function DashboardLoja() {
     }, [refetch])
 
     // Lógica centralizada de Vendas e Ranking (Memoized)
-    const storeSalesParams = useMemo(() => ({
-        checkins: checkins as any,
-        ranking: (sellers || []).map(s => ({
-            user_id: s.id,
-            user_name: s.name,
-            is_venda_loja: s.is_venda_loja || false,
-            vnd_total: somarVendas(checkins.filter(c => c.seller_user_id === s.id) as any),
-            leads: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
-            agd_total: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0),
-            visitas: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
-            meta: storeGoal?.target || 0,
-            atingimento: 0,
-            projecao: 0,
-            ritmo: 0,
-            efficiency: 0,
-            status: { label: '', color: '' },
-            gap: 0,
-            position: 0
-        })),
-        rules: { monthly_goal: storeGoal?.target || 0 } as any
-    }), [checkins, sellers, storeGoal])
+    const storeSalesParams = useMemo(() => {
+        // Pre-group checkins by seller_user_id for O(1) access during ranking map
+        const checkinsBySeller = (checkins || []).reduce((acc, c) => {
+            if (!acc[c.seller_user_id]) acc[c.seller_user_id] = []
+            acc[c.seller_user_id].push(c)
+            return acc
+        }, {} as Record<string, any[]>)
+
+        return {
+            checkins: checkins as any,
+            ranking: (sellers || []).map(s => {
+                const sellerCheckins = checkinsBySeller[s.id] || []
+                return {
+                    user_id: s.id,
+                    user_name: s.name,
+                    is_venda_loja: s.is_venda_loja || false,
+                    vnd_total: somarVendas(sellerCheckins as any),
+                    leads: sellerCheckins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
+                    agd_total: sellerCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0),
+                    visitas: sellerCheckins.reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
+                    meta: storeGoal?.target || 0,
+                    atingimento: 0,
+                    projecao: 0,
+                    ritmo: 0,
+                    efficiency: 0,
+                    status: { label: '', color: '' },
+                    gap: 0,
+                    position: 0
+                }
+            }),
+            rules: { monthly_goal: storeGoal?.target || 0 } as any
+        }
+    }, [checkins, sellers, storeGoal])
 
     const storeSales = useStoreSales(storeSalesParams)
 
@@ -309,7 +321,7 @@ export default function DashboardLoja() {
                         
                         <div className="space-y-mx-lg relative z-10">
                             {[
-                                { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: 40, tone: 'success' },
+                                { label: 'Porta (Showroom)', color: 'bg-status-success-surface0', pct: 40, tone: 'success' },
                                 { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: 35, tone: 'info' },
                                 { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: 25, tone: 'brand' },
                             ].map(ch => (
