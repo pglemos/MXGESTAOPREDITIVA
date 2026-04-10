@@ -42,20 +42,11 @@ const ConsultorNotificacoes = lazy(() => import('@/pages/ConsultorNotificacoes')
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
 const OperationalSettings = lazy(() => import('@/pages/OperationalSettings'))
 const Reprocessamento = lazy(() => import('@/pages/Reprocessamento'))
-const Agenda = lazy(() => import('@/pages/Agenda'))
 const AiDiagnostics = lazy(() => import('@/pages/AiDiagnostics'))
 const CommissionRules = lazy(() => import('@/pages/CommissionRules'))
-const Communication = lazy(() => import('@/pages/Communication'))
 const CrossSalesReports = lazy(() => import('@/pages/CrossSalesReports'))
-const Financeiro = lazy(() => import('@/pages/Financeiro'))
-const Inventory = lazy(() => import('@/pages/Inventory'))
-const LeadOps = lazy(() => import('@/pages/LeadOps'))
-const Leads = lazy(() => import('@/pages/Leads'))
 const MorningReport = lazy(() => import('@/pages/MorningReport'))
-const Reports = lazy(() => import('@/pages/Reports'))
 const SalesPerformance = lazy(() => import('@/pages/SalesPerformance'))
-const SellerPerformance = lazy(() => import('@/pages/SellerPerformance'))
-const Tarefas = lazy(() => import('@/pages/Tarefas'))
 const Gamification = lazy(() => import('@/pages/Gamification'))
 const Activities = lazy(() => import('@/pages/Activities'))
 
@@ -173,22 +164,10 @@ export default function App() {
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} dono={<Navigate to="/lojas" replace />} admin={<AiDiagnostics />} />
             </Suspense>} />
 
-            {/* Módulos Legados Isolados */}
+            {/* Módulos Legados Isolados - Aguardando Migração MX */}
             <Route path="legacy">
-              <Route path="agenda" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Agenda />)}</Suspense>} />
               <Route path="configuracoes/comissoes" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CommissionRules />)}</Suspense>} />
-              <Route path="communication" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Communication />)}</Suspense>} />
               <Route path="relatorios/vendas-cruzados" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CrossSalesReports />)}</Suspense>} />
-              <Route path="financeiro" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Financeiro />)}</Suspense>} />
-              <Route path="inventory" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Inventory />)}</Suspense>} />
-              <Route path="leadops" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<LeadOps />)}</Suspense>} />
-              <Route path="leads" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Leads />)}</Suspense>} />
-              <Route path="reports" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Reports />)}</Suspense>} />
-              <Route path="reports/stock" element={<Suspense fallback={<Spinner />}>
-                <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Navigate to="/loja" replace />} dono={<Navigate to="/lojas" replace />} admin={<Navigate to="/painel" replace />} />
-              </Suspense>} />
-              <Route path="relatorios/performance-vendedores" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<SellerPerformance />)}</Suspense>} />
-              <Route path="tarefas" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Tarefas />)}</Suspense>} />
               <Route path="gamification" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Gamification />)}</Suspense>} />
               <Route path="activities" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Activities />)}</Suspense>} />
             </Route>

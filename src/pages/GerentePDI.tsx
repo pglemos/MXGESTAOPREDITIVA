@@ -46,10 +46,24 @@ export default function GerentePDI() {
     }, [pdis, searchTerm])
 
     if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse uppercase font-black tracking-widest">Computando Planos...</Typography>
-        </div>
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+                <div className="flex gap-mx-sm">
+                    <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
+                </div>
+            </header>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
+                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-64 rounded-mx-2xl" />
+            </div>
+        </main>
     )
 
     return (

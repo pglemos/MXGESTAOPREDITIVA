@@ -99,7 +99,7 @@ export default function AiDiagnostics() {
                             </div>
                         </div>
 
-                        <div className="flex-1 font-mono text-sm leading-relaxed space-y-mx-xs overflow-y-auto pr-4 no-scrollbar border-t border-white/5 pt-8 relative z-10" aria-live="polite">
+                        <div className="flex-1 font-mono text-sm leading-relaxed space-y-mx-xs overflow-y-auto pr-4 no-scrollbar border-t border-white/5 pt-8 relative z-10" role="log" aria-live="polite" aria-atomic="false">
                             {logs.map((log, idx) => (
                                 <div key={idx} className="flex gap-mx-sm group hover:bg-white/5 p-mx-xs rounded-mx-sm transition-colors">
                                     <Typography variant="tiny" tone="muted" as="span" className="font-black opacity-10" aria-hidden="true">{(idx + 1).toString().padStart(3, '0')}</Typography>
