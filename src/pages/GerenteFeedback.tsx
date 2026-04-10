@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
+import { Skeleton } from '@/components/atoms/Skeleton'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'

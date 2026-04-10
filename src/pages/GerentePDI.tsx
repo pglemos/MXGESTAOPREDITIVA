@@ -12,6 +12,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/atoms/Badge"
 import { Typography } from '@/components/atoms/Typography'
+import { Skeleton } from '@/components/atoms/Skeleton'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card } from '@/components/molecules/Card'
