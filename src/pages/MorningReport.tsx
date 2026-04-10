@@ -19,6 +19,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { Skeleton } from '@/components/atoms/Skeleton'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function MorningReport() {
@@ -127,7 +128,7 @@ export default function MorningReport() {
                     <Button variant="outline" onClick={handleDownloadXlsx} className="h-mx-xl px-6 rounded-mx-full shadow-mx-sm uppercase tracking-widest bg-white">
                         <FileDown size={16} className="mr-2" aria-hidden="true" /> <Typography variant="tiny" as="span" className="font-black">PLANILHA</Typography>
                     </Button>
-                    <Button onClick={handleShareWhatsApp} className="h-mx-xl px-8 rounded-mx-full bg-status-success shadow-mx-lg uppercase tracking-widest hover:bg-status-success/90">
+                    <Button onClick={handleShareWhatsApp} className="h-mx-xl px-8 rounded-mx-full bg-status-success shadow-mx-lg uppercase tracking-widest hover:bg-status-success/90" aria-label="Compartilhar relatório no WhatsApp">
                         <MessageCircle size={16} className="mr-2 fill-white/20" aria-hidden="true" /> <Typography variant="tiny" as="span" tone="white" className="font-black">WHATSAPP</Typography>
                     </Button>
                     <Button variant="secondary" onClick={handleSendEmail} className="h-mx-xl px-8 rounded-mx-full shadow-mx-xl uppercase tracking-widest" disabled={isSendingEmail} aria-label="Enviar relatório para a direção">
