@@ -185,6 +185,53 @@ export function useMemberships() {
     return { memberships, loading, refetch: fetch }
 }
 
+export function useStoresStats() {
+    const [stats, setStats] = useState<Record<string, { sellers: number; checkedIn: number; disciplinePct: number }>>({})
+    const [loading, setLoading] = useState(true)
+    const referenceDate = calculateReferenceDate()
+
+    const fetchStats = useCallback(async () => {
+        setLoading(true)
+        try {
+            const [sellersRes, checkinsRes] = await Promise.all([
+                supabase.from('store_sellers').select('store_id').eq('is_active', true),
+                supabase.from('daily_checkins').select('store_id').eq('reference_date', referenceDate)
+            ])
+
+            const newStats: Record<string, { sellers: number; checkedIn: number; disciplinePct: number }> = {}
+
+            if (sellersRes.data) {
+                sellersRes.data.forEach((s: any) => {
+                    if (!newStats[s.store_id]) newStats[s.store_id] = { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                    newStats[s.store_id].sellers++
+                })
+            }
+
+            if (checkinsRes.data) {
+                checkinsRes.data.forEach((c: any) => {
+                    if (!newStats[c.store_id]) newStats[c.store_id] = { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                    newStats[c.store_id].checkedIn++
+                })
+            }
+
+            Object.keys(newStats).forEach(sid => {
+                const s = newStats[sid]
+                s.disciplinePct = s.sellers > 0 ? Math.round((s.checkedIn / s.sellers) * 100) : 100
+            })
+
+            setStats(newStats)
+        } catch (err) {
+            console.error('Error fetching stores stats:', err)
+        } finally {
+            setLoading(false)
+        }
+    }, [referenceDate])
+
+    useEffect(() => { fetchStats() }, [fetchStats])
+
+    return { stats, loading, refetch: fetchStats }
+}
+
 export function useSellersByStore(storeId: string | null) {
     const [sellers, setSellers] = useState<any[]>([])
     const [loading, setLoading] = useState(true)

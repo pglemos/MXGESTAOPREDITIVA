@@ -3,9 +3,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { useStoreGoal } from '@/hooks/useGoals'
 import { useStoreSales } from '@/hooks/useStoreSales'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { 
-    Target, RefreshCw, Search, Globe, ChevronDown, Calendar, History
+    Target, RefreshCw, Search, Globe, ChevronDown, Calendar, History, Settings, Users
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, parseISO, startOfMonth, endOfMonth, subDays } from 'date-fns'
@@ -18,16 +18,22 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { AdminNetworkView } from '@/components/admin/AdminNetworkView'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 export default function DashboardLoja() {
-    const { role, profile, storeId: authStoreId, setActiveStoreId } = useAuth()
+    const { role, profile, storeId: authStoreId, setActiveStoreId, memberships } = useAuth()
     const [searchParams] = useSearchParams()
     const urlStoreId = searchParams.get('id')
     const storeId = urlStoreId || authStoreId
 
-    const { memberships } = useMemberships()
+    // Sync global active store if URL param present
+    useEffect(() => {
+        if (urlStoreId && urlStoreId !== authStoreId) {
+            setActiveStoreId(urlStoreId)
+        }
+    }, [urlStoreId, authStoreId, setActiveStoreId])
+
     const { sellers } = useSellersByStore(storeId)
     const { goal: storeGoal } = useStoreGoal(storeId)
 
@@ -107,7 +113,7 @@ export default function DashboardLoja() {
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status" aria-live="polite">
-            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" aria-hidden="true" />
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
             <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Consolidando Unidade...</Typography>
         </div>
     )
@@ -116,10 +122,10 @@ export default function DashboardLoja() {
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-mx-xs">
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60">Status de Unidade</Typography>
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-secondary rounded-full shadow-mx-md" aria-hidden="true" />
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         {(role === 'admin' || role === 'dono') ? (
                             <div className="relative group">
                                 <label htmlFor="store-dashboard-select" className="sr-only">Selecionar unidade</label>
@@ -132,7 +138,7 @@ export default function DashboardLoja() {
                                         <option key={m.store_id} value={m.store_id} className="text-lg bg-white">{m.store?.name?.toUpperCase() || 'LOJA'}</option>
                                     ))}
                                 </select>
-                                <ChevronDown size={32} className="absolute right-0 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary transition-colors" aria-hidden="true" />
+                                <ChevronDown size={32} className="absolute right-mx-0 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary transition-colors" aria-hidden="true" />
                             </div>
                         ) : (
                             <Typography variant="h1" className="font-black uppercase tracking-tighter">{metrics.storeName}</Typography>
@@ -141,11 +147,26 @@ export default function DashboardLoja() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <nav className="bg-white p-1 rounded-mx-full shadow-mx-sm border border-border-default flex gap-1" role="tablist" aria-label="Modos de Visualização">
+                    {(role === 'admin' || role === 'dono') && urlStoreId && (
+                        <div className="flex gap-mx-xs mr-mx-md">
+                            <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all uppercase font-black tracking-widest text-[10px]">
+                                <Link to={`/configuracoes/operacional?id=${urlStoreId}`}>
+                                    <Settings className="w-mx-xs h-mx-xs mr-mx-xs" /> EDITAR UNIDADE
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-secondary/20 text-brand-secondary hover:bg-brand-secondary hover:text-white transition-all uppercase font-black tracking-widest text-[10px]">
+                                <Link to={`/equipe?id=${urlStoreId}`}>
+                                    <Users className="w-mx-xs h-mx-xs mr-mx-xs" /> GERIR EQUIPE
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
+
+                    <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny" role="tablist" aria-label="Modos de Visualização">
                         <Button 
                             variant={viewMode === 'month' ? 'secondary' : 'ghost'} size="sm"
                             onClick={() => setViewMode('month')} 
-                            className="h-10 px-6 rounded-full uppercase font-black tracking-widest text-tiny"
+                            className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-tiny"
                             role="tab"
                             aria-selected={viewMode === 'month'}
                         >
@@ -154,7 +175,7 @@ export default function DashboardLoja() {
                         <Button 
                             variant={viewMode === 'day' ? 'secondary' : 'ghost'} size="sm"
                             onClick={() => setViewMode('day')} 
-                            className="h-10 px-6 rounded-full uppercase font-black tracking-widest text-tiny"
+                            className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-tiny"
                             role="tab"
                             aria-selected={viewMode === 'day'}
                         >
@@ -162,22 +183,22 @@ export default function DashboardLoja() {
                         </Button>
                     </nav>
 
-                    <div className="flex items-center gap-2 px-6 bg-white h-14 rounded-mx-xl shadow-mx-sm border border-border-default" role="group" aria-label="Filtro de Data">
+                    <div className="flex items-center gap-mx-xs px-6 bg-white h-mx-14 rounded-mx-xl shadow-mx-sm border border-border-default" role="group" aria-label="Filtro de Data">
                         <Calendar size={16} className="text-brand-primary" aria-hidden="true" />
                         <label htmlFor="start-date" className="sr-only">Data Inicial</label>
                         <input id="start-date" type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-tiny focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded" />
-                        <div className="w-px h-4 bg-border-strong mx-2" aria-hidden="true" />
+                        <div className="w-px h-mx-sm bg-border-strong mx-2" aria-hidden="true" />
                         <label htmlFor="end-date" className="sr-only">Data Final</label>
                         <input id="end-date" type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-tiny focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded" />
                     </div>
 
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-14 h-14 rounded-xl shadow-mx-sm bg-white" aria-label="Sincronizar performance">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-white" aria-label="Sincronizar performance">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
                 </div>
             </header>
 
-            {role === 'admin' && (
+            {role === 'admin' && !urlStoreId && (
                 <div className="mb-mx-lg">
                     <Typography variant="h2" className="mb-mx-md">Visão Administrativa da Rede</Typography>
                     <AdminNetworkView />
@@ -185,32 +206,32 @@ export default function DashboardLoja() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
-                <Card className="p-8 border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16" aria-hidden="true" />
+                <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
+                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-white/5 rounded-mx-full blur-3xl -mr-16 -mt-16" aria-hidden="true" />
                     <Typography variant="tiny" tone="white" className="opacity-50 mb-4 block font-black uppercase tracking-widest">Meta de Vendas</Typography>
                     <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none mb-3 tracking-tighter font-mono-numbers">{metrics.goalValue}</Typography>
-                    <Badge variant="outline" className="text-white border-white/20 font-black h-6 uppercase text-tiny">{metrics.attainment}% ATINGIDO</Badge>
+                    <Badge variant="outline" className="text-white border-white/20 font-black h-mx-md uppercase text-tiny">{metrics.attainment}% ATINGIDO</Badge>
                 </Card>
 
-                <Card className="p-8 border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
+                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
                     <Typography variant="tiny" tone="muted" className="mb-4 block font-black uppercase tracking-widest opacity-40">Vendido Período</Typography>
                     <Typography variant="h1" className="text-5xl tabular-nums leading-none mb-3 tracking-tighter font-mono-numbers">{metrics.totalSales}</Typography>
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">REFERÊNCIA REAL-TIME</Typography>
                 </Card>
 
-                <Card className="p-8 border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-status-info-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
+                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-info-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
                     <Typography variant="tiny" tone="muted" className="mb-4 block font-black uppercase tracking-widest opacity-40">Escoamento Médio</Typography>
-                    <div className="flex items-baseline gap-2 mb-3">
+                    <div className="flex items-baseline gap-mx-xs mb-3">
                         <Typography variant="h1" className="text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalLeads}</Typography>
                         <Typography variant="h3" tone="muted" className="text-xl font-black uppercase opacity-20">LEADS</Typography>
                     </div>
                     <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest">{metrics.totalVis} VISITAS EFETUADAS</Typography>
                 </Card>
 
-                <Card className="p-8 border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-status-success-surface rounded-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
+                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-success-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
                     <Typography variant="tiny" tone="muted" className="mb-4 block font-black uppercase tracking-widest opacity-40">Saúde Disciplinar</Typography>
                     <Typography variant="h1" tone={metrics.checkedInCount < (sellers || []).length ? 'error' : 'success'} className="text-5xl tabular-nums leading-none mb-3 tracking-tighter font-mono-numbers">
                         {metrics.checkedInCount}<span className="text-text-tertiary text-2xl font-black">/{ (sellers || []).length }</span>
@@ -222,13 +243,13 @@ export default function DashboardLoja() {
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
                 <section className="xl:col-span-8 flex flex-col gap-mx-lg">
                     <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
-                        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 p-10 bg-surface-alt/30 border-b border-border-default">
+                        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-lg p-mx-10 bg-surface-alt/30 border-b border-border-default">
                             <div>
                                 <CardTitle className="text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Ranking Unidade'}</CardTitle>
                                 <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
                             </div>
                             <div className="relative group w-full sm:w-mx-2xl">
-                                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
+                                <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                                 <label htmlFor="search-seller" className="sr-only">Buscar especialista</label>
                                 <Input 
                                     id="search-seller"
@@ -243,7 +264,7 @@ export default function DashboardLoja() {
                             <table className="w-full text-left">
                                 <caption className="sr-only">Ranking de performance dos especialistas da unidade</caption>
                                 <thead>
-                                    <tr className="bg-mx-black border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
+                                    <tr className="bg-mx-black border-b border-white/5 text-mx-tiny font-black uppercase tracking-mx-wide text-white/20">
                                         <th scope="col" className="pl-10 py-6">POS</th>
                                         <th scope="col" className="px-6 py-6">ESPECIALISTA</th>
                                         <th scope="col" className="px-6 py-6 text-center">LEADS</th>
@@ -254,11 +275,11 @@ export default function DashboardLoja() {
                                 </thead>
                                 <tbody className="divide-y divide-border-default">
                                     {filteredRanking.map((r, i) => (
-                                        <tr key={r.user_id} className="hover:bg-surface-alt/30 transition-colors group h-20">
+                                        <tr key={r.user_id} className="hover:bg-surface-alt/30 transition-colors group h-mx-header">
                                             <td className="pl-10 font-black text-sm text-text-tertiary tabular-nums opacity-40">{(i + 1).toString().padStart(2, '0')}</td>
                                             <td className="px-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-xs group-hover:bg-brand-primary group-hover:text-white transition-all shadow-mx-inner uppercase" aria-hidden="true">{r.user_name.charAt(0)}</div>
+                                                <div className="flex items-center gap-mx-sm">
+                                                    <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-xs group-hover:bg-brand-primary group-hover:text-white transition-all shadow-mx-inner uppercase" aria-hidden="true">{r.user_name.charAt(0)}</div>
                                                     <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black">{r.user_name}</Typography>
                                                 </div>
                                             </td>
@@ -266,7 +287,7 @@ export default function DashboardLoja() {
                                             <td className="px-6 text-center font-black text-sm text-text-primary font-mono-numbers opacity-60">{r.visitas}</td>
                                             <td className="px-6 text-center font-black text-2xl text-brand-primary font-mono-numbers bg-mx-indigo-50/30">{r.vnd_total}</td>
                                             <td className="pr-10 text-right">
-                                                <Badge variant={r.vnd_total > 0 ? 'success' : 'outline'} className="px-4 py-1.5 rounded-lg font-black text-[8px] tracking-widest shadow-sm uppercase border-none">
+                                                <Badge variant={r.vnd_total > 0 ? 'success' : 'outline'} className="px-4 py-1.5 rounded-mx-lg font-black text-mx-micro tracking-widest shadow-sm uppercase border-none">
                                                     {r.vnd_total > 0 ? 'CONVERSÃO' : 'EM AGUARDO'}
                                                 </Badge>
                                             </td>
@@ -279,28 +300,28 @@ export default function DashboardLoja() {
                 </section>
 
                 <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="p-10 border-none shadow-mx-lg bg-white relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
-                        <header className="flex items-center gap-4 mb-10 relative z-10">
-                            <div className="w-14 h-14 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary shadow-mx-inner border border-border-default" aria-hidden="true"><Globe size={28} /></div>
+                    <Card className="p-mx-10 border-none shadow-mx-lg bg-white relative overflow-hidden group">
+                        <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
+                        <header className="flex items-center gap-mx-sm mb-10 relative z-10">
+                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary shadow-mx-inner border border-border-default" aria-hidden="true"><Globe size={28} /></div>
                             <Typography variant="h3" className="uppercase tracking-tight font-black">Mix de Canais</Typography>
                         </header>
                         
-                        <div className="space-y-8 relative z-10">
+                        <div className="space-y-mx-lg relative z-10">
                             {[
                                 { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: 40, tone: 'success' },
                                 { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: 35, tone: 'info' },
                                 { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: 25, tone: 'brand' },
                             ].map(ch => (
-                                <div key={ch.label} className="space-y-3">
+                                <div key={ch.label} className="space-y-mx-xs">
                                     <div className="flex justify-between items-end">
                                         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">{ch.label}</Typography>
                                         <Typography variant="mono" tone={ch.tone as any} className="text-sm font-black">{ch.pct}%</Typography>
                                     </div>
-                                    <div className="h-2 w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-mx-inner p-0.5">
+                                    <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-mx-inner p-0.5">
                                         <motion.div 
                                             initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5, ease: "circOut" }}
-                                            className={cn("h-full rounded-full shadow-sm transition-all duration-1000", ch.color)} 
+                                            className={cn("h-full rounded-mx-full shadow-sm transition-all duration-1000", ch.color)} 
                                         />
                                     </div>
                                 </div>
@@ -308,7 +329,7 @@ export default function DashboardLoja() {
                         </div>
                     </Card>
 
-                    <Card className="p-10 bg-brand-primary rounded-[3rem] text-white shadow-mx-xl relative overflow-hidden group border-none">
+                    <Card className="p-mx-10 bg-brand-primary rounded-mx-3xl text-white shadow-mx-xl relative overflow-hidden group border-none">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" aria-hidden="true" />
                         <div className="relative z-10 text-center">
                             <History className="mx-auto mb-8 opacity-30 transform group-hover:scale-110 transition-transform" size={48} aria-hidden="true" />

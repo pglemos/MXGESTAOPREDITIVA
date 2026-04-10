@@ -60,12 +60,12 @@ const Gamification = lazy(() => import('@/pages/Gamification'))
 const Activities = lazy(() => import('@/pages/Activities'))
 
 const Spinner = () => (
-  <div className="flex flex-col items-center gap-6">
-    <div className="relative w-16 h-16">
-      <div className="absolute inset-0 border-4 border-indigo-500/10 rounded-full"></div>
-      <div className="absolute inset-0 border-4 border-t-indigo-500 rounded-full animate-spin"></div>
+  <div className="flex flex-col items-center gap-mx-md">
+    <div className="relative w-mx-2xl h-mx-2xl">
+      <div className="absolute inset-0 border-4 border-brand-primary/10 rounded-mx-full"></div>
+      <div className="absolute inset-0 border-4 border-t-brand-primary rounded-mx-full animate-spin"></div>
     </div>
-    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">MX PERFORMANCE</p>
+    <p className="text-mx-tiny font-black text-text-tertiary uppercase tracking-mx-widest animate-pulse">MX PERFORMANCE</p>
   </div>
 )
 
@@ -82,7 +82,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     console.log('Audit Info [ProtectedRoute]:', { initialized, loading, hasSupabaseUser: !!supabaseUser, hasProfile: !!profile })
   }, [initialized, loading, supabaseUser, profile])
 
-  if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-slate-950"><Spinner /></div>
+  if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-mx-black"><Spinner /></div>
   if (!profile) {
     console.warn('Audit Warn [ProtectedRoute]: No profile found, redirecting to login.')
     return <Navigate to="/login" state={{ from: location }} replace />
@@ -140,7 +140,7 @@ export default function App() {
             {/* Gerente */}
             <Route path="loja" element={<Suspense fallback={<Spinner />}><DashboardLoja /></Suspense>} />
             <Route path="equipe" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Equipe />} dono={<Equipe />} admin={<Navigate to="/painel" replace />} />
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Equipe />} dono={<Equipe />} admin={<Equipe />} />
             </Suspense>} />
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
             <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
@@ -159,7 +159,7 @@ export default function App() {
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
             <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Navigate to="/loja" replace />} dono={<Navigate to="/lojas" replace />} admin={<Navigate to="/painel" replace />} />
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Navigate to="/loja" replace />} dono={<Navigate to="/lojas" replace />} admin={<Reprocessamento />} />
             </Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
             <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}><SalesPerformance /></Suspense>} />

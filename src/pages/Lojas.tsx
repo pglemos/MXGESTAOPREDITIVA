@@ -1,8 +1,8 @@
-import { useStores } from '@/hooks/useTeam'
+import { useStores, useStoresStats } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Building2, Search, Plus, RefreshCw, X } from 'lucide-react'
+import { Building2, Search, Plus, RefreshCw, X, Mail } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
@@ -13,23 +13,47 @@ import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
 import { Link } from 'react-router-dom'
 
 export default function Lojas() {
-    const { stores, loading, refetch } = useStores()
+    const { stores, loading: storesLoading, refetch: refetchStores, createStore } = useStores()
+    const { stats, loading: statsLoading, refetch: refetchStats } = useStoresStats()
     const { role } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [newStore, setNewStore] = useState({ name: '', manager_email: '' })
+    const [creating, setCreating] = useState(false)
+
+    const loading = storesLoading || statsLoading
 
     const filteredStores = useMemo(() => {
         return stores.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
     }, [stores, searchTerm])
 
     const handleRefresh = useCallback(async () => {
-        setIsRefetching(true); await refetch(); setIsRefetching(false)
+        setIsRefetching(true)
+        await Promise.all([refetchStores(), refetchStats()])
+        setIsRefetching(false)
         toast.success('Rede sincronizada!')
-    }, [refetch])
+    }, [refetchStores, refetchStats])
 
-    if (loading) return (
+    const handleCreateStore = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newStore.name) return toast.error('Nome da unidade é obrigatório')
+        setCreating(true)
+        const { error } = await createStore(newStore.name, newStore.manager_email)
+        setCreating(false)
+        if (error) {
+            toast.error(error)
+        } else {
+            toast.success('Unidade operacional criada com sucesso!')
+            setIsCreateModalOpen(false)
+            setNewStore({ name: '', manager_email: '' })
+            handleRefresh()
+        }
+    }
+
+    if (loading && !isRefetching) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status" aria-live="polite">
-            <RefreshCw className="w-12 h-12 animate-spin text-brand-primary mb-6" aria-hidden="true" />
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
             <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Escaneando Unidades...</Typography>
         </div>
     )
@@ -38,20 +62,20 @@ export default function Lojas() {
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4">
-                        <div className="w-2 h-10 bg-brand-primary rounded-full shadow-mx-md" aria-hidden="true" />
+                <div className="flex flex-col gap-mx-tiny">
+                    <div className="flex items-center gap-mx-sm">
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Gestão de <span className="text-brand-primary">Unidades</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CONTROLE DE FILIAIS & GOVERNANÇA MX</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-xl shadow-mx-sm h-12 w-12 bg-white border-border-strong" aria-label="Atualizar lista de lojas">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white border-border-strong" aria-label="Atualizar lista de lojas">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <div className="relative group w-full sm:w-64">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
+                    <div className="relative group w-full sm:w-mx-sidebar-expanded">
+                        <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                         <label htmlFor="search-stores" className="sr-only">Buscar unidade por nome</label>
                         <Input 
                             id="search-stores"
@@ -61,7 +85,7 @@ export default function Lojas() {
                         />
                     </div>
                     {role === 'admin' && (
-                        <Button className="h-12 px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
+                        <Button onClick={() => setIsCreateModalOpen(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
                             <Plus size={18} className="mr-2" aria-hidden="true" /> NOVA UNIDADE
                         </Button>
                     )}
@@ -72,66 +96,70 @@ export default function Lojas() {
                 {filteredStores.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg" role="list">
                         <AnimatePresence mode="popLayout">
-                            {filteredStores.map((store, i) => (
+                            {filteredStores.map((store, i) => {
+                                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                                return (
                                 <motion.div key={store.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }} role="listitem">
                                     <Card className="overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg bg-white flex flex-col h-full">
-                                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-8 flex flex-row items-center justify-between relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-                                            <div className="flex items-center gap-4 relative z-10">
-                                                <div className="w-14 h-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3" aria-hidden="true">
+                                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg flex flex-row items-center justify-between relative overflow-hidden">
+                                            <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+                                            <div className="flex items-center gap-mx-sm relative z-10">
+                                                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3" aria-hidden="true">
                                                     <Building2 size={24} />
                                                 </div>
                                                 <div>
                                                     <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-[140px] font-black">{store.name}</Typography>
-                                                    <Typography variant="tiny" tone="muted" className="text-[10px] font-black uppercase mt-1 opacity-40">ID: {store.id.split('-')[0]}</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase mt-1 opacity-40">ID: {store.id.split('-')[0]}</Typography>
                                                 </div>
                                             </div>
-                                            <Badge variant="success" className="px-3 py-1 rounded-full text-[10px] font-black shadow-sm uppercase border-none">Ativa</Badge>
+                                            <Badge variant={sStat.sellers > 0 ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none">
+                                                {sStat.sellers > 0 ? "Ativa" : "Vazia"}
+                                            </Badge>
                                         </CardHeader>
 
-                                        <CardContent className="p-8 space-y-10 flex-1 relative z-10 flex flex-col justify-between">
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div className="space-y-1 bg-surface-alt/50 p-4 rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
-                                                    <Typography variant="tiny" tone="muted" className="text-[10px] font-black uppercase opacity-40">Especialistas</Typography>
-                                                    <div className="flex items-center gap-2">
-                                                        <Typography variant="h2" className="text-xl font-mono-numbers leading-none">12</Typography>
+                                        <CardContent className="p-mx-lg space-y-mx-10 flex-1 relative z-10 flex flex-col justify-between">
+                                            <div className="grid grid-cols-2 gap-mx-md">
+                                                <div className="space-y-mx-tiny bg-surface-alt/50 p-mx-sm rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
+                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase opacity-40">Especialistas</Typography>
+                                                    <div className="flex items-center gap-mx-xs">
+                                                        <Typography variant="h2" className="text-xl font-mono-numbers leading-none">{sStat.sellers}</Typography>
                                                     </div>
                                                 </div>
-                                                <div className="space-y-1 bg-surface-alt/50 p-4 rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
-                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">Eficiência</Typography>
-                                                    <div className="flex items-center gap-2">
-                                                        <Typography variant="h2" tone="success" className="text-xl font-mono-numbers leading-none">94%</Typography>
+                                                <div className="space-y-mx-tiny bg-surface-alt/50 p-mx-sm rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
+                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">Disciplina</Typography>
+                                                    <div className="flex items-center gap-mx-xs">
+                                                        <Typography variant="h2" tone={sStat.disciplinePct < 80 ? "error" : "success"} className="text-xl font-mono-numbers leading-none">{sStat.disciplinePct}%</Typography>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-4">
+                                            <div className="space-y-mx-sm">
                                                 <div className="flex justify-between items-end">
-                                                    <Typography variant="tiny" tone="muted" className="text-[10px] font-black uppercase tracking-widest opacity-40">Aderência aos Rituais</Typography>
-                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">100%</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase tracking-widest opacity-40">Check-ins Hoje</Typography>
+                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">{sStat.checkedIn}/{sStat.sellers}</Typography>
                                                 </div>
-                                                <div className="h-2 w-full bg-surface-alt rounded-full overflow-hidden p-0.5 shadow-mx-inner border border-border-default">
-                                                    <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} className="h-full bg-status-success rounded-full shadow-mx-sm" />
+                                                <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden p-0.5 shadow-mx-inner border border-border-default">
+                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${sStat.disciplinePct}%` }} transition={{ duration: 1.5 }} className={cn("h-full rounded-full shadow-mx-sm", sStat.disciplinePct < 80 ? "bg-status-error" : "bg-status-success")} />
                                                 </div>
                                             </div>
                                         </CardContent>
 
-                                        <footer className="p-6 border-t border-border-default bg-surface-alt/20 flex gap-3 relative z-10 mt-auto">
-                                            <Button asChild variant="outline" size="sm" className="flex-1 h-12 rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary" aria-label={`Gerenciar metas da loja ${store.name}`}>
+                                        <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex gap-mx-xs relative z-10 mt-auto">
+                                            <Button asChild variant="outline" size="sm" className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary" aria-label={`Gerenciar metas da loja ${store.name}`}>
                                                 <Link to={`/goal-management?id=${store.id}`}>METAS</Link>
                                             </Button>
-                                            <Button asChild variant="secondary" size="sm" className="flex-1 h-12 rounded-mx-lg shadow-mx-md font-black uppercase text-xs" aria-label={`Ver dashboard da loja ${store.name}`}>
-                                                <Link to={`/dashboard?id=${store.id}`}>DASHBOARD</Link>
+                                            <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs" aria-label={`Ver dashboard da loja ${store.name}`}>
+                                                <Link to={`/loja?id=${store.id}`}>DASHBOARD</Link>
                                             </Button>
                                         </footer>
                                     </Card>
                                 </motion.div>
-                            ))}
+                            )})}
                         </AnimatePresence>
                     </div>
                 ) : (
-                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-[3rem] group hover:bg-surface-alt/20 transition-all" role="status">
-                        <div className="w-24 h-24 rounded-mx-3xl bg-surface-alt shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:scale-110 transition-transform" aria-hidden="true">
+                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl group hover:bg-surface-alt/20 transition-all" role="status">
+                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:scale-110 transition-transform" aria-hidden="true">
                             <Building2 size={48} className="text-text-tertiary opacity-20" />
                         </div>
                         <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Vácuo Operacional</Typography>
@@ -139,6 +167,62 @@ export default function Lojas() {
                     </div>
                 )}
             </div>
+
+            {/* Modal de Criação de Unidade */}
+            <AnimatePresence>
+                {isCreateModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-slate-950/60 backdrop-blur-md" role="dialog" aria-modal="true">
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-lg">
+                            <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white overflow-hidden relative">
+                                <form onSubmit={handleCreateStore} className="space-y-mx-xl relative z-10">
+                                    <header className="flex items-center justify-between border-b border-border-default pb-8">
+                                        <div className="flex items-center gap-mx-sm">
+                                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 flex items-center justify-center text-brand-primary border border-mx-indigo-100 shadow-inner"><Building2 size={28} /></div>
+                                            <div>
+                                                <Typography variant="h3">Nova Unidade</Typography>
+                                                <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-widest">Protocolo de Expansão MX</Typography>
+                                            </div>
+                                        </div>
+                                        <Button variant="ghost" size="sm" onClick={() => setIsCreateModalOpen(false)} className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm transition-all"><X size={24} /></Button>
+                                    </header>
+
+                                    <div className="space-y-mx-lg">
+                                        <div className="space-y-mx-xs">
+                                            <Typography variant="caption" className="ml-2 font-black uppercase tracking-widest text-text-tertiary">Nome da Unidade</Typography>
+                                            <Input 
+                                                required autoFocus placeholder="EX: MX SÃO PAULO - LESTE" 
+                                                value={newStore.name} onChange={e => setNewStore(p => ({ ...p, name: e.target.value.toUpperCase() }))}
+                                                className="!h-14 !px-6 font-black uppercase tracking-widest"
+                                            />
+                                        </div>
+                                        <div className="space-y-mx-xs">
+                                            <div className="flex justify-between items-center ml-2">
+                                                <Typography variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">E-mail do Gestor</Typography>
+                                                <Badge variant="outline" className="text-[8px] font-black uppercase">Opcional</Badge>
+                                            </div>
+                                            <div className="relative group">
+                                                <Mail size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                                                <Input 
+                                                    type="email" placeholder="gestor@unidade.com.br"
+                                                    value={newStore.manager_email} onChange={e => setNewStore(p => ({ ...p, manager_email: e.target.value }))}
+                                                    className="!h-14 !pl-14 !px-6 font-bold"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <footer className="pt-10 flex justify-end border-t border-border-default">
+                                        <Button type="submit" disabled={creating} className="h-mx-2xl px-12 rounded-mx-full shadow-mx-xl bg-brand-secondary font-black uppercase tracking-widest">
+                                            {creating ? <RefreshCw className="animate-spin mr-2" /> : <Plus size={20} className="mr-2" />}
+                                            ESTABELECER UNIDADE
+                                        </Button>
+                                    </footer>
+                                </form>
+                            </Card>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </main>
     )
 }
