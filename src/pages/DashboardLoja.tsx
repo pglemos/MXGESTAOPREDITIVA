@@ -119,6 +119,16 @@ export default function DashboardLoja() {
         return gerarDiagnosticoMX(funil)
     }, [checkins])
 
+    const sellersMap = useMemo(() => {
+        const map = new Map();
+        if (sellers) {
+            for (const seller of sellers) {
+                map.set(seller.id, seller);
+            }
+        }
+        return map;
+    }, [sellers])
+
     const filteredRanking = useMemo(() => {
         return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
     }, [metrics.ranking, sellerSearch])
@@ -273,7 +283,7 @@ export default function DashboardLoja() {
                         </CardHeader>
                         
                         <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left">
+                            <table className="w-full text-left min-w-[800px]">
                                 <caption className="sr-only">Ranking de performance dos especialistas da unidade</caption>
                                 <thead>
                                     <tr className="bg-mx-black border-b border-white/5 text-mx-tiny font-black uppercase tracking-mx-wide text-white/20">
@@ -286,13 +296,25 @@ export default function DashboardLoja() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-default">
-                                    {filteredRanking.map((r, i) => (
-                                        <tr key={r.user_id} className="hover:bg-surface-alt/30 transition-colors group h-mx-header">
+                                    {filteredRanking.map((r, i) => {
+                                        const seller = sellersMap.get(r.user_id)
+                                        const isCheckedIn = seller?.checkin_today
+                                        return (
+                                        <tr key={r.user_id} className={cn("hover:bg-surface-alt/30 transition-all group h-20 border-l-4", isCheckedIn ? "border-l-transparent" : "border-l-status-error", r.is_venda_loja && "bg-brand-primary/5")}>
                                             <td className="pl-10 font-black text-sm text-text-tertiary tabular-nums opacity-40">{(i + 1).toString().padStart(2, '0')}</td>
                                             <td className="px-6">
                                                 <div className="flex items-center gap-mx-sm">
-                                                    <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-xs group-hover:bg-brand-primary group-hover:text-white transition-all shadow-mx-inner uppercase" aria-hidden="true">{r.user_name.charAt(0)}</div>
-                                                    <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black">{r.user_name}</Typography>
+                                                    <div className={cn("w-mx-10 h-mx-10 rounded-mx-lg flex items-center justify-center font-black text-xs transition-all shadow-mx-inner uppercase border", r.is_venda_loja ? "bg-brand-primary text-white border-brand-primary" : "bg-surface-alt text-text-primary border-border-default group-hover:bg-brand-primary group-hover:text-white")}>
+                                                        {r.user_name.charAt(0)}
+                                                    </div>
+                                                    <div className="truncate">
+                                                        <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black truncate">{r.user_name}</Typography>
+                                                        {r.is_venda_loja ? (
+                                                            <span className="text-[8px] font-black bg-brand-primary text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>
+                                                        ) : (
+                                                            <p className="text-[8px] font-bold text-text-tertiary uppercase tracking-widest truncate opacity-40">Unidade {metrics.storeName}</p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 text-center font-black text-sm text-text-primary font-mono-numbers opacity-60">{r.leads}</td>
@@ -304,7 +326,7 @@ export default function DashboardLoja() {
                                                 </Badge>
                                             </td>
                                         </tr>
-                                    ))}
+                                    )})}
                                 </tbody>
                             </table>
                         </div>
@@ -321,7 +343,7 @@ export default function DashboardLoja() {
                         
                         <div className="space-y-mx-lg relative z-10">
                             {[
-                                { label: 'Porta (Showroom)', color: 'bg-status-success-surface0', pct: 40, tone: 'success' },
+                                { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: 40, tone: 'success' },
                                 { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: 35, tone: 'info' },
                                 { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: 25, tone: 'brand' },
                             ].map(ch => (
@@ -333,7 +355,7 @@ export default function DashboardLoja() {
                                     <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-mx-inner p-0.5">
                                         <motion.div 
                                             initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5, ease: "circOut" }}
-                                            className={cn("h-full rounded-mx-full shadow-sm transition-all duration-1000", ch.color)} 
+                                            className={cn("h-full rounded-full shadow-sm transition-all duration-1000", ch.color)} 
                                         />
                                     </div>
                                 </div>
