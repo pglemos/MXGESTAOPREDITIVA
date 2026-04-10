@@ -129,28 +129,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (mounted) {
-                const nextUser = session?.user || null
-                setSupabaseUser(nextUser)
+                const nextUser = session?.user || null;
+                setSupabaseUser(nextUser);
                 if (nextUser) {
-                    setInitialized(true)
-                    // Only set loading if user changed
+                    setInitialized(true);
                     if (nextUser.id !== lastLoadedUserIdRef.current) {
-                        setLoading(true)
+                        setLoading(true);
                     }
                 } else if (authBootstrapCompleteRef.current) {
-                    setProfile(null)
-                    setMemberships([])
-                    setActiveStoreId(null)
-                    setFallbackStoreId(null)
-                    setLoading(false)
-                    lastLoadedUserIdRef.current = null
+                    setProfile(null);
+                    setMemberships([]);
+                    setActiveStoreId(null);
+                    setFallbackStoreId(null);
+                    setLoading(false);
+                    lastLoadedUserIdRef.current = null;
                 }
             }
-        })
+        });
 
         return () => {
             mounted = false;
-            subscription.unsubscribe()
+            subscription.unsubscribe();
         }
     }, [])
 
@@ -164,7 +163,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return
             }
 
-            // Safety timeout: force stop loading after 10s even if query hangs
             timeoutId = setTimeout(() => {
                 if (mounted) {
                     console.warn("Audit Warn [useAuth]: loadUserData timeout reached. Forcing loading false.")
@@ -173,15 +171,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }, 10000);
 
             try {
-                console.log(`Audit Info [useAuth]: loading data for user ${userId}...`)
                 const [loadedProfile, loadedMemberships] = await Promise.all([
                     fetchProfile(userId),
                     fetchMemberships(userId)
                 ])
                 
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
-                console.log(`>>> ORION DEBUG: Usuário logado com Role: ${currentRole} | Perfil:`, loadedProfile)
-                
                 if (!loadedMemberships.length && currentRole === 'admin') {
                     await fetchFallbackStoreId()
                 } else {
@@ -211,7 +206,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId])
 
     const signIn = async (email: string, password: string) => {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        console.log('>>> ORION LOGIN TRY:', email);
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+            console.error('>>> ORION LOGIN ERROR:', error.message, error.status);
+        } else {
+            console.log('>>> ORION LOGIN SUCCESS:', data.user?.id);
+        }
         return { error: error?.message || null }
     }
 
