@@ -36,7 +36,7 @@ const AuthContext = createContext<AuthState>({
 })
 
 function normalizeRole(rawRole: string | null | undefined): UserRole {
-    const role = (rawRole || '').toLowerCase()
+    const role = (rawRole || '').toLowerCase().trim()
     if (role === 'admin' || role === 'consultor') return 'admin'
     if (role === 'dono' || role === 'owner') return 'dono'
     if (role === 'gerente' || role === 'manager') return 'gerente'
