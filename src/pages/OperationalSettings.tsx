@@ -34,6 +34,15 @@ export default function OperationalSettings() {
         }
     }, [urlStoreId])
 
+    const handleStoreChange = (newId: string) => {
+        setSelectedStoreId(newId)
+        if (newId) {
+            setSearchParams({ id: newId })
+        } else {
+            setSearchParams({})
+        }
+    }
+
     const [settings, setSettings] = useState({ 
         audit_mode: false, 
         strict_checkin: true, 
@@ -133,7 +142,7 @@ export default function OperationalSettings() {
                             <div className="relative group">
                                 <select
                                     id="store-select"
-                                    value={selectedStoreId} onChange={(e) => setSelectedStoreId(e.target.value)}
+                                    value={selectedStoreId} onChange={(e) => handleStoreChange(e.target.value)}
                                     className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-xl text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner uppercase"
                                 >
                                     <option value="">Selecione a unidade...</option>

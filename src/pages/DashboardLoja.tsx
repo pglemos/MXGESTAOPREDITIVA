@@ -169,15 +169,15 @@ export default function DashboardLoja() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    {(role === 'admin' || role === 'dono') && urlStoreId && (
+                    {(role === 'admin' || role === 'dono') && storeId && (
                         <div className="flex gap-mx-xs mr-mx-md">
                             <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all uppercase font-black tracking-widest text-[10px]">
-                                <Link to={`/configuracoes/operacional?id=${urlStoreId}`}>
+                                <Link to={`/configuracoes/operacional?id=${storeId}`}>
                                     <Settings className="w-mx-xs h-mx-xs mr-mx-xs" /> EDITAR UNIDADE
                                 </Link>
                             </Button>
                             <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-secondary/20 text-brand-secondary hover:bg-brand-secondary hover:text-white transition-all uppercase font-black tracking-widest text-[10px]">
-                                <Link to={`/equipe?id=${urlStoreId}`}>
+                                <Link to={`/equipe?id=${storeId}`}>
                                     <Users className="w-mx-xs h-mx-xs mr-mx-xs" /> GERIR EQUIPE
                                 </Link>
                             </Button>

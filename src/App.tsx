@@ -98,6 +98,11 @@ function RoleRedirect() {
   return <Navigate to="/home" replace />
 }
 
+const GoalManagementRedirect = () => {
+  const location = useLocation()
+  return <Navigate to={`/metas${location.search}`} replace />
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -143,6 +148,7 @@ export default function App() {
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Equipe />} dono={<Equipe />} admin={<Equipe />} />
             </Suspense>} />
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
+            <Route path="goal-management" element={<GoalManagementRedirect />} />
             <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorPDI />} gerente={<GerentePDI />} dono={<GerentePDI />} admin={<GerentePDI />} />

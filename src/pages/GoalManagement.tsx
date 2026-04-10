@@ -16,12 +16,31 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 export default function GoalManagement() {
     const { role } = useAuth()
     const { stores, loading: storesLoading } = useStores()
-    const [selectedStoreId, setSelectedStoreId] = useState('')
+    const [searchParams, setSearchParams] = useSearchParams()
+    const initialId = searchParams.get('id')
+    
+    const [selectedStoreId, setSelectedStoreId] = useState(initialId || '')
+    
+    // Update selectedStoreId if URL changes
+    useEffect(() => {
+        if (initialId && initialId !== selectedStoreId) {
+            setSelectedStoreId(initialId)
+        }
+    }, [initialId, selectedStoreId])
+
+    const handleStoreChange = (newId: string) => {
+        setSelectedStoreId(newId)
+        if (newId) {
+            setSearchParams({ id: newId })
+        } else {
+            setSearchParams({})
+        }
+    }
     
     const { goal, updateGoal, loading: goalLoading } = useStoreGoal(selectedStoreId)
     const { metaRules, updateMetaRules, loading: rulesLoading } = useStoreMetaRules(selectedStoreId)
@@ -31,14 +50,36 @@ export default function GoalManagement() {
     const [saving, setSaving] = useState(false)
     const [hasChanges, setHasChanges] = useState(false)
 
+    // Reset local state when data is fetched or store changes
     useEffect(() => {
-        if (goal) setStoreMeta(goal.target)
-        if (metaRules) setStoreBench({ 
-            lead_to_agend: metaRules.bench_lead_agd || 20, 
-            agend_to_visit: metaRules.bench_agd_visita || 60, 
-            visit_to_sale: metaRules.bench_visita_vnd || 33 
-        })
+        if (goal) {
+            setStoreMeta(goal.target)
+        } else {
+            setStoreMeta(0)
+        }
+
+        if (metaRules) {
+            setStoreBench({ 
+                lead_to_agend: metaRules.bench_lead_agd || 20, 
+                agend_to_visit: metaRules.bench_agd_visita || 60, 
+                visit_to_sale: metaRules.bench_visita_vnd || 33 
+            })
+        } else {
+            setStoreBench({ lead_to_agend: 20, agend_to_visit: 60, visit_to_sale: 33 })
+        }
+        
+        // Reset hasChanges when new data arrives
+        setHasChanges(false)
     }, [goal, metaRules])
+
+    // Reset state immediately when selectedStoreId changes to avoid stale data
+    useEffect(() => {
+        if (selectedStoreId) {
+            setStoreMeta(0)
+            setStoreBench({ lead_to_agend: 20, agend_to_visit: 60, visit_to_sale: 33 })
+            setHasChanges(false)
+        }
+    }, [selectedStoreId])
 
     const handleSave = async () => {
         if (!selectedStoreId) return
@@ -106,7 +147,7 @@ export default function GoalManagement() {
                             <div className="relative group">
                                 <select
                                     value={selectedStoreId}
-                                    onChange={(e) => setSelectedStoreId(e.target.value)}
+                                    onChange={(e) => handleStoreChange(e.target.value)}
                                     className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner"
                                 >
                                     <option value="">Selecione a unidade...</option>

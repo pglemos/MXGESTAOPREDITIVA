@@ -146,9 +146,10 @@ export default function Lojas() {
 
                                         <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex gap-mx-xs relative z-10 mt-auto">
                                             <Button asChild variant="outline" size="sm" className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary" aria-label={`Gerenciar metas da loja ${store.name}`}>
-                                                <Link to={`/goal-management?id=${store.id}`}>METAS</Link>
+                                                <Link to={`/metas?id=${store.id}`}>METAS</Link>
                                             </Button>
                                             <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs" aria-label={`Ver dashboard da loja ${store.name}`}>
+
                                                 <Link to={`/loja?id=${store.id}`}>DASHBOARD</Link>
                                             </Button>
                                         </footer>
