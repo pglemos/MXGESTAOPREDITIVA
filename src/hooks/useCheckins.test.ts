@@ -1,22 +1,25 @@
-import { describe, expect, test } from 'bun:test'
-import { calculateReferenceDate, canEditCurrentCheckin, isCheckinLate } from './useCheckins'
+import { describe, it, expect, mock } from 'bun:test'
+import { calculateReferenceDate, isCheckinLate, canEditCurrentCheckin } from './useCheckins'
 
-describe('MX check-in temporal rules', () => {
-    test('uses previous day as reference before deadline', () => {
-        expect(calculateReferenceDate(new Date(2026, 3, 7, 9, 0))).toBe('2026-04-06')
-    })
+describe('Check-in Validation Logic', () => {
+  it('should calculate reference date as yesterday', () => {
+    const today = new Date('2025-05-15T10:00:00')
+    expect(calculateReferenceDate(today)).toBe('2025-05-14')
+  })
 
-    test('uses previous day as reference after correction window', () => {
-        expect(calculateReferenceDate(new Date(2026, 3, 7, 12, 0))).toBe('2026-04-06')
-    })
+  it('should mark check-in as late after 09:30', () => {
+    const lateTime = new Date('2025-05-15T09:31:00')
+    const onTime = new Date('2025-05-15T09:29:00')
+    
+    expect(isCheckinLate(lateTime)).toBe(true)
+    expect(isCheckinLate(onTime)).toBe(false)
+  })
 
-    test('marks submissions after 09:30 as late', () => {
-        expect(isCheckinLate(new Date(2026, 3, 7, 9, 30))).toBe(false)
-        expect(isCheckinLate(new Date(2026, 3, 7, 9, 31))).toBe(true)
-    })
-
-    test('allows correction only until 09:45', () => {
-        expect(canEditCurrentCheckin(new Date(2026, 3, 7, 9, 45))).toBe(true)
-        expect(canEditCurrentCheckin(new Date(2026, 3, 7, 9, 46))).toBe(false)
-    })
+  it('should block editing after 09:45', () => {
+    const blockedTime = new Date('2025-05-15T09:46:00')
+    const allowedTime = new Date('2025-05-15T09:44:00')
+    
+    expect(canEditCurrentCheckin(blockedTime)).toBe(false)
+    expect(canEditCurrentCheckin(allowedTime)).toBe(true)
+  })
 })

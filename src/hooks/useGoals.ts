@@ -132,7 +132,9 @@ export function useStoreMetaRules(storeIdOverride?: string) {
     return { metaRules, loading, fetchMetaRules, updateMetaRules }
 }
 
-export function useStoreGoal(storeId: string | null) {
+export function useStoreGoal(storeIdOverride?: string | null) {
+    const { storeId: authStoreId } = useAuth()
+    const storeId = storeIdOverride !== undefined ? storeIdOverride : authStoreId
     const [goal, setGoal] = useState<{ target: number } | null>(null)
     const [loading, setLoading] = useState(true)
 
@@ -155,9 +157,10 @@ export function useStoreGoal(storeId: string | null) {
     }, [storeId])
 
     const updateGoal = async (target: number) => {
-        if (!storeId) return { error: 'Loja não selecionada' }
+        const finalStoreId = storeId
+        if (!finalStoreId) return { error: 'Loja não selecionada' }
         const { error } = await supabase.from('store_meta_rules').upsert({
-            store_id: storeId,
+            store_id: finalStoreId,
             monthly_goal: target
         }, { onConflict: 'store_id' })
         if (!error) await fetch()

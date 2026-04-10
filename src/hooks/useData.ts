@@ -277,10 +277,23 @@ export function useNotifications() {
     const fetchNotifications = useCallback(async () => {
         if (!profile) return
         setLoading(true)
-        const { data, error } = await supabase.from('notifications').select('*').eq('recipient_id', profile.id).order('priority', { ascending: false }).order('created_at', { ascending: false }).limit(50)
+        
+        // Simulação de latência para resiliência de UI (apenas em desenvolvimento se necessário)
+        // const delay = (ms: number) => new Promise(res => setTimeout(ms, res))
+        // await delay(1000)
+
+        const { data, error } = await supabase.from('notifications')
+            .select('*')
+            .eq('recipient_id', profile.id)
+            .order('priority', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(50)
+            
         if (!error && data) {
             setNotifications(data)
             setUnreadCount(data.filter(n => !n.read).length)
+        } else if (error) {
+            console.error('Audit Error [useNotifications]: fetch fail ->', error.message)
         }
         setLoading(false)
     }, [profile])

@@ -15,7 +15,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card } from '@/components/molecules/Card'
-import { WizardPDI } from '@/components/pdi/WizardPDI'
+import { WizardPDI } from '@/features/pdi/WizardPDI'
 
 const statusCfg = {
     aberto: { variant: 'danger' as const, label: 'ABERTO' },
