@@ -24,13 +24,45 @@ import { toast } from 'sonner'
 
 export default function DashboardLoja() {
     const { role, profile, storeId: authStoreId, setActiveStoreId, memberships } = useAuth()
-    const { id: paramStoreId } = useParams()
+    const { storeSlug } = useParams()
     const [searchParams] = useSearchParams()
-    const urlStoreId = paramStoreId || searchParams.get('id')
+    
+    const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(null)
+    const [resolving, setResolving] = useState(!!storeSlug)
+
+    // Resolve storeId by slug
+    useEffect(() => {
+        if (!storeSlug) {
+            setResolving(false)
+            return
+        }
+        setResolving(true)
+        
+        // Find in memberships
+        const found = memberships.find(m => m.store?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === storeSlug)
+        
+        if (found) {
+            setResolvedStoreId(found.store_id)
+            setResolving(false)
+        } else if (role === 'admin' || role === 'dono') {
+            // Admins/donos fallback: query db directly to see if store exists and is active
+            import('@/lib/supabase').then(({ supabase }) => {
+                supabase.from('stores').select('id, name').eq('active', true).then(({data}) => {
+                    const match = data?.find(s => s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === storeSlug)
+                    if (match) setResolvedStoreId(match.id)
+                    setResolving(false)
+                })
+            })
+        } else {
+            setResolving(false)
+        }
+    }, [storeSlug, memberships, role])
+
+    const urlStoreId = resolvedStoreId || searchParams.get('id')
     const storeId = urlStoreId || authStoreId
 
     // Redirecionamento de segurança para Admin/Dono sem loja selecionada
-    if (!urlStoreId && (role === 'admin' || role === 'dono')) {
+    if (!resolving && !urlStoreId && (role === 'admin' || role === 'dono')) {
         return <Navigate to={role === 'admin' ? '/painel' : '/lojas'} replace />
     }
 
@@ -56,6 +88,13 @@ export default function DashboardLoja() {
         storeId, 
         viewMode === 'day' ? referenceDate : startDate, 
         viewMode === 'day' ? referenceDate : endDate
+    )
+
+    if (resolving) return (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status" aria-live="polite">
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
+            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Identificando Unidade...</Typography>
+        </div>
     )
 
     const handleRefresh = useCallback(async () => {

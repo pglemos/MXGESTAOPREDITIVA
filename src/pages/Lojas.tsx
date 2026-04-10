@@ -106,6 +106,12 @@ export default function Lojas() {
                         />
                     </div>
                     {role === 'admin' && (
+                        <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny mr-2" role="tablist">
+                            <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-tiny">ATIVAS</Button>
+                            <Button variant={!filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(false)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-tiny">ARQUIVADAS</Button>
+                        </nav>
+                    )}
+                    {role === 'admin' && (
                         <Button onClick={() => setIsCreateModalOpen(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
                             <Plus size={18} className="mr-2" aria-hidden="true" /> NOVA UNIDADE
                         </Button>
@@ -165,13 +171,31 @@ export default function Lojas() {
                                             </div>
                                         </CardContent>
 
-                                        <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex gap-mx-xs relative z-10 mt-auto">
-                                            <Button asChild variant="outline" size="sm" className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary" aria-label={`Gerenciar metas da loja ${store.name}`}>
-                                                <Link to={`/metas?id=${store.id}`}>METAS</Link>
-                                            </Button>
-                                            <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs" aria-label={`Ver dashboard da loja ${store.name}`}>
-                                                <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${store.id}`}>DASHBOARD</Link>
-                                            </Button>
+                                        <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex flex-col sm:flex-row gap-mx-xs relative z-10 mt-auto">
+                                            {store.active ? (
+                                                <>
+                                                    <Button asChild variant="outline" size="sm" className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary">
+                                                        <Link to={`/metas?id=${store.id}`}>METAS</Link>
+                                                    </Button>
+                                                    <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
+                                                        <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>DASHBOARD</Link>
+                                                    </Button>
+                                                    {role === 'admin' && (
+                                                        <Button variant="ghost" size="sm" onClick={() => { if(confirm('Tem certeza que deseja DESATIVAR esta loja? Ela ficará inacessível na rede.')) toggleStoreStatus(store.id, false) }} className="flex-1 h-mx-xl rounded-mx-lg text-status-error hover:bg-status-error hover:text-white font-black uppercase text-xs">
+                                                            DESATIVAR
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                                        RESTAURAR
+                                                    </Button>
+                                                    <Button variant="danger" size="sm" onClick={() => { if(confirm('⚠️ ALERTA VERMELHO: Tem certeza que deseja DELETAR PERMANENTEMENTE esta loja e TODOS OS SEUS DADOS do Supabase? Essa ação é IRREVERSÍVEL.')) deleteStore(store.id) }} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
+                                                        EXCLUIR DEFINITIVO
+                                                    </Button>
+                                                </>
+                                            )}
                                         </footer>
                                     </Card>
                                 </motion.div>

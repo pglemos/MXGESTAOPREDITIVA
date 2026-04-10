@@ -53,7 +53,7 @@ export default function PainelConsultor() {
     const handleStoreClick = (storeId: string, storeName: string) => {
         setActiveStoreId(storeId)
         const slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        navigate(`/loja/${slug}/${storeId}`)
+        navigate(`/loja/${slug}`)
         toast.info('Unidade selecionada para monitoramento.')
     }
 
