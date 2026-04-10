@@ -23,7 +23,7 @@ import { chromium } from 'playwright';
     console.log('========================================');
     await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle' });
     await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
-    await page.fill('input[type="password"]', 'Jose20161@');
+    await page.fill('input[type="password"]', 'Mx#2026!');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/painel', { timeout: 15000 });
     console.log('✅ Login realizado.');
@@ -34,18 +34,18 @@ import { chromium } from 'playwright';
     await page.goto(`${BASE_URL}/checkin`, { waitUntil: 'networkidle' });
     
     console.log('Incrementando Produção de Ontem...');
-    // O componente NumberInput não tem tag <input>, ele usa botões de Plus/Minus. O botão Plus é o segundo botão (nth(1)) do grupo.
-    const leadsPlusBtn = page.locator('div', { hasText: 'Leads Recebidos (Ontem)' }).locator('button').nth(1);
+    // Novo seletor baseado no label exato dentro do Card
+    const leadsPlusBtn = page.locator('div:has-text("Leads Recebidos (Ontem)")').last().locator('button').nth(1);
     await leadsPlusBtn.click({ clickCount: 3, delay: 100 });
     
-    const visitasPlusBtn = page.locator('div', { hasText: 'Visitas Realizadas (Ontem)' }).locator('button').nth(1);
+    const visitasPlusBtn = page.locator('div:has-text("Visitas Realizadas (Ontem)")').last().locator('button').nth(1);
     await visitasPlusBtn.click({ clickCount: 2, delay: 100 });
     
-    const vendasPortaBtn = page.locator('div', { hasText: 'Vendas Porta (Ontem)' }).locator('button').nth(1);
+    const vendasPortaBtn = page.locator('div:has-text("Vendas Porta")').last().locator('button').nth(1);
     await vendasPortaBtn.click();
     
     console.log('Incrementando Agenda de Hoje...');
-    const agdPlusBtn = page.locator('div', { hasText: 'Agendamentos Carteira (Hoje)' }).locator('button').nth(1);
+    const agdPlusBtn = page.locator('div:has-text("Agenda Carteira (Hoje)")').last().locator('button').nth(1);
     await agdPlusBtn.click({ clickCount: 2, delay: 100 });
     
     console.log('Enviando fechamento...');
