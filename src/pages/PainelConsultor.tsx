@@ -14,6 +14,7 @@ import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { Skeleton } from '@/components/atoms/Skeleton'
 import { toast } from 'sonner'
 import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -226,10 +227,39 @@ export default function PainelConsultor() {
     }, [diagnostics])
 
     if (goalsLoading || networkLoading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="animate-spin text-brand-primary w-mx-xl h-mx-xl mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Rede...</Typography>
-        </div>
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10">
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+                <div className="flex gap-mx-sm">
+                    <Skeleton className="h-mx-14 w-64 rounded-mx-full" />
+                    <Skeleton className="h-mx-14 w-48 rounded-mx-full" />
+                </div>
+            </header>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
+                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-32 rounded-mx-2xl" />
+            </div>
+
+            <Card className="p-mx-10 bg-white/50 border-dashed border-2">
+                <div className="flex justify-between mb-8">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-8 w-32" />
+                </div>
+                <div className="space-y-4">
+                    <Skeleton className="h-12 w-full rounded-mx-md" />
+                    <Skeleton className="h-12 w-full rounded-mx-md" />
+                    <Skeleton className="h-12 w-full rounded-mx-md" />
+                    <Skeleton className="h-12 w-full rounded-mx-md" />
+                    <Skeleton className="h-12 w-full rounded-mx-md" />
+                </div>
+            </Card>
+        </main>
     )
 
     return (

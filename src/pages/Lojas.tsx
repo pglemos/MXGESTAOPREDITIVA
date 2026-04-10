@@ -10,6 +10,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
+import { Skeleton } from '@/components/atoms/Skeleton'
 import { Link } from 'react-router-dom'
 
 export default function Lojas() {
@@ -52,10 +53,27 @@ export default function Lojas() {
     }
 
     if (loading && !isRefetching) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status" aria-live="polite">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
-            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Escaneando Unidades...</Typography>
-        </div>
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+                <div className="flex gap-mx-sm">
+                    <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
+                </div>
+            </header>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
+                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-64 rounded-mx-2xl" />
+            </div>
+        </main>
     )
 
     return (
@@ -189,8 +207,9 @@ export default function Lojas() {
 
                                     <div className="space-y-mx-lg">
                                         <div className="space-y-mx-xs">
-                                            <Typography variant="caption" className="ml-2 font-black uppercase tracking-widest text-text-tertiary">Nome da Unidade</Typography>
+                                            <Typography as="label" htmlFor="store-name" variant="caption" className="ml-2 font-black uppercase tracking-widest text-text-tertiary">Nome da Unidade</Typography>
                                             <Input 
+                                                id="store-name"
                                                 required autoFocus placeholder="EX: MX SÃO PAULO - LESTE" 
                                                 value={newStore.name} onChange={e => setNewStore(p => ({ ...p, name: e.target.value.toUpperCase() }))}
                                                 className="!h-14 !px-6 font-black uppercase tracking-widest"
@@ -198,12 +217,13 @@ export default function Lojas() {
                                         </div>
                                         <div className="space-y-mx-xs">
                                             <div className="flex justify-between items-center ml-2">
-                                                <Typography variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">E-mail do Gestor</Typography>
+                                                <Typography as="label" htmlFor="manager-email" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">E-mail do Gestor</Typography>
                                                 <Badge variant="outline" className="text-[8px] font-black uppercase">Opcional</Badge>
                                             </div>
                                             <div className="relative group">
-                                                <Mail size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                                                <Mail size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                                                 <Input 
+                                                    id="manager-email"
                                                     type="email" placeholder="gestor@unidade.com.br"
                                                     value={newStore.manager_email} onChange={e => setNewStore(p => ({ ...p, manager_email: e.target.value }))}
                                                     className="!h-14 !pl-14 !px-6 font-bold"

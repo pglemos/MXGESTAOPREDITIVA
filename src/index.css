@@ -112,6 +112,19 @@
   --shadow-mx-glow-brand: 0 0 20px rgba(79, 70, 229, 0.3);
   --shadow-mx-glow-white: 0 0 20px rgba(255, 255, 255, 0.5);
 
+  /* Indigo Tokens for Design System */
+  --color-mx-indigo-50: #eef2ff;
+  --color-mx-indigo-100: #e0e7ff;
+  --color-mx-indigo-200: #c7d2fe;
+  --color-mx-indigo-300: #a5b4fc;
+  --color-mx-indigo-400: #818cf8;
+  --color-mx-indigo-500: #6366f1;
+  --color-mx-indigo-600: #4f46e5;
+  --color-mx-indigo-700: #4338ca;
+  --color-mx-indigo-800: #3730a3;
+  --color-mx-indigo-900: #312e81;
+  --color-mx-indigo-950: #1e1b4b;
+
   --width-mx-hero: 50vw;
   --height-mx-hero: 50vw;
   --height-mx-chart: 400px;

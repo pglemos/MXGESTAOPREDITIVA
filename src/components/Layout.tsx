@@ -136,7 +136,7 @@ export default function Layout() {
     <div className="min-h-screen bg-surface-alt flex flex-col">
 
       {/* Top Header - Accessibility Hardening */}
-      <header className="h-mx-header w-full px-mx-lg flex items-center justify-between z-40 bg-white border-b border-border-default shrink-0 sticky top-mx-0" role="banner">
+      <header className="h-mx-header w-full px-mx-lg flex items-center justify-between z-50 bg-white border-b border-border-default shrink-0 sticky top-mx-0" role="banner">
         <div className="flex items-center gap-mx-md min-w-0">
           <button
             type="button"
@@ -210,7 +210,7 @@ export default function Layout() {
       <div className="flex flex-1 p-mx-md gap-mx-md relative">
 
         {/* Sidebar Minimalista - Semantic Nav */}
-        <aside className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-mx-3xl h-[calc(100vh-120px)]" aria-label="Menu Lateral Principal">
+        <aside className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-[104px] h-[calc(100vh-120px)]" aria-label="Menu Lateral Principal">
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
             {categories.map((cat) => (
               <button
@@ -253,7 +253,7 @@ export default function Layout() {
             <motion.div
               id="drawer-navigation"
               initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
-              className="absolute left-mx-3xl top-mx-md bottom-mx-md w-mx-sidebar-expanded bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-50 overflow-hidden flex flex-col"
+              className="hidden md:flex absolute left-[128px] top-mx-md bottom-mx-md w-mx-sidebar-expanded bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-40 overflow-hidden flex-col"
               role="navigation"
               aria-label={`Opções do módulo ${activeCategoryData?.category}`}
             >

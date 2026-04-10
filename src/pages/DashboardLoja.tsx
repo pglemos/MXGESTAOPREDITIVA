@@ -129,15 +129,49 @@ export default function DashboardLoja() {
         return map;
     }, [sellers])
 
-    const filteredRanking = useMemo(() => {
-        return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
-    }, [metrics.ranking, sellerSearch])
+    const mixCanais = useMemo(() => {
+        const total = metrics.totalSales || 1
+        const porta = (checkins || []).reduce((acc, c) => acc + (c.vnd_porta_prev_day || 0), 0)
+        const carteira = (checkins || []).reduce((acc, c) => acc + (c.vnd_cart_prev_day || 0), 0)
+        const digital = (checkins || []).reduce((acc, c) => acc + (c.vnd_net_prev_day || 0), 0)
+        
+        return [
+            { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: Math.round((porta / total) * 100), tone: 'success' },
+            { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: Math.round((carteira / total) * 100), tone: 'info' },
+            { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: Math.round((digital / total) * 100), tone: 'brand' },
+        ]
+    }, [checkins, metrics.totalSales])
 
-    if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status" aria-live="polite">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
-            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Consolidando Unidade...</Typography>
-        </div>
+    if (loading && !isRefetching) return (
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+                <div className="flex gap-mx-sm">
+                    <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
+                </div>
+            </header>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
+                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-32 rounded-mx-2xl" />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
+                <section className="xl:col-span-8 flex flex-col gap-mx-lg">
+                    <Skeleton className="h-96 rounded-mx-2xl" />
+                </section>
+                <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
+                    <Skeleton className="h-64 rounded-mx-2xl" />
+                    <Skeleton className="h-48 rounded-mx-2xl" />
+                </aside>
+            </div>
+        </main>
     )
 
     return (
