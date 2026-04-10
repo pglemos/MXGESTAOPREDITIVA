@@ -165,8 +165,16 @@ export function useStores() {
         return { error: null }
     }
 
+    const deleteStore = async (id: string) => {
+        if (role !== 'admin') return { error: 'Apenas admin pode excluir lojas.' }
+        const { error } = await supabase.from('stores').delete().eq('id', id)
+        if (error) return { error: error.message }
+        await fetchStores()
+        return { error: null }
+    }
+
     useEffect(() => { fetchStores() }, [fetchStores])
-    return { stores, loading, createStore, updateStore, refetch: fetchStores }
+    return { stores, loading, createStore, updateStore, deleteStore, refetch: fetchStores }
 }
 
 export function useMemberships() {
