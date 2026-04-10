@@ -17,6 +17,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { AdminNetworkView } from '@/components/admin/AdminNetworkView'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -175,6 +176,13 @@ export default function DashboardLoja() {
                     </Button>
                 </div>
             </header>
+
+            {role === 'admin' && (
+                <div className="mb-mx-lg">
+                    <Typography variant="h2" className="mb-mx-md">Visão Administrativa da Rede</Typography>
+                    <AdminNetworkView />
+                </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
                 <Card className="p-8 border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
