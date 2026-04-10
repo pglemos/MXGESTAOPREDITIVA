@@ -14,10 +14,11 @@ import { Skeleton } from '@/components/atoms/Skeleton'
 import { Link } from 'react-router-dom'
 
 export default function Lojas() {
-    const { stores, loading: storesLoading, refetch: refetchStores, createStore } = useStores()
+    const { stores, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus, deleteStore } = useStores()
     const { stats, loading: statsLoading, refetch: refetchStats } = useStoresStats()
     const { role } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
+    const [filterActive, setFilterActive] = useState(true)
     const [isRefetching, setIsRefetching] = useState(false)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [newStore, setNewStore] = useState({ name: '', manager_email: '' })
@@ -26,8 +27,10 @@ export default function Lojas() {
     const loading = storesLoading || statsLoading
 
     const filteredStores = useMemo(() => {
-        return stores.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    }, [stores, searchTerm])
+        return stores
+            .filter(s => s.active === filterActive)
+            .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    }, [stores, searchTerm, filterActive])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
