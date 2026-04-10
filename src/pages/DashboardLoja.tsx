@@ -24,9 +24,15 @@ import { toast } from 'sonner'
 
 export default function DashboardLoja() {
     const { role, profile, storeId: authStoreId, setActiveStoreId, memberships } = useAuth()
+    const { id: paramStoreId } = useParams()
     const [searchParams] = useSearchParams()
-    const urlStoreId = searchParams.get('id')
+    const urlStoreId = paramStoreId || searchParams.get('id')
     const storeId = urlStoreId || authStoreId
+
+    // Redirecionamento de segurança para Admin/Dono sem loja selecionada
+    if (!urlStoreId && (role === 'admin' || role === 'dono')) {
+        return <Navigate to={role === 'admin' ? '/painel' : '/lojas'} replace />
+    }
 
     // Sync global active store if URL param present
     useEffect(() => {
@@ -192,7 +198,15 @@ export default function DashboardLoja() {
                                 <label htmlFor="store-dashboard-select" className="sr-only">Selecionar unidade</label>
                                 <select 
                                     id="store-dashboard-select"
-                                    value={storeId || ''} onChange={e => setActiveStoreId(e.target.value)}
+                                    value={storeId || ''} 
+                                    onChange={e => {
+                                        const newStoreId = e.target.value
+                                        const newStore = memberships.find(m => m.store_id === newStoreId)
+                                        if (newStore?.store) {
+                                            const slug = newStore.store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                                            window.location.href = `/loja/${slug}/${newStoreId}`
+                                        }
+                                    }}
                                     className="appearance-none bg-transparent text-4xl md:text-5xl font-black text-text-primary tracking-tighter uppercase leading-none outline-none pr-12 cursor-pointer hover:text-brand-primary transition-colors focus-visible:ring-4 focus-visible:ring-brand-primary/10 rounded-mx-md"
                                 >
                                     {memberships.map(m => (

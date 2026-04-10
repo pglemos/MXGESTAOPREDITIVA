@@ -167,8 +167,7 @@ export default function Lojas() {
                                                 <Link to={`/metas?id=${store.id}`}>METAS</Link>
                                             </Button>
                                             <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs" aria-label={`Ver dashboard da loja ${store.name}`}>
-
-                                                <Link to={`/loja?id=${store.id}`}>DASHBOARD</Link>
+                                                <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${store.id}`}>DASHBOARD</Link>
                                             </Button>
                                         </footer>
                                     </Card>

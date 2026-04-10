@@ -136,7 +136,7 @@ export default function Layout() {
     <div className="min-h-screen bg-surface-alt flex flex-col">
 
       {/* Top Header - Accessibility Hardening */}
-      <header className="h-mx-header w-full px-mx-lg flex items-center justify-between z-50 bg-white border-b border-border-default shrink-0 sticky top-mx-0" role="banner">
+      <header className="h-mx-header w-full px-mx-lg flex items-center justify-between z-60 bg-white border-b border-border-default shrink-0 sticky top-mx-0" role="banner">
         <div className="flex items-center gap-mx-md min-w-0">
           <button
             type="button"
@@ -210,7 +210,11 @@ export default function Layout() {
       <div className="flex flex-1 p-mx-md gap-mx-md relative">
 
         {/* Sidebar Minimalista - Semantic Nav */}
-        <aside className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-[104px] h-[calc(100vh-120px)]" aria-label="Menu Lateral Principal">
+        <aside 
+          className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-[104px] h-[calc(100vh-120px)] z-[60]" 
+          aria-label="Menu Lateral Principal"
+          onMouseLeave={() => setIsDrawerOpen(false)}
+        >
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
             {categories.map((cat) => (
               <button
@@ -219,6 +223,7 @@ export default function Layout() {
                 aria-expanded={isDrawerOpen && activeCategory === cat.category}
                 aria-controls="drawer-navigation"
                 key={cat.category}
+                onMouseEnter={() => { setActiveCategory(cat.category); setIsDrawerOpen(true) }}
                 onClick={() => { setActiveCategory(cat.category); setIsDrawerOpen(true) }}
                 className={cn(
                   "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
@@ -226,7 +231,7 @@ export default function Layout() {
                 )}
               >
                 {cat.icon}
-                <div className="absolute left-[calc(100%+16px)] px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-nowrap shadow-mx-lg" role="tooltip">
+                <div className="absolute left-[calc(100%+16px)] px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
                   {cat.category}
                 </div>
               </button>
@@ -252,10 +257,12 @@ export default function Layout() {
           {isDrawerOpen && (
             <motion.div
               id="drawer-navigation"
-              initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
-              className="hidden md:flex absolute left-[128px] top-mx-md bottom-mx-md w-mx-sidebar-expanded bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-40 overflow-hidden flex-col"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="hidden md:flex absolute left-[136px] top-mx-md bottom-mx-md w-mx-sidebar-expanded bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-50 overflow-hidden flex flex-col"
               role="navigation"
               aria-label={`Opções do módulo ${activeCategoryData?.category}`}
+              onMouseEnter={() => setIsDrawerOpen(true)}
+              onMouseLeave={() => setIsDrawerOpen(false)}
             >
               <div className="p-mx-lg border-b border-border-subtle flex items-center justify-between bg-surface-alt/30">
                 <Typography variant="caption" className="font-black uppercase tracking-widest">{activeCategoryData?.category}</Typography>
@@ -351,10 +358,9 @@ export default function Layout() {
       {/* Mobile Bar - Semantic Nav */}
       <nav className="md:hidden fixed bottom-mx-sm left-mx-sm right-mx-sm h-mx-2xl bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden" aria-label="Barra de Navegação Rápida">
         <div className="flex w-full justify-between items-center relative z-10">
-          <NavLink 
-            to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : '/lojas'} 
-            aria-label="Início"
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+          <NavLink
+            to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}
+            aria-label="Início"            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
           </NavLink>

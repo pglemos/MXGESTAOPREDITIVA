@@ -50,9 +50,10 @@ export default function PainelConsultor() {
     const [showCustomPicker, setShowCustomPicker] = useState(false)
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'sales', direction: 'desc' })
 
-    const handleStoreClick = (storeId: string) => {
+    const handleStoreClick = (storeId: string, storeName: string) => {
         setActiveStoreId(storeId)
-        navigate('/loja')
+        const slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        navigate(`/loja/${slug}/${storeId}`)
         toast.info('Unidade selecionada para monitoramento.')
     }
 
@@ -439,9 +440,9 @@ export default function PainelConsultor() {
                                     <tr 
                                         key={store.id} 
                                         className="hover:bg-brand-primary-surface/10 transition-colors group h-mx-3xl cursor-pointer"
-                                        onClick={() => handleStoreClick(store.id)}
+                                        onClick={() => handleStoreClick(store.id, store.name)}
                                         tabIndex={0}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleStoreClick(store.id)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleStoreClick(store.id, store.name)}
                                         role="button"
                                         aria-label={`Ver detalhes da unidade ${store.name}`}
                                     >
