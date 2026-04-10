@@ -15,6 +15,8 @@
     "lint:tokens": "node scripts/lint-tokens.js",
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "deploy": "vercel --prod",
     "fix:admin-access": "tsx scripts/fix_admin_access.ts",
     "seed:sandbox:live": "tsx scripts/seed_live_sandbox.ts",

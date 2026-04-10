@@ -3,18 +3,20 @@ import { useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useTrainings } from '@/hooks/useData'
-import { calcularAtingimento, calcularProjecao, calcularFaltaX, getDiasInfo, somarVendas, somarVendasPorCanal, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
+import { useTacticalPrescription } from '@/hooks/useTacticalPrescription'
+import { useSellerMetrics } from '@/hooks/useSellerMetrics'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Target, TrendingUp, Trophy, CheckSquare, Car, Users, Globe, BarChart3, AlertTriangle, ArrowRight, Star, ArrowUpRight, Zap, Sparkles, LayoutDashboard, Crown, Flame, RefreshCw, Phone, CalendarDays, History, GraduationCap, Play, Clock } from 'lucide-react'
-import { useMemo, useCallback, useState, useEffect } from 'react'
+import { Target, TrendingUp, Trophy, Car, Users, Globe, BarChart3, ArrowRight, Crown, Flame, RefreshCw, CalendarDays, History, GraduationCap, Play, Clock } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { startOfWeek } from 'date-fns'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { Card } from '@/components/molecules/Card'
+import { Skeleton } from '@/components/atoms/Skeleton'
+import { MXScoreCard } from '@/components/molecules/MXScoreCard'
 
 export default function VendedorHome() {
     const { profile } = useAuth()
@@ -24,6 +26,10 @@ export default function VendedorHome() {
     const { trainings, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
     const [isRefetching, setIsRefetching] = useState(false)
     const navigate = useNavigate()
+
+    // 🧠 Specialized Logic Sharding
+    const tacticalPrescription = useTacticalPrescription({ checkins, trainings, userId: profile?.id })
+    const metrics = useSellerMetrics({ checkins, todayCheckin, profile, sellerGoals, storeGoal, ranking })
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -37,97 +43,38 @@ export default function VendedorHome() {
         toast.success('Cockpit de performance atualizado!')
     }, [refetchCheckins, refetchGoals, refetchRanking, refetchTrainings])
 
-    const tacticalPrescription = useMemo(() => {
-        if (!checkins.length || !trainings.length) return null
-        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString().split('T')[0]
-        const recentCheckins = checkins.filter(c => c.seller_user_id === profile?.id && c.reference_date >= weekStart)
-        if (recentCheckins.length === 0) return null
-
-        const funil = calcularFunil(recentCheckins)
-        const diag = gerarDiagnosticoMX(funil)
-        if (!diag.gargalo) return null
-
-        const categoryMap: Record<string, string> = {
-            'LEAD_AGD': 'prospeccao',
-            'AGD_VISITA': 'atendimento',
-            'VISITA_VND': 'fechamento'
-        }
-
-        const category = categoryMap[diag.gargalo]
-        const recommended = trainings.find(t => t.type === category && !t.watched)
-        if (!recommended) return null
-
-        return { gargalo: diag.gargalo, label: diag.diagnostico, training: recommended }
-    }, [checkins, trainings, profile?.id])
-
-    const metrics = useMemo(() => {
-        const myCheckins = checkins.filter(c => c.seller_user_id === profile?.id)
-        const vendasMes = somarVendas(myCheckins)
-        const porCanal = somarVendasPorCanal(myCheckins)
-        const dias = getDiasInfo()
-
-        const myGoal = sellerGoals.find(g => g.user_id === profile?.id)
-        const meta = myGoal?.target || (storeGoal ? Math.round(storeGoal.target / Math.max(ranking.length, 1)) : 0)
-        const atingimento = calcularAtingimento(vendasMes, meta)
-        const projecao = calcularProjecao(vendasMes, dias.decorridos, dias.total)
-        const faltaX = calcularFaltaX(meta, vendasMes)
-        const myRank = ranking.find(r => r.user_id === profile?.id)
-        const myRankIndex = ranking.findIndex(r => r.user_id === profile?.id)
-        const competitors = {
-            above: myRankIndex > 0 ? ranking[myRankIndex - 1] : null,
-            below: myRankIndex < ranking.length - 1 ? ranking[myRankIndex + 1] : null
-        }
-
-        const yesterdayStr = new Date(); yesterdayStr.setDate(yesterdayStr.getDate() - 1)
-        const yesterdayFormatted = yesterdayStr.toISOString().split('T')[0]
-        const checkinOntem = myCheckins.find(c => c.reference_date === yesterdayFormatted)
-        
-        const vendasOntem = checkinOntem ? (checkinOntem.vnd_porta_prev_day || 0) + (checkinOntem.vnd_cart_prev_day || 0) + (checkinOntem.vnd_net_prev_day || 0) : 0
-        const agendamentosHoje = todayCheckin ? (todayCheckin.agd_cart_today || 0) + (todayCheckin.agd_net_today || 0) : 0
-
-        const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7)
-        const weekStr = weekAgo.toISOString().split('T')[0]
-        const vendasSemana = somarVendas(myCheckins.filter(c => c.reference_date >= weekStr))
-
-        return { 
-            vendasMes, porCanal, meta, atingimento, projecao, myRank, 
-            vendasOntem, agendamentosHoje, vendasSemana, competitors 
-        }
-    }, [checkins, profile, sellerGoals, storeGoal, ranking, todayCheckin])
-
-
-    if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading) return (
-        <div className="flex flex-col items-center justify-center min-h-screen w-full h-full bg-surface-alt">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Sincronizando Suas Metas...</Typography>
-        </div>
-    )
-
-    const StatCard = ({ icon: Icon, label, value, sub, tone, index }: any) => (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-        >
-            <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg bg-white">
-                <div className="flex items-start justify-between mb-8 relative z-10">
-                    <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
-                        tone === 'success' ? "bg-status-success-surface border-mx-emerald-100 text-status-success" : 
-                        tone === 'info' ? "bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary" : 
-                        tone === 'warning' ? "bg-status-warning-surface border-mx-amber-100 text-status-warning" : 
-                        "bg-mx-black text-brand-primary border-white/5")}>
-                        <Icon size={24} strokeWidth={2.5} />
-                    </div>
+    if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading || !metrics) return (
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-4 w-48" />
                 </div>
-                <div className="relative z-10">
-                    <Typography variant="tiny" tone="muted" className="mb-2 block uppercase font-black">{label}</Typography>
-                    <div className="flex items-baseline gap-mx-xs">
-                        <Typography variant="h1" className="text-4xl tabular-nums leading-none tracking-tighter">{value}</Typography>
-                        {sub && <Badge variant="outline" className="text-tiny font-black uppercase border-border-strong px-2">{sub}</Badge>}
-                    </div>
+                <div className="flex gap-mx-sm">
+                    <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-48 rounded-mx-3xl" />
+                </div>
+            </header>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg">
+                <MXScoreCard.Skeleton />
+                <MXScoreCard.Skeleton />
+                <MXScoreCard.Skeleton />
+                <MXScoreCard.Skeleton />
+            </div>
+
+            <Card className="p-mx-10 bg-white/50 border-dashed border-2">
+                <div className="flex justify-between mb-8">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-8 w-32" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg">
+                    <Skeleton className="h-64 rounded-mx-2xl" />
+                    <Skeleton className="h-72 rounded-mx-2xl" />
+                    <Skeleton className="h-64 rounded-mx-2xl" />
                 </div>
             </Card>
-        </motion.div>
+        </main>
     )
 
     return (
@@ -213,10 +160,10 @@ export default function VendedorHome() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
-                <StatCard index={0} icon={History} label="Produção Ontem" value={metrics.vendasOntem} sub="CONSOLIDADO" tone="success" />
-                <StatCard index={1} icon={CalendarDays} label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="COMPROMISSOS" tone="info" />
-                <StatCard index={2} icon={Zap} label="Projeção MX" value={metrics.projecao} sub="PREDICTIVE" />
-                <StatCard index={3} icon={Target} label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} tone="warning" />
+                <MXScoreCard label="Produção Ontem" value={metrics.vendasOntem} sub="CONSOLIDADO" icon={History} tone="success" />
+                <MXScoreCard label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="COMPROMISSOS" icon={CalendarDays} tone="brand" />
+                <MXScoreCard label="Projeção MX" value={metrics.projecao} sub="PREDICTIVE" icon={Zap} tone="brand" />
+                <MXScoreCard label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} icon={Target} tone="warning" />
             </div>
 
             <Card className="bg-surface-alt/50 p-mx-10 md:p-14 border-border-default shadow-mx-sm relative overflow-hidden group">
@@ -234,8 +181,8 @@ export default function VendedorHome() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg relative z-10 items-stretch">
-                    <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center", metrics.competitors.above ? "bg-white border-mx-amber-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
-                        {metrics.competitors.above ? (
+                    <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center", metrics.competitors?.above ? "bg-white border-mx-amber-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
+                        {metrics.competitors?.above ? (
                             <>
                                 <Typography variant="tiny" tone="warning" className="mb-6 block font-black uppercase">Próximo Alvo</Typography>
                                 <div className="flex items-center gap-mx-sm mb-8">
@@ -276,8 +223,8 @@ export default function VendedorHome() {
                         </div>
                     </Card>
 
-                    <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center", metrics.competitors.below ? "bg-white border-mx-rose-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
-                        {metrics.competitors.below ? (
+                    <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center", metrics.competitors?.below ? "bg-white border-mx-rose-100 shadow-mx-md" : "bg-surface-alt/50 border-border-default opacity-40")}>
+                        {metrics.competitors?.below ? (
                             <>
                                 <Typography variant="tiny" tone="error" className="mb-6 block uppercase font-black">Na sua retaguarda</Typography>
                                 <div className="flex items-center gap-mx-sm mb-8">

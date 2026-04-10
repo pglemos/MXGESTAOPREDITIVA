@@ -2,6 +2,7 @@ import { Trophy, Car, ShieldCheck, Crown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { Skeleton } from '@/components/atoms/Skeleton'
 
 interface MXScoreCardProps {
   label: string
@@ -32,6 +33,23 @@ export function MXScoreCard({ label, value, sub, icon: Icon, tone }: MXScoreCard
         )}>
           <Icon size={22} strokeWidth={2.5} />
         </div>
+      </div>
+    </Card>
+  )
+}
+
+MXScoreCard.Skeleton = function MXScoreCardSkeleton() {
+  return (
+    <Card className="p-mx-lg border-none shadow-mx-sm bg-white overflow-hidden relative">
+      <div className="flex items-center justify-between">
+        <div className="space-y-mx-sm flex-1">
+          <Skeleton className="h-3 w-20" />
+          <div className="flex items-baseline gap-mx-xs">
+            <Skeleton className="h-9 w-12" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+        <Skeleton className="h-mx-xl w-mx-xl rounded-mx-xl" />
       </div>
     </Card>
   )
