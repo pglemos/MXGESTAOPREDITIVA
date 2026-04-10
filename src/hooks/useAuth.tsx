@@ -78,8 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error && !isTransientFetchError(error)) {
             console.error('Audit Error [useAuth]: fetchMemberships fail ->', error.message)
         }
-        
-        const result = (data || []) as StoreMembership[]
+
+        // Isolamento de Estado (Soft Delete): Lojas inativas não são exibidas na rede
+        const result = (data || []).filter((m: any) => m.store?.active) as StoreMembership[]
+
         setMemberships(result)
         setActiveStoreId(current => {
             if (current && result.some(m => m.store_id === current)) return current
@@ -177,6 +179,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 ])
                 
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+                
+                // Ejeção Ativa (Sessões Existentes): Se o usuário perder a loja ativada enquanto logado
+                if (currentRole !== 'admin' && loadedMemberships.length === 0) {
+                    console.warn('>>> ZERO TRUST EJECT: Sessão derrubada por inatividade de unidade.');
+                    await supabase.auth.signOut()
+                    setSupabaseUser(null)
+                    setProfile(null)
+                    setMemberships([])
+                    return // Aborta o carregamento
+                }
+
                 if (!loadedMemberships.length && currentRole === 'admin') {
                     await fetchFallbackStoreId()
                 } else {
@@ -208,12 +221,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const signIn = async (email: string, password: string) => {
         console.log('>>> ORION LOGIN TRY:', email);
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        
         if (error) {
             console.error('>>> ORION LOGIN ERROR:', error.message, error.status);
-        } else {
-            console.log('>>> ORION LOGIN SUCCESS:', data.user?.id);
+            return { error: error.message }
         }
-        return { error: error?.message || null }
+
+        if (data?.user) {
+            console.log('>>> ORION LOGIN SUCCESS:', data.user.id);
+            
+            // Trava Zero Trust: Validar acesso operacional antes de liberar a interface
+            const [loadedProfile, loadedMemberships] = await Promise.all([
+                fetchProfile(data.user.id),
+                fetchMemberships(data.user.id)
+            ])
+            
+            const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+            
+            if (currentRole !== 'admin' && loadedMemberships.length === 0) {
+                console.warn('>>> ZERO TRUST BLOCK: Usuário tentou acessar sistema sem lojas ativas.');
+                await supabase.auth.signOut()
+                setSupabaseUser(null)
+                setProfile(null)
+                setMemberships([])
+                return { error: 'ACESSO BLOQUEADO: Sua unidade operacional foi desativada da Malha MX.' }
+            }
+        }
+        
+        return { error: null }
     }
 
     const signOut = async () => {
