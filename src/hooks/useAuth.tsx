@@ -180,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 ])
                 
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
-                console.log(`Audit Info [useAuth]: data loaded. Role: ${currentRole}, Memberships: ${loadedMemberships.length}`)
+                console.log(`>>> ORION DEBUG: Usuário logado com Role: ${currentRole} | Perfil:`, loadedProfile)
                 
                 if (!loadedMemberships.length && currentRole === 'admin') {
                     await fetchFallbackStoreId()
