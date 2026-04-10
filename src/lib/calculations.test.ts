@@ -190,6 +190,31 @@ describe('calcularProjecao', () => {
   it('should return 0 when sales are 0', () => {
     expect(calcularProjecao(0, 10, 30)).toBe(0)
   })
+
+  it('should return 0 when diasDecorridos is negative', () => {
+    expect(calcularProjecao(10, -5, 30)).toBe(0)
+  })
+
+  it('should handle negative sales correctly (e.g. returns negative projection)', () => {
+    expect(calcularProjecao(-10, 5, 30)).toBe(-60)
+  })
+
+  it('should handle negative totalDias correctly (e.g. returns negative projection)', () => {
+    expect(calcularProjecao(10, 5, -30)).toBe(-60)
+  })
+
+  it('should calculate projection even if diasDecorridos > totalDias', () => {
+    // 10 sales / 40 days elapsed * 30 total days = 7.5 -> 8
+    expect(calcularProjecao(10, 40, 30)).toBe(8)
+  })
+
+  it('should handle fractional inputs correctly', () => {
+    expect(calcularProjecao(10.5, 5.5, 30.5)).toBe(58)
+  })
+
+  it('should handle large numbers without precision issues', () => {
+    expect(calcularProjecao(1000000, 15, 30)).toBe(2000000)
+  })
 })
 
 describe('calcularRitmo', () => {
