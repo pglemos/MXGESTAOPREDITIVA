@@ -19,7 +19,7 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { AdminNetworkView } from '@/components/admin/AdminNetworkView'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, useParams, Link, Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 export default function DashboardLoja() {
