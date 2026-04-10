@@ -164,21 +164,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return
             }
 
-            // Safety timeout: force stop loading after 8s
+            // Safety timeout: force stop loading after 10s even if query hangs
             timeoutId = setTimeout(() => {
                 if (mounted) {
-                    console.warn("Audit Warn [useAuth]: loadUserData timeout reached.")
+                    console.warn("Audit Warn [useAuth]: loadUserData timeout reached. Forcing loading false.")
                     setLoading(false)
                 }
-            }, 8000);
+            }, 10000);
 
             try {
+                console.log(`Audit Info [useAuth]: loading data for user ${userId}...`)
                 const [loadedProfile, loadedMemberships] = await Promise.all([
                     fetchProfile(userId),
                     fetchMemberships(userId)
                 ])
                 
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+                console.log(`Audit Info [useAuth]: data loaded. Role: ${currentRole}, Memberships: ${loadedMemberships.length}`)
                 
                 if (!loadedMemberships.length && currentRole === 'admin') {
                     await fetchFallbackStoreId()
