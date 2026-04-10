@@ -114,7 +114,7 @@ export default function PainelConsultor() {
             let from = 0;
             while (true) {
                 const { data, error } = await originalSupabase.from('daily_checkins')
-                    .select('store_id, vnd_net_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, leads_prev_day, agd_net_prev_day, agd_cart_prev_day, visit_prev_day')
+                    .select('*')
                     .gte('reference_date', range.start)
                     .lte('reference_date', range.end)
                     .range(from, from + 999);
@@ -140,10 +140,10 @@ export default function PainelConsultor() {
             for (const checkin of allCheckins) {
                 const sid = checkin.store_id
                 if (!salesMap[sid]) salesMap[sid] = { total: 0, leads: 0, agd: 0, vis: 0 }
-                salesMap[sid].total += Number(checkin.vnd_net || 0) + Number(checkin.vnd_porta || 0) + Number(checkin.vnd_cart || 0)
-                salesMap[sid].leads += Number(checkin.leads || 0)
-                salesMap[sid].agd += Number(checkin.agd_net || 0) + Number(checkin.agd_cart || 0)
-                salesMap[sid].vis += Number(checkin.visitas || 0)
+                salesMap[sid].total += Number(checkin.vnd_net_prev_day || 0) + Number(checkin.vnd_porta_prev_day || 0) + Number(checkin.vnd_cart_prev_day || 0)
+                salesMap[sid].leads += Number(checkin.leads_prev_day || 0)
+                salesMap[sid].agd += Number(checkin.agd_net_today || 0) + Number(checkin.agd_cart_today || 0)
+                salesMap[sid].vis += Number(checkin.visit_prev_day || 0)
             }
 
             const sellerMap = new Map<string, number>()

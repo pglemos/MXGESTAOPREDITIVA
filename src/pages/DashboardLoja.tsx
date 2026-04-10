@@ -63,7 +63,7 @@ export default function DashboardLoja() {
             is_venda_loja: s.is_venda_loja || false,
             vnd_total: somarVendas(checkins.filter(c => c.seller_user_id === s.id) as any),
             leads: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
-            agd_total: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0), 0),
+            agd_total: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0),
             visitas: checkins.filter(c => c.seller_user_id === s.id).reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
             meta: storeGoal?.target || 0,
             atingimento: 0,
