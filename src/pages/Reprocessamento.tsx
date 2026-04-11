@@ -37,7 +37,7 @@ export default function Reprocessamento() {
     }, [])
 
     const fetchHistory = useCallback(async () => {
-        const { data } = await supabase.from('import_logs').select(`*, store:stores(name)`).order('created_at', { ascending: false })
+        const { data } = await supabase.from('reprocess_logs').select(`*, store:stores(name)`).order('created_at', { ascending: false })
         if (data) setHistory(data.map(h => ({ ...h, store_name: (h as any).store?.name })))
     }, [])
 
@@ -76,22 +76,61 @@ export default function Reprocessamento() {
                 addLog('FALHA CRÍTICA: Estrutura de dados incompatível.', 'error')
                 result.errors.forEach(e => addLog(e, 'error'))
                 toast.error('Massa de dados inválida.')
-            } else {
-                addLog(`Validação concluída. ${result.summary.validRows} registros íntegros localizados.`, 'success')
-                if (result.warnings.length > 0) {
-                    addLog(`${result.warnings.length} inconsistências menores ignoradas.`, 'warning')
-                }
-                
-                addLog('Iniciando persistência em banco (UPSERT mode)...', 'info')
-                // No mundo real aqui chamaríamos a RPC ou Edge Function
-                await new Promise(r => setTimeout(r, 1500))
-                
-                addLog(`SINCRONIZAÇÃO FINALIZADA: ${result.summary.validRows} linhas afetadas.`, 'success')
-                toast.success('Dados integrados à malha MX!')
-                fetchHistory()
+                setProcessing(false)
+                return
             }
-        } catch (err) {
-            addLog('ERRO DE SISTEMA: Falha no processamento do arquivo.', 'error')
+
+            addLog(`Validação concluída. ${result.summary.validRows} registros íntegros localizados.`, 'success')
+            
+            // 1. Criar Log de Reprocessamento
+            addLog('Criando lote de reprocessamento...', 'info')
+            const { data: log, error: logError } = await supabase.from('reprocess_logs').insert({
+                store_id: selectedStoreId,
+                source_type: 'csv_import',
+                triggered_by: (await supabase.auth.getUser()).data.user?.id,
+                status: 'pending'
+            }).select().single()
+
+            if (logError) throw new Error(logError.message)
+            addLog(`Lote ${log.id.split('-')[0]} aberto.`, 'success')
+
+            // 2. Inserir Dados Brutos (Chunks de 100)
+            addLog(`Preparando injeção de ${result.records.length} registros...`, 'info')
+            const chunkSize = 100
+            for (let i = 0; i < result.records.length; i += chunkSize) {
+                const chunk = result.records.slice(i, i + chunkSize)
+                const { error: rawError } = await supabase.from('raw_imports').insert(
+                    chunk.map(r => ({ log_id: log.id, raw_data: r }))
+                )
+                if (rawError) throw new Error(rawError.message)
+                addLog(`Injetado: ${Math.min(i + chunkSize, result.records.length)}/${result.records.length}`, 'info')
+            }
+
+            // 3. Disparar Processamento
+            addLog('Disparando processamento de domínio (RPC)...', 'info')
+            const { error: rpcError } = await supabase.rpc('process_import_data', { p_log_id: log.id })
+            if (rpcError) throw new Error(rpcError.message)
+
+            // 4. Aguardar Conclusão
+            addLog('Aguardando reconciliação de dados...', 'info')
+            let attempts = 0
+            while (attempts < 30) {
+                const { data: statusCheck } = await supabase.from('reprocess_logs').select('status, records_processed, records_failed').eq('id', log.id).single()
+                if (statusCheck?.status === 'completed') {
+                    addLog(`SINCRONIZAÇÃO FINALIZADA: ${statusCheck.records_processed} linhas processadas com sucesso.`, 'success')
+                    if (statusCheck.records_failed > 0) addLog(`ALERTA: ${statusCheck.records_failed} registros falharam.`, 'warning')
+                    break
+                }
+                if (statusCheck?.status === 'failed') throw new Error('O motor de processamento reportou falha crítica.')
+                await new Promise(r => setTimeout(r, 1000))
+                attempts++
+            }
+            
+            toast.success('Dados integrados à malha MX!')
+            fetchHistory()
+        } catch (err: any) {
+            addLog(`ERRO DE SISTEMA: ${err.message}`, 'error')
+            toast.error('Falha na injeção de massa.')
         } finally {
             setProcessing(false)
         }

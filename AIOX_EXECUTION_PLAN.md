@@ -83,5 +83,9 @@ A missão foi converter o Backlog Operacional Executável (v1.1) em código-font
   - Tabela matricial cruzada (Vendedores x Treinamentos) em `GerenteTreinamentos.tsx`.
   - Funcionalidade de cobrança cirúrgica ("Cobrar Tropa") via notificações de sistema.
 
+- **[DONE] Fase 4: Hardening Responsivo Mobile**
+  - Refatoração de grades rígidas (`grid-cols-2`) para layouts fluidos (`grid-cols-1 sm:grid-cols-2`) nos dashboards de Gerente e Vendedor.
+  - Ajuste de espaçamentos e gaps para garantir legibilidade em telas estreitas.
+
 ---
-**Status da Operação *yolo**: 🟢 MISSION ACCOMPLISHED. Todos os épicos metodológicos (00 a 13) e a evolução v1.1 implementados e integrados à branch principal.
+**Status da Operação *yolo**: 🟢 MISSION ACCOMPLISHED. Todos os épicos metodológicos (00 a 13) e a evolução v1.1 (incluindo hardening mobile e atômico) implementados e integrados à branch principal.

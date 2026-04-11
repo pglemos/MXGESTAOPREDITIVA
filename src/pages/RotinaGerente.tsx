@@ -240,7 +240,7 @@ export default function RotinaGerente() {
                                             </div>
                                             <Badge variant="outline" className="text-white border-white/20 px-4 py-1 uppercase font-black text-tiny">Real-time</Badge>
                                         </header>
-                                        <div className="grid grid-cols-2 gap-mx-10">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
                                             <div>
                                                 <Typography variant="tiny" tone="white" className="opacity-40 mb-2 block uppercase font-black">AGENDAMENTOS</Typography>
                                                 <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none tracking-tighter">{totalAgendamentosHoje}</Typography>

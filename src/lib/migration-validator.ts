@@ -13,6 +13,7 @@ export interface ValidationResult {
         storesFound: string[]
         sellersFound: string[]
     }
+    records: any[]
 }
 
 export function validateLegacyCSV(text: string): ValidationResult {
@@ -21,7 +22,8 @@ export function validateLegacyCSV(text: string): ValidationResult {
         isValid: true,
         errors: [],
         warnings: [],
-        summary: { totalRows: 0, validRows: 0, storesFound: [], sellersFound: [] }
+        summary: { totalRows: 0, validRows: 0, storesFound: [], sellersFound: [] },
+        records: []
     }
 
     if (lines.length < 2) {
@@ -30,12 +32,27 @@ export function validateLegacyCSV(text: string): ValidationResult {
         return result
     }
 
+    // Identificar cabeçalhos e mapear índices
     const headers = lines[0].split(',').map(h => h.trim().toUpperCase())
-    result.summary.totalRows = lines.length - 1
+    const getIdx = (name: string) => headers.findIndex(h => h.includes(name.toUpperCase()))
 
-    // 1. Validação de Colunas Obrigatórias
-    const required = ['DATA', 'LOJA', 'VENDEDOR', 'LEADS', 'VISITA', 'VND_PORTA']
-    const missing = required.filter(r => !headers.some(h => h.includes(r)))
+    const idxMap = {
+        data: getIdx('DATA'),
+        loja: getIdx('LOJA'),
+        vendedor: getIdx('VENDEDOR'),
+        leads: getIdx('LEADS'),
+        agd_cart: getIdx('AGD_CART'),
+        agd_net: getIdx('AGD_NET'),
+        vnd_porta: getIdx('VND_PORTA'),
+        vnd_cart: getIdx('VND_CART'),
+        vnd_net: getIdx('VND_NET'),
+        visita: getIdx('VISITA'),
+        motivo_zero: getIdx('MOTIVO_ZERO')
+    }
+
+    // Validar colunas críticas (Conforme RPC process_import_data)
+    const required = ['DATA', 'LOJA', 'VENDEDOR']
+    const missing = required.filter(r => getIdx(r) === -1)
     
     if (missing.length > 0) {
         result.isValid = false
@@ -43,36 +60,53 @@ export function validateLegacyCSV(text: string): ValidationResult {
         return result
     }
 
-    // 2. Validação de Conteúdo (Amostra das primeiras 100 linhas)
+    result.summary.totalRows = lines.length - 1
     const storeSet = new Set<string>()
     const sellerSet = new Set<string>()
-    let validCount = 0
 
     for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim())
+        const values = parseCSVLine(lines[i])
         if (values.length < headers.length) {
             if (i < 10) result.warnings.push(`Linha ${i+1} parece incompleta (colunas insuficientes).`)
             continue
         }
 
-        // Simulação de parsing para encontrar nomes
-        // (No mundo real usaríamos os índices mapeados)
-        const storeName = values[headers.findIndex(h => h.includes('LOJA'))]
-        const sellerName = values[headers.findIndex(h => h.includes('VENDEDOR'))]
+        const record: any = {}
+        Object.entries(idxMap).forEach(([key, idx]) => {
+            if (idx !== -1) record[key.toUpperCase()] = values[idx]
+        })
 
-        if (storeName) storeSet.add(storeName)
-        if (sellerName) sellerSet.add(sellerName)
-        validCount++
+        if (record.LOJA) storeSet.add(record.LOJA)
+        if (record.VENDEDOR) sellerSet.add(record.VENDEDOR)
+        
+        result.records.push(record)
     }
 
-    result.summary.validRows = validCount
+    result.summary.validRows = result.records.length
     result.summary.storesFound = Array.from(storeSet)
     result.summary.sellersFound = Array.from(sellerSet)
 
-    if (validCount === 0) {
+    if (result.records.length === 0) {
         result.isValid = false
         result.errors.push('Nenhum registro válido processado.')
     }
 
     return result
+}
+
+function parseCSVLine(line: string): string[] {
+    const values: string[] = []
+    let curVal = ''
+    let inQuotes = false
+    for (const char of line) {
+        if (char === '"') inQuotes = !inQuotes
+        else if (char === ',' && !inQuotes) {
+            values.push(curVal.trim())
+            curVal = ''
+        } else {
+            curVal += char
+        }
+    }
+    values.push(curVal.trim())
+    return values
 }

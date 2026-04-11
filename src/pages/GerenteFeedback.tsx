@@ -389,7 +389,7 @@ export default function GerenteFeedback() {
                                             </div>
                                             <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black shadow-sm uppercase border-none">{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-mx-md py-8 border-y border-border-default relative z-10">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md py-8 border-y border-border-default relative z-10">
                                             <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
                                                 <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">META REDE</Typography>
                                                 <Typography variant="h2" className="text-2xl font-mono-numbers tabular-nums font-black">{report.weekly_goal}v</Typography>
