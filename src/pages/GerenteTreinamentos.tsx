@@ -191,6 +191,77 @@ export default function GerenteTreinamentos() {
                                 </motion.div>
                             ))}
                         </motion.div>
+                    ) : tab === 'matriz' ? (
+                        <motion.div key="matriz" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
+                            <Card className="border-none shadow-mx-xl bg-white overflow-hidden flex flex-col">
+                                <header className="p-mx-md md:p-10 border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
+                                    <div className="flex items-center gap-mx-sm">
+                                        <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><LayoutDashboard size={20} /></div>
+                                        <div>
+                                            <Typography variant="h3" className="font-black uppercase">Matriz de Absorção</Typography>
+                                            <Typography variant="caption" tone="muted" className="font-black uppercase opacity-40">Mapeamento Cruzado de Conhecimento</Typography>
+                                        </div>
+                                    </div>
+                                    <Badge variant="outline" className="px-4 py-1.5 rounded-mx-full uppercase font-black text-mx-micro shadow-sm border-border-strong">
+                                        {teamProgress.length} Especialistas Ativos
+                                    </Badge>
+                                </header>
+
+                                <div className="flex-1 overflow-x-auto no-scrollbar">
+                                    <table className="w-full text-left min-w-mx-elite-table">
+                                        <thead>
+                                            <tr className="bg-surface-alt/50 border-b border-border-default text-mx-micro font-black uppercase tracking-mx-wider text-text-tertiary">
+                                                <th scope="col" className="pl-10 py-6 sticky left-0 bg-surface-alt/50 z-20">ESPECIALISTA</th>
+                                                {trainings.map(t => (
+                                                    <th key={t.id} scope="col" className="px-4 py-6 text-center group relative min-w-mx-32">
+                                                        <span className="truncate block max-w-[120px] mx-auto">{t.title}</span>
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg">
+                                                            {t.title}
+                                                            <Button onClick={() => handleRemindAll(t.id)} className="block mt-2 w-full h-7 bg-brand-primary text-[8px] font-black">COBRAR TROPA</Button>
+                                                        </div>
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border-default bg-white">
+                                            {teamProgress.map((p) => (
+                                                <tr key={p.seller_id} className="hover:bg-surface-alt/30 transition-colors h-20 group">
+                                                    <td className="pl-10 sticky left-0 bg-white group-hover:bg-surface-alt/30 z-10 border-r border-border-default">
+                                                        <div className="flex items-center gap-mx-sm">
+                                                            <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-surface-alt flex items-center justify-center font-black text-text-tertiary text-xs shadow-inner uppercase">{p.seller_name.charAt(0)}</div>
+                                                            <Typography variant="p" className="text-sm font-black uppercase tracking-tight truncate max-w-[150px]">{p.seller_name}</Typography>
+                                                        </div>
+                                                    </td>
+                                                    {trainings.map(t => {
+                                                        const isWatched = p.watched.includes(t.id)
+                                                        return (
+                                                            <td key={t.id} className="px-4 text-center">
+                                                                <div className="flex flex-col items-center justify-center gap-mx-tiny">
+                                                                    <div className={cn("w-mx-9 h-mx-9 rounded-mx-lg flex items-center justify-center border shadow-sm transition-all", 
+                                                                        isWatched ? 'bg-status-success-surface text-status-success border-mx-emerald-100' : 'bg-surface-alt text-text-tertiary/30'
+                                                                    )}>
+                                                                        {isWatched ? <CheckCircle size={16} /> : <X size={16} />}
+                                                                    </div>
+                                                                    {!isWatched && (
+                                                                        <button 
+                                                                            onClick={() => handleRemindSeller(p.seller_id, t.title)}
+                                                                            disabled={isAssigning}
+                                                                            className="text-[8px] font-black text-brand-primary uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        >
+                                                                            COBRAR
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card>
+                        </motion.div>
                     ) : (
                         <motion.div key="equipe" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
                             {filteredTeam.map((p, i) => (

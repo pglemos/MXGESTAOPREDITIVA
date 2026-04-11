@@ -49,20 +49,20 @@ export default function GerentePDI() {
     if (loading) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-64" />
-                    <Skeleton className="h-4 w-48" />
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
                 <div className="flex gap-mx-sm">
                     <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
-                    <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
                 </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
             </div>
         </main>
     )
@@ -73,9 +73,9 @@ export default function GerentePDI() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">Ciclo de <span className="text-brand-primary">Evolução</span></Typography>
+                        <Typography variant="h1">Evolução do <span className="text-brand-primary">Vendedor</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">PERSONAL DEVELOPMENT PLAN (PDI) • MX ACADEMY</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
@@ -182,4 +182,6 @@ export default function GerentePDI() {
             </div>
         </main>
     )
+}
+
 }

@@ -22,24 +22,29 @@ test.describe('Smoke Flows: Authenticated Experience', () => {
     await expect(page).toHaveURL(/.*painel/);
     await expect(page.locator('h1')).toContainText(/PAINEL DO CONSULTOR/i);
     
+    // Smoke Snapshot: Dashboard Principal
+    await page.screenshot({ path: 'test-results/smoke-admin-dashboard.png' });
+
     // 5. Navegação para Lojas (Admin Flow)
-    await page.goto('/lojas');
+    await page.click('a[href="/lojas"]');
     await expect(page.locator('h1')).toContainText(/GESTÃO DE LOJAS/i);
+    
+    // Validação de elemento crítico: Tabela de Unidades
+    await expect(page.locator('table')).toBeVisible();
+    await page.screenshot({ path: 'test-results/smoke-admin-lojas.png' });
 
-    console.log('✅ Admin Smoke Test: Login & Navigation OK.');
+    console.log('✅ Admin Smoke Test: Login, Navigation & UI OK.');
   });
 
-  test('Vendedor/Manager Basic Navigation', async ({ page }) => {
-    // Como não temos bypass para vendedor no momento, vamos testar apenas o carregamento das rotas
-    // em um cenário onde o login pudesse ser injetado via storageState.
-    // Para este smoke test, validamos apenas a existência das páginas públicas.
-    await page.goto('/login');
-    await expect(page.locator('text=MX PERFORMANCE')).toBeVisible();
-  });
-
-  test('Checkin & Ranking Routes Accessibility', async ({ page }) => {
-    // Tentativa de acesso direto (deve redirecionar se não logado, mas validamos o fluxo)
-    await page.goto('/ranking');
-    await expect(page).toHaveURL(/.*login/); // Redirecionamento esperado por falta de auth
+  test('Vendedor/Manager Route Resilience', async ({ page }) => {
+    // Validamos que rotas protegidas redirecionam corretamente para login
+    const protectedRoutes = ['/checkin', '/equipe', '/perfil', '/ranking'];
+    
+    for (const route of protectedRoutes) {
+      await page.goto(route);
+      await expect(page).toHaveURL(/.*login/);
+    }
+    
+    console.log('✅ Route Resilience: Protected routes redirecting to login.');
   });
 });

@@ -135,7 +135,7 @@ export function useStoreMetaRules(storeIdOverride?: string) {
 export function useStoreGoal(storeIdOverride?: string | null) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride !== undefined ? storeIdOverride : authStoreId
-    const [goal, setGoal] = useState<{ target: number } | null>(null)
+    const [goal, setGoal] = useState<{ target: number; projection_mode: 'calendar' | 'business' } | null>(null)
     const [loading, setLoading] = useState(true)
 
     const fetch = useCallback(async () => {
@@ -147,12 +147,12 @@ export function useStoreGoal(storeIdOverride?: string | null) {
         setLoading(true)
         const { data } = await supabase
             .from('store_meta_rules')
-            .select('monthly_goal')
+            .select('monthly_goal, projection_mode')
             .eq('store_id', storeId)
             .maybeSingle()
 
-        if (data) setGoal({ target: data.monthly_goal || 0 })
-        else setGoal({ target: 0 })
+        if (data) setGoal({ target: data.monthly_goal || 0, projection_mode: data.projection_mode || 'calendar' })
+        else setGoal({ target: 0, projection_mode: 'calendar' })
         setLoading(false)
     }, [storeId])
 

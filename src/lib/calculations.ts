@@ -45,11 +45,48 @@ export function calcularRitmo(meta: number, vendas: number, diasRestantes: numbe
     return Math.round(falta / diasRestantes * 10) / 10
 }
 
-/** Get days info for the current month. If date is provided, use it for 'decorridos' */
-export function getDiasInfo(referenceDate?: Date | string): { total: number; decorridos: number; restantes: number; referencia: string } {
+/** Verifica se é dia útil (Segunda a Sábado) conforme metodologia MX */
+export function isBusinessDay(date: Date): boolean {
+    const day = date.getDay()
+    return day !== 0 // 0 = Domingo (Único dia não útil na operação padrão MX)
+}
+
+/** Conta total de dias úteis no mês de uma data */
+export function getBusinessDaysInMonth(year: number, month: number): number {
+    const totalDays = new Date(year, month + 1, 0).getDate()
+    let count = 0
+    for (let d = 1; d <= totalDays; d++) {
+        if (isBusinessDay(new Date(year, month, d))) count++
+    }
+    return count
+}
+
+/** Conta dias úteis decorridos até uma data (inclusive) */
+export function getBusinessDaysElapsed(date: Date): number {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const today = date.getDate()
+    let count = 0
+    for (let d = 1; d <= today; d++) {
+        if (isBusinessDay(new Date(year, month, d))) count++
+    }
+    return count
+}
+
+/** Get days info for the current month. Respects ProjectionMode (v1.1) */
+export function getDiasInfo(referenceDate?: Date | string, mode: 'calendar' | 'business' = 'calendar'): { total: number; decorridos: number; restantes: number; referencia: string } {
     const ref = typeof referenceDate === 'string' ? new Date(referenceDate + 'T12:00:00') : (referenceDate || new Date())
     const year = ref.getFullYear()
     const month = ref.getMonth()
+    
+    if (mode === 'business') {
+        const total = getBusinessDaysInMonth(year, month)
+        const decorridos = getBusinessDaysElapsed(ref)
+        const restantes = Math.max(total - decorridos, 0)
+        const referencia = ref.toISOString().split('T')[0]
+        return { total, decorridos, restantes, referencia }
+    }
+
     const total = new Date(year, month + 1, 0).getDate()
     const decorridos = ref.getDate()
     const restantes = total - decorridos
@@ -220,7 +257,7 @@ export function formatStructuredWhatsAppFeedback(data: {
     periodLabel: string;
 }): string {
     return `*💎 FEEDBACK ESTRUTURADO — MX PERFORMANCE*
-*Especialista:* ${data.sellerName.toUpperCase()}
+*Vendedor:* ${data.sellerName.toUpperCase()}
 *Período:* ${data.periodLabel}
 
 *📊 MÉTRICAS CONSOLIDADAS:*
@@ -238,5 +275,8 @@ ${data.actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}
 *CONSELHO MX:* ${data.diagnostic.sugestao}
 
 _Gerado via Inteligência Operacional MX_`
+}
+
+ligência Operacional MX_`
 }
 

@@ -1,0 +1,52 @@
+# MX PERFORMANCE DESIGN SYSTEM TOKENS
+# Source of Truth: src/index.css (@theme)
+
+colors:
+  core:
+    mx-black: "#0A0A0B"
+    pure-black: "#000000"
+    brand-primary: "#4f46e5"
+    brand-secondary: "#1A1D20"
+  status:
+    success: "#10b981"
+    warning: "#f59e0b"
+    error: "#ef4444"
+    info: "#3b82f6"
+  surface:
+    default: "#ffffff"
+    alt: "#f8fafc"
+  border:
+    default: "#f1f5f9"
+    subtle: "#f1f5f9"
+    strong: "#e2e8f0"
+  text:
+    primary: "#0A0A0B"
+    secondary: "#475569"
+    tertiary: "#94a3b8"
+
+radius:
+  mx-sm: 0.5rem
+  mx-md: 0.75rem
+  mx-lg: 1rem
+  mx-xl: 1.25rem
+  mx-2xl: 1.5rem
+  mx-3xl: 2rem
+  mx-full: 9999px
+
+spacing:
+  mx-tiny: 0.25rem
+  mx-xs: 0.5rem
+  mx-sm: 1rem
+  mx-md: 1.5rem
+  mx-lg: 2rem
+  mx-xl: 3rem
+  mx-2xl: 4rem
+  mx-10: 2.5rem
+  mx-14: 3.5rem
+  mx-20: 5rem
+
+layout:
+  header-height: 80px
+  layout-top-offset: 104px
+  sidebar-expanded: 280px
+  sidebar-collapsed: 80px

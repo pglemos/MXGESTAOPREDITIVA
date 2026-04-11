@@ -79,7 +79,7 @@ export default function SellerPerformance() {
                         <Card className={cn("p-mx-lg flex flex-col justify-between group relative overflow-hidden border-none shadow-mx-lg bg-white", 
                             i === 0 ? "ring-2 ring-brand-primary/20" : ""
                         )}>
-                            {i === 0 && <div className="absolute top-mx-0 right-mx-0 w-mx-xl h-mx-xl bg-brand-primary/5 rounded-mx-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />}
+                            {i === 0 && <div className="absolute top-mx-0 right-mx-0 w-mx-xl h-mx-xl bg-brand-primary/5 rounded-mx-full blur-mx-huge -mr-20 -mt-20 pointer-events-none" />}
                             
                             <div className="flex items-center gap-mx-md mb-8 relative z-10">
                                 <div className={cn("w-mx-2xl h-mx-2xl rounded-mx-2xl flex items-center justify-center overflow-hidden shadow-inner border transition-all transform group-hover:rotate-3", 
@@ -139,6 +139,13 @@ export default function SellerPerformance() {
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
+                    </div>
+                </div>
+            </Card>
+        </main>
+    )
+}
+onsiveContainer>
                     </div>
                 </div>
             </Card>

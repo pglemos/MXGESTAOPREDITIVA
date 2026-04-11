@@ -193,7 +193,7 @@ export default function Checkin() {
             
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center bg-white/20 backdrop-blur-sm" aria-hidden="true">
-                    <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: [0, 1.5, 1], rotate: 0 }} className="text-[12rem]">🎉</motion.div>
+                    <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: [0, 1.5, 1], rotate: 0 }} className="text-mx-huge">🎉</motion.div>
                 </div>
             )}
 
@@ -246,7 +246,7 @@ export default function Checkin() {
                 <div className="flex-1 space-y-mx-lg">
                     {/* Retro Grid */}
                     <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden group">
-                        <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-status-success-surface rounded-mx-full blur-mx-xl -mr-48 -mt-48 opacity-50" />
+                        <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-status-success-surface rounded-mx-full blur-mx-xl -mr-mx-48 -mt-mx-48 opacity-50" />
                         <header className="flex items-center justify-between border-b border-border-default pb-10 relative z-10">
                             <div className="flex items-center gap-mx-md">
                                 <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-xl transform -rotate-3"><History size={32} strokeWidth={2.5} /></div>
@@ -314,8 +314,8 @@ export default function Checkin() {
                     <AnimatePresence>
                         {allZero && (
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
-                                <Card className="p-mx-10 border-none shadow-mx-xl bg-mx-amber-400 text-mx-black space-y-mx-10 relative overflow-hidden group">
-                                    <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-white/20 rounded-mx-full blur-3xl -mr-32 -mt-32" />
+                                <Card className="p-mx-10 border-none shadow-mx-xl bg-status-warning text-mx-black space-y-mx-10 relative overflow-hidden group">
+                                    <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-white/20 rounded-mx-full blur-3xl -mr-mx-32 -mt-mx-32" />
                                     <header className="flex items-center gap-mx-md relative z-10">
                                         <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-lg group-hover:rotate-12 transition-transform"><AlertTriangle size={32} strokeWidth={2.5} /></div>
                                         <div>
@@ -346,7 +346,7 @@ export default function Checkin() {
                             <textarea
                                 value={form.note} onChange={e => updateField('note', e.target.value)} maxLength={280}
                                 placeholder="Descreva aqui eventos críticos ou detalhes de fechamento estratégico..."
-                                className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-10 text-lg font-bold text-text-primary placeholder:text-text-tertiary/30 focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner min-h-[200px]"
+                                className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-10 text-lg font-bold text-text-primary placeholder:text-text-tertiary/30 focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner min-h-mx-48"
                             />
                             <div className="flex justify-end pr-6">
                                 <Typography variant="mono" tone="muted" className="text-mx-tiny">{form.note.length}/280</Typography>

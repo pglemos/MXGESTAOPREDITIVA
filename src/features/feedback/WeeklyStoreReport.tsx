@@ -148,7 +148,7 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
                  </div>
                  <div className="text-right">
                     <p className="text-mx-micro font-bold text-text-tertiary uppercase">Auditado por:</p>
-                    <div className="w-mx-4xl h-px bg-gray-300 mt-4"></div>
+                    <div className="w-mx-4xl h-px bg-border-strong mt-4"></div>
                     <p className="text-mx-micro text-text-tertiary mt-1">Gestor da Unidade</p>
                  </div>
             </div>

@@ -211,7 +211,7 @@ export default function Layout() {
 
         {/* Sidebar Minimalista - Semantic Nav */}
         <aside 
-          className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky top-[104px] h-[calc(100vh-120px)] z-[60]" 
+          className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky mx-layout-sticky-offset z-[60]" 
           aria-label="Menu Lateral Principal"
           onMouseLeave={() => setIsDrawerOpen(false)}
         >
@@ -237,7 +237,7 @@ export default function Layout() {
                 )}
               >
                 {cat.icon}
-                <div className="absolute left-[calc(100%+16px)] px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
+                <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
                   {cat.category}
                 </div>
               </button>
@@ -264,7 +264,7 @@ export default function Layout() {
             <motion.div
               id="drawer-navigation"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="hidden md:flex fixed left-[136px] top-[104px] w-mx-sidebar-expanded h-[calc(100vh-120px)] bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-50 overflow-hidden flex flex-col"
+              className="hidden md:flex fixed left-mx-layout-drawer-left top-mx-layout-offset-top w-mx-sidebar-expanded h-mx-layout-viewport bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-50 overflow-hidden flex flex-col"
               role="navigation"
               aria-label={`Opções do módulo ${activeCategoryData?.category}`}
               onMouseEnter={() => setIsDrawerOpen(true)}
@@ -313,7 +313,7 @@ export default function Layout() {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-[3rem] p-mx-xl pb-32 max-h-[80vh] overflow-y-auto"
+              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-xl pb-32 max-h-[80vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
               role="dialog"
               aria-label="Menu Mobile Principal"
@@ -366,19 +366,31 @@ export default function Layout() {
         <div className="flex w-full justify-between items-center relative z-10">
           <NavLink
             to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}
-            aria-label="Início"            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            aria-label="Início"
+            aria-current={location.pathname === (role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas') ? 'page' : undefined}
+            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
           </NavLink>
           
           {role === 'vendedor' && (
-            <NavLink to="/checkin" aria-label="Fazer Checkin" className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl">
+            <NavLink 
+              to="/checkin" 
+              aria-label="Fazer Checkin" 
+              aria-current={location.pathname === '/checkin' ? 'page' : undefined}
+              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            >
               <CheckSquare size={22} />
             </NavLink>
           )}
 
           {(role === 'gerente' || role === 'admin') && (
-            <NavLink to="/equipe" aria-label="Gerir Equipe" className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl">
+            <NavLink 
+              to="/equipe" 
+              aria-label="Gerir Equipe" 
+              aria-current={location.pathname === '/equipe' ? 'page' : undefined}
+              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            >
               <Users size={22} />
             </NavLink>
           )}
@@ -387,16 +399,26 @@ export default function Layout() {
             type="button" 
             aria-label="Abrir menu mobile" 
             onClick={() => setMobileMenuOpen(true)} 
-            className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
+            className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
           >
             <Menu size={24} aria-hidden="true" />
           </button>
 
-          <NavLink to="/ranking" aria-label="Ver Ranking" className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl">
+          <NavLink 
+            to="/ranking" 
+            aria-label="Ver Ranking" 
+            aria-current={location.pathname === '/ranking' ? 'page' : undefined}
+            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+          >
             <Trophy size={22} />
           </NavLink>
 
-          <NavLink to="/perfil" aria-label="Meu Perfil" className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl">
+          <NavLink 
+            to="/perfil" 
+            aria-label="Meu Perfil" 
+            aria-current={location.pathname === '/perfil' ? 'page' : undefined}
+            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+          >
             <User size={22} />
           </NavLink>
         </div>

@@ -198,9 +198,32 @@ export default function OperationalSettings() {
                                 </div>
                             ))}
 
-                            <div className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
-                                <div className="space-y-mx-tiny">
-                                    <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">Horário Limite Matinal</Typography>
+                                <div className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                    <div className="space-y-mx-tiny">
+                                        <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">Justiça Matemática (v1.1)</Typography>
+                                        <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">Base de cálculo da projeção e ritmo diário</Typography>
+                                    </div>
+                                    <div className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm" role="radiogroup">
+                                        <Button 
+                                            variant={metaRules?.projection_mode === 'calendar' ? 'secondary' : 'ghost'} size="sm"
+                                            onClick={() => updateMetaRules({ projection_mode: 'calendar' })}
+                                            className="h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black"
+                                        >
+                                            CALENDÁRIO
+                                        </Button>
+                                        <Button 
+                                            variant={metaRules?.projection_mode === 'business' ? 'secondary' : 'ghost'} size="sm"
+                                            onClick={() => updateMetaRules({ projection_mode: 'business' })}
+                                            className="h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black"
+                                        >
+                                            DIAS ÚTEIS
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                    <div className="space-y-mx-tiny">
+                                        <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">Horário Limite Matinal</Typography>
                                     <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">Deadline para disparo de relatórios automáticos de rede</Typography>
                                 </div>
                                 <div className="relative">

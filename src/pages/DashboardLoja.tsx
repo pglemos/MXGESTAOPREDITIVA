@@ -195,30 +195,30 @@ export default function DashboardLoja() {
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-64" />
-                    <Skeleton className="h-4 w-48" />
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
                 <div className="flex gap-mx-sm">
                     <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
-                    <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
                 </div>
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
-                <Skeleton className="h-32 rounded-mx-2xl" />
-                <Skeleton className="h-32 rounded-mx-2xl" />
-                <Skeleton className="h-32 rounded-mx-2xl" />
-                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
                 <section className="xl:col-span-8 flex flex-col gap-mx-lg">
-                    <Skeleton className="h-96 rounded-mx-2xl" />
+                    <Skeleton className="h-mx-64 rounded-mx-2xl" />
                 </section>
                 <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
-                    <Skeleton className="h-64 rounded-mx-2xl" />
-                    <Skeleton className="h-48 rounded-mx-2xl" />
+                    <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                    <Skeleton className="h-mx-lg rounded-mx-2xl" />
                 </aside>
             </div>
         </main>
@@ -263,12 +263,12 @@ export default function DashboardLoja() {
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
                     {(role === 'admin' || role === 'dono') && storeId && (
                         <div className="flex gap-mx-xs mr-mx-md">
-                            <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all uppercase font-black tracking-widest text-[10px]">
+                            <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all uppercase font-black tracking-widest text-mx-tiny">
                                 <Link to={`/configuracoes/operacional?id=${storeId}`}>
                                     <Settings className="w-mx-xs h-mx-xs mr-mx-xs" /> EDITAR UNIDADE
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-secondary/20 text-brand-secondary hover:bg-brand-secondary hover:text-white transition-all uppercase font-black tracking-widest text-[10px]">
+                            <Button asChild variant="outline" size="sm" className="h-mx-10 px-mx-md rounded-mx-xl border-brand-secondary/20 text-brand-secondary hover:bg-brand-secondary hover:text-white transition-all uppercase font-black tracking-widest text-mx-tiny">
                                 <Link to={`/equipe?id=${storeId}`}>
                                     <Users className="w-mx-xs h-mx-xs mr-mx-xs" /> GERIR EQUIPE
                                 </Link>
@@ -402,9 +402,9 @@ export default function DashboardLoja() {
                                                     <div className="truncate">
                                                         <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black truncate">{r.user_name}</Typography>
                                                         {r.is_venda_loja ? (
-                                                            <span className="text-[8px] font-black bg-brand-primary text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>
+                                                            <span className="text-mx-nano font-black bg-brand-primary text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>
                                                         ) : (
-                                                            <p className="text-[8px] font-bold text-text-tertiary uppercase tracking-widest truncate opacity-40">Unidade {metrics.storeName}</p>
+                                                            <p className="text-mx-nano font-bold text-text-tertiary uppercase tracking-widest truncate opacity-40">Unidade {metrics.storeName}</p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -440,7 +440,14 @@ export default function DashboardLoja() {
                                         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">{ch.label}</Typography>
                                         <Typography variant="mono" tone={ch.tone as any} className="text-sm font-black">{ch.pct}%</Typography>
                                     </div>
-                                    <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-mx-inner p-0.5">
+                                    <div 
+                                        className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-mx-inner p-0.5"
+                                        role="progressbar"
+                                        aria-valuenow={ch.pct}
+                                        aria-valuemin={0}
+                                        aria-valuemax={100}
+                                        aria-label={`Distribuição de vendas no canal ${ch.label}`}
+                                    >
                                         <motion.div 
                                             initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5, ease: "circOut" }}
                                             className={cn("h-full rounded-full shadow-sm transition-all duration-1000", ch.color)} 
@@ -465,4 +472,5 @@ export default function DashboardLoja() {
             </div>
         </main>
     )
+}
 }

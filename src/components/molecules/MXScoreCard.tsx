@@ -10,11 +10,19 @@ interface MXScoreCardProps {
   sub: string
   icon: any
   tone: 'brand' | 'success' | 'warning' | 'error'
+  description?: string
+  isHighlight?: boolean
 }
 
-export function MXScoreCard({ label, value, sub, icon: Icon, tone }: MXScoreCardProps) {
+export function MXScoreCard({ label, value, sub, icon: Icon, tone, description, isHighlight }: MXScoreCardProps) {
   return (
-    <Card className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
+    <Card 
+      className={cn(
+        "p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative",
+        isHighlight && "ring-2 ring-brand-primary/20 shadow-mx-glow-brand"
+      )}
+      aria-description={description}
+    >
       <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
       <div className="flex items-center justify-between relative z-10">
         <div className="space-y-mx-tiny">
@@ -43,10 +51,10 @@ MXScoreCard.Skeleton = function MXScoreCardSkeleton() {
     <Card className="p-mx-lg border-none shadow-mx-sm bg-white overflow-hidden relative">
       <div className="flex items-center justify-between">
         <div className="space-y-mx-sm flex-1">
-          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-mx-xs w-mx-20" />
           <div className="flex items-baseline gap-mx-xs">
-            <Skeleton className="h-9 w-12" />
-            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-mx-lg w-mx-10" />
+            <Skeleton className="h-mx-xs w-mx-14" />
           </div>
         </div>
         <Skeleton className="h-mx-xl w-mx-xl rounded-mx-xl" />

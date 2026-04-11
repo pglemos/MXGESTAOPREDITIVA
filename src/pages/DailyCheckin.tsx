@@ -72,7 +72,7 @@ export default function DailyCheckin() {
     if (todayCheckin) return (
         <main className="w-full h-full flex flex-col items-center justify-center p-mx-lg bg-surface-alt text-center">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full space-y-mx-10">
-                <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-status-success-surface border border-emerald-100 text-status-success flex items-center justify-center mx-auto shadow-mx-xl" aria-hidden="true">
+                <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-status-success-surface border border-mx-emerald-100 text-status-success flex items-center justify-center mx-auto shadow-mx-xl" aria-hidden="true">
                     <ShieldCheck size={48} strokeWidth={2.5} />
                 </div>
                 <div className="space-y-mx-sm">
@@ -225,7 +225,7 @@ export default function DailyCheckin() {
                                 <div className="space-y-mx-sm pt-8 border-t border-border-default">
                                     <Typography variant="caption" tone="muted" className="uppercase font-black tracking-widest">Observações Táticas</Typography>
                                     <textarea 
-                                        className="w-full min-h-[120px] p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-sm outline-none resize-none"
+                                        className="w-full min-h-mx-32 p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-sm outline-none resize-none"
                                         placeholder="Algum desafio ou observação para o dia de hoje?"
                                         value={form.note}
                                         onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}
@@ -248,4 +248,6 @@ export default function DailyCheckin() {
             </div>
         </main>
     )
+}
+ )
 }

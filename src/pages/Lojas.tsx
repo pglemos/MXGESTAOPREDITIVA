@@ -58,23 +58,23 @@ export default function Lojas() {
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-64" />
-                    <Skeleton className="h-4 w-48" />
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
                 <div className="flex gap-mx-sm">
                     <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
-                    <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
                 </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
             </div>
         </main>
     )
@@ -107,8 +107,8 @@ export default function Lojas() {
                     </div>
                     {role === 'admin' && (
                         <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny mr-2" role="tablist">
-                            <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-tiny">ATIVAS</Button>
-                            <Button variant={!filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(false)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-tiny">ARQUIVADAS</Button>
+                            <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ATIVAS</Button>
+                            <Button variant={!filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(false)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ARQUIVADAS</Button>
                         </nav>
                     )}
                     {role === 'admin' && (
@@ -188,7 +188,7 @@ export default function Lojas() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                                    <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs bg-status-success hover:opacity-90 text-white">
                                                         RESTAURAR
                                                     </Button>
                                                     <Button variant="danger" size="sm" onClick={() => { if(confirm('⚠️ ALERTA VERMELHO: Tem certeza que deseja DELETAR PERMANENTEMENTE esta loja e TODOS OS SEUS DADOS do Supabase? Essa ação é IRREVERSÍVEL.')) deleteStore(store.id) }} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
@@ -216,7 +216,7 @@ export default function Lojas() {
             {/* Modal de Criação de Unidade */}
             <AnimatePresence>
                 {isCreateModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-slate-950/60 backdrop-blur-md" role="dialog" aria-modal="true">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true">
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-lg">
                             <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white overflow-hidden relative">
                                 <form onSubmit={handleCreateStore} className="space-y-mx-xl relative z-10">
@@ -228,7 +228,14 @@ export default function Lojas() {
                                                 <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-widest">Protocolo de Expansão MX</Typography>
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="sm" onClick={() => setIsCreateModalOpen(false)} className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm transition-all"><X size={24} /></Button>
+                                        <Button 
+                                            variant="ghost" size="sm" 
+                                            onClick={() => setIsCreateModalOpen(false)} 
+                                            className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm transition-all"
+                                            aria-label="Fechar modal"
+                                        >
+                                            <X size={24} />
+                                        </Button>
                                     </header>
 
                                     <div className="space-y-mx-lg">
@@ -244,10 +251,10 @@ export default function Lojas() {
                                         <div className="space-y-mx-xs">
                                             <div className="flex justify-between items-center ml-2">
                                                 <Typography as="label" htmlFor="manager-email" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">E-mail do Gestor</Typography>
-                                                <Badge variant="outline" className="text-[8px] font-black uppercase">Opcional</Badge>
+                                                <Badge variant="outline" className="text-mx-micro font-black uppercase">Opcional</Badge>
                                             </div>
                                             <div className="relative group">
-                                                <Mail size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
+                                                <Mail size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                                                 <Input 
                                                     id="manager-email"
                                                     type="email" placeholder="gestor@unidade.com.br"
@@ -261,7 +268,7 @@ export default function Lojas() {
                                     <footer className="pt-10 flex justify-end border-t border-border-default">
                                         <Button type="submit" disabled={creating} className="h-mx-2xl px-12 rounded-mx-full shadow-mx-xl bg-brand-secondary font-black uppercase tracking-widest">
                                             {creating ? <RefreshCw className="animate-spin mr-2" /> : <Plus size={20} className="mr-2" />}
-                                            ESTABELECER UNIDADE
+                                            ESTABELECER LOJA
                                         </Button>
                                     </footer>
                                 </form>
@@ -273,3 +280,4 @@ export default function Lojas() {
         </main>
     )
 }
+

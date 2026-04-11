@@ -90,7 +90,7 @@ export default function Login() {
     }
 
     return (
-        <main className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-mx-md selection:bg-brand-primary/20">
+        <main className="min-h-screen bg-mx-black flex items-center justify-center p-mx-md selection:bg-brand-primary/20">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -98,7 +98,7 @@ export default function Login() {
             >
                 {/* Header Identidade */}
                 <div className="mb-12 text-center">
-                    <div className="w-mx-2xl h-mx-2xl rounded-mx-3xl bg-gradient-to-br from-brand-primary to-indigo-600 mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-brand-primary/20">
+                    <div className="w-mx-2xl h-mx-2xl rounded-mx-3xl bg-gradient-to-br from-brand-primary to-mx-indigo-600 mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-brand-primary/20">
                         <Building2 className="text-white" size={32} />
                     </div>
                     <Typography variant="h1" className="text-3xl text-white tracking-tighter mb-2">MX PERFORMANCE</Typography>
@@ -106,28 +106,28 @@ export default function Login() {
                 </div>
 
                 {/* Card de Acesso */}
-                <Card className="bg-[#121214] border-white/5 p-mx-lg rounded-mx-3xl shadow-2xl backdrop-blur-xl">
+                <Card className="bg-surface-elevated border-white/5 p-mx-lg rounded-mx-3xl shadow-2xl backdrop-blur-xl">
                     <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="space-y-mx-md">
                         <div className="space-y-mx-xs">
-                            <label className="text-mx-tiny font-black text-white/30 uppercase tracking-[0.15em] ml-1">E-mail</label>
+                            <label className="text-mx-tiny font-black text-white/30 uppercase tracking-mx-wide ml-1">E-mail</label>
                             <div className="relative">
                                 <Mail className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-white/20" size={18} />
                                 <Input
                                     type="email" value={email} onChange={e => setEmail(e.target.value)}
                                     placeholder="seu@email.com.br" required autoFocus={!email}
-                                    className="!h-14 !pl-12 !bg-[#1A1A1D] !border-none !text-white !rounded-2xl placeholder:text-white/20"
+                                    className="!h-14 !pl-12 !bg-surface-overlay !border-none !text-white !rounded-mx-2xl placeholder:text-white/20"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-mx-xs">
-                            <label className="text-mx-tiny font-black text-white/30 uppercase tracking-[0.15em] ml-1">Senha</label>
+                            <label className="text-mx-tiny font-black text-white/30 uppercase tracking-mx-wide ml-1">Senha</label>
                             <div className="relative">
                                 <Lock className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-white/20" size={18} />
                                 <Input
                                     type="password" ref={passwordRef} value={password} onChange={e => setPassword(e.target.value)}
                                     placeholder="••••••••" required
-                                    className="!h-14 !pl-12 !bg-[#1A1A1D] !border-none !text-white !rounded-2xl placeholder:text-white/20"
+                                    className="!h-14 !pl-12 !bg-surface-overlay !border-none !text-white !rounded-mx-2xl placeholder:text-white/20"
                                 />
                             </div>
                         </div>

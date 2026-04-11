@@ -138,7 +138,7 @@ export default function ConsultorTreinamentos() {
                 {trainings.map((t, i) => (
                     <motion.article key={t.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}>
                         <Card className="p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
-                            <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-[80px] -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-huge -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                             
                             <div className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">
                                 <div className={cn("w-mx-xl h-mx-xl rounded-mx-2xl flex items-center justify-center transition-all shadow-inner transform group-hover:rotate-6", t.watched ? "bg-status-success-surface text-status-success" : "bg-surface-alt text-text-tertiary group-hover:bg-brand-secondary group-hover:text-white")}>

@@ -15,6 +15,8 @@ export type TargetAudience = 'vendedor' | 'gerente' | 'todos'
 export type CheckinScope = 'daily' | 'adjustment' | 'historical'
 export type CheckinSubmissionStatus = 'on_time' | 'late'
 export type StoreSourceMode = 'legacy_forms' | 'native_app' | 'hybrid'
+export type ProjectionMode = 'calendar' | 'business'
+export type CorrectionStatus = 'pending' | 'approved' | 'rejected'
 
 /** Interface de Usuário Canônica */
 export interface User {
@@ -51,6 +53,7 @@ export interface StoreMetaRules {
     bench_lead_agd: number
     bench_agd_visita: number
     bench_visita_vnd: number
+    projection_mode: ProjectionMode
     updated_by: string | null
     updated_at: string
 }
@@ -140,6 +143,32 @@ export interface PDI {
     updated_at: string
 }
 
+/** Solicitação de Correção Retroativa (v1.1) */
+export interface CheckinCorrectionRequest {
+    id: string
+    checkin_id: string
+    seller_id: string
+    store_id: string
+    requested_values: CheckinFormData
+    reason: string
+    status: CorrectionStatus
+    auditor_id: string | null
+    reviewed_at: string | null
+    created_at: string
+}
+
+/** Log de Auditoria Imutável (v1.1) */
+export interface CheckinAuditLog {
+    id: string
+    checkin_id: string
+    correction_request_id: string | null
+    changed_by: string
+    old_values: Partial<DailyCheckin>
+    new_values: Partial<DailyCheckin>
+    change_type: string
+    created_at: string
+}
+
 // ============================================
 // Derived & UI Types
 // ============================================
@@ -190,4 +219,6 @@ export interface CheckinFormData {
     note?: string
     zero_reason?: string
     reference_date?: string
+}
+_date?: string
 }

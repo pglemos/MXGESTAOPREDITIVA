@@ -15,6 +15,7 @@ interface MetricsParams {
     sellerGoals: any[]
     storeGoal: any | null
     ranking: any[]
+    projectionMode?: 'calendar' | 'business'
 }
 
 export function useSellerMetrics({ 
@@ -23,7 +24,8 @@ export function useSellerMetrics({
     profile, 
     sellerGoals, 
     storeGoal, 
-    ranking 
+    ranking,
+    projectionMode = 'calendar'
 }: MetricsParams) {
     return useMemo(() => {
         if (!profile?.id) return null
@@ -31,7 +33,7 @@ export function useSellerMetrics({
         const myCheckins = checkins.filter(c => c.seller_user_id === profile.id)
         const vendasMes = somarVendas(myCheckins)
         const porCanal = somarVendasPorCanal(myCheckins)
-        const dias = getDiasInfo()
+        const dias = getDiasInfo(undefined, projectionMode)
 
         const myGoal = sellerGoals.find(g => g.user_id === profile.id)
         const meta = myGoal?.target || (storeGoal ? Math.round(storeGoal.target / Math.max(ranking.length, 1)) : 0)

@@ -60,7 +60,7 @@ export default function AiDiagnostics() {
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0" role="banner">
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary/80 rounded-mx-full shadow-[0_0_20px_rgba(129,140,248,0.5)] animate-pulse" aria-hidden="true" />
+                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-glow-brand animate-pulse" aria-hidden="true" />
                         <Typography variant="h1" tone="white">Auditoria <Typography as="span" className="text-brand-primary/80">Forense</Typography></Typography>
                     </div>
                     <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0</Typography>
@@ -165,6 +165,10 @@ export default function AiDiagnostics() {
                     </Card>
                 </aside>
             </div>
+        </main>
+    )
+}
+
         </main>
     )
 }

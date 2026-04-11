@@ -34,6 +34,9 @@
   --color-text-secondary: #475569;
   --color-text-tertiary: #94a3b8;
 
+  --color-surface-overlay: #1A1A1D;
+  --color-surface-elevated: #121214;
+
   /* Radius Matrix */
   --radius-mx-sm: 0.5rem;
   --radius-mx-md: 0.75rem;
@@ -71,46 +74,35 @@
 
   /* Custom Utilities */
   /* Typography Scale Expansion */
-  --font-size-mx-tiny: 10px;
+  --font-size-mx-nano: 8px;
   --font-size-mx-micro: 9px;
+  --font-size-mx-tiny: 10px;
+  --font-size-mx-huge: 12rem;
   --letter-spacing-mx-tight: -0.05em;
   --letter-spacing-mx-wide: 0.2em;
   --letter-spacing-mx-wider: 0.3em;
   --letter-spacing-mx-widest: 0.4em;
 
   /* Layout Matrix Expansion */
+  --radius-mx-4xl: 3rem;
+
+  /* Layout Matrix Expansion (Centralized) */
+  --spacing-mx-layout-offset-top: 104px;
+  --spacing-mx-layout-offset-bottom: 120px;
+  --spacing-mx-layout-drawer-left: 136px;
+  --height-mx-layout-viewport: calc(100vh - var(--spacing-mx-layout-offset-bottom));
+
   --width-mx-sidebar-collapsed: 80px;
   --width-mx-sidebar-expanded: 280px;
   --width-mx-header: 100%;
   --height-mx-header: 80px;
-  --width-mx-aside: 420px;
-  --max-width-mx-aside: 420px;
-
-  /* Elite Layout Matrix (High-Density & Reports) */
-  --width-mx-elite-table: 1000px;
-  --width-mx-elite-wide: 1200px;
-  --width-mx-elite-canvas: 1600px;
-  --width-mx-card-lg: 480px;
-  --width-mx-card-md: 400px;
-  --width-mx-card-sm: 320px;
-  
-  --height-mx-section-xl: 600px;
-  --height-mx-section-lg: 500px;
-  --height-mx-section-md: 450px;
-  --height-mx-section-sm: 400px;
-
-  /* Additional Atomic Spacing */
-  --spacing-mx-5: 1.25rem;
-  --spacing-mx-7: 1.75rem;
-  --spacing-mx-9: 2.25rem;
-  --spacing-mx-11: 2.75rem;
-  --spacing-mx-28: 7rem;
-
-  --radius-mx-4xl: 4rem;
 
   /* Semantic Glows */
   --shadow-mx-glow-brand: 0 0 20px rgba(79, 70, 229, 0.3);
   --shadow-mx-glow-white: 0 0 20px rgba(255, 255, 255, 0.5);
+
+  /* Effects */
+  --blur-mx-huge: 80px;
 
   /* Indigo Tokens for Design System */
   --color-mx-indigo-50: #eef2ff;
@@ -130,16 +122,22 @@
   --height-mx-chart: 400px;
 }
 
-@layer base {
-  * {
-    @apply border-border-default;
-  }
-  body {
-    @apply bg-surface-alt text-text-primary font-sans antialiased selection:bg-brand-primary selection:text-white;
-  }
-}
-
 @layer utilities {
+  .mx-layout-sticky-offset {
+    top: var(--spacing-mx-layout-offset-top);
+    height: var(--height-mx-layout-viewport);
+  }
+  
+  .mx-layout-drawer-offset {
+    left: var(--spacing-mx-layout-drawer-left);
+    top: var(--spacing-mx-layout-offset-top);
+    height: var(--height-mx-layout-viewport);
+  }
+
+  .mx-layout-tooltip-offset {
+    left: calc(var(--width-mx-sidebar-collapsed) + 16px);
+  }
+
   .bg-mx-matrix {
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 40px 40px;

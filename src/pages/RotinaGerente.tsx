@@ -118,12 +118,15 @@ export default function RotinaGerente() {
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
                     <nav className="flex bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm mr-4" role="tablist">
-                        {(['diario', 'semanal', 'mensal'] as const).map((t) => (
+                        {(['diario', 'semanal', 'mensal', 'ajustes'] as const).map((t) => (
                             <Button 
                                 key={t} variant={tab === t ? 'secondary' : 'ghost'} size="sm"
-                                onClick={() => setTab(t)} className="h-mx-10 px-8 rounded-mx-full font-black uppercase text-tiny"
+                                onClick={() => setTab(t)} className="h-mx-10 px-8 rounded-mx-full font-black uppercase text-tiny relative"
                             >
-                                {t === 'diario' ? <Zap size={14} className="mr-2" /> : t === 'semanal' ? <BarChart3 size={14} className="mr-2" /> : <Target size={14} className="mr-2" />}
+                                {t === 'ajustes' && pendingRequests.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-status-error text-white rounded-full flex items-center justify-center text-[10px] shadow-mx-sm border-2 border-white animate-bounce">{pendingRequests.length}</span>
+                                )}
+                                {t === 'diario' ? <Zap size={14} className="mr-2" /> : t === 'semanal' ? <BarChart3 size={14} className="mr-2" /> : t === 'mensal' ? <Target size={14} className="mr-2" /> : <ShieldAlert size={14} className="mr-2" />}
                                 {t}
                             </Button>
                         ))}

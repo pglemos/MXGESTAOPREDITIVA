@@ -8,28 +8,29 @@
 
 ## 📋 Escopo de Auditoria (Phased)
 
-### Fase 1: Auditoria Forense & Mapeamento de Caos
-- [ ] **Módulo Admin (18+ páginas/abas):** Invocação de `*audit` para inventariar átomos customizados (Buttons, Cards, Badges, Headers).
-- [ ] **Módulos Dono, Gerente e Vendedor:** Mapeamento completo de componentes redundantes.
-- [ ] **Identificação de Hardcoded Values:** Extração de todas as instâncias de `#hex`, `rgb()` e classes Tailwind arbitrárias.
-- [ ] **Geração do Shock Report:** Relatório visual demonstrando a redundância atual e o ROI da consolidação.
+### Fase 1: Auditoria Forense & Mapeamento de Caos [DONE]
+- [x] **Módulo Admin (18+ páginas/abas):** Invocação de `*audit` para inventariar átomos customizados (Buttons, Cards, Badges, Headers).
+- [x] **Módulos Dono, Gerente e Vendedor:** Mapeamento completo de componentes redundantes.
+- [x] **Identificação de Hardcoded Values:** Extração de todas as instâncias de `#hex`, `rgb()` e classes Tailwind arbitrárias.
+- [x] **Geração do Shock Report:** Relatório visual demonstrando a redundância atual e o ROI da consolidação.
 
-### Fase 2: Definição da "Lei" (Design Tokens & Gates)
-- [ ] **Extração de Tokens:** Criação do contrato central de tokens (`tokens.yaml` e `tailwind.config.js`).
+### Fase 2: Definição da "Lei" (Design Tokens & Gates) [IN PROGRESS]
+- [x] **Extração de Tokens:** Criação do contrato central de tokens (`tokens.yaml` e `tailwind.config.js` -> `index.css`).
 - [ ] **Enforcement Automatizado:**
     - [ ] Configuração de regras ESLint/Stylelint para bloquear cores hardcoded.
     - [ ] Implementação de gate no pipeline para barrar uso de classes não-tokenizadas.
-    - [ ] Setup da estrutura de pastas: `src/components/atoms`, `molecules`, `organisms`.
+    - [x] Setup da estrutura de pastas: `src/components/atoms`, `molecules`, `organisms`.
 
-### Fase 3: Reconstrução Atômica (Library Build)
-- [ ] **Atoms:** Botões, Inputs, Badges, Ícones (Lucide padronizado).
+### Fase 3: Reconstrução Atômica (Library Build) [IN PROGRESS]
+- [x] **Atoms:** Botões, Badges, Typography (Refatorados para tokens 100%).
 - [ ] **Molecules:** Form Fields, Stat Cards, Empty States, Page Headers.
 - [ ] **Organisms:** Data Tables, Modais de Ritual, Gráficos de Performance.
 - [ ] **Responsividade Extrema:** Validação de break-points para Mobile (navegador celular).
 
-### Fase 4: Migração Sistêmica (Refactoring)
-- [ ] Substituição gradual dos componentes "reinventados" nas 18 páginas Admin pelos Atoms/Molecules oficiais.
-- [ ] Expansão da migração para os módulos Dono, Gerente e Vendedor.
+### Fase 4: Migração Sistêmica (Refactoring) [IN PROGRESS]
+- [x] **Core Layout:** `Layout.tsx` migrado para tokens.
+- [x] **Security/Auth:** `Login.tsx` migrado para tokens (fim do Buraco Negro).
+- [ ] Substituição gradual nas 18 páginas Admin.
 
 ### Fase 5: Validação Visual Final (Driftx)
 - [ ] **Automated Browser Audit:** Captura de screenshots de todas as telas em Desktop e Mobile.

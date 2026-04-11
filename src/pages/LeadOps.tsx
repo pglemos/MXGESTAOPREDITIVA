@@ -174,9 +174,9 @@ export default function LeadOps() {
                       </td>
                       <td className="pr-10 text-right">
                         <div className="flex items-center justify-end gap-mx-xs" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" onClick={() => window.open(`tel:${lead.phone}`)} className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50"><Phone size={18} /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleWhatsApp(lead.phone)} className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-status-success hover:bg-status-success-surface"><MessageSquare size={18} /></Button>
-                          <Button variant="ghost" size="icon" className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary"><MoreVertical size={18} /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => window.open(`tel:${lead.phone}`)} className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50" aria-label="Ligar para o lead"><Phone size={18} /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleWhatsApp(lead.phone)} className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-status-success hover:bg-status-success-surface" aria-label="Compartilhar via WhatsApp"><MessageSquare size={18} /></Button>
+                          <Button variant="ghost" size="icon" className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary" aria-label="Mais opções"><MoreVertical size={18} /></Button>
                         </div>
                       </td>
                     </tr>

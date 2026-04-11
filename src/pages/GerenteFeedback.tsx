@@ -135,20 +135,20 @@ export default function GerenteFeedback() {
     if (feedbacksLoading || reportsLoading) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-64" />
-                    <Skeleton className="h-4 w-48" />
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
                 <div className="flex gap-mx-sm">
-                    <Skeleton className="h-mx-14 w-64 rounded-mx-full" />
-                    <Skeleton className="h-mx-14 w-48 rounded-mx-full" />
+                    <Skeleton className="h-mx-14 w-mx-64 rounded-mx-full" />
+                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-full" />
                 </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
-                <Skeleton className="h-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                <Skeleton className="h-mx-64 rounded-mx-2xl" />
             </div>
         </main>
     )
@@ -329,14 +329,14 @@ export default function GerenteFeedback() {
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 {activeTab === 'individual' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg" role="list">
+                    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg" role="list">
                         <AnimatePresence mode="popLayout">
                             {filteredFeedbacks.map((f, i) => (
-                                <motion.article key={f.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }} role="listitem">
+                                <motion.li key={f.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }} role="listitem">
                                     <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
                                         
-                                        <div>
+                                        <article>
                                             <header className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">
                                                 <div className="flex items-center gap-mx-sm">
                                                     <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase" aria-hidden="true">{(f as any).seller_name?.substring(0, 2)}</div>
@@ -357,7 +357,7 @@ export default function GerenteFeedback() {
                                                     <Typography variant="p" className="text-xs font-bold leading-relaxed italic uppercase tracking-tight text-text-secondary line-clamp-3">"{f.action}"</Typography>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </article>
 
                                         <footer className="mt-10 pt-8 border-t border-border-default flex items-center justify-between relative z-10">
                                             <div className="flex gap-mx-xs">
@@ -369,42 +369,44 @@ export default function GerenteFeedback() {
                                             </Button>
                                         </footer>
                                     </Card>
-                                </motion.article>
+                                </motion.li>
                             ))}
                         </AnimatePresence>
-                    </div>
+                    </ul>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg" role="list">
+                    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg" role="list">
                         {reports.map((report) => (
-                            <motion.div key={report.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} role="listitem">
+                            <motion.li key={report.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} role="listitem">
                                 <Card className="p-mx-lg md:p-10 hover:shadow-mx-xl transition-all h-full border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col">
-                                    <div className="flex items-center justify-between mb-10 relative z-10">
-                                        <div className="flex items-center gap-mx-sm">
-                                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md" aria-hidden="true"><Calendar size={24} /></div>
-                                            <div>
-                                                <Typography variant="tiny" tone="muted" className="uppercase tracking-widest font-black text-mx-micro opacity-40">FECHAMENTO SEMANAL</Typography>
-                                                <Typography variant="h3" className="text-lg uppercase font-black tracking-tight">{format(parseISO(report.week_start), 'dd/MM')} - {format(parseISO(report.week_end), 'dd/MM')}</Typography>
+                                    <article className="flex flex-col h-full">
+                                        <div className="flex items-center justify-between mb-10 relative z-10">
+                                            <div className="flex items-center gap-mx-sm">
+                                                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md" aria-hidden="true"><Calendar size={24} /></div>
+                                                <div>
+                                                    <Typography variant="tiny" tone="muted" className="uppercase tracking-widest font-black text-mx-micro opacity-40">FECHAMENTO SEMANAL</Typography>
+                                                    <Typography variant="h3" className="text-lg uppercase font-black tracking-tight">{format(parseISO(report.week_start), 'dd/MM')} - {format(parseISO(report.week_end), 'dd/MM')}</Typography>
+                                                </div>
+                                            </div>
+                                            <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black shadow-sm uppercase border-none">{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-mx-md py-8 border-y border-border-default relative z-10">
+                                            <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
+                                                <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">META REDE</Typography>
+                                                <Typography variant="h2" className="text-2xl font-mono-numbers tabular-nums font-black">{report.weekly_goal}v</Typography>
+                                            </div>
+                                            <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
+                                                <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">MÉDIA TROPA</Typography>
+                                                <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers tabular-nums font-black">{(report.team_avg_json as any).vnd || 0}v</Typography>
                                             </div>
                                         </div>
-                                        <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black shadow-sm uppercase border-none">{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-mx-md py-8 border-y border-border-default relative z-10">
-                                        <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
-                                            <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">META REDE</Typography>
-                                            <Typography variant="h2" className="text-2xl font-mono-numbers tabular-nums font-black">{report.weekly_goal}v</Typography>
+                                        <div className="pt-10 flex justify-end gap-mx-sm mt-auto relative z-10">
+                                            <Button variant="outline" size="sm" className="h-mx-10 px-6 text-mx-tiny uppercase rounded-mx-full font-black tracking-widest shadow-sm bg-white" aria-label={`Ver detalhes do fechamento de ${format(parseISO(report.week_start), 'dd/MM')}`}>DETALHES</Button>
                                         </div>
-                                        <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
-                                            <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">MÉDIA TROPA</Typography>
-                                            <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers tabular-nums font-black">{(report.team_avg_json as any).vnd || 0}v</Typography>
-                                        </div>
-                                    </div>
-                                    <div className="pt-10 flex justify-end gap-mx-sm mt-auto relative z-10">
-                                        <Button variant="outline" size="sm" className="h-mx-10 px-6 text-mx-tiny uppercase rounded-mx-full font-black tracking-widest shadow-sm bg-white" aria-label={`Ver detalhes do fechamento de ${format(parseISO(report.week_start), 'dd/MM')}`}>DETALHES</Button>
-                                    </div>
+                                    </article>
                                 </Card>
-                            </motion.div>
+                            </motion.li>
                         ))}
-                    </div>
+                    </ul>
                 )}
             </div>
         </main>

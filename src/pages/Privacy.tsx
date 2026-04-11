@@ -43,7 +43,7 @@ export default function Privacy() {
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <FileText size={24} strokeWidth={2.5} />
                                     </div>
-                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Coleta de Métricas</Typography>
+                                    <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Coleta de Métricas</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
                                         Registramos volumes transacionais e KPIs operacionais alimentados voluntariamente para gerar a malha de inteligência preditiva da rede.
                                     </Typography>
@@ -53,7 +53,7 @@ export default function Privacy() {
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <Shield size={24} strokeWidth={2.5} />
                                     </div>
-                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Privilégios RLS</Typography>
+                                    <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Privilégios RLS</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
                                         O acesso é isolado por Row-Level Security, garantindo que cada membro visualize rigorosamente apenas o que compete à sua hierarquia.
                                     </Typography>

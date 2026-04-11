@@ -29,7 +29,15 @@ export default function VendedorHome() {
 
     // 🧠 Specialized Logic Sharding
     const tacticalPrescription = useTacticalPrescription({ checkins, trainings, userId: profile?.id })
-    const metrics = useSellerMetrics({ checkins, todayCheckin, profile, sellerGoals, storeGoal, ranking })
+    const metrics = useSellerMetrics({ 
+        checkins, 
+        todayCheckin, 
+        profile, 
+        sellerGoals, 
+        storeGoal, 
+        ranking,
+        projectionMode: storeGoal?.projection_mode 
+    })
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -46,13 +54,13 @@ export default function VendedorHome() {
     if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading || !metrics) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-64" />
-                    <Skeleton className="h-4 w-48" />
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
                 <div className="flex gap-mx-sm">
                     <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
-                    <Skeleton className="h-mx-14 w-48 rounded-mx-3xl" />
+                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-3xl" />
                 </div>
             </header>
 
@@ -65,13 +73,13 @@ export default function VendedorHome() {
 
             <Card className="p-mx-10 bg-white/50 border-dashed border-2">
                 <div className="flex justify-between mb-8">
-                    <Skeleton className="h-8 w-48" />
-                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-mx-sm w-mx-48" />
+                    <Skeleton className="h-mx-sm w-mx-32" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg">
-                    <Skeleton className="h-64 rounded-mx-2xl" />
-                    <Skeleton className="h-72 rounded-mx-2xl" />
-                    <Skeleton className="h-64 rounded-mx-2xl" />
+                    <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                    <Skeleton className="h-mx-72 rounded-mx-2xl" />
+                    <Skeleton className="h-mx-64 rounded-mx-2xl" />
                 </div>
             </Card>
         </main>
@@ -160,10 +168,23 @@ export default function VendedorHome() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
-                <MXScoreCard label="Produção Ontem" value={metrics.vendasOntem} sub="CONSOLIDADO" icon={History} tone="success" />
-                <MXScoreCard label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="COMPROMISSOS" icon={CalendarDays} tone="brand" />
-                <MXScoreCard label="Projeção MX" value={metrics.projecao} sub="PREDICTIVE" icon={Zap} tone="brand" />
-                <MXScoreCard label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} icon={Target} tone="warning" />
+                <MXScoreCard 
+                    label="Produção Ontem" value={metrics.vendasOntem} sub="CONSOLIDADO" icon={History} tone="success" 
+                    description="Total de unidades vendidas no dia anterior"
+                />
+                <MXScoreCard 
+                    label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="COMPROMISSOS" icon={CalendarDays} tone="brand" 
+                    description="Quantidade de atendimentos agendados para hoje"
+                />
+                <MXScoreCard 
+                    label="Projeção MX" value={metrics.projecao} sub="PREDICTIVE" icon={Zap} tone="brand" 
+                    description="Estimativa de vendas para o fechamento do mês baseada no ritmo atual"
+                    isHighlight
+                />
+                <MXScoreCard 
+                    label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} icon={Target} tone="warning" 
+                    description="Objetivo de vendas definido para o mês vigente"
+                />
             </div>
 
             <Card className="bg-surface-alt/50 p-mx-10 md:p-14 border-border-default shadow-mx-sm relative overflow-hidden group">
@@ -335,6 +356,18 @@ export default function VendedorHome() {
                             </div>
                             <Typography variant="p" tone="white" className="text-base italic opacity-60 leading-relaxed uppercase tracking-tight font-bold">
                                 "O sucesso é a soma de pequenos esforços repetidos dia após dia."
+                            </Typography>
+                        </div>
+                    </Card>
+                </aside>
+            </div>
+        </main>
+    )
+}
+   </main>
+    )
+}
+ soma de pequenos esforços repetidos dia após dia."
                             </Typography>
                         </div>
                     </Card>

@@ -99,11 +99,11 @@ export default function VendedorFeedback() {
                                             <div className="grid grid-cols-2 gap-mx-lg">
                                                 <div className="space-y-mx-tiny">
                                                     <Typography variant="caption" tone="success" className="flex items-center gap-mx-xs font-black"><TrendingUp size={14} /> Pontos Fortes</Typography>
-                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-status-success-surface/30 p-mx-5 rounded-mx-2xl border border-emerald-50 shadow-inner">"{f.positives}"</p>
+                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-status-success-surface p-mx-5 rounded-mx-2xl border border-mx-emerald-100 shadow-inner">"{f.positives}"</p>
                                                 </div>
                                                 <div className="space-y-mx-tiny">
                                                     <Typography variant="caption" tone="error" className="flex items-center gap-mx-xs font-black"><AlertCircle size={14} /> Oportunidades</Typography>
-                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-rose-50/30 p-mx-5 rounded-mx-2xl border border-rose-50 shadow-inner">"{f.attention_points}"</p>
+                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-status-error-surface p-mx-5 rounded-mx-2xl border border-mx-rose-100 shadow-inner">"{f.attention_points}"</p>
                                                 </div>
                                             </div>
 

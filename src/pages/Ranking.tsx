@@ -68,7 +68,7 @@ export default function Ranking() {
                     <div className="relative group w-full sm:w-mx-sidebar-expanded">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                         <Input 
-                            placeholder="BUSCAR ESPECIALISTA..." value={searchTerm}
+                            placeholder="BUSCAR VENDEDOR..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest"
                         />
@@ -78,7 +78,7 @@ export default function Ranking() {
                     </Button>
                     <div className="flex items-center gap-mx-sm bg-white border border-border-default px-8 h-mx-xl rounded-mx-full shadow-mx-sm">
                         <Trophy size={18} className="text-status-warning" />
-                        <Typography variant="caption" className="whitespace-nowrap">{sortedRanking.length} EM ARENA</Typography>
+                        <Typography variant="caption" className="whitespace-nowrap uppercase">{sortedRanking.length} VENDEDORES EM DISPUTA</Typography>
                     </div>
                 </div>
             </header>

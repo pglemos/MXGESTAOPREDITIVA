@@ -230,34 +230,34 @@ export default function PainelConsultor() {
     if (goalsLoading || networkLoading) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10">
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-64" />
-                    <Skeleton className="h-4 w-48" />
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
                 <div className="flex gap-mx-sm">
-                    <Skeleton className="h-mx-14 w-64 rounded-mx-full" />
-                    <Skeleton className="h-mx-14 w-48 rounded-mx-full" />
+                    <Skeleton className="h-mx-14 w-mx-64 rounded-mx-full" />
+                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-full" />
                 </div>
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
-                <Skeleton className="h-32 rounded-mx-2xl" />
-                <Skeleton className="h-32 rounded-mx-2xl" />
-                <Skeleton className="h-32 rounded-mx-2xl" />
-                <Skeleton className="h-32 rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                <Skeleton className="h-mx-xl rounded-mx-2xl" />
             </div>
 
             <Card className="p-mx-10 bg-white/50 border-dashed border-2">
                 <div className="flex justify-between mb-8">
-                    <Skeleton className="h-8 w-48" />
-                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-mx-sm w-mx-48" />
+                    <Skeleton className="h-mx-sm w-mx-32" />
                 </div>
-                <div className="space-y-4">
-                    <Skeleton className="h-12 w-full rounded-mx-md" />
-                    <Skeleton className="h-12 w-full rounded-mx-md" />
-                    <Skeleton className="h-12 w-full rounded-mx-md" />
-                    <Skeleton className="h-12 w-full rounded-mx-md" />
-                    <Skeleton className="h-12 w-full rounded-mx-md" />
+                <div className="space-y-mx-sm">
+                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
+                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
+                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
+                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
+                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
                 </div>
             </Card>
         </main>
@@ -420,14 +420,63 @@ export default function PainelConsultor() {
                         <caption className="sr-only">Consolidado operacional de todas as unidades da rede</caption>
                         <thead className="bg-surface-alt/50 border-y border-border-default">
                             <tr className="uppercase tracking-mx-wide">
-                                <th scope="col" className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}><Typography variant="caption" className="font-black">Unidade</Typography></th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('leads')}><Typography variant="caption" className="font-black">Leads</Typography></th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('agd')}><Typography variant="caption" className="font-black">Agend.</Typography></th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('vis')}><Typography variant="caption" className="font-black">Visitas</Typography></th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('sales')}><Typography variant="caption" tone="brand" className="font-black">Vendas</Typography></th>
+                                <th 
+                                    scope="col" 
+                                    className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" 
+                                    onClick={() => handleSort('name')}
+                                    aria-sort={sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                >
+                                    <Typography variant="caption" className="font-black">Unidade</Typography>
+                                </th>
+                                <th 
+                                    scope="col" 
+                                    className="px-4 py-6 text-center cursor-pointer" 
+                                    onClick={() => handleSort('leads')}
+                                    aria-sort={sortConfig.key === 'leads' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                >
+                                    <Typography variant="caption" className="font-black">Leads</Typography>
+                                </th>
+                                <th 
+                                    scope="col" 
+                                    className="px-4 py-6 text-center cursor-pointer" 
+                                    onClick={() => handleSort('agd')}
+                                    aria-sort={sortConfig.key === 'agd' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                >
+                                    <Typography variant="caption" className="font-black">Agend.</Typography>
+                                </th>
+                                <th 
+                                    scope="col" 
+                                    className="px-4 py-6 text-center cursor-pointer" 
+                                    onClick={() => handleSort('vis')}
+                                    aria-sort={sortConfig.key === 'vis' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                >
+                                    <Typography variant="caption" className="font-black">Visitas</Typography>
+                                </th>
+                                <th 
+                                    scope="col" 
+                                    className="px-4 py-6 text-center cursor-pointer" 
+                                    onClick={() => handleSort('sales')}
+                                    aria-sort={sortConfig.key === 'sales' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                >
+                                    <Typography variant="caption" tone="brand" className="font-black">Vendas</Typography>
+                                </th>
                                 <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Meta</Typography></th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('gap')}><Typography variant="caption" tone="error" className="font-black">Gap</Typography></th>
-                                <th scope="col" className="px-4 py-6 text-center cursor-pointer" onClick={() => handleSort('proj')}><Typography variant="caption" tone="brand" className="font-black">Projeção</Typography></th>
+                                <th 
+                                    scope="col" 
+                                    className="px-4 py-6 text-center cursor-pointer" 
+                                    onClick={() => handleSort('gap')}
+                                    aria-sort={sortConfig.key === 'gap' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                >
+                                    <Typography variant="caption" tone="error" className="font-black">Gap</Typography>
+                                </th>
+                                <th 
+                                    scope="col" 
+                                    className="px-4 py-6 text-center cursor-pointer" 
+                                    onClick={() => handleSort('proj')}
+                                    aria-sort={sortConfig.key === 'proj' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                >
+                                    <Typography variant="caption" tone="brand" className="font-black">Projeção</Typography>
+                                </th>
                                 <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Ritmo</Typography></th>
                                 <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Status</Typography></th>
                                 <th scope="col" className="pr-10 py-6 text-center"><Typography variant="caption" className="font-black">Disciplina</Typography></th>
@@ -457,7 +506,7 @@ export default function PainelConsultor() {
                                         <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.vis}</td>
                                         <td className="px-4 py-2 text-center font-black text-2xl font-mono-numbers text-brand-primary">{store.sales}</td>
                                         <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-tertiary">{store.goal}</td>
-                                        <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-status-error">-{store.gap}</td>
+                                        <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-status-error">{store.gap}</td>
                                         <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-brand-primary">{store.proj}</td>
                                         <td className="px-4 py-2 text-center">
                                             <div className="flex flex-col items-center">
@@ -488,4 +537,6 @@ export default function PainelConsultor() {
             </Card>
         </main>
     )
+}
+
 }

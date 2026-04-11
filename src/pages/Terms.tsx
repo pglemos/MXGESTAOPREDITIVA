@@ -44,7 +44,7 @@ export default function Terms() {
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <Lock size={24} strokeWidth={2.5} />
                                     </div>
-                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Autoridade de Acesso</Typography>
+                                    <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Autoridade de Acesso</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
                                         O portal é dedicado restritamente a colaboradores com credenciais validadas. Cada agente responde pela segurança de suas chaves.
                                     </Typography>
@@ -54,7 +54,7 @@ export default function Terms() {
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <AlertTriangle size={24} strokeWidth={2.5} />
                                     </div>
-                                    <Typography variant="h3" className="mb-4 uppercase tracking-tight">Obrigações & Sanções</Typography>
+                                    <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Obrigações & Sanções</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
                                         O provimento de dados deve ser factual. Distorções recorrentes autorizam o encerramento do acesso por quebra de governança.
                                     </Typography>

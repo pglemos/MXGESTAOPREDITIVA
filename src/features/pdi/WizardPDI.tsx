@@ -299,6 +299,28 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                     <div className="xl:col-span-4 space-y-mx-md">
                                         <Card className="p-mx-md bg-surface-alt border-none shadow-sm flex flex-col items-center justify-center h-[350px]">
                                             <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-4">Radar de Competências</Typography>
+                                            
+                                            {/* Tabela Acessível para Leitores de Tela */}
+                                            <table className="sr-only">
+                                                <caption>Mapeamento de Competências e Notas</caption>
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">Competência</th>
+                                                        <th scope="col">Nota Atual</th>
+                                                        <th scope="col">Alvo</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {template.competencias.map(c => (
+                                                        <tr key={c.id}>
+                                                            <td>{c.nome}</td>
+                                                            <td>{form.avaliacoes[c.id] || 0}</td>
+                                                            <td>{c.alvo}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={template.competencias.map(c => ({ name: c.nome, nota: form.avaliacoes[c.id] || 0, alvo: c.alvo, fullMark: c.alvo }))}>
                                                     <PolarGrid stroke="var(--color-border-subtle)" />
@@ -311,7 +333,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                         <div className="space-y-mx-xs">
                                             <Typography variant="tiny" className="uppercase font-black text-brand-primary">Top 5 Maiores Lacunas</Typography>
                                             {topGaps.map((gap, i) => (
-                                                <div key={i} className="flex justify-between items-center p-mx-xs bg-white border border-red-100 rounded-mx-lg shadow-sm">
+                                                <div key={i} className="flex justify-between items-center p-mx-xs bg-white border border-status-error/20 rounded-mx-lg shadow-sm">
                                                     <Typography variant="p" className="text-xs font-bold uppercase">{gap.nome}</Typography>
                                                     <div className="text-right">
                                                         <Typography variant="mono" className="text-mx-tiny text-text-tertiary">Nota: {gap.nota}/{gap.alvo}</Typography>

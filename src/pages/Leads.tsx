@@ -222,7 +222,7 @@ export default function Leads() {
                                         <Typography variant="h3" className="uppercase tracking-tight">Histórico Operacional</Typography>
                                     </header>
                                     <div className="space-y-mx-10 relative">
-                                        <div className="absolute left-[19px] top-mx-sm bottom-mx-sm w-px bg-border-default/50" />
+                                        <div className="absolute left-mx-5 top-mx-sm bottom-mx-sm w-px bg-border-default/50" />
                                         {[1, 2, 3].map((_, i) => (
                                             <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="flex gap-mx-lg items-start relative z-10">
                                                 <div className="w-mx-10 h-mx-10 rounded-mx-full bg-white border border-border-default flex items-center justify-center shrink-0 shadow-mx-sm">

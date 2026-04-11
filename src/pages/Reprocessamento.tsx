@@ -157,7 +157,7 @@ export default function Reprocessamento() {
                             <TerminalIcon size={18} className="text-brand-primary" aria-hidden="true" />
                             <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase tracking-widest">Log do Compilador</Typography>
                         </div>
-                        <div className="bg-mx-black rounded-mx-2xl p-mx-md font-mono text-sm leading-relaxed h-mx-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner" aria-live="polite">
+                        <div className="bg-mx-black rounded-mx-2xl p-mx-md font-mono text-sm leading-relaxed h-mx-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner" aria-live="assertive">
                             {logs.map((log, idx) => (
                                 <Typography key={idx} variant="tiny" as="p" className={cn("font-black tracking-tight mb-2 uppercase", 
                                     log.type === 'error' ? 'text-status-error' : 

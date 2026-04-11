@@ -1,10 +1,12 @@
 import { useCheckins } from '@/hooks/useCheckins'
+import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { 
     Calendar, Search, Filter, Download, ChevronRight, 
     RefreshCw, X, FileText, CheckCircle2, AlertTriangle, 
-    TrendingUp, Car, Users, Globe, Smartphone, ShieldCheck
+    TrendingUp, Car, Users, Globe, Smartphone, ShieldCheck,
+    Edit3, MessageSquare, Send
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
@@ -18,8 +20,38 @@ import { toast } from 'sonner'
 
 export default function HistoryPage() {
   const { checkins, loading, fetchCheckins: refetch } = useCheckins()
+  const { requestCorrection, loading: requestLoading } = useCheckinAuditor()
   const [searchTerm, setSearchTerm] = useState('')
   const [isRefetching, setIsRefetching] = useState(false)
+
+  // Estado para Modal de Correção
+  const [requestingCheckin, setRequestingCheckin] = useState<any>(null)
+  const [correctionForm, setCorrectionForm] = useState({
+      leads: 0, visitas: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, note: '', reason: ''
+  })
+
+  const openRequestModal = (c: any) => {
+      setRequestingCheckin(c)
+      setCorrectionForm({
+          leads: c.leads_prev_day,
+          visitas: c.visit_prev_day,
+          vnd_porta: c.vnd_porta_prev_day,
+          vnd_cart: c.vnd_cart_prev_day,
+          vnd_net: c.vnd_net_prev_day,
+          note: c.note || '',
+          reason: ''
+      })
+  }
+
+  const handleSendRequest = async () => {
+      if (!correctionForm.reason) return toast.error('Justificativa obrigatória.')
+      const { error } = await requestCorrection(requestingCheckin.id, correctionForm, correctionForm.reason)
+      if (error) toast.error(error)
+      else {
+          toast.success('Solicitação enviada para auditoria do gerente!')
+          setRequestingCheckin(null)
+      }
+  }
 
   const filteredCheckins = useMemo(() => {
     return [...checkins]
@@ -168,6 +200,75 @@ export default function HistoryPage() {
           </table>
         </div>
       </Card>
+    </main>
+  )
+}
+y-between sticky top-mx-0 bg-white z-10">
+                          <div className="flex items-center gap-mx-sm">
+                              <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Edit3 size={20} /></div>
+                              <div>
+                                  <Typography variant="h3" className="font-black uppercase">Solicitar Ajuste</Typography>
+                                  <Typography variant="caption" tone="muted" className="font-black uppercase opacity-40">Ref: {format(parseISO(requestingCheckin.reference_date), "dd/MM/yyyy")}</Typography>
+                              </div>
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => setRequestingCheckin(null)} className="rounded-mx-full w-mx-10 h-mx-10 hover:bg-surface-alt"><X size={20} /></Button>
+                      </header>
+
+                      <div className="p-mx-lg md:p-10 space-y-mx-xl">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-mx-lg">
+                              <div className="space-y-mx-xs">
+                                  <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Leads</Typography>
+                                  <Input type="number" value={correctionForm.leads} onChange={e => setCorrectionForm(p => ({ ...p, leads: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
+                              </div>
+                              <div className="space-y-mx-xs">
+                                  <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Visitas</Typography>
+                                  <Input type="number" value={correctionForm.visitas} onChange={e => setCorrectionForm(p => ({ ...p, visitas: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
+                              </div>
+                              <div className="space-y-mx-xs">
+                                  <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Vendas Porta</Typography>
+                                  <Input type="number" value={correctionForm.vnd_porta} onChange={e => setCorrectionForm(p => ({ ...p, vnd_porta: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
+                              </div>
+                              <div className="space-y-mx-xs">
+                                  <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Vendas Cart.</Typography>
+                                  <Input type="number" value={correctionForm.vnd_cart} onChange={e => setCorrectionForm(p => ({ ...p, vnd_cart: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
+                              </div>
+                              <div className="space-y-mx-xs">
+                                  <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Vendas Net</Typography>
+                                  <Input type="number" value={correctionForm.vnd_net} onChange={e => setCorrectionForm(p => ({ ...p, vnd_net: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
+                              </div>
+                          </div>
+
+                          <div className="space-y-mx-sm">
+                              <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest ml-1">Justificativa da Mudança (Obrigatório)</Typography>
+                              <textarea 
+                                value={correctionForm.reason} onChange={e => setCorrectionForm(p => ({ ...p, reason: e.target.value }))}
+                                className="w-full h-mx-32 p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all text-sm font-bold outline-none resize-none shadow-mx-inner"
+                                placeholder="Descreva por que este dado precisa ser alterado..."
+                              />
+                          </div>
+
+                          <Card className="p-mx-md bg-status-warning-surface border border-mx-amber-100 flex items-start gap-mx-sm rounded-mx-2xl">
+                              <AlertTriangle size={18} className="text-status-warning shrink-0 mt-0.5" />
+                              <Typography variant="tiny" tone="warning" className="font-black uppercase leading-tight">
+                                  Sua solicitação passará por auditoria do gerente antes de ser aplicada ao histórico consolidado.
+                              </Typography>
+                          </Card>
+                      </div>
+
+                      <footer className="p-mx-lg md:p-10 border-t border-border-default flex justify-end sticky bottom-mx-0 bg-white z-10">
+                          <Button 
+                            onClick={handleSendRequest}
+                            disabled={requestLoading || !correctionForm.reason}
+                            className="h-mx-14 px-14 rounded-mx-full shadow-mx-xl font-black uppercase text-xs tracking-widest"
+                          >
+                              {requestLoading ? <RefreshCw className="animate-spin mr-2" /> : <Send size={18} className="mr-2" />}
+                              ENVIAR PARA AUDITORIA
+                          </Button>
+                      </footer>
+                  </Card>
+              </motion.div>
+          )}
+      </AnimatePresence>
     </main>
   )
 }
