@@ -50,6 +50,17 @@ async function runAudit() {
     } else {
         console.log(`✅ Total de Check-ins: ${checkins.length}`);
         
+        console.log('\n--- VOLUME POR UNIDADE ---');
+        const storeStats = stores.map(s => {
+            const count = checkins.filter(c => c.store_id === s.id).length;
+            const sales = checkins.filter(c => c.store_id === s.id).reduce((sum, c) => 
+                sum + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0
+            );
+            return { name: s.name, count, sales };
+        }).sort((a, b) => b.count - a.count);
+
+        storeStats.forEach(s => console.log(`[ ] ${s.name.padEnd(20)}: ${s.count} registros | ${s.sales} vendas`));
+        
         // 4. Detecção de Órfãos
         const orphans = checkins.filter(c => !c.seller_user_id || !c.store_id);
         if (orphans.length > 0) {
