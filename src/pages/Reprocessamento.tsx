@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { 
     ArrowLeft, Database, Upload, RefreshCw, Terminal as TerminalIcon, 
-    Layers, History, Download, Info, ShieldCheck, ChevronDown, 
+    Layers, History, ShieldCheck, 
     FileSpreadsheet, X 
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -11,9 +11,7 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Input } from '@/components/atoms/Input'
-import { Select } from '@/components/atoms/Select'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { Card } from '@/components/molecules/Card'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { format, parseISO } from 'date-fns'
@@ -103,29 +101,26 @@ export default function Reprocessamento() {
                 addLog(`Injetado: ${Math.min(i + chunkSize, result.records.length)}/${result.records.length}`, 'info')
             }
 
-            addLog('Disparando processamento de domínio (RPC)...', 'info')
             const { error: rpcError } = await supabase.rpc('process_import_data', { p_log_id: log.id })
             if (rpcError) throw new Error(rpcError.message)
 
-            addLog('Aguardando reconciliação de dados...', 'info')
             let attempts = 0
             while (attempts < 30) {
                 const { data: statusCheck } = await supabase.from('reprocess_logs').select('status, records_processed, records_failed').eq('id', log.id).single()
                 if (statusCheck?.status === 'completed') {
-                    addLog(`SINCRONIZAÇÃO FINALIZADA: ${statusCheck.records_processed} linhas processadas com sucesso.`, 'success')
-                    if (statusCheck.records_failed > 0) addLog(`ALERTA: ${statusCheck.records_failed} registros falharam.`, 'warning')
+                    addLog(`SINCRONIZAÇÃO FINALIZADA: ${statusCheck.records_processed} linhas processadas.`, 'success')
                     break
                 }
-                if (statusCheck?.status === 'failed') throw new Error('O motor de processamento reportou falha crítica.')
+                if (statusCheck?.status === 'failed') throw new Error('O motor reportou falha crítica.')
                 await new Promise(r => setTimeout(r, 1000))
                 attempts++
             }
             
-            toast.success('Dados integrados à malha MX!')
+            toast.success('Dados integrados!')
             fetchHistory()
         } catch (err: any) {
-            addLog(`ERRO DE SISTEMA: ${err.message}`, 'error')
-            toast.error('Falha na injeção de massa.')
+            addLog(`ERRO: ${err.message}`, 'error')
+            toast.error('Falha na injeção.')
         } finally {
             setProcessing(false)
         }
@@ -137,8 +132,8 @@ export default function Reprocessamento() {
             header: 'DATA / HORA',
             render: (h) => (
                 <div className="flex flex-col">
-                    <Typography variant="h3" className="text-base leading-none mb-1 font-black uppercase tracking-tight">{format(parseISO(h.created_at), 'dd/MM/yyyy')}</Typography>
-                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
+                    <Typography variant="h3" className="text-sm sm:text-base leading-none mb-1 font-black uppercase tracking-tight">{format(parseISO(h.created_at), 'dd/MM/yyyy')}</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40 text-[8px] sm:text-mx-micro">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
                 </div>
             )
         },
@@ -146,158 +141,124 @@ export default function Reprocessamento() {
             key: 'store_name',
             header: 'UNIDADE',
             render: (h) => (
-                <div className="flex items-center gap-mx-sm">
-                    <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center group-hover:bg-brand-primary transition-all shadow-mx-inner shrink-0" aria-hidden="true">
-                        <Typography variant="tiny" className="font-black group-hover:text-white uppercase">{h.store_name?.charAt(0)}</Typography>
-                    </div>
-                    <Typography variant="h3" className="text-sm uppercase tracking-tight font-black truncate max-w-[150px]">{h.store_name}</Typography>
+                <div className="flex items-center gap-mx-sm min-w-0">
+                    <div className="w-mx-8 h-mx-8 sm:w-mx-lg sm:h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center shrink-0"><Typography variant="tiny" className="font-black text-[8px]">{h.store_name?.charAt(0)}</Typography></div>
+                    <Typography variant="h3" className="text-xs sm:text-sm uppercase tracking-tight font-black truncate">{h.store_name}</Typography>
                 </div>
             )
         },
         {
             key: 'rows_processed',
-            header: 'REGISTROS',
+            header: 'REG.',
             align: 'center',
-            render: (h) => <Typography variant="mono" tone="brand" className="text-lg font-black tabular-nums">{h.rows_processed || 0}</Typography>
+            render: (h) => <Typography variant="mono" tone="brand" className="text-base sm:text-lg font-black tabular-nums">{h.rows_processed || 0}</Typography>
         },
         {
             key: 'status',
             header: 'STATUS',
             align: 'right',
             render: (h) => (
-                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none">
-                    <Typography variant="tiny" as="span" className="font-black tracking-widest">{h.status === 'completed' ? 'CONCLUÍDO' : 'FALHA'}</Typography>
+                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-3 sm:px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none text-[8px] sm:text-mx-micro font-black">
+                    {h.status === 'completed' ? 'OK' : 'ERRO'}
                 </Badge>
             )
         }
     ], [])
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md animate-pulse" aria-hidden="true" />
-                        <Typography variant="h1" tone="white">Painel de <Typography as="span" variant="h1" tone="brand">Reprocessamento</Typography></Typography>
+                        <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
+                        <Typography variant="h1" tone="white" className="text-2xl sm:text-4xl">Massa de <Typography as="span" variant="h1" tone="brand">Dados</Typography></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 font-black uppercase tracking-widest">DATA INJECTION ENGINE v2.1</Typography>
+                    <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-widest text-[10px] sm:text-xs">DATA INJECTION ENGINE v2.1</Typography>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <Button asChild variant="ghost" className="w-full sm:w-auto text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-tiny">
-                        <Link to="/configuracoes"><ArrowLeft size={16} className="mr-2" aria-hidden="true" /> VOLTAR AO PAINEL</Link>
+                <div className="flex flex-row items-center justify-center gap-mx-sm shrink-0 w-full lg:w-auto">
+                    <Button asChild variant="ghost" className="flex-1 sm:flex-none text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-[10px]">
+                        <Link to="/configuracoes"><ArrowLeft size={14} className="mr-2" /> VOLTAR</Link>
                     </Button>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="hidden sm:flex rounded-mx-xl border-white/10 text-white/40 h-mx-xl w-mx-xl hover:text-white bg-white/5" aria-label="Sincronizar histórico">
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl border-white/10 text-white/40 h-mx-10 w-mx-10 sm:h-mx-14 sm:w-mx-14 hover:text-white bg-white/5">
+                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0">
+            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
                 <section className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="bg-mx-black border-white/5 p-mx-lg md:p-10 space-y-mx-10 shadow-mx-xl relative overflow-hidden">
-                        <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl" aria-hidden="true" />
+                    <Card className="bg-mx-black border-white/5 p-6 sm:p-10 space-y-mx-md shadow-mx-xl relative overflow-hidden">
+                        <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl" />
                         
-                        <header className="flex items-center gap-mx-sm border-b border-white/5 pb-8 relative z-10">
-                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl border border-white/10" aria-hidden="true"><Database size={28} /></div>
+                        <header className="flex items-center gap-mx-sm border-b border-white/5 pb-6 relative z-10">
+                            <div className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl border border-white/10 shrink-0"><Database size={24} /></div>
                             <div>
-                                <Typography variant="h3" tone="white" className="uppercase tracking-tight font-black">Carregar Dados</Typography>
-                                <Typography variant="tiny" tone="white" className="opacity-30 uppercase tracking-widest mt-1 font-black">SNAPSHOT DE UNIDADE</Typography>
+                                <Typography variant="h3" tone="white" className="uppercase tracking-tight font-black text-sm sm:text-lg">Carregar Dados</Typography>
+                                <Typography variant="tiny" tone="white" className="opacity-30 uppercase tracking-widest mt-0.5 font-black text-[8px]">UNIDADE ALVO</Typography>
                             </div>
                         </header>
 
-                        <div className="space-y-mx-10 relative z-10">
-                            <div className="space-y-mx-sm">
-                                <Typography variant="tiny" tone="white" as="label" htmlFor="store-select" className="opacity-40 ml-2 font-black uppercase tracking-widest">Unidade Alvo</Typography>
-                                <div className="relative">
-                                    <select 
-                                        id="store-select"
-                                        value={selectedStoreId} onChange={e => setSelectedStoreId(e.target.value)}
-                                        className="w-full h-mx-14 px-6 bg-white/5 border border-white/10 rounded-mx-xl text-white text-sm font-bold focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer uppercase outline-none shadow-mx-inner"
-                                        aria-required="true"
-                                    >
-                                        <option value="" className="bg-mx-black">Selecione a loja...</option>
-                                        {stores.map(s => <option key={s.id} value={s.id} className="bg-mx-black">{s.name.toUpperCase()}</option>)}
-                                    </select>
-                                    <ChevronDown size={18} className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" aria-hidden="true" />
-                                </div>
+                        <div className="space-y-mx-md relative z-10">
+                            <div className="space-y-mx-xs">
+                                <Typography variant="tiny" tone="white" as="label" className="opacity-40 ml-2 font-black uppercase tracking-widest text-[8px]">Unidade</Typography>
+                                <select 
+                                    value={selectedStoreId} onChange={e => setSelectedStoreId(e.target.value)}
+                                    className="w-full h-mx-12 px-4 bg-white/5 border border-white/10 rounded-mx-xl text-white text-xs font-bold appearance-none cursor-pointer uppercase outline-none"
+                                >
+                                    <option value="" className="bg-mx-black">Selecione...</option>
+                                    {stores.map(s => <option key={s.id} value={s.id} className="bg-mx-black">{s.name.toUpperCase()}</option>)}
+                                </select>
                             </div>
 
-                            <div className="space-y-mx-sm">
-                                <Typography variant="tiny" tone="white" className="opacity-40 ml-2 font-black uppercase tracking-widest">Arquivo de Massa (CSV/XLSX)</Typography>
+                            <div className="space-y-mx-xs">
+                                <Typography variant="tiny" tone="white" className="opacity-40 ml-2 font-black uppercase tracking-widest text-[8px]">Arquivo</Typography>
                                 <div className="relative group">
-                                    <input id="csv-upload" type="file" accept=".csv,.xlsx" onChange={handleFileSelect} className="sr-only" aria-required="true" />
-                                    <label htmlFor="csv-upload" className={cn("flex flex-col items-center justify-center gap-mx-md w-full min-h-64 border-2 border-dashed rounded-mx-3xl transition-all cursor-pointer shadow-mx-inner", 
-                                        file ? "bg-brand-primary/10 border-brand-primary/50" : "bg-white/5 border-white/10 hover:bg-white/10"
+                                    <input id="csv-upload" type="file" accept=".csv,.xlsx" onChange={handleFileSelect} className="sr-only" />
+                                    <label htmlFor="csv-upload" className={cn("flex flex-col items-center justify-center gap-mx-sm w-full min-h-24 border-2 border-dashed rounded-mx-2xl transition-all cursor-pointer", 
+                                        file ? "bg-brand-primary/10 border-brand-primary/50" : "bg-white/5 border-white/10"
                                     )}>
-                                        <div className={cn("w-mx-20 h-mx-header rounded-mx-3xl flex items-center justify-center shadow-mx-xl transition-all", 
-                                            file ? "bg-brand-primary text-white rotate-6 scale-110" : "bg-white/5 group-hover:scale-105"
-                                        )}>
-                                            {file ? <FileSpreadsheet size={40} /> : <Upload size={40} className="text-white/20" aria-hidden="true" />}
-                                        </div>
-                                        <div className="text-center px-8">
-                                            <Typography variant="h3" tone="white" className="text-base truncate max-w-40 font-black uppercase tracking-tight">{file ? file.name : 'Selecionar Massa'}</Typography>
-                                            <Typography variant="tiny" tone="white" className="opacity-20 mt-2 block tracking-widest font-black uppercase">CLIQUE PARA EXPLORAR</Typography>
-                                        </div>
-                                        {file && (
-                                            <Button variant="ghost" size="sm" onClick={(e) => { e.preventDefault(); setFile(null) }} className="absolute top-mx-sm right-mx-sm text-white/20 hover:text-status-error rounded-mx-full w-mx-10 h-mx-10 p-mx-0" aria-label="Remover arquivo">
-                                                <X size={20} />
-                                            </Button>
-                                        )}
+                                        <Upload size={20} className="text-white/20" />
+                                        <Typography variant="h3" tone="white" className="text-[10px] truncate max-w-[150px] font-black uppercase">{file ? file.name : 'Selecionar'}</Typography>
                                     </label>
                                 </div>
                             </div>
 
-                            <Button 
-                                onClick={handleUpload} 
-                                disabled={processing || !file || !selectedStoreId} 
-                                className="w-full h-mx-2xl rounded-mx-full bg-brand-primary shadow-mx-xl border border-white/10 active:scale-95 transition-all"
-                            >
-                                <Typography variant="tiny" as="span" tone="white" className="font-black tracking-widest uppercase">
-                                    {processing ? <RefreshCw className="animate-spin mr-3 inline-block" /> : <Layers size={20} className="mr-3 inline-block" aria-hidden="true" />} 
-                                    INJETAR MASSA
-                                </Typography>
+                            <Button onClick={handleUpload} disabled={processing || !file || !selectedStoreId} className="w-full h-mx-14 rounded-mx-full bg-brand-primary shadow-mx-xl border border-white/10 font-black uppercase tracking-widest text-[10px]">
+                                {processing ? <RefreshCw className="animate-spin mr-2" /> : <Layers size={16} className="mr-2" />} 
+                                INJETAR AGORA
                             </Button>
 
                             <AnimatePresence>
                                 {validation && (
-                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                                        <Card className="p-mx-md bg-white/5 border border-white/10 space-y-mx-md rounded-mx-2xl mt-mx-md">
-                                            <header className="flex items-center gap-mx-xs border-b border-white/10 pb-2">
-                                                <ShieldCheck size={14} className={validation.isValid ? "text-status-success" : "text-status-error"} />
-                                                <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest">Resumo Estrutural</Typography>
-                                            </header>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
-                                                <div className="text-center p-mx-xs bg-mx-black rounded-mx-xl border border-white/5">
-                                                    <Typography variant="tiny" tone="white" className="opacity-40 block mb-1">LINHAS</Typography>
-                                                    <Typography variant="h3" tone="white" className="text-lg tabular-nums">{validation.summary.totalRows}</Typography>
-                                                </div>
-                                                <div className="text-center p-mx-xs bg-mx-black rounded-mx-xl border border-white/5">
-                                                    <Typography variant="tiny" tone="white" className="opacity-40 block mb-1">VENDEDORES</Typography>
-                                                    <Typography variant="h3" tone="white" className="text-lg tabular-nums">{validation.summary.sellersFound.length}</Typography>
-                                                </div>
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pt-2">
+                                        <div className="p-3 bg-white/5 border border-white/10 rounded-mx-xl flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <ShieldCheck size={14} className="text-status-success" />
+                                                <Typography variant="tiny" tone="white" className="font-black uppercase text-[8px]">{validation.summary.validRows} VÁLIDOS</Typography>
                                             </div>
-                                        </Card>
+                                            <Typography variant="tiny" tone="white" className="opacity-40 text-[8px]">{validation.summary.sellersFound.length} VENDEDORES</Typography>
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
                     </Card>
 
-                    <Card className="bg-mx-black border-white/5 p-mx-lg md:p-10 space-y-mx-md shadow-mx-lg flex-1">
-                        <div className="flex items-center gap-mx-sm mb-4">
-                            <TerminalIcon size={18} className="text-brand-primary" aria-hidden="true" />
-                            <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase tracking-widest">Log do Compilador</Typography>
+                    <Card className="bg-mx-black border-white/5 p-6 sm:p-10 space-y-mx-sm shadow-mx-lg flex-1">
+                        <div className="flex items-center gap-mx-sm mb-2">
+                            <TerminalIcon size={14} className="text-brand-primary" />
+                            <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase tracking-widest text-[8px]">LOG DO COMPILADOR</Typography>
                         </div>
-                        <div className="bg-mx-black rounded-mx-2xl p-mx-md font-mono text-sm leading-relaxed h-mx-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner" aria-live="assertive">
+                        <div className="bg-mx-black rounded-mx-xl p-4 font-mono text-[9px] leading-tight h-40 lg:h-mx-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner">
                             {logs.map((log, idx) => (
-                                <Typography key={idx} variant="tiny" as="p" className={cn("font-black tracking-tight mb-2 uppercase", 
-                                    log.type === 'error' ? 'text-status-error' : 
-                                    log.type === 'warning' ? 'text-status-warning' : 
-                                    log.type === 'success' ? 'text-status-success' : 
-                                    'text-brand-primary'
-                                )}>{log.msg}</Typography>
+                                <p key={idx} className={cn("mb-1 uppercase", 
+                                    log.type === 'error' ? 'text-status-error font-black' : 
+                                    log.type === 'warning' ? 'text-status-warning font-black' : 
+                                    log.type === 'success' ? 'text-status-success font-black' : 
+                                    'text-brand-primary opacity-60'
+                                )}>{log.msg}</p>
                             ))}
                             <div ref={terminalEndRef} />
                         </div>
@@ -306,25 +267,17 @@ export default function Reprocessamento() {
 
                 <section className="lg:col-span-8 flex flex-col">
                     <Card className="bg-white border-none shadow-mx-xl overflow-hidden h-full flex flex-col">
-                        <header className="p-mx-lg md:p-14 border-b border-border-default flex flex-col sm:flex-row items-center justify-between gap-mx-md bg-surface-alt/30">
+                        <header className="p-6 sm:p-10 border-b border-border-default flex flex-row items-center justify-between bg-surface-alt/30 shrink-0">
                             <div className="flex items-center gap-mx-sm">
-                                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg" aria-hidden="true"><History size={28} /></div>
+                                <div className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg shrink-0"><History size={24} /></div>
                                 <div>
-                                    <Typography variant="h2" className="uppercase tracking-tighter leading-none">Audit Trail</Typography>
-                                    <Typography variant="tiny" tone="muted" className="tracking-widest mt-1 font-black uppercase opacity-40">LOG DE INJEÇÕES OPERACIONAIS</Typography>
+                                    <Typography variant="h2" className="uppercase tracking-tighter leading-none text-lg sm:text-2xl">Audit Trail</Typography>
+                                    <Typography variant="caption" tone="muted" className="tracking-widest mt-0.5 font-black uppercase opacity-40 text-[8px] sm:text-xs">EVENTOS DE INGESTÃO</Typography>
                                 </div>
                             </div>
-                            <Badge variant="outline" className="px-6 py-2 rounded-mx-full font-black border-border-strong uppercase">
-                                <Typography variant="tiny" as="span">{history.length} EVENTOS</Typography>
-                            </Badge>
                         </header>
-
-                        <div className="p-mx-md md:p-0 flex-1 overflow-hidden">
-                            <DataGrid 
-                                columns={columns}
-                                data={history}
-                                emptyMessage="Nenhum protocolo de injeção localizado."
-                            />
+                        <div className="flex-1 overflow-hidden">
+                            <DataGrid columns={columns} data={history} emptyMessage="Nenhum registro." />
                         </div>
                     </Card>
                 </section>
