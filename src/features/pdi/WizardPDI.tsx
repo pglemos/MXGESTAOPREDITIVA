@@ -269,7 +269,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                                     <Typography variant="p" className="font-black uppercase">{c.nome}</Typography>
                                                                     <Typography variant="tiny" tone="muted" className="mt-1 leading-snug">{c.descricao_completa}</Typography>
                                                                 </div>
-                                                                <div className="bg-white px-4 py-2 rounded-mx-xl shadow-sm border border-border-default text-center min-w-[60px]">
+                                                                <div className="bg-white px-4 py-2 rounded-mx-xl shadow-sm border border-border-default text-center min-w-mx-20">
                                                                     <Typography variant="h2" tone="brand">{nota}</Typography>
                                                                 </div>
                                                             </div>
@@ -297,7 +297,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                             {currentStep === 3 && template && (
                                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-10">
                                     <div className="xl:col-span-4 space-y-mx-md">
-                                        <Card className="p-mx-md bg-surface-alt border-none shadow-sm flex flex-col items-center justify-center h-[350px]">
+                                        <Card className="p-mx-md bg-surface-alt border-none shadow-sm flex flex-col items-center justify-center h-mx-96">
                                             <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-4">Radar de Competências</Typography>
                                             
                                             {/* Tabela Acessível para Leitores de Tela */}

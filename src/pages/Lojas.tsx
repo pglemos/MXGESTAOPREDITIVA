@@ -135,7 +135,7 @@ export default function Lojas() {
                                                     <Building2 size={24} />
                                                 </div>
                                                 <div>
-                                                    <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-[140px] font-black">{store.name}</Typography>
+                                                    <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
                                                     <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase mt-1 opacity-40">ID: {store.id.split('-')[0]}</Typography>
                                                 </div>
                                             </div>

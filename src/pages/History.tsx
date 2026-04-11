@@ -3,41 +3,59 @@ import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { 
-    Calendar, Search, Filter, Download, ChevronRight, 
+    Calendar, Search, Filter, Download, 
     RefreshCw, X, FileText, CheckCircle2, AlertTriangle, 
-    TrendingUp, Car, Users, Globe, Smartphone, ShieldCheck,
-    Edit3, MessageSquare, Send
+    TrendingUp, Edit3, Send
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { Card, CardHeader } from '@/components/molecules/Card'
 import { cn } from '@/lib/utils'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function HistoryPage() {
+  const { profile } = useAuth()
   const { checkins, loading, fetchCheckins: refetch } = useCheckins()
   const { requestCorrection, loading: requestLoading } = useCheckinAuditor()
   const [searchTerm, setSearchTerm] = useState('')
   const [isRefetching, setIsRefetching] = useState(false)
+  const [userRequests, setUserRequests] = useState<any[]>([])
 
   // Estado para Modal de Correção
   const [requestingCheckin, setRequestingCheckin] = useState<any>(null)
   const [correctionForm, setCorrectionForm] = useState({
-      leads: 0, visitas: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, note: '', reason: ''
+      leads: 0, visitas: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, agd_cart: 0, agd_net: 0, note: '', reason: ''
   })
+
+  const fetchUserRequests = useCallback(async () => {
+    if (!profile?.id) return
+    const { data } = await supabase
+        .from('checkin_correction_requests')
+        .select('*')
+        .eq('seller_id', profile.id)
+    setUserRequests(data || [])
+  }, [profile?.id])
+
+  useEffect(() => {
+    fetchUserRequests()
+  }, [fetchUserRequests])
 
   const openRequestModal = (c: any) => {
       setRequestingCheckin(c)
       setCorrectionForm({
-          leads: c.leads_prev_day,
-          visitas: c.visit_prev_day,
-          vnd_porta: c.vnd_porta_prev_day,
-          vnd_cart: c.vnd_cart_prev_day,
-          vnd_net: c.vnd_net_prev_day,
+          leads: c.leads_prev_day || 0,
+          visitas: c.visit_prev_day || 0,
+          vnd_porta: c.vnd_porta_prev_day || 0,
+          vnd_cart: c.vnd_cart_prev_day || 0,
+          vnd_net: c.vnd_net_prev_day || 0,
+          agd_cart: c.agd_cart_today || 0,
+          agd_net: c.agd_net_today || 0,
           note: c.note || '',
           reason: ''
       })
@@ -45,11 +63,12 @@ export default function HistoryPage() {
 
   const handleSendRequest = async () => {
       if (!correctionForm.reason) return toast.error('Justificativa obrigatória.')
-      const { error } = await requestCorrection(requestingCheckin.id, correctionForm, correctionForm.reason)
+      const { error } = await requestCorrection(requestingCheckin.id, correctionForm as any, correctionForm.reason)
       if (error) toast.error(error)
       else {
           toast.success('Solicitação enviada para auditoria do gerente!')
           setRequestingCheckin(null)
+          fetchUserRequests()
       }
   }
 
@@ -86,7 +105,7 @@ export default function HistoryPage() {
             <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
             <Typography variant="h1">Logs de <span className="text-brand-primary">Auditoria</span></Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">HISTÓRICO OPERACIONAL CONSOLIDADO</Typography>
+          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">HISTÓRICO OPERACIONAL CONSOLIDADO</Typography>
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
@@ -131,8 +150,8 @@ export default function HistoryPage() {
           <div className="flex items-center gap-mx-md">
             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform -rotate-2"><FileText size={28} /></div>
             <div>
-              <Typography variant="h2" className="text-2xl uppercase">Timeline de Registros</Typography>
-              <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">SINC: LIVE AUDIT SYSTEM</Typography>
+              <Typography variant="h2" className="text-2xl uppercase font-black tracking-tighter">Timeline de Registros</Typography>
+              <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SINC: LIVE AUDIT SYSTEM</Typography>
             </div>
           </div>
           <div className="relative group w-mx-sidebar-expanded hidden sm:block">
@@ -140,7 +159,7 @@ export default function HistoryPage() {
             <Input 
                 placeholder="BUSCAR DATA..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest"
+                className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest font-black"
             />
           </div>
         </CardHeader>
@@ -158,52 +177,77 @@ export default function HistoryPage() {
                 </tr>
             </thead>
             <tbody className="divide-y divide-border-default bg-white">
-              {filteredCheckins.map((c, i) => (
-                <tr key={c.id} className="hover:bg-surface-alt/30 transition-colors h-mx-3xl group">
-                  <td className="pl-10">
-                    <div className="flex flex-col">
-                        <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors">
-                            {format(parseISO(c.reference_date), "dd 'de' MMMM", { locale: ptBR })}
-                        </Typography>
-                        <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase mt-1">Snapshot Consolidado</Typography>
-                    </div>
-                  </td>
-                  <td className="px-6 text-center font-black text-lg tabular-nums text-text-primary opacity-60">{c.vnd_porta_prev_day || 0}</td>
-                  <td className="px-6 text-center font-black text-lg tabular-nums text-text-primary opacity-60">{c.vnd_cart_prev_day || 0}</td>
-                  <td className="px-6 text-center font-black text-lg tabular-nums text-text-primary opacity-60">{c.vnd_net_prev_day || 0}</td>
-                  <td className="px-6 text-center">
-                    <div className="inline-flex items-center gap-mx-xs px-6 py-2.5 rounded-mx-full bg-surface-alt border border-border-default shadow-inner">
-                        <div className="flex flex-col items-center">
-                            <Typography variant="mono" tone="brand" className="text-xs">{c.leads_prev_day || 0}</Typography>
-                            <Typography variant="caption" className="text-mx-micro opacity-40">L</Typography>
-                        </div>
-                        <div className="w-px h-mx-sm bg-border-strong opacity-20" />
-                        <div className="flex flex-col items-center">
-                            <Typography variant="mono" tone="warning" className="text-xs">{c.agd_total || 0}</Typography>
-                            <Typography variant="caption" className="text-mx-micro opacity-40">A</Typography>
-                        </div>
-                        <div className="w-px h-mx-sm bg-border-strong opacity-20" />
-                        <div className="flex flex-col items-center">
-                            <Typography variant="mono" tone="success" className="text-xs">{c.visit_prev_day || 0}</Typography>
-                            <Typography variant="caption" className="text-mx-micro opacity-40">V</Typography>
-                        </div>
-                    </div>
-                  </td>
-                  <td className="pr-10 text-right">
-                    <Badge variant="success" className="px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase font-black tracking-widest text-mx-micro">
-                        VERIFICADO
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
+              {filteredCheckins.map((c) => {
+                const request = userRequests.find(r => r.checkin_id === c.id)
+                
+                return (
+                  <tr key={c.id} className="hover:bg-surface-alt/30 transition-colors h-mx-3xl group">
+                    <td className="pl-10">
+                      <div className="flex flex-col">
+                          <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black">
+                              {format(parseISO(c.reference_date), "dd 'de' MMMM", { locale: ptBR })}
+                          </Typography>
+                          <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase mt-1 opacity-40">Snapshot Consolidado</Typography>
+                      </div>
+                    </td>
+                    <td className="px-6 text-center font-black text-lg tabular-nums text-text-primary opacity-60">{c.vnd_porta_prev_day || 0}</td>
+                    <td className="px-6 text-center font-black text-lg tabular-nums text-text-primary opacity-60">{c.vnd_cart_prev_day || 0}</td>
+                    <td className="px-6 text-center font-black text-lg tabular-nums text-text-primary opacity-60">{c.vnd_net_prev_day || 0}</td>
+                    <td className="px-6 text-center">
+                      <div className="inline-flex items-center gap-mx-xs px-6 py-2.5 rounded-mx-full bg-surface-alt border border-border-default shadow-inner">
+                          <div className="flex flex-col items-center">
+                              <Typography variant="mono" tone="brand" className="text-xs font-black">{c.leads_prev_day || 0}</Typography>
+                              <Typography variant="caption" className="text-mx-micro opacity-40 font-black">L</Typography>
+                          </div>
+                          <div className="w-px h-mx-sm bg-border-strong opacity-20" />
+                          <div className="flex flex-col items-center">
+                              <Typography variant="mono" tone="warning" className="text-xs font-black">{(c.agd_cart_today || 0) + (c.agd_net_today || 0)}</Typography>
+                              <Typography variant="caption" className="text-mx-micro opacity-40 font-black">A</Typography>
+                          </div>
+                          <div className="w-px h-mx-sm bg-border-strong opacity-20" />
+                          <div className="flex flex-col items-center">
+                              <Typography variant="mono" tone="success" className="text-xs font-black">{c.visit_prev_day || 0}</Typography>
+                              <Typography variant="caption" className="text-mx-micro opacity-40 font-black">V</Typography>
+                          </div>
+                      </div>
+                    </td>
+                    <td className="pr-10 text-right">
+                      <div className="flex items-center justify-end gap-mx-sm">
+                          {request ? (
+                              <Badge variant={request.status === 'pending' ? 'warning' : request.status === 'approved' ? 'success' : 'danger'} className="px-4 py-1.5 rounded-mx-lg shadow-sm border uppercase font-black tracking-widest text-mx-micro">
+                                  {request.status === 'pending' ? 'AJUSTE PENDENTE' : request.status === 'approved' ? 'AJUSTE APROVADO' : 'AJUSTE NEGADO'}
+                              </Badge>
+                          ) : (
+                              <Button 
+                                  variant="ghost" size="sm" 
+                                  onClick={() => openRequestModal(c)}
+                                  className="h-mx-xl px-4 rounded-mx-lg font-black text-mx-micro uppercase text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50"
+                              >
+                                  <Edit3 size={14} className="mr-2" /> SOLICITAR AJUSTE
+                              </Button>
+                          )}
+                          <Badge variant="success" className="px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase font-black tracking-widest text-mx-micro">
+                              VERIFICADO
+                          </Badge>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
       </Card>
-    </main>
-  )
-}
-y-between sticky top-mx-0 bg-white z-10">
+
+      {/* Modal de Solicitação de Ajuste */}
+      <AnimatePresence>
+          {requestingCheckin && (
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm"
+              >
+                  <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-mx-3xl">
+                      <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                           <div className="flex items-center gap-mx-sm">
                               <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Edit3 size={20} /></div>
                               <div>
@@ -235,6 +279,14 @@ y-between sticky top-mx-0 bg-white z-10">
                               <div className="space-y-mx-xs">
                                   <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Vendas Net</Typography>
                                   <Input type="number" value={correctionForm.vnd_net} onChange={e => setCorrectionForm(p => ({ ...p, vnd_net: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
+                              </div>
+                              <div className="space-y-mx-xs">
+                                  <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Agend. Cart.</Typography>
+                                  <Input type="number" value={correctionForm.agd_cart} onChange={e => setCorrectionForm(p => ({ ...p, agd_cart: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
+                              </div>
+                              <div className="space-y-mx-xs">
+                                  <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Agend. Net</Typography>
+                                  <Input type="number" value={correctionForm.agd_net} onChange={e => setCorrectionForm(p => ({ ...p, agd_net: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />
                               </div>
                           </div>
 

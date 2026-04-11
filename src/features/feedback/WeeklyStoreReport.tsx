@@ -41,7 +41,7 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
                     </p>
                 </div>
                 <div className="text-right">
-                    <span className="text-mx-tiny font-black bg-slate-100 px-3 py-1 rounded text-text-secondary">MX CRITERION: 20 / 60 / 33</span>
+                    <span className="text-mx-tiny font-black bg-surface-alt px-3 py-1 rounded text-text-secondary">MX CRITERION: 20 / 60 / 33</span>
                 </div>
             </div>
 
@@ -154,4 +154,5 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
             </div>
         </div>
     )
+}
 }

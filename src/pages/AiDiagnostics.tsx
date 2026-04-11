@@ -75,7 +75,7 @@ export default function AiDiagnostics() {
                     </div>
                     <Button 
                         size="icon" onClick={handleScan} disabled={isScanning} 
-                        className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-indigo-600 shadow-mx-xl border border-white/10 active:scale-95 transition-all"
+                        className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary shadow-mx-xl border border-white/10 active:scale-95 transition-all"
                         aria-label="Reiniciar escaneamento de auditoria"
                     >
                         <Zap size={32} className={cn(isScanning ? "animate-bounce" : "fill-white")} aria-hidden="true" />

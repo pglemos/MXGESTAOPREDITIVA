@@ -134,11 +134,11 @@ export const PrintableFeedback: React.FC<PrintableFeedbackProps> = ({ feedback }
 
             <div className="mt-6 flex flex-col gap-mx-sm">
                 <div className="flex gap-mx-xs">
-                    <span className="font-bold uppercase min-w-[150px] text-mx-tiny">Diagnóstico da Semana:</span>
+                    <span className="font-bold uppercase min-w-mx-label-lg text-mx-tiny">Diagnóstico da Semana:</span>
                     <span className="diagnostico text-mx-tiny whitespace-pre-wrap">{f.attention_points}</span>
                 </div>
                 <div className="flex gap-mx-xs">
-                    <span className="font-bold uppercase min-w-[150px] text-mx-tiny">Orientação de Ação:</span>
+                    <span className="font-bold uppercase min-w-mx-label-lg text-mx-tiny">Orientação de Ação:</span>
                     <span className="text-mx-tiny whitespace-pre-wrap">{f.action}</span>
                 </div>
             </div>

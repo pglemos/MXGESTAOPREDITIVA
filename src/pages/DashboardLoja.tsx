@@ -375,7 +375,7 @@ export default function DashboardLoja() {
                         </CardHeader>
                         
                         <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left min-w-[800px]">
+                            <table className="w-full text-left min-w-mx-table">
                                 <caption className="sr-only">Ranking de performance dos especialistas da unidade</caption>
                                 <thead>
                                     <tr className="bg-mx-black border-b border-white/5 text-mx-tiny font-black uppercase tracking-mx-wide text-white/20">

@@ -173,7 +173,7 @@ export default function Tarefas() {
                     ) : (
                         <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
                             <div className="overflow-x-auto no-scrollbar">
-                                <table className="w-full text-left min-w-[900px]">
+                                <table className="w-full text-left min-w-mx-table-wide">
                                     <thead>
                                         <tr className="bg-surface-alt/50 border-b border-border-default text-mx-tiny font-black uppercase tracking-mx-wider text-text-tertiary">
                                             <th scope="col" className="pl-10 py-6 w-mx-2xl text-center">STATUS</th>

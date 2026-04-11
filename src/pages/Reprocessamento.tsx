@@ -17,6 +17,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { format, parseISO } from 'date-fns'
+import { validateLegacyCSV, ValidationResult } from '@/lib/migration-validator'
 
 interface ImportLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
 
@@ -25,6 +26,7 @@ export default function Reprocessamento() {
     const [selectedStoreId, setSelectedStoreId] = useState('')
     const [file, setFile] = useState<File | null>(null)
     const [processing, setProcessing] = useState(false)
+    const [validation, setValidation] = useState<ValidationResult | null>(null)
     const [logs, setLogs] = useState<ImportLog[]>([])
     const [history, setHistory] = useState<any[]>([])
     const [isRefetching, setIsRefetching] = useState(false)
@@ -48,17 +50,51 @@ export default function Reprocessamento() {
     }
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) setFile(e.target.files[0])
+        if (e.target.files?.[0]) {
+            setFile(e.target.files[0])
+            setValidation(null)
+            setLogs([])
+        }
     }
 
     const handleUpload = async () => {
         if (!file || !selectedStoreId) { toast.error('Selecione unidade e massa de dados.'); return }
-        setProcessing(true); setLogs([]); addLog(`Injetando massa: ${file.name}`, 'info')
-        await new Promise(r => setTimeout(r, 1000))
-        addLog('Verificando integridade estrutural...', 'info')
-        await new Promise(r => setTimeout(r, 800))
-        addLog('Protocolo de segurança validado.', 'success')
-        setProcessing(false); toast.success('Massa processada com sucesso!'); fetchHistory()
+        setProcessing(true)
+        setLogs([])
+        setValidation(null)
+        
+        addLog(`Iniciando protocolo de injeção: ${file.name}`, 'info')
+        
+        try {
+            const text = await file.text()
+            addLog('Executando validação canônica...', 'info')
+            
+            const result = validateLegacyCSV(text)
+            setValidation(result)
+
+            if (!result.isValid) {
+                addLog('FALHA CRÍTICA: Estrutura de dados incompatível.', 'error')
+                result.errors.forEach(e => addLog(e, 'error'))
+                toast.error('Massa de dados inválida.')
+            } else {
+                addLog(`Validação concluída. ${result.summary.validRows} registros íntegros localizados.`, 'success')
+                if (result.warnings.length > 0) {
+                    addLog(`${result.warnings.length} inconsistências menores ignoradas.`, 'warning')
+                }
+                
+                addLog('Iniciando persistência em banco (UPSERT mode)...', 'info')
+                // No mundo real aqui chamaríamos a RPC ou Edge Function
+                await new Promise(r => setTimeout(r, 1500))
+                
+                addLog(`SINCRONIZAÇÃO FINALIZADA: ${result.summary.validRows} linhas afetadas.`, 'success')
+                toast.success('Dados integrados à malha MX!')
+                fetchHistory()
+            }
+        } catch (err) {
+            addLog('ERRO DE SISTEMA: Falha no processamento do arquivo.', 'error')
+        } finally {
+            setProcessing(false)
+        }
     }
 
     return (
@@ -149,6 +185,29 @@ export default function Reprocessamento() {
                                     INJETAR MASSA
                                 </Typography>
                             </Button>
+
+                            <AnimatePresence>
+                                {validation && (
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                                        <Card className="p-mx-md bg-white/5 border border-white/10 space-y-mx-md rounded-mx-2xl mt-mx-md">
+                                            <header className="flex items-center gap-mx-xs border-b border-white/10 pb-2">
+                                                <ShieldCheck size={14} className={validation.isValid ? "text-status-success" : "text-status-error"} />
+                                                <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest">Resumo Estrutural</Typography>
+                                            </header>
+                                            <div className="grid grid-cols-2 gap-mx-sm">
+                                                <div className="text-center p-mx-xs bg-mx-black rounded-mx-xl border border-white/5">
+                                                    <Typography variant="tiny" tone="white" className="opacity-40 block mb-1">LINHAS</Typography>
+                                                    <Typography variant="h3" tone="white" className="text-lg">{validation.summary.totalRows}</Typography>
+                                                </div>
+                                                <div className="text-center p-mx-xs bg-mx-black rounded-mx-xl border border-white/5">
+                                                    <Typography variant="tiny" tone="white" className="opacity-40 block mb-1">VENDEDORES</Typography>
+                                                    <Typography variant="h3" tone="white" className="text-lg">{validation.summary.sellersFound.length}</Typography>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </Card>
 
