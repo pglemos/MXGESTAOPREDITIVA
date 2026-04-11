@@ -162,7 +162,7 @@ export default function Activities() {
                 item.tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
                 'bg-status-error-surface border-mx-rose-100 text-status-error'
               )}>
-                <item.icon size={24} strokeWidth={2.5} />
+                <item.icon size={24} strokeWidth={2} />
               </div>
             </div>
           </Card>
@@ -211,7 +211,7 @@ export default function Activities() {
                         action.tone === 'success' ? 'bg-status-success-surface text-status-success' :
                         'bg-status-error-surface text-status-error'
                     )}>
-                      <action.icon size={20} strokeWidth={2.5} />
+                      <action.icon size={20} strokeWidth={2} />
                     </div>
                     <Typography variant="caption" className="font-black leading-tight block">{action.label}</Typography>
                   </button>
@@ -225,7 +225,7 @@ export default function Activities() {
             <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-warning-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
             <header className="flex items-center gap-mx-sm relative z-10">
               <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center border border-mx-amber-100 shadow-inner group-hover:scale-110 transition-transform">
-                <AlertTriangle size={28} strokeWidth={2.5} />
+                <AlertTriangle size={28} strokeWidth={2} />
               </div>
               <div>
                 <Typography variant="h3">Disciplina</Typography>
@@ -251,7 +251,7 @@ export default function Activities() {
               
               <Card className="p-mx-md bg-status-warning-surface border border-mx-amber-100 shadow-inner">
                 <div className="flex gap-mx-sm">
-                    <AlertTriangle className="h-mx-5 w-mx-5 text-status-warning shrink-0" strokeWidth={2.5} />
+                    <AlertTriangle className="h-mx-5 w-mx-5 text-status-warning shrink-0" strokeWidth={2} />
                     <Typography variant="p" className="text-xs font-black text-status-warning leading-relaxed uppercase tracking-tight">
                         A cadência sugere contato com <span className="text-mx-amber-900 underline decoration-2">3 leads estagnados</span> para evitar perda de propensão.
                     </Typography>
@@ -265,13 +265,13 @@ export default function Activities() {
         <section className="lg:col-span-8 flex flex-col">
           <Card className="bg-white border-none shadow-mx-xl overflow-hidden h-full flex flex-col group relative">
             <div className="absolute top-mx-0 right-mx-0 p-mx-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors">
-              <Clock size={240} strokeWidth={2.5} />
+              <Clock size={240} strokeWidth={2} />
             </div>
 
             <header className="p-mx-10 md:p-14 border-b border-border-default bg-surface-alt/30 flex flex-col sm:flex-row sm:items-center justify-between gap-mx-lg shrink-0 relative z-10">
               <div className="flex items-center gap-mx-md">
                 <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
-                  <Clock size={32} strokeWidth={2.5} />
+                  <Clock size={32} strokeWidth={2} />
                 </div>
                 <div>
                   <Typography variant="h2">Timeline do Dia</Typography>
@@ -309,7 +309,7 @@ export default function Activities() {
                           activity.tone === 'secondary' ? 'bg-brand-secondary text-white' :
                           'bg-status-error text-white'
                         )}>
-                          <activity.icon size={22} strokeWidth={2.5} />
+                          <activity.icon size={22} strokeWidth={2} />
                         </div>
                         
                         <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-mx-lg hover:bg-white hover:shadow-mx-xl transition-all relative">

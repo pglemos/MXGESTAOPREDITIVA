@@ -187,7 +187,7 @@ export default function VendedorHome() {
                             <div className="flex items-center justify-between sm:justify-end gap-mx-md relative z-10 group/btn mt-6 lg:mt-0 w-full lg:w-auto">
                                 <Typography variant="caption" tone="white" className="opacity-40 group-hover/btn:opacity-100 transition-opacity uppercase font-black text-xs tracking-widest">CONSOLIDAR ONTEM</Typography>
                                 <div className="w-mx-2xl h-mx-2xl rounded-mx-full bg-white text-mx-black flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
-                                    <ArrowRight size={28} strokeWidth={2.5} />
+                                    <ArrowRight size={28} strokeWidth={2} />
                                 </div>
                             </div>
                         </Link>

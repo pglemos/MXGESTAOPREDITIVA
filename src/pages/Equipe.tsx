@@ -141,7 +141,7 @@ export default function Equipe() {
                 item.tone === 'error' ? 'bg-status-error-surface border-mx-rose-100 text-status-error' :
                 'bg-status-warning-surface border-mx-amber-100 text-status-warning'
               )}>
-                <item.icon size={22} strokeWidth={2.5} />
+                <item.icon size={22} strokeWidth={2} />
               </div>
             </div>
           </Card>

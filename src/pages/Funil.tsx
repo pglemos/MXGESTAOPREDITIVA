@@ -163,7 +163,7 @@ export default function Funil() {
                                 item.tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
                                 'bg-status-success-surface border-mx-emerald-100 text-status-success'
                             )} aria-hidden="true">
-                                <item.icon size={24} strokeWidth={2.5} />
+                                <item.icon size={24} strokeWidth={2} />
                             </div>
                             <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">{item.label}</Typography>
                         </div>
@@ -208,7 +208,7 @@ export default function Funil() {
                                         />
                                     </div>
                                 </div>
-                                {idx < 2 && <div className="hidden md:flex flex-col items-center gap-mx-xs opacity-20"><ArrowRight size={40} strokeWidth={3} /></div>}
+                                {idx < 2 && <div className="hidden md:flex flex-col items-center gap-mx-xs opacity-20"><ArrowRight size={40} strokeWidth={2} /></div>}
                             </div>
                         ))}
                     </div>

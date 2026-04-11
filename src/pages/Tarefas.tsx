@@ -163,7 +163,7 @@ export default function Tarefas() {
                                             </motion.div>
                                         ))}
                                         <Button variant="outline" onClick={() => {resetForm(); setOpen(true)}} className="w-full h-mx-3xl border-2 border-dashed border-border-default rounded-mx-3xl bg-transparent text-text-tertiary hover:border-brand-primary hover:text-brand-primary hover:bg-white transition-all flex flex-col gap-mx-xs">
-                                            <Plus size={24} strokeWidth={3} />
+                                            <Plus size={24} strokeWidth={2} />
                                             <Typography variant="caption" className="font-black">NOVA MISSÃO</Typography>
                                         </Button>
                                     </div>
@@ -187,7 +187,7 @@ export default function Tarefas() {
                                             <tr key={task.id} className="hover:bg-surface-alt/30 transition-colors h-mx-3xl group cursor-pointer">
                                                 <td className="pl-10 text-center">
                                                     <div className={cn("w-mx-md h-mx-md rounded-mx-full mx-auto border-2 flex items-center justify-center transition-all", task.status === 'Concluída' ? "bg-status-success border-status-success text-white shadow-mx-sm" : "border-border-strong")}>
-                                                        {task.status === 'Concluída' && <CheckCircle2 size={14} strokeWidth={3} />}
+                                                        {task.status === 'Concluída' && <CheckCircle2 size={14} strokeWidth={2} />}
                                                     </div>
                                                 </td>
                                                 <td className="px-6">

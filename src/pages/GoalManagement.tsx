@@ -235,7 +235,7 @@ export default function GoalManagement() {
                                                 b.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                                                 b.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                                                 'bg-status-warning-surface border-mx-amber-100 text-status-warning'
-                                            )}><b.icon size={24} strokeWidth={2.5} /></div>
+                                            )}><b.icon size={24} strokeWidth={2} /></div>
                                             
                                             <Typography variant="caption" tone="muted" className="mb-4 block font-black tracking-widest">{b.label}</Typography>
                                             

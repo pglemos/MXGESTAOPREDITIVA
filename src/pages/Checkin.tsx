@@ -147,7 +147,7 @@ export default function Checkin() {
                     tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
                     'bg-status-error-surface border-mx-rose-100 text-status-error'
                 )}>
-                    <Icon size={28} strokeWidth={2.5} />
+                    <Icon size={28} strokeWidth={2} />
                 </div>
                 <div className="flex flex-col gap-mx-tiny flex-1">
                     <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest leading-none">{label}</Typography>
@@ -160,14 +160,14 @@ export default function Checkin() {
                     onClick={() => updateField(field, (form[field] as number) - 1)}
                     className="w-mx-14 h-mx-14 rounded-mx-xl border-border-default hover:bg-status-error-surface hover:text-status-error hover:border-mx-rose-100 shadow-sm"
                 >
-                    <Minus size={24} strokeWidth={3} />
+                    <Minus size={24} strokeWidth={2} />
                 </Button>
                 <Button 
                     type="button" variant="outline" size="icon"
                     onClick={() => updateField(field, (form[field] as number) + 1)}
                     className="w-mx-14 h-mx-14 rounded-mx-xl border-border-default hover:bg-status-success-surface hover:text-status-success hover:border-mx-emerald-100 shadow-sm"
                 >
-                    <Plus size={24} strokeWidth={3} />
+                    <Plus size={24} strokeWidth={2} />
                 </Button>
             </div>
         </Card>
@@ -249,7 +249,7 @@ export default function Checkin() {
                         <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-status-success-surface rounded-mx-full blur-mx-xl -mr-mx-48 -mt-mx-48 opacity-50" />
                         <header className="flex items-center justify-between border-b border-border-default pb-10 relative z-10">
                             <div className="flex items-center gap-mx-md">
-                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-xl transform -rotate-3"><History size={32} strokeWidth={2.5} /></div>
+                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-xl transform -rotate-3"><History size={32} strokeWidth={2} /></div>
                                 <div>
                                     <Typography variant="h2">Retrospectiva MX</Typography>
                                     <Typography variant="caption" tone="success" className="tracking-widest mt-1">CONSOLIDAÇÃO DE PRODUÇÃO: ONTEM</Typography>
@@ -277,7 +277,7 @@ export default function Checkin() {
                         <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-mx-indigo-50 rounded-mx-full blur-mx-xl -mr-48 -mt-48 opacity-50" />
                         <header className="flex items-center justify-between border-b border-border-default pb-10 relative z-10">
                             <div className="flex items-center gap-mx-md">
-                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl transform rotate-3"><CalendarDays size={32} strokeWidth={2.5} /></div>
+                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl transform rotate-3"><CalendarDays size={32} strokeWidth={2} /></div>
                                 <div>
                                     <Typography variant="h2">Agenda Operacional</Typography>
                                     <Typography variant="caption" tone="brand" className="tracking-widest mt-1">COMPROMISSOS FIRMADOS: HOJE</Typography>
@@ -300,7 +300,7 @@ export default function Checkin() {
                         {funnelError && (
                             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
                                 <Card className="p-mx-lg bg-status-error-surface border-2 border-status-error/20 flex flex-col sm:flex-row sm:items-center gap-mx-lg shadow-mx-xl">
-                                    <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-error text-white flex items-center justify-center shadow-mx-lg transform -rotate-3 shrink-0"><AlertTriangle size={32} strokeWidth={2.5} /></div>
+                                    <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-error text-white flex items-center justify-center shadow-mx-lg transform -rotate-3 shrink-0"><AlertTriangle size={32} strokeWidth={2} /></div>
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" tone="error" className="text-xl leading-none">INCONSISTÊNCIA OPERACIONAL</Typography>
                                         <Typography variant="p" tone="error" className="font-bold leading-relaxed">{funnelError}</Typography>
@@ -317,7 +317,7 @@ export default function Checkin() {
                                 <Card className="p-mx-10 border-none shadow-mx-xl bg-status-warning text-mx-black space-y-mx-10 relative overflow-hidden group">
                                     <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-white/20 rounded-mx-full blur-3xl -mr-mx-32 -mt-mx-32" />
                                     <header className="flex items-center gap-mx-md relative z-10">
-                                        <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-lg group-hover:rotate-12 transition-transform"><AlertTriangle size={32} strokeWidth={2.5} /></div>
+                                        <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-lg group-hover:rotate-12 transition-transform"><AlertTriangle size={32} strokeWidth={2} /></div>
                                         <div>
                                             <Typography variant="h2" tone="default">Produção Zero</Typography>
                                             <Typography variant="caption" className="font-black uppercase tracking-widest mt-1 opacity-60">JUSTIFICATIVA OBRIGATÓRIA MX</Typography>

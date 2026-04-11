@@ -95,7 +95,7 @@ export default function LeadOps() {
                 item.tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
                 'bg-status-error-surface border-mx-rose-100 text-status-error'
               )}>
-                <item.icon size={22} strokeWidth={2.5} />
+                <item.icon size={22} strokeWidth={2} />
               </div>
             </div>
           </Card>
@@ -114,7 +114,7 @@ export default function LeadOps() {
             />
           </div>
           <div className="flex items-center gap-mx-xs bg-white px-6 py-2.5 rounded-mx-full border border-border-default shadow-mx-sm">
-            <TrendingUp size={16} className="text-brand-primary" strokeWidth={2.5} />
+            <TrendingUp size={16} className="text-brand-primary" strokeWidth={2} />
             <Typography variant="caption" className="font-black uppercase tracking-widest">Prioridade Inteligente</Typography>
           </div>
         </CardHeader>

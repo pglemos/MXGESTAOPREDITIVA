@@ -90,7 +90,7 @@ export default function Leads() {
                                 stat.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                                 'bg-status-warning-surface border-mx-amber-100 text-status-warning'
                             )}>
-                                <stat.icon size={24} strokeWidth={2.5} />
+                                <stat.icon size={24} strokeWidth={2} />
                             </div>
                             <Badge variant={stat.tone as any} className="text-mx-tiny font-black h-mx-md px-3 shadow-sm border-none">{stat.trend}</Badge>
                         </div>
@@ -148,7 +148,7 @@ export default function Leads() {
                                             <Typography variant="mono" className="text-xs font-black">R$ {(lead.value / 1000).toFixed(0)}k</Typography>
                                             <Badge variant="outline" className="text-mx-micro h-mx-5 px-2 uppercase border-border-strong">{lead.stage}</Badge>
                                         </div>
-                                        {selected === lead.id && <div className="absolute right-mx-sm top-1/2 -translate-y-1/2 w-mx-lg h-mx-lg rounded-mx-full bg-brand-primary flex items-center justify-center shadow-mx-md transition-transform scale-110"><ChevronRight className="w-mx-5 h-mx-5 text-white" strokeWidth={3} /></div>}
+                                        {selected === lead.id && <div className="absolute right-mx-sm top-1/2 -translate-y-1/2 w-mx-lg h-mx-lg rounded-mx-full bg-brand-primary flex items-center justify-center shadow-mx-md transition-transform scale-110"><ChevronRight className="w-mx-5 h-mx-5 text-white" strokeWidth={2} /></div>}
                                     </motion.article>
                                 ))}
                             </AnimatePresence>

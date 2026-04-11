@@ -188,7 +188,7 @@ export default function GerenteTreinamentos() {
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <header className="flex justify-between items-start relative z-10">
                                             <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-all", t.watched ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-surface-alt text-text-tertiary border-border-default group-hover:bg-brand-primary group-hover:text-white")}>
-                                                <GraduationCap size={28} strokeWidth={2.5} />
+                                                <GraduationCap size={28} strokeWidth={2} />
                                             </div>
                                             {t.watched && <Badge variant="success" className="px-4 py-1 rounded-mx-full uppercase font-black text-mx-micro shadow-sm">CONCLUÍDO</Badge>}
                                         </header>

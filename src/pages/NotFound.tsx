@@ -30,7 +30,7 @@ export default function NotFound() {
                             transition={{ type: 'spring', stiffness: 200, damping: 10, delay: 0.2 }}
                             className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-white/10 text-white flex items-center justify-center mx-auto mb-8 shadow-mx-xl backdrop-blur-xl relative z-10 border border-white/10"
                         >
-                            <ShieldAlert size={48} strokeWidth={2.5} />
+                            <ShieldAlert size={48} strokeWidth={2} />
                         </motion.div>
                         <Typography variant="h1" tone="white" className="text-7xl md:text-9xl mb-4 relative z-10 font-mono-numbers leading-none">404</Typography>
                         <Typography variant="caption" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 uppercase tracking-widest font-black block">Ponto Fora da Malha</Typography>

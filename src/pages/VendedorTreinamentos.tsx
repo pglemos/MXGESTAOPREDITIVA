@@ -146,7 +146,7 @@ export default function VendedorTreinamentos() {
                                             <div className={cn("w-mx-14 h-mx-14 rounded-mx-2xl flex items-center justify-center border shadow-inner transition-all transform group-hover:rotate-3", 
                                                 t.watched ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-surface-alt text-text-tertiary group-hover:bg-brand-primary group-hover:text-white"
                                             )}>
-                                                {t.watched ? <CheckCircle size={24} strokeWidth={2.5} /> : <Play size={24} strokeWidth={2.5} className="ml-1" />}
+                                                {t.watched ? <CheckCircle size={24} strokeWidth={2} /> : <Play size={24} strokeWidth={2} className="ml-1" />}
                                             </div>
                                             <div className="flex flex-col items-end gap-mx-xs">
                                                 <Badge variant="brand" className="px-4 py-1 rounded-mx-full uppercase text-mx-micro font-black">{t.type}</Badge>

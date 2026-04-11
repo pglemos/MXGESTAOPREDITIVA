@@ -80,7 +80,7 @@ export default function Agenda() {
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
                     <div className="flex items-center bg-white border border-border-default p-mx-tiny rounded-mx-full shadow-mx-sm">
                         <Button variant="ghost" size="icon" onClick={prevMonth} className="w-mx-10 h-mx-10 rounded-mx-full hover:bg-surface-alt transition-all">
-                            <ChevronLeft size={18} strokeWidth={3} />
+                            <ChevronLeft size={18} strokeWidth={2} />
                         </Button>
                         <div className="px-6 min-w-mx-xl text-center">
                             <Typography variant="caption" tone="default" className="font-black">
@@ -88,7 +88,7 @@ export default function Agenda() {
                             </Typography>
                         </div>
                         <Button variant="ghost" size="icon" onClick={nextMonth} className="w-mx-10 h-mx-10 rounded-mx-full hover:bg-surface-alt transition-all">
-                            <ChevronRight size={18} strokeWidth={3} />
+                            <ChevronRight size={18} strokeWidth={2} />
                         </Button>
                     </div>
                     
@@ -149,7 +149,7 @@ export default function Agenda() {
                                         <Card className="p-mx-lg flex flex-col sm:flex-row sm:items-center gap-mx-lg group relative overflow-hidden border-none shadow-mx-lg hover:shadow-mx-xl transition-all bg-white">
                                             <div className="flex flex-col items-center justify-center w-mx-20 h-mx-header bg-surface-alt border border-border-default rounded-mx-2xl shrink-0 shadow-inner group-hover:bg-brand-secondary group-hover:border-brand-secondary transition-all">
                                                 <Typography variant="mono" className="text-xs font-black group-hover:text-white transition-colors">{format(new Date(task.dueDate), 'HH:mm')}</Typography>
-                                                <Clock className="w-mx-sm h-mx-sm text-brand-primary mt-2 group-hover:text-white transition-colors" strokeWidth={3} />
+                                                <Clock className="w-mx-sm h-mx-sm text-brand-primary mt-2 group-hover:text-white transition-colors" strokeWidth={2} />
                                             </div>
                                             <div className="flex-1 min-w-0 space-y-mx-xs relative z-10">
                                                 <div className="flex flex-wrap items-center gap-mx-xs">
@@ -190,7 +190,7 @@ export default function Agenda() {
                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-error-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
                         <header className="flex items-center gap-mx-sm mb-10 relative z-10">
                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-error-surface text-status-error border border-mx-rose-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                                <AlertTriangle size={28} strokeWidth={2.5} />
+                                <AlertTriangle size={28} strokeWidth={2} />
                             </div>
                             <Typography variant="h3" className="uppercase tracking-tight">Alertas Críticos</Typography>
                         </header>

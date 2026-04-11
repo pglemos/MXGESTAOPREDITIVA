@@ -89,7 +89,7 @@ export default function Communication() {
                 item.tone === 'error' ? 'bg-status-error-surface border-mx-rose-100 text-status-error' :
                 'bg-status-info-surface border-status-info/20 text-status-info'
               )}>
-                <item.icon size={22} strokeWidth={2.5} />
+                <item.icon size={22} strokeWidth={2} />
               </div>
             </div>
           </Card>
@@ -101,7 +101,7 @@ export default function Communication() {
         <section className="lg:col-span-8 flex flex-col">
           <Card className="border-none shadow-mx-xl bg-white overflow-hidden h-full flex flex-col group relative">
             <div className="absolute top-mx-0 right-mx-0 p-mx-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors">
-              <Megaphone size={240} strokeWidth={2.5} />
+              <Megaphone size={240} strokeWidth={2} />
             </div>
 
             <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-10 flex flex-row items-center justify-between relative z-10">
@@ -125,7 +125,7 @@ export default function Communication() {
                         <div className={cn("w-mx-14 h-mx-14 rounded-mx-full shrink-0 flex items-center justify-center border-4 border-white shadow-mx-lg transition-transform group-hover/msg:scale-110 group-hover/msg:rotate-3", 
                             m.type === 'system' ? "bg-brand-secondary text-white" : m.type === 'achievement' ? "bg-status-warning text-white" : "bg-surface-alt text-text-primary"
                         )}>
-                          {m.type === 'system' ? <Megaphone size={22} strokeWidth={2.5} /> : m.type === 'achievement' ? <Sparkles size={22} strokeWidth={2.5} /> : <MessageSquare size={22} strokeWidth={2.5} />}
+                          {m.type === 'system' ? <Megaphone size={22} strokeWidth={2} /> : m.type === 'achievement' ? <Sparkles size={22} strokeWidth={2} /> : <MessageSquare size={22} strokeWidth={2} />}
                         </div>
                         <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-mx-lg hover:bg-white hover:shadow-mx-xl transition-all relative">
                           <header className="flex justify-between items-start mb-6">

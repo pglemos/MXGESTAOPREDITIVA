@@ -94,7 +94,7 @@ export default function SalesPerformance() {
                                     stat.tone === 'info' ? 'bg-status-info-surface border-status-info/20 text-status-info' :
                                     'bg-status-success-surface border-mx-emerald-100 text-status-success'
                                 )}>
-                                    <stat.icon size={24} strokeWidth={2.5} />
+                                    <stat.icon size={24} strokeWidth={2} />
                                 </div>
                                 <div className="flex-1">
                                     <Typography variant="caption" tone="muted" className="mb-1 block uppercase font-black tracking-widest text-mx-micro">{stat.title}</Typography>

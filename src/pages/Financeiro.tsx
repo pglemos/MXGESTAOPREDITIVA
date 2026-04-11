@@ -9,7 +9,7 @@ export default function Financeiro() {
         <main className="h-full w-full flex flex-col items-center justify-center p-mx-lg bg-surface-alt text-center">
             <Card className="max-w-md w-full p-mx-10 md:p-14 border-none shadow-mx-xl bg-white flex flex-col items-center">
                 <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-status-warning-surface text-status-warning flex items-center justify-center mb-8 border border-mx-amber-100 shadow-inner" aria-hidden="true">
-                    <AlertTriangle size={40} strokeWidth={2.5} />
+                    <AlertTriangle size={40} strokeWidth={2} />
                 </div>
                 
                 <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Módulo <span className="text-status-warning">Descontinuado</span></Typography>

@@ -73,7 +73,7 @@ export default function DailyCheckin() {
         <main className="w-full h-full flex flex-col items-center justify-center p-mx-lg bg-surface-alt text-center">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full space-y-mx-10">
                 <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-status-success-surface border border-mx-emerald-100 text-status-success flex items-center justify-center mx-auto shadow-mx-xl" aria-hidden="true">
-                    <ShieldCheck size={48} strokeWidth={2.5} />
+                    <ShieldCheck size={48} strokeWidth={2} />
                 </div>
                 <div className="space-y-mx-sm">
                     <Typography variant="h1">Check-in <Typography as="span" className="text-status-success">Firmado</Typography></Typography>

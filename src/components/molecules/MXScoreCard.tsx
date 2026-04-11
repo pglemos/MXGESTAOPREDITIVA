@@ -39,7 +39,7 @@ export function MXScoreCard({ label, value, sub, icon: Icon, tone, description, 
           tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
           'bg-status-error-surface border-mx-rose-100 text-status-error'
         )}>
-          <Icon size={22} strokeWidth={2.5} />
+          <Icon size={22} strokeWidth={2} />
         </div>
       </div>
     </Card>

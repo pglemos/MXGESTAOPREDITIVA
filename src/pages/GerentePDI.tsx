@@ -156,7 +156,7 @@ export default function GerentePDI() {
                                                     </Link>
                                                 </div>
                                                 <Button variant="secondary" size="icon" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md hover:scale-110 active:scale-95 transition-all">
-                                                    <ChevronRight size={24} strokeWidth={2.5} />
+                                                    <ChevronRight size={24} strokeWidth={2} />
                                                 </Button>
                                             </footer>
                                         </Card>

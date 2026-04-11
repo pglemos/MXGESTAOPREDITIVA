@@ -195,7 +195,7 @@ export default function RotinaGerente() {
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-mx-md">
                                                         <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center border shadow-mx-inner transition-all", step.done ? "bg-white text-status-success border-status-success/30" : "bg-white text-text-tertiary border-border-default group-hover:scale-110")}>
-                                                            {step.done ? <CheckCircle2 size={24} strokeWidth={3} /> : <Typography variant="h3" className="text-base leading-none">{step.idx}</Typography>}
+                                                            {step.done ? <CheckCircle2 size={24} strokeWidth={2} /> : <Typography variant="h3" className="text-base leading-none">{step.idx}</Typography>}
                                                         </div>
                                                         <div>
                                                             <Typography variant="h3" className={cn("text-base uppercase tracking-tight", step.done && "text-status-success")}>{step.label}</Typography>
@@ -210,7 +210,7 @@ export default function RotinaGerente() {
                                         <Card className={cn("p-mx-10 border-none transition-all flex flex-col md:flex-row md:items-center justify-between gap-mx-lg", canTriggerMatinal ? "bg-mx-black text-white shadow-mx-elite" : "bg-surface-alt opacity-40")}>
                                             <div className="flex items-center gap-mx-md">
                                                 <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border transition-all", canTriggerMatinal ? "bg-white/10 text-white border-white/10 shadow-mx-inner" : "bg-white text-text-tertiary")}>
-                                                    <Mail size={28} strokeWidth={2.5} />
+                                                    <Mail size={28} strokeWidth={2} />
                                                 </div>
                                                 <div>
                                                     <Typography variant="h3" tone={canTriggerMatinal ? 'white' : 'default'} className="text-lg uppercase tracking-tight leading-none">Disparar Matinal</Typography>

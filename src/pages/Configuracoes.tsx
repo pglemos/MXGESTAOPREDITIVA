@@ -94,7 +94,7 @@ export default function Configuracoes() {
                                 <Input value={form.email} disabled className="!h-14 px-6 font-bold opacity-50 bg-surface-alt" />
                             </div>
                             <div className="md:col-span-2 pt-10 border-t border-border-default flex items-start gap-mx-sm">
-                                <div className="w-mx-lg h-mx-lg rounded-mx-full bg-mx-indigo-50 text-brand-primary flex items-center justify-center shrink-0 shadow-inner border border-mx-indigo-100"><Info size={14} strokeWidth={3} /></div>
+                                <div className="w-mx-lg h-mx-lg rounded-mx-full bg-mx-indigo-50 text-brand-primary flex items-center justify-center shrink-0 shadow-inner border border-mx-indigo-100"><Info size={14} strokeWidth={2} /></div>
                                 <Typography variant="p" tone="muted" className="uppercase font-bold leading-relaxed opacity-40 text-xs">Os dados de e-mail e hierarquia são gerenciados exclusivamente pela administração da rede para fins de auditoria imutável.</Typography>
                             </div>
                         </form>

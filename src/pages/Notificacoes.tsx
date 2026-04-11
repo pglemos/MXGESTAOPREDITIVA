@@ -90,12 +90,12 @@ export default function Notificacoes() {
         <section className="lg:col-span-8 flex flex-col order-2 lg:order-1">
           <Card className="border-none shadow-mx-xl bg-white overflow-hidden h-full flex flex-col group relative">
             <div className="absolute top-mx-0 right-mx-0 p-mx-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors hidden md:block">
-              <Bell size={240} strokeWidth={2.5} />
+              <Bell size={240} strokeWidth={2} />
             </div>
 
             <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg md:p-10 flex flex-col sm:flex-row items-center justify-between relative z-10 gap-mx-md">
               <div className="flex items-center gap-mx-md">
-                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl shrink-0"><Bell size={32} strokeWidth={2.5} /></div>
+                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl shrink-0"><Bell size={32} strokeWidth={2} /></div>
                 <div>
                   <Typography variant="h2" className="text-xl sm:text-2xl uppercase tracking-tighter leading-none">Meu Inbox</Typography>
                   <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SINALIZAÇÕES DE AUDITORIA</Typography>

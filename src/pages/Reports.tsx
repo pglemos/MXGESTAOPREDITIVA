@@ -84,7 +84,7 @@ export default function Reports() {
                                     stat.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                                     'bg-status-error-surface border-mx-rose-100 text-status-error'
                                 )}>
-                                    <stat.icon size={24} strokeWidth={2.5} />
+                                    <stat.icon size={24} strokeWidth={2} />
                                 </div>
                                 <div className="flex-1">
                                     <Typography variant="tiny" tone="muted" className="mb-1 block uppercase tracking-widest font-black">{stat.title}</Typography>
@@ -107,7 +107,7 @@ export default function Reports() {
                                 <CardTitle className="text-xl uppercase tracking-tighter leading-none">Maturidade de Saída</CardTitle>
                                 <CardDescription className="uppercase font-black text-tiny tracking-widest mt-1 opacity-60">TEMPO MÉDIO DE ESCOAMENTO (D+1)</CardDescription>
                             </div>
-                            <BarChart3 size={24} className="text-brand-primary" strokeWidth={2.5} />
+                            <BarChart3 size={24} className="text-brand-primary" strokeWidth={2} />
                         </CardHeader>
                         <CardContent className="p-mx-10 h-mx-chart">
                             <ResponsiveContainer width="100%" height="100%">

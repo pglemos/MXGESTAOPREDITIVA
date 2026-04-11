@@ -85,7 +85,7 @@ export default function Feedback() {
                 item.tone === 'secondary' ? 'bg-brand-secondary text-white border-white/10' :
                 'bg-status-warning-surface border-mx-amber-100 text-status-warning'
               )}>
-                <item.icon size={24} strokeWidth={2.5} />
+                <item.icon size={24} strokeWidth={2} />
               </div>
             </div>
           </Card>
@@ -97,7 +97,7 @@ export default function Feedback() {
         <section className="lg:col-span-8 flex flex-col">
           <Card className="border-none shadow-mx-xl bg-white overflow-hidden h-full flex flex-col group relative">
             <div className="absolute top-mx-0 right-mx-0 p-mx-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors">
-              <MessageSquare size={240} strokeWidth={2.5} />
+              <MessageSquare size={240} strokeWidth={2} />
             </div>
 
             <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-10 flex flex-row items-center justify-between relative z-10">

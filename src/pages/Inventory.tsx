@@ -100,7 +100,7 @@ export default function Inventory() {
                                     stat.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                                     'bg-status-error-surface border-mx-rose-100 text-status-error'
                                 )} aria-hidden="true">
-                                    <stat.icon size={24} strokeWidth={2.5} />
+                                    <stat.icon size={24} strokeWidth={2} />
                                 </div>
                                 <div className="space-y-mx-tiny">
                                     <Typography variant="tiny" tone="muted" className="block uppercase tracking-widest font-black opacity-40">{stat.title}</Typography>
@@ -152,7 +152,7 @@ export default function Inventory() {
                                             <Badge variant={item.status === 'Normal' ? 'success' : 'danger'} className="absolute top-mx-sm left-mx-sm font-black text-mx-micro px-3 h-mx-md rounded-mx-lg shadow-sm border-none uppercase">
                                                 {item.status === 'Normal' ? 'SAUDÁVEL' : 'CRÍTICO'}
                                             </Badge>
-                                            <Car size={64} className="text-text-tertiary/20 group-hover:scale-110 transition-transform duration-700" strokeWidth={2.5} aria-hidden="true" />
+                                            <Car size={64} className="text-text-tertiary/20 group-hover:scale-110 transition-transform duration-700" strokeWidth={2} aria-hidden="true" />
                                             <div className="absolute bottom-mx-sm right-mx-sm shadow-mx-sm bg-white/90 backdrop-blur-sm border border-border-default px-4 py-1.5 rounded-mx-full">
                                                 <Typography variant="tiny" className="font-black text-text-primary uppercase tracking-widest">
                                                     {item.plate}
@@ -209,7 +209,7 @@ export default function Inventory() {
                                                 <td className="pl-10">
                                                     <div className="flex items-center gap-mx-sm">
                                                         <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-mx-inner" aria-hidden="true">
-                                                            <Car size={22} strokeWidth={2.5} />
+                                                            <Car size={22} strokeWidth={2} />
                                                         </div>
                                                         <div>
                                                             <Typography variant="h3" className="text-sm uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black">{item.model}</Typography>

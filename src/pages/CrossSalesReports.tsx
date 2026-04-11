@@ -81,7 +81,7 @@ export default function CrossSalesReports() {
                         <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg flex flex-row items-center justify-between relative overflow-hidden">
                             <div className="absolute right-mx-0 top-mx-0 w-mx-4xl h-full bg-gradient-to-l from-brand-primary/5 to-transparent pointer-events-none" />
                             <div className="flex items-center gap-mx-sm relative z-10">
-                                <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 transition-transform"><BarChart3 size={24} strokeWidth={2.5} /></div>
+                                <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 transition-transform"><BarChart3 size={24} strokeWidth={2} /></div>
                                 <div>
                                     <Typography variant="h3" className="uppercase tracking-tight">Penetração de Adicionais</Typography>
                                     <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">PRODUTOS AGREGADOS POR VOLUME</Typography>
@@ -158,7 +158,7 @@ export default function CrossSalesReports() {
                                     card.tone === 'error' ? 'bg-status-error-surface border-mx-rose-100 text-status-error' :
                                     'bg-status-info-surface border-status-info/20 text-status-info'
                                 )}>
-                                    <card.icon size={24} strokeWidth={2.5} />
+                                    <card.icon size={24} strokeWidth={2} />
                                 </div>
                                 <div className="flex items-center gap-1.5 text-tiny font-black text-status-success bg-status-success-surface px-4 py-1.5 rounded-mx-full border border-mx-emerald-100 uppercase tracking-widest shadow-sm">
                                     <TrendingUp size={12} strokeWidth={3} /> {card.trend}

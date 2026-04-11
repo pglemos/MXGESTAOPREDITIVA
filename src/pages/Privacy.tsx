@@ -26,7 +26,7 @@ export default function Privacy() {
                         <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent z-0 pointer-events-none" />
                         
                         <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-white/10 text-white flex items-center justify-center mx-auto mb-8 shadow-mx-xl backdrop-blur-xl relative z-10 border border-white/10">
-                            <Lock size={32} strokeWidth={2.5} />
+                            <Lock size={32} strokeWidth={2} />
                         </div>
                         <Typography variant="h1" tone="white" className="text-4xl md:text-5xl mb-4 relative z-10 uppercase tracking-tighter">Política de <span className="text-brand-primary">Privacidade</span></Typography>
                         <Typography variant="tiny" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 block font-black">DIRETRIZES DE PROTEÇÃO & TRATAMENTO DE DADOS MX</Typography>
@@ -41,7 +41,7 @@ export default function Privacy() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                                 <Card className="bg-surface-alt p-mx-10 rounded-mx-3xl border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
-                                        <FileText size={24} strokeWidth={2.5} />
+                                        <FileText size={24} strokeWidth={2} />
                                     </div>
                                     <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Coleta de Métricas</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
@@ -51,7 +51,7 @@ export default function Privacy() {
 
                                 <Card className="bg-surface-alt p-mx-10 rounded-mx-3xl border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
-                                        <Shield size={24} strokeWidth={2.5} />
+                                        <Shield size={24} strokeWidth={2} />
                                     </div>
                                     <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Privilégios RLS</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
