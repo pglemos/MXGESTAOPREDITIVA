@@ -277,6 +277,3 @@ ${data.actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}
 _Gerado via Inteligência Operacional MX_`
 }
 
-ligência Operacional MX_`
-}
-
