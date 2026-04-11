@@ -62,12 +62,12 @@ export default function Lojas() {
             header: 'UNIDADE',
             render: (store) => (
                 <div className="flex items-center gap-mx-sm relative z-10 min-w-0">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3 shrink-0" aria-hidden="true">
-                        <Building2 size={24} />
+                    <div className="w-mx-8 h-mx-8 sm:w-mx-14 sm:h-mx-14 rounded-mx-lg sm:rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3 shrink-0" aria-hidden="true">
+                        <Building2 size={18} className="sm:size-[24px]" />
                     </div>
                     <div className="min-w-0">
-                        <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
-                        <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase mt-1 opacity-40">ID: {store.id.split('-')[0]}</Typography>
+                        <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-[8px] sm:text-mx-tiny font-black uppercase mt-0.5 opacity-40">ID: {store.id.split('-')[0]}</Typography>
                     </div>
                 </div>
             )
@@ -76,6 +76,7 @@ export default function Lojas() {
             key: 'status',
             header: 'STATUS',
             align: 'center',
+            desktopOnly: true,
             render: (store) => {
                 const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
                 return (
@@ -92,15 +93,15 @@ export default function Lojas() {
             render: (store) => {
                 const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
                 return (
-                    <div className="flex items-center justify-center gap-mx-md">
+                    <div className="flex items-center justify-center gap-2 sm:gap-mx-md">
                         <div className="text-center">
-                            <Typography variant="tiny" className="font-black opacity-40 uppercase">Tropa</Typography>
-                            <Typography variant="h3" className="text-base tabular-nums">{sStat.sellers}</Typography>
+                            <Typography variant="tiny" className="font-black opacity-40 uppercase text-[8px] sm:text-mx-tiny">Tropa</Typography>
+                            <Typography variant="h3" className="text-xs sm:text-base tabular-nums">{sStat.sellers}</Typography>
                         </div>
-                        <div className="w-px h-mx-md bg-border-default mx-2" aria-hidden="true" />
+                        <div className="w-px h-mx-sm sm:h-mx-md bg-border-default mx-1 sm:mx-2" aria-hidden="true" />
                         <div className="text-center">
-                            <Typography variant="tiny" className="font-black opacity-40 uppercase">Sinc.</Typography>
-                            <Typography variant="h3" tone={sStat.disciplinePct < 80 ? 'error' : 'success'} className="text-base tabular-nums">{sStat.disciplinePct}%</Typography>
+                            <Typography variant="tiny" className="font-black opacity-40 uppercase text-[8px] sm:text-mx-tiny">Sinc.</Typography>
+                            <Typography variant="h3" tone={sStat.disciplinePct < 80 ? 'error' : 'success'} className="text-xs sm:text-base tabular-nums">{sStat.disciplinePct}%</Typography>
                         </div>
                     </div>
                 )
@@ -111,24 +112,21 @@ export default function Lojas() {
             header: 'AÇÕES',
             align: 'right',
             render: (store) => (
-                <div className="flex items-center justify-end gap-mx-xs relative z-10" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-end gap-1 sm:gap-mx-xs relative z-10" onClick={(e) => e.stopPropagation()}>
                     {store.active ? (
                         <>
-                            <Button asChild variant="outline" size="sm" className="h-mx-xl px-4 rounded-mx-lg bg-white shadow-sm font-black uppercase text-[10px] border-border-strong hover:border-brand-primary">
-                                <Link to={`/metas?id=${store.id}`}>METAS</Link>
-                            </Button>
-                            <Button asChild variant="secondary" size="sm" className="h-mx-xl px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-[10px]">
-                                <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${store.id}`}>DASHBOARD</Link>
+                            <Button asChild variant="secondary" size="sm" className="h-8 sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-[8px] sm:text-[10px]">
+                                <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${store.id}`}>DASH</Link>
                             </Button>
                             {role === 'admin' && (
-                                <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-xl w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface">
-                                    <X size={18} />
+                                <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-8 w-8 sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface">
+                                    <X size={16} />
                                 </Button>
                             )}
                         </>
                     ) : (
-                        <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="h-mx-xl px-6 rounded-mx-lg shadow-mx-md font-black uppercase text-[10px] bg-status-success hover:opacity-90 text-white">
-                            RESTAURAR
+                        <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="h-8 sm:h-mx-xl px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-[8px] sm:text-[10px] bg-status-success hover:opacity-90 text-white">
+                            REST.
                         </Button>
                     )}
                 </div>
