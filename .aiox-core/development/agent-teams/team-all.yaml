@@ -3,7 +3,6 @@ bundle:
   icon: 👥
   description: Includes every core system agent.
 agents:
-  - aiox-master
   - aiox-orchestrator
   - aiox-developer
   - '*'

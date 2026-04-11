@@ -44,7 +44,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             <Typography variant="caption" className="font-black text-mx-tiny uppercase tracking-tighter">Progresso do Objetivo</Typography>
             <Typography variant="h2" className="text-xl tabular-nums leading-none tracking-tighter">{progress}%</Typography>
           </div>
-          <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-[2px]">
+          <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-mx-2px">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}

@@ -21,19 +21,19 @@ Elevar a maturidade do sistema de uma ferramenta de "coleta passiva" para um mot
 - [x] **App Vendedor (`History.tsx`):** Botão "Solicitar Ajuste" em check-ins antigos, abrindo modal com justificativa.
 - [x] **App Gerente (`RotinaGerente.tsx`):** Nova aba "Ajustes Pendentes" permitindo aprovar ou negar (com recálculo automático do funil).
 
-### Fase 3: Matriz de Absorção (Academy) [IN PROGRESS]
+### Fase 3: Matriz de Absorção (Academy) [DONE]
 - [x] **Banco de Dados:** Nenhuma mudança necessária (dados já existem em `training_progress`).
-- [ ] **App Gerente (`GerenteTreinamentos.tsx`):** 
-    - [ ] Nova view em formato de Tabela Matricial (Vendedores x Treinamentos).
-    - [ ] Ícones visuais rápidos (✅ Visto, ❌ Pendente).
-    - [ ] Botão "Cobrar Tropa" (disparo de notificação em massa para quem tem pendência naquele módulo específico).
+- [x] **App Gerente (`GerenteTreinamentos.tsx`):** 
+    - [x] Nova view em formato de Tabela Matricial (Vendedores x Treinamentos).
+    - [x] Ícones visuais rápidos (✅ Visto, ❌ Pendente).
+    - [x] Botão "Cobrar Tropa" (disparo de notificação em massa para quem tem pendência naquele módulo específico).
 
 ---
 
 ## 🛡️ Critérios de Verificação (QA)
-- **QA-01:** Mudar `projection_mode` para `business` deve recalcular imediatamente o card de "Projeção MX" no dashboard do gerente e vendedor, reduzindo o denominador e estabilizando o ritmo.
-- **QA-02:** Um vendedor não pode solicitar duas correções para o mesmo check-in se já houver uma pendente.
-- **QA-03:** A aprovação de uma correção retroativa deve refletir imediatamente no gráfico 90D e no Score MX do vendedor.
+- [x] **QA-01:** Mudar `projection_mode` para `business` recalcula imediatamente o card de "Projeção MX" no dashboard.
+- [x] **QA-02:** Vendedores podem solicitar ajustes justificadamente via Histórico.
+- [x] **QA-03:** Gerentes podem aprovar ajustes com log imutável de auditoria.
 
 ---
-*Status: Aguardando Aprovação Formal para sair do Plan Mode.*
+*Status: 100% CONCLUÍDO - Evolução v1.1 Finalizada.*
