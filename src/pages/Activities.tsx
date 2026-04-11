@@ -141,7 +141,7 @@ export default function Activities() {
       </header>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         {[
           { label: 'Ações Hoje', value: activities.length, icon: PhoneCall, tone: 'brand' },
           { label: 'Agendamentos', value: '06', icon: Calendar, tone: 'info' },
@@ -195,7 +195,7 @@ export default function Activities() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-mx-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
                 {QUICK_ACTIONS.map((action) => (
                   <button 
                     key={action.label} 

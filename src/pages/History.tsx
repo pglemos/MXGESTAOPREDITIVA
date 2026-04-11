@@ -259,7 +259,7 @@ export default function HistoryPage() {
                       </header>
 
                       <div className="p-mx-lg md:p-10 space-y-mx-xl">
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-mx-lg">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-lg">
                               <div className="space-y-mx-xs">
                                   <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Leads</Typography>
                                   <Input type="number" value={correctionForm.leads} onChange={e => setCorrectionForm(p => ({ ...p, leads: Number(e.target.value) }))} className="!h-14 font-mono-numbers text-xl font-black" />

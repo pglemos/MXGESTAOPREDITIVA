@@ -176,7 +176,7 @@ export default function Equipe() {
                   <Typography variant="h3" className="mb-1 text-base uppercase font-black truncate max-w-full group-hover:text-brand-primary transition-colors">{member.name}</Typography>
                   <Typography variant="caption" tone="muted" className="text-mx-micro tracking-widest uppercase font-black opacity-40">{member.role || 'ESPECIALISTA'}</Typography>
                   
-                  <div className="w-full mt-10 grid grid-cols-2 gap-mx-sm">
+                  <div className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
                     <div className="bg-surface-alt p-mx-sm rounded-mx-xl border border-border-default shadow-inner group-hover:bg-white transition-all">
                       <Typography variant="caption" className="text-mx-micro mb-1 block opacity-50 uppercase font-black">ENTRADA</Typography>
                       <Typography variant="mono" className="text-xs font-black">{member.started_at ? format(parseISO(member.started_at), 'dd/MM/yy') : '---'}</Typography>

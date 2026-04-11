@@ -366,7 +366,7 @@ export default function PainelConsultor() {
 
                 <Card className="p-mx-lg border-none shadow-mx-sm bg-white">
                     <Typography variant="caption" tone="muted" className="mb-6 text-center block font-black uppercase tracking-widest">Escoamento Rede</Typography>
-                    <div className="grid grid-cols-3 gap-mx-md">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
                         <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalLeads}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Leads</Typography></div>
                         <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalAgd}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Agd</Typography></div>
                         <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalVis}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Vis</Typography></div>

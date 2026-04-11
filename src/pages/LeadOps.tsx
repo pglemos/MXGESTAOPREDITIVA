@@ -74,7 +74,7 @@ export default function LeadOps() {
       </header>
 
       {/* Stats Quick Matrix */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-lg shrink-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-mx-lg shrink-0">
         {[
           { label: 'SLA OK', value: '12', icon: CheckCircle2, tone: 'success' },
           { label: 'Alerta', value: '03', icon: Clock, tone: 'warning' },

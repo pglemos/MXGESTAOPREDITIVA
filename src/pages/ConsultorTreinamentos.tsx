@@ -105,7 +105,7 @@ export default function ConsultorTreinamentos() {
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">URL do Material (Vídeo)</Typography>
                                             <Input value={form.video_url} onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))} placeholder="https://youtube.com/v/..." required className="!h-14 px-6 font-medium" />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-mx-md">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                                             <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Pilar de Vendas</Typography>
                                                 <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">

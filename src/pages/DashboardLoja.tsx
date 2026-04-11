@@ -297,13 +297,17 @@ export default function DashboardLoja() {
                         </Button>
                     </nav>
 
-                    <div className="flex items-center gap-mx-xs px-6 bg-white h-mx-14 rounded-mx-xl shadow-mx-sm border border-border-default" role="group" aria-label="Filtro de Data">
-                        <Calendar size={16} className="text-brand-primary" aria-hidden="true" />
-                        <label htmlFor="start-date" className="sr-only">Data Inicial</label>
-                        <input id="start-date" type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-tiny focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded" />
-                        <div className="w-px h-mx-sm bg-border-strong mx-2" aria-hidden="true" />
-                        <label htmlFor="end-date" className="sr-only">Data Final</label>
-                        <input id="end-date" type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-tiny focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded" />
+                    <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm px-4 sm:px-6 bg-white h-auto py-4 sm:py-0 sm:h-mx-14 rounded-mx-xl shadow-mx-sm border border-border-default" role="group" aria-label="Filtro de Data">
+                        <div className="flex items-center gap-mx-xs">
+                            <Calendar size={16} className="text-brand-primary" aria-hidden="true" />
+                            <label htmlFor="start-date" className="sr-only">Data Inicial</label>
+                            <input id="start-date" type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-[10px] sm:text-tiny focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded" />
+                        </div>
+                        <div className="hidden sm:block w-px h-mx-sm bg-border-strong mx-2" aria-hidden="true" />
+                        <div className="flex items-center gap-mx-xs">
+                            <label htmlFor="end-date" className="sr-only">Data Final</label>
+                            <input id="end-date" type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-[10px] sm:text-tiny focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded" />
+                        </div>
                     </div>
 
                     <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-white" aria-label="Sincronizar performance">

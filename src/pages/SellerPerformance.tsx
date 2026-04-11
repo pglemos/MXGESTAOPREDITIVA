@@ -93,7 +93,7 @@ export default function SellerPerformance() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-mx-md mb-8 relative z-10">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md mb-8 relative z-10">
                                 <div>
                                     <Typography variant="tiny" tone="muted" className="text-center mb-1 block uppercase font-black opacity-40">Vendas</Typography>
                                     <Typography variant="h1" className="text-3xl font-mono-numbers tracking-tighter text-center">{member.vnd_total}</Typography>

@@ -131,7 +131,7 @@ export default function OperationalSettings() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-32">
                 <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="p-mx-10 space-y-mx-10 border-none shadow-mx-lg bg-white">
+                    <Card className="p-mx-lg md:p-14 space-y-mx-10 border-none shadow-mx-lg bg-white">
                         <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-brand-primary shadow-inner" aria-hidden="true"><Settings2 size={28} /></div>
                             <Typography variant="h3" className="uppercase tracking-tight font-black">Unidade Alvo</Typography>
@@ -160,7 +160,7 @@ export default function OperationalSettings() {
                         )}
                     </Card>
 
-                    <Card className="p-mx-10 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden group">
+                    <Card className="p-mx-lg md:p-14 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden group">
                         <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700" aria-hidden="true"><Shield size={160} /></div>
                         <Typography variant="h3" tone="white" className="mb-6 uppercase tracking-tight font-black">Nível de Hardening</Typography>
                         <Typography variant="p" tone="white" className="text-xs font-bold leading-relaxed italic opacity-60 uppercase tracking-tight">
@@ -170,7 +170,7 @@ export default function OperationalSettings() {
                 </aside>
 
                 <section className="lg:col-span-8">
-                    <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
+                    <Card className="p-mx-lg md:p-14 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
                         <header className="border-b border-border-default pb-8">
                             <Typography variant="h2" className="uppercase tracking-tighter">Políticas Operacionais</Typography>
                             <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>

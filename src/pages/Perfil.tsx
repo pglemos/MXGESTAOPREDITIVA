@@ -84,7 +84,7 @@ export default function Perfil() {
               </div>
             </div>
 
-            <div className="w-full mt-14 pt-10 border-t border-border-default grid grid-cols-2 gap-mx-md relative z-10">
+            <div className="w-full mt-14 pt-10 border-t border-border-default grid grid-cols-1 sm:grid-cols-2 gap-mx-md relative z-10">
               <div className="bg-surface-alt p-mx-md rounded-mx-2xl border border-border-default shadow-inner text-center">
                 <Typography variant="tiny" tone="muted" className="mb-2 block tracking-widest font-black opacity-40 uppercase">XP SEASON</Typography>
                 <Typography variant="h1" className="text-2xl tabular-nums font-black">12.4K</Typography>

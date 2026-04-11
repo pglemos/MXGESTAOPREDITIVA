@@ -196,7 +196,7 @@ export default function CommissionRules() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-mx-lg">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
                                         <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Margem Mín (%)</Typography>
                                             <Input type="number" value={form.marginMin} onChange={e => setForm({...form, marginMin: e.target.value})} className="!h-14 font-mono-numbers text-lg" placeholder="0" />

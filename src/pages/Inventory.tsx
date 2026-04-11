@@ -164,7 +164,7 @@ export default function Inventory() {
                                                 <Typography variant="h3" className="text-lg uppercase group-hover:text-brand-primary transition-colors truncate font-black">{item.model}</Typography>
                                                 <Typography variant="tiny" tone="muted" className="mt-1 opacity-40 font-black uppercase tracking-widest">ANO {item.year} • AUTO • FLEX</Typography>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-mx-sm mb-8">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm mb-8">
                                                 <div className="flex items-center gap-mx-xs bg-surface-alt p-mx-xs rounded-mx-lg border border-border-default shadow-mx-inner">
                                                     <Gauge size={12} className="text-brand-primary" aria-hidden="true" />
                                                     <Typography variant="tiny" className="font-black uppercase tracking-widest opacity-60">{Math.floor(Math.random() * 50)}K KM</Typography>

@@ -103,27 +103,29 @@ export default function Agenda() {
                 </div>
             </header>
 
-            <div className="grid grid-cols-7 gap-mx-sm shrink-0">
-                {weekDays.map((day, i) => {
-                    const isSelected = isSameDay(day, selectedDate)
-                    const active = isToday(day)
-                    const hasTasks = tasks.some(t => isSameDay(new Date(t.dueDate), day))
+            <div className="overflow-x-auto no-scrollbar pb-4 -mx-mx-lg px-mx-lg">
+                <div className="grid grid-cols-7 gap-mx-sm min-w-[600px] sm:min-w-0 shrink-0">
+                    {weekDays.map((day, i) => {
+                        const isSelected = isSameDay(day, selectedDate)
+                        const active = isToday(day)
+                        const hasTasks = tasks.some(t => isSameDay(new Date(t.dueDate), day))
 
-                    return (
-                        <button
-                            key={i} onClick={() => setSelectedDate(day)}
-                            className={cn(
-                                "flex flex-col items-center p-mx-md rounded-mx-3xl transition-all border relative group",
-                                isSelected ? "bg-brand-secondary text-white border-brand-secondary shadow-mx-xl scale-105 z-10" : "bg-white border-border-subtle hover:border-brand-primary/30 hover:bg-mx-indigo-50/30"
-                            )}
-                        >
-                            <Typography variant="caption" tone={isSelected ? 'white' : 'muted'} className="mb-2 opacity-60">{format(day, 'EEE', { locale: ptBR })}</Typography>
-                            <Typography variant="h1" tone={isSelected ? 'white' : 'default'} className="text-3xl tabular-nums leading-none">{format(day, 'dd')}</Typography>
-                            {active && !isSelected && <div className="absolute top-mx-sm right-mx-sm w-mx-xs h-mx-xs rounded-mx-full bg-brand-primary shadow-mx-md" />}
-                            {hasTasks && <div className={cn("mt-3 w-1.5 h-1.5 rounded-mx-full", isSelected ? "bg-mx-indigo-400 shadow-mx-sm" : "bg-brand-primary")} />}
-                        </button>
-                    )
-                })}
+                        return (
+                            <button
+                                key={i} onClick={() => setSelectedDate(day)}
+                                className={cn(
+                                    "flex flex-col items-center p-mx-md rounded-mx-3xl transition-all border relative group",
+                                    isSelected ? "bg-brand-secondary text-white border-brand-secondary shadow-mx-xl scale-105 z-10" : "bg-white border-border-subtle hover:border-brand-primary/30 hover:bg-mx-indigo-50/30"
+                                )}
+                            >
+                                <Typography variant="caption" tone={isSelected ? 'white' : 'muted'} className="mb-2 opacity-60 uppercase font-black text-[10px]">{format(day, 'EEE', { locale: ptBR })}</Typography>
+                                <Typography variant="h1" tone={isSelected ? 'white' : 'default'} className="text-3xl tabular-nums leading-none font-black">{format(day, 'dd')}</Typography>
+                                {active && !isSelected && <div className="absolute top-mx-sm right-mx-sm w-mx-xs h-mx-xs rounded-mx-full bg-brand-primary shadow-mx-md" />}
+                                {hasTasks && <div className={cn("mt-3 w-1.5 h-1.5 rounded-mx-full", isSelected ? "bg-mx-indigo-400 shadow-mx-sm" : "bg-brand-primary")} />}
+                            </button>
+                        )
+                    })}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">

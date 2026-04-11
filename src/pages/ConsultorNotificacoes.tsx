@@ -123,7 +123,7 @@ export default function ConsultorNotificacoes() {
                                     <div className="space-y-mx-10">
                                         <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Público Alvo (Segmentação)</Typography>
-                                            <div className="grid grid-cols-2 gap-mx-sm">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
                                                 <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'all' }))} className={cn("p-mx-lg rounded-mx-2xl border-2 transition-all flex flex-col items-center justify-center gap-mx-sm text-center group", form.target_type === 'all' ? "bg-mx-indigo-50 border-brand-primary shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
                                                     <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'all' ? "bg-brand-primary text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
                                                         <Globe size={22} />
@@ -141,7 +141,7 @@ export default function ConsultorNotificacoes() {
 
                                         <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nível Hierárquico</Typography>
-                                            <div className="grid grid-cols-4 gap-mx-xs">
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-mx-xs">
                                                 {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
                                                     <Button key={role} type="button" variant={form.target_role === role ? 'secondary' : 'outline'} onClick={() => setForm(p => ({ ...p, target_role: role as any }))} className="h-mx-10 rounded-mx-xl text-mx-micro font-black uppercase px-0">{role}</Button>
                                                 ))}

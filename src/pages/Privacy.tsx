@@ -38,7 +38,7 @@ export default function Privacy() {
                                 "A MX PERFORMANCE assegura a integridade absoluta dos dados operacionais, utilizando protocolos de criptografia militar e governança baseada em privilégios mínimos."
                             </Typography>
 
-                            <div className="grid md:grid-cols-2 gap-mx-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                                 <Card className="bg-surface-alt p-mx-10 rounded-mx-3xl border-none shadow-inner group hover:bg-white hover:shadow-mx-lg transition-all">
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <FileText size={24} strokeWidth={2.5} />

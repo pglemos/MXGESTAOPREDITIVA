@@ -96,7 +96,7 @@ export default function VendedorFeedback() {
                                                 {!f.acknowledged && <Badge variant="danger" className="animate-pulse">Pendente</Badge>}
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-mx-lg">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
                                                 <div className="space-y-mx-tiny">
                                                     <Typography variant="caption" tone="success" className="flex items-center gap-mx-xs font-black"><TrendingUp size={14} /> Pontos Fortes</Typography>
                                                     <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-status-success-surface p-mx-5 rounded-mx-2xl border border-mx-emerald-100 shadow-inner">"{f.positives}"</p>

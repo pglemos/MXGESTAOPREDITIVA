@@ -419,11 +419,11 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                     )}
                 </div>
 
-                <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex justify-between">
-                    <Button variant="ghost" onClick={() => currentStep > 0 ? setCurrentStep(s => s - 1) : onClose()} className="h-mx-14 px-8 rounded-mx-full font-black uppercase text-xs border border-border-default">
+                <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex flex-col sm:flex-row gap-mx-md justify-between">
+                    <Button variant="ghost" onClick={() => currentStep > 0 ? setCurrentStep(s => s - 1) : onClose()} className="h-mx-14 px-8 rounded-mx-full font-black uppercase text-xs border border-border-default w-full sm:w-auto">
                         <ChevronLeft size={18} className="mr-2" /> {currentStep === 0 ? 'CANCELAR' : 'VOLTAR'}
                     </Button>
-                    <Button onClick={currentStep < 3 ? handleNext : handleSubmit} disabled={saving} className="h-mx-14 px-12 rounded-mx-full shadow-mx-xl font-black uppercase text-xs">
+                    <Button onClick={currentStep < 3 ? handleNext : handleSubmit} disabled={saving} className="h-mx-14 px-12 rounded-mx-full shadow-mx-xl font-black uppercase text-xs w-full sm:w-auto">
                         {saving ? <div className="animate-spin mr-2"><LayoutDashboard size={18}/></div> : (currentStep === 3 ? <CheckCircle2 size={18} className="mr-2" /> : <ChevronRight size={18} className="ml-2" />)}
                         {currentStep === 3 ? 'CONCLUIR SESSÃO & GERAR PDI' : 'PRÓXIMO'}
                     </Button>

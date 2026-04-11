@@ -115,7 +115,7 @@ export default function Historico() {
                                         </Badge>
                                     </header>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-mx-sm mb-10 relative z-10">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-mx-sm mb-10 relative z-10">
                                         {[
                                             { label: 'LEADS', val: c.leads_prev_day, icon: Phone, tone: 'brand' },
                                             { label: 'AGEND.', val: c.totals.agd_total, icon: CalendarDays, tone: 'info' },

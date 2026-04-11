@@ -328,7 +328,7 @@ export default function RotinaGerente() {
 
                                                     <div className="lg:w-mx-card-md space-y-mx-md">
                                                         <Typography variant="tiny" tone="muted" className="ml-2 font-black uppercase tracking-widest">Valores Solicitados</Typography>
-                                                        <div className="grid grid-cols-3 gap-mx-xs">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-xs">
                                                             {[
                                                                 { l: 'L', v: req.requested_values.leads, t: 'brand' },
                                                                 { l: 'V', v: req.requested_values.visitas, t: 'warning' },

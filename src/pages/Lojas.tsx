@@ -140,7 +140,7 @@ export default function Lojas() {
                                         </CardHeader>
 
                                         <CardContent className="p-mx-lg space-y-mx-10 flex-1 relative z-10 flex flex-col justify-between">
-                                            <div className="grid grid-cols-2 gap-mx-md">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                                                 <div className="space-y-mx-tiny bg-surface-alt/50 p-mx-sm rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
                                                     <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase opacity-40">Vendedores</Typography>
                                                     <div className="flex items-center gap-mx-xs">

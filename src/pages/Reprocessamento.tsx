@@ -226,7 +226,7 @@ export default function Reprocessamento() {
                                                 <ShieldCheck size={14} className={validation.isValid ? "text-status-success" : "text-status-error"} />
                                                 <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest">Resumo Estrutural</Typography>
                                             </header>
-                                            <div className="grid grid-cols-2 gap-mx-sm">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
                                                 <div className="text-center p-mx-xs bg-mx-black rounded-mx-xl border border-white/5">
                                                     <Typography variant="tiny" tone="white" className="opacity-40 block mb-1">LINHAS</Typography>
                                                     <Typography variant="h3" tone="white" className="text-lg">{validation.summary.totalRows}</Typography>

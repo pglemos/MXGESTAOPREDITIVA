@@ -145,7 +145,7 @@ export default function PDIPrint() {
                         <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase tracking-mx-wide">Página 2 / Vendedor 1</Typography>
                     </header>
 
-                    <div className="grid grid-cols-2 gap-mx-10 mb-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-10 mb-10">
                         <div className="space-y-mx-sm">
                             <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">Mapeamento Técnico & Comportamental</Typography>
                             <table className="w-full text-xs font-bold border-collapse">
@@ -185,8 +185,7 @@ export default function PDIPrint() {
 
                     <div className="mt-auto">
                         <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-error mb-4">Top 5 Maiores Lacunas (Gaps) Identificadas</Typography>
-                        <div className="grid grid-cols-2 gap-mx-sm">
-                            {bundle.top_5_gaps.map((gap: any, i: number) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">                            {bundle.top_5_gaps.map((gap: any, i: number) => (
                                 <div key={i} className="bg-status-error-surface p-mx-sm border-l-4 border-status-error flex justify-between items-center">
                                     <Typography variant="p" className="text-xs font-bold uppercase">{gap.competencia}</Typography>
                                     <Typography variant="h3" tone="error" className="text-lg">-{gap.gap}</Typography>
@@ -237,7 +236,7 @@ export default function PDIPrint() {
                         </Typography>
                     </div>
 
-                    <footer className="mt-auto pt-24 grid grid-cols-2 gap-mx-20">
+                    <footer className="mt-auto pt-24 grid grid-cols-1 sm:grid-cols-2 gap-mx-20">
                         <div className="text-center space-y-mx-sm">
                             <div className="border-t-2 border-mx-black pt-4">
                                 <Typography variant="p" className="text-sm font-black uppercase tracking-widest">Assinatura do Gestor (MX)</Typography>
@@ -257,3 +256,4 @@ export default function PDIPrint() {
         </div>
     )
 }
+

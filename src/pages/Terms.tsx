@@ -39,7 +39,7 @@ export default function Terms() {
                                 "O acesso contínuo e a utilização do sistema MX PERFORMANCE caracterizam concordância incondicional com as diretrizes e protocolos de segurança aqui estipulados."
                             </Typography>
 
-                            <div className="grid md:grid-cols-2 gap-mx-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                                 <Card className="bg-surface-alt p-mx-10 rounded-mx-3xl border-none shadow-mx-inner group hover:bg-white hover:shadow-mx-lg transition-all">
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                                         <Lock size={24} strokeWidth={2.5} />

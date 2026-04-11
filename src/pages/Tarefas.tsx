@@ -234,7 +234,7 @@ export default function Tarefas() {
                                         <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Briefing / Detalhes</Typography>
                                         <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-md text-sm font-bold text-text-primary focus:border-brand-primary outline-none transition-all resize-none shadow-inner h-mx-4xl" placeholder="Detalhes cruciais para a execução..." />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-mx-lg">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
                                         <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nível de Impacto</Typography>
                                             <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary outline-none focus:border-brand-primary transition-all cursor-pointer shadow-inner">

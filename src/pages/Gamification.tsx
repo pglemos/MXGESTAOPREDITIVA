@@ -102,7 +102,7 @@ export default function Gamification() {
       </header>
 
       {/* Hero Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         <MXScoreCard label="Seu MX Score" value={myStats?.mx_score || 0} icon={Trophy} tone="brand" sub="High Perf" />
         <MXScoreCard label="Vendas Mês" value={myStats?.vnd_total || 0} icon={Car} tone="success" sub={`${myStats?.atingimento}% Meta`} />
         <MXScoreCard label="Disciplina" value={`${challenges[0].current}/${dias.decorridos}`} icon={ShieldCheck} tone="brand" sub="Check-ins" />
