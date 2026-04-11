@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { useTeam } from '@/hooks/useTeam'
 import { calculateReferenceDate, useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
@@ -13,24 +13,24 @@ import {
     Zap, FileCheck, Target, TrendingUp,
     MessageSquare, Award, ChevronRight, Mail,
     BarChart3, RefreshCw, User, X, ShieldCheck, ShieldAlert, Users,
-    Smartphone, History, AlertTriangle
+    Smartphone, History, AlertTriangle, Send
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
-import { startOfWeek, isSameWeek, parseISO } from 'date-fns'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Select } from '@/components/atoms/Select'
+import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { Card } from '@/components/molecules/Card'
 import { supabase } from '@/lib/supabase'
 
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useStoreMetaRules } from '@/hooks/useGoals'
+import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 
-type RoutineTab = 'diario' | 'semanal' | 'mensal'
+type RoutineTab = 'diario' | 'semanal' | 'mensal' | 'ajustes'
 
 export default function RotinaGerente() {
     const [tab, setTab] = useState<RoutineTab>('diario')
@@ -44,7 +44,9 @@ export default function RotinaGerente() {
     const { feedbacks, refetch: refetchFeedbacks } = useFeedbacks()
     const { pdis, refetch: refetchPDIs } = usePDIs()
     const { sendNotification } = useNotifications()
+    const { fetchPendingRequests, approveRequest, rejectRequest, loading: auditorLoading } = useCheckinAuditor()
     
+    const [pendingRequests, setPendingRequests] = useState<any[]>([])
     const [executing, setExecuting] = useState(false)
     const [reuniaoDone, setReuniaoDone] = useState(false)
     const [agendaValidated, setAgendaDone] = useState(false)
@@ -61,12 +63,6 @@ export default function RotinaGerente() {
         rules: metaRules || { monthly_goal: storeGoal?.target || 0 } as any
     })
 
-    const atRiskSellers = useMemo(() => {
-        return storeSales.processedRanking
-            .filter(item => !item.is_venda_loja && item.atingimento < (expectedAttainment - 10))
-            .sort((a, b) => a.atingimento - b.atingimento)
-    }, [storeSales.processedRanking, expectedAttainment])
-
     const referenceDate = calculateReferenceDate()
     const previousDayCheckins = useMemo(() => checkins.filter(c => c.reference_date === referenceDate), [checkins, referenceDate])
     const pendingSellers = useMemo(() => (sellers || []).filter(s => !s.checkin_today), [sellers])
@@ -76,10 +72,41 @@ export default function RotinaGerente() {
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        await Promise.all([fetchCheckins(), fetchGoals(), refetchRanking(), refetchTeam(), refetchFeedbacks(), refetchPDIs()])
+        const [reqs] = await Promise.all([
+            fetchPendingRequests(),
+            fetchCheckins(), 
+            fetchGoals(), 
+            refetchRanking(), 
+            refetchTeam(), 
+            refetchFeedbacks(), 
+            refetchPDIs()
+        ])
+        setPendingRequests(reqs)
         setIsRefetching(false)
         toast.success('Rituais sincronizados!')
-    }, [fetchCheckins, fetchGoals, refetchRanking, refetchTeam, refetchFeedbacks, refetchPDIs])
+    }, [fetchCheckins, fetchGoals, refetchRanking, refetchTeam, refetchFeedbacks, refetchPDIs, fetchPendingRequests])
+
+    useEffect(() => {
+        fetchPendingRequests().then(setPendingRequests)
+    }, [fetchPendingRequests])
+
+    const handleApproveCorrection = async (req: any) => {
+        const { error } = await approveRequest(req)
+        if (error) toast.error(error)
+        else {
+            toast.success('Correção aprovada e aplicada ao histórico!')
+            handleRefresh()
+        }
+    }
+
+    const handleRejectCorrection = async (id: string) => {
+        const { error } = await rejectRequest(id)
+        if (error) toast.error(error)
+        else {
+            toast.success('Solicitação de ajuste rejeitada.')
+            handleRefresh()
+        }
+    }
 
     const handleTriggerMatinal = async () => {
         setExecuting(true)
@@ -141,7 +168,6 @@ export default function RotinaGerente() {
                 <AnimatePresence mode="wait">
                     {tab === 'diario' && (
                         <motion.div key="diario" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg">
-                            
                             <section className="lg:col-span-7 flex flex-col gap-mx-lg">
                                 <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden">
                                     <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-32 -mt-32" aria-hidden="true" />
@@ -249,6 +275,94 @@ export default function RotinaGerente() {
                                     </Button>
                                 </Card>
                             </aside>
+                        </motion.div>
+                    )}
+
+                    {tab === 'ajustes' && (
+                        <motion.div key="ajustes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-mx-lg">
+                            <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white relative overflow-hidden">
+                                <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-32 -mt-32" aria-hidden="true" />
+                                <header className="flex items-center justify-between border-b border-border-default pb-8 mb-10 relative z-10">
+                                    <div className="flex items-center gap-mx-md">
+                                        <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-pure-black text-white flex items-center justify-center shadow-mx-xl transform rotate-2"><ShieldAlert size={32} className="text-brand-primary" /></div>
+                                        <div>
+                                            <Typography variant="h2" className="uppercase tracking-tighter leading-none">Auditoria de Ajustes</Typography>
+                                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SOLICITAÇÕES RETROATIVAS PENDENTES</Typography>
+                                        </div>
+                                    </div>
+                                    <Badge variant={pendingRequests.length > 0 ? "warning" : "success"} className="shadow-mx-md px-6 py-2 rounded-mx-full font-black uppercase text-tiny">
+                                        {pendingRequests.length} PENDÊNCIAS
+                                    </Badge>
+                                </header>
+
+                                <div className="space-y-mx-md relative z-10">
+                                    {pendingRequests.length === 0 ? (
+                                        <div className="py-20 text-center flex flex-col items-center justify-center gap-mx-md bg-surface-alt rounded-mx-3xl border-2 border-dashed border-border-default">
+                                            <ShieldCheck size={48} className="text-text-tertiary/20" />
+                                            <Typography variant="p" tone="muted" className="uppercase tracking-widest font-black">Malha 100% Sincronizada</Typography>
+                                        </div>
+                                    ) : (
+                                        pendingRequests.map((req) => (
+                                            <Card key={req.id} className="p-mx-lg border border-border-default bg-surface-alt/30 hover:bg-white hover:shadow-mx-lg transition-all group">
+                                                <div className="flex flex-col lg:flex-row gap-mx-lg">
+                                                    <div className="flex-1 space-y-mx-md">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-mx-sm">
+                                                                <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-inner font-black text-sm uppercase">{req.seller?.name?.charAt(0) || '?'}</div>
+                                                                <div>
+                                                                    <Typography variant="h3" className="text-base uppercase font-black">{req.seller?.name || 'Vendedor'}</Typography>
+                                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">Solicitado em {new Date(req.created_at).toLocaleDateString('pt-BR')}</Typography>
+                                                                </div>
+                                                            </div>
+                                                            <Badge variant="outline" className="font-mono-numbers">{req.id.split('-')[0]}</Badge>
+                                                        </div>
+
+                                                        <div className="bg-white p-mx-md rounded-mx-xl shadow-inner border border-border-default space-y-mx-sm">
+                                                            <header className="flex items-center gap-mx-xs border-b border-border-default pb-2 mb-2">
+                                                                <MessageSquare size={14} className="text-brand-primary" />
+                                                                <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">Justificativa Operacional</Typography>
+                                                            </header>
+                                                            <Typography variant="p" className="text-sm font-bold italic leading-relaxed">"{req.reason}"</Typography>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="lg:w-mx-card-md space-y-mx-md">
+                                                        <Typography variant="tiny" tone="muted" className="ml-2 font-black uppercase tracking-widest">Valores Solicitados</Typography>
+                                                        <div className="grid grid-cols-3 gap-mx-xs">
+                                                            {[
+                                                                { l: 'L', v: req.requested_values.leads, t: 'brand' },
+                                                                { l: 'V', v: req.requested_values.visitas, t: 'warning' },
+                                                                { l: 'VND', v: (req.requested_values.vnd_porta || 0) + (req.requested_values.vnd_cart || 0) + (req.requested_values.vnd_net || 0), t: 'success' }
+                                                            ].map(val => (
+                                                                <div key={val.l} className="bg-white p-mx-sm rounded-mx-xl border border-border-default shadow-sm text-center">
+                                                                    <Typography variant="tiny" tone="muted" className="font-black opacity-40 block">{val.l}</Typography>
+                                                                    <Typography variant="h3" tone={val.t as any} className="text-xl tabular-nums font-black">{val.v}</Typography>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="flex gap-mx-sm pt-4">
+                                                            <Button 
+                                                                variant="outline" size="sm" 
+                                                                onClick={() => handleRejectCorrection(req.id)}
+                                                                className="flex-1 h-mx-11 rounded-mx-xl font-black text-mx-micro uppercase hover:bg-status-error-surface hover:text-status-error transition-all"
+                                                            >
+                                                                REJEITAR
+                                                            </Button>
+                                                            <Button 
+                                                                size="sm" 
+                                                                onClick={() => handleApproveCorrection(req)}
+                                                                className="flex-1 h-mx-11 rounded-mx-xl font-black text-mx-micro uppercase shadow-mx-md"
+                                                            >
+                                                                APROVAR AJUSTE
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        ))
+                                    )}
+                                </div>
+                            </Card>
                         </motion.div>
                     )}
                 </AnimatePresence>
