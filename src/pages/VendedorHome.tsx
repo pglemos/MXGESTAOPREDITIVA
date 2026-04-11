@@ -364,15 +364,3 @@ export default function VendedorHome() {
         </main>
     )
 }
-   </main>
-    )
-}
- soma de pequenos esforços repetidos dia após dia."
-                            </Typography>
-                        </div>
-                    </Card>
-                </aside>
-            </div>
-        </main>
-    )
-}
