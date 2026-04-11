@@ -67,4 +67,21 @@ A missão foi converter o Backlog Operacional Executável (v1.1) em código-font
   - O sistema atende 100% aos critérios obrigatórios do plano v1.2 (Fim da Fantasia Operacional).
 
 ---
-**Status da Operação *yolo**: 🟢 MISSION ACCOMPLISHED. Todos os épicos metodológicos (00 a 13) implementados e integrados à branch principal.
+## 🚀 Evolução v1.1: Qualidade Operacional & Precisão (Abril 2026)
+
+- **[DONE] Fase 1: Justiça Matemática (Dias Úteis)**
+  - Implementação de `projection_mode` (Calendar vs Business) em `store_meta_rules`.
+  - Motor de cálculo `src/lib/calculations.ts` atualizado para ignorar domingos/feriados na projeção MX.
+  - Interface de configuração em `OperationalSettings.tsx`.
+
+- **[DONE] Fase 2: Auditoria e Correção Retroativa (Zero Atrito)**
+  - Nova infraestrutura de `checkin_correction_requests` e `checkin_audit_logs`.
+  - Fluxo de solicitação pelo vendedor (`History.tsx`) e aprovação gerencial (`RotinaGerente.tsx`).
+  - Histórico imutável de mudanças para conformidade total.
+
+- **[DONE] Fase 3: Matriz de Absorção (Academy)**
+  - Tabela matricial cruzada (Vendedores x Treinamentos) em `GerenteTreinamentos.tsx`.
+  - Funcionalidade de cobrança cirúrgica ("Cobrar Tropa") via notificações de sistema.
+
+---
+**Status da Operação *yolo**: 🟢 MISSION ACCOMPLISHED. Todos os épicos metodológicos (00 a 13) e a evolução v1.1 implementados e integrados à branch principal.
