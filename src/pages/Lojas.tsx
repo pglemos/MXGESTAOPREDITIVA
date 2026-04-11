@@ -2,7 +2,7 @@ import { useStores, useStoresStats } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Building2, Search, Plus, RefreshCw, X, Mail } from 'lucide-react'
+import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
@@ -12,9 +12,10 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Link } from 'react-router-dom'
+import { DataGrid, Column } from '@/components/organisms/DataGrid'
 
 export default function Lojas() {
-    const { stores, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus, deleteStore } = useStores()
+    const { stores, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus } = useStores()
     const { stats, loading: statsLoading, refetch: refetchStats } = useStoresStats()
     const { role } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
@@ -54,6 +55,86 @@ export default function Lojas() {
             handleRefresh()
         }
     }
+
+    const columns = useMemo<Column<any>[]>(() => [
+        {
+            key: 'name',
+            header: 'UNIDADE',
+            render: (store) => (
+                <div className="flex items-center gap-mx-sm relative z-10 min-w-0">
+                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3 shrink-0" aria-hidden="true">
+                        <Building2 size={24} />
+                    </div>
+                    <div className="min-w-0">
+                        <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase mt-1 opacity-40">ID: {store.id.split('-')[0]}</Typography>
+                    </div>
+                </div>
+            )
+        },
+        {
+            key: 'status',
+            header: 'STATUS',
+            align: 'center',
+            render: (store) => {
+                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                return (
+                    <Badge variant={sStat.sellers > 0 ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none">
+                        {sStat.sellers > 0 ? "Ativa" : "Vazia"}
+                    </Badge>
+                )
+            }
+        },
+        {
+            key: 'metrics',
+            header: 'OPERACIONAL',
+            align: 'center',
+            render: (store) => {
+                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                return (
+                    <div className="flex items-center justify-center gap-mx-md">
+                        <div className="text-center">
+                            <Typography variant="tiny" className="font-black opacity-40 uppercase">Tropa</Typography>
+                            <Typography variant="h3" className="text-base tabular-nums">{sStat.sellers}</Typography>
+                        </div>
+                        <div className="w-px h-mx-md bg-border-default mx-2" aria-hidden="true" />
+                        <div className="text-center">
+                            <Typography variant="tiny" className="font-black opacity-40 uppercase">Sinc.</Typography>
+                            <Typography variant="h3" tone={sStat.disciplinePct < 80 ? 'error' : 'success'} className="text-base tabular-nums">{sStat.disciplinePct}%</Typography>
+                        </div>
+                    </div>
+                )
+            }
+        },
+        {
+            key: 'actions',
+            header: 'AÇÕES',
+            align: 'right',
+            render: (store) => (
+                <div className="flex items-center justify-end gap-mx-xs relative z-10" onClick={(e) => e.stopPropagation()}>
+                    {store.active ? (
+                        <>
+                            <Button asChild variant="outline" size="sm" className="h-mx-xl px-4 rounded-mx-lg bg-white shadow-sm font-black uppercase text-[10px] border-border-strong hover:border-brand-primary">
+                                <Link to={`/metas?id=${store.id}`}>METAS</Link>
+                            </Button>
+                            <Button asChild variant="secondary" size="sm" className="h-mx-xl px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-[10px]">
+                                <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${store.id}`}>DASHBOARD</Link>
+                            </Button>
+                            {role === 'admin' && (
+                                <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-xl w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface">
+                                    <X size={18} />
+                                </Button>
+                            )}
+                        </>
+                    ) : (
+                        <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="h-mx-xl px-6 rounded-mx-lg shadow-mx-md font-black uppercase text-[10px] bg-status-success hover:opacity-90 text-white">
+                            RESTAURAR
+                        </Button>
+                    )}
+                </div>
+            )
+        }
+    ], [stats, role])
 
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
@@ -115,97 +196,13 @@ export default function Lojas() {
             </header>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-                {filteredStores.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg" role="list">
-                        <AnimatePresence mode="popLayout">
-                            {filteredStores.map((store, i) => {
-                                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
-                                return (
-                                <motion.div key={store.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }} role="listitem">
-                                    <Card className="overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg bg-white flex flex-col h-full">
-                                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg flex flex-row items-center justify-between relative overflow-hidden">
-                                            <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-                                            <div className="flex items-center gap-mx-sm relative z-10 min-w-0">
-                                                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3 shrink-0" aria-hidden="true">
-                                                    <Building2 size={24} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
-                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase mt-1 opacity-40">ID: {store.id.split('-')[0]}</Typography>
-                                                </div>
-                                            </div>
-                                            <Badge variant={sStat.sellers > 0 ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none shrink-0">
-                                                {sStat.sellers > 0 ? "Ativa" : "Vazia"}
-                                            </Badge>
-                                        </CardHeader>
-
-                                        <CardContent className="p-mx-lg space-y-mx-10 flex-1 relative z-10 flex flex-col justify-between">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
-                                                <div className="space-y-mx-tiny bg-surface-alt/50 p-mx-sm rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
-                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase opacity-40">Vendedores</Typography>
-                                                    <div className="flex items-center gap-mx-xs">
-                                                        <Typography variant="h2" className="text-xl font-mono-numbers leading-none">{sStat.sellers}</Typography>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-mx-tiny bg-surface-alt/50 p-mx-sm rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
-                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">Disciplina</Typography>
-                                                    <div className="flex items-center gap-mx-xs">
-                                                        <Typography variant="h2" tone={sStat.disciplinePct < 80 ? "error" : "success"} className="text-xl font-mono-numbers leading-none">{sStat.disciplinePct}%</Typography>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-mx-sm">
-                                                <div className="flex justify-between items-end">
-                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase tracking-widest opacity-40">Check-ins Hoje</Typography>
-                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">{sStat.checkedIn}/{sStat.sellers}</Typography>
-                                                </div>
-                                                <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden p-0.5 shadow-mx-inner border border-border-default">
-                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${sStat.disciplinePct}%` }} transition={{ duration: 1.5 }} className={cn("h-full rounded-full shadow-mx-sm", sStat.disciplinePct < 80 ? "bg-status-error" : "bg-status-success")} />
-                                                </div>
-                                            </div>
-                                        </CardContent>
-
-                                        <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex flex-wrap sm:flex-row gap-mx-xs relative z-10 mt-auto">
-                                            {store.active ? (
-                                                <>
-                                                    <Button asChild variant="outline" size="sm" className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary min-w-[100px]">
-                                                        <Link to={`/metas?id=${store.id}`}>METAS</Link>
-                                                    </Button>
-                                                    <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs min-w-[100px]">
-                                                        <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>DASHBOARD</Link>
-                                                    </Button>
-                                                    {role === 'admin' && (
-                                                        <Button variant="ghost" size="sm" onClick={() => { if(confirm('Tem certeza que deseja DESATIVAR esta loja? Ela ficará inacessível na rede.')) toggleStoreStatus(store.id, false) }} className="flex-1 h-mx-xl rounded-mx-lg text-status-error hover:bg-status-error hover:text-white font-black uppercase text-xs min-w-[100px]">
-                                                            DESATIVAR
-                                                        </Button>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs bg-status-success hover:opacity-90 text-white min-w-[100px]">
-                                                        RESTAURAR
-                                                    </Button>
-                                                    <Button variant="danger" size="sm" onClick={() => { if(confirm('⚠️ ALERTA VERMELHO: Tem certeza que deseja DELETAR PERMANENTEMENTE esta loja e TODOS OS SEUS DADOS do Supabase? Essa ação é IRREVERSÍVEL.')) deleteStore(store.id) }} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs min-w-[100px]">
-                                                        EXCLUIR
-                                                    </Button>
-                                                </>
-                                            )}
-                                        </footer>
-                                    </Card>
-                                </motion.div>
-                            )})}
-                        </AnimatePresence>
-                    </div>
-                ) : (
-                    <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl group hover:bg-surface-alt/20 transition-all" role="status">
-                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:scale-110 transition-transform" aria-hidden="true">
-                            <Building2 size={48} className="text-text-tertiary opacity-20" />
-                        </div>
-                        <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Vácuo Operacional</Typography>
-                        <Typography variant="caption" tone="muted" className="max-w-xs uppercase tracking-widest font-black text-xs leading-relaxed opacity-40">Aguardando consolidação de dados para liberar a visão operacional da rede.</Typography>
-                    </div>
-                )}
+                <Card className="border-none shadow-mx-xl bg-white overflow-hidden p-0">
+                    <DataGrid 
+                        columns={columns}
+                        data={filteredStores}
+                        emptyMessage="Nenhuma unidade localizada na rede MX."
+                    />
+                </Card>
             </div>
 
             <AnimatePresence>

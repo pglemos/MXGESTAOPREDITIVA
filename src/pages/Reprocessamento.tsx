@@ -1,5 +1,5 @@
 import { useStores } from '@/hooks/useTeam'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { 
     ArrowLeft, Database, Upload, RefreshCw, Terminal as TerminalIcon, 
@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { format, parseISO } from 'date-fns'
 import { validateLegacyCSV, ValidationResult } from '@/lib/migration-validator'
+import { DataGrid, Column } from '@/components/organisms/DataGrid'
 
 interface ImportLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
 
@@ -130,12 +131,53 @@ export default function Reprocessamento() {
         }
     }
 
+    const columns = useMemo<Column<any>[]>(() => [
+        {
+            key: 'created_at',
+            header: 'DATA / HORA',
+            render: (h) => (
+                <div className="flex flex-col">
+                    <Typography variant="h3" className="text-base leading-none mb-1 font-black uppercase tracking-tight">{format(parseISO(h.created_at), 'dd/MM/yyyy')}</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
+                </div>
+            )
+        },
+        {
+            key: 'store_name',
+            header: 'UNIDADE',
+            render: (h) => (
+                <div className="flex items-center gap-mx-sm">
+                    <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center group-hover:bg-brand-primary transition-all shadow-mx-inner shrink-0" aria-hidden="true">
+                        <Typography variant="tiny" className="font-black group-hover:text-white uppercase">{h.store_name?.charAt(0)}</Typography>
+                    </div>
+                    <Typography variant="h3" className="text-sm uppercase tracking-tight font-black truncate max-w-[150px]">{h.store_name}</Typography>
+                </div>
+            )
+        },
+        {
+            key: 'rows_processed',
+            header: 'REGISTROS',
+            align: 'center',
+            render: (h) => <Typography variant="mono" tone="brand" className="text-lg font-black tabular-nums">{h.rows_processed || 0}</Typography>
+        },
+        {
+            key: 'status',
+            header: 'STATUS',
+            align: 'right',
+            render: (h) => (
+                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none">
+                    <Typography variant="tiny" as="span" className="font-black tracking-widest">{h.status === 'completed' ? 'CONCLUÍDO' : 'FALHA'}</Typography>
+                </Badge>
+            )
+        }
+    ], [])
+
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0">
-                <div className="flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
+                <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
+                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md animate-pulse" aria-hidden="true" />
                         <Typography variant="h1" tone="white">Painel de <Typography as="span" variant="h1" tone="brand">Reprocessamento</Typography></Typography>
                     </div>
@@ -229,11 +271,11 @@ export default function Reprocessamento() {
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
                                                 <div className="text-center p-mx-xs bg-mx-black rounded-mx-xl border border-white/5">
                                                     <Typography variant="tiny" tone="white" className="opacity-40 block mb-1">LINHAS</Typography>
-                                                    <Typography variant="h3" tone="white" className="text-lg">{validation.summary.totalRows}</Typography>
+                                                    <Typography variant="h3" tone="white" className="text-lg tabular-nums">{validation.summary.totalRows}</Typography>
                                                 </div>
                                                 <div className="text-center p-mx-xs bg-mx-black rounded-mx-xl border border-white/5">
                                                     <Typography variant="tiny" tone="white" className="opacity-40 block mb-1">VENDEDORES</Typography>
-                                                    <Typography variant="h3" tone="white" className="text-lg">{validation.summary.sellersFound.length}</Typography>
+                                                    <Typography variant="h3" tone="white" className="text-lg tabular-nums">{validation.summary.sellersFound.length}</Typography>
                                                 </div>
                                             </div>
                                         </Card>
@@ -277,46 +319,12 @@ export default function Reprocessamento() {
                             </Badge>
                         </header>
 
-                        <div className="overflow-x-auto flex-1 no-scrollbar">
-                            <table className="w-full text-left min-w-mx-table">
-                                <caption className="sr-only">Histórico consolidado de reprocessamento de dados</caption>
-                                <thead>
-                                    <tr className="bg-surface-alt/50 border-b border-border-default">
-                                        <th scope="col" className="pl-10 py-6"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">DATA / HORA</Typography></th>
-                                        <th scope="col" className="px-6 py-6"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">UNIDADE</Typography></th>
-                                        <th scope="col" className="px-6 py-6 text-center"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">REGISTROS</Typography></th>
-                                        <th scope="col" className="pr-10 py-6 text-right"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">STATUS</Typography></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border-default bg-white">
-                                    {history.map((h) => (
-                                        <tr key={h.id} className="hover:bg-surface-alt/30 transition-colors group h-mx-3xl">
-                                            <td className="pl-10">
-                                                <div className="flex flex-col">
-                                                    <Typography variant="h3" className="text-base leading-none mb-1 font-black uppercase tracking-tight">{format(parseISO(h.created_at), 'dd/MM/yyyy')}</Typography>
-                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
-                                                </div>
-                                            </td>
-                                            <td className="px-6">
-                                                <div className="flex items-center gap-mx-sm">
-                                                    <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center group-hover:bg-brand-primary transition-all shadow-mx-inner shrink-0" aria-hidden="true">
-                                                        <Typography variant="tiny" className="font-black group-hover:text-white uppercase">{h.store_name?.charAt(0)}</Typography>
-                                                    </div>
-                                                    <Typography variant="h3" className="text-sm uppercase tracking-tight font-black truncate max-w-[150px]">{h.store_name}</Typography>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 text-center">
-                                                <Typography variant="mono" tone="brand" className="text-lg font-black">{h.rows_processed || 0}</Typography>
-                                            </td>
-                                            <td className="pr-10 text-right">
-                                                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none">
-                                                    <Typography variant="tiny" as="span" className="font-black tracking-widest">{h.status === 'completed' ? 'CONCLUÍDO' : 'FALHA'}</Typography>
-                                                </Badge>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="p-mx-md md:p-0 flex-1 overflow-hidden">
+                            <DataGrid 
+                                columns={columns}
+                                data={history}
+                                emptyMessage="Nenhum protocolo de injeção localizado."
+                            />
                         </div>
                     </Card>
                 </section>
