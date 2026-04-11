@@ -82,8 +82,6 @@ export default function Reprocessamento() {
 
             addLog(`Validação concluída. ${result.summary.validRows} registros íntegros localizados.`, 'success')
             
-            // 1. Criar Log de Reprocessamento
-            addLog('Criando lote de reprocessamento...', 'info')
             const { data: log, error: logError } = await supabase.from('reprocess_logs').insert({
                 store_id: selectedStoreId,
                 source_type: 'csv_import',
@@ -94,8 +92,6 @@ export default function Reprocessamento() {
             if (logError) throw new Error(logError.message)
             addLog(`Lote ${log.id.split('-')[0]} aberto.`, 'success')
 
-            // 2. Inserir Dados Brutos (Chunks de 100)
-            addLog(`Preparando injeção de ${result.records.length} registros...`, 'info')
             const chunkSize = 100
             for (let i = 0; i < result.records.length; i += chunkSize) {
                 const chunk = result.records.slice(i, i + chunkSize)
@@ -106,12 +102,10 @@ export default function Reprocessamento() {
                 addLog(`Injetado: ${Math.min(i + chunkSize, result.records.length)}/${result.records.length}`, 'info')
             }
 
-            // 3. Disparar Processamento
             addLog('Disparando processamento de domínio (RPC)...', 'info')
             const { error: rpcError } = await supabase.rpc('process_import_data', { p_log_id: log.id })
             if (rpcError) throw new Error(rpcError.message)
 
-            // 4. Aguardar Conclusão
             addLog('Aguardando reconciliação de dados...', 'info')
             let attempts = 0
             while (attempts < 30) {
@@ -139,8 +133,7 @@ export default function Reprocessamento() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
             
-            {/* Header / Engine Toolbar */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0" role="banner">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md animate-pulse" aria-hidden="true" />
@@ -149,18 +142,18 @@ export default function Reprocessamento() {
                     <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 font-black uppercase tracking-widest">DATA INJECTION ENGINE v2.1</Typography>
                 </div>
 
-                <div className="flex items-center gap-mx-sm shrink-0">
-                    <Button asChild variant="ghost" className="text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-tiny">
+                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
+                    <Button asChild variant="ghost" className="w-full sm:w-auto text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-tiny">
                         <Link to="/configuracoes"><ArrowLeft size={16} className="mr-2" aria-hidden="true" /> VOLTAR AO PAINEL</Link>
                     </Button>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl border-white/10 text-white/40 h-mx-xl w-mx-xl hover:text-white bg-white/5" aria-label="Sincronizar histórico">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="hidden sm:flex rounded-mx-xl border-white/10 text-white/40 h-mx-xl w-mx-xl hover:text-white bg-white/5" aria-label="Sincronizar histórico">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg flex-1 min-h-0">
-                <section className="xl:col-span-4 flex flex-col gap-mx-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0">
+                <section className="lg:col-span-4 flex flex-col gap-mx-lg">
                     <Card className="bg-mx-black border-white/5 p-mx-lg md:p-10 space-y-mx-10 shadow-mx-xl relative overflow-hidden">
                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl" aria-hidden="true" />
                         
@@ -269,13 +262,13 @@ export default function Reprocessamento() {
                     </Card>
                 </section>
 
-                <section className="xl:col-span-8 flex flex-col">
+                <section className="lg:col-span-8 flex flex-col">
                     <Card className="bg-white border-none shadow-mx-xl overflow-hidden h-full flex flex-col">
-                        <header className="p-mx-10 md:p-14 border-b border-border-default flex items-center justify-between bg-surface-alt/30">
+                        <header className="p-mx-lg md:p-14 border-b border-border-default flex flex-col sm:flex-row items-center justify-between gap-mx-md bg-surface-alt/30">
                             <div className="flex items-center gap-mx-sm">
                                 <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg" aria-hidden="true"><History size={28} /></div>
                                 <div>
-                                    <Typography variant="h2" className="uppercase tracking-tighter">Audit Trail</Typography>
+                                    <Typography variant="h2" className="uppercase tracking-tighter leading-none">Audit Trail</Typography>
                                     <Typography variant="tiny" tone="muted" className="tracking-widest mt-1 font-black uppercase opacity-40">LOG DE INJEÇÕES OPERACIONAIS</Typography>
                                 </div>
                             </div>
@@ -285,12 +278,12 @@ export default function Reprocessamento() {
                         </header>
 
                         <div className="overflow-x-auto flex-1 no-scrollbar">
-                            <table className="w-full text-left">
+                            <table className="w-full text-left min-w-mx-table">
                                 <caption className="sr-only">Histórico consolidado de reprocessamento de dados</caption>
                                 <thead>
                                     <tr className="bg-surface-alt/50 border-b border-border-default">
                                         <th scope="col" className="pl-10 py-6"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">DATA / HORA</Typography></th>
-                                        <th scope="col" className="px-6 py-6"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">UNIDADE OPERACIONAL</Typography></th>
+                                        <th scope="col" className="px-6 py-6"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">UNIDADE</Typography></th>
                                         <th scope="col" className="px-6 py-6 text-center"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">REGISTROS</Typography></th>
                                         <th scope="col" className="pr-10 py-6 text-right"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">STATUS</Typography></th>
                                     </tr>
@@ -305,19 +298,19 @@ export default function Reprocessamento() {
                                                 </div>
                                             </td>
                                             <td className="px-6">
-                                                <div className="flex items-center gap-mx-xs">
-                                                    <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center group-hover:bg-brand-primary transition-all shadow-mx-inner" aria-hidden="true">
+                                                <div className="flex items-center gap-mx-sm">
+                                                    <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center group-hover:bg-brand-primary transition-all shadow-mx-inner shrink-0" aria-hidden="true">
                                                         <Typography variant="tiny" className="font-black group-hover:text-white uppercase">{h.store_name?.charAt(0)}</Typography>
                                                     </div>
-                                                    <Typography variant="h3" className="text-sm uppercase tracking-tight font-black">{h.store_name}</Typography>
+                                                    <Typography variant="h3" className="text-sm uppercase tracking-tight font-black truncate max-w-[150px]">{h.store_name}</Typography>
                                                 </div>
                                             </td>
                                             <td className="px-6 text-center">
-                                                <Typography variant="mono" tone="brand" className="text-lg font-black">{h.rows_count || 0}</Typography>
+                                                <Typography variant="mono" tone="brand" className="text-lg font-black">{h.rows_processed || 0}</Typography>
                                             </td>
                                             <td className="pr-10 text-right">
-                                                <Badge variant={h.status === 'success' ? 'success' : 'danger'} className="px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none">
-                                                    <Typography variant="tiny" as="span" className="font-black tracking-widest">{h.status === 'success' ? 'CONCLUÍDO' : 'FALHA'}</Typography>
+                                                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none">
+                                                    <Typography variant="tiny" as="span" className="font-black tracking-widest">{h.status === 'completed' ? 'CONCLUÍDO' : 'FALHA'}</Typography>
                                                 </Badge>
                                             </td>
                                         </tr>

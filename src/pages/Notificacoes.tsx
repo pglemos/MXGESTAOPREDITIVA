@@ -24,7 +24,7 @@ export default function Notificacoes() {
   const navigate = useNavigate()
 
   const filtered = useMemo(() => {
-    return notifications.filter(n => {
+    return (notifications || []).filter(n => {
       const matchesSearch = n.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            n.message.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesType = filterType ? n.type === filterType : true
@@ -68,43 +68,43 @@ export default function Notificacoes() {
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-        <div className="flex flex-col gap-mx-tiny">
-          <div className="flex items-center gap-mx-sm">
+        <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
+          <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
             <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
             <Typography variant="h1">Central de <Typography as="span" className="text-brand-primary">Alertas</Typography></Typography>
           </div>
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">MOTOR DE DISCIPLINA & INTELIGÊNCIA MX</Typography>
         </div>
 
-        <div className="flex items-center gap-mx-sm shrink-0">
+        <div className="flex items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
           <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white">
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
           </Button>
-          <Button variant="outline" onClick={() => {markAllAsRead(); toast.success('Tudo lido!')}} className="h-mx-xl px-6 rounded-mx-full shadow-mx-sm uppercase font-black text-xs bg-white tracking-widest">
+          <Button variant="outline" onClick={() => {markAllAsRead(); toast.success('Tudo lido!')}} className="h-mx-xl px-6 flex-1 lg:flex-none rounded-mx-full shadow-mx-sm uppercase font-black text-xs bg-white tracking-widest">
             <CheckCheck size={18} className="mr-2" /> MARCAR TUDO
           </Button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
-        <section className="lg:col-span-8 flex flex-col">
+        <section className="lg:col-span-8 flex flex-col order-2 lg:order-1">
           <Card className="border-none shadow-mx-xl bg-white overflow-hidden h-full flex flex-col group relative">
-            <div className="absolute top-mx-0 right-mx-0 p-mx-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors">
+            <div className="absolute top-mx-0 right-mx-0 p-mx-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors hidden md:block">
               <Bell size={240} strokeWidth={2.5} />
             </div>
 
-            <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-10 flex flex-row items-center justify-between relative z-10">
+            <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg md:p-10 flex flex-col sm:flex-row items-center justify-between relative z-10 gap-mx-md">
               <div className="flex items-center gap-mx-md">
-                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl"><Bell size={32} strokeWidth={2.5} /></div>
+                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl shrink-0"><Bell size={32} strokeWidth={2.5} /></div>
                 <div>
-                  <Typography variant="h2" className="text-2xl uppercase tracking-tighter leading-none">Meu Inbox</Typography>
+                  <Typography variant="h2" className="text-xl sm:text-2xl uppercase tracking-tighter leading-none">Meu Inbox</Typography>
                   <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SINALIZAÇÕES DE AUDITORIA</Typography>
                 </div>
               </div>
-              <Badge variant="brand" className="px-6 py-2 rounded-mx-full font-black shadow-mx-sm uppercase text-xs">{unreadCount} NOVAS</Badge>
+              <Badge variant="brand" className="px-6 py-2 rounded-mx-full font-black shadow-mx-sm uppercase text-xs w-full sm:w-auto text-center">{unreadCount} NOVAS</Badge>
             </CardHeader>
 
-            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-mx-10 md:p-14 relative z-10">
+            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-mx-lg md:p-14 relative z-10">
               <AnimatePresence mode="popLayout">
                 {Object.entries(grouped).length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-40">
@@ -123,7 +123,7 @@ export default function Notificacoes() {
                         key={n.id} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} 
                         onClick={() => { markRead(n.id); if (n.link) navigate(n.link) }}
                         className={cn(
-                          "p-mx-lg rounded-mx-3xl border transition-all relative group/item flex gap-mx-lg cursor-pointer", 
+                          "p-mx-lg rounded-mx-3xl border transition-all relative group/item flex flex-col sm:flex-row gap-mx-lg cursor-pointer", 
                           n.read ? "bg-surface-alt/30 border-border-default opacity-60" : "bg-white border-brand-primary/20 shadow-mx-lg",
                           !n.read && n.priority === 'high' && "border-status-error/20 bg-status-error-surface/30"
                         )}
@@ -135,15 +135,15 @@ export default function Notificacoes() {
                           {getTypeIcon(n.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <header className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-mx-sm">
+                          <header className="flex justify-between items-start mb-2 gap-mx-sm">
+                            <div className="flex items-center gap-mx-sm min-w-0">
                               <Typography variant="h3" className="text-base group-hover/item:text-brand-primary transition-colors truncate uppercase font-black tracking-tight">{n.title}</Typography>
-                              {!n.read && n.priority === 'high' && <Badge variant="danger" className="text-xs font-black h-mx-5 px-3 rounded-mx-full animate-pulse shadow-sm">CRÍTICO</Badge>}
+                              {!n.read && n.priority === 'high' && <Badge variant="danger" className="text-[8px] sm:text-xs font-black h-mx-5 px-3 rounded-mx-full animate-pulse shadow-sm shrink-0">CRÍTICO</Badge>}
                             </div>
-                            <Typography variant="mono" tone="muted" className="text-xs font-black uppercase tracking-widest">{format(new Date(n.created_at), 'HH:mm')}</Typography>
+                            <Typography variant="mono" tone="muted" className="text-[10px] sm:text-xs font-black uppercase tracking-widest shrink-0">{format(new Date(n.created_at), 'HH:mm')}</Typography>
                           </header>
                           <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed italic line-clamp-2 uppercase tracking-tight opacity-60">"{n.message}"</Typography>
-                          <footer className="flex items-center gap-mx-md mt-6">
+                          <footer className="flex flex-wrap items-center gap-mx-md mt-6">
                             {n.link && <Typography variant="caption" tone="brand" className="text-xs font-black uppercase tracking-widest flex items-center gap-mx-xs group-hover/item:translate-x-1 transition-transform">Ação Imediata <ChevronRight size={12} strokeWidth={3} /></Typography>}
                             <Button 
                               variant="ghost" size="sm" 
@@ -154,7 +154,7 @@ export default function Notificacoes() {
                             </Button>
                           </footer>
                         </div>
-                        {!n.read && <div className="absolute right-mx-lg top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-mx-full bg-brand-primary shadow-mx-md animate-pulse" />}
+                        {!n.read && <div className="absolute right-mx-lg top-mx-sm sm:top-1/2 sm:-translate-y-1/2 w-2.5 h-2.5 rounded-mx-full bg-brand-primary shadow-mx-md animate-pulse" />}
                       </motion.article>
                     ))}
                   </div>
@@ -164,8 +164,8 @@ export default function Notificacoes() {
           </Card>
         </section>
 
-        <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
-          <Card className="p-mx-10 border-none shadow-mx-lg bg-white space-y-mx-10">
+        <aside className="lg:col-span-4 flex flex-col gap-mx-lg order-1 lg:order-2">
+          <Card className="p-mx-lg md:p-10 border-none shadow-mx-lg bg-white space-y-mx-10">
             <header className="border-b border-border-default pb-8">
                 <Typography variant="h3" className="uppercase tracking-tight">Filtro Disciplinar</Typography>
                 <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SEGMENTAÇÃO DE ALERTAS</Typography>
@@ -180,12 +180,12 @@ export default function Notificacoes() {
                 />
             </div>
 
-            <nav className="space-y-mx-xs" role="navigation" aria-label="Filtros de notificação">
+            <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-mx-xs" role="navigation" aria-label="Filtros de notificação">
               {[
-                { label: 'Atrasos de Check-in', type: 'discipline', icon: Smartphone, tone: 'error' },
-                { label: 'Feedbacks Pendentes', type: 'performance', icon: TrendingUp, tone: 'success' },
-                { label: 'Revisões de PDI', type: 'alert', icon: History, tone: 'warning' },
-                { label: 'Comunicados MX', type: 'system', icon: Megaphone, tone: 'brand' }
+                { label: 'Check-ins', type: 'discipline', icon: Smartphone, tone: 'error' },
+                { label: 'Feedbacks', type: 'performance', icon: TrendingUp, tone: 'success' },
+                { label: 'PDI', type: 'alert', icon: History, tone: 'warning' },
+                { label: 'Geral', type: 'system', icon: Megaphone, tone: 'brand' }
               ].map(f => (
                 <button 
                   key={f.label} 
@@ -203,12 +203,6 @@ export default function Notificacoes() {
                 </button>
               ))}
             </nav>
-
-            {filterType && (
-              <Button variant="ghost" onClick={() => setFilterType(null)} className="w-full text-xs font-black uppercase tracking-widest text-brand-primary hover:bg-mx-indigo-50">
-                LIMPAR FILTROS
-              </Button>
-            )}
 
             <footer className="pt-8 border-t border-border-default">
                 <Button variant="outline" className="w-full h-mx-14 rounded-mx-full shadow-sm font-black uppercase tracking-widest text-xs bg-white border-border-strong hover:border-brand-primary">

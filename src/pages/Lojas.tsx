@@ -27,7 +27,7 @@ export default function Lojas() {
     const loading = storesLoading || statsLoading
 
     const filteredStores = useMemo(() => {
-        return stores
+        return (stores || [])
             .filter(s => s.active === filterActive)
             .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
     }, [stores, searchTerm, filterActive])
@@ -58,23 +58,18 @@ export default function Lojas() {
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-mx-xs">
-                    <Skeleton className="h-mx-10 w-mx-64" />
-                    <Skeleton className="h-mx-xs w-mx-48" />
+                <div className="space-y-mx-xs text-center lg:text-left">
+                    <Skeleton className="h-mx-10 w-mx-64 mx-auto lg:mx-0" />
+                    <Skeleton className="h-mx-xs w-mx-48 mx-auto lg:mx-0" />
                 </div>
-                <div className="flex gap-mx-sm">
+                <div className="flex justify-center gap-mx-sm">
                     <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
                     <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
                 </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
-                <Skeleton className="h-mx-64 rounded-mx-2xl" />
-                <Skeleton className="h-mx-64 rounded-mx-2xl" />
-                <Skeleton className="h-mx-64 rounded-mx-2xl" />
-                <Skeleton className="h-mx-64 rounded-mx-2xl" />
-                <Skeleton className="h-mx-64 rounded-mx-2xl" />
-                <Skeleton className="h-mx-64 rounded-mx-2xl" />
+                {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-mx-64 rounded-mx-2xl" />)}
             </div>
         </main>
     )
@@ -82,20 +77,20 @@ export default function Lojas() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+                <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
+                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Gestão de <span className="text-brand-primary">Unidades</span></Typography>
+                        <Typography variant="h1">Gestão de <span className="text-brand-primary">Lojas</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CONTROLE DE FILIAIS & GOVERNANÇA MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CONTROLE DE UNIDADES & GOVERNANÇA MX</Typography>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white border-border-strong" aria-label="Atualizar lista de lojas">
+                <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} className="hidden sm:flex rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white border-border-strong" aria-label="Atualizar lista de lojas">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <div className="relative group w-full sm:w-mx-sidebar-expanded">
+                    <div className="relative group w-full sm:w-mx-sidebar-expanded order-2 sm:order-none">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                         <label htmlFor="search-stores" className="sr-only">Buscar unidade por nome</label>
                         <Input 
@@ -106,15 +101,15 @@ export default function Lojas() {
                         />
                     </div>
                     {role === 'admin' && (
-                        <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny mr-2" role="tablist">
-                            <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ATIVAS</Button>
-                            <Button variant={!filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(false)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ARQUIVADAS</Button>
-                        </nav>
-                    )}
-                    {role === 'admin' && (
-                        <Button onClick={() => setIsCreateModalOpen(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
-                            <Plus size={18} className="mr-2" aria-hidden="true" /> NOVA UNIDADE
-                        </Button>
+                        <div className="flex w-full sm:w-auto gap-mx-sm order-1 sm:order-none">
+                            <nav className="hidden md:flex bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default gap-mx-tiny mr-2" role="tablist">
+                                <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ATIVAS</Button>
+                                <Button variant={!filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(false)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ARQUIVADAS</Button>
+                            </nav>
+                            <Button onClick={() => setIsCreateModalOpen(true)} className="flex-1 sm:flex-none h-mx-xl px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
+                                <Plus size={18} className="mr-2" aria-hidden="true" /> NOVA LOJA
+                            </Button>
+                        </div>
                     )}
                 </div>
             </header>
@@ -130,16 +125,16 @@ export default function Lojas() {
                                     <Card className="overflow-hidden group hover:shadow-mx-xl hover:-translate-y-1 transition-all border-none shadow-mx-lg bg-white flex flex-col h-full">
                                         <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg flex flex-row items-center justify-between relative overflow-hidden">
                                             <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-                                            <div className="flex items-center gap-mx-sm relative z-10">
-                                                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3" aria-hidden="true">
+                                            <div className="flex items-center gap-mx-sm relative z-10 min-w-0">
+                                                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3 shrink-0" aria-hidden="true">
                                                     <Building2 size={24} />
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
                                                     <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase mt-1 opacity-40">ID: {store.id.split('-')[0]}</Typography>
                                                 </div>
                                             </div>
-                                            <Badge variant={sStat.sellers > 0 ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none">
+                                            <Badge variant={sStat.sellers > 0 ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none shrink-0">
                                                 {sStat.sellers > 0 ? "Ativa" : "Vazia"}
                                             </Badge>
                                         </CardHeader>
@@ -147,7 +142,7 @@ export default function Lojas() {
                                         <CardContent className="p-mx-lg space-y-mx-10 flex-1 relative z-10 flex flex-col justify-between">
                                             <div className="grid grid-cols-2 gap-mx-md">
                                                 <div className="space-y-mx-tiny bg-surface-alt/50 p-mx-sm rounded-mx-xl border border-border-subtle shadow-mx-inner group-hover:bg-white transition-all">
-                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase opacity-40">Especialistas</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase opacity-40">Vendedores</Typography>
                                                     <div className="flex items-center gap-mx-xs">
                                                         <Typography variant="h2" className="text-xl font-mono-numbers leading-none">{sStat.sellers}</Typography>
                                                     </div>
@@ -171,28 +166,28 @@ export default function Lojas() {
                                             </div>
                                         </CardContent>
 
-                                        <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex flex-col sm:flex-row gap-mx-xs relative z-10 mt-auto">
+                                        <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex flex-wrap sm:flex-row gap-mx-xs relative z-10 mt-auto">
                                             {store.active ? (
                                                 <>
-                                                    <Button asChild variant="outline" size="sm" className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary">
+                                                    <Button asChild variant="outline" size="sm" className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm font-black uppercase text-xs border-border-strong hover:border-brand-primary min-w-[100px]">
                                                         <Link to={`/metas?id=${store.id}`}>METAS</Link>
                                                     </Button>
-                                                    <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
+                                                    <Button asChild variant="secondary" size="sm" className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs min-w-[100px]">
                                                         <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>DASHBOARD</Link>
                                                     </Button>
                                                     {role === 'admin' && (
-                                                        <Button variant="ghost" size="sm" onClick={() => { if(confirm('Tem certeza que deseja DESATIVAR esta loja? Ela ficará inacessível na rede.')) toggleStoreStatus(store.id, false) }} className="flex-1 h-mx-xl rounded-mx-lg text-status-error hover:bg-status-error hover:text-white font-black uppercase text-xs">
+                                                        <Button variant="ghost" size="sm" onClick={() => { if(confirm('Tem certeza que deseja DESATIVAR esta loja? Ela ficará inacessível na rede.')) toggleStoreStatus(store.id, false) }} className="flex-1 h-mx-xl rounded-mx-lg text-status-error hover:bg-status-error hover:text-white font-black uppercase text-xs min-w-[100px]">
                                                             DESATIVAR
                                                         </Button>
                                                     )}
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs bg-status-success hover:opacity-90 text-white">
+                                                    <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs bg-status-success hover:opacity-90 text-white min-w-[100px]">
                                                         RESTAURAR
                                                     </Button>
-                                                    <Button variant="danger" size="sm" onClick={() => { if(confirm('⚠️ ALERTA VERMELHO: Tem certeza que deseja DELETAR PERMANENTEMENTE esta loja e TODOS OS SEUS DADOS do Supabase? Essa ação é IRREVERSÍVEL.')) deleteStore(store.id) }} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
-                                                        EXCLUIR DEFINITIVO
+                                                    <Button variant="danger" size="sm" onClick={() => { if(confirm('⚠️ ALERTA VERMELHO: Tem certeza que deseja DELETAR PERMANENTEMENTE esta loja e TODOS OS SEUS DADOS do Supabase? Essa ação é IRREVERSÍVEL.')) deleteStore(store.id) }} className="flex-1 h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs min-w-[100px]">
+                                                        EXCLUIR
                                                     </Button>
                                                 </>
                                             )}
@@ -213,16 +208,15 @@ export default function Lojas() {
                 )}
             </div>
 
-            {/* Modal de Criação de Unidade */}
             <AnimatePresence>
                 {isCreateModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true">
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-lg">
-                            <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white overflow-hidden relative">
+                            <Card className="p-mx-lg md:p-14 border-none shadow-mx-2xl bg-white overflow-hidden relative rounded-mx-3xl">
                                 <form onSubmit={handleCreateStore} className="space-y-mx-xl relative z-10">
                                     <header className="flex items-center justify-between border-b border-border-default pb-8">
                                         <div className="flex items-center gap-mx-sm">
-                                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 flex items-center justify-center text-brand-primary border border-mx-indigo-100 shadow-inner"><Building2 size={28} /></div>
+                                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 flex items-center justify-center text-brand-primary border border-mx-indigo-100 shadow-inner shrink-0"><Building2 size={28} /></div>
                                             <div>
                                                 <Typography variant="h3">Nova Unidade</Typography>
                                                 <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-widest">Protocolo de Expansão MX</Typography>
@@ -266,7 +260,7 @@ export default function Lojas() {
                                     </div>
 
                                     <footer className="pt-10 flex justify-end border-t border-border-default">
-                                        <Button type="submit" disabled={creating} className="h-mx-2xl px-12 rounded-mx-full shadow-mx-xl bg-brand-secondary font-black uppercase tracking-widest">
+                                        <Button type="submit" disabled={creating} className="w-full sm:w-auto h-mx-2xl px-12 rounded-mx-full shadow-mx-xl bg-brand-secondary font-black uppercase tracking-widest">
                                             {creating ? <RefreshCw className="animate-spin mr-2" /> : <Plus size={20} className="mr-2" />}
                                             ESTABELECER LOJA
                                         </Button>
@@ -280,4 +274,3 @@ export default function Lojas() {
         </main>
     )
 }
-
