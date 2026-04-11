@@ -120,50 +120,49 @@
   --width-mx-hero: 50vw;
   --height-mx-hero: 50vw;
   --height-mx-chart: 400px;
+  
+  /* Tables & Layout Thresholds */
+  --spacing-mx-table: 800px;
+  --spacing-mx-table-wide: 1200px;
+  --spacing-mx-elite-table: 1000px;
+  --spacing-mx-elite-wide: 1400px;
+  --spacing-mx-label-lg: 120px;
 }
 
-@layer utilities {
-  .mx-layout-sticky-offset {
-    top: var(--spacing-mx-layout-offset-top);
-    height: var(--height-mx-layout-viewport);
-  }
-  
-  .mx-layout-drawer-offset {
-    left: var(--spacing-mx-layout-drawer-left);
-    top: var(--spacing-mx-layout-offset-top);
-    height: var(--height-mx-layout-viewport);
-  }
+@utility mx-layout-sticky-offset {
+  top: var(--spacing-mx-layout-offset-top);
+  height: var(--height-mx-layout-viewport);
+}
 
-  .mx-layout-tooltip-offset {
-    left: calc(var(--width-mx-sidebar-collapsed) + 16px);
-  }
+@utility mx-layout-drawer-offset {
+  left: var(--spacing-mx-layout-drawer-left);
+  top: var(--spacing-mx-layout-offset-top);
+  height: var(--height-mx-layout-viewport);
+}
 
-  .min-w-mx-table { min-width: var(--width-mx-table-standard); }
-  .min-w-mx-table-wide { min-width: var(--width-mx-table-wide); }
-  .min-w-mx-label-lg { min-width: var(--width-mx-label-lg); }
-  .p-mx-px { padding: var(--spacing-mx-px); }
-  .p-mx-2px { padding: var(--spacing-mx-2px); }
+@utility mx-layout-tooltip-offset {
+  left: calc(var(--width-mx-sidebar-collapsed) + 16px);
+}
 
-  .bg-mx-matrix {
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
-  
-  .shadow-mx-inner {
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-  }
+@utility bg-mx-matrix {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
 
-  .font-mono-numbers {
-    font-family: 'JetBrains Mono', monospace;
-    font-variant-numeric: tabular-nums;
-  }
-  
-  .no-scrollbar::-webkit-scrollbar {
+@utility shadow-mx-inner {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+@utility font-mono-numbers {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
     display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
   }
 }
 
