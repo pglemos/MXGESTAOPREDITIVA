@@ -207,7 +207,7 @@ export default function Layout() {
         </div>
       </header>
 
-      <div className="flex flex-1 p-mx-md gap-mx-md relative">
+      <div className="flex flex-1 p-4 md:p-mx-md gap-mx-md relative">
 
         {/* Sidebar Minimalista - Semantic Nav */}
         <aside 
