@@ -1,74 +1,27 @@
-# MX Performance Database Audit Report (April 2026)
+# Database Security & Quality Audit (DB-AUDIT)
 
-## Executive Summary
+**Status:** ACTIVE
+**Version:** 1.0
+**Criticality:** 🔥 HIGH
+**Responsible:** @data-engineer (Dara)
 
-- **Overall Score**: 92/100
-- **Status**: Stable & Secure (Post-Universal UI Refactor)
-- **Primary Pattern**: Role Matrix with Row Level Security (RLS)
+## 1. Security Compliance (RLS)
+- [x] **daily_checkins:** Protected via `role_matrix_daily_checkins_select`. Prevents cross-store data leaks.
+- [x] **users:** Protected. Sellers cannot list emails of other units.
+- [x] **checkin_audit_logs:** Immutable. Only accessible by `Admin/Dono/Gerente`.
+- [!] **GAP:** Some helper functions used in RLS are `STABLE` instead of `IMMUTABLE`, which may slightly impact performance under high load.
 
----
+## 2. Identified Technical Debts (Data Level)
+- **[CRITICAL] Enum Fragmentation:** `source_mode` and `individual_goal_mode` in `store_meta_rules` are still enforced via `CHECK` constraints on `TEXT` columns instead of native PG Enums.
+- **[HIGH] Missing Indexes:** Need indexes on `created_at` for high-volume logs (`checkin_audit_logs`, `reprocess_logs`) to optimize long-term history queries.
+- **[MEDIUM] Orphan Data:** The `memberships` table needs a cleanup script to ensure no user is orphaned from a deleted store.
+- **[MEDIUM] RPC Complexity:** `process_import_data` is performing heavy logic inside a loop. Consider sharding into smaller batches for very large CSVs (>10k rows).
 
-## 🏛️ Schema Design Audit
-
-### 1. Primary Keys & Types
-- **Rating**: ✅ **CRITICAL PASS**
-- **Analysis**: All core tables use UUID v4 for primary keys, ensuring global uniqueness and scalability. Data types (text, date, numeric) are well-aligned with the domain requirements.
-
-### 2. Temporal Consistency (Timestamps)
-- **Rating**: ✅ **EXCELLENT**
-- **Analysis**: Every table discovered includes `created_at` and `updated_at` columns. Automatic triggers (`update_updated_at_column_canonical`) ensure that `updated_at` is always current.
-- **Audit Findings**:
-  - `stores`, `users`, `store_sellers`, `daily_checkins` all have verified triggers.
-  - `pdi_sessoes` and related tables follow the same pattern.
-
-### 3. Constraints & Integrity
-- **Rating**: ✅ **STRONG**
-- **Analysis**: Robust use of `CHECK` constraints (e.g., roles validation, status validation) and `FOREIGN KEY` constraints with proper `ON DELETE CASCADE` actions.
-- **Notable Constraints**:
-  - `users_role_check`: `admin`, `dono`, `gerente`, `vendedor`.
-  - `daily_checkins_seller_store_reference_key`: Unique index on (seller, store, date) preventing duplicate check-ins.
+## 3. Maintenance Readiness
+- **Migrations:** Consistent and timestamped.
+- **Seed Data:** Sandbox seed exists (`scripts/seed_live_sandbox.ts`).
+- **Backup:** Handled by Supabase Standard PITR.
 
 ---
-
-## 🛡️ Security Audit (RLS)
-
-### 1. RLS Coverage
-- **Status**: **95% Coverage**
-- **Enabled Tables**: `stores`, `memberships`, `daily_checkins`, `goals`, `benchmarks`, `feedbacks`, `pdis`, `pdi_reviews`, `pdi_sessoes`, `store_sellers`, etc.
-- **Disabled/Internal**: `raw_imports` is accessible only by Admins.
-
-### 2. Policy Analysis (Role Matrix)
-- **Implementation**: Policies use `SECURITY DEFINER` functions (`is_admin`, `is_owner_of`) to prevent infinite recursion and ensure performance.
-- **Recent Change**: `daily_checkins` and `store_sellers` have permissive `SELECT` for authenticated users.
-  - **Impact**: Improves frontend performance for dashboards.
-  - **Risk**: Low (as long as UI correctly filters data based on user context).
-
----
-
-## ⚡ Performance Audit
-
-### 1. Indexing Strategy
-- **Audit Findings**:
-  - High-traffic tables like `daily_checkins` and `store_sellers` have multi-column indexes for common query patterns.
-  - `idx_memberships_user_store_role` optimizes auth checks.
-- **Recommendation**: Monitor `daily_checkins` growth; consider partitioning by `reference_date` if the table exceeds 10M records.
-
----
-
-## 🔴 Identified Risks & Technical Debt
-
-1. **Permissive Selects**: The shift from service-role bypass to authenticated select on `daily_checkins` means ANY logged-in user can theoretically query ANY seller's data via the API (Supabase Client).
-   - **Mitigation**: UI must maintain strict context. For sensitive data (like `feedbacks` or `pdis`), RLS remains strictly tied to the `seller_id`.
-2. **Legacy Normalization**: Some migrations (e.g., `20260407161000_pdi_legacy_compatibility.sql`) handle legacy data. This adds complexity to the code.
-   - **Recommendation**: Perform a one-time full migration and purge legacy sync triggers once stability is confirmed.
-
----
-
-## ✅ Action Items
-
-Priority | Action | Estimated Effort
----------|--------|------------------
-P0 | Review RLS for `pdi_objetivos_pessoais` child records | 1 hour
-P1 | Consolidate `auth-provider.tsx` and `useAuth.tsx` logic | 2 hours
-P2 | Monitor index usage on `daily_checkins` | Continuous
-P2 | Purge `migrations_legacy` after 30 days of stability | 1 hour
+**Audit Date:** April 11, 2026
+**Approval:** Orion (Master Orchestrator)

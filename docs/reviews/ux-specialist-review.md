@@ -1,33 +1,26 @@
-# UX Specialist Review (@ux-design-expert)
+# UX Specialist Review - MX Performance
 
-## 🎯 Respostas às Perguntas da Arquitetura
-- **Migração `ui/` para `atoms/`**: Proponho uma migração em 3 ondas:
-  1. **Onda 1 (Automática)**: `Badge`, `Input`, `Label`. Substituição via script `sed/grep` por serem 1:1.
-  2. **Onda 2 (Manual)**: `Select`, `Dialog`, `Tabs`. Requer validação de portais Radix e acessibilidade.
-  3. **Onda 3 (Depreciação)**: Remoção física da pasta `src/components/ui/`.
-- **Especificação de Skeletons**: Atualmente temos "flashes" brancos durante o carregamento. Precisamos criar `src/components/atoms/Skeleton.tsx` que suporte os tokens `mx-radius`. Cada `Molecule` (ex: `MXScoreCard`) deve exportar seu próprio componente de `StaticLoading`.
+**Responsável:** @ux-design-expert (Uma)
+**Data:** 11 de Abril de 2026
+
+## 1. Débitos Validados
+| ID | Débito | Severidade | Esforço (h) | Prioridade | Impacto UX |
+|----|--------|------------|-------------|------------|------------|
+| UI-01 | Extraction of Organisms | Alta | 8h | Média | Alto (Consistência) |
+| UI-02 | Icon Inconsistency | Baixa | 2h | Baixa | Médio (Polimento) |
+| UI-03 | Utility Overlap | Média | 4h | Alta | Baixo (Dívida Técnica) |
+
+## 2. Débitos Adicionados
+- **[CRITICAL] Mobile Density:** Algumas tabelas do Gerente (`Reprocessamento`, `History`) ainda possuem densidade de informação excessiva para telas < 360px, exigindo scroll horizontal agressivo. Recomendo o uso de "Cards Desconstrutores" para mobile.
+- **[HIGH] Accessibility Contrast:** O modo dark da página de Login precisa de um audit de contraste nas labels `white/30`.
+
+## 3. Respostas ao @architect
+- **R:** Recomendo manter o `Skeleton` como um **Atomo independente** para flexibilidade, mas criar uma versão "composta" dentro de cada Molécula (ex: `MXScoreCard.Skeleton`) para garantir que o layout de loading seja 100% fiel ao layout final daquele componente.
+
+## 4. Recomendações de Design
+1. Criar o organismo `DataGrid` que abstraia a lógica de responsividade das tabelas (Cards em mobile, Table em desktop).
+2. Padronizar todos os ícones para `Lucide` com `strokeWidth={2}`.
+3. Mover utilitários de layout para o `tailwind.config.ts` como extensões de plugins em vez de CSS puro no `index.css`.
 
 ---
-
-## 🔍 Validação de Débitos Técnicos
-
-### FE-01: Dashboards Monolíticos (Médio)
-- **Validação**: Concordo totalmente. `VendedorHome.tsx` está difícil de manter. A lógica de "Tactical Prescription" deve ser extraída para um hook `useTacticalPrescription` ou uma feature separada.
-- **Impacto UX**: Código complexo = bugs de renderização. Precisamos simplificar para garantir 60fps nas animações `Motion`.
-
-### FE-02: Inconsistência de "Empty States" (Novo)
-- **Validação**: Identifiquei que quando um vendedor não tem check-ins, a tela fica vazia ou com cards zerados sem explicação.
-- **Recomendação**: Criar um componente `Organism` de `EmptyState` com ilustrações ou mensagens motivacionais (conforme a voz da marca MX).
-
-### FE-03: Performance de Animações em Mobile
-- **Validação**: O uso excessivo de `AnimatePresence` em listas grandes (Ranking) pode causar gargalos em dispositivos low-end.
-- **Ação**: Implementar `layout transition` apenas nos top 3 do ranking.
-
----
-
-## 📈 Priorização Uma (Especialista UX)
-1. **Padronização de Skeletons (LCP/CLS)**: Alta (Melhora percepção de performance).
-2. **Refatoração de Dashboards Monolíticos**: Média.
-3. **Migração de Componentes Restantes**: Baixa (Estético/Manutenibilidade).
-
-Salve em: docs/reviews/ux-specialist-review.md
+**Status:** VALIDATED

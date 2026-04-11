@@ -142,7 +142,7 @@ export default function Login() {
                 </Card>
 
                 <div className="mt-8 text-center">
-                    <Typography variant="tiny" className="text-white/20 uppercase tracking-widest">Acesso restrito • v4.0</Typography>
+                    <Typography variant="tiny" className="text-white/40 uppercase tracking-widest font-bold">Acesso restrito • v4.0</Typography>
                 </div>
             </motion.div>
         </main>
