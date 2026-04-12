@@ -80,7 +80,7 @@ export default function CommissionRules() {
     }
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / Finance Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -103,7 +103,7 @@ export default function CommissionRules() {
             </header>
 
             <Card className="mb-20 overflow-hidden border-none shadow-mx-lg bg-white">
-                <CardHeader className="bg-surface-alt/30 flex flex-row items-center justify-between p-mx-lg border-b border-border-default">
+                <CardHeader className="bg-surface-alt/30 flex flex-row items-center justify-between p-4 md:p-mx-lg border-b border-border-default">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><FileSignature size={24} /></div>
                         <div>
@@ -169,7 +169,7 @@ export default function CommissionRules() {
 
             <AnimatePresence>
                 {open && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-pure-black/60 backdrop-blur-xl">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-mx-md bg-pure-black/60 backdrop-blur-xl">
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-xl">
                             <Card className="border-none shadow-mx-xl bg-white overflow-hidden relative">
                                 <div className="bg-brand-secondary p-mx-10 text-white relative overflow-hidden">
@@ -207,7 +207,7 @@ export default function CommissionRules() {
                                         </div>
                                     </div>
 
-                                    <Card className="p-mx-lg bg-mx-indigo-50 border-mx-indigo-100 shadow-inner flex flex-col items-center text-center space-y-mx-sm">
+                                    <Card className="p-4 md:p-mx-lg bg-mx-indigo-50 border-mx-indigo-100 shadow-inner flex flex-col items-center text-center space-y-mx-sm">
                                         <Typography variant="caption" tone="brand" className="font-black uppercase tracking-widest">Percentual de Incentivo</Typography>
                                         <input 
                                             type="number" value={form.percentage} onChange={e => setForm({...form, percentage: e.target.value})}
@@ -217,7 +217,7 @@ export default function CommissionRules() {
                                     </Card>
                                 </div>
 
-                                <footer className="p-mx-lg bg-surface-alt border-t border-border-default flex gap-mx-sm">
+                                <footer className="p-4 md:p-mx-lg bg-surface-alt border-t border-border-default flex gap-mx-sm">
                                     <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 h-mx-14 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">DESCARTAR</Button>
                                     <Button onClick={handleSave} className="flex-[2] h-mx-14 rounded-mx-full shadow-mx-xl uppercase font-black tracking-widest text-mx-tiny">
                                         <ShieldCheck size={18} className="mr-2" /> FIXAR DIRETRIZ

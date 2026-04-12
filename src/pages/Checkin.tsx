@@ -136,7 +136,7 @@ export default function Checkin() {
 
     const NumberInput = ({ label, icon: Icon, field, tone }: { label: string; icon: any; field: keyof CheckinForm; tone: 'brand' | 'success' | 'warning' | 'info' | 'error' }) => (
         <Card className={cn(
-            "flex flex-col gap-mx-md p-mx-lg border shadow-mx-sm transition-all group/input hover:shadow-mx-lg sm:flex-row sm:items-center sm:justify-between bg-white",
+            "flex flex-col gap-mx-md p-4 md:p-mx-lg border shadow-mx-sm transition-all group/input hover:shadow-mx-lg sm:flex-row sm:items-center sm:justify-between bg-white",
             changedFields.has(field) ? "border-brand-primary/20" : "border-border-default"
         )}>
             <div className="flex items-center gap-mx-md flex-1 min-w-0">
@@ -189,7 +189,7 @@ export default function Checkin() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
             
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center bg-white/20 backdrop-blur-sm" aria-hidden="true">
@@ -299,7 +299,7 @@ export default function Checkin() {
                     <AnimatePresence>
                         {funnelError && (
                             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
-                                <Card className="p-mx-lg bg-status-error-surface border-2 border-status-error/20 flex flex-col sm:flex-row sm:items-center gap-mx-lg shadow-mx-xl">
+                                <Card className="p-4 md:p-mx-lg bg-status-error-surface border-2 border-status-error/20 flex flex-col sm:flex-row sm:items-center gap-mx-lg shadow-mx-xl">
                                     <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-error text-white flex items-center justify-center shadow-mx-lg transform -rotate-3 shrink-0"><AlertTriangle size={32} strokeWidth={2} /></div>
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" tone="error" className="text-xl leading-none">INCONSISTÊNCIA OPERACIONAL</Typography>

@@ -133,7 +133,7 @@ export default function GerenteFeedback() {
     }, [activeTab, refetchFeedbacks, refetchReports])
 
     if (feedbacksLoading || reportsLoading) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-mx-64" />
@@ -154,7 +154,7 @@ export default function GerenteFeedback() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-lg bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-4 md:p-mx-lg bg-surface-alt" id="main-content">
             
             {/* Header / Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
@@ -217,7 +217,7 @@ export default function GerenteFeedback() {
                         aria-labelledby="feedback-form-title"
                     >
                         <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-mx-2xl">
-                            <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
+                            <header className="p-4 md:p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                                 <div className="flex items-center gap-mx-sm">
                                     <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg" aria-hidden="true"><MessageSquare size={24} /></div>
                                     <div>
@@ -228,7 +228,7 @@ export default function GerenteFeedback() {
                                 <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl hover:bg-surface-alt bg-white" aria-label="Fechar modal"><X size={24} /></Button>
                             </header>
 
-                            <div className="p-mx-lg md:p-10 space-y-mx-xl">
+                            <div className="p-4 md:p-mx-lg md:p-10 space-y-mx-xl">
                                 <div className="grid md:grid-cols-2 gap-mx-lg">
                                     <div className="space-y-mx-xs">
                                         <label htmlFor="seller-select" className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary ml-2">Especialista Alvo</label>
@@ -257,7 +257,7 @@ export default function GerenteFeedback() {
 
                                 {formData.seller_id && (
                                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-mx-xl">
-                                        <div className="p-mx-lg bg-surface-alt rounded-mx-xl border border-border-default space-y-mx-lg shadow-inner" role="region" aria-label="Métricas de Desempenho da Semana">
+                                        <div className="p-4 md:p-mx-lg bg-surface-alt rounded-mx-xl border border-border-default space-y-mx-lg shadow-inner" role="region" aria-label="Métricas de Desempenho da Semana">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-mx-md">
                                                 {[
                                                     { label: 'Leads', val: formData.leads_week, icon: Zap, tone: 'brand' },
@@ -281,7 +281,7 @@ export default function GerenteFeedback() {
                                                     value={formData.positives}
                                                     onChange={e => setFormData(f => ({ ...f, positives: e.target.value }))}
                                                     placeholder="O que o especialista fez de excelente?"
-                                                    className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-success transition-all shadow-sm outline-none resize-none"
+                                                    className="w-full h-mx-4xl p-4 md:p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-success transition-all shadow-sm outline-none resize-none"
                                                 />
                                             </div>
                                             <div className="space-y-mx-sm">
@@ -291,7 +291,7 @@ export default function GerenteFeedback() {
                                                     value={formData.attention_points}
                                                     onChange={e => setFormData(f => ({ ...f, attention_points: e.target.value }))}
                                                     placeholder="Quais os gargalos identificados?"
-                                                    className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-error transition-all shadow-sm outline-none resize-none"
+                                                    className="w-full h-mx-4xl p-4 md:p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-error transition-all shadow-sm outline-none resize-none"
                                                 />
                                             </div>
                                         </div>
@@ -303,7 +303,7 @@ export default function GerenteFeedback() {
                                                 value={formData.action}
                                                 onChange={e => setFormData(f => ({ ...f, action: e.target.value }))}
                                                 placeholder="Qual a ÚNICA COISA que ele deve focar esta semana?"
-                                                className="w-full h-mx-3xl p-mx-md bg-white border-2 border-brand-primary/20 rounded-mx-2xl text-base font-black focus:border-brand-primary transition-all shadow-mx-lg outline-none resize-none"
+                                                className="w-full h-mx-3xl p-4 md:p-mx-md bg-white border-2 border-brand-primary/20 rounded-mx-2xl text-base font-black focus:border-brand-primary transition-all shadow-mx-lg outline-none resize-none"
                                                 aria-required="true"
                                             />
                                         </div>
@@ -311,7 +311,7 @@ export default function GerenteFeedback() {
                                 )}
                             </div>
 
-                            <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex justify-end gap-mx-sm">
+                            <footer className="p-4 md:p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex justify-end gap-mx-sm">
                                 <Button variant="ghost" onClick={() => setShowForm(false)} className="h-mx-14 px-8 rounded-mx-full font-black uppercase tracking-widest">CANCELAR</Button>
                                 <Button 
                                     onClick={handleSubmit}
@@ -333,7 +333,7 @@ export default function GerenteFeedback() {
                         <AnimatePresence mode="popLayout">
                             {filteredFeedbacks.map((f, i) => (
                                 <motion.li key={f.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }} role="listitem">
-                                    <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
+                                    <Card className="p-4 md:p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
                                         
                                         <article>
@@ -349,7 +349,7 @@ export default function GerenteFeedback() {
                                             </header>
 
                                             <div className="space-y-mx-md relative z-10">
-                                                <div className="p-mx-md bg-surface-alt border-none shadow-mx-inner group-hover:bg-white group-hover:shadow-mx-sm transition-all rounded-mx-2xl">
+                                                <div className="p-4 md:p-mx-md bg-surface-alt border-none shadow-mx-inner group-hover:bg-white group-hover:shadow-mx-sm transition-all rounded-mx-2xl">
                                                     <header className="flex items-center justify-between mb-4 border-b border-border-strong/10 pb-3">
                                                         <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest text-mx-micro">Plano de Ação</Typography>
                                                         <Zap size={14} className="text-brand-primary" aria-hidden="true" />
@@ -377,7 +377,7 @@ export default function GerenteFeedback() {
                     <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg" role="list">
                         {reports.map((report) => (
                             <motion.li key={report.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} role="listitem">
-                                <Card className="p-mx-lg md:p-10 hover:shadow-mx-xl transition-all h-full border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col">
+                                <Card className="p-4 md:p-mx-lg md:p-10 hover:shadow-mx-xl transition-all h-full border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col">
                                     <article className="flex flex-col h-full">
                                         <div className="flex items-center justify-between mb-10 relative z-10">
                                             <div className="flex items-center gap-mx-sm">
@@ -390,11 +390,11 @@ export default function GerenteFeedback() {
                                             <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black shadow-sm uppercase border-none">{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md py-8 border-y border-border-default relative z-10">
-                                            <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
+                                            <div className="bg-surface-alt rounded-mx-2xl p-4 md:p-mx-md shadow-mx-inner text-center">
                                                 <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">META REDE</Typography>
                                                 <Typography variant="h2" className="text-2xl font-mono-numbers tabular-nums font-black">{report.weekly_goal}v</Typography>
                                             </div>
-                                            <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
+                                            <div className="bg-surface-alt rounded-mx-2xl p-4 md:p-mx-md shadow-mx-inner text-center">
                                                 <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">MÉDIA TROPA</Typography>
                                                 <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers tabular-nums font-black">{(report.team_avg_json as any).vnd || 0}v</Typography>
                                             </div>

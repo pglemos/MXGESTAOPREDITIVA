@@ -82,7 +82,7 @@ export default function Login() {
 
     if (authLoading && !profile) {
         return (
-            <main className="min-h-screen bg-brand-secondary flex flex-col items-center justify-center p-mx-md text-center">
+            <main className="min-h-screen bg-brand-secondary flex flex-col items-center justify-center p-4 md:p-mx-md text-center">
                 <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
                 <Typography variant="caption" tone="white" className="animate-pulse tracking-widest uppercase font-black">Sincronizando Perfil MX...</Typography>
             </main>
@@ -90,7 +90,7 @@ export default function Login() {
     }
 
     return (
-        <main className="min-h-screen bg-mx-black flex items-center justify-center p-mx-md selection:bg-brand-primary/20">
+        <main className="min-h-screen bg-mx-black flex items-center justify-center p-4 md:p-mx-md selection:bg-brand-primary/20">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ export default function Login() {
                 </div>
 
                 {/* Card de Acesso */}
-                <Card className="bg-surface-elevated border-white/5 p-mx-lg rounded-mx-3xl shadow-2xl backdrop-blur-xl">
+                <Card className="bg-surface-elevated border-white/5 p-4 md:p-mx-lg rounded-mx-3xl shadow-2xl backdrop-blur-xl">
                     <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="space-y-mx-md">
                         <div className="space-y-mx-xs">
                             <label className="text-mx-tiny font-black text-white/30 uppercase tracking-mx-wide ml-1">E-mail</label>

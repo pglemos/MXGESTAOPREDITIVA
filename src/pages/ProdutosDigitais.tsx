@@ -66,7 +66,7 @@ export default function ProdutosDigitais() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / Showcase Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -132,7 +132,7 @@ export default function ProdutosDigitais() {
                                         <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Briefing de Solução</Typography>
                                         <textarea 
                                             value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                                            className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-mx-lg text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-mx-xl"
+                                            className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-4 md:p-mx-lg text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-mx-xl"
                                             placeholder="Descreva detalhadamente os diferenciais táticos desta solução..."
                                         />
                                     </div>
@@ -154,7 +154,7 @@ export default function ProdutosDigitais() {
                     <AnimatePresence mode="popLayout">
                         {filteredProducts.map((p, i) => (
                             <motion.li key={p.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }}>
-                                <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
+                                <Card className="p-4 md:p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
                                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     
                                     <div>

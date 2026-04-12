@@ -53,7 +53,7 @@ export default function Leads() {
     }
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / CRM Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -82,7 +82,7 @@ export default function Leads() {
                     { label: 'SLA Ativo', value: '4.2m', trend: '-18%', icon: Clock, tone: 'success' },
                     { label: 'Taxa de Fechamento', value: '18.4%', trend: '+2.1%', icon: Zap, tone: 'warning' },
                 ].map((stat) => (
-                    <Card key={stat.label} className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
+                    <Card key={stat.label} className="p-4 md:p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
                         <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
                         <div className="flex justify-between items-start mb-8 relative z-10">
                             <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
@@ -107,7 +107,7 @@ export default function Leads() {
                 {/* List Section */}
                 <aside className="w-full lg:w-mx-aside flex flex-col shrink-0">
                     <Card className="flex-1 border-none shadow-mx-lg bg-white overflow-hidden flex flex-col">
-                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg space-y-mx-md">
+                        <CardHeader className="bg-surface-alt/30 border-b border-border-default p-4 md:p-mx-lg space-y-mx-md">
                             <div className="relative group">
                                 <Search className="absolute left-mx-sm top-1/2 -translate-y-1/2 w-mx-sm h-mx-sm text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="NOME OU VEÍCULO..." className="!h-12 !pl-11 !text-mx-tiny uppercase tracking-widest" />
@@ -132,7 +132,7 @@ export default function Leads() {
                                     <motion.article 
                                         key={lead.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                         onClick={() => setSelected(lead.id)} 
-                                        className={cn("p-mx-md cursor-pointer rounded-mx-2xl transition-all relative border group/item", 
+                                        className={cn("p-4 md:p-mx-md cursor-pointer rounded-mx-2xl transition-all relative border group/item", 
                                             selected === lead.id ? "bg-mx-indigo-50 border-brand-primary shadow-mx-md" : "bg-white border-transparent hover:bg-surface-alt/50"
                                         )}
                                     >
@@ -179,7 +179,7 @@ export default function Leads() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex w-full lg:w-auto gap-mx-sm">
+                                    <div className="flex flex-wrap w-full lg:w-auto gap-mx-sm">
                                         <Button variant="outline" size="icon" className="w-mx-14 h-mx-14 rounded-mx-xl border-border-default hover:text-brand-primary shadow-sm bg-white">
                                             <Mail size={24} />
                                         </Button>
@@ -191,7 +191,7 @@ export default function Leads() {
                             </header>
                             
                             <CardContent className="flex-1 overflow-y-auto no-scrollbar p-mx-10 md:p-14 space-y-mx-14">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-10">
+                                <div className="grid grid-cols-1 sm:grid-cols- md:grid-cols-4 gap-mx-10">
                                     <div className="space-y-mx-xs">
                                         <Typography variant="caption" tone="muted" className="uppercase font-black tracking-widest opacity-40">Interesse</Typography>
                                         <Typography variant="h3" className="text-xl uppercase">{selectedLead.car}</Typography>
@@ -228,7 +228,7 @@ export default function Leads() {
                                                 <div className="w-mx-10 h-mx-10 rounded-mx-full bg-white border border-border-default flex items-center justify-center shrink-0 shadow-mx-sm">
                                                     <div className="w-mx-xs h-mx-xs rounded-mx-full bg-brand-primary" />
                                                 </div>
-                                                <Card className="bg-surface-alt/50 border border-border-subtle rounded-mx-2xl p-mx-md flex-1 hover:bg-white hover:shadow-mx-md transition-all">
+                                                <Card className="bg-surface-alt/50 border border-border-subtle rounded-mx-2xl p-4 md:p-mx-md flex-1 hover:bg-white hover:shadow-mx-md transition-all">
                                                     <Typography variant="h3" className="text-sm uppercase mb-1">Ação registrada no sistema</Typography>
                                                     <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase tracking-widest opacity-60">Há {i + 1}h • Especialista Responsável</Typography>
                                                 </Card>

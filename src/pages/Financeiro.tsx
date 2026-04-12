@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom'
 
 export default function Financeiro() {
     return (
-        <main className="h-full w-full flex flex-col items-center justify-center p-mx-lg bg-surface-alt text-center">
+        <main className="h-full w-full flex flex-col items-center justify-center p-4 md:p-mx-lg bg-surface-alt text-center">
             <Card className="max-w-md w-full p-mx-10 md:p-14 border-none shadow-mx-xl bg-white flex flex-col items-center">
                 <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-status-warning-surface text-status-warning flex items-center justify-center mb-8 border border-mx-amber-100 shadow-inner" aria-hidden="true">
                     <AlertTriangle size={40} strokeWidth={2} />

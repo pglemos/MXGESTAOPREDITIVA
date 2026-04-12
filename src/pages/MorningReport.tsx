@@ -110,7 +110,7 @@ export default function MorningReport() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -139,7 +139,7 @@ export default function MorningReport() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg shrink-0">
-                <Card className="p-mx-lg md:p-10 group relative overflow-hidden border-none shadow-mx-lg bg-white">
+                <Card className="p-4 md:p-mx-lg md:p-10 group relative overflow-hidden border-none shadow-mx-lg bg-white">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16" aria-hidden="true" />
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-8">
@@ -157,7 +157,7 @@ export default function MorningReport() {
                     </div>
                 </Card>
 
-                <Card className="p-mx-lg md:p-10 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
+                <Card className="p-4 md:p-mx-lg md:p-10 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-48 h-mx-48 bg-white/5 rounded-mx-full blur-3xl -mr-24 -mt-24" aria-hidden="true" />
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-8">
@@ -171,7 +171,7 @@ export default function MorningReport() {
                     </div>
                 </Card>
 
-                <Card className="p-mx-lg md:p-10 border-none shadow-mx-lg bg-white relative overflow-hidden group">
+                <Card className="p-4 md:p-mx-lg md:p-10 border-none shadow-mx-lg bg-white relative overflow-hidden group">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-success-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" aria-hidden="true" />
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-8">
@@ -261,7 +261,7 @@ export default function MorningReport() {
                         
                         <div className="space-y-mx-md relative z-10">
                             {metrics.pendingSellers.length > 0 && (
-                                <Card className="p-mx-lg bg-status-error-surface border-none shadow-mx-inner space-y-mx-md">
+                                <Card className="p-4 md:p-mx-lg bg-status-error-surface border-none shadow-mx-inner space-y-mx-md">
                                     <header className="flex justify-between items-start">
                                         <div className="space-y-mx-tiny">
                                             <Typography variant="h3" className="text-base text-status-error leading-none uppercase tracking-tight font-black">COBRAR REGISTRO</Typography>
@@ -285,7 +285,7 @@ export default function MorningReport() {
                                 </Card>
                             )}
 
-                            <div className="p-mx-lg bg-surface-alt rounded-mx-2xl border border-border-default shadow-inner">
+                            <div className="p-4 md:p-mx-lg bg-surface-alt rounded-mx-2xl border border-border-default shadow-inner">
                                 <Typography variant="caption" tone="muted" className="mb-4 block font-black uppercase tracking-widest">Sugestão MX</Typography>
                                 <Typography variant="p" className="text-xs font-bold leading-relaxed italic uppercase tracking-tight text-text-secondary">
                                     "Manter o ritmo de agendamentos D-0 para garantir o escoamento projetado."

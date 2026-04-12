@@ -44,7 +44,7 @@ export default function ConsultorTreinamentos() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / Academy Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -94,7 +94,7 @@ export default function ConsultorTreinamentos() {
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Ementa / Descrição</Typography>
                                             <textarea 
                                                 value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                                                className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-mx-lg text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-mx-xl"
+                                                className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-4 md:p-mx-lg text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-mx-xl"
                                                 placeholder="Descreva detalhadamente os objetivos desta aula..."
                                             />
                                         </div>
@@ -137,7 +137,7 @@ export default function ConsultorTreinamentos() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg pb-32" aria-live="polite">
                 {trainings.map((t, i) => (
                     <motion.article key={t.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}>
-                        <Card className="p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
+                        <Card className="p-4 md:p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
                             <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-huge -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                             
                             <div className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">

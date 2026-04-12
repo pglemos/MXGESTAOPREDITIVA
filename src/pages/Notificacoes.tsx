@@ -65,7 +65,7 @@ export default function Notificacoes() {
   }
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
@@ -76,7 +76,7 @@ export default function Notificacoes() {
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">MOTOR DE DISCIPLINA & INTELIGÊNCIA MX</Typography>
         </div>
 
-        <div className="flex items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
+        <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
           <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white">
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
           </Button>
@@ -93,7 +93,7 @@ export default function Notificacoes() {
               <Bell size={240} strokeWidth={2} />
             </div>
 
-            <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg md:p-10 flex flex-col sm:flex-row items-center justify-between relative z-10 gap-mx-md">
+            <CardHeader className="bg-surface-alt/30 border-b border-border-default p-4 md:p-mx-lg md:p-10 flex flex-col sm:flex-row items-center justify-between relative z-10 gap-mx-md">
               <div className="flex items-center gap-mx-md">
                 <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl shrink-0"><Bell size={32} strokeWidth={2} /></div>
                 <div>
@@ -104,7 +104,7 @@ export default function Notificacoes() {
               <Badge variant="brand" className="px-6 py-2 rounded-mx-full font-black shadow-mx-sm uppercase text-xs w-full sm:w-auto text-center">{unreadCount} NOVAS</Badge>
             </CardHeader>
 
-            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-mx-lg md:p-14 relative z-10">
+            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-mx-lg md:p-14 relative z-10">
               <AnimatePresence mode="popLayout">
                 {Object.entries(grouped).length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-40">
@@ -123,7 +123,7 @@ export default function Notificacoes() {
                         key={n.id} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} 
                         onClick={() => { markRead(n.id); if (n.link) navigate(n.link) }}
                         className={cn(
-                          "p-mx-lg rounded-mx-3xl border transition-all relative group/item flex flex-col sm:flex-row gap-mx-lg cursor-pointer", 
+                          "p-4 md:p-mx-lg rounded-mx-3xl border transition-all relative group/item flex flex-col sm:flex-row gap-mx-lg cursor-pointer", 
                           n.read ? "bg-surface-alt/30 border-border-default opacity-60" : "bg-white border-brand-primary/20 shadow-mx-lg",
                           !n.read && n.priority === 'high' && "border-status-error/20 bg-status-error-surface/30"
                         )}
@@ -165,7 +165,7 @@ export default function Notificacoes() {
         </section>
 
         <aside className="lg:col-span-4 flex flex-col gap-mx-lg order-1 lg:order-2">
-          <Card className="p-mx-lg md:p-10 border-none shadow-mx-lg bg-white space-y-mx-10">
+          <Card className="p-4 md:p-mx-lg md:p-10 border-none shadow-mx-lg bg-white space-y-mx-10">
             <header className="border-b border-border-default pb-8">
                 <Typography variant="h3" className="uppercase tracking-tight">Filtro Disciplinar</Typography>
                 <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SEGMENTAÇÃO DE ALERTAS</Typography>
@@ -191,7 +191,7 @@ export default function Notificacoes() {
                   key={f.label} 
                   onClick={() => setFilterType(filterType === f.type ? null : f.type)}
                   className={cn(
-                    "w-full p-mx-md rounded-mx-2xl border transition-all text-left flex items-center justify-between group/f",
+                    "w-full p-4 md:p-mx-md rounded-mx-2xl border transition-all text-left flex items-center justify-between group/f",
                     filterType === f.type ? "bg-brand-primary border-brand-primary text-white shadow-mx-lg" : "bg-surface-alt border-border-default hover:bg-white hover:border-brand-primary/20 shadow-inner"
                   )}
                 >

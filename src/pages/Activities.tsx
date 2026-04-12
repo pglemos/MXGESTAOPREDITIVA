@@ -117,7 +117,7 @@ export default function Activities() {
   }, [activities, searchTerm])
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       {/* Header / Cadência Toolbar */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -148,7 +148,7 @@ export default function Activities() {
           { label: 'Propostas', value: '04', icon: FileText, tone: 'warning' },
           { label: 'Pendências', value: '03', icon: AlertTriangle, tone: 'error' },
         ].map((item) => (
-          <Card key={item.label} className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
+          <Card key={item.label} className="p-4 md:p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
             <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
             <div className="flex items-center justify-between relative z-10">
               <div className="space-y-mx-tiny">
@@ -201,7 +201,7 @@ export default function Activities() {
                     key={action.label} 
                     onClick={() => addActivity(action.label)}
                     aria-label={`Registrar ${action.label}`}
-                    className="group rounded-mx-2xl border border-border-default bg-surface-alt/50 p-mx-md transition-all hover:bg-white hover:border-brand-primary/30 hover:shadow-mx-lg hover:-translate-y-1 text-left relative overflow-hidden"
+                    className="group rounded-mx-2xl border border-border-default bg-surface-alt/50 p-4 md:p-mx-md transition-all hover:bg-white hover:border-brand-primary/30 hover:shadow-mx-lg hover:-translate-y-1 text-left relative overflow-hidden"
                   >
                     <div className={cn(
                         "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center mb-4 transition-all shadow-mx-sm border border-white group-hover:scale-110",
@@ -249,7 +249,7 @@ export default function Activities() {
                 </div>
               </div>
               
-              <Card className="p-mx-md bg-status-warning-surface border border-mx-amber-100 shadow-inner">
+              <Card className="p-4 md:p-mx-md bg-status-warning-surface border border-mx-amber-100 shadow-inner">
                 <div className="flex gap-mx-sm">
                     <AlertTriangle className="h-mx-5 w-mx-5 text-status-warning shrink-0" strokeWidth={2} />
                     <Typography variant="p" className="text-xs font-black text-status-warning leading-relaxed uppercase tracking-tight">
@@ -312,7 +312,7 @@ export default function Activities() {
                           <activity.icon size={22} strokeWidth={2} />
                         </div>
                         
-                        <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-mx-lg hover:bg-white hover:shadow-mx-xl transition-all relative">
+                        <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-4 md:p-mx-lg hover:bg-white hover:shadow-mx-xl transition-all relative">
                           <header className="flex justify-between items-start mb-6">
                             <div>
                               <Typography variant="h3" className="text-base uppercase tracking-tight mb-2">{activity.label}</Typography>

@@ -226,7 +226,7 @@ export default function PainelConsultor() {
     ], [timeframe])
 
     if (goalsLoading || networkLoading) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10">
                 <Skeleton className="h-mx-14 w-full max-w-mx-2xl" />
                 <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
@@ -238,7 +238,7 @@ export default function PainelConsultor() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md md:gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
@@ -272,23 +272,23 @@ export default function PainelConsultor() {
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
-                <Card className="bg-brand-secondary border-none p-mx-lg shadow-mx-xl text-white relative overflow-hidden group">
+                <Card className="bg-brand-secondary border-none p-4 md:p-mx-lg shadow-mx-xl text-white relative overflow-hidden group">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-white/5 rounded-mx-full blur-3xl -mr-16 -mt-16" />
                     <Typography variant="caption" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-[10px]">Venda {timeframe}</Typography>
                     <Typography variant="h1" tone="white" className="text-4xl sm:text-5xl font-mono-numbers tracking-tighter">{globalStats.totalSales}</Typography>
                     <Typography variant="caption" tone="white" className="opacity-30 mt-4 tracking-widest block font-black uppercase text-[8px]">META REDE: {globalStats.totalGoal}</Typography>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-sm bg-white relative overflow-hidden">
+                <Card className="p-4 md:p-mx-lg border-none shadow-mx-sm bg-white relative overflow-hidden">
                     <Typography variant="caption" tone="muted" className="mb-6 block font-black uppercase tracking-widest opacity-40 text-center text-[10px]">Escoamento Rede</Typography>
-                    <div className="grid grid-cols-3 gap-mx-md">
+                    <div className="grid grid-cols-1 sm:grid-cols- gap-mx-md">
                         <div className="text-center"><Typography variant="h3" className="text-xl sm:text-2xl font-mono-numbers mb-1">{globalStats.totalLeads}</Typography><Typography variant="tiny" className="font-black uppercase opacity-20 text-[8px]">Leads</Typography></div>
                         <div className="text-center"><Typography variant="h3" className="text-xl sm:text-2xl font-mono-numbers mb-1">{globalStats.totalAgd}</Typography><Typography variant="tiny" className="font-black uppercase opacity-20 text-[8px]">Agd</Typography></div>
                         <div className="text-center"><Typography variant="h3" className="text-xl sm:text-2xl font-mono-numbers mb-1">{globalStats.totalVis}</Typography><Typography variant="tiny" className="font-black uppercase opacity-20 text-[8px]">Vis</Typography></div>
                     </div>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-sm bg-white flex flex-col justify-between">
+                <Card className="p-4 md:p-mx-lg border-none shadow-mx-sm bg-white flex flex-col justify-between">
                     <Typography variant="caption" tone="muted" className="mb-2 font-black uppercase tracking-widest opacity-40 text-[10px]">Unidades Críticas</Typography>
                     <Typography variant="h1" tone="error" className="text-4xl sm:text-5xl font-mono-numbers tracking-tighter">
                         {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
@@ -296,7 +296,7 @@ export default function PainelConsultor() {
                     <Typography variant="caption" tone="error" className="mt-4 opacity-60 font-black uppercase tracking-widest text-[8px]">AÇÃO IMEDIATA</Typography>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-sm bg-white flex flex-col justify-between">
+                <Card className="p-4 md:p-mx-lg border-none shadow-mx-sm bg-white flex flex-col justify-between">
                     <Typography variant="caption" tone="muted" className="mb-2 font-black uppercase tracking-widest opacity-40 text-[10px]">Saúde Disciplinar</Typography>
                     <Typography variant="h1" tone="success" className="text-4xl sm:text-5xl font-mono-numbers tracking-tighter">
                         {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
@@ -306,7 +306,7 @@ export default function PainelConsultor() {
             </div>
 
             <Card className="w-full mb-32 shadow-mx-lg border-none bg-white overflow-hidden">
-                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-4 md:p-mx-lg bg-surface-alt/30 border-b border-border-default">
                     <div>
                         <CardTitle className="text-2xl uppercase tracking-tighter">Malha de Performance</CardTitle>
                         <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40 text-[10px]">AUDITORIA EM TEMPO REAL DE UNIDADES</CardDescription>

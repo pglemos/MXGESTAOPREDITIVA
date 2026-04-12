@@ -111,7 +111,7 @@ export default function GerenteTreinamentos() {
     }, [teamProgress, searchTerm])
 
     if (isLoading && !isRefetching) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <div className="h-mx-10 w-mx-64 bg-border-default rounded animate-pulse" />
@@ -130,7 +130,7 @@ export default function GerenteTreinamentos() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -184,7 +184,7 @@ export default function GerenteTreinamentos() {
                         <motion.div key="meus" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
                             {filteredMe.map((t, i) => (
                                 <motion.article key={t.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                                    <Card className="p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col gap-mx-10">
+                                    <Card className="p-4 md:p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col gap-mx-10">
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <header className="flex justify-between items-start relative z-10">
                                             <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-all", t.watched ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-surface-alt text-text-tertiary border-border-default group-hover:bg-brand-primary group-hover:text-white")}>
@@ -214,7 +214,7 @@ export default function GerenteTreinamentos() {
                     ) : tab === 'matriz' ? (
                         <motion.div key="matriz" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
                             <Card className="border-none shadow-mx-xl bg-white overflow-hidden flex flex-col">
-                                <header className="p-mx-md md:p-10 border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
+                                <header className="p-4 md:p-mx-md md:p-10 border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
                                     <div className="flex items-center gap-mx-sm">
                                         <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><LayoutDashboard size={20} /></div>
                                         <div>
@@ -286,7 +286,7 @@ export default function GerenteTreinamentos() {
                         <motion.div key="equipe" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
                             {filteredTeam.map((p, i) => (
                                 <motion.article key={p.seller_id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
-                                    <Card className="p-mx-lg bg-white border-none shadow-mx-lg group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col items-center text-center">
+                                    <Card className="p-4 md:p-mx-lg bg-white border-none shadow-mx-lg group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col items-center text-center">
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-32 h-mx-32 bg-brand-primary/5 rounded-mx-full blur-2xl -mr-16 -mt-16" />
                                         
                                         <div className="w-mx-20 h-mx-20 rounded-mx-full border-4 border-white shadow-mx-md overflow-hidden bg-surface-alt mb-6 group-hover:scale-105 transition-transform relative z-10">
@@ -325,9 +325,9 @@ export default function GerenteTreinamentos() {
 
             <AnimatePresence>
                 {assigningTo && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-sm">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-mx-md bg-mx-black/60 backdrop-blur-sm">
                         <Card className="w-full max-w-2xl max-h-[80vh] overflow-y-auto no-scrollbar shadow-mx-2xl border-none bg-white rounded-mx-3xl">
-                            <header className="p-mx-lg border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
+                            <header className="p-4 md:p-mx-lg border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                                 <div className="flex items-center gap-mx-sm">
                                     <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Target size={20} /></div>
                                     <div>
@@ -337,11 +337,11 @@ export default function GerenteTreinamentos() {
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => setAssigningTo(null)} className="rounded-mx-full w-mx-10 h-mx-10"><X size={20} /></Button>
                             </header>
-                            <div className="p-mx-lg grid grid-cols-1 gap-mx-sm">
+                            <div className="p-4 md:p-mx-lg grid grid-cols-1 gap-mx-sm">
                                 {trainings.map(t => (
                                     <button 
                                         key={t.id} onClick={() => handleAssignTraining(t.id)} disabled={isAssigning}
-                                        className="flex items-center justify-between p-mx-md rounded-mx-2xl border border-border-default hover:border-brand-primary hover:bg-mx-indigo-50 transition-all text-left group"
+                                        className="flex items-center justify-between p-4 md:p-mx-md rounded-mx-2xl border border-border-default hover:border-brand-primary hover:bg-mx-indigo-50 transition-all text-left group"
                                     >
                                         <div className="flex items-center gap-mx-md">
                                             <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt flex items-center justify-center text-text-tertiary group-hover:bg-white transition-all shadow-inner"><GraduationCap size={20} /></div>

@@ -52,7 +52,7 @@ export default function Inventory() {
     }, [refetchAll])
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
                 <div className="flex flex-col gap-mx-tiny">
@@ -92,7 +92,7 @@ export default function Inventory() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-lg shrink-0">
                 {stats.map((stat, i) => (
                     <motion.div key={stat.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                        <Card className="p-mx-lg border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
+                        <Card className="p-4 md:p-mx-lg border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
                             <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12 opacity-50" aria-hidden="true" />
                             <div className="flex items-center gap-mx-md relative z-10">
                                 <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border shadow-inner transition-transform group-hover:scale-110", 
@@ -159,7 +159,7 @@ export default function Inventory() {
                                                 </Typography>
                                             </div>
                                         </div>
-                                        <div className="p-mx-lg flex flex-col justify-between flex-1">
+                                        <div className="p-4 md:p-mx-lg flex flex-col justify-between flex-1">
                                             <div className="mb-8">
                                                 <Typography variant="h3" className="text-lg uppercase group-hover:text-brand-primary transition-colors truncate font-black">{item.model}</Typography>
                                                 <Typography variant="tiny" tone="muted" className="mt-1 opacity-40 font-black uppercase tracking-widest">ANO {item.year} • AUTO • FLEX</Typography>

@@ -70,7 +70,7 @@ export default function DailyCheckin() {
     )
 
     if (todayCheckin) return (
-        <main className="w-full h-full flex flex-col items-center justify-center p-mx-lg bg-surface-alt text-center">
+        <main className="w-full h-full flex flex-col items-center justify-center p-4 md:p-mx-lg bg-surface-alt text-center">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full space-y-mx-10">
                 <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-status-success-surface border border-mx-emerald-100 text-status-success flex items-center justify-center mx-auto shadow-mx-xl" aria-hidden="true">
                     <ShieldCheck size={48} strokeWidth={2} />
@@ -79,7 +79,7 @@ export default function DailyCheckin() {
                     <Typography variant="h1">Check-in <Typography as="span" className="text-status-success">Firmado</Typography></Typography>
                     <Typography variant="p" tone="muted" className="max-w-xs mx-auto uppercase">Seu registro operacional para {referenceDateLabel} já está na malha.</Typography>
                 </div>
-                <Card className="p-mx-lg border-none bg-white shadow-mx-lg">
+                <Card className="p-4 md:p-mx-lg border-none bg-white shadow-mx-lg">
                     <div className="flex items-center justify-between mb-6">
                         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Status da Tropa</Typography>
                         <Badge variant="success">
@@ -100,7 +100,7 @@ export default function DailyCheckin() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             {/* Header */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -153,7 +153,7 @@ export default function DailyCheckin() {
                                         value={form.visit_prev_day}
                                         onChange={(e) => setForm(f => ({ ...f, visit_prev_day: Number(e.target.value) }))}
                                     />
-                                    <div className="p-mx-md rounded-mx-2xl bg-surface-alt border-2 border-dashed border-border-default flex flex-col items-center justify-center text-center">
+                                    <div className="p-4 md:p-mx-md rounded-mx-2xl bg-surface-alt border-2 border-dashed border-border-default flex flex-col items-center justify-center text-center">
                                         <Typography variant="caption" tone="muted" className="mb-1">Total de Vendas</Typography>
                                         <Typography variant="h1" className="text-brand-primary">
                                             {form.vnd_porta_prev_day + form.vnd_cart_prev_day + form.vnd_net_prev_day}
@@ -225,7 +225,7 @@ export default function DailyCheckin() {
                                 <div className="space-y-mx-sm pt-8 border-t border-border-default">
                                     <Typography variant="caption" tone="muted" className="uppercase font-black tracking-widest">Observações Táticas</Typography>
                                     <textarea 
-                                        className="w-full min-h-mx-32 p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-sm outline-none resize-none"
+                                        className="w-full min-h-mx-32 p-4 md:p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-sm outline-none resize-none"
                                         placeholder="Algum desafio ou observação para o dia de hoje?"
                                         value={form.note}
                                         onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}

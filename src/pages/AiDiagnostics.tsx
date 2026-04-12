@@ -46,7 +46,7 @@ export default function AiDiagnostics() {
     useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [logs])
 
     if (role !== 'admin' && role !== 'dono') return (
-        <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-brand-secondary" id="main-content">
+        <main className="h-full w-full flex flex-col items-center justify-center text-center p-4 md:p-mx-lg bg-brand-secondary" id="main-content">
             <ShieldCheck size={48} className="text-white/20 mb-6" aria-hidden="true" />
             <Typography variant="h2" tone="white" className="uppercase tracking-tighter">Acesso Restrito</Typography>
             <Typography variant="caption" tone="white" className="max-w-sm mx-auto opacity-40 uppercase tracking-widest mt-4 font-black">Motor de inteligência exclusivo para escalão administrativo.</Typography>
@@ -54,7 +54,7 @@ export default function AiDiagnostics() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
             
             {/* Header / Engine Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0">
@@ -86,7 +86,7 @@ export default function AiDiagnostics() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0">
                 {/* Terminal Section */}
                 <section className="lg:col-span-7 flex flex-col min-h-[400px] lg:min-h-0">
-                    <Card className="flex-1 bg-mx-black border-white/5 rounded-mx-2xl p-mx-lg md:p-10 shadow-mx-xl relative overflow-hidden flex flex-col">
+                    <Card className="flex-1 bg-mx-black border-white/5 rounded-mx-2xl p-4 md:p-mx-lg md:p-10 shadow-mx-xl relative overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="flex items-center gap-mx-sm">
                                 <TerminalIcon size={18} className="text-brand-primary/80" aria-hidden="true" />
@@ -120,7 +120,7 @@ export default function AiDiagnostics() {
 
                 {/* Verdict Section */}
                 <aside className="lg:col-span-5 flex flex-col pb-20 lg:pb-0">
-                    <Card className="p-mx-lg md:p-14 bg-white border-none shadow-mx-xl h-full space-y-mx-xl flex flex-col">
+                    <Card className="p-4 md:p-mx-lg md:p-14 bg-white border-none shadow-mx-xl h-full space-y-mx-xl flex flex-col">
                         <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
                             <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl shrink-0" aria-hidden="true"><ShieldCheck size={32} /></div>
                             <div>
@@ -133,7 +133,7 @@ export default function AiDiagnostics() {
                             <AnimatePresence mode="wait">
                                 {summary ? (
                                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-mx-xl">
-                                        <Card className="p-mx-lg bg-mx-indigo-50 border-mx-indigo-100 shadow-inner relative group border-none rounded-mx-3xl">
+                                        <Card className="p-4 md:p-mx-lg bg-mx-indigo-50 border-mx-indigo-100 shadow-inner relative group border-none rounded-mx-3xl">
                                             <Quote size={64} className="absolute -right-4 -bottom-4 text-brand-primary opacity-5 -rotate-12 transition-transform group-hover:scale-110" aria-hidden="true" />
                                             <Typography variant="p" className="text-lg sm:text-xl font-black italic text-brand-primary leading-relaxed relative z-10 uppercase tracking-tight">
                                                 "{summary.diagnostic}"
@@ -145,7 +145,7 @@ export default function AiDiagnostics() {
                                                 <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-status-success-surface text-status-success flex items-center justify-center shadow-mx-sm" aria-hidden="true"><TrendingUp size={20} /></div>
                                                 <Typography variant="tiny" tone="success" className="font-black uppercase tracking-widest">Plano de Ação Gerencial</Typography>
                                             </div>
-                                            <Typography variant="p" className="text-sm sm:text-base font-bold text-text-secondary leading-relaxed bg-surface-alt p-mx-lg rounded-mx-2xl border border-border-default shadow-mx-inner uppercase tracking-tight">
+                                            <Typography variant="p" className="text-sm sm:text-base font-bold text-text-secondary leading-relaxed bg-surface-alt p-4 md:p-mx-lg rounded-mx-2xl border border-border-default shadow-mx-inner uppercase tracking-tight">
                                                 {summary.action}
                                             </Typography>
                                         </div>

@@ -66,7 +66,7 @@ export default function Agenda() {
     }
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -104,7 +104,7 @@ export default function Agenda() {
             </header>
 
             <div className="overflow-x-auto no-scrollbar pb-4 -mx-mx-lg px-mx-lg">
-                <div className="grid grid-cols-7 gap-mx-sm min-w-[600px] sm:min-w-0 shrink-0">
+                <div className="grid grid-cols-1 sm:grid-cols- gap-mx-sm min-w-[600px] sm:min-w-0 shrink-0">
                     {weekDays.map((day, i) => {
                         const isSelected = isSameDay(day, selectedDate)
                         const active = isToday(day)
@@ -114,7 +114,7 @@ export default function Agenda() {
                             <button
                                 key={i} onClick={() => setSelectedDate(day)}
                                 className={cn(
-                                    "flex flex-col items-center p-mx-md rounded-mx-3xl transition-all border relative group",
+                                    "flex flex-col items-center p-4 md:p-mx-md rounded-mx-3xl transition-all border relative group",
                                     isSelected ? "bg-brand-secondary text-white border-brand-secondary shadow-mx-xl scale-105 z-10" : "bg-white border-border-subtle hover:border-brand-primary/30 hover:bg-mx-indigo-50/30"
                                 )}
                             >
@@ -146,7 +146,7 @@ export default function Agenda() {
                             {filteredDayTasks.length > 0 ? (
                                 filteredDayTasks.map((task, idx) => (
                                     <motion.div key={task.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}>
-                                        <Card className="p-mx-lg flex flex-col sm:flex-row sm:items-center gap-mx-lg group relative overflow-hidden border-none shadow-mx-lg hover:shadow-mx-xl transition-all bg-white">
+                                        <Card className="p-4 md:p-mx-lg flex flex-col sm:flex-row sm:items-center gap-mx-lg group relative overflow-hidden border-none shadow-mx-lg hover:shadow-mx-xl transition-all bg-white">
                                             <div className="flex flex-col items-center justify-center w-mx-20 h-mx-header bg-surface-alt border border-border-default rounded-mx-2xl shrink-0 shadow-inner group-hover:bg-brand-secondary group-hover:border-brand-secondary transition-all">
                                                 <Typography variant="mono" className="text-xs font-black group-hover:text-white transition-colors">{format(new Date(task.dueDate), 'HH:mm')}</Typography>
                                                 <Clock className="w-mx-sm h-mx-sm text-brand-primary mt-2 group-hover:text-white transition-colors" strokeWidth={2} />
@@ -197,7 +197,7 @@ export default function Agenda() {
                         
                         <div className="space-y-mx-sm relative z-10">
                             {criticalTasks.length > 0 ? criticalTasks.slice(0, 4).map((task) => (
-                                <Card key={task.id} className="p-mx-md bg-surface-alt/50 border border-border-subtle group/item hover:bg-white hover:shadow-mx-lg transition-all cursor-pointer">
+                                <Card key={task.id} className="p-4 md:p-mx-md bg-surface-alt/50 border border-border-subtle group/item hover:bg-white hover:shadow-mx-lg transition-all cursor-pointer">
                                     <header className="flex justify-between items-center mb-3">
                                         <Badge variant="danger" className="text-xs font-black px-3 py-1 uppercase shadow-sm">EXPIRADO</Badge>
                                         <Typography variant="mono" className="text-xs font-black opacity-40 uppercase">{format(new Date(task.dueDate), 'dd/MM')}</Typography>

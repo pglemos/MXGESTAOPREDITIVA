@@ -64,7 +64,7 @@ export default function ConsultorNotificacoes() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / Alerts Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -114,7 +114,7 @@ export default function ConsultorNotificacoes() {
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Corpo da Mensagem</Typography>
                                             <textarea 
                                                 value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
-                                                className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-mx-lg text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-mx-48"
+                                                className="w-full bg-surface-alt border border-border-default rounded-mx-xl p-4 md:p-mx-lg text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner h-mx-48"
                                                 placeholder="Detalhes técnicos ou operacionais..." required
                                             />
                                         </div>
@@ -124,13 +124,13 @@ export default function ConsultorNotificacoes() {
                                         <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Público Alvo (Segmentação)</Typography>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
-                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'all' }))} className={cn("p-mx-lg rounded-mx-2xl border-2 transition-all flex flex-col items-center justify-center gap-mx-sm text-center group", form.target_type === 'all' ? "bg-mx-indigo-50 border-brand-primary shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
+                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'all' }))} className={cn("p-4 md:p-mx-lg rounded-mx-2xl border-2 transition-all flex flex-col items-center justify-center gap-mx-sm text-center group", form.target_type === 'all' ? "bg-mx-indigo-50 border-brand-primary shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
                                                     <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'all' ? "bg-brand-primary text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
                                                         <Globe size={22} />
                                                     </div>
                                                     <Typography variant="caption" className={cn("font-black tracking-widest", form.target_type === 'all' ? "text-brand-primary" : "text-text-tertiary")}>TODA A REDE</Typography>
                                                 </button>
-                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'store' }))} className={cn("p-mx-lg rounded-mx-2xl border-2 transition-all flex flex-col items-center justify-center gap-mx-sm text-center group", form.target_type === 'store' ? "bg-status-warning-surface border-status-warning shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
+                                                <button type="button" onClick={() => setForm(p => ({ ...p, target_type: 'store' }))} className={cn("p-4 md:p-mx-lg rounded-mx-2xl border-2 transition-all flex flex-col items-center justify-center gap-mx-sm text-center group", form.target_type === 'store' ? "bg-status-warning-surface border-status-warning shadow-mx-lg" : "bg-white border-border-default hover:border-brand-primary/20")}>
                                                     <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center shadow-sm transition-all", form.target_type === 'store' ? "bg-status-warning text-white" : "bg-surface-alt text-text-tertiary group-hover:bg-white")}>
                                                         <Building2 size={22} />
                                                     </div>
@@ -141,7 +141,7 @@ export default function ConsultorNotificacoes() {
 
                                         <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nível Hierárquico</Typography>
-                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-mx-xs">
+                                            <div className="grid grid-cols-1 sm:grid-cols- sm:grid-cols-4 gap-mx-xs">
                                                 {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
                                                     <Button key={role} type="button" variant={form.target_role === role ? 'secondary' : 'outline'} onClick={() => setForm(p => ({ ...p, target_role: role as any }))} className="h-mx-10 rounded-mx-xl text-mx-micro font-black uppercase px-0">{role}</Button>
                                                 ))}
@@ -184,7 +184,7 @@ export default function ConsultorNotificacoes() {
                 ) : (
                     broadcasts.map((n, i) => (
                         <motion.article key={n.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                            <Card className="p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
+                            <Card className="p-4 md:p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
                                 <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 
                                 <header className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">

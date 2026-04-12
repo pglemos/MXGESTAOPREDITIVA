@@ -42,7 +42,7 @@ export default function SellerPerformance() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header Area */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -76,7 +76,7 @@ export default function SellerPerformance() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg shrink-0">
                 {leaderboard.map((member, i) => (
                     <motion.div key={member.user_id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                        <Card className={cn("p-mx-lg flex flex-col justify-between group relative overflow-hidden border-none shadow-mx-lg bg-white", 
+                        <Card className={cn("p-4 md:p-mx-lg flex flex-col justify-between group relative overflow-hidden border-none shadow-mx-lg bg-white", 
                             i === 0 ? "ring-2 ring-brand-primary/20" : ""
                         )}>
                             {i === 0 && <div className="absolute top-mx-0 right-mx-0 w-mx-xl h-mx-xl bg-brand-primary/5 rounded-mx-full blur-mx-huge -mr-20 -mt-20 pointer-events-none" />}

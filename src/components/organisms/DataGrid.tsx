@@ -113,8 +113,7 @@ export function DataGrid<T extends { id: string | number }>({
         </table>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-mx-md pb-20">
+      <div className="md:hidden space-y-4 pb-24">
         <AnimatePresence mode="popLayout">
           {data.map((item, idx) => (
             <motion.div
@@ -124,25 +123,26 @@ export function DataGrid<T extends { id: string | number }>({
               onClick={() => onRowClick?.(item)}
             >
               <Card className={cn(
-                "p-mx-lg border-none shadow-mx-lg relative overflow-hidden",
+                "p-4 border border-border-default shadow-sm relative overflow-hidden",
                 onRowClick && "active:scale-[0.98] transition-all"
               )}>
-                <div className="absolute top-mx-0 right-mx-0 w-mx-32 h-mx-32 bg-brand-primary/5 rounded-mx-full blur-2xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-                <div className="space-y-mx-md relative z-10">
+                <div className="space-y-3 relative z-10">
                   {columns.filter(col => !col.desktopOnly).map((col, cIdx) => (
                     <div 
                       key={`${item.id}-mob-${col.key}`}
                       className={cn(
-                        "flex flex-col gap-1",
-                        cIdx === 0 && "border-b border-border-default pb-4 mb-4"
+                        "flex items-center justify-between gap-4",
+                        cIdx === 0 && "border-b border-border-default pb-3 mb-2"
                       )}
                     >
-                      {cIdx > 0 && <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">{col.header}</Typography>}
-                      <div className={cn(
-                        "text-sm font-bold",
-                        cIdx === 0 && "text-lg font-black uppercase tracking-tight"
-                      )}>
-                        {col.render ? col.render(item, idx) : (item as any)[col.key]}
+                      <div className="flex flex-col min-w-0">
+                        {cIdx > 0 && <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40 text-[8px] leading-none mb-1">{col.header}</Typography>}
+                        <div className={cn(
+                          "text-sm font-bold truncate",
+                          cIdx === 0 && "text-base font-black uppercase tracking-tight"
+                        )}>
+                          {col.render ? col.render(item, idx) : (item as any)[col.key]}
+                        </div>
                       </div>
                     </div>
                   ))}

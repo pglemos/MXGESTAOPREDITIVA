@@ -65,7 +65,7 @@ export default function VendedorHome() {
     }, [metrics, profile])
 
     if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading || !metrics) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <Skeleton className="h-mx-14 w-full max-w-mx-2xl" />
                 <Skeleton className="h-mx-14 w-48 rounded-mx-xl" />
@@ -77,7 +77,7 @@ export default function VendedorHome() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
 
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md md:gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
@@ -87,7 +87,7 @@ export default function VendedorHome() {
                     <Typography variant="caption" className="uppercase tracking-widest font-black text-mx-micro sm:text-xs">PERFORMANCE INDIVIDUAL • MX ELITE</Typography>
                 </div>
                 
-                <div className="flex flex-row items-center justify-center lg:justify-end gap-mx-sm w-full lg:w-auto">
+                <div className="flex flex-wrap flex-row items-center justify-center lg:justify-end gap-mx-sm w-full lg:w-auto">
                     <Button variant="outline" size="icon" onClick={handleShareWhatsApp} className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-status-success-surface text-status-success border-status-success/20">
                         <MessageSquare size={18} />
                     </Button>
@@ -125,7 +125,7 @@ export default function VendedorHome() {
                 <MXScoreCard label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} icon={Target} tone="warning" />
             </div>
 
-            <Card className="bg-surface-alt/50 p-mx-lg md:p-14 border-border-default shadow-mx-sm relative overflow-hidden">
+            <Card className="bg-surface-alt/50 p-4 md:p-mx-lg md:p-14 border-border-default shadow-mx-sm relative overflow-hidden">
                 <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-mx-md relative z-10">
                     <Typography variant="h2" className="text-xl md:text-2xl uppercase tracking-tighter">Arena de Elite</Typography>
                     <Button variant="ghost" asChild className="rounded-mx-full px-8 bg-white border border-border-default shadow-sm text-xs font-black w-full sm:w-auto"><Link to="/ranking">Ver Arena Completa</Link></Button>
@@ -156,9 +156,9 @@ export default function VendedorHome() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-32">
                 <div className="lg:col-span-8 space-y-mx-lg">
-                    <Card className="p-mx-lg md:p-14 relative overflow-hidden border-none shadow-mx-lg bg-white">
+                    <Card className="p-4 md:p-mx-lg md:p-14 relative overflow-hidden border-none shadow-mx-lg bg-white">
                         <header className="mb-8"><Typography variant="h2" className="text-xl md:text-2xl uppercase tracking-tighter">Matrix de Canais</Typography></header>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-mx-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols- md:grid-cols-3 gap-mx-sm">
                             {[
                                 { label: 'Porta', value: metrics.porCanal.porta, icon: Car, tone: 'success', pct: Math.round((metrics.porCanal.porta / (metrics.vendasMes || 1)) * 100) },
                                 { label: 'Carteira', value: metrics.porCanal.carteira, icon: Users, tone: 'info', pct: Math.round((metrics.porCanal.carteira / (metrics.vendasMes || 1)) * 100) },
@@ -177,7 +177,7 @@ export default function VendedorHome() {
                     </Card>
                 </div>
                 <aside className="lg:col-span-4">
-                    <Card className="bg-mx-black text-white p-mx-lg h-full border-none shadow-mx-xl relative overflow-hidden py-12">
+                    <Card className="bg-mx-black text-white p-4 md:p-mx-lg h-full border-none shadow-mx-xl relative overflow-hidden py-12">
                         <div className="relative z-10 text-center space-y-mx-md">
                             <TrendingUp size={32} className="mx-auto mb-6 opacity-30 text-brand-primary" />
                             <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase text-[10px]">SPRINT SEMANAL</Typography>

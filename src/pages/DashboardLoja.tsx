@@ -216,7 +216,7 @@ export default function DashboardLoja() {
     )
 
     if (loading && !isRefetching) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-full max-w-mx-64" />
@@ -234,7 +234,7 @@ export default function DashboardLoja() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-md md:gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-xs text-center lg:text-left">
@@ -298,21 +298,21 @@ export default function DashboardLoja() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
-                <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
+                <Card className="p-4 md:p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-white/5 rounded-mx-full blur-3xl -mr-16 -mt-16" />
                     <Typography variant="tiny" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-[10px]">Meta de Vendas</Typography>
                     <Typography variant="h1" tone="white" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.goalValue}</Typography>
                     <Badge variant="outline" className="text-white border-white/20 font-black h-mx-md uppercase text-[10px]">{metrics.attainment}% ATINGIDO</Badge>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
+                <Card className="p-4 md:p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
                     <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-[10px]">Vendido Período</Typography>
                     <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.totalSales}</Typography>
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest text-[10px]">REFERÊNCIA REAL-TIME</Typography>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
+                <Card className="p-4 md:p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-info-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
                     <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-[10px]">Escoamento Médio</Typography>
                     <div className="flex items-baseline gap-mx-xs mb-2">
@@ -322,7 +322,7 @@ export default function DashboardLoja() {
                     <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest text-[10px]">{metrics.totalVis} VISITAS EFETUADAS</Typography>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
+                <Card className="p-4 md:p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-success-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
                     <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-[10px]">Saúde Disciplinar</Typography>
                     <Typography variant="h1" tone={metrics.checkedInCount < (sellers || []).length ? 'error' : 'success'} className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">
@@ -335,7 +335,7 @@ export default function DashboardLoja() {
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
                 <section className="xl:col-span-8 flex flex-col">
                     <Card className="border-none shadow-mx-lg bg-white overflow-hidden flex-1">
-                        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
+                        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-4 md:p-mx-lg bg-surface-alt/30 border-b border-border-default">
                             <div>
                                 <CardTitle className="text-xl md:text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Ranking Unidade'}</CardTitle>
                                 <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40 text-[10px]">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
@@ -350,7 +350,7 @@ export default function DashboardLoja() {
                 </section>
 
                 <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden group">
+                    <Card className="p-4 md:p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden group">
                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
                         <header className="flex items-center gap-mx-sm mb-8 relative z-10">
                             <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary shadow-mx-inner border border-border-default shrink-0"><Globe size={24} /></div>
@@ -369,7 +369,7 @@ export default function DashboardLoja() {
                         </div>
                     </Card>
 
-                    <Card className="p-mx-lg bg-brand-primary rounded-mx-3xl text-white shadow-mx-xl relative overflow-hidden group border-none">
+                    <Card className="p-4 md:p-mx-lg bg-brand-primary rounded-mx-3xl text-white shadow-mx-xl relative overflow-hidden group border-none">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
                         <div className="relative z-10 text-center py-4">
                             <History className="mx-auto mb-6 opacity-30 transform group-hover:scale-110 transition-transform" size={40} />

@@ -166,7 +166,7 @@ export default function Reprocessamento() {
     ], [])
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
@@ -177,7 +177,7 @@ export default function Reprocessamento() {
                     <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-widest text-[10px] sm:text-xs">DATA INJECTION ENGINE v2.1</Typography>
                 </div>
 
-                <div className="flex flex-row items-center justify-center gap-mx-sm shrink-0 w-full lg:w-auto">
+                <div className="flex flex-wrap flex-row items-center justify-center gap-mx-sm shrink-0 w-full lg:w-auto">
                     <Button asChild variant="ghost" className="flex-1 sm:flex-none text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-[10px]">
                         <Link to="/configuracoes"><ArrowLeft size={14} className="mr-2" /> VOLTAR</Link>
                     </Button>

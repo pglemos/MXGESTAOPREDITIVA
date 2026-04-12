@@ -132,7 +132,7 @@ export default function RotinaGerente() {
     }
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -190,7 +190,7 @@ export default function RotinaGerente() {
                                             <Card 
                                                 key={step.idx} 
                                                 onClick={() => step.set(!step.done)}
-                                                className={cn("p-mx-lg cursor-pointer group transition-all border-2", step.done ? "bg-status-success-surface/30 border-status-success/20" : "bg-surface-alt border-transparent hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-lg")}
+                                                className={cn("p-4 md:p-mx-lg cursor-pointer group transition-all border-2", step.done ? "bg-status-success-surface/30 border-status-success/20" : "bg-surface-alt border-transparent hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-lg")}
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-mx-md">
@@ -303,7 +303,7 @@ export default function RotinaGerente() {
                                         </div>
                                     ) : (
                                         pendingRequests.map((req) => (
-                                            <Card key={req.id} className="p-mx-lg border border-border-default bg-surface-alt/30 hover:bg-white hover:shadow-mx-lg transition-all group">
+                                            <Card key={req.id} className="p-4 md:p-mx-lg border border-border-default bg-surface-alt/30 hover:bg-white hover:shadow-mx-lg transition-all group">
                                                 <div className="flex flex-col lg:flex-row gap-mx-lg">
                                                     <div className="flex-1 space-y-mx-md">
                                                         <div className="flex items-center justify-between">
@@ -317,7 +317,7 @@ export default function RotinaGerente() {
                                                             <Badge variant="outline" className="font-mono-numbers">{req.id.split('-')[0]}</Badge>
                                                         </div>
 
-                                                        <div className="bg-white p-mx-md rounded-mx-xl shadow-inner border border-border-default space-y-mx-sm">
+                                                        <div className="bg-white p-4 md:p-mx-md rounded-mx-xl shadow-inner border border-border-default space-y-mx-sm">
                                                             <header className="flex items-center gap-mx-xs border-b border-border-default pb-2 mb-2">
                                                                 <MessageSquare size={14} className="text-brand-primary" />
                                                                 <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">Justificativa Operacional</Typography>

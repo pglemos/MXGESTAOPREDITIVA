@@ -49,7 +49,7 @@ export default function Reports() {
     }, [searchTerm])
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -76,7 +76,7 @@ export default function Reports() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg shrink-0">
                 {stockStats.map((stat, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                        <Card className="p-mx-lg border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
+                        <Card className="p-4 md:p-mx-lg border-none shadow-mx-sm hover:shadow-mx-lg transition-all group relative overflow-hidden bg-white">
                             <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-12 -mt-12 opacity-50" />
                             <div className="flex items-center gap-mx-md relative z-10">
                                 <div className={cn("w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border shadow-mx-inner transition-transform group-hover:scale-110", 
@@ -102,7 +102,7 @@ export default function Reports() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg shrink-0 pb-mx-3xl">
                 <section className="lg:col-span-8">
                     <Card className="h-full border-none shadow-mx-lg bg-white overflow-hidden">
-                        <CardHeader className="bg-surface-alt/20 border-b border-border-default p-mx-lg flex flex-row items-center justify-between">
+                        <CardHeader className="bg-surface-alt/20 border-b border-border-default p-4 md:p-mx-lg flex flex-row items-center justify-between">
                             <div>
                                 <CardTitle className="text-xl uppercase tracking-tighter leading-none">Maturidade de Saída</CardTitle>
                                 <CardDescription className="uppercase font-black text-tiny tracking-widest mt-1 opacity-60">TEMPO MÉDIO DE ESCOAMENTO (D+1)</CardDescription>
@@ -125,11 +125,11 @@ export default function Reports() {
 
                 <aside className="lg:col-span-4">
                     <Card className="h-full border-none shadow-mx-lg bg-white flex flex-col group overflow-hidden">
-                        <CardHeader className="bg-surface-alt/20 border-b border-border-default p-mx-lg">
+                        <CardHeader className="bg-surface-alt/20 border-b border-border-default p-4 md:p-mx-lg">
                             <CardTitle className="text-xl uppercase tracking-tighter leading-none">Distribuição de Idade</CardTitle>
                             <CardDescription className="uppercase font-black text-tiny tracking-widest mt-1 opacity-60">AGING OPERACIONAL DA REDE</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-mx-lg flex-1 flex flex-col items-center">
+                        <CardContent className="p-4 md:p-mx-lg flex-1 flex flex-col items-center">
                             <div className="h-mx-48 w-full mb-10 group-hover:scale-105 transition-transform duration-700">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>

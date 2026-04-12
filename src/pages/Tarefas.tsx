@@ -86,7 +86,7 @@ export default function Tarefas() {
     }
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / Tasks Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -139,7 +139,7 @@ export default function Tarefas() {
                                     <div className="space-y-mx-md flex-1 overflow-y-auto no-scrollbar pr-2 pb-20">
                                         {taskGroups[status].map((task) => (
                                             <motion.div key={task.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                                                <Card className="p-mx-lg group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col justify-between h-auto cursor-pointer" onClick={() => setSelectedId(task.id)}>
+                                                <Card className="p-4 md:p-mx-lg group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col justify-between h-auto cursor-pointer" onClick={() => setSelectedId(task.id)}>
                                                     <div>
                                                         <header className="flex justify-between items-start mb-6">
                                                             <Badge variant={priorityConfig[task.priority].tone as any} className="text-mx-micro font-black px-3 h-mx-5 border-none shadow-sm flex items-center gap-1.5 uppercase">
@@ -213,7 +213,7 @@ export default function Tarefas() {
             {/* Modal de Missão - Atomizado */}
             <AnimatePresence>
                 {open && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-pure-black/60 backdrop-blur-xl">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-mx-md bg-pure-black/60 backdrop-blur-xl">
                         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-xl">
                             <Card className="border-none shadow-mx-xl bg-white overflow-hidden">
                                 <header className="bg-brand-secondary p-mx-10 text-white relative overflow-hidden">
@@ -232,7 +232,7 @@ export default function Tarefas() {
                                     </div>
                                     <div className="space-y-mx-sm">
                                         <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Briefing / Detalhes</Typography>
-                                        <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-md text-sm font-bold text-text-primary focus:border-brand-primary outline-none transition-all resize-none shadow-inner h-mx-4xl" placeholder="Detalhes cruciais para a execução..." />
+                                        <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-4 md:p-mx-md text-sm font-bold text-text-primary focus:border-brand-primary outline-none transition-all resize-none shadow-inner h-mx-4xl" placeholder="Detalhes cruciais para a execução..." />
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
                                         <div className="space-y-mx-sm">
@@ -250,7 +250,7 @@ export default function Tarefas() {
                                     </div>
                                 </div>
 
-                                <footer className="p-mx-lg bg-surface-alt border-t border-border-default flex gap-mx-sm mt-4">
+                                <footer className="p-4 md:p-mx-lg bg-surface-alt border-t border-border-default flex gap-mx-sm mt-4">
                                     <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 h-mx-14 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ABORTAR</Button>
                                     <Button onClick={handleSave} className="flex-[2] h-mx-14 rounded-mx-full shadow-mx-xl uppercase font-black tracking-widest text-mx-tiny">
                                         <Zap size={18} className="mr-2" /> INICIAR MISSÃO

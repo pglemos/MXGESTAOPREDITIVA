@@ -35,7 +35,7 @@ export default function Configuracoes() {
     }
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -110,7 +110,7 @@ export default function Configuracoes() {
                         </header>
                         
                         <div className="space-y-mx-md">
-                            <Card className="flex items-center justify-between p-mx-lg bg-surface-alt border border-border-subtle shadow-inner group hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-sm transition-all">
+                            <Card className="flex items-center justify-between p-4 md:p-mx-lg bg-surface-alt border border-border-subtle shadow-inner group hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-sm transition-all">
                                 <div className="space-y-mx-tiny">
                                     <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors">Notificações Push</Typography>
                                     <Typography variant="p" tone="muted" className="lowercase tracking-normal italic uppercase tracking-widest font-black opacity-40 text-xs">Alertas de gaps, rituais pendentes e novos feedbacks</Typography>
@@ -167,7 +167,7 @@ export default function Configuracoes() {
                             <Button variant="outline" className="w-full h-mx-2xl rounded-mx-2xl justify-between px-8 border-border-strong group hover:border-brand-primary transition-all shadow-sm font-black uppercase tracking-widest bg-white text-xs">
                                 ALTERAR CREDENCIAIS <Lock size={18} className="text-text-tertiary group-hover:text-brand-primary transition-colors" />
                             </Button>
-                            <Card className="p-mx-md bg-status-info-surface border border-status-info/20 shadow-inner">
+                            <Card className="p-4 md:p-mx-md bg-status-info-surface border border-status-info/20 shadow-inner">
                                 <Typography variant="caption" tone="info" className="text-center block font-black uppercase tracking-widest leading-relaxed text-xs">Sua sessão expira em 24h por protocolo de segurança imutável.</Typography>
                             </Card>
                         </div>

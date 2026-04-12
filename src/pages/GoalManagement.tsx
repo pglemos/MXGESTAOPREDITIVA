@@ -108,7 +108,7 @@ export default function GoalManagement() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / Governance Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -159,7 +159,7 @@ export default function GoalManagement() {
 
                         {selectedStoreId && (
                             <div className="pt-10 border-t border-border-default space-y-mx-md">
-                                <Card className="p-mx-md bg-status-success-surface border border-mx-emerald-100 shadow-inner">
+                                <Card className="p-4 md:p-mx-md bg-status-success-surface border border-mx-emerald-100 shadow-inner">
                                     <Typography variant="caption" tone="success" className="mb-1 block font-black">STATUS DE REDE</Typography>
                                     <div className="flex items-center gap-mx-xs">
                                         <div className="w-2.5 h-2.5 rounded-mx-full bg-status-success animate-pulse shadow-mx-sm" />

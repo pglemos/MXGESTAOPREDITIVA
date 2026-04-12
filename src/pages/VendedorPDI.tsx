@@ -49,7 +49,7 @@ export default function VendedorPDI() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -95,11 +95,11 @@ export default function VendedorPDI() {
                                         "{(activePDI as any).meta_6m || (activePDI as any).objective}"
                                     </Typography>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg pt-8">
-                                        <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
+                                        <div className="p-4 md:p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
                                             <Typography variant="caption" tone="muted" className="mb-2 block">12 Meses</Typography>
                                             <Typography variant="h3" className="text-base">{(activePDI as any).meta_12m || 'Definir na próxima revisão'}</Typography>
                                         </div>
-                                        <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
+                                        <div className="p-4 md:p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
                                             <Typography variant="caption" tone="muted" className="mb-2 block">24 Meses</Typography>
                                             <Typography variant="h3" className="text-base">{(activePDI as any).meta_24m || 'Plano em expansão'}</Typography>
                                         </div>
@@ -117,7 +117,7 @@ export default function VendedorPDI() {
                                         (activePDI as any).action_1, (activePDI as any).action_2, 
                                         (activePDI as any).action_3, (activePDI as any).action_4
                                     ].filter(Boolean).map((action, idx) => (
-                                        <div key={idx} className="flex items-center gap-mx-md p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-lg transition-all group">
+                                        <div key={idx} className="flex items-center gap-mx-md p-4 md:p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-lg transition-all group">
                                             <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center font-black text-xs text-text-tertiary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all shadow-sm" aria-hidden="true">{idx + 1}</div>
                                             <Typography variant="p" className="text-sm font-bold text-text-secondary flex-1 uppercase tracking-tight">{action}</Typography>
                                             <CheckCircle2 size={20} className="text-text-tertiary/20 group-hover:text-status-success transition-colors" />

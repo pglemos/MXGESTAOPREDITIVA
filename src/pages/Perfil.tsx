@@ -33,7 +33,7 @@ export default function Perfil() {
   if (!profile) return null
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       {/* Header / Identity Toolbar */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -85,11 +85,11 @@ export default function Perfil() {
             </div>
 
             <div className="w-full mt-14 pt-10 border-t border-border-default grid grid-cols-1 sm:grid-cols-2 gap-mx-md relative z-10">
-              <div className="bg-surface-alt p-mx-md rounded-mx-2xl border border-border-default shadow-inner text-center">
+              <div className="bg-surface-alt p-4 md:p-mx-md rounded-mx-2xl border border-border-default shadow-inner text-center">
                 <Typography variant="tiny" tone="muted" className="mb-2 block tracking-widest font-black opacity-40 uppercase">XP SEASON</Typography>
                 <Typography variant="h1" className="text-2xl tabular-nums font-black">12.4K</Typography>
               </div>
-              <div className="bg-surface-alt p-mx-md rounded-mx-2xl border border-border-default shadow-inner text-center">
+              <div className="bg-surface-alt p-4 md:p-mx-md rounded-mx-2xl border border-border-default shadow-inner text-center">
                 <Typography variant="tiny" tone="muted" className="mb-2 block tracking-widest font-black opacity-40 uppercase">ARENA RANK</Typography>
                 <Typography variant="h1" tone="brand" className="text-2xl tabular-nums font-black">#04</Typography>
               </div>
@@ -103,7 +103,7 @@ export default function Perfil() {
             </header>
             <div className="space-y-mx-sm flex-1">
               {['Visibilidade Arena', 'Status Live-time', 'Logs de Sessão'].map(p => (
-                <div key={p} className="flex items-center justify-between p-mx-md rounded-mx-xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all group/toggle">
+                <div key={p} className="flex items-center justify-between p-4 md:p-mx-md rounded-mx-xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all group/toggle">
                   <Typography variant="tiny" className="text-text-secondary group-hover/toggle:text-text-primary transition-colors">{p}</Typography>
                   <div className="w-mx-xl h-mx-md bg-status-success rounded-mx-full flex items-center px-1 shadow-inner relative cursor-pointer">
                     <div className="w-mx-sm h-mx-sm bg-white rounded-mx-full shadow-mx-sm translate-x-6" />
@@ -168,7 +168,7 @@ export default function Perfil() {
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-mx-lg">
-                  <Card className="p-mx-lg bg-surface-alt/50 border border-border-subtle rounded-mx-2xl flex items-center justify-between group/sec cursor-pointer hover:bg-white hover:shadow-mx-lg transition-all">
+                  <Card className="p-4 md:p-mx-lg bg-surface-alt/50 border border-border-subtle rounded-mx-2xl flex items-center justify-between group/sec cursor-pointer hover:bg-white hover:shadow-mx-lg transition-all">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-text-tertiary group-hover/sec:text-brand-primary transition-colors shadow-mx-sm"><Key size={20} /></div>
                         <Typography variant="tiny" className="font-black uppercase tracking-widest">Alterar Senha</Typography>
@@ -176,7 +176,7 @@ export default function Perfil() {
                     <ChevronRight size={18} className="text-text-tertiary opacity-30 group-hover/sec:translate-x-1 transition-all" />
                   </Card>
 
-                  <Card className="p-mx-lg bg-surface-alt/50 border border-border-subtle rounded-mx-2xl flex items-center justify-between group/sec cursor-pointer hover:bg-white hover:shadow-mx-lg transition-all">
+                  <Card className="p-4 md:p-mx-lg bg-surface-alt/50 border border-border-subtle rounded-mx-2xl flex items-center justify-between group/sec cursor-pointer hover:bg-white hover:shadow-mx-lg transition-all">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-success shadow-mx-sm"><ShieldCheck size={20} /></div>
                         <Typography variant="tiny" className="font-black uppercase tracking-widest">Double Factor</Typography>

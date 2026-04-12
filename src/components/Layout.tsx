@@ -361,65 +361,66 @@ export default function Layout() {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bar - Semantic Nav */}
-      <nav className="md:hidden fixed bottom-mx-sm left-mx-sm right-mx-sm h-mx-2xl bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden" aria-label="Barra de Navegação Rápida">
-        <div className="flex w-full justify-between items-center relative z-10">
+      {/* Mobile Bar - Elite Tab Bar */}
+      <nav 
+        className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-mx-black border-t border-white/10 z-50 flex items-center px-2 safe-area-bottom shadow-mx-2xl" 
+        aria-label="Navegação Inferior"
+      >
+        <div className="grid grid-cols-5 w-full h-full items-center">
           <NavLink
             to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}
-            aria-label="Início"
-            aria-current={location.pathname === (role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas') ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className={({ isActive }) => cn(
+              "flex flex-col items-center justify-center gap-1 transition-all h-full",
+              isActive ? "text-brand-primary" : "text-white/40"
+            )}
           >
-            {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
+            {role === 'vendedor' ? <Home size={20} /> : <LayoutDashboard size={20} />}
+            <span className="text-[8px] font-black uppercase tracking-widest text-center truncate w-full">Início</span>
           </NavLink>
           
-          {role === 'vendedor' && (
-            <NavLink 
-              to="/checkin" 
-              aria-label="Fazer Checkin" 
-              aria-current={location.pathname === '/checkin' ? 'page' : undefined}
-              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
-            >
-              <CheckSquare size={22} />
-            </NavLink>
-          )}
-
-          {(role === 'gerente' || role === 'admin') && (
-            <NavLink 
-              to="/equipe" 
-              aria-label="Gerir Equipe" 
-              aria-current={location.pathname === '/equipe' ? 'page' : undefined}
-              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
-            >
-              <Users size={22} />
-            </NavLink>
-          )}
-
-          <button 
-            type="button" 
-            aria-label="Abrir menu mobile" 
-            onClick={() => setMobileMenuOpen(true)} 
-            className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
+          <NavLink 
+            to={role === 'vendedor' ? '/checkin' : '/equipe'}
+            className={({ isActive }) => cn(
+              "flex flex-col items-center justify-center gap-1 transition-all h-full",
+              isActive ? "text-brand-primary" : "text-white/40"
+            )}
           >
-            <Menu size={24} aria-hidden="true" />
-          </button>
+            {role === 'vendedor' ? <CheckSquare size={20} /> : <Users size={20} />}
+            <span className="text-[8px] font-black uppercase tracking-widest text-center truncate w-full">
+              {role === 'vendedor' ? 'Checkin' : 'Equipe'}
+            </span>
+          </NavLink>
+
+          <div className="flex justify-center -mt-8">
+            <button 
+              type="button" 
+              onClick={() => setMobileMenuOpen(true)} 
+              className="w-mx-14 h-mx-14 rounded-mx-full bg-brand-primary text-white flex items-center justify-center shadow-mx-xl border-4 border-mx-black active:scale-90 transition-all"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
 
           <NavLink 
             to="/ranking" 
-            aria-label="Ver Ranking" 
-            aria-current={location.pathname === '/ranking' ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className={({ isActive }) => cn(
+              "flex flex-col items-center justify-center gap-1 transition-all h-full",
+              isActive ? "text-brand-primary" : "text-white/40"
+            )}
           >
-            <Trophy size={22} />
+            <Trophy size={20} />
+            <span className="text-[8px] font-black uppercase tracking-widest text-center truncate w-full">Arena</span>
           </NavLink>
 
           <NavLink 
             to="/perfil" 
-            aria-label="Meu Perfil" 
-            aria-current={location.pathname === '/perfil' ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className={({ isActive }) => cn(
+              "flex flex-col items-center justify-center gap-1 transition-all h-full",
+              isActive ? "text-brand-primary" : "text-white/40"
+            )}
           >
-            <User size={22} />
+            <User size={20} />
+            <span className="text-[8px] font-black uppercase tracking-widest text-center truncate w-full">Perfil</span>
           </NavLink>
         </div>
       </nav>

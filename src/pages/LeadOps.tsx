@@ -51,7 +51,7 @@ export default function LeadOps() {
   }
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       {/* Header / LeadOps Toolbar */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -81,7 +81,7 @@ export default function LeadOps() {
           { label: 'Atrasado', value: '01', icon: AlertCircle, tone: 'error' },
           { label: 'IA Hot', value: '05', icon: Sparkles, tone: 'brand' },
         ].map((item) => (
-          <Card key={item.label} className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
+          <Card key={item.label} className="p-4 md:p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative">
             <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
             <div className="flex items-center justify-between relative z-10">
               <div className="space-y-mx-tiny">

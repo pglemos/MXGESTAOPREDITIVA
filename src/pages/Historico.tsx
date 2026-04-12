@@ -54,7 +54,7 @@ export default function Historico() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / History Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -95,7 +95,7 @@ export default function Historico() {
                     <AnimatePresence mode="popLayout">
                         {processedCheckins.map((c, i) => (
                             <motion.div key={c.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
-                                <Card className="p-mx-lg md:p-10 group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
+                                <Card className="p-4 md:p-mx-lg md:p-10 group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
                                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16" />
                                     
                                     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md mb-8 border-b border-border-default pb-8 relative z-10">

@@ -46,7 +46,7 @@ export default function Feedback() {
   )
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       {/* Header / Feedback Toolbar */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -71,7 +71,7 @@ export default function Feedback() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         {stats.map((item) => (
-          <Card key={item.label} className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
+          <Card key={item.label} className="p-4 md:p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
             <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
             <div className="flex items-center justify-between relative z-10">
               <div className="space-y-mx-tiny">
@@ -123,7 +123,7 @@ export default function Feedback() {
                   <AnimatePresence mode="popLayout">
                     {filteredFeedbacks.map((f: any, i: number) => (
                       <motion.article key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                        <Card className="p-mx-lg md:p-10 bg-surface-alt/50 border border-border-default rounded-mx-3xl hover:bg-white hover:shadow-mx-xl transition-all relative group/item">
+                        <Card className="p-4 md:p-mx-lg md:p-10 bg-surface-alt/50 border border-border-default rounded-mx-3xl hover:bg-white hover:shadow-mx-xl transition-all relative group/item">
                           <header className="flex justify-between items-start mb-8 border-b border-border-default pb-6">
                             <div className="flex items-center gap-mx-md">
                               <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center shadow-mx-sm group-hover/item:scale-110 transition-transform"><User size={24} className="text-text-tertiary" /></div>

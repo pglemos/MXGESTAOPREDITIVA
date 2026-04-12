@@ -47,7 +47,7 @@ export default function Funil() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             {/* Header / Funnel Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -155,7 +155,7 @@ export default function Funil() {
                     { label: 'Visitas Loja', value: funilData.visitas, icon: Eye, tone: 'warning' },
                     { label: 'Vendas Totais', value: funilData.vnd_total, icon: Car, tone: 'success' },
                 ].map(item => (
-                    <Card key={item.label} className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
+                    <Card key={item.label} className="p-4 md:p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className={cn("w-mx-14 h-mx-14 rounded-mx-2xl flex items-center justify-center border shadow-inner group-hover:scale-110 transition-transform", 
                                 item.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :

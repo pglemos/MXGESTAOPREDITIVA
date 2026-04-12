@@ -69,7 +69,7 @@ export default function Equipe() {
   }
 
   if (loading) return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
         <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
             <div className="space-y-mx-xs text-center lg:text-left">
                 <Skeleton className="h-mx-10 w-mx-64 mx-auto lg:mx-0" />
@@ -92,7 +92,7 @@ export default function Equipe() {
   )
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
@@ -103,7 +103,7 @@ export default function Equipe() {
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Gestão de Tropa & Hierarquia MX</Typography>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
+        <div className="flex flex-wrap flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
           <div className="relative group w-full sm:w-mx-sidebar-expanded">
             <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
             <Input 
@@ -127,7 +127,7 @@ export default function Equipe() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         {stats.map((item) => (
-          <Card key={item.label} className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
+          <Card key={item.label} className="p-4 md:p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
             <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
             <div className="flex items-center justify-between relative z-10">
               <div className="space-y-mx-tiny">
@@ -155,7 +155,7 @@ export default function Equipe() {
               const vigencia = getVigenciaStatus(member)
               return (
               <motion.article key={member.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }} className="rounded-mx-3xl border-none shadow-mx-lg flex flex-col group hover:shadow-mx-xl hover:-translate-y-1 transition-all relative overflow-hidden bg-white h-full">
-                <div className="p-mx-md border-b border-border-default bg-surface-alt/30 flex items-center justify-between relative overflow-hidden">
+                <div className="p-4 md:p-mx-md border-b border-border-default bg-surface-alt/30 flex items-center justify-between relative overflow-hidden">
                   <div className="absolute top-mx-0 right-mx-0 w-mx-2xl h-mx-2xl bg-brand-primary/5 rounded-mx-full blur-xl -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="flex items-center gap-mx-xs relative z-10">
                     <div className={cn("w-mx-xs h-mx-xs rounded-mx-full", member.checkin_today ? "bg-status-success shadow-mx-sm animate-pulse" : "bg-text-tertiary/30")} aria-hidden="true" />
@@ -166,7 +166,7 @@ export default function Equipe() {
                   </Badge>
                 </div>
                 
-                <div className="p-mx-lg flex flex-col items-center text-center flex-1">
+                <div className="p-4 md:p-mx-lg flex flex-col items-center text-center flex-1">
                   <div className="w-mx-20 h-mx-20 rounded-mx-full border-4 border-white shadow-mx-md overflow-hidden bg-surface-alt mb-6 group-hover:scale-105 transition-transform shrink-0">
                     <img 
                       src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || '')}&background=4f46e5&color=fff&bold=true`} 
@@ -188,7 +188,7 @@ export default function Equipe() {
                   </div>
                 </div>
 
-                <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex flex-wrap gap-mx-xs mt-auto relative z-10">
+                <footer className="p-4 md:p-mx-md border-t border-border-default bg-surface-alt/20 flex flex-wrap gap-mx-xs mt-auto relative z-10">
                   <Button variant="outline" size="sm" onClick={() => setEditingMember(member)} className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm border-border-strong hover:border-brand-primary min-w-[45%]" aria-label="Configurar vigência">
                     <Settings2 size={18} />
                   </Button>
@@ -215,9 +215,9 @@ export default function Equipe() {
 
       <AnimatePresence>
         {editingMember && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true">
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-xl">
-              <Card className="p-mx-lg md:p-14 border-none shadow-mx-2xl bg-white overflow-hidden relative rounded-mx-3xl">
+              <Card className="p-4 md:p-mx-lg md:p-14 border-none shadow-mx-2xl bg-white overflow-hidden relative rounded-mx-3xl">
                 <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-3xl -mr-32 -mt-32" />
                 
                 <form onSubmit={handleUpdateVigencia} className="space-y-mx-xl relative z-10">
@@ -249,7 +249,7 @@ export default function Equipe() {
                       <Input type="date" value={editingMember.ended_at || ''} onChange={e => setEditingMember({...editingMember, ended_at: e.target.value})} className="!h-14 !px-6 font-bold" />
                     </div>
                     
-                    <div className="md:col-span-2 p-mx-lg rounded-mx-2xl bg-surface-alt border border-border-default space-y-mx-lg shadow-inner">
+                    <div className="md:col-span-2 p-4 md:p-mx-lg rounded-mx-2xl bg-surface-alt border border-border-default space-y-mx-lg shadow-inner">
                       <label className="flex items-center justify-between cursor-pointer group p-mx-sm rounded-mx-xl hover:bg-white transition-all">
                         <div className="flex items-center gap-mx-md">
                           <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-success shadow-mx-sm group-hover:scale-110 transition-transform"><BadgeCheck size={24} /></div>

@@ -109,13 +109,13 @@ export default function HistoryPage() {
   // ... (keeping stats, loading state)
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       {/* ... (keeping header, stats grid) */}
 
       {/* Audit Table Card via DataGrid Organism */}
       <Card className="flex-1 overflow-hidden flex flex-col border-none shadow-mx-xl bg-white mb-20">
-        <CardHeader className="p-mx-lg md:p-10 border-b border-border-default bg-surface-alt/30 flex flex-col sm:flex-row items-center justify-between gap-mx-md">
+        <CardHeader className="p-4 md:p-mx-lg md:p-10 border-b border-border-default bg-surface-alt/30 flex flex-col sm:flex-row items-center justify-between gap-mx-md">
           <div className="flex items-center gap-mx-md">
             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg transform -rotate-2"><FileText size={28} /></div>
             <div>
@@ -133,7 +133,7 @@ export default function HistoryPage() {
           </div>
         </CardHeader>
 
-        <div className="p-mx-md md:p-0">
+        <div className="p-4 md:p-mx-md md:p-0">
             <DataGrid 
                 columns={columns} 
                 data={filteredCheckins} 
@@ -155,7 +155,7 @@ export default function HistoryPage() {
                 className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm"
               >
                   <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-mx-3xl">
-                      <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
+                      <header className="p-4 md:p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                           <div className="flex items-center gap-mx-sm">
                               <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Edit3 size={20} /></div>
                               <div>
@@ -166,7 +166,7 @@ export default function HistoryPage() {
                           <Button variant="ghost" size="icon" onClick={() => setRequestingCheckin(null)} className="rounded-mx-full w-mx-10 h-mx-10 hover:bg-surface-alt"><X size={20} /></Button>
                       </header>
 
-                      <div className="p-mx-lg md:p-10 space-y-mx-xl">
+                      <div className="p-4 md:p-mx-lg md:p-10 space-y-mx-xl">
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-lg">
                               <div className="space-y-mx-xs">
                                   <Typography variant="tiny" className="font-black text-text-tertiary uppercase ml-1">Leads</Typography>
@@ -202,12 +202,12 @@ export default function HistoryPage() {
                               <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest ml-1">Justificativa da Mudança (Obrigatório)</Typography>
                               <textarea 
                                 value={correctionForm.reason} onChange={e => setCorrectionForm(p => ({ ...p, reason: e.target.value }))}
-                                className="w-full h-mx-32 p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all text-sm font-bold outline-none resize-none shadow-mx-inner"
+                                className="w-full h-mx-32 p-4 md:p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all text-sm font-bold outline-none resize-none shadow-mx-inner"
                                 placeholder="Descreva por que este dado precisa ser alterado..."
                               />
                           </div>
 
-                          <Card className="p-mx-md bg-status-warning-surface border border-mx-amber-100 flex items-start gap-mx-sm rounded-mx-2xl">
+                          <Card className="p-4 md:p-mx-md bg-status-warning-surface border border-mx-amber-100 flex items-start gap-mx-sm rounded-mx-2xl">
                               <AlertTriangle size={18} className="text-status-warning shrink-0 mt-0.5" />
                               <Typography variant="tiny" tone="warning" className="font-black uppercase leading-tight">
                                   Sua solicitação passará por auditoria do gerente antes de ser aplicada ao histórico consolidado.
@@ -215,7 +215,7 @@ export default function HistoryPage() {
                           </Card>
                       </div>
 
-                      <footer className="p-mx-lg md:p-10 border-t border-border-default flex justify-end sticky bottom-mx-0 bg-white z-10">
+                      <footer className="p-4 md:p-mx-lg md:p-10 border-t border-border-default flex justify-end sticky bottom-mx-0 bg-white z-10">
                           <Button 
                             onClick={handleSendRequest}
                             disabled={requestLoading || !correctionForm.reason}

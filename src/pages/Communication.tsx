@@ -42,7 +42,7 @@ export default function Communication() {
   }, [messages, searchTerm])
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       
       {/* Header / Hub Toolbar */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
@@ -75,7 +75,7 @@ export default function Communication() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
         {stats.map((item) => (
-          <Card key={item.label} className="p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
+          <Card key={item.label} className="p-4 md:p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white relative overflow-hidden">
             <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12 opacity-50" />
             <div className="flex items-center justify-between relative z-10">
               <div className="space-y-mx-tiny">
@@ -127,7 +127,7 @@ export default function Communication() {
                         )}>
                           {m.type === 'system' ? <Megaphone size={22} strokeWidth={2} /> : m.type === 'achievement' ? <Sparkles size={22} strokeWidth={2} /> : <MessageSquare size={22} strokeWidth={2} />}
                         </div>
-                        <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-mx-lg hover:bg-white hover:shadow-mx-xl transition-all relative">
+                        <div className="flex-1 bg-surface-alt/50 border border-border-default rounded-mx-3xl p-4 md:p-mx-lg hover:bg-white hover:shadow-mx-xl transition-all relative">
                           <header className="flex justify-between items-start mb-6">
                             <div className="space-y-mx-tiny">
                               <div className="flex items-center gap-mx-xs">
@@ -159,13 +159,13 @@ export default function Communication() {
         {/* Sidebar Channels */}
         <aside className="lg:col-span-4 flex flex-col gap-mx-lg h-full">
           <Card className="flex flex-col overflow-hidden group h-full border-none shadow-mx-lg bg-white">
-            <CardHeader className="p-mx-lg border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
+            <CardHeader className="p-4 md:p-mx-lg border-b border-border-default bg-surface-alt/30 flex items-center justify-between">
               <Typography variant="h3" className="uppercase tracking-tight">Canais Diretos</Typography>
               <Filter size={18} className="text-text-tertiary" />
             </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-mx-lg space-y-mx-sm">
+            <CardContent className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-mx-lg space-y-mx-sm">
               {['Gerência Geral', 'Marketing & Leads', 'Suporte Técnico', 'RH & Treinamentos'].map((canal) => (
-                <div key={canal} className="p-mx-md rounded-mx-2xl border border-border-default bg-white hover:border-brand-primary/20 hover:bg-mx-indigo-50/30 transition-all cursor-pointer group/canal flex items-center justify-between shadow-sm hover:shadow-mx-md">
+                <div key={canal} className="p-4 md:p-mx-md rounded-mx-2xl border border-border-default bg-white hover:border-brand-primary/20 hover:bg-mx-indigo-50/30 transition-all cursor-pointer group/canal flex items-center justify-between shadow-sm hover:shadow-mx-md">
                   <div className="flex items-center gap-mx-sm">
                     <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary group-hover/canal:bg-brand-secondary group-hover/canal:text-white transition-all shadow-inner"><MessageSquare size={20} /></div>
                     <Typography variant="h3" className="text-sm uppercase tracking-tight leading-none">{canal}</Typography>
@@ -174,7 +174,7 @@ export default function Communication() {
                 </div>
               ))}
             </CardContent>
-            <footer className="p-mx-lg border-t border-border-default bg-surface-alt/30">
+            <footer className="p-4 md:p-mx-lg border-t border-border-default bg-surface-alt/30">
                 <Button className="w-full h-mx-14 rounded-mx-full shadow-mx-lg font-black uppercase tracking-widest">
                     <Plus size={18} className="mr-2" /> INICIAR NOVA MENSAGEM
                 </Button>

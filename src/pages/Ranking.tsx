@@ -52,7 +52,7 @@ export default function Ranking() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
@@ -63,7 +63,7 @@ export default function Ranking() {
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Meritocracia Real-time • MX ELITE TRACKING</Typography>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
+                <div className="flex flex-wrap flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
                     <div className="relative group w-full sm:w-mx-sidebar-expanded order-2 sm:order-none">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                         <Input 
@@ -94,7 +94,7 @@ export default function Ranking() {
                             return (
                                 <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
                                     <Card className={cn(
-                                        "p-mx-lg md:p-10 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
+                                        "p-4 md:p-mx-lg md:p-10 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
                                         isTop1 ? "bg-brand-secondary text-white shadow-mx-xl ring-2 ring-mx-amber-400 ring-offset-4" : 
                                         isMe ? "bg-mx-indigo-50 border-2 border-brand-primary shadow-mx-sm" : "bg-white"
                                     )}>

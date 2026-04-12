@@ -148,7 +148,8 @@ export default function PDIPrint() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-10 mb-10">
                         <div className="space-y-mx-sm">
                             <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">Mapeamento Técnico & Comportamental</Typography>
-                            <table className="w-full text-xs font-bold border-collapse">
+                            <div className="overflow-x-auto no-scrollbar w-full">
+<table className="w-full text-xs font-bold border-collapse">
                                 <thead>
                                     <tr className="bg-surface-alt border-b-2 border-mx-black">
                                         <th className="py-2 px-3 text-left uppercase">Competência</th>
@@ -166,6 +167,7 @@ export default function PDIPrint() {
                                     ))}
                                 </tbody>
                             </table>
+</div>
                         </div>
 
                         <div className="flex flex-col items-center justify-center border-l-2 border-border-default pl-10">
@@ -204,7 +206,8 @@ export default function PDIPrint() {
 
                     <div className="mb-14">
                         <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary mb-6 block">Ações de Desenvolvimento (Próximos 6 Meses)</Typography>
-                        <table className="w-full text-xs border-collapse">
+                        <div className="overflow-x-auto no-scrollbar w-full">
+<table className="w-full text-xs border-collapse">
                             <thead>
                                 <tr className="bg-mx-black text-white text-left">
                                     <th className="py-4 px-4 font-black uppercase tracking-widest">Item a Desenvolver</th>
@@ -226,9 +229,10 @@ export default function PDIPrint() {
                                 ))}
                             </tbody>
                         </table>
+</div>
                     </div>
 
-                    <div className="mt-10 p-mx-lg border-4 border-mx-black rounded-mx-2xl flex flex-col items-center justify-center text-center space-y-mx-sm">
+                    <div className="mt-10 p-4 md:p-mx-lg border-4 border-mx-black rounded-mx-2xl flex flex-col items-center justify-center text-center space-y-mx-sm">
                         <Typography variant="h3" className="uppercase font-black tracking-widest">A Equação da Motivação no Trabalho</Typography>
                         <Typography variant="h1" tone="brand" className="text-5xl font-black font-mono-numbers my-4">$ = QI + DC</Typography>
                         <Typography variant="p" className="text-sm font-bold uppercase text-text-secondary">

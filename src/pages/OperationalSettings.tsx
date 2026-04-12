@@ -108,7 +108,7 @@ export default function OperationalSettings() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-4 md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
                 <div className="flex flex-col gap-mx-tiny">
@@ -131,7 +131,7 @@ export default function OperationalSettings() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-32">
                 <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="p-mx-lg md:p-14 space-y-mx-10 border-none shadow-mx-lg bg-white">
+                    <Card className="p-4 md:p-mx-lg md:p-14 space-y-mx-10 border-none shadow-mx-lg bg-white">
                         <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-brand-primary shadow-inner" aria-hidden="true"><Settings2 size={28} /></div>
                             <Typography variant="h3" className="uppercase tracking-tight font-black">Unidade Alvo</Typography>
@@ -153,14 +153,14 @@ export default function OperationalSettings() {
                         </div>
 
                         {selectedStoreId && (
-                            <div className="p-mx-md bg-mx-indigo-50 border border-mx-indigo-100 shadow-inner flex items-center gap-mx-sm rounded-mx-xl" role="status">
+                            <div className="p-4 md:p-mx-md bg-mx-indigo-50 border border-mx-indigo-100 shadow-inner flex items-center gap-mx-sm rounded-mx-xl" role="status">
                                 <div className="w-2.5 h-2.5 rounded-mx-full bg-brand-primary animate-pulse" aria-hidden="true" />
                                 <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Unidade Indexada para Configuração</Typography>
                             </div>
                         )}
                     </Card>
 
-                    <Card className="p-mx-lg md:p-14 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden group">
+                    <Card className="p-4 md:p-mx-lg md:p-14 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden group">
                         <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700" aria-hidden="true"><Shield size={160} /></div>
                         <Typography variant="h3" tone="white" className="mb-6 uppercase tracking-tight font-black">Nível de Hardening</Typography>
                         <Typography variant="p" tone="white" className="text-xs font-bold leading-relaxed italic opacity-60 uppercase tracking-tight">
@@ -170,7 +170,7 @@ export default function OperationalSettings() {
                 </aside>
 
                 <section className="lg:col-span-8">
-                    <Card className="p-mx-lg md:p-14 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
+                    <Card className="p-4 md:p-mx-lg md:p-14 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
                         <header className="border-b border-border-default pb-8">
                             <Typography variant="h2" className="uppercase tracking-tighter">Políticas Operacionais</Typography>
                             <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>
@@ -182,7 +182,7 @@ export default function OperationalSettings() {
                                 { label: 'Check-in Estrito', desc: 'Bloquear acesso ao cockpit sem o registro matinal obrigatório', field: 'strict_checkin' },
                                 { label: 'Lançamento Manual', desc: 'Autorizar gerência a retroagir dados em caso de falha sistêmica', field: 'allow_manual_retro' }
                             ].map((s) => (
-                                <div key={s.field} className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                <div key={s.field} className="flex items-center justify-between group p-4 md:p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{s.label}</Typography>
                                         <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">{s.desc}</Typography>
@@ -198,7 +198,7 @@ export default function OperationalSettings() {
                                 </div>
                             ))}
 
-                                <div className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                <div className="flex items-center justify-between group p-4 md:p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">Justiça Matemática (v1.1)</Typography>
                                         <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">Base de cálculo da projeção e ritmo diário</Typography>
@@ -221,7 +221,7 @@ export default function OperationalSettings() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                <div className="flex items-center justify-between group p-4 md:p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">Horário Limite Matinal</Typography>
                                     <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">Deadline para disparo de relatórios automáticos de rede</Typography>
@@ -276,13 +276,13 @@ export default function OperationalSettings() {
                                             value={emailLists[list.key as keyof typeof emailLists]}
                                             onChange={e => setEmailLists(prev => ({ ...prev, [list.key]: e.target.value }))}
                                             placeholder="email1@empresa.com, email2@empresa.com..."
-                                            className="w-full h-mx-3xl p-mx-md bg-surface-alt border border-border-default rounded-mx-2xl text-xs font-bold focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none resize-none shadow-mx-inner"
+                                            className="w-full h-mx-3xl p-4 md:p-mx-md bg-surface-alt border border-border-default rounded-mx-2xl text-xs font-bold focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none resize-none shadow-mx-inner"
                                         />
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="bg-mx-indigo-50 p-mx-md rounded-mx-2xl border border-mx-indigo-100 flex items-center gap-mx-sm">
+                            <div className="bg-mx-indigo-50 p-4 md:p-mx-md rounded-mx-2xl border border-mx-indigo-100 flex items-center gap-mx-sm">
                                 <Info size={18} className="text-brand-primary shrink-0" aria-hidden="true" />
                                 <Typography variant="tiny" tone="brand" className="font-black uppercase leading-tight">
                                     Separe os e-mails por vírgula. O sistema validará a sintaxe antes de disparar as automações de rede.
