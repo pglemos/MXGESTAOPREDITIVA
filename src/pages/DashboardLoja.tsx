@@ -31,32 +31,57 @@ export default function DashboardLoja() {
     const [resolving, setResolving] = useState(!!storeSlug)
 
     useEffect(() => {
-        if (!storeSlug) {
-            setResolving(false)
-            return
-        }
-        setResolving(true)
-        const found = memberships.find(m => m.store?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === storeSlug)
-        if (found) {
-            setResolvedStoreId(found.store_id)
-            setResolving(false)
-        } else if (role === 'admin' || role === 'dono') {
-            import('@/lib/supabase').then(({ supabase }) => {
-                supabase.from('stores').select('id, name').eq('active', true).then(({data}) => {
-                    const match = data?.find(s => s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === storeSlug)
-                    if (match) setResolvedStoreId(match.id)
-                    setResolving(false)
-                })
+        const resolve = async () => {
+            if (!storeSlug) {
+                setResolving(false)
+                return
+            }
+            
+            setResolving(true)
+            
+            // 1. Tentar resolver pelas associações do usuário (mais rápido)
+            const found = memberships.find(m => {
+                const slug = m.store?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                return slug === storeSlug
             })
-        } else {
+
+            if (found) {
+                setResolvedStoreId(found.store_id)
+                setResolving(false)
+                return
+            }
+
+            // 2. Tentar resolver via RPC ou Query global (para Admin/Dono)
+            if (role === 'admin' || role === 'dono') {
+                try {
+                    const { supabase } = await import('@/lib/supabase')
+                    const { data: allStores } = await supabase.from('stores').select('id, name').eq('active', true)
+                    
+                    const match = allStores?.find(s => {
+                        const slug = s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                        return slug === storeSlug
+                    })
+
+                    if (match) {
+                        setResolvedStoreId(match.id)
+                    } else {
+                        toast.error('Unidade não localizada.')
+                    }
+                } catch (err) {
+                    console.error('Erro ao resolver slug:', err)
+                }
+            }
             setResolving(false)
         }
+
+        resolve()
     }, [storeSlug, memberships, role])
 
     const urlStoreId = resolvedStoreId || searchParams.get('id')
     const storeId = urlStoreId || authStoreId
 
-    if (!resolving && !urlStoreId && (role === 'admin' || role === 'dono')) {
+    // Redirecionar apenas se NÃO estiver resolvendo e NÃO houver storeId válido
+    if (!resolving && !storeId && (role === 'admin' || role === 'dono')) {
         return <Navigate to={role === 'admin' ? '/painel' : '/lojas'} replace />
     }
 
