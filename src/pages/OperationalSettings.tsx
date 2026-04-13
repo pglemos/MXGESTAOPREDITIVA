@@ -15,6 +15,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { useAuth } from '@/hooks/useAuth'
 import { useStores } from '@/hooks/useTeam'
 import { useStoreDeliveryRules } from '@/hooks/useData'
+import { useStoreMetaRules } from '@/hooks/useGoals'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
@@ -51,6 +52,7 @@ export default function OperationalSettings() {
     })
 
     const { deliveryRules, loading: rulesLoading, updateDeliveryRules } = useStoreDeliveryRules(selectedStoreId)
+    const { metaRules, updateMetaRules } = useStoreMetaRules(selectedStoreId)
     const [emailLists, setEmailLists] = useState({
         matinal: '',
         weekly: '',

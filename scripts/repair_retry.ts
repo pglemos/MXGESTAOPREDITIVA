@@ -17,7 +17,7 @@ const LOGINS = [
 ]
 const PASSWORD = 'Mx#2026!'
 
-async function retry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+async function retry<T>(fn: () => PromiseLike<T>, retries = 3): Promise<T> {
     try {
         return await fn()
     } catch (err) {
@@ -33,7 +33,9 @@ async function retry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
 async function repair() {
     console.log('--- REPAIRING SYSTEM ---')
 
-    const { data: stores } = await retry(() => supabase.from('stores').select('id, name').eq('active', true).limit(1))
+    const { data: stores } = await retry(async () =>
+        await supabase.from('stores').select('id, name').eq('active', true).limit(1)
+    )
     if (!stores || stores.length === 0) {
         console.error('No active stores!')
         return
@@ -44,8 +46,9 @@ async function repair() {
         console.log(`\nUser: ${uInfo.email}`)
 
         // 1. Auth
-        const { data: authUsers } = await retry(() => supabase.auth.admin.listUsers())
-        let authUser = authUsers?.users.find(u => u.email === uInfo.email)
+        const authUsersResponse = await retry(async () => await supabase.auth.admin.listUsers())
+        const authUsers = (authUsersResponse.data?.users ?? []) as Array<{ id: string; email?: string | null }>
+        let authUser = authUsers.find((u) => u.email === uInfo.email)
 
         if (!authUser) {
             console.log('Creating auth user...')
@@ -65,7 +68,7 @@ async function repair() {
 
         // 2. Profile
         console.log('Upserting profile...')
-        await retry(() => supabase.from('users').upsert({
+        await retry(async () => await supabase.from('users').upsert({
             id: authUser!.id,
             email: uInfo.email,
             name: uInfo.name,
@@ -75,9 +78,11 @@ async function repair() {
 
         // 3. Membership
         console.log('Ensuring membership...')
-        const { data: mems } = await retry(() => supabase.from('memberships').select('id').eq('user_id', authUser!.id).eq('store_id', storeId))
+        const { data: mems } = await retry(async () =>
+            await supabase.from('memberships').select('id').eq('user_id', authUser!.id).eq('store_id', storeId)
+        )
         if (!mems || mems.length === 0) {
-            await retry(() => supabase.from('memberships').insert({
+            await retry(async () => await supabase.from('memberships').insert({
                 user_id: authUser!.id,
                 store_id: storeId,
                 role: uInfo.role === 'admin' ? 'gerente' : uInfo.role

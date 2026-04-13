@@ -1,0 +1,64 @@
+VISITA 6: Revisão dos Processos Críticos
+CABEÇALHO BASE - OBRIGATÓRIO (Copiar para o CRM):
+Data: 11/03/2026
+Consultor: José Roberto
+Loja: DNA
+Meta Mensal: 40 (vendeu 17 até dia 11/03)
+Projeção: 48
+Leads Mês:  369 (100 abaixo do que precisaria pela quantidade de vendedores)
+Estoque Disponível: 70 (40 carros em preparação)
+Tempo: 3 horas
+Alvo (Participantes): Proprietário
+Check List:
+Acessar o sistema com o proprietário e rever todos os processos implementados até o momento;
+Pontuar quais processos precisarão de intervenção;
+
+Loja do Portal vai mudar ate o final do mês para Shopping do Avião, iremos manter o quadro de 3 vendedores, 1 gerente, 1 adm e 1 pré vendas. (loja com 25 vagas)
+Reavaliar o Plano de Ação construído no P.E.
+
+Contratação dos preparadores mudou para abril deixando o gerente ainda com processo muito moroso.
+ Equipe ainda com falha no consumo do curso de vendas e gerentes, foi repassado os numero que estão também no corpo desse documento.
+Tivemos em 11 dias 369 leads recebidos porém 102 foram finalizados, foi feito o compromisso que quem finaliza o lead é o gerente.
+🚨 PONTO DE ATENÇÃO (TRAVA): Foco na oficina, financiamento e veículos acima de 90 dias travados no pátio.
+Resumo do Estoque
+Quantidade geral: 65 veículos.
+Tempo médio em estoque: 78,3 dias.
+Melhoramos de media de 100 dias para 78,3
+API DO WHATSAPP INICIOU NA PRIMEIRA SEMANA DE MARÇO
+
+STATUS LOJA SHOPPING PORTAL, AGUARDANDO PREVISAO DE ENTREGA DA LOJA DO AVIÃO, PREVISTO PARA SEMANA QUE VEM
+
+[TABELA 1]
+🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING
+POS | VENDEDOR | LEADS | AGD | VISITA | VENDAS | % META
+1º | WANDER | 16 | 13 | 6 | 6 | 120%
+2º | CRISTINA DO CARMO | 48 | 8 | 5 | 3 | 60%
+3º | ANTÔNIO PEREIRA | 6 | 6 | 0 | 2 | 40%
+4º | JOÃO PINHEIRO | 0 | 0 | 0 | 2 | 40%
+5º | WENDER LUCIO | 0 | 0 | 0 | 2 | 40%
+6º | DOUGLAS DO SANTOS | 20 | 9 | 4 | 1 | 20%
+7º | KELTON | 1 | 2 | 0 | 1 | 20%
+8º | BRUNO HENRIQUE | 20 | 8 | 3 | 0 | 0%
+
+[TABELA 2]
+LOJA | LEADS | AGENDAM. | VISITAS | VENDAS | META | GAP (FALTA) | PROJEÇÃO | STATUS ATUAL
+DNA VEICULOS | 111 | 46 | 18 | 17 | 40 | 23 | 48 | ACIMA DA META
+
+[TABELA 3]
+Mídia | Recebidos | Pendentes | Andamentos | Agendados | Finalizados | Sucesso | Insucesso
+Facebook | 1 | 0 | 1 | 0 | 0 | 0 | 0
+TV DO CARRO | 1 | 0 | 0 | 1 | 0 | 0 | 0
+SeminovosBH | 3 | 0 | 3 | 0 | 0 | 0 | 0
+Chaves na Mão | 5 | 0 | 2 | 0 | 3 | 0 | 3
+Pós Venda | 5 | 0 | 2 | 0 | 3 | 0 | 3
+WebMotors | 6 | 0 | 4 | 2 | 0 | 0 | 0
+Instagram | 19 | 0 | 8 | 3 | 8 | 0 | 8
+Site | 24 | 0 | 11 | 3 | 10 | 1 | 9
+Campanha Facebook | 26 | 0 | 21 | 1 | 4 | 0 | 4
+MobiAuto | 27 | 0 | 16 | 4 | 7 | 0 | 7
+Icarros | 31 | 1 | 20 | 1 | 9 | 0 | 9
+Campanha Instagram | 36 | 0 | 27 | 6 | 3 | 0 | 3
+Whatsapp | 57 | 0 | 39 | 2 | 16 | 0 | 16
+MercadoLivre | 59 | 0 | 36 | 7 | 16 | 1 | 15
+OLX | 69 | 0 | 30 | 12 | 27 | 0 | 27
+TODOS: | 369 | 1 | 220 | 42 | 106 | 2 | 104

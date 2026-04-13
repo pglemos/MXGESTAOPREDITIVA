@@ -46,6 +46,9 @@ const AiDiagnostics = lazy(() => import('@/pages/AiDiagnostics'))
 const MorningReport = lazy(() => import('@/pages/MorningReport'))
 const SalesPerformance = lazy(() => import('@/pages/SalesPerformance'))
 const SellerPerformance = lazy(() => import('@/pages/SellerPerformance'))
+const Consultoria = lazy(() => import('@/pages/Consultoria'))
+const ConsultoriaClientes = lazy(() => import('@/pages/ConsultoriaClientes'))
+const ConsultoriaClienteDetalhe = lazy(() => import('@/pages/ConsultoriaClienteDetalhe'))
 
 const Spinner = () => (
   <div className="flex flex-col items-center gap-mx-md">
@@ -150,6 +153,14 @@ export default function App() {
             {/* Admin Core */}
             <Route path="painel" element={<Suspense fallback={<Spinner />}><PainelConsultor /></Suspense>} />
             <Route path="lojas" element={<Suspense fallback={<Spinner />}><Lojas /></Suspense>} />
+            
+            {/* CRM de Consultoria */}
+            <Route path="consultoria">
+              <Route index element={<Suspense fallback={<Spinner />}><Consultoria /></Suspense>} />
+              <Route path="clientes" element={<Suspense fallback={<Spinner />}><ConsultoriaClientes /></Suspense>} />
+              <Route path="clientes/:clientId" element={<Suspense fallback={<Spinner />}><ConsultoriaClienteDetalhe /></Suspense>} />
+            </Route>
+
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />

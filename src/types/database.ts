@@ -220,15 +220,294 @@ export interface FunnelData {
 /** Tipos de Formulários */
 export interface CheckinFormData {
     leads?: number
+    leads_prev_day?: number
     agd_cart_prev?: number
+    agd_cart_prev_day?: number
     agd_net_prev?: number
+    agd_net_prev_day?: number
     agd_cart?: number
+    agd_cart_today?: number
     agd_net?: number
+    agd_net_today?: number
     vnd_porta?: number
+    vnd_porta_prev_day?: number
     vnd_cart?: number
+    vnd_cart_prev_day?: number
     vnd_net?: number
+    vnd_net_prev_day?: number
     visitas?: number
+    visit_prev_day?: number
     note?: string
     zero_reason?: string
     reference_date?: string
 }
+
+export interface Membership {
+    id: string
+    user_id: string
+    store_id: string
+    role: MembershipRole
+    created_at?: string
+    store?: Store
+}
+
+export interface CheckinTotals {
+    agd_total: number
+    vnd_total: number
+}
+
+export type CheckinWithTotals = DailyCheckin & CheckinTotals
+
+export interface Benchmark {
+    lead_agd: number
+    agd_visita: number
+    visita_vnd: number
+}
+
+export interface FunnelDiagnostic {
+    gargalo: string | null
+    diagnostico: string
+    sugestao: string
+    mensagem?: string
+}
+
+export interface Training {
+    id: string
+    title: string
+    description: string | null
+    type: TrainingType
+    video_url: string
+    target_audience: TargetAudience
+    active: boolean
+    created_at: string
+    updated_at?: string
+}
+
+export interface TrainingProgress {
+    id?: string
+    user_id: string
+    training_id: string
+    created_at?: string
+}
+
+export interface FeedbackFormData {
+    seller_id: string
+    week_reference: string
+    leads_week: number
+    agd_week: number
+    visit_week: number
+    vnd_week: number
+    tx_lead_agd: number
+    tx_agd_visita: number
+    tx_visita_vnd: number
+    meta_compromisso: number
+    positives: string
+    attention_points: string
+    action: string
+    notes?: string
+    team_avg_json?: Record<string, unknown>
+    diagnostic_json?: Record<string, unknown>
+    commitment_suggested?: number
+}
+
+export interface WeeklyFeedbackReport {
+    id: string
+    store_id: string
+    week_start: string
+    week_end: string
+    weekly_goal?: number
+    team_avg_json?: Record<string, unknown> | null
+    email_status?: string | null
+    recipients?: string[] | null
+    summary_json?: Record<string, unknown> | null
+    created_at?: string
+    updated_at?: string
+}
+
+export interface PDIReview {
+    id: string
+    pdi_id: string
+    reviewer_id?: string | null
+    notes?: string | null
+    created_at?: string
+    [key: string]: unknown
+}
+
+export interface PDIFormData {
+    seller_id: string
+    comp_prospeccao: number
+    comp_abordagem: number
+    comp_demonstracao: number
+    comp_fechamento: number
+    comp_crm: number
+    comp_digital: number
+    comp_disciplina: number
+    comp_organizacao: number
+    comp_negociacao: number
+    comp_produto: number
+    meta_6m: string
+    meta_12m: string
+    meta_24m: string
+    action_1: string
+    action_2?: string
+    action_3?: string
+    action_4?: string
+    action_5?: string
+    due_date?: string
+}
+
+export type NotificationPriority = 'low' | 'medium' | 'high'
+export type NotificationType = 'system' | 'discipline' | 'performance' | 'alert'
+
+export interface Notification {
+    id: string
+    title: string
+    message: string
+    type: NotificationType | string
+    priority: NotificationPriority | string
+    read: boolean
+    recipient_id: string
+    sender_id?: string | null
+    store_id?: string | null
+    target_role?: string | null
+    link?: string | null
+    broadcast_id?: string | null
+    created_at: string
+    updated_at?: string
+}
+
+export interface StoreBenchmark {
+    store_id: string
+    lead_to_agend: number
+    agend_to_visit: number
+    visit_to_sale: number
+    updated_by?: string | null
+    updated_at?: string
+}
+
+export interface StoreDeliveryRules {
+    store_id: string
+    matinal_recipients: string[]
+    weekly_recipients: string[]
+    monthly_recipients: string[]
+    whatsapp_group_ref: string | null
+    timezone: string
+    active: boolean
+    updated_by?: string | null
+    updated_at?: string
+}
+
+export interface DigitalProduct {
+    id: string
+    name: string
+    description: string
+    link: string
+    created_at?: string
+    updated_at?: string
+}
+
+export interface ManagerRoutineLog {
+    id: string
+    store_id: string
+    manager_id: string
+    routine_date: string
+    reference_date: string
+    checkins_pending_count: number
+    sem_registro_count: number
+    agd_cart_today: number
+    agd_net_today: number
+    previous_day_leads: number
+    previous_day_sales: number
+    ranking_snapshot?: Array<Record<string, unknown>>
+    notes?: string | null
+    created_at?: string
+}
+
+// ============================================
+// CRM de Consultoria (CONS-01 & CONS-02)
+// ============================================
+
+/** Status de Cliente da Consultoria */
+export type ConsultingClientStatus = 'ativo' | 'inativo' | 'suspenso' | 'prospect'
+/** Papeis na Consultoria */
+export type AssignmentRole = 'responsavel' | 'auxiliar' | 'viewer'
+
+/** Cliente da Consultoria (Empresa/Grupo) */
+export interface ConsultingClient {
+    id: string
+    name: string
+    legal_name: string | null
+    cnpj: string | null
+    product_name: string | null
+    status: ConsultingClientStatus
+    notes: string | null
+    primary_store_id: string | null
+    created_by: string | null
+    created_at: string
+    updated_at: string
+}
+
+/** Unidade/Loja do Cliente da Consultoria */
+export interface ConsultingClientUnit {
+    id: string
+    client_id: string
+    name: string
+    city: string | null
+    state: string | null
+    is_primary: boolean
+    created_at: string
+    updated_at: string
+}
+
+/** Contato do Cliente da Consultoria */
+export interface ConsultingClientContact {
+    id: string
+    client_id: string
+    name: string
+    email: string | null
+    phone: string | null
+    role: string | null
+    is_primary: boolean
+    created_at: string
+    updated_at: string
+}
+
+/** Vínculo de Consultor a Cliente */
+export interface ConsultingAssignment {
+    id: string
+    client_id: string
+    user_id: string
+    assignment_role: AssignmentRole
+    active: boolean
+    created_at: string
+    updated_at: string
+    // Dados injetados
+    client?: ConsultingClient
+    user?: User
+}
+
+/** Tokens OAuth2 para Integrações (Google, etc) */
+export interface ConsultingOAuthToken {
+    id: string
+    user_id: string
+    provider: 'google'
+    access_token: string
+    refresh_token: string | null
+    expires_at: string | null
+    scopes: string[]
+    created_at: string
+    updated_at: string
+}
+
+/** Configurações de Sincronização de Agenda */
+export interface ConsultingCalendarSettings {
+    id: string
+    client_id: string
+    user_id: string
+    google_calendar_id: string
+    sync_active: boolean
+    last_sync_at: string | null
+    created_at: string
+    updated_at: string
+}
+

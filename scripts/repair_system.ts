@@ -34,8 +34,9 @@ async function repairSystem() {
         console.log(`\nProcessing ${uInfo.email}...`)
 
         // A. Ensure Auth User
-        const { data: authUsers } = await supabase.auth.admin.listUsers()
-        let authUser = authUsers?.users.find(u => u.email === uInfo.email)
+        const authUsersResponse = await supabase.auth.admin.listUsers()
+        const authUsers = (authUsersResponse.data?.users ?? []) as Array<{ id: string; email?: string | null }>
+        let authUser = authUsers.find((u) => u.email === uInfo.email)
 
         if (!authUser) {
             console.log(`Creating auth user ${uInfo.email}...`)

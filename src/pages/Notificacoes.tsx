@@ -112,7 +112,7 @@ export default function Notificacoes() {
                         <Typography variant="h2" className="uppercase tracking-tighter">Inbox Limpo</Typography>
                         <Typography variant="caption" tone="muted" className="max-w-xs mt-4 uppercase font-black tracking-widest">Nenhuma sinalização pendente na malha operacional.</Typography>
                     </div>
-                ) : Object.entries(grouped).map(([group, list]) => (
+                ) : (Object.entries(grouped) as Array<[string, typeof filtered]>).map(([group, list]) => (
                   <div key={group} className="space-y-mx-md mb-14 last:mb-0">
                     <div className="flex items-center gap-mx-md px-4">
                       <Typography variant="caption" tone="muted" className="font-black tracking-widest uppercase whitespace-nowrap">{group}</Typography>

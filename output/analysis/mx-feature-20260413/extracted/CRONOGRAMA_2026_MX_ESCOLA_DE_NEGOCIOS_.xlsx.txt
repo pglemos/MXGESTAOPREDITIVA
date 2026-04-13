@@ -1,0 +1,354 @@
+
+--- PLANILHA: AGENDA (None linhas x None colunas) ---
+L1:  | AGENDA 2026
+L3:  | SUBTOTAIS |  |  | =SUBTOTAL(3,E6:E1045) |  |  |  | =SUBTOTAL(3,E6:E1045)
+L4:  |  |  |  |  |  |  |  |  |  |  |  | ID_EVENTO
+L5:  | Visita | Nome do Cliente | Produto / Consultoria | Data da Visita | Hora | Tempo (horas) | Modalidade | Consultor Responsável | Consultor Auxiliar | Alvo | Motivo da Visita / Ação Planejada
+L6:  | 1.0 | Império | PPA PREMIUM | 2026-01-05 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | o4mpnohlcvm4vrm4rjtngr8csk@google.com
+L7:  | 1.0 | Vitrine | PPA PREMIUM | 2026-01-05 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | og1oltcpp4f2su5h5hqtsdmnng@google.com
+L8:  | 2.0 | Otávio Lage | PMR PRESENCIAL | 2026-01-05 00:00:00 | 09:00:00 | 8.0 | Presencial | Gedson Freire | José Roberto | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | nsnbhta7jrod778l8s8jcgulfo@google.com
+L9:  | 1.0 | Salim | PPA | 2026-01-06 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | s04gjm4bm2b625p7ugvtqhqt2s@google.com
+L10:  | 2.0 | Goto Motors | PMR PRESENCIAL | 2026-01-06 00:00:00 | 09:00:00 | 8.0 | Presencial | Gedson Freire | José Roberto | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | spku2j62t2rb15k5mft9s1cfps@google.com
+L11:  | 1.0 | AG AUTOMÓVEIS | PPA PREMIUM | 2026-01-06 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | nm5c768tuu4afu40914tlca00k@google.com
+L12:  | 2.0 | Paay | PMR PRESENCIAL | 2026-01-07 00:00:00 | 09:00:00 | 8.0 | Presencial | Gedson Freire | José Roberto | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | j8vmv9qt8offk1dd19pjci1e4o@google.com
+L13:  | 1.0 | Lial | PPA PREMIUM | 2026-01-07 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | 1h53f01ikir47osprd28dplolk@google.com
+L14:  | 1.0 | Dakar | PPA | 2026-01-07 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | hgnip5i234as446sa8gagru358@google.com
+L15:  | 1.0 | Almeida | PPA | 2026-01-08 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | h9na01l7r0ba8qb4obcog2g2o4@google.com
+L16:  | 1.0 | Piscar Veículos | PPA PREMIUM | 2026-01-08 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | k9k2ff92qtc40frrkslh2qjrc8@google.com
+L17:  | 2.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-01-08 00:00:00 | 09:00:00 | 8.0 | Presencial | Gedson Freire | José Roberto | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | 8p97tfmerd1msmj11pvp45bh6g@google.com
+L18:  | 0.0 | Promac JPA | PMR PRESENCIAL | 2026-01-09 00:00:00 | 10:30:00 | 1.0 | Online | Daniel Santos |  | Proprietário | Onboarding |  | 1mjt312nh4qv12f1p2j2umeqh8@google.com
+L19:  | 2.0 | RK2 | PMR PRESENCIAL | 2026-01-09 00:00:00 | 09:00:00 | 8.0 | Presencial | Gedson Freire | José Roberto | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | dg8dg23dkbll2e6moi1ii03npk@google.com
+L20:  | 1.0 | InvestCar MG | PPA | 2026-01-09 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | 35qkbsa9t81m6m4vuotggu4pa0@google.com
+L21:  | 0.0 | Espíndola | PMR PRESENCIAL | 2026-01-09 00:00:00 | 09:00:00 | 1.0 | Online | Daniel Santos |  | Proprietário | Onboarding |  | dhtp7mtfvf4vnmgju1v0gvilo8@google.com
+L22:  | 3.0 | RK2 | PMR PRESENCIAL | 2026-01-12 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire | José Roberto | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | 0is3qv25c45jmh8hkrkv1mka08@google.com
+L23:  | 11.0 | Wcar | PMR RENOVAÇÃO | 2026-01-12 00:00:00 | 17:00:00 | 3.0 | Presencial | Daniel Santos |  | Vendedor | Treinamento Vendedores |  | h7ik581rvg5p659jk9gkkihvr0@google.com
+L24:  | 1.0 | André Car | PMR RENOVAÇÃO | 2026-01-12 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | odha36brep6f2gtnttkan9166k@google.com
+L25:  | 1.0 | Direta | PPA PREMIUM | 2026-01-12 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | d2rptblphv0d7ni1um8l2atug8@google.com
+L26:  | 3.0 | Paay | PMR PRESENCIAL | 2026-01-13 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | fp6shsshduuifm07j88tdp0goo@google.com
+L27:  | 1.0 | Ideal Automotive | PPA | 2026-01-13 00:00:00 | 14:00:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | 2qabrms5erf4cjv253u0im1lko@google.com
+L28:  | 1.0 | Auto Up | PMR RENOVAÇÃO | 2026-01-13 00:00:00 | 16:00:00 | 1.0 | Online | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | j951u5bm25od87ph0ccgrotbik@google.com
+L29:  | 3.0 | Otávio Lage | PMR PRESENCIAL | 2026-01-13 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | 4ncoqphkom3h0b9io4cskelf30@google.com
+L30:  | 3.0 | Goto Motors | PMR PRESENCIAL | 2026-01-13 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | kgevcm7v95rlimaunnih2lhrfc@google.com
+L31:  | 1.0 | Ideal Automotive | PPA | 2026-01-13 00:00:00 | 10:30:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | nnjl9e5cro8h4lufid3rs7urqc@google.com
+L32:  | 3.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-01-14 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire | José Roberto | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | ig5ka1f3ddmffnj0hl42uhflp4@google.com
+L33:  | 1.0 | MaisCar | PMR RENOVAÇÃO | 2026-01-14 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | l462m5l8uk5nmp7nhcg14kf8n8@google.com
+L34:  | 1.0 | Sempre Mais | PPA | 2026-01-14 00:00:00 | 15:00:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | 45no8q5m6vj9lpd7pqgu3ko8c4@google.com
+L35:  | 12.0 | Wcar | PMR RENOVAÇÃO | 2026-01-15 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Gerente | Planejamento Estratégico |  | 4thbd5690o25hbsu1q9q9qc8h0@google.com
+L36:  | 2.0 | Promac JPA | PMR PRESENCIAL | 2026-01-15 00:00:00 | 16:00:00 | 2.0 | Online | Gedson Freire |  | Gerente | Diagnóstico |  | gs085dgl1htj3r6f370673ucgg@google.com
+L37:  | 2.0 | Acertt | PMR PRESENCIAL | 2026-01-16 00:00:00 | 14:00:00 | 6.0 | Presencial | Daniel Santos |  | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | 5r879hqh2hap8aqkn4kdfg9us0@google.com
+L38:  | 2.0 | Carrum | PMR ONLINE | 2026-01-16 00:00:00 | 14:00:00 | 3.0 | Online | José Roberto |  | Proprietário | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | tkqcgg533gnffb8osupk6o0qqo@google.com
+L39:  | 4.0 | RK2 | PMR PRESENCIAL | 2026-01-16 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário e Gerente | Feedback Estruturado e Cultura de Resultado |  | kg44mt388u6dm5as2l5cmkst9s@google.com
+L40:  | Extra | Piscar Veículos | PPA | 2026-01-16 00:00:00 | 09:00:00 | 5.0 | Presencial | Daniel Santos |  | Proprietário | Acompanhamento |  | 51eki94lun11g1egfkvtm4rctk@google.com
+L41:  | 1.0 | Espíndola | PMR PRESENCIAL | 2026-01-19 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | José Roberto | Todos | Diagnóstico |  | 50rr7nigi46u9o8fkf3c3pbsm8@google.com
+L42:  | 4.0 | Goto Motors | PMR PRESENCIAL | 2026-01-20 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário e Gerente | Feedback Estruturado e Cultura de Resultado |  | 2ratga8fiof14eeor6u1q7ikhs@google.com
+L43:  | 2.0 | Espíndola | PMR PRESENCIAL | 2026-01-20 00:00:00 | 09:00:00 | 5.0 | Presencial | Daniel Santos | José Roberto | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | 0qoje42oluaov9qk07c9okn9b4@google.com
+L44:  | 3.0 | Carrum | PMR ONLINE | 2026-01-20 00:00:00 | 09:30:00 | 1.0 | Online | José Roberto |  | Vendedor e Gerente | Feedback Estruturado e Cultura de Resultado |  | 3dp6lvvute8bh6irq319o0j9kg@google.com
+L45:  | 4.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-01-21 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire | José Roberto | Proprietário e Gerente | Feedback Estruturado e Cultura de Resultado |  | fa728r4skal29csklkm2bk8sa8@google.com
+L46:  | 4.0 | Paay | PMR PRESENCIAL | 2026-01-22 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário e Gerente | Feedback Estruturado e Cultura de Resultado |  | vske2tt7nk3b38gqlh5bom8n8g@google.com
+L47:  | 4.0 | Otávio Lage | PMR PRESENCIAL | 2026-01-22 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário e Gerente | Feedback Estruturado e Cultura de Resultado |  | g9l94hk2usja6qr0j89193ikac@google.com
+L48:  | 13.0 | Wcar | PMR RENOVAÇÃO | 2026-01-22 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | 8tar25b4o7q2pt3o1p301dv828@google.com
+L49:  | 3.0 | Promac JPA | PMR PRESENCIAL | 2026-01-22 00:00:00 | 09:00:00 | 1.0 | Online | João Augusto |  | Proprietário | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | fs9vdrq1jvh3e91n4573svqp9k@google.com
+L50:  | 3.0 | Acertt | PMR PRESENCIAL | 2026-01-23 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | ie53kvcaopgorr5vrsciebkrio@google.com
+L51:  | 1.0 | Brothers Car | PPA | 2026-01-23 00:00:00 | 07:00:00 | 1.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | qih4unufht6sbehqncst0m37g4@google.com
+L52:  | 3.0 | Espíndola | PMR PRESENCIAL | 2026-01-26 00:00:00 | 14:00:00 | 1.0 | Online | João Augusto |  | Proprietário | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | cjuj14vucfu0e97ull9d8omocg@google.com
+L53:  | 1.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-01-26 00:00:00 | 09:00:00 | 7.0 | Presencial | Gedson Freire | José Roberto | Todos | Diagnóstico |  | vjc2o97qgjaa60qb166qbtcdpg@google.com
+L54:  | 6.0 | Paay | PMR PRESENCIAL | 2026-01-28 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | q88csfnsa4llla8e4vl56q5jf8@google.com
+L55:  | 1.0 | Gandini | PMR PRESENCIAL | 2026-02-02 00:00:00 | 09:00:00 | 3.0 | Presencial | José Roberto | João Augusto | Todos | Diagnóstico |  | h9ho8vidjhnii6pe10u7gfqrdo@google.com
+L56:  |  | Wcar |  | 2026-02-02 00:00:00 | 13:00:00 | 3.0 | Presencial | José Roberto | João Augusto | Proprietário e Marketing | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | upcd976dmhpscmmtovdnbbn01c@google.com
+L57:  | 5.0 | Goto Motors | PMR PRESENCIAL | 2026-02-03 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto | João Augusto | Proprietário e Marketing | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | rl9gue3in38ih3j2qqao3h4vgo@google.com
+L58:  | 4.0 | Acertt | PMR PRESENCIAL | 2026-02-03 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto | João Augusto | Proprietário e Gerente | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | eh5id28tua3kgruq2fg51vpiec@google.com
+L59:  | 4.0 | Promac JPA | PMR PRESENCIAL | 2026-02-03 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | Gedson Freire | Gerente | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | 9n719rctomoto7e8bu9gvai7p4@google.com
+L60:  | 5.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-02-04 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto | João Augusto | Proprietário e Marketing | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | cptacdce6rtinv5q9511tltsgg@google.com
+L61:  | 5.0 | Otávio Lage | PMR PRESENCIAL | 2026-02-04 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto | João Augusto | Proprietário e Marketing | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | 4bn8hf93p1l0hp1ft83tv082ko@google.com
+L62:  | 5.0 | Promac JPA | PMR PRESENCIAL | 2026-02-04 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | Gedson Freire | Proprietário | Feedback Estruturado e Cultura de Resultado |  | ugam2qm15eqv8k8po5mgegie9c@google.com
+L63:  | 2.0 | Vitrine | PPA PREMIUM | 2026-02-05 00:00:00 | 09:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Maximização de Receitas |  | afpm1oj1mu2qt3n6j0vrnrehds@google.com
+L64:  | 2.0 | Salim | PPA | 2026-02-05 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | eekpsbf8da903m47co3bb9sn18@google.com
+L65:  | 2.0 | AG AUTOMÓVEIS | PPA PREMIUM | 2026-02-05 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | vclruoavk6cb36a1qqur857jes@google.com
+L66:  | 2.0 | Império | PPA PREMIUM | 2026-02-05 00:00:00 | 13:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Maximização de Receitas |  | vko0ie64a9edufq91s8o2rtprc@google.com
+L67:  | 2.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-02-05 00:00:00 | 09:30:00 | 6.0 | Presencial | José Roberto |  | Proprietário e Marketing | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | kg3pr2uqfgkok00l8ohmratk48@google.com
+L68:  | 4.0 | Carrum | PMR ONLINE | 2026-02-06 00:00:00 | 15:00:00 | 1.0 | Online | João Augusto |  | Proprietário e Gerente | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | csso0hb0n44ptbrrpjea08ius8@google.com
+L69:  | 2.0 | Piscar Veículos | PPA PREMIUM | 2026-02-06 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | jhfqb439ee786q34pkm1estec4@google.com
+L70:  | 4.0 | Espíndola | PMR PRESENCIAL | 2026-02-06 00:00:00 | 13:00:00 | 1.0 | Online | João Augusto |  | Proprietário | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | e8837n4o0ur53jnuu77tr0pd58@google.com
+L71:  | 2.0 | Direta | PPA PREMIUM | 2026-02-06 00:00:00 | 13:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Maximização de Receitas |  | 7qu346r9fdkh9tbhc77l1lk7ls@google.com
+L72:  | 2.0 | Lial | PPA PREMIUM | 2026-02-06 00:00:00 | 09:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Maximização de Receitas |  | 5mhpj3jhpm1292vg09u6rlk8vk@google.com
+L73:  | 2.0 | Almeida | PPA | 2026-02-06 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | uq83iakt1moopluiiohsrvmrtc@google.com
+L74:  | 2.0 | Gandini | PMR PRESENCIAL | 2026-02-06 00:00:00 | 09:30:00 | 6.0 | Presencial | José Roberto |  | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | p2bhtb4phn3b2qhc626pfncbto@google.com
+L75:  | 5.0 | Espíndola | PMR PRESENCIAL | 2026-02-09 00:00:00 | 14:00:00 | 2.0 | Online | Gedson Freire |  | Proprietário e Marketing | Rotina do Gerente e Rotina do Vendedor |  | 9fb2c64qgq8grbh2c09ukv1ui4@google.com
+L76:  | 3.0 | Gandini | PMR PRESENCIAL | 2026-02-09 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | 21jok8p6dfba9q5jjqfeohsunk@google.com
+L77:  | 6.0 | RK2 | PMR PRESENCIAL | 2026-02-09 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | 61tq7kbaor8mhk99jm32rdoomo@google.com
+L78:  | 2.0 | Ideal Automotive | PPA | 2026-02-09 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | Gedson Freire | Proprietário | Maximização de Receitas |  | 5ctr2csa3kukabgqmg5l4c7mcs@google.com
+L79:  | 5.0 | Acertt | PMR PRESENCIAL | 2026-02-10 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | 32ua8ofeahai5mceamhmngsvnk@google.com
+L80:  | 6.0 | Promac JPA | PMR PRESENCIAL | 2026-02-10 00:00:00 | 15:00:00 | 2.0 | Online | Gedson Freire |  | Vendedor e Gerente | Rotina do Gerente e Rotina do Vendedor |  | 7ortg4v294j0mtu415boq461kc@google.com
+L81:  | 2.0 | Auto Up | PMR RENOVAÇÃO | 2026-02-10 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | Gedson Freire | Proprietário | Resultados e Plano de Ação |  | enmg593kt2b4h9ao7pf879jnk0@google.com
+L82:  | 6.0 | Goto Motors | PMR PRESENCIAL | 2026-02-10 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | jop5gp9frsbr98h66mdlgcag24@google.com
+L83:  | 6.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-02-11 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | ecbp8ct82chfvm5vkttpt69hgs@google.com
+L84:  | 2.0 | InvestCar RJ | PPA | 2026-02-11 00:00:00 | 09:00:00 | 7.0 | Presencial | Daniel Santos | Gedson Freire | Proprietário | Maximização de Receitas |  | 0q5bo65q352m7rm6k7j1r4f3uo@google.com
+L85:  | 6.0 | Otávio Lage | PMR PRESENCIAL | 2026-02-11 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | 2apl5o2c767umtoaabec7r0crg@google.com
+L86:  | 2.0 | Brothers Car | PPA | 2026-02-12 00:00:00 | 17:00:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 55qum94v70e1nr0acu8q4a07t8@google.com
+L87:  | 4.0 | Gandini | PMR PRESENCIAL | 2026-02-12 00:00:00 | 09:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Feedback Estruturado e Cultura de Resultado |  | 1hf780m3h6vb2csldocun2f994@google.com
+L88:  | 3.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-02-12 00:00:00 | 09:00:00 | 6.0 | Presencial | José Roberto |  | Proprietário | Rotina do Gerente e Rotina do Vendedor |  | mlobbj2t3jk9mmmhn8fpvsavcs@google.com
+L89:  | 2.0 | Ideal Automotive | PPA | 2026-02-12 00:00:00 | 14:00:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Maximização de Receitas |  | qn7kv7q3pf0oggheokpeohqhes@google.com
+L90:  | 2.0 | André Car | PMR RENOVAÇÃO | 2026-02-12 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | t58gfmqfe9elnobe6f9o8r0v7g@google.com
+L91:  | 5.0 | Wcar | PMR RENOVAÇÃO | 2026-02-13 00:00:00 | 14:00:00 | 3.0 | Presencial | Daniel Santos |  | Vendedor | Treinamento Vendedores |  | shh33fii7bnukr4rpgsqign36c@google.com
+L92:  | Extra | Salim | PPA | 2026-02-13 00:00:00 | 10:30:00 | 3.0 | Presencial | José Roberto |  | Todos | Treinamento Vendedores |  | 0du390l6f7t3m9uvhddab0abe4@google.com
+L93:  | 4.0 | Wcar | PMR RENOVAÇÃO | 2026-02-13 00:00:00 | 08:00:00 | 3.0 | Presencial | Daniel Santos |  | Vendedor | Treinamento Vendedores |  | 7ltq7smp0n11g7i3pgrdlbaqr8@google.com
+L94:  | 2.0 | Dakar | PPA | 2026-02-13 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Maximização de Receitas |  | og4cl0ggg1d621cc553c24ubok@google.com
+L95:  | 5.0 | Carrum | PMR ONLINE | 2026-02-19 00:00:00 | 09:30:00 | 2.0 | Online | Gedson Freire |  | Proprietário e Marketing | Revisão dos Processos Críticos |  | gpqfe9cjfo8n1nemperm5jls2o@google.com
+L96:  | 1.0 | LM Veículos | PMR PRESENCIAL | 2026-02-20 00:00:00 | 09:30:00 | 6.0 | Presencial | Daniel Santos | Gedson Freire | Todos | Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional |  | ivfes6eqel1moq7m53iotk6qf0@google.com
+L97:  | 2.0 | Brothers Car | PPA | 2026-02-23 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | José Roberto | Proprietário | Maximização de Receitas |  | 0sa5o9p8b0ura8eg23g98bmckc@google.com
+L98:  | 6.0 | Acertt | PMR PRESENCIAL | 2026-02-23 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Revisão dos Processos Críticos |  | lt1vc6jbuhqtqknf0fdbtfu28s@google.com
+L99:  | 6.0 | Carrum | PMR ONLINE | 2026-02-23 00:00:00 | 10:00:00 | 2.0 | Online | Gedson Freire |  | Proprietário | Plano de Desenvolvimento Individual (PDI) |  | o8hv4qkjbaidu14sbg03ntohb0@google.com
+L100:  | 7.0 | Goto Motors | PMR PRESENCIAL | 2026-02-24 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Vendedor e Gerente | Plano de Desenvolvimento Individual (PDI) |  | 58i1k0uhr9h7js3u5ge3nucmf4@google.com
+L101:  | 7.0 | Otávio Lage | PMR PRESENCIAL | 2026-02-24 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Vendedor e Gerente | Plano de Desenvolvimento Individual (PDI) |  | rhttgcu8rsbi8gv3q8s9l008pg@google.com
+L102:  | 2.0 | Sempre Mais | PPA | 2026-02-24 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | José Roberto | Proprietário | Maximização de Receitas |  | aer79c3cpkes199sbnaafnggfk@google.com
+L103:  | 7.0 | RK2 | PMR PRESENCIAL | 2026-02-25 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Vendedor e Gerente | Plano de Desenvolvimento Individual (PDI) |  | ubmdcte3prte2iitdhopld0la4@google.com
+L104:  | 7.0 | Paay | PMR PRESENCIAL | 2026-02-25 00:00:00 | 14:00:00 | 3.0 | Presencial | Daniel Santos |  | Vendedor e Gerente | Plano de Desenvolvimento Individual (PDI) |  | l4s36vsvvhb5ek2u6k71bsqk38@google.com
+L105:  | 5.0 | Paay | PMR PRESENCIAL | 2026-02-25 00:00:00 | 14:00:00 | 3.0 | Presencial | Daniel Santos |  | Todos | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | l4s36vsvvhb5ek2u6k71bsqk38@google.com
+L106:  | 7.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-02-25 00:00:00 | 09:30:00 | 6.0 | Presencial | Gedson Freire |  | Vendedor e Gerente | Plano de Desenvolvimento Individual (PDI) |  | s6m1fe8evk9eshmin6i1s89hno@google.com
+L107:  | 5.0 | Gandini | PMR PRESENCIAL | 2026-02-25 00:00:00 | 09:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | k4ga7r81god72025vapg3gu3ig@google.com
+L108:  | 4.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-02-26 00:00:00 | 10:00:00 | 4.0 | Presencial | José Roberto |  | Vendedor e Gerente | Feedback Estruturado e Cultura de Resultado |  | bj10d0bc26sai30prugq1ii90c@google.com
+L109:  | 7.0 | Promac JPA | PMR PRESENCIAL | 2026-02-26 00:00:00 | 09:00:00 | 1.0 | Online | Daniel Santos |  | Todos | Plano de Desenvolvimento Individual (PDI) |  | fhtmhdbnlf6bj8gtkmpgmaooc8@google.com
+L110:  | 6.0 | Espíndola | PMR PRESENCIAL | 2026-02-26 00:00:00 | 10:30:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Feedback Estruturado e Cultura de Resultado |  | aqmos7av7ock087c3ojln8rhm0@google.com
+L111:  | Extra | Salim | PPA | 2026-02-26 00:00:00 | 09:30:00 | 2.0 | Presencial | Gedson Freire |  | Proprietário | Revisão dos Processos Críticos |  | j68pdvcochjm1569qfo2ji7eug@google.com
+L112:  | 9.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-02-26 00:00:00 | 07:00:00 | 3.0 | Presencial | José Roberto |  | Todos | Rotina do Gerente e Rotina do Vendedor |  | tu18hig5tji0nerhj6u1q99sbo@google.com
+L113:  | 8.0 | Goto Motors | PMR PRESENCIAL | 2026-03-02 00:00:00 | 13:00:00 | 3.0 | Presencial | José Roberto |  | Todos | Avaliação Individual nos Treinamentos |  | glg43cnef4n53k1rtpsbg0uh0g@google.com
+L114:  | 3.0 | Império | PPA PREMIUM | 2026-03-02 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | s7mgtkpo9f23fffdej86kp5mqg@google.com
+L115:  | 3.0 | Vitrine | PPA PREMIUM | 2026-03-02 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | bp75jns1scnqh5pcgomj1qpvus@google.com
+L116:  | 8.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-03-03 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Todos | Avaliação Individual nos Treinamentos |  | 2airipqg8p4880ob7tku9if4k0@google.com
+L117:  | 3.0 | Lial | PPA PREMIUM | 2026-03-03 00:00:00 | 14:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | qgg30mqrq7ffiiufg69vecsl5s@google.com
+L118:  | 3.0 | André Car | PMR RENOVAÇÃO | 2026-03-03 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Maximização de Receitas |  | fp8shcft467410eg2df5nnqp2s@google.com
+L119:  | 8.0 | RK2 | PMR PRESENCIAL | 2026-03-03 00:00:00 | 09:30:00 | 6.0 | Presencial | José Roberto |  | Todos | Avaliação Individual nos Treinamentos |  | p8ss1aqeppe78q32dj4ckuj8es@google.com
+L120:  | 3.0 | Salim | PPA | 2026-03-03 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | fqcd6e8qb4ji5rh7qrcg24dn80@google.com
+L121:  | 5.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-03-04 00:00:00 | 09:30:00 | 3.0 | Online | João Augusto |  | Todos | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | 2ksffvqrc5uud3rohpinhonao8@google.com
+L122:  | 8.0 | Paay | PMR PRESENCIAL | 2026-03-04 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Todos | Avaliação Individual nos Treinamentos |  | b23dn64lv47jcgpv7dh83egj8k@google.com
+L123:  | 3.0 | Dakar | PPA | 2026-03-04 00:00:00 | 09:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | usd0omfdat7dkonsn3i71bgdjc@google.com
+L124:  | Extra | Ideal Motors | PPA | 2026-03-04 00:00:00 | 15:00:00 | 1.0 | Online | Daniel Santos |  | Proprietário |  |  | 00h2ifr4sgq2b3s0d3lbummlog@google.com
+L125:  | 8.0 | Otávio Lage | PMR PRESENCIAL | 2026-03-05 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Todos | Avaliação Individual nos Treinamentos |  | ajr74nlgrp82dnan11hvs832ak@google.com
+L126:  | 3.0 | Piscar Veículos | PPA PREMIUM | 2026-03-05 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | ddq5tpkrs36njd07v0dtte3nc4@google.com
+L127:  | 7.0 | Acertt | PMR PRESENCIAL | 2026-03-05 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Vendedor e Gerente | Plano de Desenvolvimento Individual (PDI) |  | mjq9n9ol17dp79chqr753h4784@google.com
+L128:  | 7.0 | Espíndola | PMR PRESENCIAL | 2026-03-05 00:00:00 | 17:00:00 | 1.0 | Online | José Roberto |  | Vendedor e Gerente | Plano de Desenvolvimento Individual (PDI) |  | cqhj96lbebnvf69ej20mjpg7vg@google.com
+L129:  | 3.0 | Almeida | PPA | 2026-03-05 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | 2flvcg9tg0lquna7d5svdsc9oc@google.com
+L130:  | Extra | Espíndola | PMR PRESENCIAL | 2026-03-05 00:00:00 | 16:00:00 | 1.0 | Online | José Roberto |  | Vendedor | Treinamento Vendedores |  | cqhj96lbebnvf69ej20mjpg7vg@google.com
+L131:  | 6.0 | Gandini | PMR PRESENCIAL | 2026-03-05 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Plano de Desenvolvimento Individual (PDI) |  | pd6v7fm4e9m6crauk36gua7jqk@google.com
+L132:  | 8.0 | Espíndola | PMR PRESENCIAL | 2026-03-05 00:00:00 | 09:00:00 | 1.0 | Online | José Roberto |  | Todos | Avaliação Individual nos Treinamentos |  | bmcoa2k2oso49vp70vl7k6jme4@google.com
+L133:  | 3.0 | Direta | PPA PREMIUM | 2026-03-06 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos | Gedson Freire | Proprietário | Eficiência em Custos |  | 6km7usa6feiej2r8es5ajjfg5c@google.com
+L134:  | Extra | Goto Motors | PMR PRESENCIAL | 2026-03-09 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Todos | Acompanhamento |  | acm136ga1pcae2f8u206fd35pg@google.com
+L135:  | 3.0 | Sempre Mais | PPA | 2026-03-09 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | 8tcu31k0b0dqp2690mmhcctee0@google.com
+L136:  | Extra | Vitrine | PPA PREMIUM | 2026-03-09 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Vendedor | Treinamento Vendedores |  | 2s0ut2anp6r24k79e4h4hasl7o@google.com
+L137:  | 7.0 | Carrum | PMR ONLINE | 2026-03-09 00:00:00 | 15:00:00 | 1.0 | Online | José Roberto |  | Vendedor e Gerente | Avaliação Individual nos Treinamentos |  | jej53hhppe1s4859gpfpm2s4fc@google.com
+L138:  | 3.0 | AG AUTOMÓVEIS | PPA PREMIUM | 2026-03-09 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Maximização de Receitas |  | q61j5mgrlb52k3jldjru7dtd8o@google.com
+L139:  | Extra | RK2 | PMR PRESENCIAL | 2026-03-10 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Todos | Acompanhamento |  | nk2st6e2ktf8d7kdic6vfgdgmk@google.com
+L140:  | 3.0 | Sempre Mais | PPA | 2026-03-10 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | o07ugbduecstsrqfdrkbs92qnk@google.com
+L141:  | 3.0 | Ideal Automotive | PPA | 2026-03-10 00:00:00 | 09:00:00 | 2.0 | Online | Gedson Freire |  | Proprietário | Maximização de Receitas |  | gk6jlfg2nidgfqi837cqc83fhc@google.com
+L142:  | 7.0 | Gandini | PMR PRESENCIAL | 2026-03-10 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | 3be40jidro68djub5e284htad4@google.com
+L143:  | Extra | Paay | PMR PRESENCIAL | 2026-03-11 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Todos | Acompanhamento |  | jbl34avnlegktjtrj5mr9avq6k@google.com
+L144:  | 8.0 | Acertt | PMR PRESENCIAL | 2026-03-11 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Todos | Avaliação Individual nos Treinamentos |  | 3282okiie042fjvmcg1o1ffl28@google.com
+L145:  | 6.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-03-11 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Todos | Revisão dos Processos Críticos |  | 258qnnufigsk1g63joq32h93as@google.com
+L146:  | 2.0 | LM Veículos | PMR PRESENCIAL | 2026-03-11 00:00:00 | 09:30:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP |  | 9fkb5rq21f6dppo01u03ir2r1c@google.com
+L147:  | 3.0 | Brothers Car | PPA | 2026-03-12 00:00:00 | 16:00:00 | 2.0 | Online | Gedson Freire |  | Proprietário | Maximização de Receitas |  | ito6lpdv8usuiqbs3mu281t2sc@google.com
+L148:  | Extra | Piscar Veículos | PPA PREMIUM | 2026-03-12 00:00:00 | 09:30:00 | 2.0 | Presencial | José Roberto |  | Vendedor | Treinamento Vendedores |  | drbq2s4tv558bccrpnujls3bs0@google.com
+L149:  | 1.0 | Bedim Automóveis | PMR ONLINE | 2026-03-12 00:00:00 | 09:00:00 | 3.0 | Online | Daniel Santos |  | Proprietário | Diagnóstico |  | knh4m97tpta5rc806443bd7f0g@google.com
+L150:  | Extra | Seminovos BHZ | PMR PRESENCIAL | 2026-03-12 00:00:00 | 14:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Acompanhamento |  | 3trjuhfc3m73ok9rnkb1jearp8@google.com
+L151:  | Extra | Otávio Lage | PMR PRESENCIAL | 2026-03-12 00:00:00 | 14:00:00 | 2.0 | Presencial | Gedson Freire |  | Todos | Acompanhamento |  | ksg3re3568uqooohbbqguabveo@google.com
+L152:  | Extra | Ideal Motors | PPA | 2026-03-12 00:00:00 | 09:30:00 | 2.0 | Online | Gedson Freire |  | Proprietário | Acompanhamento |  | thicar99qbf9525a43mpjlva6k@google.com
+L153:  | Extra | Lial | PPA PREMIUM | 2026-03-16 00:00:00 | 09:00:00 | 6.0 | Presencial | José Roberto |  | Vendedor | Treinamento Vendedores |  | o1rkolqr3i6pa659fhgfhh53cg@google.com
+L154:  | 8.0 | Carrum | PMR ONLINE | 2026-03-17 00:00:00 | 09:00:00 | 1.0 | Online | José Roberto |  | Todos | Análise das Implementações e Plano de Ação Trimestral |  | dlelbtnnoai3jc23tmrqo2kkos@google.com
+L155:  | 3.0 | Ideal Motors | PPA | 2026-03-17 00:00:00 | 10:00:00 | 6.0 | Presencial | Daniel Santos | Gedson Freire | Proprietário | Eficiência em Custos |  | 3b6hr7rcvhd13ao8kk5p4kdajs@google.com
+L156:  | 3.0 | Ideal Motors | PPA | 2026-03-18 00:00:00 | 10:00:00 | 6.0 | Presencial | Daniel Santos | Gedson Freire | Proprietário | Planejamento Estratégico |  | mtod2ie7vg6smghulm79c5l1t8@google.com
+L157:  | 7.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-03-18 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Plano de Desenvolvimento Individual (PDI) |  | hvtbj4u0g08po4fimptdfbu43c@google.com
+L158:  | 8.0 | Gandini | PMR PRESENCIAL | 2026-03-18 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Todos | Avaliação Individual nos Treinamentos |  | 3igorlh463mqk16d31goip9n78@google.com
+L159:  | Extra | Espíndola | PMR PRESENCIAL | 2026-03-19 00:00:00 | 15:30:00 | 3.0 | Online | Daniel Santos |  | Proprietário | Acompanhamento |  | mmgetiihpt80hbl5fj66afmaa0@google.com
+L160:  | 3.0 | InvestCar MG | PPA | 2026-03-19 00:00:00 | 10:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | sda24lr15canad9geb432imovo@google.com
+L161:  | 1.0 | Delta Veículos | MENTORIA | 2026-03-20 00:00:00 | 10:00:00 | 4.0 | Presencial | Gedson Freire |  | Proprietário |  |  | aq7gnn483susc86vj9hfkt4c40@google.com
+L162:  | 1.0 | Vitrine | MENTORIA | 2026-03-20 00:00:00 | 15:00:00 | 4.0 | Presencial | Gedson Freire |  | Proprietário |  |  | rh9bsapuhle85ej205mnrd9krk@google.com
+L163:  | 2.0 | Bedim Automóveis | PMR ONLINE | 2026-03-20 00:00:00 | 09:00:00 | 3.0 | Online | José Roberto |  | Proprietário | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2 |  | 0m4unf1tq546mckqoj5j3ann7g@google.com
+L164:  | 9.0 | Goto Motors | PMR PRESENCIAL | 2026-03-23 00:00:00 | 14:00:00 | 2.0 | Presencial | Gedson Freire |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | 4h9vp4akurf3hvkj11sdvkp5rs@google.com
+L165:  | 9.0 | Acertt | PMR PRESENCIAL | 2026-03-23 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | 5v00ra7oc9rfffcad7ih0cm1bk@google.com
+L166:  | Extra | Espíndola | PMR PRESENCIAL | 2026-03-24 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos | José Roberto | Todos | Acompanhamento |  | e3g9frudc8s7bqe1c75lhapsvg@google.com
+L167:  | 9.0 | Seminovos BHZ | PMR PRESENCIAL | 2026-03-24 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | 1ce2nlnhm7te4gvgsfsocsemls@google.com
+L168:  | 9.0 | Paay | PMR PRESENCIAL | 2026-03-24 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | acc4j15i5l0e660semt730qms4@google.com
+L169:  | 9.0 | Espíndola | PMR PRESENCIAL | 2026-03-25 00:00:00 | 09:00:00 | 5.0 | Presencial | Daniel Santos | José Roberto | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | o5i1grdge22vr0cksapeht56n8@google.com
+L170:  | 3.0 | Auto Up | PMR RENOVAÇÃO | 2026-03-25 00:00:00 | 15:00:00 | 2.0 | Online | Gedson Freire |  | Proprietário | Maximização de Receitas |  | fjpdcpt8c4f3abt46e2fqord5c@google.com
+L171:  | 3.0 | LM Veículos | PMR PRESENCIAL | 2026-03-25 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Vendedor e Gerente | Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado |  | k0kou3krlqlrc02vknpl7q8d48@google.com
+L172:  | 9.0 | Otávio Lage | PMR PRESENCIAL | 2026-03-26 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | 2tgl736jpdq5duaghsull5dr6o@google.com
+L173:  | 9.0 | RK2 | PMR PRESENCIAL | 2026-03-26 00:00:00 | 09:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | kg0irll6vo8k4spr3mlh1k4k5g@google.com
+L174:  | 9.0 | Gandini | PMR PRESENCIAL | 2026-03-26 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | ko6cvti81598ube4lpujm9l5lc@google.com
+L175:  | 8.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-03-26 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Avaliação Individual nos Treinamentos |  | e1voqq24bn8dhbc5o2tk4popko@google.com
+L176:  | 3.0 | Bedim Automóveis | PMR ONLINE | 2026-03-30 00:00:00 | 09:00:00 | 2.0 | Online | José Roberto |  | Vendedor e Gerente | Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado |  | a67hv7od7ru1uqlp08gml16onc@google.com
+L177:  | Extra | Promac JPA | PMR ONLINE | 2026-03-30 00:00:00 | 09:30:00 | 01:30:00 | Online | Gedson Freire |  | Gerente |  |  | q8790q259r39oind3ktptkhekk@google.com
+L178:  | Extra | Piscar Veículos | PPA | 2026-04-01 00:00:00 | 08:30:00 | 4.0 | Presencial | José Roberto |  | Proprietário | Acompanhamento |  | hdn3m7po3tamcgrgqtmogr08hc@google.com
+L179:  | Extra | Seminovos BHZ | PMR PRESENCIAL | 2026-04-01 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Acompanhamento |  | 015huln1317p58h9jm8v37q9e0@google.com
+L180:  | Extra | Auto Up | PMR RENOVAÇÃO | 2026-04-02 00:00:00 | 17:00:00 | 01:30:00 | Online | Gedson Freire |  | Todos | Treinamento Venda Aprovada (Financiamento) |  | 25rf5oq7evovta18kpl18m25jo@google.com
+L181:  | 1.0 | GED Veículos | PMR PRESENCIAL | 2026-04-02 00:00:00 | 09:30:00 | 6.0 | Presencial | Gedson Freire | José Roberto | Proprietário | Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional |  | obc1i2icu0n0bck01aia20hjgk@google.com
+L182:  | 1.0 | MCar Automóveis | PMR ONLINE | 2026-04-02 00:00:00 | 15:00:00 | 3.0 | Online | Daniel Santos |  | Proprietário | Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional |  | bf0iupokvdpnaba6dpq09vnulg@google.com
+L183:  | 6.0 | Direta | PPA PREMIUM | 2026-04-06 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Acompanhamento |  | 0abh5r7cde50584cn4vh55gla4@google.com
+L184:  | 4.0 | Império | PPA PREMIUM | 2026-04-06 00:00:00 | 14:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Acompanhamento |  | 9fl9klt2gi7eu5d66jc91rnf34@google.com
+L185:  | 3.0 | AG AUTOMÓVEIS | PPA PREMIUM | 2026-04-07 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Eficiência em Custos |  | anqqiem859b6qcs91l0uvfhj5c@google.com
+L186:  | Extra | Goto Motors | PMR PRESENCIAL | 2026-04-07 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Acompanhamento |  | kls6444h4hq550vv8m3ijr1tto@google.com
+L187:  | Extra | Otávio Lage | PMR PRESENCIAL | 2026-04-07 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Acompanhamento |  | optn55o2i6qh02n3g2t1ka84pk@google.com
+L188:  | 2.0 | GED Veículos | PMR PRESENCIAL | 2026-04-07 00:00:00 | 09:30:00 | 6.0 | Online | José Roberto |  | Proprietário | Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP |  | kac1u7758uqs12t8nfbmgpj4nc@google.com
+L189:  | Extra | MCar Automóveis | PMR ONLINE | 2026-04-08 00:00:00 | 11:00:00 | 01:30:00 | Online | José Roberto |  | Vendedor | Diagnóstico e Treinamento Método Vendedor Profissional - Fase 1 |  | 35rft71s7jcf77qa39820ttg0k@google.com
+L190:  | 4.0 | LM Veículos | PMR PRESENCIAL | 2026-04-08 00:00:00 | 09:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário e Gerente | Visita 4: Cultura de Resultado e Treinamento MVP |  | bfjkjng96dsr50hou7hc88vb10@google.com
+L191:  | 9.0 | Carrum | PMR ONLINE | 2026-04-08 00:00:00 | 09:00:00 | 2.0 | Online | José Roberto |  | Proprietário | Acompanhamento |  | rak6qrj8tpomfmhpcfrn6su1qc@google.com
+L192:  | 4.0 | André Car | PMR RENOVAÇÃO | 2026-04-08 00:00:00 | 09:30:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Eficiência em Custos |  | aspbenbthl3v84bbrm9dqgjb8g@google.com
+L193:  | Extra | Acertt | PMR PRESENCIAL | 2026-04-08 00:00:00 | 14:00:00 | 3.0 | Presencial | Gedson Freire |  | Proprietário | Acompanhamento |  | l597hqp6d9upjoj88j99mu4luo@google.com
+L194:  | 4.0 | Lial | PPA PREMIUM | 2026-04-09 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Acompanhamento |  | bucau4ivvd648rnnbu9hd6e26s@google.com
+L195:  | Extra | Paay | PMR PRESENCIAL | 2026-04-09 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Acompanhamento |  | dnqljrn1nbsjjpm3o5pbmv9b18@google.com
+L196:  |  |  |  | 2026-04-09 00:00:00 | 09:00:00 | 3.0 |  | Gedson Freire |  |  | Agenda bloqueada |  | ntoicsvctoubif2m2j9c17t2fo@google.com
+L197:  | 9.0 | DNA Multimarcas | PMR PRESENCIAL | 2026-04-09 00:00:00 | 09:30:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | 4ohl2cl5gf3degdq3dbp13q6ug@google.com
+L198:  | EXTRA | Gandini | PMR PRESENCIAL | 2026-04-09 00:00:00 | 14:00:00 | 3.0 | Presencial | José Roberto |  | Proprietário | Acompanhamento |  | fafalg7hmkr3fs4uh3trkiisac@google.com
+L199:  |  |  |  | 2026-04-10 00:00:00 | 09:00:00 | 3.0 |  |  |  |  | Evento MX |  | ccovpdotrss0ph4l8hk397e6eg@google.com
+L200:  | Extra | Império | PPA PREMIUM | 2026-04-10 00:00:00 | 14:00:00 | 2.0 | Presencial | Gedson Freire |  | Proprietário | Acompanhar financiamento (receita adicional) |  | 5tpaoc72d26odji1olkc6e9nrs@google.com
+L201:  |  |  |  | 2026-04-13 00:00:00 | 09:00:00 | 2.0 | Online | Daniel Santos | José Roberto |  | Agenda bloqueada (treinamento) |  | l01jqnustpjmoe35hi26t666nc@google.com
+L202:  | 2.0 | Vitrine | MENTORIA | 2026-04-13 00:00:00 | 14:00:00 | 2.0 | Presencial | Gedson Freire |  | Proprietário | Gestão dos Indicadores |  | 8rj4rco98bpos4ho9tcmp5ce1k@google.com
+L203:  | 2.0 | Delta Veículos | MENTORIA | 2026-04-13 00:00:00 | 10:00:00 | 2.0 | Presencial | Gedson Freire |  | Proprietário |  |  | vm9aar8f7tui85hb3h3md19ngc@google.com
+L204:  | 5.0 | Bedim Automóveis | PMR ONLINE | 2026-04-13 00:00:00 | 09:00:00 | 1.0 | Online | João Augusto |  | Proprietário e Marketing | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | npre7fapeb9e2j2ivabu9828dk@google.com
+L205:  | Extra | RK2 | PMR PRESENCIAL | 2026-04-14 00:00:00 | 10:00:00 | 3.0 | Presencial | Daniel Santos |  | Todos | Acompanhamento |  | m2usb5b24p59anreenq4ltkba4@google.com
+L206:  | Extra | Promac JPA | PMR ONLINE | 2026-04-14 00:00:00 | 09:30:00 | 2.0 | Online | Gedson Freire |  | Proprietário | Acompanhamento |  | 26308gu8cjdjbqfdrmhcmvclpc@google.com
+L207:  |  |  |  | 2026-04-14 00:00:00 | 15:00:00 | 2.0 | Online | Gedson Freire | José Roberto |  | Agenda bloqueada (treinamento) |  | p61k0hskhruc0mrrhr1ha60ork@google.com
+L208:  |  |  |  | 2026-04-15 00:00:00 | 16:00:00 | 2.0 |  | Gedson Freire |  |  | Agenda bloqueada |  | p61k0hskhruc0mrrhr1ha60ork@google.com
+L209:  | 4.0 | Bedim Automóveis | PMR ONLINE | 2026-04-16 00:00:00 | 11:00:00 | 1.0 | Online | José Roberto |  | Proprietário e Gerente | Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado |  | 07ns4pv2nb473afh5lcaav6oo0@google.com
+L210:  | Extra | Espíndola | PMR PRESENCIAL | 2026-04-16 00:00:00 | 14:00:00 | 2.0 | Online | Daniel Santos | José Roberto | Proprietário | Acompanhamento |  | 56286hgt6jj7udhc8dqbfad4k8@google.com
+L211:  | 2.0 | MCar Automóveis | PMR ONLINE | 2026-04-16 00:00:00 | 09:30:00 | 2.0 | Online | Gedson Freire |  | Proprietário | Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP |  | 4dkc4anfvkmvp51u1kt90f4pq4@google.com
+L212:  | Extra | Carrum | PMR ONLINE | 2026-04-16 00:00:00 | 16:00:00 | 2.0 | Online | Daniel Santos | José Roberto | Proprietário | Acompanhamento |  | 07ns4pv2nb473afh5lcaav6oo0@google.com
+L213:  |  |  |  | 2026-04-17 00:00:00 | 09:30:00 | 3.0 |  | Gedson Freire |  |  | Agenda bloqueada |  | r2oqufk12jb6ej48mo8psuksco@google.com
+L214:  | 4.0 | InvestCar MG | PPA | 2026-04-16 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | nld7e92icfh8v1oihti7cuimc4@google.com
+L215:  | 6.0 | Bedim Automóveis | PMR ONLINE | 2026-04-20 00:00:00 | 09:00:00 | 2.0 | Online | José Roberto |  | Proprietário | Revisão dos Processos Críticos |  | h34uk95ejvjh03asctnaub37j8@google.com
+L216:  | 5.0 | LM Veículos | PMR PRESENCIAL | 2026-04-20 00:00:00 | 09:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário e Marketing | Visita 5: Plano de Desenvolvimento Individual (PDI) |  | gp78sge1re2dpto8vhf78te2p4@google.com
+L217:  | 7.0 | Bedim Automóveis | PMR ONLINE | 2026-04-27 00:00:00 | 09:00:00 | 2.0 | Online | José Roberto |  | Proprietário | Plano de Desenvolvimento Individual (PDI) |  | 5mdusj20e0jf0iqte7edt93cuo@google.com
+L218:  | 6.0 | LM Veículos | PMR PRESENCIAL | 2026-04-27 00:00:00 | 09:30:00 | 3.0 | Presencial | João Augusto |  | Proprietário | Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | m72avbbhqja4musjh4gltklcns@google.com
+L219:  | 8.0 | Bedim Automóveis | PMR ONLINE | 2026-05-04 00:00:00 | 09:00:00 | 1.0 | Online | José Roberto |  | Vendedor e Gerente | Avaliação Individual nos Treinamentos |  | ovfcc8t1n32lvl2fcf43ani4mk@google.com
+L220:  | 4.0 | Vitrine | PPA PREMIUM | 2026-05-04 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | piepfnb6iubh2flqlq449iim7k@google.com
+L221:  | 5.0 | Império | PPA PREMIUM | 2026-05-04 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | 7c3artj6h9aitstdgq4sgbe0ug@google.com
+L222:  | 4.0 | AG AUTOMÓVEIS | PPA PREMIUM | 2026-05-05 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | a4klmor98nvt81l64jk9c798v8@google.com
+L223:  | 4.0 | Salim | PPA | 2026-05-05 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | 5nmd32uhclpbicmj7rvgiplip4@google.com
+L224:  | 4.0 | Dakar | PPA | 2026-05-06 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | r4d0701b5cj496aqedvulvuvgc@google.com
+L225:  | 5.0 | Lial | PPA PREMIUM | 2026-05-06 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | lq1gsougpou6sef9kq97un2d98@google.com
+L226:  | 4.0 | Almeida | PPA | 2026-05-07 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | qu3sup4266eagbg0t7v8t976gs@google.com
+L227:  | 4.0 | Piscar Veículos | PPA PREMIUM | 2026-05-07 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | d504tfonvb6fkk2km751v45je4@google.com
+L228:  | 4.0 | Direta | PPA PREMIUM | 2026-05-08 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | cfjjou72ncjnidfpvb7sjvor6c@google.com
+L229:  | 5.0 | André Car | PMR RENOVAÇÃO | 2026-05-08 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | t7svnsca0n45b1agq1a9cbhbo4@google.com
+L230:  | 9.0 | Bedim Automóveis | PMR ONLINE | 2026-05-11 00:00:00 | 09:00:00 | 1.0 | Online | José Roberto |  | Proprietário | Análise das Implementações e Plano de Ação Trimestral |  | 1j0nm1ef0a50gj0larcdk4k1b4@google.com
+L231:  | 4.0 | Ideal Automotive | PPA | 2026-05-11 00:00:00 | 09:00:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Maximização de Receitas |  | toi6nedcm6c190a7dlqrtemfp8@google.com
+L232:  | 4.0 | Auto Up | PMR RENOVAÇÃO | 2026-05-11 00:00:00 | 16:00:00 | 1.0 | Online | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | nlo4a2st5a46ho8nkm8k97k2ko@google.com
+L233:  | 4.0 | Ideal Automotive | PPA | 2026-05-11 00:00:00 | 14:00:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | 997v4s35msk277cep089ht22qo@google.com
+L234:  | 4.0 | Ideal Motors | PPA | 2026-05-11 00:00:00 | 10:30:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Maximização de Receitas |  | uhvon2qs0b58gvh9rak17bhjjo@google.com
+L235:  | 4.0 | Sempre Mais | PPA | 2026-05-12 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | fojm3qcpvmuifonqcq62rr0kg0@google.com
+L236:  | 7.0 | LM Veículos | PMR PRESENCIAL | 2026-05-13 00:00:00 | 14:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | vap5li92v0107m4oh9nmj0jbuo@google.com
+L237:  | 4.0 | Brothers Car | PPA | 2026-05-13 00:00:00 | 09:00:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | gtlg16oja6d4m4k90cmosra6gc@google.com
+L238:  | 10.0 | Carrum | PMR ONLINE | 2026-05-19 00:00:00 | 09:00:00 | 2.0 | Online | José Roberto |  | Proprietário | Acompanhamento |  | rqe85t82p13ko6umk8vopbtl58@google.com
+L239:  | 6.0 | Império | PPA PREMIUM | 2026-06-03 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 3vsntq3blca87ug8dr13q6n5p8@google.com
+L240:  | 5.0 | Vitrine | PPA PREMIUM | 2026-06-03 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | e9oo1mf1cmj684n1k67cmb7av4@google.com
+L241:  | 5.0 | Salim | PPA | 2026-06-04 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | ks278sbae9t47ffnr1gustj8cg@google.com
+L242:  | 5.0 | AG AUTOMÓVEIS | PPA PREMIUM | 2026-06-04 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | e6cbu6islmf37g92pp2kgu6kmk@google.com
+L243:  | 5.0 | Dakar | PPA | 2026-06-05 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 66q49g3vf5u8kqv3esn22rk38c@google.com
+L244:  | 6.0 | Lial | PPA PREMIUM | 2026-06-05 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 31u098t79ol16qloin8v9l7tu8@google.com
+L245:  | 5.0 | Piscar Veículos | PPA PREMIUM | 2026-06-08 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | fbdpg32va7di9ji1e2rkm7cguc@google.com
+L246:  | 5.0 | Almeida | PPA | 2026-06-08 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | e3fasgk2dc0rs5ec825q3g05js@google.com
+L247:  | 6.0 | André Car | PMR RENOVAÇÃO | 2026-06-09 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 2k5a1lsomv0eagppl06t4g9k4s@google.com
+L248:  | 5.0 | Direta | PPA PREMIUM | 2026-06-09 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 3qekonkp3bf0ui4g2d9fkhlnko@google.com
+L249:  | 5.0 | Ideal Automotive | PPA | 2026-06-10 00:00:00 | 10:30:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Eficiência em Custos |  | j667buopko7rrg1m22mrmk877g@google.com
+L250:  | 5.0 | Ideal Motors | PPA | 2026-06-10 00:00:00 | 10:30:00 | 2.0 | Online | Daniel Santos |  | Proprietário | Eficiência em Custos |  | ndth0pcejtligkqckrbratj06o@google.com
+L251:  | 5.0 | Ideal Automotive | PPA | 2026-06-15 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 4ohl2cl5gf3degdq3dbp13q6ug@google.com
+L252:  | 5.0 | Auto Up | PMR RENOVAÇÃO | 2026-06-16 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 6hr1oopjhome6c8b6qnvo0iisc@google.com
+L253:  | 5.0 | InvestCar RJ | PPA | 2026-06-17 00:00:00 | 13:30:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 4kqussisbtf50eaoke08ra0d48@google.com
+L254:  | 11.0 | Carrum | PMR ONLINE | 2026-06-19 00:00:00 | 09:00:00 | 2.0 | Online | José Roberto |  | Proprietário | Acompanhamento |  | h20elmsj3kl7ec3cpk0b7vmub8@google.com
+L255:  | 5.0 | Sempre Mais | PPA | 2026-06-22 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | rdldgb22oos9uptuugk4vfe4qs@google.com
+L256:  | 5.0 | Brothers Car | PPA | 2026-06-23 00:00:00 | 09:00:00 | 6.0 | Presencial | Daniel Santos |  | Proprietário | Maximização de Receitas |  | 0nq33oh7vp1u2nsbr9mdttu1hg@google.com
+L257:  | 8.0 | Promac JPA | PMR PRESENCIAL |  |  | 6.0 | Presencial | Gedson Freire | Consultor 5 | Todos | Acompanhamento
+L258:  | 9.0 | Promac JPA | PMR PRESENCIAL |  |  | 5.0 | Presencial | Gedson Freire | Consultor 5 | Proprietário | Análise das Implementações e Plano de Ação Trimestral
+L259:  | 3.0 | Wcar | PMR RENOVAÇÃO |  |  | 3.0 | Presencial | José Roberto |  | Todos | Treinamento Vendedores
+L260:  | 5.0 | RK2 | PMR PRESENCIAL |  |  | 3.0 | Presencial | João Augusto |  | Proprietário e Marketing | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | nk2st6e2ktf8d7kdic6vfgdgmk@google.com
+L261:  | 3.0 | MCar Automóveis | PMR ONLINE |  |  | 3.0 | Online | Gedson Freire |  | Proprietário | Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado |  | cfjjou72ncjnidfpvb7sjvor6c@google.com
+L262:  | 4.0 | MCar Automóveis | PMR ONLINE |  |  | 3.0 | Online | Gedson Freire |  | Proprietário | Visita 4: Cultura de Resultado e Treinamento MVP |  | jbl34avnlegktjtrj5mr9avq6k@google.com
+L263:  | 5.0 | MCar Automóveis | PMR ONLINE |  |  | 3.0 | Online | Gedson Freire |  | Proprietário | Visita 5: Plano de Desenvolvimento Individual (PDI)
+L264:  | 6.0 | MCar Automóveis | PMR ONLINE |  |  | 3.0 | Online | João Augusto |  | Proprietário | Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | o5i1grdge22vr0cksapeht56n8@google.com
+L265:  | 7.0 | MCar Automóveis | PMR ONLINE |  |  | 3.0 | Online | Gedson Freire |  | Proprietário | Visita 7: Análise das Implementações e Plano de Ação Trimestral |  | ko6cvti81598ube4lpujm9l5lc@google.com
+L266:  | 3.0 | GED Veículos | PMR PRESENCIAL |  |  | 3.0 | Online | José Roberto |  | Proprietário | Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado |  | q8790q259r39oind3ktptkhekk@google.com
+L267:  | 4.0 | GED Veículos | PMR PRESENCIAL |  |  | 3.0 | Online | José Roberto |  | Proprietário | Visita 4: Cultura de Resultado e Treinamento MVP |  | acm136ga1pcae2f8u206fd35pg@google.com
+L268:  | 5.0 | GED Veículos | PMR PRESENCIAL |  |  | 3.0 | Online | Gedson Freire | José Roberto | Proprietário | Visita 5: Plano de Desenvolvimento Individual (PDI) |  | ksg3re3568uqooohbbqguabveo@google.com
+L269:  | 6.0 | GED Veículos | PMR PRESENCIAL |  |  | 3.0 | Online | João Augusto |  | Proprietário | Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago |  | vap5li92v0107m4oh9nmj0jbuo@google.com
+L270:  | 7.0 | GED Veículos | PMR PRESENCIAL |  |  | 3.0 | Online | José Roberto |  | Proprietário | Visita 7: Análise das Implementações e Plano de Ação Trimestral |  | 5v00ra7oc9rfffcad7ih0cm1bk@google.com
+
+--- PLANILHA: CRM (None linhas x None colunas) ---
+L1: VISITA | LISTA DE CLIENTES | PRODUTO | CONSULTORES | MODALIDADE | ALVO | MOTIVO DA VISITA
+L2: 0.0 | Vitrine | PPA | Daniel Santos | Presencial | Proprietário | Onboarding
+L3: 1.0 | Império | PPA PREMIUM | Gedson Freire | Online | Vendedor | Diagnóstico e Treinamento Método Vendedor Profissional - Fase 1
+L4: 2.0 | Salim | PMR RENOVAÇÃO | José Roberto |  | Gerente | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2
+L5: 3.0 | AG AUTOMÓVEIS | PMR PRESENCIAL | João Augusto |  | Todos | Rotina do Gerente e do Vendedor, Feedback Estruturado
+L6: 4.0 | Lial | PMR ONLINE | Consultor 5 |  | Vendedor e Gerente | Cultura de Resultado e Treinamento MVP - Fase 3
+L7: 5.0 | Dakar | MENTORIA | Mariane Durães |  | Proprietário e Gerente | Plano de Desenvolvimento Individual (PDI)
+L8: 6.0 | Piscar Veículos |  | Todos |  | Proprietário e Marketing | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+L9: 7.0 | Almeida |  |  |  |  | Análise das Implementações e Plano de Ação Trimestral
+L10: 8.0 | InvestCar MG |  |  |  |  | Acompanhamento
+L11: 9.0 | InvestCar RJ |  |  |  |  | Modelo de Negócio
+L12:  | Direta |  |  |  |  | Planejamento Estratégico
+L13:  | Sempre Mais |  |  |  |  | Maximização de Receitas
+L14:  | Ideal Automotive |  |  |  |  | Eficiência em Custos
+L15:  | Auto Up |  |  |  |  | Treinamento Vendedores
+L16:  | Brothers Car |  |  |  |  | Resultados e Plano de Ação
+L17:  | Wcar |  |  |  |  | Treinamento Venda Aprovada (Financiamento)
+L18:  | André Car |  |  |  |  | Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional
+L19:  | Delta Veículos |  |  |  |  | Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP
+L20:  | Ideal Motors |  |  |  |  | Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado
+L21:  | RK2 |  |  |  |  | Visita 4: Cultura de Resultado e Treinamento MVP
+L22:  | Espíndola |  |  |  |  | Visita 5: Plano de Desenvolvimento Individual (PDI)
+L23:  | Goto Motors |  |  |  |  | Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+L24:  | Seminovos BHZ |  |  |  |  | Visita 7: Análise das Implementações e Plano de Ação Trimestral
+L25:  | Paay |  |  |  |  | Agenda bloqueada
+L26:  | Carrum |  |  |  |  | Evento MX
+L27:  | Otávio Lage |  |  |  |  | Gestão dos Indicadores
+L28:  | Promac JPA |  |  |  |  | Acompanhar financiamento (receita adicional)
+L29:  | Acertt |  |  |  |  | Agenda bloqueada (treinamento)
+L30:  | LM Veículos
+L31:  | DNA Multimarcas
+L32:  | Gandini
+L33:  | Bedim Automóveis
+L34:  | MCar Automóveis
+L35:  | GED Veículos
+L36:  | Trend Auto
+
+--- PLANILHA: OBJETIVO_VISITA (None linhas x None colunas) ---
+L1: PMR SEM VIAGEM
+L2: Nº Visita | Motivo | Tempo | Alvo | Check List | Evidência | Modelo de Relatório | Momento de Venda
+L3: 1.0 | Diagnóstico e Treinamento Método Vendedor Profissional - Fase 1 | 1 dia | Todos | 1. Entrevista Vendedores, Gerentes e Sócios;  2. Análise de Processos;  3. Levantamento de dados 4.  Treinamento Método Vendedor Profissional; | 1 e 2. Formulários preenchidos;  3. Dados enviados
+L4: 2.0 | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2 | 1 dia | Todos | 1. Apresentação do Planejamento;  2. Implementação da Metodologia Multicanal; 3. Acompanhamento Diário de Vendas;  4. Gestão á Vista;  5. Reforçar área do cliente no sistema;  6. Reforçar ações de contratação e treinamento de novos vendedores; | 1. Validação do Planejamento no Sistema;  2. Foto do treinamento e vendedores cadastrados no sistema;
+L5: 3.0 | Rotina do Gerente e do Vendedor, Feedback Estruturado | 3 horas | Vendedor e Gerente | 1. Implementar a Rotina do Gerente;  2. Implementar a Rotina do Vendedor;  3. Verificar se o novo plano de remuneração foi avaliado; | 1. Foto da Rotina impressa e fixada em local visível;  2. Foto do treinamento e foto da Rotina impressa e fixada em local visível;
+L6: 4.0 | Cultura de Resultado e Treinamento MVP - Fase 3 | 3 horas | Todos | 1. Implementar o Feedback Estruturado;  2. Implementar Cultura de Resultados;  3. Avaliar se foi contratado novos vendedores e se o processo foi seguido; | 1. Relatório de Feedback por vendedor;  2. Print do ranking no grupo da empresa;  3. Print do Gestão á vista no grupo da empresa;
+L7: 5.0 | Plano de Desenvolvimento Individual (PDI) | 3 horas | Vendedor e Gerente | 1. Apresentação do conteúdo;  2. Definição dos responsáveis pela execução;  3. Definição do prazo de início; | 1. Foto da Apresentação;  2 e 3. Definição dos responsáveis e datas; |  | 1. Apresentar prestação de serviço conforme demanda da empresa.
+L8: 6.0 | Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago | 3 horas | Proprietário | 1. Implementar o PDI da equipe e do Gerente;  2. Enviar relatório da performance nos treinamentos; | 1. Todos os PDIs no sistema; | Como encaixar na visita extra
+L9: 7.0 | Análise das Implementações e Plano de Ação Trimestral | 3 horas | Proprietário | 1. Analisar resultado do trimestre;  2. Apresentar os pontos postivos e a melhorar;  3. Solicitar Feedback;  4. Criar plano de ação dos próximos 3 meses;  5. Apresentar o modelo de acompanhamento online; |  |  | 1. Apresentar modelo de acompanhemtno presencial/Renovação
+
+--- PLANILHA: EVENTOS ONLINE (None linhas x None colunas) ---
+L4:  | Data | Hora | Carga horária | Evento | Local | Público Alvo | Meta de Público | Responsável | Valor do Ingresso | ID_EVENTO
+L5:  | 2026-01-26 00:00:00 | 19:30:00 | 2.0 | Programa de Formação - Gerentes e Vendedores | Online | Vendedores, Gerentes e Donos de Loja | 300.0 | Daniel Santos | R$ - | oo9gtvesn91bkrc85g1b0vtjeo@google.com
+L6:  | 2026-03-08 00:00:00 | 19:00:00 | 2.0 | Programa de Maximização para Lojas de Carros | Online | Donos de Lojas | 100.0 | Daniel Santos | R$ - | ham4bqk2j26fklffq949p231rg@google.com
+L7:  | 2026-04-15 00:00:00 | 19:00:00 | 2.0 | Programa de Formação - Gerentes e Vendedores | Online | Vendedores, Gerentes e Donos de Loja | 300.0 | Daniel Santos | R$ - | kbvvmhdbctluvkmk5i5qto3vus@google.com
+L8:  | 2026-04-09 00:00:00 | 20:00:00 | 2.0 | Mentoria para Gerentes - Ética: Comportamento que gera respeito | Online | Gerentes |  | Gedson Freire | R$ - | vi3phrtnbtl3i3did07keob99c@google.com
+L9:  | 2026-04-26 00:00:00 | 20:00:00 | 2.0 | Mentoria para Gerentes - Como resolver conflitos definitivamente | Online | Gerentes |  | Gedson Freire | R$ - | 0sidns8tlbud9hgko4d349dc8o@google.com
+L10:  | 2026-05-02 00:00:00 | 20:00:00 | 2.0 | Mentoria para Gerentes - Liderando talentos sem perder a equipe | Online | Gerentes |  | Gedson Freire | R$ - | 73gl5j29jivq7i05u7676gidgo@google.com
+L11:  | 2026-05-09 00:00:00 | 20:00:00 | 2.0 | Mentoria para Gerentes - Admiração: o maior nível da liderança | Online | Gerentes |  | Gedson Freire | R$ - | 73gl5j29jivq7i05u7676gidgo@google.com
+
+--- PLANILHA: EVENTOS PRESENCIAIS (None linhas x None colunas) ---
+L4:  | Data | Hora | Carga horária | Evento | Local | Público Alvo | Meta de Público | Responsável | Valor do Ingresso | ID_EVENTO
+L5:  | 2026-03-01 00:00:00 | 09:00:00 | 6.0 | Programa de Formação e Desenvolvimento de Gerentes | Lagoa Santa / MG | Vendedores, Gerentes e Donos de Loja | 30.0 | Gedson Freire | R$ 497,00 | tp0d11fhdda0cd2boj8dci5neo@google.com
+L6:  | 2026-03-15 00:00:00 | 09:00:00 | 6.0 | Método Vendedor de Carros Profissional | Lagoa Santa / MG | Vendedores, Gerentes e Donos de Loja | 100.0 | José Roberto | R$ 297,00 | g4kkd9kf5hdkqpcnhrk8pkp75c@google.com
+L7:  | 2026-04-11 00:00:00 | 09:00:00 | 8.0 | MasterMind MX | Lagoa Santa / MG | Clientes do PPA e Convidados | 25.0 | Daniel Santos | R$ 5.500,00 | 7msdpkq31es0lgoabnahdgh3a4@google.com
+
+--- PLANILHA: AULAS (None linhas x None colunas) ---
+L4:  | Data | Dia Semana | HORA | Evento | Tema | Local | Público Alvo | Responsável |  | ID_EVENTO
+L5:  | 2026-01-08 00:00:00 | quinta-feira | 19:00:00 | Encontro Mensal Lojistas | Perspectivas 2026 | ZOOM | Donos de Loja | Daniel Santos |  | 528nl72ihm69t25b5ufpq6q4q0@google.com
+L6:  | 2026-01-14 00:00:00 | quarta-feira | 19:30:00 | Formação de Vendedores | Apresentação da Formação | ZOOM | Vendedores, Gerentes e Donos de Loja | Daniel Santos |  | fmf9bbf8kegki2a5eanlq7s0ds@google.com
+L7:  | 2026-01-19 00:00:00 | segunda-feira | 20:00:00 | Formação de Gerentes | Introdução a Formação | ZOOM | Gerentes Comerciais | Gedson Freire |  | 59cup7376ippb6fpk26ama5d6s@google.com
+L8:  | 2026-01-22 00:00:00 | quinta-feira | 20:00:00 | Formação de Vendedores | Introdução a Formação | ZOOM | Vendedores | José Roberto |  | ii0t0amojlbnev5vpi3rkvpk38@google.com
+L9:  | 2026-02-05 00:00:00 | quinta-feira | 20:00:00 | Encontro Mensal Lojistas | Estratégias | ZOOM | Donos de Loja | Daniel Santos |  | qs3eiit5kqei9hhcjmthmsjm40@google.com
+L10:  | 2026-02-09 00:00:00 | segunda-feira | 20:00:00 | Formação de Vendedores | Processos de Vendas - Atendimento | ZOOM | Vendedores | José Roberto |  | m733j1omlsmqpp3lpng2b1ccfc@google.com
+L11:  | 2026-02-12 00:00:00 | quinta-feira | 20:00:00 | Formação de Gerentes | Processos de Vendas | ZOOM | Gerentes Comerciais | Gedson Freire |  | m85qe62v6mrdu75unnkprjnass@google.com
+L12:  | 2026-02-25 00:00:00 | quarta-feira | 20:00:00 | Formação de Vendedores | Processos de Vendas - Atendimento | ZOOM | Vendedores | José Roberto |  | 5f7hmma43cit9ij5vkg933qqos@google.com
+L13:  | 2026-04-07 00:00:00 | terça-feira | 20:00:00 | Formação de Vendedores | Processos de Vendas | ZOOM | Vendedores | José Roberto |  | jnhamsqmjvq10t1ve9s9dmt0gs@google.com
+L14:  | 2026-04-22 00:00:00 | quarta-feira | 20:00:00 | Formação de Vendedores | Processos de Vendas | ZOOM | Vendedores | José Roberto |  | olhtmk0m41q2kv2nfa6jto0eks@google.com
+L15:  | 2026-04-01 00:00:00 | quarta-feira | 20:00:00 | MENTORIA VENDEDORES VAP | AULA INTRODUTÓRIA | ZOOM | VENDEDORES VAP | José Roberto |  | 6dplt13hfttinkp36jvlu3vfts@google.com
+L16:  | 2026-04-08 00:00:00 | quarta-feira | 20:00:00 | MENTORIA VENDEDORES VAP | MENTORIA 3 HORAS | ZOOM | VENDEDORES VAP | José Roberto |  | 80rbscebqq6lnag46cifc6gutk@google.com
+L17:  | 2026-04-20 00:00:00 | segunda-feira | 20:00:00 | MENTORIA VENDEDORES VAP | MENTORIA 3 HORAS | ZOOM | VENDEDORES VAP | José Roberto |  | 8esmgj0ut5khcd68tl3vf10h9c@google.com
+L18:  | 2026-05-06 00:00:00 | quarta-feira | 20:00:00 | MENTORIA VENDEDORES VAP | MENTORIA 3 HORAS | ZOOM | VENDEDORES VAP | José Roberto |  | bmnod3vamtha3hism69r5iec74@google.com
+L19:  | 2026-05-20 00:00:00 | quarta-feira | 20:00:00 | MENTORIA VENDEDORES VAP | MENTORIA 3 HORAS | ZOOM | VENDEDORES VAP | José Roberto |  | gbur7e2pq0o82ee6q5s1j26koo@google.com

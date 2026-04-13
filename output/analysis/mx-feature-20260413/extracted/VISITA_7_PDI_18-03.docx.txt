@@ -1,0 +1,21 @@
+📍 VISITA 7: Plano de Desenvolvimento Individual (PDI)
+CABEÇALHO BASE - OBRIGATÓRIO (Copiar para o CRM):
+Data: 18/03/2026
+Consultor: José Roberto
+Loja: DNA UNIDADE PORTAL
+Meta Mensal: 40 (29 vendas atualmente)
+Projeção: 51
+Leads Mês: 667
+Estoque Disponível: 67 (estoque total 127, sendo que 20 é de repasse e para uso pessoal, 40 carros em preparação)
+Tempo: 3 horas
+Alvo (Participantes): Vendedor e Gerente
+Check List:
+Implementar o PDI da equipe e do Gerente;
+Enviar relatório da performance nos treinamentos;
+Evidência: 1. Todos os PDIs no sistema;
+Modelo de Relatório: Como encaixar na visita extra
+🚨 PONTO DE ATENÇÃO (TRAVA): A sessão de PDI alinha meta de vida com meta da loja. Os documentos devem ser fechados e assinados na hora.
+Carro de estoque, repasse e em preparação todos juntos não tendo a noção exata de quantos carros tem para venda, vão fazer um cadastro no autocerto somente para repasse.
+Contrato não está sendo feito pelo sistema de forma que o carro não é baixado no sistema e aí criamos um cenário aonde os carros já vendidos ainda fiquem no sistema quando vender.
+Foi verificado que estão sem anuncio destaque WebMotors e OLX vão ajustar.
+Fizemos o PDI do Antonio na loja do portal, os demais gerentes farão com os outros vendedores.

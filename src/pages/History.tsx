@@ -28,8 +28,82 @@ export default function HistoryPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isRefetching, setIsRefetching] = useState(false)
   const [userRequests, setUserRequests] = useState<any[]>([])
+  const [requestingCheckin, setRequestingCheckin] = useState<any | null>(null)
+  const [correctionForm, setCorrectionForm] = useState({
+    leads: 0,
+    visitas: 0,
+    vnd_porta: 0,
+    vnd_cart: 0,
+    vnd_net: 0,
+    agd_cart: 0,
+    agd_net: 0,
+    reason: '',
+  })
 
-  // ... (keeping fetchUserRequests, useEffect, openRequestModal, handleSendRequest)
+  const fetchUserRequests = useCallback(async () => {
+    if (!profile?.id) {
+      setUserRequests([])
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('checkin_correction_requests')
+      .select('id, checkin_id, status, created_at')
+      .eq('seller_id', profile.id)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Audit Error [HistoryPage]: fetchUserRequests ->', error.message)
+      return
+    }
+
+    setUserRequests(data || [])
+  }, [profile?.id])
+
+  useEffect(() => {
+    fetchUserRequests()
+  }, [fetchUserRequests])
+
+  const openRequestModal = useCallback((checkin: any) => {
+    setRequestingCheckin(checkin)
+    setCorrectionForm({
+      leads: checkin.leads_prev_day || 0,
+      visitas: checkin.visit_prev_day || 0,
+      vnd_porta: checkin.vnd_porta_prev_day || 0,
+      vnd_cart: checkin.vnd_cart_prev_day || 0,
+      vnd_net: checkin.vnd_net_prev_day || 0,
+      agd_cart: checkin.agd_cart_today || 0,
+      agd_net: checkin.agd_net_today || 0,
+      reason: '',
+    })
+  }, [])
+
+  const handleSendRequest = useCallback(async () => {
+    if (!requestingCheckin) return
+
+    const { error } = await requestCorrection(
+      requestingCheckin.id,
+      {
+        leads: correctionForm.leads,
+        visitas: correctionForm.visitas,
+        vnd_porta: correctionForm.vnd_porta,
+        vnd_cart: correctionForm.vnd_cart,
+        vnd_net: correctionForm.vnd_net,
+        agd_cart: correctionForm.agd_cart,
+        agd_net: correctionForm.agd_net,
+      },
+      correctionForm.reason,
+    )
+
+    if (error) {
+      toast.error(error)
+      return
+    }
+
+    toast.success('Solicitação enviada para auditoria.')
+    setRequestingCheckin(null)
+    await fetchUserRequests()
+  }, [correctionForm, fetchUserRequests, requestCorrection, requestingCheckin])
 
   const filteredCheckins = useMemo(() => {
     return [...checkins]

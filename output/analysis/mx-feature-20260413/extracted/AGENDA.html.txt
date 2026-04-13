@@ -1,0 +1,3185 @@
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+L
+M
+N
+1
+AGENDA 2026
+2
+3
+SUBTOTAIS
+251
+251
+4
+ID_EVENTO
+5
+Visita
+Nome do Cliente
+Produto / Consultoria
+Data da Visita
+Hora
+Tempo (horas)
+Modalidade
+Consultor Responsável
+Consultor Auxiliar
+Alvo
+Motivo da Visita / Ação Planejada
+6
+1
+Império
+PPA PREMIUM
+05/01/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+o4mpnohlcvm4vrm4rjtngr8csk@google.com
+7
+1
+Vitrine
+PPA PREMIUM
+05/01/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+og1oltcpp4f2su5h5hqtsdmnng@google.com
+8
+2
+Otávio Lage
+PMR PRESENCIAL
+05/01/2026
+09:00:00
+8
+Presencial
+Gedson Freire
+José Roberto
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+nsnbhta7jrod778l8s8jcgulfo@google.com
+9
+1
+Salim
+PPA
+06/01/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+s04gjm4bm2b625p7ugvtqhqt2s@google.com
+10
+2
+Goto Motors
+PMR PRESENCIAL
+06/01/2026
+09:00:00
+8
+Presencial
+Gedson Freire
+José Roberto
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+spku2j62t2rb15k5mft9s1cfps@google.com
+11
+1
+AG AUTOMÓVEIS
+PPA PREMIUM
+06/01/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+nm5c768tuu4afu40914tlca00k@google.com
+12
+2
+Paay
+PMR PRESENCIAL
+07/01/2026
+09:00:00
+8
+Presencial
+Gedson Freire
+José Roberto
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+j8vmv9qt8offk1dd19pjci1e4o@google.com
+13
+1
+Lial
+PPA PREMIUM
+07/01/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+1h53f01ikir47osprd28dplolk@google.com
+14
+1
+Dakar
+PPA
+07/01/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+hgnip5i234as446sa8gagru358@google.com
+15
+1
+Almeida
+PPA
+08/01/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+h9na01l7r0ba8qb4obcog2g2o4@google.com
+16
+1
+Piscar Veículos
+PPA PREMIUM
+08/01/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+k9k2ff92qtc40frrkslh2qjrc8@google.com
+17
+2
+Seminovos BHZ
+PMR PRESENCIAL
+08/01/2026
+09:00:00
+8
+Presencial
+Gedson Freire
+José Roberto
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+8p97tfmerd1msmj11pvp45bh6g@google.com
+18
+0
+Promac JPA
+PMR PRESENCIAL
+09/01/2026
+10:30:00
+1
+Online
+Daniel Santos
+Proprietário
+Onboarding
+1mjt312nh4qv12f1p2j2umeqh8@google.com
+19
+2
+RK2
+PMR PRESENCIAL
+09/01/2026
+09:00:00
+8
+Presencial
+Gedson Freire
+José Roberto
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+dg8dg23dkbll2e6moi1ii03npk@google.com
+20
+1
+InvestCar MG
+PPA
+09/01/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+35qkbsa9t81m6m4vuotggu4pa0@google.com
+21
+0
+Espíndola
+PMR PRESENCIAL
+09/01/2026
+09:00:00
+1
+Online
+Daniel Santos
+Proprietário
+Onboarding
+dhtp7mtfvf4vnmgju1v0gvilo8@google.com
+22
+3
+RK2
+PMR PRESENCIAL
+12/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+José Roberto
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+0is3qv25c45jmh8hkrkv1mka08@google.com
+23
+11
+Wcar
+PMR RENOVAÇÃO
+12/01/2026
+17:00:00
+3
+Presencial
+Daniel Santos
+Vendedor
+Treinamento Vendedores
+h7ik581rvg5p659jk9gkkihvr0@google.com
+24
+1
+André Car
+PMR RENOVAÇÃO
+12/01/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+odha36brep6f2gtnttkan9166k@google.com
+25
+1
+Direta
+PPA PREMIUM
+12/01/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+d2rptblphv0d7ni1um8l2atug8@google.com
+26
+3
+Paay
+PMR PRESENCIAL
+13/01/2026
+09:30:00
+3
+Presencial
+José Roberto
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+fp6shsshduuifm07j88tdp0goo@google.com
+27
+1
+Ideal Automotive
+PPA
+13/01/2026
+14:00:00
+2
+Online
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+2qabrms5erf4cjv253u0im1lko@google.com
+28
+1
+Auto Up
+PMR RENOVAÇÃO
+13/01/2026
+16:00:00
+1
+Online
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+j951u5bm25od87ph0ccgrotbik@google.com
+29
+3
+Otávio Lage
+PMR PRESENCIAL
+13/01/2026
+14:00:00
+3
+Presencial
+José Roberto
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+4ncoqphkom3h0b9io4cskelf30@google.com
+30
+3
+Goto Motors
+PMR PRESENCIAL
+13/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+kgevcm7v95rlimaunnih2lhrfc@google.com
+31
+1
+Ideal Automotive
+PPA
+13/01/2026
+10:30:00
+2
+Online
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+nnjl9e5cro8h4lufid3rs7urqc@google.com
+32
+3
+Seminovos BHZ
+PMR PRESENCIAL
+14/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+José Roberto
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+ig5ka1f3ddmffnj0hl42uhflp4@google.com
+33
+1
+MaisCar
+PMR RENOVAÇÃO
+14/01/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+l462m5l8uk5nmp7nhcg14kf8n8@google.com
+34
+1
+Sempre Mais
+PPA
+14/01/2026
+15:00:00
+2
+Online
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+45no8q5m6vj9lpd7pqgu3ko8c4@google.com
+35
+12
+Wcar
+PMR RENOVAÇÃO
+15/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Gerente
+Planejamento Estratégico
+4thbd5690o25hbsu1q9q9qc8h0@google.com
+36
+2
+Promac JPA
+PMR PRESENCIAL
+15/01/2026
+16:00:00
+2
+Online
+Gedson Freire
+Gerente
+Diagnóstico
+gs085dgl1htj3r6f370673ucgg@google.com
+37
+2
+Acertt
+PMR PRESENCIAL
+16/01/2026
+14:00:00
+6
+Presencial
+Daniel Santos
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+5r879hqh2hap8aqkn4kdfg9us0@google.com
+38
+2
+Carrum
+PMR ONLINE
+16/01/2026
+14:00:00
+3
+Online
+José Roberto
+Proprietário
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+tkqcgg533gnffb8osupk6o0qqo@google.com
+39
+4
+RK2
+PMR PRESENCIAL
+16/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário e Gerente
+Feedback Estruturado e Cultura de Resultado
+kg44mt388u6dm5as2l5cmkst9s@google.com
+40
+Extra
+Piscar Veículos
+PPA
+16/01/2026
+09:00:00
+5
+Presencial
+Daniel Santos
+Proprietário
+Acompanhamento
+51eki94lun11g1egfkvtm4rctk@google.com
+41
+1
+Espíndola
+PMR PRESENCIAL
+19/01/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+José Roberto
+Todos
+Diagnóstico
+50rr7nigi46u9o8fkf3c3pbsm8@google.com
+42
+4
+Goto Motors
+PMR PRESENCIAL
+20/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário e Gerente
+Feedback Estruturado e Cultura de Resultado
+2ratga8fiof14eeor6u1q7ikhs@google.com
+43
+2
+Espíndola
+PMR PRESENCIAL
+20/01/2026
+09:00:00
+5
+Presencial
+Daniel Santos
+José Roberto
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+0qoje42oluaov9qk07c9okn9b4@google.com
+44
+3
+Carrum
+PMR ONLINE
+20/01/2026
+09:30:00
+1
+Online
+José Roberto
+Vendedor e Gerente
+Feedback Estruturado e Cultura de Resultado
+3dp6lvvute8bh6irq319o0j9kg@google.com
+45
+4
+Seminovos BHZ
+PMR PRESENCIAL
+21/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+José Roberto
+Proprietário e Gerente
+Feedback Estruturado e Cultura de Resultado
+fa728r4skal29csklkm2bk8sa8@google.com
+46
+4
+Paay
+PMR PRESENCIAL
+22/01/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário e Gerente
+Feedback Estruturado e Cultura de Resultado
+vske2tt7nk3b38gqlh5bom8n8g@google.com
+47
+4
+Otávio Lage
+PMR PRESENCIAL
+22/01/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário e Gerente
+Feedback Estruturado e Cultura de Resultado
+g9l94hk2usja6qr0j89193ikac@google.com
+48
+13
+Wcar
+PMR RENOVAÇÃO
+22/01/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+8tar25b4o7q2pt3o1p301dv828@google.com
+49
+3
+Promac JPA
+PMR PRESENCIAL
+22/01/2026
+09:00:00
+1
+Online
+João Augusto
+Proprietário
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+fs9vdrq1jvh3e91n4573svqp9k@google.com
+50
+3
+Acertt
+PMR PRESENCIAL
+23/01/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+ie53kvcaopgorr5vrsciebkrio@google.com
+51
+1
+Brothers Car
+PPA
+23/01/2026
+07:00:00
+1
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+qih4unufht6sbehqncst0m37g4@google.com
+52
+3
+Espíndola
+PMR PRESENCIAL
+26/01/2026
+14:00:00
+1
+Online
+João Augusto
+Proprietário
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+cjuj14vucfu0e97ull9d8omocg@google.com
+53
+1
+DNA Multimarcas
+PMR PRESENCIAL
+26/01/2026
+09:00:00
+7
+Presencial
+Gedson Freire
+José Roberto
+Todos
+Diagnóstico
+vjc2o97qgjaa60qb166qbtcdpg@google.com
+54
+6
+Paay
+PMR PRESENCIAL
+28/01/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+q88csfnsa4llla8e4vl56q5jf8@google.com
+55
+1
+Gandini
+PMR PRESENCIAL
+02/02/2026
+09:00:00
+3
+Presencial
+José Roberto
+João Augusto
+Todos
+Diagnóstico
+h9ho8vidjhnii6pe10u7gfqrdo@google.com
+56
+Wcar
+02/02/2026
+13:00:00
+3
+Presencial
+José Roberto
+João Augusto
+Proprietário e Marketing
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+upcd976dmhpscmmtovdnbbn01c@google.com
+57
+5
+Goto Motors
+PMR PRESENCIAL
+03/02/2026
+09:30:00
+3
+Presencial
+José Roberto
+João Augusto
+Proprietário e Marketing
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+rl9gue3in38ih3j2qqao3h4vgo@google.com
+58
+4
+Acertt
+PMR PRESENCIAL
+03/02/2026
+14:00:00
+3
+Presencial
+José Roberto
+João Augusto
+Proprietário e Gerente
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+eh5id28tua3kgruq2fg51vpiec@google.com
+59
+4
+Promac JPA
+PMR PRESENCIAL
+03/02/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Gedson Freire
+Gerente
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+9n719rctomoto7e8bu9gvai7p4@google.com
+60
+5
+Seminovos BHZ
+PMR PRESENCIAL
+04/02/2026
+09:30:00
+3
+Presencial
+José Roberto
+João Augusto
+Proprietário e Marketing
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+cptacdce6rtinv5q9511tltsgg@google.com
+61
+5
+Otávio Lage
+PMR PRESENCIAL
+04/02/2026
+14:00:00
+3
+Presencial
+José Roberto
+João Augusto
+Proprietário e Marketing
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+4bn8hf93p1l0hp1ft83tv082ko@google.com
+62
+5
+Promac JPA
+PMR PRESENCIAL
+04/02/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Gedson Freire
+Proprietário
+Feedback Estruturado e Cultura de Resultado
+ugam2qm15eqv8k8po5mgegie9c@google.com
+63
+2
+Vitrine
+PPA PREMIUM
+05/02/2026
+09:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Maximização de Receitas
+afpm1oj1mu2qt3n6j0vrnrehds@google.com
+64
+2
+Salim
+PPA
+05/02/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+eekpsbf8da903m47co3bb9sn18@google.com
+65
+2
+AG AUTOMÓVEIS
+PPA PREMIUM
+05/02/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+vclruoavk6cb36a1qqur857jes@google.com
+66
+2
+Império
+PPA PREMIUM
+05/02/2026
+13:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Maximização de Receitas
+vko0ie64a9edufq91s8o2rtprc@google.com
+67
+2
+DNA Multimarcas
+PMR PRESENCIAL
+05/02/2026
+09:30:00
+6
+Presencial
+José Roberto
+Proprietário e Marketing
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+kg3pr2uqfgkok00l8ohmratk48@google.com
+68
+4
+Carrum
+PMR ONLINE
+06/02/2026
+15:00:00
+1
+Online
+João Augusto
+Proprietário e Gerente
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+csso0hb0n44ptbrrpjea08ius8@google.com
+69
+2
+Piscar Veículos
+PPA PREMIUM
+06/02/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+jhfqb439ee786q34pkm1estec4@google.com
+70
+4
+Espíndola
+PMR PRESENCIAL
+06/02/2026
+13:00:00
+1
+Online
+João Augusto
+Proprietário
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+e8837n4o0ur53jnuu77tr0pd58@google.com
+71
+2
+Direta
+PPA PREMIUM
+06/02/2026
+13:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Maximização de Receitas
+7qu346r9fdkh9tbhc77l1lk7ls@google.com
+72
+2
+Lial
+PPA PREMIUM
+06/02/2026
+09:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Maximização de Receitas
+5mhpj3jhpm1292vg09u6rlk8vk@google.com
+73
+2
+Almeida
+PPA
+06/02/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+uq83iakt1moopluiiohsrvmrtc@google.com
+74
+2
+Gandini
+PMR PRESENCIAL
+06/02/2026
+09:30:00
+6
+Presencial
+José Roberto
+Todos
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista
+p2bhtb4phn3b2qhc626pfncbto@google.com
+75
+5
+Espíndola
+PMR PRESENCIAL
+09/02/2026
+14:00:00
+2
+Online
+Gedson Freire
+Proprietário e Marketing
+Rotina do Gerente e Rotina do Vendedor
+9fb2c64qgq8grbh2c09ukv1ui4@google.com
+76
+3
+Gandini
+PMR PRESENCIAL
+09/02/2026
+14:00:00
+3
+Presencial
+José Roberto
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+21jok8p6dfba9q5jjqfeohsunk@google.com
+77
+6
+RK2
+PMR PRESENCIAL
+09/02/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+61tq7kbaor8mhk99jm32rdoomo@google.com
+78
+2
+Ideal Automotive
+PPA
+09/02/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Gedson Freire
+Proprietário
+Maximização de Receitas
+5ctr2csa3kukabgqmg5l4c7mcs@google.com
+79
+5
+Acertt
+PMR PRESENCIAL
+10/02/2026
+14:00:00
+3
+Presencial
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+32ua8ofeahai5mceamhmngsvnk@google.com
+80
+6
+Promac JPA
+PMR PRESENCIAL
+10/02/2026
+15:00:00
+2
+Online
+Gedson Freire
+Vendedor e Gerente
+Rotina do Gerente e Rotina do Vendedor
+7ortg4v294j0mtu415boq461kc@google.com
+81
+2
+Auto Up
+PMR RENOVAÇÃO
+10/02/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Gedson Freire
+Proprietário
+Resultados e Plano de Ação
+enmg593kt2b4h9ao7pf879jnk0@google.com
+82
+6
+Goto Motors
+PMR PRESENCIAL
+10/02/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+jop5gp9frsbr98h66mdlgcag24@google.com
+83
+6
+Seminovos BHZ
+PMR PRESENCIAL
+11/02/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+ecbp8ct82chfvm5vkttpt69hgs@google.com
+84
+2
+InvestCar RJ
+PPA
+11/02/2026
+09:00:00
+7
+Presencial
+Daniel Santos
+Gedson Freire
+Proprietário
+Maximização de Receitas
+0q5bo65q352m7rm6k7j1r4f3uo@google.com
+85
+6
+Otávio Lage
+PMR PRESENCIAL
+11/02/2026
+14:00:00
+3
+Presencial
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+2apl5o2c767umtoaabec7r0crg@google.com
+86
+2
+Brothers Car
+PPA
+12/02/2026
+17:00:00
+2
+Online
+Daniel Santos
+Proprietário
+Maximização de Receitas
+55qum94v70e1nr0acu8q4a07t8@google.com
+87
+4
+Gandini
+PMR PRESENCIAL
+12/02/2026
+09:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Feedback Estruturado e Cultura de Resultado
+1hf780m3h6vb2csldocun2f994@google.com
+88
+3
+DNA Multimarcas
+PMR PRESENCIAL
+12/02/2026
+09:00:00
+6
+Presencial
+José Roberto
+Proprietário
+Rotina do Gerente e Rotina do Vendedor
+mlobbj2t3jk9mmmhn8fpvsavcs@google.com
+89
+2
+Ideal Automotive
+PPA
+12/02/2026
+14:00:00
+2
+Online
+Daniel Santos
+Proprietário
+Maximização de Receitas
+qn7kv7q3pf0oggheokpeohqhes@google.com
+90
+2
+André Car
+PMR RENOVAÇÃO
+12/02/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+t58gfmqfe9elnobe6f9o8r0v7g@google.com
+91
+5
+Wcar
+PMR RENOVAÇÃO
+13/02/2026
+14:00:00
+3
+Presencial
+Daniel Santos
+Vendedor
+Treinamento Vendedores
+shh33fii7bnukr4rpgsqign36c@google.com
+92
+Extra
+Salim
+PPA
+13/02/2026
+10:30:00
+3
+Presencial
+José Roberto
+Todos
+Treinamento Vendedores
+0du390l6f7t3m9uvhddab0abe4@google.com
+93
+4
+Wcar
+PMR RENOVAÇÃO
+13/02/2026
+08:00:00
+3
+Presencial
+Daniel Santos
+Vendedor
+Treinamento Vendedores
+7ltq7smp0n11g7i3pgrdlbaqr8@google.com
+94
+2
+Dakar
+PPA
+13/02/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Maximização de Receitas
+og4cl0ggg1d621cc553c24ubok@google.com
+95
+5
+Carrum
+PMR ONLINE
+19/02/2026
+09:30:00
+2
+Online
+Gedson Freire
+Proprietário e Marketing
+Revisão dos Processos Críticos
+gpqfe9cjfo8n1nemperm5jls2o@google.com
+96
+1
+LM Veículos
+PMR PRESENCIAL
+20/02/2026
+09:30:00
+6
+Presencial
+Daniel Santos
+Gedson Freire
+Todos
+Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional
+ivfes6eqel1moq7m53iotk6qf0@google.com
+97
+2
+Brothers Car
+PPA
+23/02/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+José Roberto
+Proprietário
+Maximização de Receitas
+0sa5o9p8b0ura8eg23g98bmckc@google.com
+98
+6
+Acertt
+PMR PRESENCIAL
+23/02/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Revisão dos Processos Críticos
+lt1vc6jbuhqtqknf0fdbtfu28s@google.com
+99
+6
+Carrum
+PMR ONLINE
+23/02/2026
+10:00:00
+2
+Online
+Gedson Freire
+Proprietário
+Plano de Desenvolvimento Individual (PDI)
+o8hv4qkjbaidu14sbg03ntohb0@google.com
+100
+7
+Goto Motors
+PMR PRESENCIAL
+24/02/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Vendedor e Gerente
+Plano de Desenvolvimento Individual (PDI)
+58i1k0uhr9h7js3u5ge3nucmf4@google.com
+101
+7
+Otávio Lage
+PMR PRESENCIAL
+24/02/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Vendedor e Gerente
+Plano de Desenvolvimento Individual (PDI)
+rhttgcu8rsbi8gv3q8s9l008pg@google.com
+102
+2
+Sempre Mais
+PPA
+24/02/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+José Roberto
+Proprietário
+Maximização de Receitas
+aer79c3cpkes199sbnaafnggfk@google.com
+103
+7
+RK2
+PMR PRESENCIAL
+25/02/2026
+09:30:00
+3
+Presencial
+José Roberto
+Vendedor e Gerente
+Plano de Desenvolvimento Individual (PDI)
+ubmdcte3prte2iitdhopld0la4@google.com
+104
+7
+Paay
+PMR PRESENCIAL
+25/02/2026
+14:00:00
+3
+Presencial
+Daniel Santos
+Vendedor e Gerente
+Plano de Desenvolvimento Individual (PDI)
+l4s36vsvvhb5ek2u6k71bsqk38@google.com
+105
+5
+Paay
+PMR PRESENCIAL
+25/02/2026
+14:00:00
+3
+Presencial
+Daniel Santos
+Todos
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+l4s36vsvvhb5ek2u6k71bsqk38@google.com
+106
+7
+Seminovos BHZ
+PMR PRESENCIAL
+25/02/2026
+09:30:00
+6
+Presencial
+Gedson Freire
+Vendedor e Gerente
+Plano de Desenvolvimento Individual (PDI)
+s6m1fe8evk9eshmin6i1s89hno@google.com
+107
+5
+Gandini
+PMR PRESENCIAL
+25/02/2026
+09:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+k4ga7r81god72025vapg3gu3ig@google.com
+108
+4
+DNA Multimarcas
+PMR PRESENCIAL
+26/02/2026
+10:00:00
+4
+Presencial
+José Roberto
+Vendedor e Gerente
+Feedback Estruturado e Cultura de Resultado
+bj10d0bc26sai30prugq1ii90c@google.com
+109
+7
+Promac JPA
+PMR PRESENCIAL
+26/02/2026
+09:00:00
+1
+Online
+Daniel Santos
+Todos
+Plano de Desenvolvimento Individual (PDI)
+fhtmhdbnlf6bj8gtkmpgmaooc8@google.com
+110
+6
+Espíndola
+PMR PRESENCIAL
+26/02/2026
+10:30:00
+2
+Online
+Daniel Santos
+Proprietário
+Feedback Estruturado e Cultura de Resultado
+aqmos7av7ock087c3ojln8rhm0@google.com
+111
+Extra
+Salim
+PPA
+26/02/2026
+09:30:00
+2
+Presencial
+Gedson Freire
+Proprietário
+Revisão dos Processos Críticos
+j68pdvcochjm1569qfo2ji7eug@google.com
+112
+9
+DNA Multimarcas
+PMR PRESENCIAL
+26/02/2026
+07:00:00
+3
+Presencial
+José Roberto
+Todos
+Rotina do Gerente e Rotina do Vendedor
+tu18hig5tji0nerhj6u1q99sbo@google.com
+113
+8
+Goto Motors
+PMR PRESENCIAL
+02/03/2026
+13:00:00
+3
+Presencial
+José Roberto
+Todos
+Avaliação Individual nos Treinamentos
+glg43cnef4n53k1rtpsbg0uh0g@google.com
+114
+3
+Império
+PPA PREMIUM
+02/03/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+s7mgtkpo9f23fffdej86kp5mqg@google.com
+115
+3
+Vitrine
+PPA PREMIUM
+02/03/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+bp75jns1scnqh5pcgomj1qpvus@google.com
+116
+8
+Seminovos BHZ
+PMR PRESENCIAL
+03/03/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Todos
+Avaliação Individual nos Treinamentos
+2airipqg8p4880ob7tku9if4k0@google.com
+117
+3
+Lial
+PPA PREMIUM
+03/03/2026
+14:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+qgg30mqrq7ffiiufg69vecsl5s@google.com
+118
+3
+André Car
+PMR RENOVAÇÃO
+03/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Maximização de Receitas
+fp8shcft467410eg2df5nnqp2s@google.com
+119
+8
+RK2
+PMR PRESENCIAL
+03/03/2026
+09:30:00
+6
+Presencial
+José Roberto
+Todos
+Avaliação Individual nos Treinamentos
+p8ss1aqeppe78q32dj4ckuj8es@google.com
+120
+3
+Salim
+PPA
+03/03/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+fqcd6e8qb4ji5rh7qrcg24dn80@google.com
+121
+5
+DNA Multimarcas
+PMR PRESENCIAL
+04/03/2026
+09:30:00
+3
+Online
+João Augusto
+Todos
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+2ksffvqrc5uud3rohpinhonao8@google.com
+122
+8
+Paay
+PMR PRESENCIAL
+04/03/2026
+14:00:00
+3
+Presencial
+José Roberto
+Todos
+Avaliação Individual nos Treinamentos
+b23dn64lv47jcgpv7dh83egj8k@google.com
+123
+3
+Dakar
+PPA
+04/03/2026
+09:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+usd0omfdat7dkonsn3i71bgdjc@google.com
+124
+Extra
+Ideal Motors
+PPA
+04/03/2026
+15:00:00
+1
+Online
+Daniel Santos
+Proprietário
+00h2ifr4sgq2b3s0d3lbummlog@google.com
+125
+8
+Otávio Lage
+PMR PRESENCIAL
+05/03/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Todos
+Avaliação Individual nos Treinamentos
+ajr74nlgrp82dnan11hvs832ak@google.com
+126
+3
+Piscar Veículos
+PPA PREMIUM
+05/03/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+ddq5tpkrs36njd07v0dtte3nc4@google.com
+127
+7
+Acertt
+PMR PRESENCIAL
+05/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Vendedor e Gerente
+Plano de Desenvolvimento Individual (PDI)
+mjq9n9ol17dp79chqr753h4784@google.com
+128
+7
+Espíndola
+PMR PRESENCIAL
+05/03/2026
+17:00:00
+1
+Online
+José Roberto
+Vendedor e Gerente
+Plano de Desenvolvimento Individual (PDI)
+cqhj96lbebnvf69ej20mjpg7vg@google.com
+129
+3
+Almeida
+PPA
+05/03/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+2flvcg9tg0lquna7d5svdsc9oc@google.com
+130
+Extra
+Espíndola
+PMR PRESENCIAL
+05/03/2026
+16:00:00
+1
+Online
+José Roberto
+Vendedor
+Treinamento Vendedores
+cqhj96lbebnvf69ej20mjpg7vg@google.com
+131
+6
+Gandini
+PMR PRESENCIAL
+05/03/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário
+Plano de Desenvolvimento Individual (PDI)
+pd6v7fm4e9m6crauk36gua7jqk@google.com
+132
+8
+Espíndola
+PMR PRESENCIAL
+05/03/2026
+09:00:00
+1
+Online
+José Roberto
+Todos
+Avaliação Individual nos Treinamentos
+bmcoa2k2oso49vp70vl7k6jme4@google.com
+133
+3
+Direta
+PPA PREMIUM
+06/03/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Gedson Freire
+Proprietário
+Eficiência em Custos
+6km7usa6feiej2r8es5ajjfg5c@google.com
+134
+Extra
+Goto Motors
+PMR PRESENCIAL
+09/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Todos
+Acompanhamento
+acm136ga1pcae2f8u206fd35pg@google.com
+135
+3
+Sempre Mais
+PPA
+09/03/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+8tcu31k0b0dqp2690mmhcctee0@google.com
+136
+Extra
+Vitrine
+PPA PREMIUM
+09/03/2026
+09:30:00
+3
+Presencial
+José Roberto
+Vendedor
+Treinamento Vendedores
+2s0ut2anp6r24k79e4h4hasl7o@google.com
+137
+7
+Carrum
+PMR ONLINE
+09/03/2026
+15:00:00
+1
+Online
+José Roberto
+Vendedor e Gerente
+Avaliação Individual nos Treinamentos
+jej53hhppe1s4859gpfpm2s4fc@google.com
+138
+3
+AG AUTOMÓVEIS
+PPA PREMIUM
+09/03/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Maximização de Receitas
+q61j5mgrlb52k3jldjru7dtd8o@google.com
+139
+Extra
+RK2
+PMR PRESENCIAL
+10/03/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Todos
+Acompanhamento
+nk2st6e2ktf8d7kdic6vfgdgmk@google.com
+140
+3
+Sempre Mais
+PPA
+10/03/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+o07ugbduecstsrqfdrkbs92qnk@google.com
+141
+3
+Ideal Automotive
+PPA
+10/03/2026
+09:00:00
+2
+Online
+Gedson Freire
+Proprietário
+Maximização de Receitas
+gk6jlfg2nidgfqi837cqc83fhc@google.com
+142
+7
+Gandini
+PMR PRESENCIAL
+10/03/2026
+14:00:00
+3
+Presencial
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+3be40jidro68djub5e284htad4@google.com
+143
+Extra
+Paay
+PMR PRESENCIAL
+11/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Todos
+Acompanhamento
+jbl34avnlegktjtrj5mr9avq6k@google.com
+144
+8
+Acertt
+PMR PRESENCIAL
+11/03/2026
+14:00:00
+3
+Presencial
+José Roberto
+Todos
+Avaliação Individual nos Treinamentos
+3282okiie042fjvmcg1o1ffl28@google.com
+145
+6
+DNA Multimarcas
+PMR PRESENCIAL
+11/03/2026
+09:30:00
+3
+Presencial
+José Roberto
+Todos
+Revisão dos Processos Críticos
+258qnnufigsk1g63joq32h93as@google.com
+146
+2
+LM Veículos
+PMR PRESENCIAL
+11/03/2026
+09:30:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP
+9fkb5rq21f6dppo01u03ir2r1c@google.com
+147
+3
+Brothers Car
+PPA
+12/03/2026
+16:00:00
+2
+Online
+Gedson Freire
+Proprietário
+Maximização de Receitas
+ito6lpdv8usuiqbs3mu281t2sc@google.com
+148
+Extra
+Piscar Veículos
+PPA PREMIUM
+12/03/2026
+09:30:00
+2
+Presencial
+José Roberto
+Vendedor
+Treinamento Vendedores
+drbq2s4tv558bccrpnujls3bs0@google.com
+149
+1
+Bedim Automóveis
+PMR ONLINE
+12/03/2026
+09:00:00
+3
+Online
+Daniel Santos
+Proprietário
+Diagnóstico
+knh4m97tpta5rc806443bd7f0g@google.com
+150
+Extra
+Seminovos BHZ
+PMR PRESENCIAL
+12/03/2026
+14:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Acompanhamento
+3trjuhfc3m73ok9rnkb1jearp8@google.com
+151
+Extra
+Otávio Lage
+PMR PRESENCIAL
+12/03/2026
+14:00:00
+2
+Presencial
+Gedson Freire
+Todos
+Acompanhamento
+ksg3re3568uqooohbbqguabveo@google.com
+152
+Extra
+Ideal Motors
+PPA
+12/03/2026
+09:30:00
+2
+Online
+Gedson Freire
+Proprietário
+Acompanhamento
+thicar99qbf9525a43mpjlva6k@google.com
+153
+Extra
+Lial
+PPA PREMIUM
+16/03/2026
+09:00:00
+6
+Presencial
+José Roberto
+Vendedor
+Treinamento Vendedores
+o1rkolqr3i6pa659fhgfhh53cg@google.com
+154
+8
+Carrum
+PMR ONLINE
+17/03/2026
+09:00:00
+1
+Online
+José Roberto
+Todos
+Análise das Implementações e Plano de Ação Trimestral
+dlelbtnnoai3jc23tmrqo2kkos@google.com
+155
+3
+Ideal Motors
+PPA
+17/03/2026
+10:00:00
+6
+Presencial
+Daniel Santos
+Gedson Freire
+Proprietário
+Eficiência em Custos
+3b6hr7rcvhd13ao8kk5p4kdajs@google.com
+156
+3
+Ideal Motors
+PPA
+18/03/2026
+10:00:00
+6
+Presencial
+Daniel Santos
+Gedson Freire
+Proprietário
+Planejamento Estratégico
+mtod2ie7vg6smghulm79c5l1t8@google.com
+157
+7
+DNA Multimarcas
+PMR PRESENCIAL
+18/03/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário
+Plano de Desenvolvimento Individual (PDI)
+hvtbj4u0g08po4fimptdfbu43c@google.com
+158
+8
+Gandini
+PMR PRESENCIAL
+18/03/2026
+14:00:00
+3
+Presencial
+José Roberto
+Todos
+Avaliação Individual nos Treinamentos
+3igorlh463mqk16d31goip9n78@google.com
+159
+Extra
+Espíndola
+PMR PRESENCIAL
+19/03/2026
+15:30:00
+3
+Online
+Daniel Santos
+Proprietário
+Acompanhamento
+mmgetiihpt80hbl5fj66afmaa0@google.com
+160
+3
+InvestCar MG
+PPA
+19/03/2026
+10:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+sda24lr15canad9geb432imovo@google.com
+161
+1
+Delta Veículos
+MENTORIA
+20/03/2026
+10:00:00
+4
+Presencial
+Gedson Freire
+Proprietário
+aq7gnn483susc86vj9hfkt4c40@google.com
+162
+1
+Vitrine
+MENTORIA
+20/03/2026
+15:00:00
+4
+Presencial
+Gedson Freire
+Proprietário
+rh9bsapuhle85ej205mnrd9krk@google.com
+163
+2
+Bedim Automóveis
+PMR ONLINE
+20/03/2026
+09:00:00
+3
+Online
+José Roberto
+Proprietário
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2
+0m4unf1tq546mckqoj5j3ann7g@google.com
+164
+9
+Goto Motors
+PMR PRESENCIAL
+23/03/2026
+14:00:00
+2
+Presencial
+Gedson Freire
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+4h9vp4akurf3hvkj11sdvkp5rs@google.com
+165
+9
+Acertt
+PMR PRESENCIAL
+23/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+5v00ra7oc9rfffcad7ih0cm1bk@google.com
+166
+Extra
+Espíndola
+PMR PRESENCIAL
+24/03/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+José Roberto
+Todos
+Acompanhamento
+e3g9frudc8s7bqe1c75lhapsvg@google.com
+167
+9
+Seminovos BHZ
+PMR PRESENCIAL
+24/03/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+1ce2nlnhm7te4gvgsfsocsemls@google.com
+168
+9
+Paay
+PMR PRESENCIAL
+24/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+acc4j15i5l0e660semt730qms4@google.com
+169
+9
+Espíndola
+PMR PRESENCIAL
+25/03/2026
+09:00:00
+5
+Presencial
+Daniel Santos
+José Roberto
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+o5i1grdge22vr0cksapeht56n8@google.com
+170
+3
+Auto Up
+PMR RENOVAÇÃO
+25/03/2026
+15:00:00
+2
+Online
+Gedson Freire
+Proprietário
+Maximização de Receitas
+fjpdcpt8c4f3abt46e2fqord5c@google.com
+171
+3
+LM Veículos
+PMR PRESENCIAL
+25/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Vendedor e Gerente
+Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado
+k0kou3krlqlrc02vknpl7q8d48@google.com
+172
+9
+Otávio Lage
+PMR PRESENCIAL
+26/03/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+2tgl736jpdq5duaghsull5dr6o@google.com
+173
+9
+RK2
+PMR PRESENCIAL
+26/03/2026
+09:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+kg0irll6vo8k4spr3mlh1k4k5g@google.com
+174
+9
+Gandini
+PMR PRESENCIAL
+26/03/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+ko6cvti81598ube4lpujm9l5lc@google.com
+175
+8
+DNA Multimarcas
+PMR PRESENCIAL
+26/03/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Avaliação Individual nos Treinamentos
+e1voqq24bn8dhbc5o2tk4popko@google.com
+176
+3
+Bedim Automóveis
+PMR ONLINE
+30/03/2026
+09:00:00
+2
+Online
+José Roberto
+Vendedor e Gerente
+Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado
+a67hv7od7ru1uqlp08gml16onc@google.com
+177
+Extra
+Promac JPA
+PMR ONLINE
+30/03/2026
+09:30:00
+01:30
+Online
+Gedson Freire
+Gerente
+q8790q259r39oind3ktptkhekk@google.com
+178
+Extra
+Piscar Veículos
+PPA
+01/04/2026
+08:30:00
+4
+Presencial
+José Roberto
+Proprietário
+Acompanhamento
+hdn3m7po3tamcgrgqtmogr08hc@google.com
+179
+Extra
+Seminovos BHZ
+PMR PRESENCIAL
+01/04/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Acompanhamento
+015huln1317p58h9jm8v37q9e0@google.com
+180
+Extra
+Auto Up
+PMR RENOVAÇÃO
+02/04/2026
+17:00:00
+01:30
+Online
+Gedson Freire
+Todos
+Treinamento Venda Aprovada (Financiamento)
+25rf5oq7evovta18kpl18m25jo@google.com
+181
+1
+GED Veículos
+PMR PRESENCIAL
+02/04/2026
+09:30:00
+6
+Presencial
+Gedson Freire
+José Roberto
+Proprietário
+Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional
+obc1i2icu0n0bck01aia20hjgk@google.com
+182
+1
+MCar Automóveis
+PMR ONLINE
+02/04/2026
+15:00:00
+3
+Online
+Daniel Santos
+Proprietário
+Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional
+bf0iupokvdpnaba6dpq09vnulg@google.com
+183
+6
+Direta
+PPA PREMIUM
+06/04/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Acompanhamento
+0abh5r7cde50584cn4vh55gla4@google.com
+184
+4
+Império
+PPA PREMIUM
+06/04/2026
+14:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Acompanhamento
+9fl9klt2gi7eu5d66jc91rnf34@google.com
+185
+3
+AG AUTOMÓVEIS
+PPA PREMIUM
+07/04/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Eficiência em Custos
+anqqiem859b6qcs91l0uvfhj5c@google.com
+186
+Extra
+Goto Motors
+PMR PRESENCIAL
+07/04/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Acompanhamento
+kls6444h4hq550vv8m3ijr1tto@google.com
+187
+Extra
+Otávio Lage
+PMR PRESENCIAL
+07/04/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Acompanhamento
+optn55o2i6qh02n3g2t1ka84pk@google.com
+188
+2
+GED Veículos
+PMR PRESENCIAL
+07/04/2026
+09:30:00
+6
+Online
+José Roberto
+Proprietário
+Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP
+kac1u7758uqs12t8nfbmgpj4nc@google.com
+189
+Extra
+MCar Automóveis
+PMR ONLINE
+08/04/2026
+11:00:00
+01:30
+Online
+José Roberto
+Vendedor
+Diagnóstico e Treinamento Método Vendedor Profissional - Fase 1
+35rft71s7jcf77qa39820ttg0k@google.com
+190
+4
+LM Veículos
+PMR PRESENCIAL
+08/04/2026
+09:30:00
+3
+Presencial
+Daniel Santos
+Proprietário e Gerente
+Visita 4: Cultura de Resultado e Treinamento MVP
+bfjkjng96dsr50hou7hc88vb10@google.com
+191
+9
+Carrum
+PMR ONLINE
+08/04/2026
+09:00:00
+2
+Online
+José Roberto
+Proprietário
+Acompanhamento
+rak6qrj8tpomfmhpcfrn6su1qc@google.com
+192
+4
+André Car
+PMR RENOVAÇÃO
+08/04/2026
+09:30:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Eficiência em Custos
+aspbenbthl3v84bbrm9dqgjb8g@google.com
+193
+Extra
+Acertt
+PMR PRESENCIAL
+08/04/2026
+14:00:00
+3
+Presencial
+Gedson Freire
+Proprietário
+Acompanhamento
+l597hqp6d9upjoj88j99mu4luo@google.com
+194
+4
+Lial
+PPA PREMIUM
+09/04/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Acompanhamento
+bucau4ivvd648rnnbu9hd6e26s@google.com
+195
+Extra
+Paay
+PMR PRESENCIAL
+09/04/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Acompanhamento
+dnqljrn1nbsjjpm3o5pbmv9b18@google.com
+196
+09/04/2026
+09:00:00
+3
+Gedson Freire
+Agenda bloqueada
+ntoicsvctoubif2m2j9c17t2fo@google.com
+197
+9
+DNA Multimarcas
+PMR PRESENCIAL
+09/04/2026
+09:30:00
+3
+Presencial
+José Roberto
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+4ohl2cl5gf3degdq3dbp13q6ug@google.com
+198
+EXTRA
+Gandini
+PMR PRESENCIAL
+09/04/2026
+14:00:00
+3
+Presencial
+José Roberto
+Proprietário
+Acompanhamento
+fafalg7hmkr3fs4uh3trkiisac@google.com
+199
+10/04/2026
+09:00:00
+3
+Evento MX
+ccovpdotrss0ph4l8hk397e6eg@google.com
+200
+Extra
+Império
+PPA PREMIUM
+10/04/2026
+14:00:00
+2
+Presencial
+Gedson Freire
+Proprietário
+Acompanhar financiamento (receita adicional)
+5tpaoc72d26odji1olkc6e9nrs@google.com
+201
+13/04/2026
+09:00:00
+2
+Online
+Daniel Santos
+José Roberto
+Agenda bloqueada (treinamento)
+l01jqnustpjmoe35hi26t666nc@google.com
+202
+2
+Vitrine
+MENTORIA
+13/04/2026
+14:00:00
+2
+Presencial
+Gedson Freire
+Proprietário
+Gestão dos Indicadores
+8rj4rco98bpos4ho9tcmp5ce1k@google.com
+203
+2
+Delta Veículos
+MENTORIA
+13/04/2026
+10:00:00
+2
+Presencial
+Gedson Freire
+Proprietário
+vm9aar8f7tui85hb3h3md19ngc@google.com
+204
+5
+Bedim Automóveis
+PMR ONLINE
+13/04/2026
+09:00:00
+1
+Online
+João Augusto
+Proprietário e Marketing
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+npre7fapeb9e2j2ivabu9828dk@google.com
+205
+Extra
+RK2
+PMR PRESENCIAL
+14/04/2026
+10:00:00
+3
+Presencial
+Daniel Santos
+Todos
+Acompanhamento
+m2usb5b24p59anreenq4ltkba4@google.com
+206
+Extra
+Promac JPA
+PMR ONLINE
+14/04/2026
+09:30:00
+2
+Online
+Gedson Freire
+Proprietário
+Acompanhamento
+26308gu8cjdjbqfdrmhcmvclpc@google.com
+207
+14/04/2026
+15:00:00
+2
+Online
+Gedson Freire
+José Roberto
+Agenda bloqueada (treinamento)
+p61k0hskhruc0mrrhr1ha60ork@google.com
+208
+15/04/2026
+16:00:00
+2
+Gedson Freire
+Agenda bloqueada
+p61k0hskhruc0mrrhr1ha60ork@google.com
+209
+4
+Bedim Automóveis
+PMR ONLINE
+16/04/2026
+11:00:00
+1
+Online
+José Roberto
+Proprietário e Gerente
+Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado
+07ns4pv2nb473afh5lcaav6oo0@google.com
+210
+Extra
+Espíndola
+PMR PRESENCIAL
+16/04/2026
+14:00:00
+2
+Online
+Daniel Santos
+José Roberto
+Proprietário
+Acompanhamento
+56286hgt6jj7udhc8dqbfad4k8@google.com
+211
+2
+MCar Automóveis
+PMR ONLINE
+16/04/2026
+09:30:00
+2
+Online
+Gedson Freire
+Proprietário
+Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP
+4dkc4anfvkmvp51u1kt90f4pq4@google.com
+212
+Extra
+Carrum
+PMR ONLINE
+16/04/2026
+16:00:00
+2
+Online
+Daniel Santos
+José Roberto
+Proprietário
+Acompanhamento
+07ns4pv2nb473afh5lcaav6oo0@google.com
+213
+17/04/2026
+09:30:00
+3
+Gedson Freire
+Agenda bloqueada
+r2oqufk12jb6ej48mo8psuksco@google.com
+214
+4
+InvestCar MG
+PPA
+16/04/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+nld7e92icfh8v1oihti7cuimc4@google.com
+215
+6
+Bedim Automóveis
+PMR ONLINE
+20/04/2026
+09:00:00
+2
+Online
+José Roberto
+Proprietário
+Revisão dos Processos Críticos
+h34uk95ejvjh03asctnaub37j8@google.com
+216
+5
+LM Veículos
+PMR PRESENCIAL
+20/04/2026
+09:30:00
+3
+Presencial
+Daniel Santos
+Proprietário e Marketing
+Visita 5: Plano de Desenvolvimento Individual (PDI)
+gp78sge1re2dpto8vhf78te2p4@google.com
+217
+7
+Bedim Automóveis
+PMR ONLINE
+27/04/2026
+09:00:00
+2
+Online
+José Roberto
+Proprietário
+Plano de Desenvolvimento Individual (PDI)
+5mdusj20e0jf0iqte7edt93cuo@google.com
+218
+6
+LM Veículos
+PMR PRESENCIAL
+27/04/2026
+09:30:00
+3
+Presencial
+João Augusto
+Proprietário
+Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+m72avbbhqja4musjh4gltklcns@google.com
+219
+8
+Bedim Automóveis
+PMR ONLINE
+04/05/2026
+09:00:00
+1
+Online
+José Roberto
+Vendedor e Gerente
+Avaliação Individual nos Treinamentos
+ovfcc8t1n32lvl2fcf43ani4mk@google.com
+220
+4
+Vitrine
+PPA PREMIUM
+04/05/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+piepfnb6iubh2flqlq449iim7k@google.com
+221
+5
+Império
+PPA PREMIUM
+04/05/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+7c3artj6h9aitstdgq4sgbe0ug@google.com
+222
+4
+AG AUTOMÓVEIS
+PPA PREMIUM
+05/05/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+a4klmor98nvt81l64jk9c798v8@google.com
+223
+4
+Salim
+PPA
+05/05/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+5nmd32uhclpbicmj7rvgiplip4@google.com
+224
+4
+Dakar
+PPA
+06/05/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+r4d0701b5cj496aqedvulvuvgc@google.com
+225
+5
+Lial
+PPA PREMIUM
+06/05/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+lq1gsougpou6sef9kq97un2d98@google.com
+226
+4
+Almeida
+PPA
+07/05/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+qu3sup4266eagbg0t7v8t976gs@google.com
+227
+4
+Piscar Veículos
+PPA PREMIUM
+07/05/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+d504tfonvb6fkk2km751v45je4@google.com
+228
+4
+Direta
+PPA PREMIUM
+08/05/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+cfjjou72ncjnidfpvb7sjvor6c@google.com
+229
+5
+André Car
+PMR RENOVAÇÃO
+08/05/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+t7svnsca0n45b1agq1a9cbhbo4@google.com
+230
+9
+Bedim Automóveis
+PMR ONLINE
+11/05/2026
+09:00:00
+1
+Online
+José Roberto
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+1j0nm1ef0a50gj0larcdk4k1b4@google.com
+231
+4
+Ideal Automotive
+PPA
+11/05/2026
+09:00:00
+2
+Online
+Daniel Santos
+Proprietário
+Maximização de Receitas
+toi6nedcm6c190a7dlqrtemfp8@google.com
+232
+4
+Auto Up
+PMR RENOVAÇÃO
+11/05/2026
+16:00:00
+1
+Online
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+nlo4a2st5a46ho8nkm8k97k2ko@google.com
+233
+4
+Ideal Automotive
+PPA
+11/05/2026
+14:00:00
+2
+Online
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+997v4s35msk277cep089ht22qo@google.com
+234
+4
+Ideal Motors
+PPA
+11/05/2026
+10:30:00
+2
+Online
+Daniel Santos
+Proprietário
+Maximização de Receitas
+uhvon2qs0b58gvh9rak17bhjjo@google.com
+235
+4
+Sempre Mais
+PPA
+12/05/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+fojm3qcpvmuifonqcq62rr0kg0@google.com
+236
+7
+LM Veículos
+PMR PRESENCIAL
+13/05/2026
+14:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+vap5li92v0107m4oh9nmj0jbuo@google.com
+237
+4
+Brothers Car
+PPA
+13/05/2026
+09:00:00
+2
+Online
+Daniel Santos
+Proprietário
+Planejamento Estratégico
+gtlg16oja6d4m4k90cmosra6gc@google.com
+238
+10
+Carrum
+PMR ONLINE
+19/05/2026
+09:00:00
+2
+Online
+José Roberto
+Proprietário
+Acompanhamento
+rqe85t82p13ko6umk8vopbtl58@google.com
+239
+6
+Império
+PPA PREMIUM
+03/06/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+3vsntq3blca87ug8dr13q6n5p8@google.com
+240
+5
+Vitrine
+PPA PREMIUM
+03/06/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+e9oo1mf1cmj684n1k67cmb7av4@google.com
+241
+5
+Salim
+PPA
+04/06/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+ks278sbae9t47ffnr1gustj8cg@google.com
+242
+5
+AG AUTOMÓVEIS
+PPA PREMIUM
+04/06/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+e6cbu6islmf37g92pp2kgu6kmk@google.com
+243
+5
+Dakar
+PPA
+05/06/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+66q49g3vf5u8kqv3esn22rk38c@google.com
+244
+6
+Lial
+PPA PREMIUM
+05/06/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+31u098t79ol16qloin8v9l7tu8@google.com
+245
+5
+Piscar Veículos
+PPA PREMIUM
+08/06/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+fbdpg32va7di9ji1e2rkm7cguc@google.com
+246
+5
+Almeida
+PPA
+08/06/2026
+13:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+e3fasgk2dc0rs5ec825q3g05js@google.com
+247
+6
+André Car
+PMR RENOVAÇÃO
+09/06/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+2k5a1lsomv0eagppl06t4g9k4s@google.com
+248
+5
+Direta
+PPA PREMIUM
+09/06/2026
+09:00:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+3qekonkp3bf0ui4g2d9fkhlnko@google.com
+249
+5
+Ideal Automotive
+PPA
+10/06/2026
+10:30:00
+2
+Online
+Daniel Santos
+Proprietário
+Eficiência em Custos
+j667buopko7rrg1m22mrmk877g@google.com
+250
+5
+Ideal Motors
+PPA
+10/06/2026
+10:30:00
+2
+Online
+Daniel Santos
+Proprietário
+Eficiência em Custos
+ndth0pcejtligkqckrbratj06o@google.com
+251
+5
+Ideal Automotive
+PPA
+15/06/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+4ohl2cl5gf3degdq3dbp13q6ug@google.com
+252
+5
+Auto Up
+PMR RENOVAÇÃO
+16/06/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+6hr1oopjhome6c8b6qnvo0iisc@google.com
+253
+5
+InvestCar RJ
+PPA
+17/06/2026
+13:30:00
+3
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+4kqussisbtf50eaoke08ra0d48@google.com
+254
+11
+Carrum
+PMR ONLINE
+19/06/2026
+09:00:00
+2
+Online
+José Roberto
+Proprietário
+Acompanhamento
+h20elmsj3kl7ec3cpk0b7vmub8@google.com
+255
+5
+Sempre Mais
+PPA
+22/06/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+rdldgb22oos9uptuugk4vfe4qs@google.com
+256
+5
+Brothers Car
+PPA
+23/06/2026
+09:00:00
+6
+Presencial
+Daniel Santos
+Proprietário
+Maximização de Receitas
+0nq33oh7vp1u2nsbr9mdttu1hg@google.com
+257
+8
+Promac JPA
+PMR PRESENCIAL
+6
+Presencial
+Gedson Freire
+Consultor 5
+Todos
+Acompanhamento
+258
+9
+Promac JPA
+PMR PRESENCIAL
+5
+Presencial
+Gedson Freire
+Consultor 5
+Proprietário
+Análise das Implementações e Plano de Ação Trimestral
+259
+3
+Wcar
+PMR RENOVAÇÃO
+3
+Presencial
+José Roberto
+Todos
+Treinamento Vendedores
+260
+5
+RK2
+PMR PRESENCIAL
+3
+Presencial
+João Augusto
+Proprietário e Marketing
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+nk2st6e2ktf8d7kdic6vfgdgmk@google.com
+261
+3
+MCar Automóveis
+PMR ONLINE
+3
+Online
+Gedson Freire
+Proprietário
+Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado
+cfjjou72ncjnidfpvb7sjvor6c@google.com
+262
+4
+MCar Automóveis
+PMR ONLINE
+3
+Online
+Gedson Freire
+Proprietário
+Visita 4: Cultura de Resultado e Treinamento MVP
+jbl34avnlegktjtrj5mr9avq6k@google.com
+263
+5
+MCar Automóveis
+PMR ONLINE
+3
+Online
+Gedson Freire
+Proprietário
+Visita 5: Plano de Desenvolvimento Individual (PDI)
+264
+6
+MCar Automóveis
+PMR ONLINE
+3
+Online
+João Augusto
+Proprietário
+Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+o5i1grdge22vr0cksapeht56n8@google.com
+265
+7
+MCar Automóveis
+PMR ONLINE
+3
+Online
+Gedson Freire
+Proprietário
+Visita 7: Análise das Implementações e Plano de Ação Trimestral
+ko6cvti81598ube4lpujm9l5lc@google.com
+266
+3
+GED Veículos
+PMR PRESENCIAL
+3
+Online
+José Roberto
+Proprietário
+Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado
+q8790q259r39oind3ktptkhekk@google.com
+267
+4
+GED Veículos
+PMR PRESENCIAL
+3
+Online
+José Roberto
+Proprietário
+Visita 4: Cultura de Resultado e Treinamento MVP
+acm136ga1pcae2f8u206fd35pg@google.com
+268
+5
+GED Veículos
+PMR PRESENCIAL
+3
+Online
+Gedson Freire
+José Roberto
+Proprietário
+Visita 5: Plano de Desenvolvimento Individual (PDI)
+ksg3re3568uqooohbbqguabveo@google.com
+269
+6
+GED Veículos
+PMR PRESENCIAL
+3
+Online
+João Augusto
+Proprietário
+Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+vap5li92v0107m4oh9nmj0jbuo@google.com
+270
+7
+GED Veículos
+PMR PRESENCIAL
+3
+Online
+José Roberto
+Proprietário
+Visita 7: Análise das Implementações e Plano de Ação Trimestral
+5v00ra7oc9rfffcad7ih0cm1bk@google.com

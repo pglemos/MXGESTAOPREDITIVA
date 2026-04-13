@@ -11,8 +11,9 @@ const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
 
 async function resetAdmin() {
     const email = 'admin@mxgestaopreditiva.com.br'
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const user = authUsers?.users.find(u => u.email === email)
+    const authUsersResponse = await supabase.auth.admin.listUsers()
+    const authUsers = (authUsersResponse.data?.users ?? []) as Array<{ id: string; email?: string | null }>
+    const user = authUsers.find((u) => u.email === email)
     if (user) {
         console.log('Resetting admin...')
         const { error } = await supabase.auth.admin.updateUserById(user.id, { password: 'Mx#2026!' })

@@ -1,0 +1,95 @@
+A
+B
+C
+D
+E
+F
+G
+H
+1
+PMR SEM VIAGEM
+2
+Nº Visita
+Motivo
+Tempo
+Alvo
+Check List
+Evidência
+Modelo de Relatório
+Momento de Venda
+3
+1
+Diagnóstico e Treinamento Método Vendedor Profissional - Fase 1
+1 dia
+Todos
+1. Entrevista Vendedores, Gerentes e Sócios;
+2. Análise de Processos;
+3. Levantamento de dados
+4.  Treinamento Método Vendedor Profissional;
+1 e 2. Formulários preenchidos;
+3. Dados enviados
+4
+2
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2
+1 dia
+Todos
+1. Apresentação do Planejamento;
+2. Implementação da Metodologia Multicanal;
+3. Acompanhamento Diário de Vendas;
+4. Gestão á Vista;
+5. Reforçar área do cliente no sistema;
+6. Reforçar ações de contratação e treinamento de novos vendedores;
+1. Validação do Planejamento no Sistema;
+2. Foto do treinamento e vendedores cadastrados no sistema;
+5
+3
+Rotina do Gerente e do Vendedor, Feedback Estruturado
+3 horas
+Vendedor e Gerente
+1. Implementar a Rotina do Gerente;
+2. Implementar a Rotina do Vendedor;
+3. Verificar se o novo plano de remuneração foi avaliado;
+1. Foto da Rotina impressa e fixada em local visível;
+2. Foto do treinamento e foto da Rotina impressa e fixada em local visível;
+6
+4
+Cultura de Resultado e Treinamento MVP - Fase 3
+3 horas
+Todos
+1. Implementar o Feedback Estruturado;
+2. Implementar Cultura de Resultados;
+3. Avaliar se foi contratado novos vendedores e se o processo foi seguido;
+1. Relatório de Feedback por vendedor;
+2. Print do ranking no grupo da empresa;
+3. Print do Gestão á vista no grupo da empresa;
+7
+5
+Plano de Desenvolvimento Individual (PDI)
+3 horas
+Vendedor e Gerente
+1. Apresentação do conteúdo;
+2. Definição dos responsáveis pela execução;
+3. Definição do prazo de início;
+1. Foto da Apresentação;
+2 e 3. Definição dos responsáveis e datas;
+1. Apresentar prestação de serviço conforme demanda da empresa.
+8
+6
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+3 horas
+Proprietário
+1. Implementar o PDI da equipe e do Gerente;
+2. Enviar relatório da performance nos treinamentos;
+1. Todos os PDIs no sistema;
+Como encaixar na visita extra
+9
+7
+Análise das Implementações e Plano de Ação Trimestral
+3 horas
+Proprietário
+1. Analisar resultado do trimestre;
+2. Apresentar os pontos postivos e a melhorar;
+3. Solicitar Feedback;
+4. Criar plano de ação dos próximos 3 meses;
+5. Apresentar o modelo de acompanhamento online;
+1. Apresentar modelo de acompanhemtno presencial/Renovação

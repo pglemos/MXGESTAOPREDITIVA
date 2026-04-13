@@ -37,23 +37,22 @@ interface TypographyProps
   extends React.HTMLAttributes<HTMLElement>,
     VariantProps<typeof typographyVariants> {
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'label' | 'div'
+  htmlFor?: string
 }
 
 const Typography = React.forwardRef<HTMLElement, TypographyProps>(
   ({ className, variant, tone, as, ...props }, ref) => {
     const Component = as || (variant === 'caption' || variant === 'tiny' || variant === 'mono' ? 'span' : (variant as any) || 'p')
+    const Tag = Component as any
     return (
-      <Comp
-        as={Component}
+      <Tag
         className={cn(typographyVariants({ variant, tone, className }))}
-        ref={ref as any}
+        ref={ref}
         {...props}
       />
     )
   }
 )
-
-const Comp = ({ as: Component, ...props }: any) => <Component {...props} />
 
 Typography.displayName = "Typography"
 

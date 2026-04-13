@@ -1,0 +1,302 @@
+{
+  "created_at": "2026-04-13T07:39:44.918249",
+  "items": [
+    {
+      "path": "/Users/pedroguilherme/Documents/ligação .rtf",
+      "exists": true,
+      "type": ".rtf",
+      "bytes": 67362,
+      "status": "ok",
+      "kind": "rtf",
+      "chars": 57135,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/ligac_a_o_.rtf.txt",
+      "preview": "Junior Melhor Amigo\nEu \n\nVocê\nPode falar fala \n\nJunior Melhor Amigo\nque \n\nVocê\nfala \n\nJunior Melhor Amigo\neu \n\nVocê\no que que cê \n\nJunior Melhor Amigo\nnão \n\nVocê\nquer. \n\nJunior Melhor Amigo\nsou eu vou parar \n\nVocê\nNão \n\nJunior Melhor Amigo\naqui no restaurante agora \n\nVocê\nnão não \n\nJunior Melhor Amigo\nna hora \n\nVocê\nfala \n\nJunior Melhor Amigo\nque eu \n\nVocê\nfala \n\nJunior Melhor Amigo\nchego \n\nVocê\nque que cê quer já de uma vez irmão \n\nJunior Melhor Amigo\nnão sou eu preciso sentar e te mostrar o que que eu preciso mano falar no áudio agora \n\nVocê\nMas \n\nJunior Melhor Amigo\nnão vai eu não vou conseguir \n\nVocê\ndeu pra \n\nJunior Melhor Amigo\nque eu \n\nVocê\nentender \n\nJunior Melhor Amigo\ntô tem \n\nVocê\nna \n\nJunior Melhor Amigo\nque parar o \n\nVocê\nligação \n\nJunior Melhor Amigo\ntá \n\nVocê\nali isso \n\nJunior Melhor Amigo\ndeu \n\nVocê\nDeus \n\nJunior Melhor Amigo\npra entender tá deixa \n\nVocê\nsó \n\nJunior Melhor Amigo\neu mandar então \n\nVocê\nrepete \n\nJunior Melhor Amigo\nvai ser o seguinte eu preciso que no aplicativo esse aplicativo que a \n\nVocê\nUm \n\nJunior Melhor Amigo\ngente tá desenvolvendo esse \n\nVocê\nsistema \n\nJunior Melhor Amigo\nsistema ele seja um sistema. que seja um CRM do meu cliente nós somos a M\n\n[TRUNCADO: 55934 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/_CRONOGRAMA 2026 MX ESCOLA DE NEGOCIOS .zip",
+      "exists": true,
+      "type": ".zip",
+      "bytes": 497164,
+      "status": "ok",
+      "kind": "zip",
+      "chars": 235,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/CRONOGRAMA_2026_MX_ESCOLA_DE_NEGOCIOS_.zip.txt",
+      "preview": "ZIP com 7 arquivos\nAGENDA.html | 207518 bytes\nCRM.html | 17710 bytes\nOBJETIVO_VISITA.html | 9925 bytes\nEVENTOS ONLINE.html | 11594 bytes\nEVENTOS PRESENCIAIS.html | 8448 bytes\nAULAS.html | 33424 bytes\nresources/sheet.css | 3859009 bytes"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/_CRONOGRAMA 2026 MX ESCOLA DE NEGOCIOS .xlsx",
+      "exists": true,
+      "type": ".xlsx",
+      "bytes": 67762,
+      "status": "ok",
+      "kind": "xlsx",
+      "chars": 66083,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/CRONOGRAMA_2026_MX_ESCOLA_DE_NEGOCIOS_.xlsx.txt",
+      "preview": "--- PLANILHA: AGENDA (None linhas x None colunas) ---\nL1:  | AGENDA 2026\nL3:  | SUBTOTAIS |  |  | =SUBTOTAL(3,E6:E1045) |  |  |  | =SUBTOTAL(3,E6:E1045)\nL4:  |  |  |  |  |  |  |  |  |  |  |  | ID_EVENTO\nL5:  | Visita | Nome do Cliente | Produto / Consultoria | Data da Visita | Hora | Tempo (horas) | Modalidade | Consultor Responsável | Consultor Auxiliar | Alvo | Motivo da Visita / Ação Planejada\nL6:  | 1.0 | Império | PPA PREMIUM | 2026-01-05 00:00:00 | 13:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | o4mpnohlcvm4vrm4rjtngr8csk@google.com\nL7:  | 1.0 | Vitrine | PPA PREMIUM | 2026-01-05 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel Santos |  | Proprietário | Planejamento Estratégico |  | og1oltcpp4f2su5h5hqtsdmnng@google.com\nL8:  | 2.0 | Otávio Lage | PMR PRESENCIAL | 2026-01-05 00:00:00 | 09:00:00 | 8.0 | Presencial | Gedson Freire | José Roberto | Todos | Planejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista |  | nsnbhta7jrod778l8s8jcgulfo@google.com\nL9:  | 1.0 | Salim | PPA | 2026-01-06 00:00:00 | 09:00:00 | 3.0 | Presencial | Daniel\n\n[TRUNCADO: 64882 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/DRE.xlsx",
+      "exists": true,
+      "type": ".xlsx",
+      "bytes": 156656,
+      "status": "ok",
+      "kind": "xlsx",
+      "chars": 6495,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/DRE.xlsx.txt",
+      "preview": "--- PLANILHA: DRE (1015 linhas x 26 colunas) ---\nL1: #VALUE! | DRE\nL5: MES/ANO |  |  | 2026 | jan | fev | mar | abr | mai | jun | ago | set | out | nov | dez\nL6: Receitas\nL7: (+) MARGEM BRUTA DE VENDAS |  |  | =SUM(E7:O7) | =SUM(E8:E10) | =SUM(F8:F10) | =SUM(G8:G10) | =SUM(H8:H10) | =SUM(I8:I10) | =SUM(J8:J10) | =SUM(K8:K10) | =SUM(L8:L10) | =SUM(M8:M10) | =SUM(N8:N10) | =SUM(O8:O10)\nL8: Venda de Veículos Próprios |  |  | =SUM(E8:O8)\nL9: Venda de Veículos Consignados |  |  | =SUM(E9:O9)\nL10: Venda de Veículos em Repasse |  |  | =SUM(E10:O10)\nL11: (-) DEDUCAO DE IMPOSTOS E COMISSOES |  |  | =SUM(E11:O11) | =SUM(E12:E14) | =SUM(F12:F14) | =SUM(G12:G14) | =SUM(H12:H14) | =SUM(I12:I14) | =SUM(J12:J14) | =SUM(K12:K14) | =SUM(L12:L14) | =SUM(M12:M14) | =SUM(N12:N14) | =SUM(O12:O14)\nL12: Preparação |  |  | =SUM(E12:O12)\nL13: Comissões |  |  | =SUM(E13:O13)\nL14: Impostos |  |  | =SUM(E14:O14)\nL15: (=) MARGEM LIQUIDA DE VENDAS |  |  | =SUM(E15:O15) | =E7-E11 | =F7-F11 | =G7-G11 | =H7-H11 | =I7-I11 | =J7-J11 | =K7-K11 | =L7-L11 | =M7-M11 | =N7-N11 | =O7-O11\nL17: Outras Receitas |  |  | =SUM(E17:O17) | =SUM(E18:E21) | =SUM(F18:F21) | =SUM(G18:G21) | =SUM(H18:H21) | =SUM(I18:I21) | =SUM(J18:J2\n\n[TRUNCADO: 5294 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/VISITA 9 09-04.docx",
+      "exists": true,
+      "type": ".docx",
+      "bytes": 96389,
+      "status": "ok",
+      "kind": "docx",
+      "chars": 1481,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/VISITA_9_09-04.docx.txt",
+      "preview": "VISITA 9: Análise das Implementações e Plano de Ação Trimestral\n\nCABEÇALHO BASE - OBRIGATÓRIO (Copiar para o CRM):\nData: 09/04/2026\nConsultor: José Roberto\nLoja: DNA\nMeta Mensal: 45 (30 carros no shopping do avião e 15 no portal)\nProjeção: 30 (9 carros hoje)\nLeads Mês:\nEstoque Disponível:\nTempo: 3 horas\nAlvo (Participantes): Proprietário\nEvidência: Plano de ação atualizado.\n9 vendas no total, 3 vendas no Portal e 6 vendas no Shopping\nTer uma pessoa só para documentação – Keylaine vem da HG (vai ficar com parte de transferência, recibo e documentos).\nSentiu falta de análise mais aprofundada financeira e administrativa.\nRotina da equipe – Vendedores com problema na simulação de financiamento não sabem fazer nada relacionado a parte de financiamento e isso leva a sobrecarga das administrativas.\nSerá feito reunião sobre Trivela entre lojas.\nBruno se não atende dentro do CRM pode bloquear a lead\nPrecisamos urgente do DRE para próxima visita.\nGerentes: Pedro precisa comandar a operação, acompanhar a auditoria dos leads, sempre ter 2 vendedores no mezanino e 2 no pátio.\n\n[TABELA 1]\n🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING | 🏆 RANKING\nPOS | VENDEDOR | LEADS | A\n\n[TRUNCADO: 281 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/estoque.xls",
+      "exists": true,
+      "type": ".xls",
+      "bytes": 9919,
+      "status": "ok",
+      "kind": "xls/html",
+      "chars": 70,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/estoque.xls.txt",
+      "preview": "Esta página usa quadros, mas o seu navegador não dá suporte para eles."
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/VISITA 6 DNA 11-03.docx",
+      "exists": true,
+      "type": ".docx",
+      "bytes": 74456,
+      "status": "ok",
+      "kind": "docx",
+      "chars": 2889,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/VISITA_6_DNA_11-03.docx.txt",
+      "preview": "VISITA 6: Revisão dos Processos Críticos\nCABEÇALHO BASE - OBRIGATÓRIO (Copiar para o CRM):\nData: 11/03/2026\nConsultor: José Roberto\nLoja: DNA\nMeta Mensal: 40 (vendeu 17 até dia 11/03)\nProjeção: 48\nLeads Mês:  369 (100 abaixo do que precisaria pela quantidade de vendedores)\nEstoque Disponível: 70 (40 carros em preparação)\nTempo: 3 horas\nAlvo (Participantes): Proprietário\nCheck List:\nAcessar o sistema com o proprietário e rever todos os processos implementados até o momento;\nPontuar quais processos precisarão de intervenção;\n\nLoja do Portal vai mudar ate o final do mês para Shopping do Avião, iremos manter o quadro de 3 vendedores, 1 gerente, 1 adm e 1 pré vendas. (loja com 25 vagas)\nReavaliar o Plano de Ação construído no P.E.\n\nContratação dos preparadores mudou para abril deixando o gerente ainda com processo muito moroso.\n Equipe ainda com falha no consumo do curso de vendas e gerentes, foi repassado os numero que estão também no corpo desse documento.\nTivemos em 11 dias 369 leads recebidos porém 102 foram finalizados, foi feito o compromisso que quem finaliza o lead é o gerente.\n🚨 PONTO DE ATENÇÃO (TRAVA): Foco na oficina, financiamento e veículos acima de 90 dias travados no pát\n\n[TRUNCADO: 1689 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/DNA - Resumo Executivo das Entrevistas de Diagnóstico.docx",
+      "exists": true,
+      "type": ".docx",
+      "bytes": 27911,
+      "status": "ok",
+      "kind": "docx",
+      "chars": 11708,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/DNA_-_Resumo_Executivo_das_Entrevistas_de_Diagno_stico.docx.txt",
+      "preview": "📊 Resumo Executivo das Entrevistas de Diagnóstico\nEmpresa: DNA Shopping do Avião / DNA Portal\nPrograma: PMR – Programa de Maximização de Resultados\nPeríodo das entrevistas: Fevereiro/2026\nEntrevistados:\nGestão/Direção: Dono e Direção Operacional\nGerentes: Pedro, Themis\nVendedores: Gustavo, Wender Lúcio, Álvaro, Bruno, Cristina, Douglas, Maria Alice, Wandrey\n1. VISÃO GERAL DO DIAGNÓSTICO\nA operação apresenta alto volume de atividade comercial, equipe numerosa e forte presença em canais como Marketplace do Facebook e CRM, porém opera com baixo nível de organização sistêmica, excessiva dependência de pessoas-chave (gerência e administrativo) e processos fragmentados, o que compromete previsibilidade, velocidade de venda e clima interno.\nHá potencial claro de resultado, sustentado por experiência de parte do time e geração recorrente de leads, mas esse potencial está subaproveitado por gargalos estruturais, conflitos de papel, ausência de rotinas claras e concentração de decisões fora do vendedor. O modelo atual gera esforço alto com retorno aquém da capacidade instalada.\n2. DIAGNÓSTICO GERENCIAL\n🔹 Perfil e Nível de Atuação\nA gestão atua predominantemente em nível operacional e reativo\n\n[TRUNCADO: 10508 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/Dados leads 1 a 11.xlsx",
+      "exists": true,
+      "type": ".xlsx",
+      "bytes": 10101,
+      "status": "ok",
+      "kind": "xlsx",
+      "chars": 935,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/Dados_leads_1_a_11.xlsx.txt",
+      "preview": "--- PLANILHA: Sheet1 (17 linhas x 8 colunas) ---\nL1: Mídia | Recebidos | Pendentes | Andamentos | Agendados | Finalizados | Sucesso | Insucesso\nL2: Facebook | 1 | 0 | 1 | 0 | 0 | 0 | 0\nL3: TV DO CARRO | 1 | 0 | 0 | 1 | 0 | 0 | 0\nL4: SeminovosBH | 3 | 0 | 3 | 0 | 0 | 0 | 0\nL5: Chaves na Mão | 5 | 0 | 2 | 0 | 3 | 0 | 3\nL6: Pós Venda | 5 | 0 | 2 | 0 | 3 | 0 | 3\nL7: WebMotors | 6 | 0 | 4 | 2 | 0 | 0 | 0\nL8: Instagram | 19 | 0 | 8 | 3 | 8 | 0 | 8\nL9: Site | 24 | 0 | 11 | 3 | 10 | 1 | 9\nL10: Campanha Facebook | 26 | 0 | 21 | 1 | 4 | 0 | 4\nL11: MobiAuto | 27 | 0 | 16 | 4 | 7 | 0 | 7\nL12: Icarros | 31 | 1 | 20 | 1 | 9 | 0 | 9\nL13: Campanha Instagram | 36 | 0 | 27 | 6 | 3 | 0 | 3\nL14: Whatsapp | 57 | 0 | 39 | 2 | 16 | 0 | 16\nL15: MercadoLivre | 59 | 0 | 36 | 7 | 16 | 1 | 15\nL16: OLX | 69 | 0 | 30 | 12 | 27 | 0 | 27\nL17: TODOS: | =SUM(B2:B16) | =SUM(C2:C16) | =SUM(D2:D16) | =SUM(E2:E16) | =SUM(F2:F16) | =SUM(G2:G16) | =SUM(H2:H16)"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/ESTOQUE COMPLETO DNA VEICULOS 04-02-2025.pdf",
+      "exists": true,
+      "type": ".pdf",
+      "bytes": 398439,
+      "status": "ok",
+      "kind": "pdf",
+      "chars": 26621,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/ESTOQUE_COMPLETO_DNA_VEICULOS_04-02-2025.pdf.txt",
+      "preview": "--- PAGINA 1 ---\n04/02/2026, 14:55 Impressao Estoque\nDias em Preço\nMarca Modelo Ano Placa Cor KM\nEstoque Fipe\nPYW-\nAUDI Q3 1.4 TFSI ATTRACTION FLEX 4P S TRONIC 2016/2017 Branco 13687 218 dias R$ 93.807,00\n2A54\nFSW- R$\nBMW 320i 2.0 SPORT 16V TURBO ACTIVE FLEX 4P AUTOMÁTICO 2016/2017 Cinza 137527 168 dias\n5B91 116.555,00\nQOP-\nCHEVROLET COBALT 1.4 MPFI LT 8V FLEX 4P MANUAL 2018/2019 Prata 0 15 dias R$ 52.253,00\n8F99\nCHEVROLET CRUZE 1.8 LT 16V FLEX 4P AUTOMÁTICO 2012/2012 OPA-4F15 Prata 0 135 dias R$ 51.001,00\nCHEVROLET CRUZE 1.8 LT 16V FLEX 4P AUTOMÁTICO 2014/2014 OTJ-3F54 Preto 0 119 dias R$ 56.976,00\nCHEVROLET JOY 1.0 SPE4 FLEX PLUS MANUAL 2021/2021 RMP-6J44 Branco 56406 148 dias R$ 58.253,00\nQOE-\nCHEVROLET ONIX 1.0 MPFI LT 8V FLEX 4P MANUAL 2018/2018 Prata 0 69 dias R$ 52.059,00\n3E96\nCHEVROLET ONIX 1.4 MPFI LT 8V FLEX 4P MANUAL 2013/2013 OPH-1J76 Branco 0 59 dias R$ 41.166,00\nCHEVROLET ONIX 1.0 TURBO FLEX PLUS LTZ AUTOMÁTICO 2023/2024 SJA-9E63 Prata 46359 56 dias R$ 84.075,00\nRUQ-\nCHEVROLET ONIX 1.0 TURBO FLEX LTZ AUTOMÁTICO 2022/2023 Branco 55403 36 dias R$ 80.981,00\n9D38\nCHEVROLET ONIX 1.0 MPFI LT 8V FLEX 4P MANUAL 2016/2016 PXU-4I75 Cinza 70120 14 dias R$ 44.841,00\nR$\nCHEVROLET \n\n[TRUNCADO: 25420 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/ESTOQUE DNA VEICULOS.xlsx",
+      "exists": true,
+      "type": ".xlsx",
+      "bytes": 8328,
+      "status": "ok",
+      "kind": "xlsx",
+      "chars": 5467,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/ESTOQUE_DNA_VEICULOS.xlsx.txt",
+      "preview": "--- PLANILHA: Página1 (None linhas x None colunas) ---\nL1: Veículo | Dias em Estoque | Ano | Placa | Cor\nL2: SANDERO 1.0 12V SCE FLEX AUTHENTIQUE MANUAL | 299.0 | 2018/2018 | QNU-0E38 | Prata\nL3: FIORINO 1.4 MPI FURGÃO 8V FLEX 2P MANUAL | 254.0 | 2014/2015 | PVD-2B01 | Branco\nL4: TRACKER 1.2 TURBO FLEX PREMIER AUTOMÁTICO | 232.0 | 2023/2024 | SIM-2J76 | Vermelho\nL5: KWID 1.0 12V SCE FLEX ZEN MANUAL | 223.0 | 2022/2023 | RTU-3J97 | Branco\nL6: PULSE 1.0 TURBO 200 FLEX IMPETUS CVT | 222.0 | 2023/2024 | SJE-0F64 | Prata\nL7: SANDERO 1.6 16V SCE FLEX ZEN MANUAL | 214.0 | 2020/2021 | RFS-0A42 | Branco\nL8: JOY 1.0 SPE4 FLEX PLUS MANUAL | 183.0 | 2021/2021 | RMP-6J44 | Branco\nL9: STRADA 1.4 FIRE FLEX ENDURANCE CS MANUAL | 167.0 | 2022/2023 | SBY-4D65 | Branco\nL10: ARGO 1.0 FIREFLY FLEX DRIVE MANUAL | 165.0 | 2024/2025 | TCK-0D44 | Prata\nL11: FIESTA 1.5 S HATCH 16V FLEX 4P MANUAL | 162.0 | 2016/2016 | PXV-4B47 | Branco\nL12: TRACKER 1.4 16V TURBO FLEX PREMIER AUTOMÁTICO | 158.0 | 2019/2019 | LUG-1F55 | Branco\nL13: ARGO 1.0 FIREFLY FLEX DRIVE MANUAL | 155.0 | 2024/2025 | PVR-8J57 | Prata\nL14: SANDERO 1.6 PRIVILEGE 16V FLEX 4P AUTOMÁTICO | 155.0 | 2012/2013 | KPA-6911 | Bege\nL15: VOYAGE 1.0 12V\n\n[TRUNCADO: 4266 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/PMR - DNA VEICULOS - PLANEJAMENTO ESTRATEGICO.pptx",
+      "exists": true,
+      "type": ".pptx",
+      "bytes": 1398604,
+      "status": "ok",
+      "kind": "pptx",
+      "chars": 3290,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/PMR_-_DNA_VEICULOS_-_PLANEJAMENTO_ESTRATEGICO.pptx.txt",
+      "preview": "--- SLIDE 1 ---\nPROGRAMA DE MAXIMIZAÇÃO DE RESULTADOS\nAnálise Estratégica e Plano de Ação\nDNA Veículos\nFEVEREIRO/2026 • MX Consultoria Automotiva\n\n--- SLIDE 2 ---\nPrograma de Maximização de Resultados\nImplementação das melhores práticas de processos.\nO PMR é uma metodologia completa de implementação das melhores práticas de processos no setor automotivo, desenvolvida pela MX Consultoria.\nDiagnóstico preciso da operação atual Identificação de oportunidades de melhoria Plano de ação estruturado e mensurável Acompanhamento de resultados em tempo real\n\nMaximizar o potencial de vendas e a rentabilidade da sua empresa através de estratégias baseadas em dados.\n\n--- SLIDE 3 ---\nDiagnóstico de Vendas\nPerformance mensal Julho/2025 a Dezembro/2025\nAnálise das vendas totais por mês com linha de média\n255\nTotal de Vendas\n31,8\nMédia Mensal\n40\nMaior Mês DEZ\n)\n22\nMenor Mês (Jun)\n\n--- SLIDE 4 ---\nPerformance por Vendedor\nVendas acumuladas Julho/2025 a Janeiro/2026\nIndicadores Chave\nTop Performer\nDouglas\n47 vendas\nMédia por Vendedor\n4,54\nvendas/mês\nTotal da Equipe\n255\nvendas acumuladas\n\nMelhor performance mensal: 5,8 - vendas\n\n--- SLIDE 5 ---\nPerformance de Marketing Digital\nInvestimento, leads e co\n\n[TRUNCADO: 2087 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/📍 VISITA 7 PDI 18-03.docx",
+      "exists": true,
+      "type": ".docx",
+      "bytes": 170438,
+      "status": "ok",
+      "kind": "docx",
+      "chars": 1257,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/VISITA_7_PDI_18-03.docx.txt",
+      "preview": "📍 VISITA 7: Plano de Desenvolvimento Individual (PDI)\nCABEÇALHO BASE - OBRIGATÓRIO (Copiar para o CRM):\nData: 18/03/2026\nConsultor: José Roberto\nLoja: DNA UNIDADE PORTAL\nMeta Mensal: 40 (29 vendas atualmente)\nProjeção: 51\nLeads Mês: 667\nEstoque Disponível: 67 (estoque total 127, sendo que 20 é de repasse e para uso pessoal, 40 carros em preparação)\nTempo: 3 horas\nAlvo (Participantes): Vendedor e Gerente\nCheck List:\nImplementar o PDI da equipe e do Gerente;\nEnviar relatório da performance nos treinamentos;\nEvidência: 1. Todos os PDIs no sistema;\nModelo de Relatório: Como encaixar na visita extra\n🚨 PONTO DE ATENÇÃO (TRAVA): A sessão de PDI alinha meta de vida com meta da loja. Os documentos devem ser fechados e assinados na hora.\nCarro de estoque, repasse e em preparação todos juntos não tendo a noção exata de quantos carros tem para venda, vão fazer um cadastro no autocerto somente para repasse.\nContrato não está sendo feito pelo sistema de forma que o carro não é baixado no sistema e aí criamos um cenário aonde os carros já vendidos ainda fiquem no sistema quando vender.\nFoi verificado que estão sem anuncio destaque WebMotors e OLX vão ajustar.\nFizemos o PDI do Antonio na loja do p\n\n[TRUNCADO: 57 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/Antonio - Plano_Desenvolvimento_Individual.xlsx",
+      "exists": true,
+      "type": ".xlsx",
+      "bytes": 53477,
+      "status": "ok",
+      "kind": "xlsx",
+      "chars": 501799,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/Antonio_-_Plano_Desenvolvimento_Individual.xlsx.txt",
+      "preview": "--- PLANILHA: Equação (4 linhas x 18 colunas) ---\nL1:  | EQUAÇÃO DA MOTIVAÇÃO NO TRABALHO\n\n--- PLANILHA: Capa (28 linhas x 2 colunas) ---\nL1: PLANO DE DESENVOLVIMENTO INDIVIDUAL (PDI)\nL3: NOME: Antonio Pereira da Silva\nL5: METAS DE CURTO PRAZO (6 MESES)\nL6: 1. Media de ter 40 agendamentos para alcançar 8 vendas\nL7: 2. Tem uma divida de 25 mil, vai quitar 4 mil por mês, ( custo de vida + divida:8 mil)\nL8: 3. Concluir formação de vendedores\nL10: METAS DE MÉDIO PRAZO (12 MESES)\nL11: 1. Regularizar a união, mora com noiva\nL12: 2. Trocar de carro (TEM 206 2008 QUER COROLLA 2012)\nL13: 3. Fazer caminhada uma vez por semana com a esposa /fazer passaporte\nL15: METAS DE LONGO PRAZO (24 MESES)\nL16: 1. ALCANÇAR MEDIA DE 15 CARROS\nL17: 2. Fazer viagem para Canada\nL18: 3.\nL20: Frases para Inspirar\nL22: Comprometa-se com suas metas e encare os obstáculos como etapas para atingir o objetivo final.\nL23: Quanto maior for a crença em seus objetivos, mais depressa você os conquistará.\nL24: Desistir dos sonhos é abrir mão da felicidade, porque quem não persegue seus objetivos está condenado a fracassar 100% das vezes.\nL25: Sem sonhos, a vida não tem brilho. Sem metas, os sonhos não têm alicerces. Sem p\n\n[TRUNCADO: 500598 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/DADOS PLANEJAMENTO.pdf",
+      "exists": true,
+      "type": ".pdf",
+      "bytes": 900388,
+      "status": "ok",
+      "kind": "pdf",
+      "chars": 1132,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/DADOS_PLANEJAMENTO.pdf.txt",
+      "preview": "--- PAGINA 1 ---\nPOLÍTICA DE REMUNERAÇÃO GERENCIAL\nVendas no Mês Valor por Venda Bônus\n15 R$ 200,00 -\n20 R$ 300,00 -\n25 R$ 350,00 -\n30 R$ 500,00 R$ 2.000,00\n35 R$ 550,00 -\n40 R$ 600,00 -\nSalário Fixo: R$ 1.500,00\nARLA: 40%\nCompra: 500,00.\n. REMUNERAÇÃO VENDEDORES\nR$ 1.500,00 FIXO\nR$ 500,00 POR VENDA\nARLA: 40%\n\n--- PAGINA 2 ---\nRELATÓRIO DE LEADS\nPeríodo: Novembro a Janeiro\n\n--- PAGINA 3 ---\nGASTOS DE MARKETING – CONSOLIDAÇÃO\nModo Retrato | Novembro, Dezembro e Janeiro\nCanal Novembro Dezembro Janeiro\nWebmotors 2.800,00 2.800,00 2.800,00\niCarros 3.047,00 3.047,00 3.047,00\nOLX 3.600,00 3.600,00 3.600,00\nSeminovosBH 451,00 451,00 451,00\nMobiauto 625,85 625,85 625,85\nChaves na Mão 625,80 625,80 625,80\nMercado Livre 1.559,00 1.559,00 1.559,00\nFacebook 2.500,00 2.500,00 3.000,00\nTOTAL MENSAL 15.208,65 15.208,65 15.708,65\nCONSOLIDAÇÃO DE DADOS DE VENDAS\nModo Retrato | Período: Agosto a Janeiro\n\n--- PAGINA 4 ---\nMês Bruno Douglas Álvaro Wender Gustavo Cristina Wandrey\nAgosto 4 8 0 - - - -\nSetembro 4 12 1 3 - - -\nOutubro 4 5 4 - - - -\nNovembro 5 8 1 - - - -\nDezembro 7 8 3 4 4 1 1\nJaneiro 9 6 - 7 5 7 4\nTOTAL 33 47 9 14 9 8 5"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/Gandini - Resumo Executivo das Entrevistas de Diagnóstico.docx",
+      "exists": true,
+      "type": ".docx",
+      "bytes": 22639,
+      "status": "ok",
+      "kind": "docx",
+      "chars": 7115,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/Gandini_-_Resumo_Executivo_das_Entrevistas_de_Diagno_stico.docx.txt",
+      "preview": "📊 Resumo Executivo das Entrevistas de Diagnóstico\nEmpresa: Gandini Automóveis\nPrograma: PMR – Programa de Maximização de Resultados\nData do diagnóstico: Fevereiro/2026\nEntrevistados:\nDonos: Antonio Marcelo Rodrigues Gandini e Renata Esteves Duarte Gandini\nVendedores: Everton, Luis Henrique, Nathan, Ryan\nEscopo adicional: Análise in loco dos Processos Essenciais\n1. VISÃO GERAL DO DIAGNÓSTICO\nA Gandini Automóveis é uma operação com 10 anos de mercado, forte presença do dono no dia a dia e bom reconhecimento regional pela qualidade dos carros e reputação digital. No entanto, a empresa se encontra hoje em fase real de sobrevivência, apesar da experiência acumulada, operando sob pressão financeira, baixa previsibilidade e alto desgaste humano.\nO diagnóstico evidencia um negócio que vende quando há esforço máximo, mas que não possui estrutura, processos e liderança compatíveis para sustentar crescimento ou estabilidade. A operação é altamente dependente do dono, com fragilidade em gestão de pessoas, processos comerciais pouco padronizados e ausência de rotina gerencial clara.\n2. DIAGNÓSTICO DOS DONOS – ANTONIO E RENATA GANDINI\n🔹 Perfil e Visão Estratégica\nAntonio: perfil extremamente com\n\n[TRUNCADO: 5915 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/GANDINI - PMR - PLANEJAMENTO ESTRATEGICO - 2026.pptx",
+      "exists": true,
+      "type": ".pptx",
+      "bytes": 1384500,
+      "status": "ok",
+      "kind": "pptx",
+      "chars": 5200,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/GANDINI_-_PMR_-_PLANEJAMENTO_ESTRATEGICO_-_2026.pptx.txt",
+      "preview": "--- SLIDE 1 ---\nPROGRAMA DE MAXIMIZAÇÃO DE RESULTADOS\nAnálise Estratégica, Plano de Ação e Cronograma de Implementação\nGANDINI AUTOMÓVEIS\nJANEIRO DE 2026 • MX Consultoria Automotiva\n\n--- SLIDE 2 ---\nPrograma de Maximização de Resultados\nImplementação das melhores práticas de processos.\nO PMR é uma metodologia completa de implementação das melhores práticas de processos no setor automotivo, desenvolvida pela MX Consultoria.\nDiagnóstico preciso da operação atual Identificação de oportunidades de melhoria Plano de ação estruturado e mensurável Acompanhamento de resultados em tempo real\n\nMaximizar o potencial de vendas e a rentabilidade da sua empresa através de estratégias baseadas em dados.\n\n--- SLIDE 3 ---\nDiagnóstico de Vendas\nPerformance mensal Janeiro/2025 a Dezembro/2025\nAnálise das vendas totais por mês com linha de média\n178\nTotal de Vendas\n14,8\nMédia Mensal\n22\nMaior Mês (Mai)\n9\nMenor Mês (Mar)\n\n--- SLIDE 4 ---\nPerformance por Vendedor\nMédia de vendas 2025\nIndicadores Chave\nTop Performer\nEverton\n73  vendas totais\nMédia por Vendedor\n4,6\nvendas/mês\nTotal da Equipe\n178\nvendas acumuladas\n\nMelhor performance mensal: Maio - 10 vendas\n\n--- SLIDE 5 ---\nPerformance de Marketing\nInvesti\n\n[TRUNCADO: 3982 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/MODELO PADRAO DE RELATORIOS DE VISITAS.docx",
+      "exists": true,
+      "type": ".docx",
+      "bytes": 1681733,
+      "status": "ok",
+      "kind": "docx",
+      "chars": 8349,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/MODELO_PADRAO_DE_RELATORIOS_DE_VISITAS.docx.txt",
+      "preview": "MANUAL DEFINITIVO DE VISITAS E RELATÓRIOS PMR - MX CONSULTORIA\nEste documento estabelece o padrão operacional rigoroso para a atuação dos consultores da MX Escola de Negócios em campo. \nO método  PMR (Alta Performance)  é um programa de implementação das melhores práticas de mercado nos processos de Marketing, Vendas e Gestão Comercial.\nNota Estratégica:  Embora o conceito teórico do PMR seja fundamentado em 7 etapas de implementação, este manual utiliza as  9 Visitas de Consultoria  como o veículo operacional obrigatório para garantir a execução prática de cada fase do projeto\n. O foco é a transformação do vendedor em um profissional de alto desempenho através da adaptação constante e da disciplina processual.\nOURO PARA O CONSULTOR MX\nPOSTURA DE ARQUITETO:  Você desenha e audita processos. Nunca execute tarefas administrativas que competem aos funcionários da loja.\nPROIBIÇÃO DE DESVIO DE ESCOPO:  Não apague incêndios. Se a loja está com problemas operacionais fora do PMR, registre no relatório e siga o cronograma da consultoria.\nRESULTADO BASEADO EM EVIDÊNCIAS:  Se não há foto, print ou documento assinado, a etapa não foi cumprida. Palavras não validam visitas.\nLIDERANÇA PELO EXEM\n\n[TRUNCADO: 7149 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/AGENDA.html",
+      "exists": true,
+      "type": ".html",
+      "bytes": 207518,
+      "status": "ok",
+      "kind": "html",
+      "chars": 43651,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/AGENDA.html.txt",
+      "preview": "A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\n1\nAGENDA 2026\n2\n3\nSUBTOTAIS\n251\n251\n4\nID_EVENTO\n5\nVisita\nNome do Cliente\nProduto / Consultoria\nData da Visita\nHora\nTempo (horas)\nModalidade\nConsultor Responsável\nConsultor Auxiliar\nAlvo\nMotivo da Visita / Ação Planejada\n6\n1\nImpério\nPPA PREMIUM\n05/01/2026\n13:00:00\n3\nPresencial\nDaniel Santos\nProprietário\nPlanejamento Estratégico\no4mpnohlcvm4vrm4rjtngr8csk@google.com\n7\n1\nVitrine\nPPA PREMIUM\n05/01/2026\n09:00:00\n3\nPresencial\nDaniel Santos\nProprietário\nPlanejamento Estratégico\nog1oltcpp4f2su5h5hqtsdmnng@google.com\n8\n2\nOtávio Lage\nPMR PRESENCIAL\n05/01/2026\n09:00:00\n8\nPresencial\nGedson Freire\nJosé Roberto\nTodos\nPlanejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Vendas e Gestão á Vista\nnsnbhta7jrod778l8s8jcgulfo@google.com\n9\n1\nSalim\nPPA\n06/01/2026\n09:00:00\n3\nPresencial\nDaniel Santos\nProprietário\nPlanejamento Estratégico\ns04gjm4bm2b625p7ugvtqhqt2s@google.com\n10\n2\nGoto Motors\nPMR PRESENCIAL\n06/01/2026\n09:00:00\n8\nPresencial\nGedson Freire\nJosé Roberto\nTodos\nPlanejamento Estratégico, Metodologia de Vendas por Multicanal, Treinamento Método Vendedor Profissional, Acompanhamento Diário de Ve\n\n[TRUNCADO: 42451 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/AULAS.html",
+      "exists": true,
+      "type": ".html",
+      "bytes": 33424,
+      "status": "ok",
+      "kind": "html",
+      "chars": 2521,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/AULAS.html.txt",
+      "preview": "A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\n1\n2\n3\n4\nData\nDia Semana\nHORA\nEvento\nTema\nLocal\nPúblico Alvo\nResponsável\nID_EVENTO\n5\n08/01/2026\nquinta-feira\n19:00:00\nEncontro Mensal Lojistas\nPerspectivas 2026\nZOOM\nDonos de Loja\nDaniel Santos\n528nl72ihm69t25b5ufpq6q4q0@google.com\n6\n14/01/2026\nquarta-feira\n19:30:00\nFormação de Vendedores\nApresentação da Formação\nZOOM\nVendedores, Gerentes e Donos de Loja\nDaniel Santos\nfmf9bbf8kegki2a5eanlq7s0ds@google.com\n7\n19/01/2026\nsegunda-feira\n20:00:00\nFormação de Gerentes\nIntrodução a Formação\nZOOM\nGerentes Comerciais\nGedson Freire\n59cup7376ippb6fpk26ama5d6s@google.com\n8\n22/01/2026\nquinta-feira\n20:00:00\nFormação de Vendedores\nIntrodução a Formação\nZOOM\nVendedores\nJosé Roberto\nii0t0amojlbnev5vpi3rkvpk38@google.com\n9\n05/02/2026\nquinta-feira\n20:00:00\nEncontro Mensal Lojistas\nEstratégias\nZOOM\nDonos de Loja\nDaniel Santos\nqs3eiit5kqei9hhcjmthmsjm40@google.com\n10\n09/02/2026\nsegunda-feira\n20:00:00\nFormação de Vendedores\nProcessos de Vendas - Atendimento\nZOOM\nVendedores\nJosé Roberto\nm733j1omlsmqpp3lpng2b1ccfc@google.com\n11\n12/02/2026\nquinta-feira\n20:00:00\nFormação de Gerentes\nProcessos de Vendas\nZOOM\nGerentes Comerciais\nGedson Freire\nm85qe62v6mrdu75unnkprjnass@google.com\n12\n25/02/\n\n[TRUNCADO: 1321 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/CRM.html",
+      "exists": true,
+      "type": ".html",
+      "bytes": 17710,
+      "status": "ok",
+      "kind": "html",
+      "chars": 2174,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/CRM.html.txt",
+      "preview": "A\nB\nC\nD\nE\nF\nG\n1\nVISITA\nLISTA DE CLIENTES\nPRODUTO\nCONSULTORES\nMODALIDADE\nALVO\nMOTIVO DA VISITA\n2\n0\nVitrine\nPPA\nDaniel Santos\nPresencial\nProprietário\nOnboarding\n3\n1\nImpério\nPPA PREMIUM\nGedson Freire\nOnline\nVendedor\nDiagnóstico e Treinamento Método Vendedor Profissional - Fase 1\n4\n2\nSalim\nPMR RENOVAÇÃO\nJosé Roberto\nGerente\nPlanejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2\n5\n3\nAG AUTOMÓVEIS\nPMR PRESENCIAL\nJoão Augusto\nTodos\nRotina do Gerente e do Vendedor, Feedback Estruturado\n6\n4\nLial\nPMR ONLINE\nConsultor 5\nVendedor e Gerente\nCultura de Resultado e Treinamento MVP - Fase 3\n7\n5\nDakar\nMENTORIA\nMariane Durães\nProprietário e Gerente\nPlano de Desenvolvimento Individual (PDI)\n8\n6\nPiscar Veículos\nTodos\nProprietário e Marketing\nPosicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago\n9\n7\nAlmeida\nAnálise das Implementações e Plano de Ação Trimestral\n10\n8\nInvestCar MG\nAcompanhamento\n11\n9\nInvestCar RJ\nModelo de Negócio\n12\nDireta\nPlanejamento Estratégico\n13\nSempre Mais\nMaximização de Receitas\n14\nIdeal Automotive\nEficiência em Custos\n15\nAuto Up\nTreinamento Vendedores\n16\nBrothers Car\nResultados e Plan\n\n[TRUNCADO: 974 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/EVENTOS ONLINE.html",
+      "exists": true,
+      "type": ".html",
+      "bytes": 11594,
+      "status": "ok",
+      "kind": "html",
+      "chars": 1278,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/EVENTOS_ONLINE.html.txt",
+      "preview": "A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\n1\n2\n3\n4\nData\nHora\nCarga horária\nEvento\nLocal\nPúblico Alvo\nMeta de Público\nResponsável\nValor do Ingresso\nID_EVENTO\n5\n26/01/2026\n19:30\n2\nPrograma de Formação - Gerentes e Vendedores\nOnline\nVendedores, Gerentes e Donos de Loja\n300\nDaniel Santos\nR$ -\noo9gtvesn91bkrc85g1b0vtjeo@google.com\n6\n08/03/2026\n19:00:00\n2\nPrograma de Maximização para Lojas de Carros\nOnline\nDonos de Lojas\n100\nDaniel Santos\nR$ -\nham4bqk2j26fklffq949p231rg@google.com\n7\n15/04/2026\n19:00:00\n2\nPrograma de Formação - Gerentes e Vendedores\nOnline\nVendedores, Gerentes e Donos de Loja\n300\nDaniel Santos\nR$ -\nkbvvmhdbctluvkmk5i5qto3vus@google.com\n8\n09/04/2026\n20:00:00\n2\nMentoria para Gerentes - Ética: Comportamento que gera respeito\nOnline\nGerentes\nGedson Freire\nR$ -\nvi3phrtnbtl3i3did07keob99c@google.com\n9\n26/04/2026\n20:00:00\n2\nMentoria para Gerentes - Como resolver conflitos definitivamente\nOnline\nGerentes\nGedson Freire\nR$ -\n0sidns8tlbud9hgko4d349dc8o@google.com\n10\n02/05/2026\n20:00:00\n2\nMentoria para Gerentes - Liderando talentos sem perder a equipe\nOnline\nGerentes\nGedson Freire\nR$ -\n73gl5j29jivq7i05u7676gidgo@google.com\n11\n09/05/2026\n20:00:00\n2\nMentoria para Gerentes - Admiração: o maior nível da lide\n\n[TRUNCADO: 78 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/EVENTOS PRESENCIAIS.html",
+      "exists": true,
+      "type": ".html",
+      "bytes": 8448,
+      "status": "ok",
+      "kind": "html",
+      "chars": 664,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/EVENTOS_PRESENCIAIS.html.txt",
+      "preview": "A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\n1\n2\n3\n4\nData\nHora\nCarga horária\nEvento\nLocal\nPúblico Alvo\nMeta de Público\nResponsável\nValor do Ingresso\nID_EVENTO\n5\n01/03/2026\n09:00:00\n6\nPrograma de Formação e Desenvolvimento de Gerentes\nLagoa Santa / MG\nVendedores, Gerentes e Donos de Loja\n30\nGedson Freire\nR$ 497,00\ntp0d11fhdda0cd2boj8dci5neo@google.com\n6\n15/03/2026\n09:00:00\n6\nMétodo Vendedor de Carros Profissional\nLagoa Santa / MG\nVendedores, Gerentes e Donos de Loja\n100\nJosé Roberto\nR$ 297,00\ng4kkd9kf5hdkqpcnhrk8pkp75c@google.com\n7\n11/04/2026\n09:00:00\n8\nMasterMind MX\nLagoa Santa / MG\nClientes do PPA e Convidados\n25\nDaniel Santos\nR$ 5.500,00\n7msdpkq31es0lgoabnahdgh3a4@google.com\n8"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/OBJETIVO_VISITA.html",
+      "exists": true,
+      "type": ".html",
+      "bytes": 9925,
+      "status": "ok",
+      "kind": "html",
+      "chars": 2478,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/OBJETIVO_VISITA.html.txt",
+      "preview": "A\nB\nC\nD\nE\nF\nG\nH\n1\nPMR SEM VIAGEM\n2\nNº Visita\nMotivo\nTempo\nAlvo\nCheck List\nEvidência\nModelo de Relatório\nMomento de Venda\n3\n1\nDiagnóstico e Treinamento Método Vendedor Profissional - Fase 1\n1 dia\nTodos\n1. Entrevista Vendedores, Gerentes e Sócios;\n2. Análise de Processos;\n3. Levantamento de dados\n4.  Treinamento Método Vendedor Profissional;\n1 e 2. Formulários preenchidos;\n3. Dados enviados\n4\n2\nPlanejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2\n1 dia\nTodos\n1. Apresentação do Planejamento;\n2. Implementação da Metodologia Multicanal;\n3. Acompanhamento Diário de Vendas;\n4. Gestão á Vista;\n5. Reforçar área do cliente no sistema;\n6. Reforçar ações de contratação e treinamento de novos vendedores;\n1. Validação do Planejamento no Sistema;\n2. Foto do treinamento e vendedores cadastrados no sistema;\n5\n3\nRotina do Gerente e do Vendedor, Feedback Estruturado\n3 horas\nVendedor e Gerente\n1. Implementar a Rotina do Gerente;\n2. Implementar a Rotina do Vendedor;\n3. Verificar se o novo plano de remuneração foi avaliado;\n1. Foto da Rotina impressa e fixada em local visível;\n2. Foto do treinamento e foto da Rotina im\n\n[TRUNCADO: 1278 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Desktop/MX/sheet.css",
+      "exists": true,
+      "type": ".css",
+      "bytes": 3859009,
+      "status": "ok",
+      "kind": "css",
+      "chars": 3858996,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/sheet.css.txt",
+      "preview": "@import url(https://fonts.googleapis.com/css?kit=SQjLx3HMONn1Cumidk61mLwA2l8EhYq0LHxuYUdzdzeV8rv1LYg6O7-1jtiVjOZq);@charset \"UTF-8\";@import url(https://fonts.googleapis.com/css?family=Google+Sans);a{text-decoration:none}a:link{color:#15c}a:visited{color:#61c}a:active{color:#d14836}a:hover{text-decoration:underline}.quantumIconsIcon{font-family:Material Icons Extended;font-weight:400;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-rendering:optimizeLegibility;text-transform:none;display:inline-block;word-wrap:normal;direction:ltr;font-feature-settings:\"liga\" 1;-webkit-font-smoothing:antialiased}html[dir=rtl] .quantumIconsRtlIcon{transform:scaleX(-1)}.waffleDialogRitzImportDialogStandardDialog{--W1aG0b:6px 24px 0px;--V5opxd:var(--gm3-sys-color-surface,#fff);--o0m4Bd:var(--gm3-sys-color-surface,#fff);--Tlqqfc:569px;--urucif:6px;--Cv3aid:24px;--xkSh4b:0px;--tukwab:24px}.waffleDialogRitzImportDialogStandardInfoDialog{--W1aG0b:50px 36px 0px;--urucif:50px;--Cv3aid:36px;--xkSh4b:0px;--tukwab:36px}.waffleDialogRitzImportDialogStandardLandingDialog{--W1aG0b:24px 22px 0px;--Tlqqfc:540px;--urucif:24px;--Cv3aid:22px;--xkSh4b:0px;--tukwab:22px}.waffleDialogRitzImportDia\n\n[TRUNCADO: 3857796 caracteres restantes no arquivo extraido]"
+    },
+    {
+      "path": "/Users/pedroguilherme/Downloads/Ligação com Junior Melhor Amigo 2.m4a",
+      "exists": true,
+      "type": ".m4a",
+      "bytes": 62404600,
+      "status": "ok",
+      "kind": "audio_metadata_only",
+      "chars": 138,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/Ligac_a_o_com_Junior_Melhor_Amigo_2.m4a.txt",
+      "preview": "{\n    \"format\": {\n        \"format_name\": \"mov,mp4,m4a,3gp,3g2,mj2\",\n        \"duration\": \"2339.851610\",\n        \"size\": \"62404600\"\n    }\n}"
+    },
+    {
+      "path": "/Users/pedroguilherme/Downloads/Ligação com Junior Melhor Amigo.m4a",
+      "exists": true,
+      "type": ".m4a",
+      "bytes": 13490074,
+      "status": "ok",
+      "kind": "audio_metadata_only",
+      "chars": 137,
+      "extracted": "output/analysis/mx-feature-20260413/extracted/Ligac_a_o_com_Junior_Melhor_Amigo.m4a.txt",
+      "preview": "{\n    \"format\": {\n        \"format_name\": \"mov,mp4,m4a,3gp,3g2,mj2\",\n        \"duration\": \"526.814331\",\n        \"size\": \"13490074\"\n    }\n}"
+    }
+  ]
+}

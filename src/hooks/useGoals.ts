@@ -6,7 +6,7 @@ import type { StoreMetaRules } from '@/types/database'
 export function useGoals(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
-    const [storeGoal, setStoreGoal] = useState<{ target: number } | null>(null)
+    const [storeGoal, setStoreGoal] = useState<{ target: number; projection_mode: 'calendar' | 'business' } | null>(null)
     const [loading, setLoading] = useState(true)
 
     const now = new Date()
@@ -22,14 +22,14 @@ export function useGoals(storeIdOverride?: string) {
         setLoading(true)
         const { data } = await supabase
             .from('store_meta_rules')
-            .select('monthly_goal')
+            .select('monthly_goal, projection_mode')
             .eq('store_id', storeId)
             .maybeSingle()
 
         if (data) {
-            setStoreGoal({ target: data.monthly_goal || 0 })
+            setStoreGoal({ target: data.monthly_goal || 0, projection_mode: data.projection_mode || 'calendar' })
         } else {
-            setStoreGoal({ target: 0 })
+            setStoreGoal({ target: 0, projection_mode: 'calendar' })
         }
         setLoading(false)
     }, [storeId])

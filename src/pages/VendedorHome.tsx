@@ -55,16 +55,20 @@ export default function VendedorHome() {
         if (!metrics || !profile) return
         const text = formatWhatsAppMorningReport(
             profile.name || 'Especialista',
+            'Hoje',
             { 
+                teamGoal: metrics.meta || 0,
+                currentSales: metrics.vendasOntem,
+                reaching: metrics.atingimento,
+                projection: metrics.projecao,
+                gap: Math.max((metrics.meta || 0) - metrics.vendasOntem, 0),
                 vnd_total: metrics.vendasOntem, 
                 leads: 0, 
                 visitas: 0, 
-                agd_total: metrics.agendamentosHoje 
+                agd_total: metrics.agendamentosHoje,
+                pendingSellers: []
             },
-            { label: 'EM EVOLUÇÃO', color: '' },
-            metrics.projecao,
-            metrics.meta || 0,
-            metrics.atingimento
+            []
         )
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     }, [metrics, profile])

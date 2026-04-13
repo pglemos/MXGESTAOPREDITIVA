@@ -1,0 +1,253 @@
+📊 Resumo Executivo das Entrevistas de Diagnóstico
+Empresa: DNA Shopping do Avião / DNA Portal
+Programa: PMR – Programa de Maximização de Resultados
+Período das entrevistas: Fevereiro/2026
+Entrevistados:
+Gestão/Direção: Dono e Direção Operacional
+Gerentes: Pedro, Themis
+Vendedores: Gustavo, Wender Lúcio, Álvaro, Bruno, Cristina, Douglas, Maria Alice, Wandrey
+1. VISÃO GERAL DO DIAGNÓSTICO
+A operação apresenta alto volume de atividade comercial, equipe numerosa e forte presença em canais como Marketplace do Facebook e CRM, porém opera com baixo nível de organização sistêmica, excessiva dependência de pessoas-chave (gerência e administrativo) e processos fragmentados, o que compromete previsibilidade, velocidade de venda e clima interno.
+Há potencial claro de resultado, sustentado por experiência de parte do time e geração recorrente de leads, mas esse potencial está subaproveitado por gargalos estruturais, conflitos de papel, ausência de rotinas claras e concentração de decisões fora do vendedor. O modelo atual gera esforço alto com retorno aquém da capacidade instalada.
+2. DIAGNÓSTICO GERENCIAL
+🔹 Perfil e Nível de Atuação
+A gestão atua predominantemente em nível operacional e reativo.
+Forte presença no dia a dia, principalmente para:
+Aprovação de preço
+Avaliação de troca
+Liberação de financiamento
+Baixa atuação estratégica e pouca antecipação de problemas.
+🔹 Planejamento, Metas e Indicadores
+Metas são parcialmente claras para o time.
+Acompanhamento de resultado ocorre, em muitos casos, apenas no fechamento do mês.
+Ausência de indicadores operacionais claros (SLA de lead, taxa de conversão, gargalos por etapa).
+🔹 Rotina Gerencial
+Reuniões não possuem frequência fixa nem pauta estruturada.
+Parte do time percebe as reuniões como focadas em cobrança, não em direcionamento ou desenvolvimento.
+Falta rotina de feedback individual e treinamento contínuo.
+🔹 Gestão de Pessoas e Clima
+Clima geral varia entre bom e regular, com pontos sensíveis relevantes:
+Conflitos de relacionamento envolvendo casal na operação (vendedor + administrativo).
+Sensação de privilégios em processos administrativos e financiamento.
+Falta de regras claras de convivência e governança contribui para ruídos internos.
+🔹 Leitura Consultiva
+A gestão está sobrecarregada pelo próprio modelo que criou. Ao centralizar decisões críticas, perde velocidade, gera gargalos operacionais e enfraquece a autonomia do time. O PMR precisa reposicionar a gestão para liderança por processo e indicador, não por intervenção direta constante.
+3. DIAGNÓSTICO DOS VENDEDORES – VISÃO CONSOLIDADA
+🔹 Perfil Geral do Time
+Equipe heterogênea:
+Vendedores muito experientes (8 a 15 anos de mercado)
+Vendedores iniciantes sem treinamento formal
+Parte relevante do time demonstra:
+Boa capacidade técnica
+Baixa disciplina comercial
+Dependência do ambiente para performar
+🔹 Rotina e Produtividade
+Não existe rotina comercial clara, padronizada e cobrada.
+Muitos vendedores dedicam mais de 5h/dia à atividade, porém com baixa eficiência.
+Tempo de venda é consumido por:
+Tarefas administrativas
+Pós-venda
+Movimentação e preparação de veículos
+Espera por aprovação de processos
+🔹 Capacidade x Resultado
+Capacidade declarada média: 11 a 15 carros/mês por vendedor.
+Sensação predominante: vendem abaixo da capacidade.
+Principais limitadores apontados:
+Falta de processo
+Lentidão na negociação e financiamento
+Falta de organização
+Falta de treinamento estruturado
+🔹 Atendimento de Leads
+Leads chegam majoritariamente via CRM e Marketplace.
+SLA de primeiro contato varia (5 a 30 minutos), mas não há padrão institucional.
+Follow-up existe, porém sem cadência definida.
+Muitos vendedores não acompanham clientes que não fecham na hora.
+🔹 Atendimento Presencial e Negociação
+Não existe padrão formal de atendimento presencial.
+Parte dos vendedores conduz o cliente por etapas; outros atuam de forma improvisada.
+Negociação e aprovação de preço:
+Fortemente concentradas na gerência/administrativo
+Gera perda de timing e frustração do cliente
+Vendedores relatam “cliente solto na loja” aguardando decisão.
+🔹 Carteira de Clientes
+Uso irregular da carteira.
+Estratégias mais comuns:
+Status de WhatsApp
+Marketplace
+Indicação existe, mas não é tratada como ativo estratégico.
+🔹 Pós-venda, Preparação e Estoque
+Preparação dos carros é um gargalo recorrente:
+Veículos liberados parcialmente preparados
+Retornos frequentes de pós-venda para o vendedor
+Confiança no estoque varia de média a boa, mas com ressalvas.
+Falta padrão de checklist e responsabilidade clara.
+🔹 Cultura de Resultado
+Cobrança percebida como saudável para alguns, excessiva para outros.
+Falta meritocracia clara e regras objetivas.
+Parte do time opera com mentalidade de “entrego quando dá”, não de padrão mínimo esperado.
+4. PRINCIPAIS GARGALOS IDENTIFICADOS
+Gestão
+Centralização excessiva de decisões
+Falta de rotina gerencial estruturada
+Baixa atuação estratégica
+Processo
+Ausência de processo comercial padronizado
+Gargalos em avaliação de troca e financiamento
+Falta de SLA e indicadores claros
+Comportamento
+Baixa disciplina comercial
+Dependência do gerente/administrativo
+Conflitos de relacionamento afetando o clima
+Estrutura
+Administrativo sobrecarregado
+Falta de separação clara de funções
+Preparação de veículos inconsistente
+5. RISCOS ATUAIS DA OPERAÇÃO
+Perda de vendas por lentidão na tomada de decisão
+Queda de conversão mesmo com alto volume de leads
+Desgaste contínuo da gestão
+Clima interno se deteriorar se conflitos não forem tratados
+Crescimento travado por desorganização, não por mercado
+Vendedores experientes operando abaixo do potencial ou se desengajando
+6. DIRECIONAMENTO ESTRATÉGICO INICIAL (PMR)
+O PMR deve atuar com foco claro em organização, velocidade e previsibilidade, priorizando:
+Reestruturação do modelo de gestão
+Tirar a gestão do operacional
+Implantar liderança por rotina e indicadores
+Implantação de processo comercial único
+Lead → atendimento → negociação → fechamento → pós-venda
+Com SLA, responsáveis e padrões claros
+Destravamento dos gargalos críticos
+Avaliação de troca
+Financiamento
+Autonomia progressiva do vendedor
+Organização de papéis e governança
+Redução de conflitos internos
+Clareza de funções e limites
+Aumento de previsibilidade
+Menos improviso
+Mais método
+Mais controle de resultado
+Sem essa base, qualquer tentativa de aumentar volume tende a aumentar o caos, não o lucro.
+📌 Complemento Executivo do Diagnóstico – Dono & Processos Essenciais
+Empresa: DNA Veículos / DNA Shopping do Avião
+Programa: PMR – Programa de Maximização de Resultados
+Fontes complementares:
+Entrevista com o Proprietário – Rodrigo Martins Rios
+Diagnóstico de Processos Críticos (avaliação in loco)
+1. ANÁLISE DO DONO – VISÃO REAL x OPERAÇÃO PRÁTICA
+🔹 Perfil do Proprietário
+Rodrigo é um dono extremamente presente, com 20 anos de mercado, forte leitura comercial e histórico recente de crescimento agressivo, com recordes de vendas, margem e investimento. Ele é, assumidamente, o principal diferencial competitivo da empresa.
+Contudo, essa força se tornou também o principal ponto de fragilidade estrutural.
+🔹 Visão Estratégica Declarada
+Meta clara:
+2 lojas | 150 carros em estoque | vender no mínimo 60 carros/mês
+Enxerga a empresa em fase de escala
+Acredita que a loja cresce dentro do potencial
+Principal preocupação atual: Recursos Humanos – manter pessoas
+Cultura desejada: Cultura de resultados
+⚠️ Leitura consultiva:
+Existe um desalinhamento importante entre a fase percebida pelo dono (escala) e a fase real da operação (crescimento desorganizado). A empresa ainda depende excessivamente de decisões centralizadas, o que caracteriza pré-escala.
+🔹 Modelo de Liderança Atual
+Todas as negociações passam pelo dono, ainda que à distância (telefone)
+Não há reuniões periódicas com o time
+O próprio dono reconhece que os vendedores são apenas parcialmente bem liderados
+A empresa não passou ainda por queda de vendas, o que mascara fragilidades do modelo
+📍 Impacto direto:
+A operação performa bem enquanto o dono sustenta o ritmo, mas não existe um sistema que garanta previsibilidade sem ele.
+🔹 Pessoas, Cultura e Risco Oculto
+Rodrigo valoriza vendedores presentes, ativos e que utilizam ferramentas
+O maior impeditivo para crescer, segundo ele, é consolidar o time
+Comentário crítico do consultor:
+Forte dependência do dono para vender
+Postura de substituição fácil (“se não vender, troca o vendedor”)
+Traços de orgulho operacional, que dificultam delegação estruturada
+🔎 Leitura consultiva:
+A empresa cresce apesar do modelo, não por causa dele. Se nada mudar, o risco não é queda abrupta, mas esgotamento da liderança, rotatividade e travamento de escala.
+2. ANÁLISE IN LOCO DOS PROCESSOS ESSENCIAIS
+(Validação prática do que vendedores e gerentes relataram)
+2.1 Avaliação de Usado na Troca
+🔹 Como funciona hoje
+Valor médio: ~20% abaixo da FIPE
+Processo:
+Vendedor tira fotos + dados
+Envia ao gerente
+Gerente liga com o valor
+Nada é formalizado por escrito
+Tempo médio real: 45 a 60 minutos
+🔹 Problemas observados
+Vendedor não negocia troca com o cliente
+Dependência total do gerente e, muitas vezes, do dono
+Já houve perda de vendas por demora
+Processo é considerado “maduro” pela gestão, mas não é escalável
+📍 Conclusão:
+Processo funcional para baixo volume, inviável para escala.
+2.2 Política de Preço e Desconto
+Desconto máximo:
+R$900,00, apenas com o gerente
+Pagamento à vista
+Qualquer exceção:
+Depende do dono
+Política mudou recentemente (antes não havia desconto)
+📍 Impacto direto:
+A venda perde timing, o vendedor perde autonomia e o cliente percebe insegurança.
+2.3 Preparação de Veículos
+🔹 Evidências in loco
+Veículos liberados com:
+Lâmpadas queimadas
+Rádio com tela apagada
+Suspensão ruidosa
+Bateria fraca
+Falta de itens básicos (estepe, chave de roda)
+Mesmo com alerta do time, decisão recorrente é:
+“Vende assim para economizar”
+🔹 Consequência
+Pós-venda recorrente
+Retorno do problema para o vendedor
+Desgaste com cliente
+Ruído direto na reputação e na indicação
+📍 Conclusão:
+A economia no preparo gera custo oculto maior no pós-venda.
+2.4 Pós-venda
+Problemas retornam sempre para o vendedor
+Não existe um responsável único
+Processo é reativo, não preventivo
+Evidências de clientes insatisfeitos logo após a retirada
+📍 Conclusão:
+O pós-venda contamina o comercial e consome energia do time errado.
+2.5 Gestão de Leads (CRM)
+CRM utilizado: Auto Certo
+Integração com WhatsApp via API
+Problema central:
+Agendamento e acompanhamento mal executados
+CRM funciona como caixa de entrada, não como ferramenta de gestão
+Estrutura considerada enxuta, porém mal organizada
+📍 Conclusão:
+O problema não é tecnologia, é processo e disciplina de uso.
+2.6 Conflitos Estruturais e Governança
+Conflito de interesse claro:
+Relacionamento entre vendedor (Bruno) e administrativa (Maria Alice)
+Percepção de privilégios
+Formação de “grupinhos”
+Processos administrativos lentos e enviesados
+📍 Conclusão:
+Esse ponto não é comportamental apenas, é falha de governança.
+3. FECHAMENTO EXECUTIVO – O QUE ESTE COMPLEMENTO REVELA
+Com a entrevista do dono + análise in loco, fica claro que:
+✔️ A empresa vende bem
+✔️ Tem mercado, estoque e demanda
+❌ Mas não tem um sistema de gestão e processos compatível com escala
+A raiz do problema não é:
+Vendedor
+Gerente
+Falta de lead
+A raiz do problema é:
+Um modelo excessivamente centralizado no dono, com processos frágeis, não documentados e sem governança clara.
+4. ENQUADRAMENTO FINAL PARA O PMR
+O PMR precisa atuar como divisor de águas, com três objetivos centrais:
+Tirar o dono do centro da operação sem tirá-lo do controle
+Transformar decisões em processos claros
+Criar previsibilidade antes de acelerar ainda mais o volume
+Sem isso:
+O crescimento continuará
+Mas o risco operacional, humano e reputacional cresce junto

@@ -19,10 +19,11 @@ const NEW_PASSWORD = 'Mx#2026!'
 
 async function resetPasswords() {
     console.log('--- Resetting Passwords ---')
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
+    const authUsersResponse = await supabase.auth.admin.listUsers()
+    const authUsers = (authUsersResponse.data?.users ?? []) as Array<{ id: string; email?: string | null }>
 
     for (const email of LOGINS) {
-        const user = authUsers?.users.find(u => u.email === email)
+        const user = authUsers.find((u) => u.email === email)
         if (user) {
             console.log(`Resetting password for ${email} (ID: ${user.id})...`)
             const { error } = await supabase.auth.admin.updateUserById(user.id, {

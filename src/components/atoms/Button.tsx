@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
@@ -41,9 +40,28 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, children, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+    const decoratedChildren = React.Children.map(children, (child) => {
+      if (!React.isValidElement(child)) return child
+      if (typeof child.type === 'string' && child.type === 'svg') {
+        const childProps = child.props as { ['aria-hidden']?: boolean; focusable?: boolean }
+        return React.cloneElement(child as React.ReactElement<any>, {
+          'aria-hidden': childProps['aria-hidden'] ?? true,
+          focusable: childProps.focusable ?? false,
+        })
+      }
+      return child
+    })
+
+    if (asChild && React.isValidElement(children)) {
+      const child = children as React.ReactElement<any>
+      return React.cloneElement(child, {
+        ...props,
+        className: cn(buttonVariants({ variant, size, className }), child.props.className),
+      })
+    }
+
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
@@ -53,9 +71,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             {children}
           </Typography>
         ) : (
-          children
+          decoratedChildren
         )}
-      </Comp>
+      </button>
     )
   }
 )

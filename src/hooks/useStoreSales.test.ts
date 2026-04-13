@@ -1,4 +1,5 @@
-import { describe, it, expect, mock } from 'bun:test'
+import { describe, it, expect } from 'bun:test'
+import { renderHook } from '@testing-library/react'
 import { useStoreSales } from './useStoreSales'
 
 describe('Elite Arena Integration Logic (useStoreSales)', () => {
@@ -9,41 +10,40 @@ describe('Elite Arena Integration Logic (useStoreSales)', () => {
 
   const mockRanking = [
     { user_id: '1', user_name: 'Vendedor 1', is_venda_loja: false, vnd_total: 3, leads: 10, agd_total: 5, visitas: 3, meta: 10, atingimento: 0, projecao: 0, ritmo: 0, efficiency: 0, status: { label: '', color: '' }, gap: 0, position: 0 },
-    { user_id: '2', user_name: 'VENDA LOJA', is_venda_loja: true, vnd_total: 5, leads: 0, agd_total: 0, visitas: 0, meta: 0, atingimento: 0, projecao: 0, ritmo: 0, efficiency: 0, status: { label: '', color: '' }, gap: 0, position: 0 },
+    { user_id: '2', user_name: 'VENDA LOJA', is_venda_loja: true, vnd_total: 5, leads: 0, agd_total: 0, visitas: 0, meta: 5, atingimento: 0, projecao: 0, ritmo: 0, efficiency: 0, status: { label: '', color: '' }, gap: 0, position: 0 },
   ]
 
   it('should include Venda Loja in store total when rule is enabled', () => {
-    const stats = useStoreSales({
+    const { result } = renderHook(() => useStoreSales({
       checkins: mockCheckins as any,
       ranking: mockRanking as any,
       rules: { monthly_goal: 100, include_venda_loja_in_store_total: true } as any
-    })
+    }))
     
     // 3 (seller) + 5 (venda loja) = 8
-    expect(stats.storeTotalVendas).toBe(8)
+    expect(result.current.storeTotalVendas).toBe(8)
   })
 
   it('should exclude Venda Loja from store total when rule is disabled', () => {
-    const stats = useStoreSales({
+    const { result } = renderHook(() => useStoreSales({
       checkins: mockCheckins as any,
       ranking: mockRanking as any,
       rules: { monthly_goal: 100, include_venda_loja_in_store_total: false } as any
-    })
+    }))
     
     // Only 3 (seller)
-    expect(stats.storeTotalVendas).toBe(3)
+    expect(result.current.storeTotalVendas).toBe(3)
   })
 
   it('should handle individual goal for Venda Loja when enabled', () => {
-    const stats = useStoreSales({
+    const { result } = renderHook(() => useStoreSales({
       checkins: mockCheckins as any,
       ranking: mockRanking as any,
       rules: { monthly_goal: 100, include_venda_loja_in_individual_goal: true } as any
-    })
+    }))
     
-    const vendaLojaEntry = stats.processedRanking.find(r => r.is_venda_lo_ja)
-    // Se a meta global é 100 e temos 2 "membros" (1 vendedor + 1 venda loja), meta individual seria 50
-    // No mockRanking enviamos meta fixa de 10 pra simplificar, o useStoreSales deve manter ou recalcular
-    // Mas no hook atual ele respeita o que vem do ranking.map inicial se for custom.
+    const vendaLojaEntry = result.current.processedRanking.find(r => r.is_venda_loja)
+    expect(vendaLojaEntry?.meta).toBe(5)
+    expect(vendaLojaEntry?.atingimento).toBe(100)
   })
 })

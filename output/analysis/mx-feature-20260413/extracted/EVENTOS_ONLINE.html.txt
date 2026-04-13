@@ -1,0 +1,98 @@
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+1
+2
+3
+4
+Data
+Hora
+Carga horária
+Evento
+Local
+Público Alvo
+Meta de Público
+Responsável
+Valor do Ingresso
+ID_EVENTO
+5
+26/01/2026
+19:30
+2
+Programa de Formação - Gerentes e Vendedores
+Online
+Vendedores, Gerentes e Donos de Loja
+300
+Daniel Santos
+R$ -
+oo9gtvesn91bkrc85g1b0vtjeo@google.com
+6
+08/03/2026
+19:00:00
+2
+Programa de Maximização para Lojas de Carros
+Online
+Donos de Lojas
+100
+Daniel Santos
+R$ -
+ham4bqk2j26fklffq949p231rg@google.com
+7
+15/04/2026
+19:00:00
+2
+Programa de Formação - Gerentes e Vendedores
+Online
+Vendedores, Gerentes e Donos de Loja
+300
+Daniel Santos
+R$ -
+kbvvmhdbctluvkmk5i5qto3vus@google.com
+8
+09/04/2026
+20:00:00
+2
+Mentoria para Gerentes - Ética: Comportamento que gera respeito
+Online
+Gerentes
+Gedson Freire
+R$ -
+vi3phrtnbtl3i3did07keob99c@google.com
+9
+26/04/2026
+20:00:00
+2
+Mentoria para Gerentes - Como resolver conflitos definitivamente
+Online
+Gerentes
+Gedson Freire
+R$ -
+0sidns8tlbud9hgko4d349dc8o@google.com
+10
+02/05/2026
+20:00:00
+2
+Mentoria para Gerentes - Liderando talentos sem perder a equipe
+Online
+Gerentes
+Gedson Freire
+R$ -
+73gl5j29jivq7i05u7676gidgo@google.com
+11
+09/05/2026
+20:00:00
+2
+Mentoria para Gerentes - Admiração: o maior nível da liderança
+Online
+Gerentes
+Gedson Freire
+R$ -
+73gl5j29jivq7i05u7676gidgo@google.com

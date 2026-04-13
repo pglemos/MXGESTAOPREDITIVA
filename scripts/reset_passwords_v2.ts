@@ -26,7 +26,8 @@ async function resetPasswords() {
             const { data: userData, error: listError } = await supabase.auth.admin.listUsers()
             if (listError) throw listError
 
-            const user = userData?.users.find(u => u.email === email)
+            const users = (userData?.users ?? []) as Array<{ id: string; email?: string | null }>
+            const user = users.find((u) => u.email === email)
             if (user) {
                 console.log(`Resetting ${email}...`)
                 const { error } = await supabase.auth.admin.updateUserById(user.id, {

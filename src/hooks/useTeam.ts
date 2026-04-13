@@ -173,8 +173,10 @@ export function useStores() {
         return { error: null }
     }
 
+    const toggleStoreStatus = async (id: string, active: boolean) => updateStore(id, { active })
+
     useEffect(() => { fetchStores() }, [fetchStores])
-    return { stores, loading, createStore, updateStore, deleteStore, refetch: fetchStores }
+    return { stores, loading, createStore, updateStore, deleteStore, toggleStoreStatus, refetch: fetchStores }
 }
 
 export function useMemberships() {

@@ -1,0 +1,220 @@
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+1
+2
+3
+4
+Data
+Dia Semana
+HORA
+Evento
+Tema
+Local
+Público Alvo
+Responsável
+ID_EVENTO
+5
+08/01/2026
+quinta-feira
+19:00:00
+Encontro Mensal Lojistas
+Perspectivas 2026
+ZOOM
+Donos de Loja
+Daniel Santos
+528nl72ihm69t25b5ufpq6q4q0@google.com
+6
+14/01/2026
+quarta-feira
+19:30:00
+Formação de Vendedores
+Apresentação da Formação
+ZOOM
+Vendedores, Gerentes e Donos de Loja
+Daniel Santos
+fmf9bbf8kegki2a5eanlq7s0ds@google.com
+7
+19/01/2026
+segunda-feira
+20:00:00
+Formação de Gerentes
+Introdução a Formação
+ZOOM
+Gerentes Comerciais
+Gedson Freire
+59cup7376ippb6fpk26ama5d6s@google.com
+8
+22/01/2026
+quinta-feira
+20:00:00
+Formação de Vendedores
+Introdução a Formação
+ZOOM
+Vendedores
+José Roberto
+ii0t0amojlbnev5vpi3rkvpk38@google.com
+9
+05/02/2026
+quinta-feira
+20:00:00
+Encontro Mensal Lojistas
+Estratégias
+ZOOM
+Donos de Loja
+Daniel Santos
+qs3eiit5kqei9hhcjmthmsjm40@google.com
+10
+09/02/2026
+segunda-feira
+20:00:00
+Formação de Vendedores
+Processos de Vendas - Atendimento
+ZOOM
+Vendedores
+José Roberto
+m733j1omlsmqpp3lpng2b1ccfc@google.com
+11
+12/02/2026
+quinta-feira
+20:00:00
+Formação de Gerentes
+Processos de Vendas
+ZOOM
+Gerentes Comerciais
+Gedson Freire
+m85qe62v6mrdu75unnkprjnass@google.com
+12
+25/02/2026
+quarta-feira
+20:00:00
+Formação de Vendedores
+Processos de Vendas - Atendimento
+ZOOM
+Vendedores
+José Roberto
+5f7hmma43cit9ij5vkg933qqos@google.com
+13
+07/04/2026
+terça-feira
+20:00:00
+Formação de Vendedores
+Processos de Vendas
+ZOOM
+Vendedores
+José Roberto
+jnhamsqmjvq10t1ve9s9dmt0gs@google.com
+14
+22/04/2026
+quarta-feira
+20:00:00
+Formação de Vendedores
+Processos de Vendas
+ZOOM
+Vendedores
+José Roberto
+olhtmk0m41q2kv2nfa6jto0eks@google.com
+15
+01/04/2026
+quarta-feira
+20:00:00
+MENTORIA VENDEDORES VAP
+AULA INTRODUTÓRIA
+ZOOM
+VENDEDORES VAP
+José Roberto
+6dplt13hfttinkp36jvlu3vfts@google.com
+16
+08/04/2026
+quarta-feira
+20:00:00
+MENTORIA VENDEDORES VAP
+MENTORIA 3 HORAS
+ZOOM
+VENDEDORES VAP
+José Roberto
+80rbscebqq6lnag46cifc6gutk@google.com
+17
+20/04/2026
+segunda-feira
+20:00:00
+MENTORIA VENDEDORES VAP
+MENTORIA 3 HORAS
+ZOOM
+VENDEDORES VAP
+José Roberto
+8esmgj0ut5khcd68tl3vf10h9c@google.com
+18
+06/05/2026
+quarta-feira
+20:00:00
+MENTORIA VENDEDORES VAP
+MENTORIA 3 HORAS
+ZOOM
+VENDEDORES VAP
+José Roberto
+bmnod3vamtha3hism69r5iec74@google.com
+19
+20/05/2026
+quarta-feira
+20:00:00
+MENTORIA VENDEDORES VAP
+MENTORIA 3 HORAS
+ZOOM
+VENDEDORES VAP
+José Roberto
+gbur7e2pq0o82ee6q5s1j26koo@google.com
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65

@@ -1,0 +1,145 @@
+A
+B
+C
+D
+E
+F
+G
+1
+VISITA
+LISTA DE CLIENTES
+PRODUTO
+CONSULTORES
+MODALIDADE
+ALVO
+MOTIVO DA VISITA
+2
+0
+Vitrine
+PPA
+Daniel Santos
+Presencial
+Proprietário
+Onboarding
+3
+1
+Império
+PPA PREMIUM
+Gedson Freire
+Online
+Vendedor
+Diagnóstico e Treinamento Método Vendedor Profissional - Fase 1
+4
+2
+Salim
+PMR RENOVAÇÃO
+José Roberto
+Gerente
+Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP - Fase 2
+5
+3
+AG AUTOMÓVEIS
+PMR PRESENCIAL
+João Augusto
+Todos
+Rotina do Gerente e do Vendedor, Feedback Estruturado
+6
+4
+Lial
+PMR ONLINE
+Consultor 5
+Vendedor e Gerente
+Cultura de Resultado e Treinamento MVP - Fase 3
+7
+5
+Dakar
+MENTORIA
+Mariane Durães
+Proprietário e Gerente
+Plano de Desenvolvimento Individual (PDI)
+8
+6
+Piscar Veículos
+Todos
+Proprietário e Marketing
+Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+9
+7
+Almeida
+Análise das Implementações e Plano de Ação Trimestral
+10
+8
+InvestCar MG
+Acompanhamento
+11
+9
+InvestCar RJ
+Modelo de Negócio
+12
+Direta
+Planejamento Estratégico
+13
+Sempre Mais
+Maximização de Receitas
+14
+Ideal Automotive
+Eficiência em Custos
+15
+Auto Up
+Treinamento Vendedores
+16
+Brothers Car
+Resultados e Plano de Ação
+17
+Wcar
+Treinamento Venda Aprovada (Financiamento)
+18
+André Car
+Visita 1: Diagnóstico e Treinamento Método Vendedor Profissional
+19
+Delta Veículos
+Visita 2: Planejamento Estratégico, Metodologia de Vendas por Multicanal, Acompanhamento Diário de Vendas, Gestão á Vista e Treinamento MVP
+20
+Ideal Motors
+Visita 3: Rotina do Gerente e do Vendedor, Feedback Estruturado
+21
+RK2
+Visita 4: Cultura de Resultado e Treinamento MVP
+22
+Espíndola
+Visita 5: Plano de Desenvolvimento Individual (PDI)
+23
+Goto Motors
+Visita 6 Online: Posicionamento de Marketing, Estratégia de Conteúdo e Tráfego Pago
+24
+Seminovos BHZ
+Visita 7: Análise das Implementações e Plano de Ação Trimestral
+25
+Paay
+Agenda bloqueada
+26
+Carrum
+Evento MX
+27
+Otávio Lage
+Gestão dos Indicadores
+28
+Promac JPA
+Acompanhar financiamento (receita adicional)
+29
+Acertt
+Agenda bloqueada (treinamento)
+30
+LM Veículos
+31
+DNA Multimarcas
+32
+Gandini
+33
+Bedim Automóveis
+34
+MCar Automóveis
+35
+GED Veículos
+36
+Trend Auto

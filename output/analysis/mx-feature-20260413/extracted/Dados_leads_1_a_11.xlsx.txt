@@ -1,0 +1,19 @@
+
+--- PLANILHA: Sheet1 (17 linhas x 8 colunas) ---
+L1: Mídia | Recebidos | Pendentes | Andamentos | Agendados | Finalizados | Sucesso | Insucesso
+L2: Facebook | 1 | 0 | 1 | 0 | 0 | 0 | 0
+L3: TV DO CARRO | 1 | 0 | 0 | 1 | 0 | 0 | 0
+L4: SeminovosBH | 3 | 0 | 3 | 0 | 0 | 0 | 0
+L5: Chaves na Mão | 5 | 0 | 2 | 0 | 3 | 0 | 3
+L6: Pós Venda | 5 | 0 | 2 | 0 | 3 | 0 | 3
+L7: WebMotors | 6 | 0 | 4 | 2 | 0 | 0 | 0
+L8: Instagram | 19 | 0 | 8 | 3 | 8 | 0 | 8
+L9: Site | 24 | 0 | 11 | 3 | 10 | 1 | 9
+L10: Campanha Facebook | 26 | 0 | 21 | 1 | 4 | 0 | 4
+L11: MobiAuto | 27 | 0 | 16 | 4 | 7 | 0 | 7
+L12: Icarros | 31 | 1 | 20 | 1 | 9 | 0 | 9
+L13: Campanha Instagram | 36 | 0 | 27 | 6 | 3 | 0 | 3
+L14: Whatsapp | 57 | 0 | 39 | 2 | 16 | 0 | 16
+L15: MercadoLivre | 59 | 0 | 36 | 7 | 16 | 1 | 15
+L16: OLX | 69 | 0 | 30 | 12 | 27 | 0 | 27
+L17: TODOS: | =SUM(B2:B16) | =SUM(C2:C16) | =SUM(D2:D16) | =SUM(E2:E16) | =SUM(F2:F16) | =SUM(G2:G16) | =SUM(H2:H16)

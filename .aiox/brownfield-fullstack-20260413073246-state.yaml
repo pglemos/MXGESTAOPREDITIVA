@@ -1,0 +1,272 @@
+instance_id: brownfield-fullstack-20260413073246
+workflow_name: brownfield-fullstack
+workflow_id: brownfield-fullstack
+workflow_path: .aiox-core/development/workflows/brownfield-fullstack.yaml
+workflow_title: Brownfield Full-Stack Enhancement
+target_context: core
+mode: guided
+status: active
+created_at: "2026-04-13T10:32:46Z"
+updated_at: "2026-04-13T11:09:27Z"
+current_step_index: 16
+current_step_id: repeat
+steps_total: 18
+steps_completed: 13
+steps:
+  - index: 1
+    id: analyst-classify-enhancement
+    phase: Enhancement Classification & Routing
+    step: enhancement_classification
+    agent: analyst
+    action: classify enhancement scope
+    status: completed
+    elicit: true
+    duration_estimate: 10-15 min
+  - index: 2
+    id: routing-decision
+    phase: Enhancement Classification & Routing
+    step: routing_decision
+    type: routing
+    status: completed
+    duration_estimate: 5 min
+  - index: 3
+    id: analyst-check-documentation
+    phase: Planning & Documentation
+    step: documentation_check
+    agent: analyst
+    action: check existing documentation
+    status: completed
+    condition: major_enhancement_path
+    duration_estimate: 10-20 min
+  - index: 4
+    id: architect-analyze-project
+    phase: Planning & Documentation
+    step: project_analysis
+    agent: architect
+    action: analyze existing project and use task document-project
+    status: completed
+    condition: documentation_inadequate
+    duration_estimate: 30-60 min
+  - index: 5
+    id: pm-create-prd
+    phase: Planning & Documentation
+    agent: pm
+    uses: brownfield-prd-tmpl
+    creates: prd.md
+    status: completed
+    requires: existing_documentation_or_analysis
+    duration_estimate: 30-60 min
+  - index: 6
+    id: pm-architecture-decision
+    phase: Planning & Documentation
+    step: architecture_decision
+    agent: pm
+    action: determine if architecture document needed
+    status: completed
+    condition: after_prd_creation
+    duration_estimate: 10-15 min
+  - index: 7
+    id: architect-create-architecture
+    phase: Planning & Documentation
+    agent: architect
+    uses: brownfield-architecture-tmpl
+    creates: architecture.md
+    status: completed
+    requires: prd.md
+    condition: architecture_changes_needed
+    duration_estimate: 30-60 min
+  - index: 8
+    id: po-validate-artifacts
+    phase: Planning & Documentation
+    agent: po
+    uses: po-master-checklist
+    validates: all_artifacts
+    status: completed
+    duration_estimate: 15-30 min
+  - index: 9
+    id: po-delegate-fixes
+    phase: Planning & Documentation
+    agent: po
+    action: delegate_fixes
+    status: completed
+    condition: po_checklist_issues
+    duration_estimate: 15-30 min
+  - index: 10
+    id: po-shard-documents
+    phase: Document Sharding
+    agent: po
+    action: shard_documents
+    creates: sharded_docs
+    status: completed
+    duration_estimate: 15-30 min
+  - index: 11
+    id: sm-create-story
+    phase: Development Cycle
+    agent: sm
+    action: create_story
+    creates: story.md
+    status: completed
+    repeats: for_each_epic_or_enhancement
+    duration_estimate: 15-30 min
+  - index: 12
+    id: pm-review-draft-story
+    phase: Development Cycle
+    agent: pm
+    action: review_draft_story
+    status: pending
+    optional: true
+    condition: user_wants_story_review
+    duration_estimate: 10-20 min
+  - index: 13
+    id: dev-implement-story
+    phase: Development Cycle
+    agent: dev
+    action: implement_story
+    creates: implementation_files
+    status: completed
+    duration_estimate: 1-4 hours
+  - index: 14
+    id: qa-review-implementation
+    phase: Development Cycle
+    agent: qa
+    action: review_implementation
+    status: completed
+    optional: true
+    duration_estimate: 20-40 min
+  - index: 15
+    id: dev-address-qa-feedback
+    phase: Development Cycle
+    agent: dev
+    action: address_qa_feedback
+    status: pending
+    condition: qa_left_unchecked_items
+    duration_estimate: 30-60 min
+  - index: 16
+    id: repeat
+    phase: Development Cycle
+    type: repeat
+    target_steps:
+      - sm-create-story
+      - dev-implement-story
+      - qa-review-implementation
+    status: pending
+    condition: stories_remaining
+  - index: 17
+    id: po-epic-retrospective
+    phase: Development Cycle
+    agent: po
+    action: epic_retrospective
+    creates: epic-retrospective.md
+    status: pending
+    optional: true
+    condition: epic_complete
+    duration_estimate: 15-30 min
+  - index: 18
+    id: end
+    phase: Development Cycle
+    type: end
+    status: pending
+decision_log:
+  - at: "2026-04-13T10:36:00Z"
+    step: analyst-classify-enhancement
+    decision: major_enhancement
+    input: "3"
+    notes: "Usuario escolheu rota 3: mudanca grande; continuar workflow brownfield-fullstack completo."
+  - at: "2026-04-13T10:44:39Z"
+    step: analyst-check-documentation
+    decision: documentation_business_sufficient_technical_inadequate
+    input: "Arquivos MX, transcricao RTF e artefatos extraidos em output/analysis/mx-feature-20260413"
+    notes: "Documentacao de negocio suficiente para PRD; documentacao tecnica ainda requer analise brownfield porque o PRD atual declara nao-CRM e o novo escopo pede CRM, financeiro, DRE, estoque, agenda e Google Calendar."
+  - at: "2026-04-13T10:46:07Z"
+    step: architect-analyze-project
+    decision: create_consultoria_bounded_context
+    input: "README.md, PRD_MX_PERFORMANCE_90D.md, docs/architecture/system-architecture.md, src/App.tsx, src/types/database.ts, supabase migrations/functions"
+    notes: "Sistema atual cobre operacao diaria; novo CRM deve entrar como contexto de consultoria para evitar quebrar stores/check-ins/funil existentes."
+  - at: "2026-04-13T10:48:06Z"
+    step: pm-create-prd
+    decision: prd_created
+    input: "Analise de negocio e impacto brownfield"
+    notes: "PRD inicial criado para o CRM de Consultoria MX, com requisitos, compatibilidade, riscos e epicos."
+  - at: "2026-04-13T10:48:27Z"
+    step: pm-architecture-decision
+    decision: architecture_required
+    input: "PRD exige novas tabelas Supabase, RLS, importadores, anexos, Google Calendar/Meet e novas rotas."
+    notes: "Criar arquitetura detalhada antes de quebrar em stories."
+  - at: "2026-04-13T10:50:08Z"
+    step: architect-create-architecture
+    decision: architecture_created
+    input: "PRD e impacto brownfield"
+    notes: "Arquitetura criada com contexto consultoria, tabelas, rotas, Edge Functions, seguranca, testes e handoff."
+  - at: "2026-04-13T10:51:48Z"
+    step: po-validate-artifacts
+    decision: conditional_approval
+    input: "PRD, arquitetura e analises"
+    notes: "Validacao PO condicional criada; readiness 88%; principal pendencia externa e validacao humana do escopo."
+  - at: "2026-04-13T10:51:48Z"
+    step: po-delegate-fixes
+    decision: fixes_applied
+    input: "Validacao PO"
+    notes: "PRD e arquitetura atualizados com corte de MVP e padrao de rollback por story."
+  - at: "2026-04-13T10:53:29Z"
+    step: po-shard-documents
+    decision: documents_sharded
+    input: "PRD e arquitetura do CRM de Consultoria"
+    notes: "Criados shards em docs/prd/mx-consultoria-crm e docs/architecture/mx-consultoria-crm."
+  - at: "2026-04-13T10:53:29Z"
+    step: sm-create-story
+    decision: first_story_created
+    input: "Shard do PRD e arquitetura"
+    notes: "Criada story CONS-01 como rascunho para fundacao do CRM de Consultoria."
+  - at: "2026-04-13T10:59:27Z"
+    step: dev-implement-story
+    decision: consulting_core_slice_implemented
+    input: "CONS-01 em modo yolo"
+    notes: "Implementados migration consulting_core, tipos, hook, paginas, rotas e navegacao admin. Build passou; lint/typecheck/test continuam falhando por problemas pre-existentes."
+  - at: "2026-04-13T11:09:27Z"
+    step: qa-review-implementation
+    decision: qa_review_completed
+    input: "CONS-01 com gates reexecutados"
+    notes: "lint, typecheck, test e build passaram. Ajustes adicionais fecharam tipos centrais, testes unitarios, atomos base e smoke web local. Pendencias externas: aplicar migration no banco alvo e validar RLS real com usuarios/assignments."
+artifacts:
+  - path: docs/prd/mx-consultoria-crm-analysis.md
+    type: analysis
+    step: analyst-check-documentation
+  - path: docs/architecture/mx-consultoria-crm-brownfield-impact.md
+    type: architecture-impact
+    step: architect-analyze-project
+  - path: docs/prd/mx-consultoria-crm-prd.md
+    type: prd
+    step: pm-create-prd
+  - path: docs/architecture/mx-consultoria-crm-architecture.md
+    type: architecture
+    step: architect-create-architecture
+  - path: docs/reviews/mx-consultoria-crm-po-validation.md
+    type: po-validation
+    step: po-validate-artifacts
+  - path: docs/prd/mx-consultoria-crm/
+    type: sharded_prd
+    step: po-shard-documents
+  - path: docs/architecture/mx-consultoria-crm/
+    type: sharded_architecture
+    step: po-shard-documents
+  - path: docs/stories/story-CONS-01-consulting-core-foundation.md
+    type: story
+    step: sm-create-story
+  - path: supabase/migrations/20260413110000_consulting_core_foundation.sql
+    type: implementation
+    step: dev-implement-story
+  - path: src/hooks/useConsultingClients.ts
+    type: implementation
+    step: dev-implement-story
+  - path: src/pages/Consultoria.tsx
+    type: implementation
+    step: dev-implement-story
+  - path: src/pages/ConsultoriaClientes.tsx
+    type: implementation
+    step: dev-implement-story
+  - path: src/pages/ConsultoriaClienteDetalhe.tsx
+    type: implementation
+    step: dev-implement-story
+  - path: output/analysis/mx-feature-20260413/manifest.md
+    type: extraction_manifest
+    step: analyst-check-documentation

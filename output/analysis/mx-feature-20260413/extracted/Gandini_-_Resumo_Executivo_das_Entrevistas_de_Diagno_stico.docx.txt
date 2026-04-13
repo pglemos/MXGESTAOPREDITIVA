@@ -1,0 +1,150 @@
+📊 Resumo Executivo das Entrevistas de Diagnóstico
+Empresa: Gandini Automóveis
+Programa: PMR – Programa de Maximização de Resultados
+Data do diagnóstico: Fevereiro/2026
+Entrevistados:
+Donos: Antonio Marcelo Rodrigues Gandini e Renata Esteves Duarte Gandini
+Vendedores: Everton, Luis Henrique, Nathan, Ryan
+Escopo adicional: Análise in loco dos Processos Essenciais
+1. VISÃO GERAL DO DIAGNÓSTICO
+A Gandini Automóveis é uma operação com 10 anos de mercado, forte presença do dono no dia a dia e bom reconhecimento regional pela qualidade dos carros e reputação digital. No entanto, a empresa se encontra hoje em fase real de sobrevivência, apesar da experiência acumulada, operando sob pressão financeira, baixa previsibilidade e alto desgaste humano.
+O diagnóstico evidencia um negócio que vende quando há esforço máximo, mas que não possui estrutura, processos e liderança compatíveis para sustentar crescimento ou estabilidade. A operação é altamente dependente do dono, com fragilidade em gestão de pessoas, processos comerciais pouco padronizados e ausência de rotina gerencial clara.
+2. DIAGNÓSTICO DOS DONOS – ANTONIO E RENATA GANDINI
+🔹 Perfil e Visão Estratégica
+Antonio: perfil extremamente comercial, centralizador, decisor final de praticamente tudo (preço, troca, fechamento, ala, negociação). Atua intensamente no operacional.
+Renata: perfil analítico e humano, com forte potencial para desenvolvimento de pessoas e organização, porém subutilizada na gestão.
+🔹 Estágio do Negócio
+Ambos reconhecem a empresa em fase de sobrevivência.
+Queda recente de vendas (inclusive 9 dias sem vender) expôs fragilidade estrutural.
+Forte pressão financeira:
+Estoque médio de ~15 a 20 carros
+Capital apertado
+Compras feitas “correndo”, sacrificando margem
+Dificuldade clara de leitura de lucratividade real (ausência de DRE confiável)
+🔹 Liderança e Gestão
+Não existe gerente formal.
+Antonio tenta exercer liderança, mas:
+Está preso no operacional
+Não tem rotina de gestão
+Atua em momentos de pressão com tom agressivo e cobrança emocional
+Renata reconhece:
+Falta de método
+Falta de rotina
+Falta de delegação real
+Reuniões são raras e, quando acontecem, são quase sempre apenas para cobrança, sem direcionamento ou desenvolvimento.
+🔎 Leitura consultiva:
+O maior gargalo da Gandini Automóveis não é mercado nem produto, é modelo de liderança. O negócio depende excessivamente da energia do dono, enquanto o potencial de Renata para estruturar e desenvolver pessoas não é explorado.
+3. DIAGNÓSTICO DOS PROCESSOS ESSENCIAIS (ANÁLISE IN LOCO)
+🔹 Avaliação de Usado na Troca
+Processo rápido e funcional, porém 100% dependente do Antonio.
+Vendedores tiram fotos e enviam; exceção pontual é o Everton.
+Processo funciona no volume atual, mas não é escalável.
+🔹 Política de Preço e Desconto
+Flexibilidade existe, mas:
+Nenhum vendedor tem autonomia plena
+Tudo passa pelo dono
+Critério muda conforme negociação, margem e momento.
+Gera insegurança, lentidão e perda de aprendizado do time.
+🔹 Preparação de Veículos
+Ponto positivo da operação:
+Veículos, em geral, bem preparados
+Qualidade do estoque é reconhecida pelos vendedores
+Ainda assim, há relatos de:
+Liberação parcial em alguns casos
+Revisões feitas “no limite” por pressão financeira
+🔹 Pós-venda
+Problemas retornam frequentemente para o vendedor.
+Não existe um responsável claro pelo pós-venda.
+Processo é reativo, não preventivo.
+🔹 Gestão de Leads (CRM)
+CRM utilizado: AutoCerto
+Uso extremamente irregular:
+Apenas Everton utiliza com algum método
+Outros vendedores atendem via WhatsApp pessoal
+Quase 400 leads foram marcados como perdidos, muitos sem contato.
+Falta SLA, rotina e cobrança correta.
+🔎 Conclusão de processos:
+Os processos existem, mas dependem de pessoas, não de método. Funcionam enquanto o dono sustenta, mas não criam previsibilidade nem escala.
+4. DIAGNÓSTICO DOS VENDEDORES – VISÃO CONSOLIDADA
+🔹 Perfil da Equipe
+Time heterogêneo:
+Everton: experiente (8 anos), perfil de liderança, ex-gerente
+Luis Henrique e Nathan: novos, sem treinamento
+Ryan: jovem, ambicioso, porém frustrado com gestão e promessas
+Clima geral varia de bom a regular, com desgaste evidente em momentos de cobrança.
+🔹 Rotina e Produtividade
+Não existe rotina comercial definida e cobrada.
+Vendedores dedicam mais de 5h/dia à venda, porém com:
+Falta de organização
+Interrupções constantes
+Tarefas fora do escopo comercial
+🔹 Capacidade x Resultado
+Capacidade percebida:
+Everton e Luis: 7 a 10 carros/mês
+Nathan e Ryan: até 6 carros/mês
+Todos relatam vender abaixo da capacidade.
+Principais limitadores:
+Falta de treinamento
+Falta de leads qualificados
+Estoque limitado
+Excesso de centralização do dono
+🔹 Atendimento de Leads
+Leads chegam via CRM, mas:
+Não existe SLA padrão
+Follow-up é inconsistente
+Muitos leads não são sequer contatados
+Atendimento migra rapidamente para WhatsApp pessoal, sem controle.
+🔹 Atendimento Presencial
+Não existe padrão formal.
+Parte do time conduz por etapas, parte não.
+Fechamento frequentemente depende do dono.
+🔹 Carteira de Clientes
+Carteira pouco explorada.
+Vendas recorrentes não são sistematizadas.
+Indicação existe, mas sem processo.
+🔹 Cultura de Resultado
+Metas são parcialmente claras.
+Acompanhamento ocorre:
+Semanalmente ou apenas no fechamento
+Feedback é raro e, quando existe, percebido como agressivo.
+Ausência total de treinamento interno estruturado.
+🔎 Leitura consultiva:
+O vendedor não é o problema. A equipe não foi treinada, não é acompanhada e não tem clareza de jogo. O ambiente atual gera insegurança, frustração e rotatividade.
+5. PRINCIPAIS GARGALOS IDENTIFICADOS
+⬛ Dependência extrema do dono para decisões
+⬛ Ausência de gerente ou liderança estruturada
+⬛ Renata subutilizada em seu potencial estratégico
+⬛ Falta de rotina gerencial e comercial
+⬛ CRM mal utilizado (leads perdidos)
+⬛ Falta de treinamento para vendedores
+⬛ Pressão financeira afetando decisões comerciais
+⬛ Cobrança emocional substituindo método
+⬛ Crescimento travado por desorganização interna
+6. RISCOS ATUAIS DA OPERAÇÃO
+Continuidade da fase de sobrevivência, mesmo com anos de mercado
+Esgotamento físico e emocional do dono
+Perda de vendedores com potencial
+Margem comprimida por compras e vendas sem controle
+Impossibilidade de escalar ou estabilizar a operação
+Reputação afetada no médio prazo por pós-venda reativo
+7. DIRECIONAMENTO ESTRATÉGICO INICIAL (PMR)
+O PMR deve atuar como reorganização estrutural da empresa, com foco inicial em:
+Redefinir o papel dos donos
+Antonio saindo do centro operacional
+Renata assumindo protagonismo no desenvolvimento da equipe
+Implantar rotina gerencial mínima
+Reuniões semanais
+Indicadores básicos
+Acompanhamento real de leads e vendas
+Treinar urgentemente o time comercial
+CRM
+Atendimento
+Follow-up
+Negociação
+Criar previsibilidade antes de volume
+Organizar antes de vender mais
+Controlar margem antes de crescer
+8. CONCLUSÃO EXECUTIVA
+A Gandini Automóveis não precisa vender mais para melhorar.
+Ela precisa se organizar para voltar a vender com consistência, margem e menos desgaste.
+O PMR entra como marco de profissionalização, tirando a empresa do modo sobrevivência e criando base real para crescimento sustentável.
