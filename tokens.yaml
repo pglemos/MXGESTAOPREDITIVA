@@ -5,8 +5,8 @@ colors:
   core:
     mx-black: "#0A0A0B"
     pure-black: "#000000"
-    brand-primary: "#4f46e5"
-    brand-secondary: "#1A1D20"
+    brand-primary: "#22C55E"
+    brand-secondary: "#0D3B2E"
   status:
     success: "#10b981"
     warning: "#f59e0b"

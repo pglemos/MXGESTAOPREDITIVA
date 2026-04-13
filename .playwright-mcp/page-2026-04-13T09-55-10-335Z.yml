@@ -1,0 +1,394 @@
+- generic [ref=e2]:
+  - generic [ref=e37]:
+    - banner [ref=e38]:
+      - generic [ref=e39]:
+        - button "Ir para o painel inicial" [ref=e40]:
+          - img "MX Performance" [ref=e41]
+        - generic [ref=e43]: MX PERFORMANCE
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - img [ref=e46]
+          - generic [ref=e50]: Trocar Unidade Operacional
+          - combobox "Trocar Unidade Operacional" [ref=e51] [cursor=pointer]:
+            - option "TODAS AS LOJAS"
+            - option "ACERTTCAR" [selected]
+            - option "BROTHERS CAR"
+            - option "DNA VEICULOS"
+            - option "ESPINDOLA AUTOMOVEIS"
+            - option "GANDINI AUTOMOVEIS"
+            - option "LIAL VEICULOS"
+            - option "MX PERFORMANCE"
+            - option "PAAY MOTORS"
+            - option "PISCAR VEICULOS"
+            - option "RK2 MOTORS"
+            - option "SEMINOVOS BHZ"
+          - img
+        - generic [ref=e52]:
+          - button "Pesquisar no sistema" [ref=e53]:
+            - img [ref=e54]
+          - button "Abrir notificações. 0 não lidas." [ref=e57]:
+            - img [ref=e58]
+        - button "Ver perfil de JOSE ROBERTO" [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: JOSE ROBERTO
+            - generic [ref=e64]: admin level
+          - generic [ref=e65]: J
+    - generic [ref=e66]:
+      - complementary "Menu Lateral Principal" [ref=e67]:
+        - navigation "Módulos de Gestão" [ref=e68]:
+          - 'button "Abrir módulo: Governança MX" [ref=e69]':
+            - img [ref=e70]
+          - 'button "Abrir módulo: Rituais MX" [ref=e72]':
+            - img [ref=e73]
+          - 'button "Abrir módulo: Sustentação" [ref=e77]':
+            - img [ref=e78]
+        - button "Encerrar Sessão do Sistema" [ref=e81]:
+          - img [ref=e82]
+      - main [ref=e85]:
+        - main [ref=e86]:
+          - banner [ref=e87]:
+            - generic [ref=e88]:
+              - heading "Rede Operacional" [level=1] [ref=e91]
+              - generic [ref=e92]:
+                - generic [ref=e94]: "Gap Global: 275 UNIDADES"
+                - generic [ref=e95]: Matriz de Governança MX • 11 LOJAS
+            - generic [ref=e96]:
+              - navigation "Filtro de Período" [ref=e97]:
+                - img [ref=e98]
+                - button "hoje" [ref=e100]:
+                  - generic [ref=e101]: hoje
+                - button "ontem" [ref=e102]:
+                  - generic [ref=e103]: ontem
+                - button "semanal" [ref=e104]:
+                  - generic [ref=e105]: semanal
+                - button "mensal" [pressed] [ref=e106]:
+                  - generic [ref=e107]: mensal
+                - button "Custom" [ref=e108]:
+                  - generic [ref=e109]: Custom
+              - navigation "Disparos de Relatórios" [ref=e110]:
+                - button "Disparar relatório matinal" [ref=e111]:
+                  - generic [ref=e112]: matinal
+                - button "Disparar relatório semanal" [ref=e113]:
+                  - generic [ref=e114]: semanal
+                - button "Disparar relatório mensal" [ref=e115]:
+                  - generic [ref=e116]: mensal
+              - button "Sincronizar dados" [ref=e117]:
+                - img
+          - generic [ref=e118]:
+            - generic [ref=e119]:
+              - generic [ref=e120]: Venda MENSAL
+              - generic [ref=e121]:
+                - heading "72" [level=1] [ref=e122]
+                - generic [ref=e123]: +23%
+              - generic [ref=e124]: "META REDE: 320"
+            - generic [ref=e125]:
+              - generic [ref=e126]: Escoamento Rede
+              - generic [ref=e127]:
+                - generic [ref=e128]:
+                  - heading "1214" [level=3] [ref=e129]
+                  - text: Leads
+                - generic [ref=e130]:
+                  - heading "145" [level=3] [ref=e131]
+                  - text: Agd
+                - generic [ref=e132]:
+                  - heading "119" [level=3] [ref=e133]
+                  - text: Vis
+            - generic [ref=e134]:
+              - generic [ref=e135]: Unidades Críticas
+              - heading "3" [level=1] [ref=e136]
+              - generic [ref=e137]: Ação Imediata Necessária
+            - generic [ref=e138]:
+              - generic [ref=e139]: Saúde Disciplinar
+              - heading "27%" [level=1] [ref=e140]
+              - generic [ref=e141]: Aderência aos Check-ins
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - heading "Malha de Performance" [level=3] [ref=e145]
+                - paragraph [ref=e146]: Auditoria em Tempo Real de Unidades MX.
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - img [ref=e149]
+                  - generic [ref=e152]: Buscar Unidade
+                  - textbox "Buscar Unidade" [ref=e153]:
+                    - /placeholder: LOCALIZAR UNIDADE...
+                - group "Filtro de Status" [ref=e154]:
+                  - button "Todos" [ref=e155]:
+                    - generic [ref=e156]: Todos
+                  - button "Alertas" [ref=e157]:
+                    - generic [ref=e158]: Alertas
+                  - button "Críticos" [ref=e159]:
+                    - generic [ref=e160]: Críticos
+                - link "GESTÃO LOJAS" [ref=e161] [cursor=pointer]:
+                  - /url: /lojas
+                  - generic [ref=e162]: GESTÃO LOJAS
+            - table "Consolidado operacional de todas as unidades da rede" [ref=e164]:
+              - caption [ref=e165]: Consolidado operacional de todas as unidades da rede
+              - rowgroup [ref=e166]:
+                - row "Unidade Leads Agend. Visitas Vendas Meta Gap Projeção Ritmo Status Disciplina" [ref=e167]:
+                  - columnheader "Unidade" [ref=e168] [cursor=pointer]
+                  - columnheader "Leads" [ref=e169] [cursor=pointer]
+                  - columnheader "Agend." [ref=e170] [cursor=pointer]
+                  - columnheader "Visitas" [ref=e171] [cursor=pointer]
+                  - columnheader "Vendas" [ref=e172] [cursor=pointer]
+                  - columnheader "Meta" [ref=e173]
+                  - columnheader "Gap" [ref=e174] [cursor=pointer]
+                  - columnheader "Projeção" [ref=e175] [cursor=pointer]
+                  - columnheader "Ritmo" [ref=e176]
+                  - columnheader "Status" [ref=e177]
+                  - columnheader "Disciplina" [ref=e178]
+              - rowgroup [ref=e179]:
+                - button "Ver detalhes da unidade RK2 MOTORS" [ref=e180] [cursor=pointer]:
+                  - cell "RK2 MOTORS" [ref=e181]:
+                    - generic [ref=e182]:
+                      - generic [ref=e183]: R
+                      - heading "RK2 MOTORS" [level=3] [ref=e184]
+                  - cell "75" [ref=e185]
+                  - cell "0" [ref=e186]
+                  - cell "22" [ref=e187]
+                  - cell "15" [ref=e188]
+                  - cell "0" [ref=e189]
+                  - cell "0" [ref=e190]
+                  - cell "38" [ref=e191]
+                  - cell "0 VND/DIA" [ref=e192]:
+                    - generic [ref=e193]:
+                      - generic [ref=e194]: "0"
+                      - generic [ref=e195]: VND/DIA
+                  - cell "CRÍTICO 100% EFIC." [ref=e196]:
+                    - generic [ref=e198]: CRÍTICO
+                    - generic [ref=e199]: 100% EFIC.
+                  - cell "0/0 100% OK" [ref=e200]:
+                    - generic [ref=e201]:
+                      - generic [ref=e202]: 0/0
+                      - generic [ref=e203]: 100% OK
+                - button "Ver detalhes da unidade DNA VEICULOS" [ref=e204] [cursor=pointer]:
+                  - cell "DNA VEICULOS" [ref=e205]:
+                    - generic [ref=e206]:
+                      - generic [ref=e207]: D
+                      - heading "DNA VEICULOS" [level=3] [ref=e208]
+                  - cell "65" [ref=e209]
+                  - cell "0" [ref=e210]
+                  - cell "18" [ref=e211]
+                  - cell "12" [ref=e212]
+                  - cell "0" [ref=e213]
+                  - cell "0" [ref=e214]
+                  - cell "30" [ref=e215]
+                  - cell "0 VND/DIA" [ref=e216]:
+                    - generic [ref=e217]:
+                      - generic [ref=e218]: "0"
+                      - generic [ref=e219]: VND/DIA
+                  - cell "CRÍTICO 100% EFIC." [ref=e220]:
+                    - generic [ref=e222]: CRÍTICO
+                    - generic [ref=e223]: 100% EFIC.
+                  - cell "0/0 100% OK" [ref=e224]:
+                    - generic [ref=e225]:
+                      - generic [ref=e226]: 0/0
+                      - generic [ref=e227]: 100% OK
+                - button "Ver detalhes da unidade BROTHERS CAR" [ref=e228] [cursor=pointer]:
+                  - cell "BROTHERS CAR" [ref=e229]:
+                    - generic [ref=e230]:
+                      - generic [ref=e231]: B
+                      - heading "BROTHERS CAR" [level=3] [ref=e232]
+                  - cell "109" [ref=e233]
+                  - cell "14" [ref=e234]
+                  - cell "9" [ref=e235]
+                  - cell "8" [ref=e236]
+                  - cell "30" [ref=e237]
+                  - cell "22" [ref=e238]
+                  - cell "20" [ref=e239]
+                  - cell "1.2 VND/DIA" [ref=e240]:
+                    - generic [ref=e241]:
+                      - generic [ref=e242]: "1.2"
+                      - generic [ref=e243]: VND/DIA
+                  - cell "INDISCIPLINA 67% EFIC." [ref=e244]:
+                    - generic [ref=e246]: INDISCIPLINA
+                    - generic [ref=e247]: 67% EFIC.
+                  - cell "0/4 0% OK" [ref=e248]:
+                    - generic [ref=e249]:
+                      - generic [ref=e250]: 0/4
+                      - generic [ref=e251]: 0% OK
+                - button "Ver detalhes da unidade SEMINOVOS BHZ" [ref=e252] [cursor=pointer]:
+                  - cell "SEMINOVOS BHZ" [ref=e253]:
+                    - generic [ref=e254]:
+                      - generic [ref=e255]: S
+                      - heading "SEMINOVOS BHZ" [level=3] [ref=e256]
+                  - cell "35" [ref=e257]
+                  - cell "0" [ref=e258]
+                  - cell "11" [ref=e259]
+                  - cell "8" [ref=e260]
+                  - cell "40" [ref=e261]
+                  - cell "32" [ref=e262]
+                  - cell "20" [ref=e263]
+                  - cell "1.8 VND/DIA" [ref=e264]:
+                    - generic [ref=e265]:
+                      - generic [ref=e266]: "1.8"
+                      - generic [ref=e267]: VND/DIA
+                  - cell "INDISCIPLINA 50% EFIC." [ref=e268]:
+                    - generic [ref=e270]: INDISCIPLINA
+                    - generic [ref=e271]: 50% EFIC.
+                  - cell "0/12 0% OK" [ref=e272]:
+                    - generic [ref=e273]:
+                      - generic [ref=e274]: 0/12
+                      - generic [ref=e275]: 0% OK
+                - button "Ver detalhes da unidade GANDINI AUTOMOVEIS" [ref=e276] [cursor=pointer]:
+                  - cell "GANDINI AUTOMOVEIS" [ref=e277]:
+                    - generic [ref=e278]:
+                      - generic [ref=e279]: G
+                      - heading "GANDINI AUTOMOVEIS" [level=3] [ref=e280]
+                  - cell "274" [ref=e281]
+                  - cell "20" [ref=e282]
+                  - cell "9" [ref=e283]
+                  - cell "7" [ref=e284]
+                  - cell "22" [ref=e285]
+                  - cell "15" [ref=e286]
+                  - cell "18" [ref=e287]
+                  - cell "0.8 VND/DIA" [ref=e288]:
+                    - generic [ref=e289]:
+                      - generic [ref=e290]: "0.8"
+                      - generic [ref=e291]: VND/DIA
+                  - cell "INDISCIPLINA 80% EFIC." [ref=e292]:
+                    - generic [ref=e294]: INDISCIPLINA
+                    - generic [ref=e295]: 80% EFIC.
+                  - cell "0/4 0% OK" [ref=e296]:
+                    - generic [ref=e297]:
+                      - generic [ref=e298]: 0/4
+                      - generic [ref=e299]: 0% OK
+                - button "Ver detalhes da unidade PISCAR VEICULOS" [ref=e300] [cursor=pointer]:
+                  - cell "PISCAR VEICULOS" [ref=e301]:
+                    - generic [ref=e302]:
+                      - generic [ref=e303]: P
+                      - heading "PISCAR VEICULOS" [level=3] [ref=e304]
+                  - cell "275" [ref=e305]
+                  - cell "46" [ref=e306]
+                  - cell "23" [ref=e307]
+                  - cell "5" [ref=e308]
+                  - cell "100" [ref=e309]
+                  - cell "95" [ref=e310]
+                  - cell "13" [ref=e311]
+                  - cell "5.3 VND/DIA" [ref=e312]:
+                    - generic [ref=e313]:
+                      - generic [ref=e314]: "5.3"
+                      - generic [ref=e315]: VND/DIA
+                  - cell "INDISCIPLINA 13% EFIC." [ref=e316]:
+                    - generic [ref=e318]: INDISCIPLINA
+                    - generic [ref=e319]: 13% EFIC.
+                  - cell "0/15 0% OK" [ref=e320]:
+                    - generic [ref=e321]:
+                      - generic [ref=e322]: 0/15
+                      - generic [ref=e323]: 0% OK
+                - button "Ver detalhes da unidade ESPINDOLA AUTOMOVEIS" [ref=e324] [cursor=pointer]:
+                  - cell "ESPINDOLA AUTOMOVEIS" [ref=e325]:
+                    - generic [ref=e326]:
+                      - generic [ref=e327]: E
+                      - heading "ESPINDOLA AUTOMOVEIS" [level=3] [ref=e328]
+                  - cell "145" [ref=e329]
+                  - cell "39" [ref=e330]
+                  - cell "13" [ref=e331]
+                  - cell "5" [ref=e332]
+                  - cell "45" [ref=e333]
+                  - cell "40" [ref=e334]
+                  - cell "13" [ref=e335]
+                  - cell "2.2 VND/DIA" [ref=e336]:
+                    - generic [ref=e337]:
+                      - generic [ref=e338]: "2.2"
+                      - generic [ref=e339]: VND/DIA
+                  - cell "INDISCIPLINA 28% EFIC." [ref=e340]:
+                    - generic [ref=e342]: INDISCIPLINA
+                    - generic [ref=e343]: 28% EFIC.
+                  - cell "0/10 0% OK" [ref=e344]:
+                    - generic [ref=e345]:
+                      - generic [ref=e346]: 0/10
+                      - generic [ref=e347]: 0% OK
+                - button "Ver detalhes da unidade ACERTTCAR" [ref=e348] [cursor=pointer]:
+                  - cell "ACERTTCAR" [ref=e349]:
+                    - generic [ref=e350]:
+                      - generic [ref=e351]: A
+                      - heading "ACERTTCAR" [level=3] [ref=e352]
+                  - cell "48" [ref=e353]
+                  - cell "7" [ref=e354]
+                  - cell "3" [ref=e355]
+                  - cell "5" [ref=e356]
+                  - cell "18" [ref=e357]
+                  - cell "13" [ref=e358]
+                  - cell "13" [ref=e359]
+                  - cell "0.7 VND/DIA" [ref=e360]:
+                    - generic [ref=e361]:
+                      - generic [ref=e362]: "0.7"
+                      - generic [ref=e363]: VND/DIA
+                  - cell "INDISCIPLINA 69% EFIC." [ref=e364]:
+                    - generic [ref=e366]: INDISCIPLINA
+                    - generic [ref=e367]: 69% EFIC.
+                  - cell "0/4 0% OK" [ref=e368]:
+                    - generic [ref=e369]:
+                      - generic [ref=e370]: 0/4
+                      - generic [ref=e371]: 0% OK
+                - button "Ver detalhes da unidade LIAL VEICULOS" [ref=e372] [cursor=pointer]:
+                  - cell "LIAL VEICULOS" [ref=e373]:
+                    - generic [ref=e374]:
+                      - generic [ref=e375]: L
+                      - heading "LIAL VEICULOS" [level=3] [ref=e376]
+                  - cell "147" [ref=e377]
+                  - cell "16" [ref=e378]
+                  - cell "8" [ref=e379]
+                  - cell "4" [ref=e380]
+                  - cell "25" [ref=e381]
+                  - cell "21" [ref=e382]
+                  - cell "10" [ref=e383]
+                  - cell "1.2 VND/DIA" [ref=e384]:
+                    - generic [ref=e385]:
+                      - generic [ref=e386]: "1.2"
+                      - generic [ref=e387]: VND/DIA
+                  - cell "INDISCIPLINA 40% EFIC." [ref=e388]:
+                    - generic [ref=e390]: INDISCIPLINA
+                    - generic [ref=e391]: 40% EFIC.
+                  - cell "0/3 0% OK" [ref=e392]:
+                    - generic [ref=e393]:
+                      - generic [ref=e394]: 0/3
+                      - generic [ref=e395]: 0% OK
+                - button "Ver detalhes da unidade PAAY MOTORS" [ref=e396] [cursor=pointer]:
+                  - cell "PAAY MOTORS" [ref=e397]:
+                    - generic [ref=e398]:
+                      - generic [ref=e399]: P
+                      - heading "PAAY MOTORS" [level=3] [ref=e400]
+                  - cell "41" [ref=e401]
+                  - cell "3" [ref=e402]
+                  - cell "3" [ref=e403]
+                  - cell "3" [ref=e404]
+                  - cell "40" [ref=e405]
+                  - cell "37" [ref=e406]
+                  - cell "8" [ref=e407]
+                  - cell "2.1 VND/DIA" [ref=e408]:
+                    - generic [ref=e409]:
+                      - generic [ref=e410]: "2.1"
+                      - generic [ref=e411]: VND/DIA
+                  - cell "INDISCIPLINA 19% EFIC." [ref=e412]:
+                    - generic [ref=e414]: INDISCIPLINA
+                    - generic [ref=e415]: 19% EFIC.
+                  - cell "0/5 0% OK" [ref=e416]:
+                    - generic [ref=e417]:
+                      - generic [ref=e418]: 0/5
+                      - generic [ref=e419]: 0% OK
+                - button "Ver detalhes da unidade MX PERFORMANCE" [ref=e420] [cursor=pointer]:
+                  - cell "MX PERFORMANCE" [ref=e421]:
+                    - generic [ref=e422]:
+                      - generic [ref=e423]: M
+                      - heading "MX PERFORMANCE" [level=3] [ref=e424]
+                  - cell "0" [ref=e425]
+                  - cell "0" [ref=e426]
+                  - cell "0" [ref=e427]
+                  - cell "0" [ref=e428]
+                  - cell "0" [ref=e429]
+                  - cell "0" [ref=e430]
+                  - cell "0" [ref=e431]
+                  - cell "0 VND/DIA" [ref=e432]:
+                    - generic [ref=e433]:
+                      - generic [ref=e434]: "0"
+                      - generic [ref=e435]: VND/DIA
+                  - cell "CRÍTICO 100% EFIC." [ref=e436]:
+                    - generic [ref=e438]: CRÍTICO
+                    - generic [ref=e439]: 100% EFIC.
+                  - cell "0/0 100% OK" [ref=e440]:
+                    - generic [ref=e441]:
+                      - generic [ref=e442]: 0/0
+                      - generic [ref=e443]: 100% OK
+  - region "Notifications alt+T"

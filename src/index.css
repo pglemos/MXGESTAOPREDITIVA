@@ -6,11 +6,11 @@
      MX PERFORMANCE DESIGN SYSTEM TOKENS (TAILWIND 4)
      ========================================================================== */
 
-  /* Palette Core */
+  /* Palette Core — MX Brand (Green Identity) */
   --color-mx-black: #0A0A0B;
   --color-pure-black: #000000;
-  --color-brand-primary: #4f46e5;
-  --color-brand-secondary: #1A1D20;
+  --color-brand-primary: #22C55E;
+  --color-brand-secondary: #0D3B2E;
   
   /* Status Semantics */
   --color-status-success: #10b981;
@@ -98,24 +98,37 @@
   --height-mx-header: 80px;
 
   /* Semantic Glows */
-  --shadow-mx-glow-brand: 0 0 20px rgba(79, 70, 229, 0.3);
+  --shadow-mx-glow-brand: 0 0 20px rgba(34, 197, 94, 0.3);
   --shadow-mx-glow-white: 0 0 20px rgba(255, 255, 255, 0.5);
 
   /* Effects */
   --blur-mx-huge: 80px;
 
-  /* Indigo Tokens for Design System */
-  --color-mx-indigo-50: #eef2ff;
-  --color-mx-indigo-100: #e0e7ff;
-  --color-mx-indigo-200: #c7d2fe;
-  --color-mx-indigo-300: #a5b4fc;
-  --color-mx-indigo-400: #818cf8;
-  --color-mx-indigo-500: #6366f1;
-  --color-mx-indigo-600: #4f46e5;
-  --color-mx-indigo-700: #4338ca;
-  --color-mx-indigo-800: #3730a3;
-  --color-mx-indigo-900: #312e81;
-  --color-mx-indigo-950: #1e1b4b;
+  /* Green Tokens for Design System (MX Brand) */
+  --color-mx-green-50: #f0fdf4;
+  --color-mx-green-100: #dcfce7;
+  --color-mx-green-200: #bbf7d0;
+  --color-mx-green-300: #86efac;
+  --color-mx-green-400: #4ade80;
+  --color-mx-green-500: #22c55e;
+  --color-mx-green-600: #16a34a;
+  --color-mx-green-700: #15803d;
+  --color-mx-green-800: #166534;
+  --color-mx-green-900: #14532d;
+  --color-mx-green-950: #052e16;
+
+  /* Legacy aliases (indigo → green) */
+  --color-mx-indigo-50: var(--color-mx-green-50);
+  --color-mx-indigo-100: var(--color-mx-green-100);
+  --color-mx-indigo-200: var(--color-mx-green-200);
+  --color-mx-indigo-300: var(--color-mx-green-300);
+  --color-mx-indigo-400: var(--color-mx-green-400);
+  --color-mx-indigo-500: var(--color-mx-green-500);
+  --color-mx-indigo-600: var(--color-mx-green-600);
+  --color-mx-indigo-700: var(--color-mx-green-700);
+  --color-mx-indigo-800: var(--color-mx-green-800);
+  --color-mx-indigo-900: var(--color-mx-green-900);
+  --color-mx-indigo-950: var(--color-mx-green-950);
 
   --width-mx-hero: 50vw;
   --height-mx-hero: 50vw;

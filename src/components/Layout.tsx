@@ -7,11 +7,12 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
-  LogOut, Zap, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
+  LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
   ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
+import MxLogo from '@/assets/mx-logo.png'
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
@@ -142,9 +143,9 @@ export default function Layout() {
             type="button"
             aria-label="Ir para o painel inicial"
             onClick={() => navigate('/')}
-            className="w-mx-10 h-mx-10 rounded-mx-lg bg-brand-secondary flex items-center justify-center shadow-mx-md shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 transition-all active:scale-95"
+            className="h-mx-10 shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 transition-all active:scale-95"
           >
-            <Zap size={20} className="text-white fill-white/10" aria-hidden="true" />
+            <img src={MxLogo} alt="MX Performance" className="h-full w-auto object-contain" />
           </button>
           <div className="flex flex-col min-w-0">
             <Typography as="span" variant="h3" className="text-xl tracking-tighter text-text-primary whitespace-nowrap truncate uppercase font-black">
@@ -321,9 +322,9 @@ export default function Layout() {
               <div className="w-mx-xl h-1.5 bg-surface-alt rounded-mx-full mx-auto mb-8" aria-hidden="true" />
               <div className="flex items-center justify-between mb-10">
                 <div className="flex items-center gap-mx-sm">
-                  <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-lg"><Zap size={24} aria-hidden="true" /></div>
+                  <div className="h-mx-xl overflow-hidden"><img src={MxLogo} alt="MX Performance" className="h-full w-auto object-contain" /></div>
                   <div>
-                    <Typography variant="h2" className="text-xl font-black text-text-primary tracking-tighter uppercase">Menu MX</Typography>
+                    <Typography variant="h2" className="text-xl font-black text-text-primary tracking-tighter uppercase">MX PERFORMANCE</Typography>
                     <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{role} level</Typography>
                   </div>
                 </div>
