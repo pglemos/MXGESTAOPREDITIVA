@@ -274,7 +274,7 @@ export default function DashboardLoja() {
                                         const newStore = memberships.find(m => m.store_id === newStoreId)
                                         if (newStore?.store) {
                                             const slug = newStore.store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                                            window.location.href = `/loja/${slug}/${newStoreId}`
+                                            window.location.href = `/loja/${slug}`
                                         }
                                     }}
                                     className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors"
