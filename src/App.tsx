@@ -49,6 +49,7 @@ const SellerPerformance = lazy(() => import('@/pages/SellerPerformance'))
 const Consultoria = lazy(() => import('@/pages/Consultoria'))
 const ConsultoriaClientes = lazy(() => import('@/pages/ConsultoriaClientes'))
 const ConsultoriaClienteDetalhe = lazy(() => import('@/pages/ConsultoriaClienteDetalhe'))
+const ConsultoriaVisitaExecucao = lazy(() => import('@/pages/ConsultoriaVisitaExecucao'))
 
 const Spinner = () => (
   <div className="flex flex-col items-center gap-mx-md">
