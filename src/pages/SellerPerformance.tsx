@@ -91,8 +91,8 @@ export default function SellerPerformance() {
             header: 'EFICIÊNCIA',
             align: 'right',
             render: (r: any) => (
-                <div className="flex flex-col items-end gap-1">
-                    <div className="h-1.5 w-20 bg-surface-alt rounded-full overflow-hidden border border-border-default">
+                <div className="flex flex-col items-end" style={{ gap: '0.25rem' }}>
+                    <div className="h-1.5 bg-surface-alt rounded-full overflow-hidden border border-border-default" style={{ width: '5rem' }}>
                         <div className="h-full bg-brand-primary rounded-full" style={{ width: `${Math.min(r.atingimento, 100)}%` }} />
                     </div>
                     <Typography variant="tiny" className="text-mx-nano font-black opacity-40 uppercase">{r.ritmo} V/DIA</Typography>
@@ -104,7 +104,7 @@ export default function SellerPerformance() {
     if (loading) return null
 
     return (
-        <main className="p-mx-md sm:p-mx-lg lg:p-mx-xl max-w-[1600px] mx-auto space-y-mx-lg">
+        <main className="p-mx-md sm:p-mx-lg lg:p-mx-xl mx-auto space-y-mx-lg" style={{ maxWidth: '1600px' }}>
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md bg-mx-black p-mx-lg rounded-mx-2xl shadow-mx-xl relative overflow-hidden group">
                 <div className="absolute inset-0 bg-mx-matrix opacity-20" />
                 <div className="relative z-10 flex flex-col gap-mx-tiny">

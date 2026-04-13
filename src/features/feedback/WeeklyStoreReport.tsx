@@ -155,4 +155,3 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
         </div>
     )
 }
-}

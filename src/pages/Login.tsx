@@ -70,12 +70,12 @@ export default function Login() {
     return (
         <main className="min-h-screen flex selection:bg-brand-primary/20">
             {/* Left Panel — Brand */}
-            <div className="hidden lg:flex lg:w-[52%] bg-brand-secondary relative overflow-hidden flex-col items-center justify-center p-16">
+            <div className="hidden lg:flex bg-brand-secondary relative overflow-hidden flex-col items-center justify-center p-mx-2xl" style={{ width: '52%' }}>
                 {/* Gradient mesh */}
                 <div className="absolute inset-0">
-                    <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-brand-primary/10 rounded-full blur-[140px]" />
-                    <div className="absolute bottom-[-15%] right-[-10%] w-[60%] h-[60%] bg-mx-green-900/40 rounded-full blur-[120px]" />
-                    <div className="absolute top-[40%] right-[20%] w-[30%] h-[30%] bg-brand-primary/6 rounded-full blur-[80px]" />
+                    <div className="absolute bg-brand-primary/10 rounded-full" style={{ top: '-20%', left: '-10%', width: '70%', height: '70%', filter: 'blur(140px)' }} />
+                    <div className="absolute bg-mx-green-900/40 rounded-full" style={{ bottom: '-15%', right: '-10%', width: '60%', height: '60%', filter: 'blur(120px)' }} />
+                    <div className="absolute bg-brand-primary/6 rounded-full" style={{ top: '40%', right: '20%', width: '30%', height: '30%', filter: 'blur(80px)' }} />
                 </div>
                 {/* Grid pattern */}
                 <div className="absolute inset-0 bg-mx-matrix opacity-30" />
@@ -87,7 +87,8 @@ export default function Login() {
                         initial={{ scale: 0.7, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.15, type: 'spring', stiffness: 150, damping: 20 }}
-                        className="w-40 h-40 object-contain mx-auto mb-12 drop-shadow-[0_0_60px_rgba(34,197,94,0.35)]"
+                        className="object-contain mx-auto mb-12"
+                        style={{ width: '10rem', height: '10rem', filter: 'drop-shadow(0 0 60px rgba(34,197,94,0.35))' }}
                     />
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -97,7 +98,7 @@ export default function Login() {
                         <h1 className="text-5xl font-black text-white tracking-tight mb-4">
                             MX <span className="text-brand-primary">PERFORMANCE</span>
                         </h1>
-                        <p className="text-white/30 text-sm font-bold uppercase tracking-[0.3em] mb-16">
+                        <p className="text-white/30 text-sm font-bold uppercase mb-16" style={{ letterSpacing: '0.3em' }}>
                             Sistema de Gestao de Elite
                         </p>
                     </motion.div>
@@ -106,15 +107,16 @@ export default function Login() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
-                        className="space-y-5"
+                        className="flex flex-col"
+                        style={{ gap: '1.25rem' }}
                     >
                         {[
                             { icon: TrendingUp, text: 'Performance em tempo real de toda rede' },
                             { icon: Zap, text: 'Rituais de gestao padronizados' },
                             { icon: ShieldCheck, text: 'Controle preditivo de resultados' },
                         ].map(({ icon: Icon, text }) => (
-                            <div key={text} className="flex items-center gap-4 group">
-                                <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/15 flex items-center justify-center shrink-0 group-hover:bg-brand-primary/20 transition-colors">
+                            <div key={text} className="flex items-center gap-mx-sm group">
+                                <div className="w-mx-10 h-mx-10 rounded-xl bg-brand-primary/10 border border-brand-primary/15 flex items-center justify-center shrink-0 group-hover:bg-brand-primary/20 transition-colors">
                                     <Icon size={18} className="text-brand-primary" />
                                 </div>
                                 <span className="text-white/50 text-sm font-medium group-hover:text-white/70 transition-colors">{text}</span>
@@ -123,16 +125,16 @@ export default function Login() {
                     </motion.div>
                 </div>
 
-                <div className="absolute bottom-8 left-0 right-0 text-center">
-                    <span className="text-white/15 text-xs font-bold uppercase tracking-[0.25em]">MX Performance v4.0</span>
+                <div className="absolute text-center" style={{ bottom: '2rem', left: 0, right: 0 }}>
+                    <span className="text-white/15 text-xs font-bold uppercase" style={{ letterSpacing: '0.25em' }}>MX Performance v4.0</span>
                 </div>
             </div>
 
             {/* Right Panel — Form */}
-            <div className="flex-1 bg-white flex flex-col items-center justify-center p-8 md:p-16 relative">
+            <div className="flex-1 bg-white flex flex-col items-center justify-center p-mx-lg md:p-mx-2xl relative">
                 {/* Mobile logo */}
                 <div className="lg:hidden mb-12 text-center">
-                    <img src={MxLogo} alt="MX Performance" className="w-20 h-20 object-contain mx-auto mb-6" />
+                    <img src={MxLogo} alt="MX Performance" className="w-mx-20 h-mx-20 object-contain mx-auto mb-6" />
                     <h1 className="text-2xl font-black text-text-primary tracking-tight">
                         MX <span className="text-brand-primary">PERFORMANCE</span>
                     </h1>
@@ -149,15 +151,16 @@ export default function Login() {
                         <p className="text-text-tertiary text-sm">Entre com suas credenciais para continuar</p>
                     </div>
 
-                    <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="space-y-5">
+                    <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="flex flex-col" style={{ gap: '1.25rem' }}>
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">E-mail</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary" size={18} />
+                                <Mail className="absolute top-1/2 -translate-y-1/2 text-text-tertiary" style={{ left: '1rem' }} size={18} />
                                 <input
                                     type="email" value={email} onChange={e => setEmail(e.target.value)}
                                     placeholder="seu@email.com.br" required autoFocus={!email}
-                                    className="w-full h-13 pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary/60 outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary/60 outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+                                    style={{ height: '3.25rem' }}
                                 />
                             </div>
                         </div>
@@ -165,17 +168,18 @@ export default function Login() {
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">Senha</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary" size={18} />
+                                <Lock className="absolute top-1/2 -translate-y-1/2 text-text-tertiary" style={{ left: '1rem' }} size={18} />
                                 <input
                                     type="password" ref={passwordRef} value={password} onChange={e => setPassword(e.target.value)}
                                     placeholder="Digite sua senha" required
-                                    className="w-full h-13 pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary/60 outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary/60 outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+                                    style={{ height: '3.25rem' }}
                                 />
                             </div>
                         </div>
 
                         {error && (
-                            <div className="flex items-center gap-3 px-4 py-3 bg-status-error-surface border border-status-error/20 rounded-xl">
+                            <div className="flex items-center px-4 py-3 bg-status-error-surface border border-status-error/20 rounded-xl" style={{ gap: '0.75rem' }}>
                                 <AlertCircle size={16} className="text-status-error shrink-0" />
                                 <span className="text-status-error text-sm font-medium">{error}</span>
                             </div>
@@ -184,7 +188,8 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-13 bg-brand-primary hover:bg-mx-green-400 text-white rounded-xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/30 active:scale-[0.98] mt-2"
+                            className="w-full bg-brand-primary hover:bg-mx-green-400 text-white rounded-xl font-black text-sm uppercase tracking-wider flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/30 active:scale-[0.98] mt-2"
+                            style={{ height: '3.25rem', gap: '0.5rem' }}
                         >
                             {loading ? (
                                 <RefreshCw size={18} className="animate-spin" />

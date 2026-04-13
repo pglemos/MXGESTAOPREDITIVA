@@ -220,5 +220,3 @@ export interface CheckinFormData {
     zero_reason?: string
     reference_date?: string
 }
-_date?: string
-}

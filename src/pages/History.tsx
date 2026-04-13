@@ -143,10 +143,6 @@ export default function HistoryPage() {
       </Card>
 
       {/* ... (keeping Modal) */}
-    </main>
-  )
-}
-
       {/* Modal de Solicitação de Ajuste */}
       <AnimatePresence>
           {requestingCheckin && (
