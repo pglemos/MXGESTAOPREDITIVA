@@ -84,6 +84,25 @@ export default function ConsultoriaClientes() {
       ),
     },
     {
+      key: 'progress',
+      header: 'PROGRESSO',
+      align: 'center',
+      render: (client) => {
+        const step = client.current_visit_step || 0
+        return (
+          <div className="flex flex-col items-center gap-1">
+            <Typography variant="tiny" className="font-black">{step} / 7</Typography>
+            <div className="w-24 h-1.5 bg-surface-alt rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-brand-primary transition-all" 
+                style={{ width: `${(step / 7) * 100}%` }}
+              />
+            </div>
+          </div>
+        )
+      }
+    },
+    {
       key: 'status',
       header: 'STATUS',
       align: 'center',

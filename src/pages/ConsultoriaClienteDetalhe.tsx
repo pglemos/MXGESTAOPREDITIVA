@@ -11,6 +11,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { useConsultingClientDetail } from '@/hooks/useConsultingClients'
 import { cn } from '@/lib/utils'
+import { GoogleCalendarView } from '@/features/consultoria/components/GoogleCalendarView'
 
 type Tab = 'overview' | 'visits' | 'financial'
 
@@ -22,6 +23,11 @@ export default function ConsultoriaClienteDetalhe() {
   const activeAssignments = useMemo(() => {
     return (client?.assignments || []).filter((assignment) => assignment.active)
   }, [client?.assignments])
+
+  const currentUserId = useMemo(() => {
+    // Pegando o ID do primeiro consultor vinculado como fallback para o MVP
+    return activeAssignments[0]?.user_id || ''
+  }, [activeAssignments])
 
   if (loading) {
     return (
@@ -200,6 +206,13 @@ export default function ConsultoriaClienteDetalhe() {
 
       {activeTab === 'visits' && (
         <section className="flex flex-col gap-mx-lg">
+          {clientId && (
+            <GoogleCalendarView 
+              clientId={clientId} 
+              userId={currentUserId} 
+            />
+          )}
+
           <div className="flex items-center justify-between">
             <Typography variant="h3">CRONOGRAMA DE VISITAS (MÉTODO 7 PASSOS)</Typography>
             <Button size="sm" className="rounded-mx-xl">
