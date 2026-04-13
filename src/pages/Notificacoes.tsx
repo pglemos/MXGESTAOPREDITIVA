@@ -138,9 +138,9 @@ export default function Notificacoes() {
                           <header className="flex justify-between items-start mb-2 gap-mx-sm">
                             <div className="flex items-center gap-mx-sm min-w-0">
                               <Typography variant="h3" className="text-base group-hover/item:text-brand-primary transition-colors truncate uppercase font-black tracking-tight">{n.title}</Typography>
-                              {!n.read && n.priority === 'high' && <Badge variant="danger" className="text-[8px] sm:text-xs font-black h-mx-5 px-3 rounded-mx-full animate-pulse shadow-sm shrink-0">CRÍTICO</Badge>}
+                              {!n.read && n.priority === 'high' && <Badge variant="danger" className="text-mx-nano sm:text-xs font-black h-mx-5 px-3 rounded-mx-full animate-pulse shadow-sm shrink-0">CRÍTICO</Badge>}
                             </div>
-                            <Typography variant="mono" tone="muted" className="text-[10px] sm:text-xs font-black uppercase tracking-widest shrink-0">{format(new Date(n.created_at), 'HH:mm')}</Typography>
+                            <Typography variant="mono" tone="muted" className="text-mx-tiny sm:text-xs font-black uppercase tracking-widest shrink-0">{format(new Date(n.created_at), 'HH:mm')}</Typography>
                           </header>
                           <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed italic line-clamp-2 uppercase tracking-tight opacity-60">"{n.message}"</Typography>
                           <footer className="flex flex-wrap items-center gap-mx-md mt-6">

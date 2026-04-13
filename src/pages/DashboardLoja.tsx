@@ -179,7 +179,7 @@ export default function DashboardLoja() {
                     </div>
                     <div className="min-w-0">
                         <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black truncate">{r.user_name}</Typography>
-                        {r.is_venda_loja && <span className="text-[8px] font-black bg-brand-primary text-white px-1 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>}
+                        {r.is_venda_loja && <span className="text-mx-nano font-black bg-brand-primary text-white px-1 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>}
                     </div>
                 </div>
             )
@@ -197,7 +197,7 @@ export default function DashboardLoja() {
             header: 'STATUS',
             align: 'right',
             render: (r) => (
-                <Badge variant={r.vnd_total > 0 ? 'success' : 'outline'} className="px-3 py-1 rounded-mx-lg font-black text-[10px] tracking-widest shadow-sm uppercase border-none">
+                <Badge variant={r.vnd_total > 0 ? 'success' : 'outline'} className="px-3 py-1 rounded-mx-lg font-black text-mx-tiny tracking-widest shadow-sm uppercase border-none">
                     {r.vnd_total > 0 ? 'CONVERSÃO' : 'EM AGUARDO'}
                 </Badge>
             )
@@ -238,8 +238,7 @@ export default function DashboardLoja() {
             
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-md md:gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-xs text-center lg:text-left">
-                    <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-[10px]">Status de Unidade</Typography>
-                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
+                    <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-mx-tiny">Status de Unidade</Typography>                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         {(role === 'admin' || role === 'dono') ? (
                             <div className="relative group">
@@ -259,7 +258,7 @@ export default function DashboardLoja() {
                                         <option key={m.store_id} value={m.store_id} className="text-lg bg-white">{m.store?.name?.toUpperCase() || 'LOJA'}</option>
                                     ))}
                                 </select>
-                                <ChevronDown size={24} className="absolute right-0 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
+                                <ChevronDown size={24} className="absolute right-mx-0 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
                             </div>
                         ) : (
                             <Typography variant="h1" className="text-3xl sm:text-5xl font-black uppercase tracking-tighter">{metrics.storeName}</Typography>
@@ -273,7 +272,7 @@ export default function DashboardLoja() {
                             <Button 
                                 key={m} variant={viewMode === m ? 'secondary' : 'ghost'} size="sm"
                                 onClick={() => setViewMode(m as any)} 
-                                className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-[10px]"
+                                className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny"
                             >
                                 {m === 'month' ? 'Mês' : 'D-1'}
                             </Button>
@@ -282,9 +281,9 @@ export default function DashboardLoja() {
 
                     <div className="flex items-center gap-mx-sm px-4 bg-white h-mx-10 sm:h-mx-14 rounded-mx-xl shadow-mx-sm border border-border-default">
                         <Calendar size={14} className="text-brand-primary shrink-0" />
-                        <input type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-[10px] w-24 sm:w-auto" />
+                        <input type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-mx-tiny w-mx-3xl sm:w-auto" />
                         <div className="hidden sm:block w-px h-mx-sm bg-border-strong mx-1" />
-                        <input type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="hidden sm:block uppercase font-black text-text-primary bg-transparent outline-none text-[10px]" />
+                        <input type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="hidden sm:block uppercase font-black text-text-primary bg-transparent outline-none text-mx-tiny" />
                     </div>
 
                     <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
@@ -300,35 +299,35 @@ export default function DashboardLoja() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
                 <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-white/5 rounded-mx-full blur-3xl -mr-16 -mt-16" />
-                    <Typography variant="tiny" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-[10px]">Meta de Vendas</Typography>
+                    <Typography variant="tiny" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Meta de Vendas</Typography>
                     <Typography variant="h1" tone="white" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.goalValue}</Typography>
-                    <Badge variant="outline" className="text-white border-white/20 font-black h-mx-md uppercase text-[10px]">{metrics.attainment}% ATINGIDO</Badge>
+                    <Badge variant="outline" className="text-white border-white/20 font-black h-mx-md uppercase text-mx-tiny">{metrics.attainment}% ATINGIDO</Badge>
                 </Card>
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-[10px]">Vendido Período</Typography>
+                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Vendido Período</Typography>
                     <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.totalSales}</Typography>
-                    <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest text-[10px]">REFERÊNCIA REAL-TIME</Typography>
+                    <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest text-mx-tiny">REFERÊNCIA REAL-TIME</Typography>
                 </Card>
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-info-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-[10px]">Escoamento Médio</Typography>
+                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Escoamento Médio</Typography>
                     <div className="flex items-baseline gap-mx-xs mb-2">
                         <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalLeads}</Typography>
                         <Typography variant="h3" tone="muted" className="text-xl font-black uppercase opacity-20">LEADS</Typography>
                     </div>
-                    <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest text-[10px]">{metrics.totalVis} VISITAS EFETUADAS</Typography>
+                    <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest text-mx-tiny">{metrics.totalVis} VISITAS EFETUADAS</Typography>
                 </Card>
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-success-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-[10px]">Saúde Disciplinar</Typography>
+                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Saúde Disciplinar</Typography>
                     <Typography variant="h1" tone={metrics.checkedInCount < (sellers || []).length ? 'error' : 'success'} className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">
                         {metrics.checkedInCount}<span className="text-text-tertiary text-2xl font-black">/{(sellers || []).length}</span>
                     </Typography>
-                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40 text-[10px]">REGISTROS SINCRONIZADOS</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40 text-mx-tiny">REGISTROS SINCRONIZADOS</Typography>
                 </Card>
             </div>
 
@@ -338,11 +337,11 @@ export default function DashboardLoja() {
                         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
                             <div>
                                 <CardTitle className="text-xl md:text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Ranking Unidade'}</CardTitle>
-                                <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40 text-[10px]">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
+                                <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40 text-mx-tiny">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
                             </div>
                             <div className="relative group w-full sm:w-mx-sidebar-expanded">
                                 <Search size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
-                                <Input placeholder="BUSCAR..." value={sellerSearch} onChange={e => setSellerSearch(e.target.value)} className="!pl-10 !h-10 text-[10px] font-black uppercase" />
+                                <Input placeholder="BUSCAR..." value={sellerSearch} onChange={e => setSellerSearch(e.target.value)} className="!pl-10 !h-10 text-mx-tiny font-black uppercase" />
                             </div>
                         </CardHeader>
                         <DataGrid columns={columns} data={filteredRanking} emptyMessage="Nenhum especialista localizado." />
@@ -360,7 +359,7 @@ export default function DashboardLoja() {
                             {mixCanais.map(ch => (
                                 <div key={ch.label} className="space-y-mx-xs">
                                     <div className="flex justify-between items-end">
-                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40 text-[10px]">{ch.label}</Typography>
+                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40 text-mx-tiny">{ch.label}</Typography>
                                         <Typography variant="mono" tone={ch.tone as any} className="text-sm font-black">{ch.pct}%</Typography>
                                     </div>
                                     <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-0.5"><motion.div initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5 }} className={cn("h-full rounded-full", ch.color)} /></div>
@@ -374,7 +373,7 @@ export default function DashboardLoja() {
                         <div className="relative z-10 text-center py-4">
                             <History className="mx-auto mb-6 opacity-30 transform group-hover:scale-110 transition-transform" size={40} />
                             <Typography variant="h2" tone="white" className="text-lg mb-4 uppercase tracking-tight font-black">Diagnóstico Unidade</Typography>
-                            <Typography variant="caption" tone="white" className="text-[10px] font-black italic opacity-80 leading-relaxed uppercase tracking-widest max-w-xs mx-auto block italic">"{diagnostics.diagnostico} {diagnostics.sugestao}"</Typography>
+                            <Typography variant="caption" tone="white" className="text-mx-tiny font-black italic opacity-80 leading-relaxed uppercase tracking-widest max-w-xs mx-auto block italic">"{diagnostics.diagnostico} {diagnostics.sugestao}"</Typography>
                         </div>
                     </Card>
                 </aside>

@@ -85,7 +85,7 @@ export default function AiDiagnostics() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0">
                 {/* Terminal Section */}
-                <section className="lg:col-span-7 flex flex-col min-h-[400px] lg:min-h-0">
+                <section className="lg:col-span-7 flex flex-col min-h-mx-chart lg:min-h-0">
                     <Card className="flex-1 bg-mx-black border-white/5 rounded-mx-2xl p-mx-lg md:p-10 shadow-mx-xl relative overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="flex items-center gap-mx-sm">

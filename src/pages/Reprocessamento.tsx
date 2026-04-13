@@ -133,7 +133,7 @@ export default function Reprocessamento() {
             render: (h) => (
                 <div className="flex flex-col">
                     <Typography variant="h3" className="text-sm sm:text-base leading-none mb-1 font-black uppercase tracking-tight">{format(parseISO(h.created_at), 'dd/MM/yyyy')}</Typography>
-                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40 text-[8px] sm:text-mx-micro">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40 text-mx-nano sm:text-mx-micro">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
                 </div>
             )
         },
@@ -142,7 +142,7 @@ export default function Reprocessamento() {
             header: 'UNIDADE',
             render: (h) => (
                 <div className="flex items-center gap-mx-sm min-w-0">
-                    <div className="w-mx-8 h-mx-8 sm:w-mx-lg sm:h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center shrink-0"><Typography variant="tiny" className="font-black text-[8px]">{h.store_name?.charAt(0)}</Typography></div>
+                    <div className="w-mx-8 h-mx-8 sm:w-mx-lg sm:h-mx-lg rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center shrink-0"><Typography variant="tiny" className="font-black text-mx-nano">{h.store_name?.charAt(0)}</Typography></div>
                     <Typography variant="h3" className="text-xs sm:text-sm uppercase tracking-tight font-black truncate">{h.store_name}</Typography>
                 </div>
             )
@@ -158,7 +158,7 @@ export default function Reprocessamento() {
             header: 'STATUS',
             align: 'right',
             render: (h) => (
-                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-3 sm:px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none text-[8px] sm:text-mx-micro font-black">
+                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-3 sm:px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none text-mx-nano sm:text-mx-micro font-black">
                     {h.status === 'completed' ? 'OK' : 'ERRO'}
                 </Badge>
             )
@@ -174,11 +174,11 @@ export default function Reprocessamento() {
                         <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
                         <Typography variant="h1" tone="white" className="text-2xl sm:text-4xl">Massa de <Typography as="span" variant="h1" tone="brand">Dados</Typography></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-widest text-[10px] sm:text-xs">DATA INJECTION ENGINE v2.1</Typography>
+                    <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-widest text-mx-tiny sm:text-xs">DATA INJECTION ENGINE v2.1</Typography>
                 </div>
 
                 <div className="flex flex-row items-center justify-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <Button asChild variant="ghost" className="flex-1 sm:flex-none text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-[10px]">
+                    <Button asChild variant="ghost" className="flex-1 sm:flex-none text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-mx-tiny">
                         <Link to="/configuracoes"><ArrowLeft size={14} className="mr-2" /> VOLTAR</Link>
                     </Button>
                     <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl border-white/10 text-white/40 h-mx-10 w-mx-10 sm:h-mx-14 sm:w-mx-14 hover:text-white bg-white/5">
@@ -189,20 +189,20 @@ export default function Reprocessamento() {
 
             <div className="flex flex-col lg:grid lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
                 <section className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="bg-mx-black border-white/5 p-6 sm:p-10 space-y-mx-md shadow-mx-xl relative overflow-hidden">
+                    <Card className="bg-mx-black border-white/5 p-mx-md sm:p-10 space-y-mx-md shadow-mx-xl relative overflow-hidden">
                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl" />
                         
                         <header className="flex items-center gap-mx-sm border-b border-white/5 pb-6 relative z-10">
                             <div className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl border border-white/10 shrink-0"><Database size={24} /></div>
                             <div>
                                 <Typography variant="h3" tone="white" className="uppercase tracking-tight font-black text-sm sm:text-lg">Carregar Dados</Typography>
-                                <Typography variant="tiny" tone="white" className="opacity-30 uppercase tracking-widest mt-0.5 font-black text-[8px]">UNIDADE ALVO</Typography>
+                                <Typography variant="tiny" tone="white" className="opacity-30 uppercase tracking-widest mt-0.5 font-black text-mx-nano">UNIDADE ALVO</Typography>
                             </div>
                         </header>
 
                         <div className="space-y-mx-md relative z-10">
                             <div className="space-y-mx-xs">
-                                <Typography variant="tiny" tone="white" as="label" className="opacity-40 ml-2 font-black uppercase tracking-widest text-[8px]">Unidade</Typography>
+                                <Typography variant="tiny" tone="white" as="label" className="opacity-40 ml-2 font-black uppercase tracking-widest text-mx-nano">Unidade</Typography>
                                 <select 
                                     value={selectedStoreId} onChange={e => setSelectedStoreId(e.target.value)}
                                     className="w-full h-mx-12 px-4 bg-white/5 border border-white/10 rounded-mx-xl text-white text-xs font-bold appearance-none cursor-pointer uppercase outline-none"
@@ -213,19 +213,19 @@ export default function Reprocessamento() {
                             </div>
 
                             <div className="space-y-mx-xs">
-                                <Typography variant="tiny" tone="white" className="opacity-40 ml-2 font-black uppercase tracking-widest text-[8px]">Arquivo</Typography>
+                                <Typography variant="tiny" tone="white" className="opacity-40 ml-2 font-black uppercase tracking-widest text-mx-nano">Arquivo</Typography>
                                 <div className="relative group">
                                     <input id="csv-upload" type="file" accept=".csv,.xlsx" onChange={handleFileSelect} className="sr-only" />
                                     <label htmlFor="csv-upload" className={cn("flex flex-col items-center justify-center gap-mx-sm w-full min-h-24 border-2 border-dashed rounded-mx-2xl transition-all cursor-pointer", 
                                         file ? "bg-brand-primary/10 border-brand-primary/50" : "bg-white/5 border-white/10"
                                     )}>
                                         <Upload size={20} className="text-white/20" />
-                                        <Typography variant="h3" tone="white" className="text-[10px] truncate max-w-[150px] font-black uppercase">{file ? file.name : 'Selecionar'}</Typography>
+                                        <Typography variant="h3" tone="white" className="text-mx-tiny truncate max-w-mx-label-lg font-black uppercase">{file ? file.name : 'Selecionar'}</Typography>
                                     </label>
                                 </div>
                             </div>
 
-                            <Button onClick={handleUpload} disabled={processing || !file || !selectedStoreId} className="w-full h-mx-14 rounded-mx-full bg-brand-primary shadow-mx-xl border border-white/10 font-black uppercase tracking-widest text-[10px]">
+                            <Button onClick={handleUpload} disabled={processing || !file || !selectedStoreId} className="w-full h-mx-14 rounded-mx-full bg-brand-primary shadow-mx-xl border border-white/10 font-black uppercase tracking-widest text-mx-tiny">
                                 {processing ? <RefreshCw className="animate-spin mr-2" /> : <Layers size={16} className="mr-2" />} 
                                 INJETAR AGORA
                             </Button>
@@ -233,12 +233,12 @@ export default function Reprocessamento() {
                             <AnimatePresence>
                                 {validation && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pt-2">
-                                        <div className="p-3 bg-white/5 border border-white/10 rounded-mx-xl flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
+                                        <div className="p-mx-xs bg-white/5 border border-white/10 rounded-mx-xl flex items-center justify-between">
+                                            <div className="flex items-center gap-mx-xs">
                                                 <ShieldCheck size={14} className="text-status-success" />
-                                                <Typography variant="tiny" tone="white" className="font-black uppercase text-[8px]">{validation.summary.validRows} VÁLIDOS</Typography>
+                                                <Typography variant="tiny" tone="white" className="font-black uppercase text-mx-nano">{validation.summary.validRows} VÁLIDOS</Typography>
                                             </div>
-                                            <Typography variant="tiny" tone="white" className="opacity-40 text-[8px]">{validation.summary.sellersFound.length} VENDEDORES</Typography>
+                                            <Typography variant="tiny" tone="white" className="opacity-40 text-mx-nano">{validation.summary.sellersFound.length} VENDEDORES</Typography>
                                         </div>
                                     </motion.div>
                                 )}
@@ -246,12 +246,12 @@ export default function Reprocessamento() {
                         </div>
                     </Card>
 
-                    <Card className="bg-mx-black border-white/5 p-6 sm:p-10 space-y-mx-sm shadow-mx-lg flex-1">
+                    <Card className="bg-mx-black border-white/5 p-mx-md sm:p-10 space-y-mx-sm shadow-mx-lg flex-1">
                         <div className="flex items-center gap-mx-sm mb-2">
                             <TerminalIcon size={14} className="text-brand-primary" />
-                            <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase tracking-widest text-[8px]">LOG DO COMPILADOR</Typography>
+                            <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase tracking-widest text-mx-nano">LOG DO COMPILADOR</Typography>
                         </div>
-                        <div className="bg-mx-black rounded-mx-xl p-4 font-mono text-[9px] leading-tight h-40 lg:h-mx-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner">
+                        <div className="bg-mx-black rounded-mx-xl p-mx-sm font-mono text-mx-micro leading-tight h-mx-20 lg:h-mx-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner">
                             {logs.map((log, idx) => (
                                 <p key={idx} className={cn("mb-1 uppercase", 
                                     log.type === 'error' ? 'text-status-error font-black' : 
@@ -267,12 +267,12 @@ export default function Reprocessamento() {
 
                 <section className="lg:col-span-8 flex flex-col">
                     <Card className="bg-white border-none shadow-mx-xl overflow-hidden h-full flex flex-col">
-                        <header className="p-6 sm:p-10 border-b border-border-default flex flex-row items-center justify-between bg-surface-alt/30 shrink-0">
+                        <header className="p-mx-md sm:p-10 border-b border-border-default flex flex-row items-center justify-between bg-surface-alt/30 shrink-0">
                             <div className="flex items-center gap-mx-sm">
                                 <div className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg shrink-0"><History size={24} /></div>
                                 <div>
                                     <Typography variant="h2" className="uppercase tracking-tighter leading-none text-lg sm:text-2xl">Audit Trail</Typography>
-                                    <Typography variant="caption" tone="muted" className="tracking-widest mt-0.5 font-black uppercase opacity-40 text-[8px] sm:text-xs">EVENTOS DE INGESTÃO</Typography>
+                                    <Typography variant="caption" tone="muted" className="tracking-widest mt-0.5 font-black uppercase opacity-40 text-mx-nano sm:text-xs">EVENTOS DE INGESTÃO</Typography>
                                 </div>
                             </div>
                         </header>

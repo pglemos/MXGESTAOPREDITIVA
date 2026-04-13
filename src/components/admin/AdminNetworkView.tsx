@@ -14,8 +14,8 @@ export function AdminNetworkView() {
   const [processing, setProcessing] = useState<string | null>(null)
 
   if (loading) return (
-    <div className="flex flex-col gap-4 animate-pulse">
-      {[1,2,3].map(i => <div key={i} className="h-24 bg-white/10 rounded-mx-xl" />)}
+    <div className="flex flex-col gap-mx-sm animate-pulse">
+      {[1,2,3].map(i => <div key={i} className="h-mx-3xl bg-white/10 rounded-mx-xl" />)}
     </div>
   )
 
@@ -47,25 +47,25 @@ export function AdminNetworkView() {
         return (
           <Card key={store.store_id} className="overflow-hidden shadow-mx-sm border-border-default bg-white">
             <div 
-              className="p-4 sm:p-mx-md flex items-center justify-between cursor-pointer hover:bg-surface-alt transition-colors"
+              className="p-mx-sm sm:p-mx-md flex items-center justify-between cursor-pointer hover:bg-surface-alt transition-colors"
               onClick={() => setExpandedStoreId(isExpanded ? null : store.store_id)}
             >
               <div className="flex items-center gap-mx-sm min-w-0">
                 <div className="w-mx-10 h-mx-10 sm:w-mx-xl sm:h-mx-xl rounded-mx-lg bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0">
-                  <Building2 size={20} className="sm:size-[24px]" />
+                  <Building2 size={20} className="sm:size-mx-md" />
                 </div>
                 <div className="min-w-0">
                   <Typography variant="h3" className="text-sm sm:text-lg truncate font-black uppercase tracking-tight">{store.store_name}</Typography>
-                  <Typography variant="tiny" tone="muted" className="uppercase tracking-widest text-[8px] sm:text-mx-micro">{total} ESPECIALISTAS</Typography>
+                  <Typography variant="tiny" tone="muted" className="uppercase tracking-widest text-mx-nano sm:text-mx-micro">{total} ESPECIALISTAS</Typography>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 sm:gap-mx-lg shrink-0">
-                <div className="flex items-center gap-1 text-status-success">
-                  <Zap size={14} className="sm:size-[18px]" />
-                  <Typography variant="mono" className="font-black text-[10px] sm:text-sm">{operacionais}/{total}</Typography>
+              <div className="flex items-center gap-mx-xs sm:gap-mx-lg shrink-0">
+                <div className="flex items-center gap-mx-tiny text-status-success">
+                  <Zap size={14} className="sm:size-mx-sm" />
+                  <Typography variant="mono" className="font-black text-mx-tiny sm:text-sm">{operacionais}/{total}</Typography>
                 </div>
-                <ChevronDown className={cn("transition-transform w-4 h-4 sm:w-5 sm:h-5", isExpanded && "rotate-180")} />
+                <ChevronDown className={cn("transition-transform w-mx-sm h-mx-sm sm:w-5 sm:h-5", isExpanded && "rotate-180")} />
               </div>
             </div>
 
@@ -77,7 +77,7 @@ export function AdminNetworkView() {
                   exit={{ height: 0, opacity: 0 }}
                   className="border-t border-border-default bg-surface-alt/30"
                 >
-                  <div className="p-4 sm:p-mx-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-sm">
+                  <div className="p-mx-sm sm:p-mx-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-sm">
                     {store.members.map((member: any) => (
                       <div key={member.id} className="bg-white p-mx-sm rounded-mx-lg border border-border-default flex flex-col gap-mx-sm shadow-sm relative overflow-hidden group">
                         <div className="flex items-center gap-mx-sm relative z-10">
@@ -86,21 +86,21 @@ export function AdminNetworkView() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <Typography className="font-black text-xs sm:text-sm uppercase tracking-tight truncate">{member.name}</Typography>
-                            <Typography variant="tiny" tone="muted" className="uppercase text-[10px] font-bold opacity-40">{member.role}</Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase text-mx-tiny font-bold opacity-40">{member.role}</Typography>
                           </div>
                           {member.checkin_today ? <Zap size={16} className="text-status-success fill-status-success/20" /> : <Clock size={16} className="text-text-tertiary opacity-20" />}
                         </div>
                         
-                        <div className="flex gap-2 border-t border-border-default pt-3 mt-1 relative z-10">
+                        <div className="flex gap-mx-xs border-t border-border-default pt-mx-xs mt-1 relative z-10">
                           <Button 
-                            variant="outline" size="sm" className="flex-1 h-8 sm:h-mx-10 text-[9px] sm:text-mx-tiny uppercase font-black tracking-widest border-border-strong"
+                            variant="outline" size="sm" className="flex-1 h-mx-lg sm:h-mx-10 text-mx-micro sm:text-mx-tiny uppercase font-black tracking-widest border-border-strong"
                             disabled={!!processing}
                             onClick={(e) => { e.stopPropagation(); handleRoleChange(member.id, store.store_id, member.role) }}
                           >
                             {member.role === 'vendedor' ? 'Promover' : 'Rebaixar'}
                           </Button>
                           <Button 
-                            variant="danger" size="sm" className="px-3 h-8 sm:h-mx-10 bg-status-error-surface text-status-error border-status-error/20 hover:bg-status-error hover:text-white"
+                            variant="danger" size="sm" className="px-3 h-mx-lg sm:h-mx-10 bg-status-error-surface text-status-error border-status-error/20 hover:bg-status-error hover:text-white"
                             disabled={!!processing}
                             onClick={(e) => { e.stopPropagation(); handleRemove(member.id, store.store_id) }}
                           >

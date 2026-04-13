@@ -130,10 +130,10 @@ export default function VendedorHome() {
                     </Button>
                     <div className="flex items-center gap-mx-sm bg-white border border-border-default p-mx-tiny px-4 sm:p-mx-xs sm:pr-8 rounded-mx-2xl sm:rounded-mx-3xl shadow-mx-sm">
                         <div className="w-mx-8 h-mx-8 sm:w-mx-xl sm:h-mx-xl rounded-mx-lg sm:rounded-mx-xl bg-status-warning text-white flex items-center justify-center shadow-mx-md">
-                            <Trophy size={16} className="sm:size-[22px] fill-white/20" />
+                            <Trophy size={16} className="sm:size-mx-md fill-white/20" />
                         </div>
                         <div className="min-w-0">
-                            <Typography variant="tiny" tone="muted" className="mb-0 block uppercase font-black tracking-widest text-[8px] sm:text-mx-micro">Arena</Typography>
+                            <Typography variant="tiny" tone="muted" className="mb-0 block uppercase font-black tracking-widest text-mx-nano sm:text-mx-micro">Arena</Typography>
                             <Typography variant="h3" className="text-xs sm:text-lg font-black whitespace-nowrap">{metrics.myRank?.position || '--'}º LUGAR</Typography>
                         </div>
                     </div>
@@ -147,12 +147,12 @@ export default function VendedorHome() {
                             <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent pointer-events-none" />
                             <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10">
                                 <div className="w-mx-16 h-mx-16 md:w-mx-20 md:h-mx-header rounded-mx-2xl md:rounded-mx-3xl bg-white text-brand-primary flex items-center justify-center shadow-mx-xl group-hover:rotate-6 transition-transform shrink-0 mx-auto lg:mx-0">
-                                    <GraduationCap size={32} className="md:size-[40px]" />
+                                    <GraduationCap size={32} className="md:size-mx-10" />
                                 </div>
                                 <div className="flex-1 space-y-mx-sm text-center lg:text-left">
                                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-mx-xs">
                                         <Badge variant="danger" className="px-4 py-1 uppercase font-black text-mx-micro shadow-sm">Reciclagem</Badge>
-                                        <Typography variant="tiny" tone="white" className="opacity-60 uppercase font-black tracking-widest text-[10px]">Gap: {tacticalPrescription.gargalo}</Typography>
+                                        <Typography variant="tiny" tone="white" className="opacity-60 uppercase font-black tracking-widest text-mx-tiny">Gap: {tacticalPrescription.gargalo}</Typography>
                                     </div>
                                     <Typography variant="h2" tone="white" className="text-xl sm:text-3xl tracking-tighter uppercase leading-none">Masterize sua {tacticalPrescription.training.type}</Typography>
                                     <Typography variant="p" tone="white" className="opacity-80 max-w-2xl text-sm sm:text-base font-bold italic line-clamp-2">"{tacticalPrescription.label}"</Typography>
@@ -176,7 +176,7 @@ export default function VendedorHome() {
                             <div className="absolute top-mx-0 right-mx-0 w-1/2 h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
                             <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10">
                                 <div className="w-mx-16 h-mx-16 md:w-mx-20 md:h-mx-header rounded-mx-2xl md:rounded-mx-3xl bg-brand-primary flex items-center justify-center border-4 border-white/10 shadow-mx-xl group-hover:rotate-12 transition-transform shrink-0 mx-auto lg:mx-0">
-                                    <Zap size={32} className="md:size-[40px] text-white fill-white/20" />
+                                    <Zap size={32} className="md:size-mx-10 text-white fill-white/20" />
                                 </div>
                                 <div className="max-w-2xl space-y-mx-xs text-center lg:text-left">
                                     <Typography variant="h1" tone="white" className="text-2xl sm:text-4xl tracking-tighter uppercase leading-none">Check-in Pendente</Typography>
@@ -184,7 +184,7 @@ export default function VendedorHome() {
                                 </div>
                             </div>
                             <div className="flex items-center justify-between sm:justify-end gap-mx-md relative z-10 group/btn mt-6 lg:mt-0 w-full lg:w-auto">
-                                <Typography variant="caption" tone="white" className="opacity-40 group-hover/btn:opacity-100 transition-opacity uppercase font-black text-[10px] sm:text-xs tracking-widest">CONSOLIDAR AGORA</Typography>
+                                <Typography variant="caption" tone="white" className="opacity-40 group-hover/btn:opacity-100 transition-opacity uppercase font-black text-mx-tiny sm:text-xs tracking-widest">CONSOLIDAR AGORA</Typography>
                                 <div className="w-mx-14 h-mx-14 sm:w-mx-2xl sm:h-mx-2xl rounded-mx-full bg-white text-mx-black flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
                                     <ArrowRight size={24} strokeWidth={2} />
                                 </div>
@@ -217,10 +217,10 @@ export default function VendedorHome() {
             <Card className="bg-surface-alt/50 p-mx-lg md:p-14 border-border-default shadow-mx-sm relative overflow-hidden group">
                 <div className="flex flex-col sm:flex-row items-center justify-between mb-8 md:mb-12 relative z-10 gap-mx-md">
                     <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-2xl bg-status-warning text-white flex items-center justify-center shadow-mx-md"><Trophy size={24} className="md:size-[28px]" /></div>
+                        <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-2xl bg-status-warning text-white flex items-center justify-center shadow-mx-md"><Trophy size={24} className="md:size-mx-md" /></div>
                         <div>
                             <Typography variant="h2" className="text-xl md:text-2xl uppercase tracking-tighter leading-none">Arena de Elite</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px] tracking-widest opacity-40">SUA POSIÇÃO NO CAMPO DE BATALHA</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest opacity-40">SUA POSIÇÃO NO CAMPO DE BATALHA</Typography>
                         </div>
                     </div>
                     <Button variant="ghost" asChild className="rounded-mx-full px-8 h-mx-xl bg-white border border-border-default shadow-sm uppercase font-black tracking-widest text-xs w-full sm:w-auto">
@@ -241,13 +241,13 @@ export default function VendedorHome() {
                                     </div>
                                 </div>
                                 <div className="bg-status-warning-surface rounded-mx-xl p-mx-sm text-center border border-mx-amber-100/50">
-                                    <Typography variant="tiny" tone="warning" className="font-black uppercase text-[10px]">GAP: {metrics.competitors.above.vnd_total - metrics.vendasMes} VENDAS</Typography>
+                                    <Typography variant="tiny" tone="warning" className="font-black uppercase text-mx-tiny">GAP: {metrics.competitors.above.vnd_total - metrics.vendasMes} VENDAS</Typography>
                                 </div>
                             </>
                         ) : (
                             <div className="text-center py-6 md:py-10">
-                                <Crown size={40} className="md:size-[48px] text-status-warning mx-auto mb-4 animate-bounce" />
-                                <Typography variant="caption" tone="brand" className="tracking-mx-widest font-black uppercase text-[10px]">VOCÊ É O LÍDER</Typography>
+                                <Crown size={40} className="md:size-mx-xl text-status-warning mx-auto mb-4 animate-bounce" />
+                                <Typography variant="caption" tone="brand" className="tracking-mx-widest font-black uppercase text-mx-tiny">VOCÊ É O LÍDER</Typography>
                             </div>
                         )}
                     </Card>
@@ -255,17 +255,17 @@ export default function VendedorHome() {
                     <Card className="p-mx-lg md:p-10 bg-mx-black text-white shadow-mx-elite transform md:scale-105 border-none relative overflow-hidden flex flex-col justify-between py-12 md:py-14 order-first md:order-none mb-4 md:mb-0">
                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/20 rounded-mx-full blur-3xl" aria-hidden="true" />
                         <div className="text-center relative z-10">
-                            <Typography variant="caption" tone="brand" className="mb-4 block tracking-mx-widest font-black uppercase text-[10px]">STATUS ATUAL</Typography>
+                            <Typography variant="caption" tone="brand" className="mb-4 block tracking-mx-widest font-black uppercase text-mx-tiny">STATUS ATUAL</Typography>
                             <Typography variant="h1" tone="white" className="text-6xl sm:text-8xl tabular-nums leading-none mb-2 tracking-tighter">{metrics.myRank?.position || '--'}º</Typography>
-                            <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-mx-wider font-black text-[10px]">NA UNIDADE</Typography>
+                            <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-mx-wider font-black text-mx-tiny">NA UNIDADE</Typography>
                         </div>
                         <div className="mt-10 pt-8 border-t border-white/10 flex justify-between items-center relative z-10">
                             <div>
-                                <Typography variant="tiny" tone="white" className="opacity-30 mb-1 block uppercase font-black text-[10px]">VENDIDO</Typography>
+                                <Typography variant="tiny" tone="white" className="opacity-30 mb-1 block uppercase font-black text-mx-tiny">VENDIDO</Typography>
                                 <Typography variant="h3" tone="white" className="text-xl sm:text-2xl font-mono-numbers">{metrics.vendasMes}</Typography>
                             </div>
                             <div className="text-right">
-                                <Typography variant="tiny" tone="white" className="opacity-30 mb-1 block uppercase font-black text-[10px]">EFICIÊNCIA</Typography>
+                                <Typography variant="tiny" tone="white" className="opacity-30 mb-1 block uppercase font-black text-mx-tiny">EFICIÊNCIA</Typography>
                                 <Typography variant="h3" tone="success" className="text-xl sm:text-2xl font-mono-numbers">{metrics.atingimento}%</Typography>
                             </div>
                         </div>
@@ -283,13 +283,13 @@ export default function VendedorHome() {
                                     </div>
                                 </div>
                                 <div className="bg-status-error-surface rounded-mx-xl p-mx-sm text-center border border-mx-rose-100/50">
-                                    <Typography variant="tiny" tone="error" className="font-black uppercase text-[10px]">VANTAGEM: {metrics.vendasMes - metrics.competitors.below.vnd_total} VENDAS</Typography>
+                                    <Typography variant="tiny" tone="error" className="font-black uppercase text-mx-tiny">VANTAGEM: {metrics.vendasMes - metrics.competitors.below.vnd_total} VENDAS</Typography>
                                 </div>
                             </>
                         ) : (
                             <div className="text-center py-6 md:py-10">
-                                <Flame size={40} className="md:size-[48px] text-status-error mx-auto mb-4" />
-                                <Typography variant="caption" tone="error" className="tracking-mx-widest font-black uppercase text-[10px]">MANTENHA A DISTÂNCIA</Typography>
+                                <Flame size={40} className="md:size-mx-xl text-status-error mx-auto mb-4" />
+                                <Typography variant="caption" tone="error" className="tracking-mx-widest font-black uppercase text-mx-tiny">MANTENHA A DISTÂNCIA</Typography>
                             </div>
                         )}
                     </Card>
@@ -303,9 +303,9 @@ export default function VendedorHome() {
                         <header className="flex items-center justify-between mb-12 relative z-10">
                             <div>
                                 <Typography variant="h2" className="text-xl md:text-2xl mb-2 uppercase tracking-tighter leading-none">Matrix de Canais</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px] tracking-widest opacity-40">DISTRIBUIÇÃO DE FECHAMENTOS POR ORIGEM</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest opacity-40">DISTRIBUIÇÃO DE FECHAMENTOS POR ORIGEM</Typography>
                             </div>
-                            <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary shadow-inner shrink-0"><BarChart3 size={24} className="md:size-[28px]" /></div>
+                            <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary shadow-inner shrink-0"><BarChart3 size={24} className="md:size-mx-md" /></div>
                         </header>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md md:gap-mx-lg relative z-10">
                             {[
@@ -316,12 +316,12 @@ export default function VendedorHome() {
                                 <Card key={ch.label} className="p-mx-md md:p-mx-lg border border-border-default hover:border-brand-primary/20 hover:shadow-mx-lg transition-all group/item bg-surface-alt/30">
                                     <div className="flex justify-between items-start mb-8 md:mb-10">
                                         <div className="w-mx-10 h-mx-10 md:w-mx-xl md:h-mx-xl rounded-mx-xl bg-white flex items-center justify-center shadow-mx-sm border border-border-default group-hover/item:rotate-6 transition-transform shrink-0">
-                                            <ch.icon size={18} className={cn("md:size-[22px]", ch.tone === 'success' ? "text-status-success" : ch.tone === 'brand' ? "text-brand-primary" : "text-status-info")} />
+                                            <ch.icon size={18} className={cn("md:size-mx-md", ch.tone === 'success' ? "text-status-success" : ch.tone === 'brand' ? "text-brand-primary" : "text-status-info")} />
                                         </div>
-                                        <Badge variant="outline" className="text-[10px] font-mono-numbers font-black border-border-strong px-2 sm:px-3">{ch.pct}%</Badge>
+                                        <Badge variant="outline" className="text-mx-tiny font-mono-numbers font-black border-border-strong px-2 sm:px-3">{ch.pct}%</Badge>
                                     </div>
                                     <Typography variant="h1" className="text-3xl sm:text-5xl font-mono-numbers mb-1 leading-none">{ch.value}</Typography>
-                                    <Typography variant="caption" tone="muted" className="tracking-widest uppercase font-black text-[8px] sm:text-mx-micro opacity-40">{ch.label}</Typography>
+                                    <Typography variant="caption" tone="muted" className="tracking-widest uppercase font-black text-mx-nano sm:text-mx-micro opacity-40">{ch.label}</Typography>
                                 </Card>
                             ))}
                         </div>
@@ -329,10 +329,10 @@ export default function VendedorHome() {
 
                     <Card className="p-mx-lg md:p-14 border-none shadow-mx-lg bg-white">
                         <header className="flex items-center gap-mx-sm mb-12">
-                            <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-xl bg-status-info-surface text-status-info border border-status-info/20 flex items-center justify-center shadow-inner shrink-0"><Clock size={24} className="md:size-[28px]" /></div>
+                            <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-xl bg-status-info-surface text-status-info border border-status-info/20 flex items-center justify-center shadow-inner shrink-0"><Clock size={24} className="md:size-mx-md" /></div>
                             <div>
                                 <Typography variant="h2" className="text-xl md:text-2xl uppercase tracking-tighter leading-none">Rotina MX</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px] tracking-widest opacity-40">AGENDA DE ALTA PERFORMANCE</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest opacity-40">AGENDA DE ALTA PERFORMANCE</Typography>
                             </div>
                         </header>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
@@ -350,7 +350,7 @@ export default function VendedorHome() {
                                     <div className="w-px h-mx-lg bg-border-strong opacity-30 group-hover/task:bg-brand-primary/30 transition-colors" />
                                     <div className="min-w-0">
                                         <Typography variant="caption" className="text-text-primary block mb-0.5 uppercase font-black text-xs truncate">{r.task}</Typography>
-                                        <Typography variant="tiny" tone="muted" className="lowercase tracking-normal italic opacity-60 line-clamp-1 text-[10px]">"{r.desc}"</Typography>
+                                        <Typography variant="tiny" tone="muted" className="lowercase tracking-normal italic opacity-60 line-clamp-1 text-mx-tiny">"{r.desc}"</Typography>
                                     </div>
                                 </div>
                             ))}
@@ -359,23 +359,23 @@ export default function VendedorHome() {
                 </div>
 
                 <aside className="lg:col-span-4">
-                    <Card className="bg-mx-black text-white p-mx-lg md:p-14 h-full border-none shadow-mx-xl relative overflow-hidden group min-h-[300px]">
+                    <Card className="bg-mx-black text-white p-mx-lg md:p-14 h-full border-none shadow-mx-xl relative overflow-hidden group h-mx-64">
                         <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 via-transparent to-transparent z-0 opacity-50" aria-hidden="true" />
                         <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:rotate-12 transition-transform duration-700 pointer-events-none" aria-hidden="true"><Zap size={240} fill="currentColor" /></div>
                         
                         <header className="flex items-center justify-between mb-16 relative z-10">
                             <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:bg-brand-primary transition-colors shrink-0">
-                                <TrendingUp size={24} className="md:size-[28px] text-white" />
+                                <TrendingUp size={24} className="md:size-mx-md text-white" />
                             </div>
-                            <Badge variant="outline" className="text-white border-white/20 px-4 font-black text-[8px] sm:text-mx-micro h-mx-md uppercase">WEEKLY SPRINT</Badge>
+                            <Badge variant="outline" className="text-white border-white/20 px-4 font-black text-mx-nano sm:text-mx-micro h-mx-md uppercase">WEEKLY SPRINT</Badge>
                         </header>
 
                         <div className="relative z-10 space-y-mx-xl">
                             <div className="space-y-mx-md">
-                                <Typography variant="tiny" tone="white" className="opacity-40 tracking-mx-widest font-black uppercase text-[10px]">PERFORMANCE DA SEMANA</Typography>
+                                <Typography variant="tiny" tone="white" className="opacity-40 tracking-mx-widest font-black uppercase text-mx-tiny">PERFORMANCE DA SEMANA</Typography>
                                 <div className="flex items-baseline gap-mx-sm">
                                     <Typography variant="h1" tone="white" className="text-5xl sm:text-7xl font-mono-numbers leading-none tracking-tighter">{metrics.vendasSemana}</Typography>
-                                    <Typography variant="tiny" tone="white" className="opacity-40 uppercase font-black text-[10px]">UNIDADES</Typography>
+                                    <Typography variant="tiny" tone="white" className="opacity-40 uppercase font-black text-mx-tiny">UNIDADES</Typography>
                                 </div>
                                 <div className="h-mx-xs w-full bg-white/5 rounded-mx-full overflow-hidden border border-white/5 p-mx-tiny shadow-inner">
                                     <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} transition={{ duration: 2 }} className="h-full bg-gradient-to-r from-brand-primary to-mx-indigo-400 rounded-mx-full shadow-mx-glow-brand" />

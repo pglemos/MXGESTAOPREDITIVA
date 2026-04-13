@@ -189,10 +189,10 @@ export default function Equipe() {
                 </div>
 
                 <footer className="p-mx-md border-t border-border-default bg-surface-alt/20 flex flex-wrap gap-mx-xs mt-auto relative z-10">
-                  <Button variant="outline" size="sm" onClick={() => setEditingMember(member)} className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm border-border-strong hover:border-brand-primary min-w-[45%]" aria-label="Configurar vigência">
+                  <Button variant="outline" size="sm" onClick={() => setEditingMember(member)} className="flex-1 h-mx-xl rounded-mx-lg bg-white shadow-sm border-border-strong hover:border-brand-primary basis-1/2" aria-label="Configurar vigência">
                     <Settings2 size={18} />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => window.open(`tel:${member.phone}`)} className="flex-1 h-mx-xl rounded-mx-lg text-status-success bg-white hover:bg-status-success-surface border-border-strong hover:border-status-success shadow-sm min-w-[45%]" aria-label="Ligar para vendedor">
+                  <Button variant="outline" size="sm" onClick={() => window.open(`tel:${member.phone}`)} className="flex-1 h-mx-xl rounded-mx-lg text-status-success bg-white hover:bg-status-success-surface border-border-strong hover:border-status-success shadow-sm basis-1/2" aria-label="Ligar para vendedor">
                     <Phone size={18} />
                   </Button>
                   <Button asChild variant="secondary" size="sm" className="w-full h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
