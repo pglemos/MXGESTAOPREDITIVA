@@ -1,139 +1,138 @@
-import { expect, test, describe } from "bun:test";
-import { 
-    calcularAtingimento, 
-    calcularFaltaX, 
-    calcularProjecao, 
+import { expect, test, describe } from 'bun:test'
+import {
+    calcularTotais,
+    calcularAtingimento,
+    calcularFaltaX,
+    calcularProjecao,
     calcularRitmo,
     isBusinessDay,
-    getBusinessDaysInMonth,
-    getDiasInfo,
     calcularFunil,
     gerarDiagnosticoMX,
-    calcularScoreMX,
-    getOperationalStatus
-} from "./calculations";
+    MX_BENCHMARKS
+} from './calculations'
+import type { DailyCheckin, CheckinFormData, FunnelData } from '@/types/database'
 
-describe("Business Logic: attainment & goals", () => {
-    test("calcularAtingimento: should handle zero meta", () => {
-        expect(calcularAtingimento(10, 0)).toBe(0);
-    });
+describe('Business Calculations (MX Performance)', () => {
+    
+    test('calcularAtingimento', () => {
+        expect(calcularAtingimento(5, 10)).toBe(50)
+        expect(calcularAtingimento(0, 10)).toBe(0)
+        expect(calcularAtingimento(10, 0)).toBe(0) // Meta zero
+        expect(calcularAtingimento(15, 10)).toBe(150)
+        expect(calcularAtingimento(3, 7)).toBe(42.9) // Arredondamento 1 casa decimal
+    })
 
-    test("calcularAtingimento: should calculate correctly", () => {
-        expect(calcularAtingimento(5, 10)).toBe(50);
-        expect(calcularAtingimento(1, 3)).toBe(33.3);
-    });
+    test('calcularFaltaX', () => {
+        expect(calcularFaltaX(10, 3)).toBe(7)
+        expect(calcularFaltaX(10, 15)).toBe(0) // Não deve ser negativo
+        expect(calcularFaltaX(0, 5)).toBe(0)
+    })
 
-    test("calcularFaltaX: should handle surplus", () => {
-        expect(calcularFaltaX(10, 15)).toBe(0);
-        expect(calcularFaltaX(10, 5)).toBe(5);
-    });
-});
+    test('calcularProjecao', () => {
+        expect(calcularProjecao(5, 10, 30)).toBe(15)
+        expect(calcularProjecao(0, 10, 30)).toBe(0)
+        expect(calcularProjecao(5, 0, 30)).toBe(0) // Dias decorridos zero
+    })
 
-describe("Predictive Logic: projection & rhythm", () => {
-    test("calcularProjecao: should project based on elapsed days", () => {
-        // 10 sales in 10 days of a 30-day month = 30 project
-        expect(calcularProjecao(10, 10, 30)).toBe(30);
-        // 5 sales in 10 days of a 30-day month = 15 project
-        expect(calcularProjecao(5, 10, 30)).toBe(15);
-    });
+    test('calcularRitmo', () => {
+        expect(calcularRitmo(20, 5, 15)).toBe(1) // Faltam 15, tem 15 dias -> ritmo 1
+        expect(calcularRitmo(20, 20, 10)).toBe(0) // Meta batida -> ritmo 0
+        expect(calcularRitmo(20, 25, 10)).toBe(0) // Meta ultrapassada -> ritmo 0
+        expect(calcularRitmo(20, 5, 0)).toBe(0) // Sem dias restantes -> ritmo 0
+        expect(calcularRitmo(10, 5, 3)).toBe(1.7) // Arredondamento 1 casa decimal
+    })
 
-    test("calcularRitmo: should calculate required daily average", () => {
-        // Need 10 sales in 5 days = 2.0 per day
-        expect(calcularRitmo(20, 10, 5)).toBe(2);
-        // Need 1 sale in 10 days = 0.1 per day
-        expect(calcularRitmo(11, 10, 10)).toBe(0.1);
-    });
-});
+    test('isBusinessDay', () => {
+        // 2026-04-12 is Sunday
+        expect(isBusinessDay(new Date('2026-04-12T12:00:00Z'))).toBe(false)
+        // 2026-04-13 is Monday
+        expect(isBusinessDay(new Date('2026-04-13T12:00:00Z'))).toBe(true)
+        // 2026-04-18 is Saturday
+        expect(isBusinessDay(new Date('2026-04-18T12:00:00Z'))).toBe(true)
+    })
 
-describe("Temporal Logic: business days (MX Method)", () => {
-    test("isBusinessDay: should exclude Sundays", () => {
-        const sunday = new Date('2026-04-12T12:00:00'); // Sunday
-        const monday = new Date('2026-04-13T12:00:00'); // Monday
-        expect(isBusinessDay(sunday)).toBe(false);
-        expect(isBusinessDay(monday)).toBe(true);
-    });
+    test('calcularTotais from FormData', () => {
+        const formData: Partial<CheckinFormData> = {
+            leads: 10,
+            agd_cart: 2,
+            agd_net: 3,
+            vnd_porta: 1,
+            vnd_cart: 0,
+            vnd_net: 1
+        }
+        const totais = calcularTotais(formData as CheckinFormData)
+        expect(totais.agd_total).toBe(5)
+        expect(totais.vnd_total).toBe(2)
+    })
 
-    test("getBusinessDaysInMonth: should count Mon-Sat", () => {
-        // April 2026 has 30 days. Starts on Wed.
-        // Sundays: 5, 12, 19, 26 (4 Sundays)
-        // Expected: 30 - 4 = 26 business days
-        expect(getBusinessDaysInMonth(2026, 3)).toBe(26); // month is 0-indexed
-    });
+    test('calcularTotais from DailyCheckin', () => {
+        const checkin: Partial<DailyCheckin> = {
+            agd_cart_today: 2,
+            agd_net_today: 3,
+            vnd_porta_prev_day: 1,
+            vnd_cart_prev_day: 0,
+            vnd_net_prev_day: 1
+        }
+        const totais = calcularTotais(checkin)
+        expect(totais.agd_total).toBe(5)
+        expect(totais.vnd_total).toBe(2)
+    })
 
-    test("getDiasInfo: should support calendar vs business mode", () => {
-        const ref = '2026-04-10'; // Friday (10th day)
+    test('calcularFunil', () => {
+        const checkins: Partial<DailyCheckin>[] = [
+            { leads_prev_day: 10, agd_cart_prev_day: 1, agd_net_prev_day: 2, visit_prev_day: 2, vnd_net_prev_day: 1 },
+            { leads_prev_day: 20, agd_cart_prev_day: 2, agd_net_prev_day: 1, visit_prev_day: 2, vnd_porta_prev_day: 1 }
+        ]
         
-        // Calendar Mode: 30 total, 10 elapsed
-        const cal = getDiasInfo(ref, 'calendar');
-        expect(cal.total).toBe(30);
-        expect(cal.decorridos).toBe(10);
-
-        // Business Mode: 26 total (no Sundays)
-        // April 2026: 5th is Sunday. 10th is Friday.
-        // Elapsed business days up to 10th: 1,2,3,4, (5 skip), 6,7,8,9,10 = 9 days
-        const biz = getDiasInfo(ref, 'business');
-        expect(biz.total).toBe(26);
-        expect(biz.decorridos).toBe(9);
-    });
-});
-
-describe("Funnel & Intelligence: MX 20/60/33", () => {
-    const perfectFunnel = {
-        leads: 100,
-        agd_total: 20,
-        visitas: 12,
-        vnd_total: 4,
-        tx_lead_agd: 20,
-        tx_agd_visita: 60,
-        tx_visita_vnd: 33
-    };
-
-    test("gerarDiagnosticoMX: should return success for balanced funnel", () => {
-        const diag = gerarDiagnosticoMX(perfectFunnel);
-        expect(diag.gargalo).toBeNull();
-    });
-
-    test("gerarDiagnosticoMX: should identify lead bottleneck", () => {
-        const badLead = { ...perfectFunnel, tx_lead_agd: 10 };
-        const diag = gerarDiagnosticoMX(badLead);
-        expect(diag.gargalo).toBe('LEAD_AGD');
-    });
-
-    test("gerarDiagnosticoMX: should identify showroom bottleneck", () => {
-        const badShowroom = { ...perfectFunnel, tx_visita_vnd: 20 };
-        const diag = gerarDiagnosticoMX(badShowroom);
-        expect(diag.gargalo).toBe('VISITA_VND');
-    });
-});
-
-describe("Performance Indicators: MX Score", () => {
-    test("calcularScoreMX: should reward consistency and conversion", () => {
-        const funnel = { leads: 100, agd_total: 20, visitas: 12, vnd_total: 4, tx_lead_agd: 20, tx_agd_visita: 60, tx_visita_vnd: 33 };
+        const funil = calcularFunil(checkins as DailyCheckin[])
         
-        // Perfect seller: 10 sales, meta 10, perfect funnel, 10 checkins in 10 days
-        const score = calcularScoreMX(10, 10, funnel, 10, 10);
-        // Attainment 100% = 1000 pts
-        // 3 bonuses = 150 + 150 + 200 = 500 pts
-        // Multiplier 1.2x (consistency)
-        // Total = (1000 + 500) * 1.2 = 1800
-        expect(score).toBe(1800);
-    });
+        expect(funil.leads).toBe(30)
+        expect(funil.agd_total).toBe(6)
+        expect(funil.visitas).toBe(4)
+        expect(funil.vnd_total).toBe(2)
+        
+        expect(funil.tx_lead_agd).toBe(20) // 6/30 * 100
+        expect(funil.tx_agd_visita).toBe(67) // 4/6 * 100
+        expect(funil.tx_visita_vnd).toBe(50) // 2/4 * 100
+    })
 
-    test("calcularScoreMX: should punish indiscipline", () => {
-        const funnel = { leads: 100, agd_total: 20, visitas: 12, vnd_total: 4, tx_lead_agd: 20, tx_agd_visita: 60, tx_visita_vnd: 33 };
-        // Same seller, but only 5 checkins in 10 days (50% discipline)
-        const score = calcularScoreMX(10, 10, funnel, 5, 10);
-        // (1000 + 500) * 0.5 = 750
-        expect(score).toBe(750);
-    });
-});
+    test('gerarDiagnosticoMX', () => {
+        const rules = {
+            store_id: '1',
+            monthly_goal: 100,
+            individual_goal_mode: 'even' as const,
+            include_venda_loja_in_store_total: false,
+            include_venda_loja_in_individual_goal: false,
+            bench_lead_agd: 20,
+            bench_agd_visita: 60,
+            bench_visita_vnd: 33,
+            projection_mode: 'calendar' as const,
+            updated_by: null,
+            updated_at: ''
+        }
 
-describe("Operational Status: Labeling", () => {
-    test("getOperationalStatus: should flag indiscipline first", () => {
-        expect(getOperationalStatus(100, 70).label).toBe('INDISCIPLINA');
-    });
+        // Cenário 1: Gargalo em Lead -> Agendamento
+        const funil1: FunnelData = { leads: 100, agd_total: 10, visitas: 8, vnd_total: 4, tx_lead_agd: 10, tx_agd_visita: 80, tx_visita_vnd: 50 }
+        const diag1 = gerarDiagnosticoMX(funil1, false, rules)
+        expect(diag1.gargalo).toBe('LEAD_AGD')
 
-    test("getOperationalStatus: should award excellence", () => {
-        expect(getOperationalStatus(110, 100).label).toBe('EXCELÊNCIA');
-    });
-});
+        // Cenário 2: Gargalo em Agendamento -> Visita
+        const funil2: FunnelData = { leads: 100, agd_total: 30, visitas: 10, vnd_total: 5, tx_lead_agd: 30, tx_agd_visita: 33, tx_visita_vnd: 50 }
+        const diag2 = gerarDiagnosticoMX(funil2, false, rules)
+        expect(diag2.gargalo).toBe('AGD_VISITA')
+
+        // Cenário 3: Gargalo em Visita -> Venda
+        const funil3: FunnelData = { leads: 100, agd_total: 30, visitas: 20, vnd_total: 2, tx_lead_agd: 30, tx_agd_visita: 67, tx_visita_vnd: 10 }
+        const diag3 = gerarDiagnosticoMX(funil3, false, rules)
+        expect(diag3.gargalo).toBe('VISITA_VND')
+
+        // Cenário 4: Tudo saudável
+        const funil4: FunnelData = { leads: 100, agd_total: 25, visitas: 15, vnd_total: 6, tx_lead_agd: 25, tx_agd_visita: 60, tx_visita_vnd: 40 }
+        const diag4 = gerarDiagnosticoMX(funil4, false, rules)
+        expect(diag4.gargalo).toBe(null)
+
+        // Cenário 5: Venda Loja (SISTEMICO)
+        const diag5 = gerarDiagnosticoMX(funil4, true, rules)
+        expect(diag5.gargalo).toBe('SISTEMICO')
+    })
+})

@@ -326,7 +326,7 @@ export default function GerenteTreinamentos() {
             <AnimatePresence>
                 {assigningTo && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-sm">
-                        <Card className="w-full max-w-2xl max-h-[80vh] overflow-y-auto no-scrollbar shadow-mx-2xl border-none bg-white rounded-mx-3xl">
+                        <Card className="w-full max-w-mx-2xl max-h-full overflow-y-auto no-scrollbar shadow-mx-2xl border-none bg-white rounded-mx-3xl">
                             <header className="p-mx-lg border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                                 <div className="flex items-center gap-mx-sm">
                                     <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Target size={20} /></div>

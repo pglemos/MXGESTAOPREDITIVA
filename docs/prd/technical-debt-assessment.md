@@ -1,77 +1,71 @@
 # Technical Debt Assessment - FINAL
 
-**Projeto:** MX Performance
-**Data:** 11 de Abril de 2026
-**Versão:** 1.0 (Consolidated)
-**Aprovação:** Quinn (QA) - APPROVED
+## Executive Summary
+- **Total de débitos:** 16 (incluindo as adições dos especialistas de DB e UX)
+- **Críticos:** 2 | **Altos:** 6 | **Médios:** 6 | **Baixos:** 2
+- **Esforço total estimado:** ~45 horas (aprox. 1 sprint para estabilização completa)
 
----
+## Inventário Completo de Débitos
 
-## 🎯 Executive Summary
-O sistema MX Performance apresenta uma fundação moderna, mas com cicatrizes de uma evolução rápida (Brownfield). Identificamos débitos significativos em **Testes de Motor**, **Integridade de Tipos de Dados** e **Reutilização de UI**.
+### Sistema (validado por @architect)
+| ID | Débito | Severidade | Horas | Prioridade |
+|----|--------|------------|-------|------------|
+| SYS-01 | Root Pollution (scripts isolados no root) | Baixa | 1 | Média |
+| SYS-02 | Unit Test Gap (`src/lib/calculations.ts`) | Alta | 6 | Alta |
+| SYS-03 | Ghost Directory (`src/app`) | Baixa | 0.5 | Baixa |
+| SYS-04 | Dependency Drift | Baixa | 0.5 | Baixa |
 
-- **Total de Débitos Identificados:** 12
-- **Críticos:** 3 | Altos: 4 | Médios: 5
-- **Esforço Total Estimado:** ~45 horas de desenvolvimento especializado.
+### Database (validado por @data-engineer)
+| ID | Débito | Severidade | Horas | Prioridade |
+|----|--------|------------|-------|------------|
+| DB-02 | Type Sync Debt (`store_sellers`) | Alta | 1 | Crítica |
+| DB-03 | N+1 Queries / Missing Indexes | Alta | 2 | Alta |
+| DB-04 | Legacy Ghost Tables | Média | 1 | Alta |
+| DB-01 | PII Exposure (Plaintext emails) | Média | 8 | Média |
+| DB-05 | Service Role Bypass | Média | 4 | Média |
+| DB-07 | Falta de Constraint na Tabela de PDI | Média | 2 | Média |
+| DB-06 | Large Table Partitioning | Baixa | 16 | Baixíssima |
 
----
+### Frontend/UX (validado por @ux-design-expert)
+| ID | Débito | Severidade | Horas | Prioridade |
+|----|--------|------------|-------|------------|
+| UX-01 | Login Page Chaos | Crítica | 3 | Crítica |
+| UX-02 | Component Library Drift (Shadcn/Radix) | Alta | 4 | Alta |
+| UX-03 | Modal/Overlay Viewport Bounds | Alta | 2 | Alta |
+| UX-05 | Acessibilidade (A11y) - Aria Labels | Alta | 2 | Alta |
+| UX-04 | Hardcoded Inline Styles / Tooltips | Média | 2 | Média |
 
-## 🔍 Inventário Completo de Débitos
+## Matriz de Priorização Final e Plano de Resolução
 
-### 1. Sistema & Motor (Validado por @architect)
-| ID | Débito | Severidade | Esforço (h) | Prioridade |
-|----|--------|------------|-------------|------------|
-| SYS-01 | Root Pollution Cleanup | Baixa | 2h | Baixa |
-| SYS-02 | Unit Tests: Calculations | Alta | 8h | CRÍTICA |
-| SYS-03 | Ghost Dir Removal (`/app`) | Média | 1h | Média |
+### ONDA 1: Correções Críticas (Sprint Imediata)
+> **Foco:** Estabilidade, Consistência de Tipagem e Consistência de Marca.
+1. **[UX-01]** Refatorar `Login.tsx` para seguir o Atomic Design e os tokens `mx-`.
+2. **[DB-02]** Atualizar `src/types/database.ts` para tipar `store_sellers`.
+3. **[SYS-02]** Implementar suíte de testes unitários para cálculos críticos (Mitigação QA).
 
-### 2. Database & Dados (Validado por @data-engineer)
-| ID | Débito | Severidade | Esforço (h) | Prioridade |
-|----|--------|------------|-------------|------------|
-| DB-01 | Native PG Enums Migration | Média | 4h | Média |
-| DB-02 | Compose Indexes (Audit/Logs) | Alta | 2h | ALTA |
-| DB-03 | RLS `IMMUTABLE` Optimization | Baixa | 3h | Baixa |
-| DB-04 | Membership Orphanage Trigger | Média | 2h | Média |
+### ONDA 2: Performance e Dívida Base (Sprint Imediata)
+> **Foco:** Performance do Banco, Experiência Mobile e Limpeza de Lixo.
+1. **[DB-03]** Criar índice composto `idx_checkins_store_date`.
+2. **[UX-02]** Reescrever classes Tailwind numéricas na raiz dos componentes `ui/` para tokens `mx-`.
+3. **[UX-03]** Corrigir layouts baseados em Viewport (vh/vw) para constraints atômicas (evitar scroll trap no mobile).
+4. **[DB-04 & SYS-03]** DROP tables obsoletas (gamification, etc) e deletar pasta `src/app`.
+5. **[SYS-01]** Limpar poluição na raiz (scripts mjs/cjs).
 
-### 3. Frontend & UX (Validado por @ux-design-expert)
-| ID | Débito | Severidade | Esforço (h) | Prioridade |
-|----|--------|------------|-------------|------------|
-| UI-01 | Extraction of `DataGrid` Organism | Alta | 8h | ALTA |
-| UI-02 | Icon Semantic Standardization | Baixa | 2h | Baixa |
-| UI-03 | Tailwind Layout Utility Plugin | Média | 4h | Média |
-| UI-04 | Login A11y Contrast (Dark Mode) | Alta | 2h | ALTA |
+### ONDA 3: Qualidade e Segurança (Sprint Seguinte)
+> **Foco:** Auditoria, Acessibilidade, Constraints.
+1. **[UX-05]** Revisar WCAG (aria-labels) no Painel Consultor.
+2. **[DB-07]** Adicionar constraints NOT NULL pendentes na tabela de PDI.
+3. **[UX-04]** Migrar cores inline hardcoded do Recharts para Variáveis CSS de Tema.
+4. **[DB-05]** Refinar permissões de cron jobs e scripts (Service Role).
+5. **[DB-01]** Mover emails PII para `pgcrypto` em repouso.
 
----
+## Riscos e Mitigações (via QA Review)
+- **Risco:** Regressão em Cálculos. **Mitigação:** Suíte de testes unitários (`SYS-02`) é bloqueante antes de grandes refatorações no motor.
+- **Risco:** Inconsistência RLS pós-correção. **Mitigação:** Usar workflow de impersonation (`test-as-user`) após qualquer toque no banco.
+- **Risco:** Quebra de Layout Atômico. **Mitigação:** CI/CD com step obrigatório de `npm run lint:tokens`.
 
-## 🚀 Plano de Resolução (Roadmap)
-
-### Fase 1: Fundação & Segurança (Semana 1)
-- **DB-02:** Índices de Auditoria (Garante performance imediata).
-- **UI-04:** Fix de Contraste no Login (A11y Compliance).
-- **SYS-01:** Root Cleanup (Higiene de código).
-
-### Fase 2: Robustez do Motor (Semana 2)
-- **SYS-02:** Suíte de Testes Unitários para `calculations.ts` (Mandatário para escala).
-- **DB-01:** Migração para Enums Nativos (Integridade).
-
-### Fase 3: Escala & Reuso (Semana 3-4)
-- **UI-01:** Criação do `DataGrid` (Reduz duplicidade em 18+ páginas).
-- **UI-03:** Plugin de Layout Tailwind (Consolidação técnica).
-
----
-
-## 🛡️ Riscos e Mitigações (QA Insight)
-- **Risco:** Regressão em cálculos operacionais durante a refatoração.
-- **Mitigação:** Bloqueio de qualquer mudança no motor sem 100% de cobertura de testes unitários prévia.
-- **Risco:** Inconsistência de dados durante migração para Enums.
-- **Mitigação:** Script de "Dry Run" em sandbox validado pelo @data-engineer.
-
----
-
-## ✅ Critérios de Sucesso
-1. **Lighthouse Score:** 95+ em Acessibilidade e Performance.
-2. **Build Error Rate:** 0% (travado por lint:tokens e tsc).
-3. **Audit Latency:** Consultas ao histórico de 90 dias com resposta < 200ms.
-
----
-**Assinatura:** Aria (@architect) 🏛️
+## Critérios de Sucesso
+- A página de Login deve renderizar sem nenhuma violação no `lint:tokens`.
+- Nenhuma query na produção deve disparar "Slow Query" superior a 500ms (após índices).
+- Os Modais devem ser totalmente manipuláveis em um iPhone SE sem "clipping".
+- A pasta raiz não deve conter arquivos obsoletos (.cjs/.mjs/assets temporários) não relacionados ao processo de build.

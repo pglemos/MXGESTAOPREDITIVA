@@ -8,6 +8,7 @@ import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
   LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
+  BriefcaseBusiness,
   ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
+        { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
         { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
         { label: 'Funil', path: '/funil', icon: <TrendingUp size={16} /> },
@@ -314,7 +316,7 @@ export default function Layout() {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-xl pb-32 max-h-[80vh] overflow-y-auto"
+              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-xl pb-mx-32 max-h-full overflow-y-auto"
               onClick={e => e.stopPropagation()}
               role="dialog"
               aria-label="Menu Mobile Principal"

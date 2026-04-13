@@ -1,38 +1,55 @@
-# Frontend & UX Specification - MX Performance
+# UI/UX Specification & Technical Debt Audit
 
+**Project:** MX Performance
 **Status:** ACTIVE
-**Version:** 1.1 (Atomic Update)
-**Responsible:** @ux-design-expert (Uma)
+**Date:** April 13, 2026
+**Auditor:** @ux-design-expert (Uma)
 
-## 1. Design System Architecture
-The system follows a strict **Atomic Design** methodology, powered by TailwindCSS 4 variables.
+## 1. Design System & Principles
 
-### Atoms
-- **Typography:** Standardized `Typography` component with semantic variants (h1, h2, h3, p, caption, mono, tiny, micro).
-- **Interactive:** `Button`, `Input`, `Select`, `Textarea`, `Badge`.
-- **Feedback:** `Skeleton`, `Sonner` (toasts).
+### Foundation
+- **Methodology:** Strict Atomic Design (Atoms → Molecules → Organisms → Pages)
+- **Styling:** TailwindCSS 4.1 + Radix UI Primitives + Framer Motion (v12)
+- **Tokenization Strategy:** 100% tokenized. Use `mx-` prefixed tokens (e.g., `p-mx-md`, `text-mx-tiny`, `bg-brand-primary`).
 
-### Molecules
-- **Card:** Base container for all elevation-based UI.
-- **FormField:** Composite atom with label and error state.
-- **MXScoreCard:** Specialized metric display with `aria-description` support.
-- **ChallengeCard:** Gamification-based progress tracking.
+### Usability Goals
+1. **Efficiency:** Store managers can complete check-ins and performance reviews with minimal friction (under 2 minutes).
+2. **Clarity:** Sales performance (D-0 vs D-1) and conversion funnels must be visually unambiguous.
+3. **Responsiveness:** Flawless mobile experience, prioritizing touch areas and compact layouts for operational field usage.
 
-### Organisms
-- **PowerRankingList:** Hierarchical display of sellers and unit performance.
-- **WizardPDI:** 4-step guided session for development plans.
+## 2. Frontend & UX Audit (Technical Debt)
 
-## 2. Technical Standards
-- **Tokenization:** 100% of colors and spacing use `mx-` prefix (e.g., `bg-brand-primary`, `p-mx-lg`).
-- **Responsive Hardening:** Mobile-first approach. All grids use fallback `grid-cols-1`.
-- **A11y:** Use of `aria-live`, `aria-atomic`, `role="log"`, and semantic HTML (`main`, `aside`, `nav`).
+While the core modules have been refactored for Atomic Design compliance, an audit reveals residual technical debt across the UI.
 
-## 3. Identified Technical Debts (UI/UX Level)
-- **[HIGH] Organism Scarcity:** Most pages re-implement complex structures instead of consuming standardized `Organisms`. Need to extract `MetricGrid` and `Timeline` into the library.
-- **[MEDIUM] Icon Inconsistency:** Mix of standard Lucide icons and filled variants without a strict guideline on "stroke vs fill" for semantic actions.
-- **[MEDIUM] Layout Utility Overlap:** Several layout classes (`mx-layout-sticky-offset`, etc.) are defined in `index.css`. These should be moved to a specific `src/styles/layout.css` or integrated into Tailwind plugin.
-- **[LOW] Animation Budget:** Motion (Framer) is used extensively. Need to audit bundle size impact if the number of pages continues to grow.
+### 🔴 Critical UX/UI Debt (Violations)
+1. **Login Page Chaos (`src/pages/Login.tsx`):**
+   - 39 token violations detected via `lint:tokens`.
+   - Extensive use of arbitrary values (`w-[70%]`, `top-[-20%]`, `blur-[140px]`).
+   - Standard tailwind classes (`p-16`, `w-40`) circumventing the `mx-` design system.
+   - **UX Impact:** Inconsistent branding and unpredictable responsive behavior on different viewports.
+
+### 🟡 High Priority UX/UI Debt
+1. **Component Library Drift (`src/components/ui/`):**
+   - Shadcn UI base components (`dialog.tsx`, `dropdown-menu.tsx`, `scroll-area.tsx`, `select.tsx`) still use hardcoded pixel values and VW units (e.g., `w-[95vw]`, `translate-x-[-50%]`, `min-w-[8rem]`).
+   - **UX Impact:** Accessibility and scaling issues. These components do not respond accurately to our global spacing scale.
+
+2. **Modal and Overlay Viewport Bounds:**
+   - Scattered use of `max-h-[80vh]`, `max-h-[90vh]` instead of semantic layout containers.
+   - Files affected: `GerenteTreinamentos.tsx`, `GerenteFeedback.tsx`, `History.tsx`, `WizardPDI.tsx`, `Layout.tsx`.
+   - **UX Impact:** Scroll-trapping and clipping on small mobile screens.
+
+### 🔵 Medium Priority UX/UI Debt
+1. **Hardcoded Inline Styles in Print/Reporting Views:**
+   - Extensive use of `style={{ textAlign: 'left' }}` in `PrintableFeedback.tsx` and `WeeklyStoreReport.tsx`.
+   - Fixed millimeter widths (`w-[210mm]`) in `PDIPrint.tsx`.
+   - Hardcoded colors in Recharts tooltips (`backgroundColor: '#1A1D20'`) in `SellerPerformance.tsx` and `SalesPerformance.tsx`.
+   - **UX Impact:** Print views break atomic rules, and chart tooltips will fail to adapt if a Light Mode theme is introduced.
+
+## 3. Action Plan (Next Steps)
+
+1. **Refactor Login Page:** Completely rewrite `Login.tsx` to strictly use `mx-` tokens and grid/flex utilities.
+2. **Saneamento da UI Base:** Atualizar as larguras e alturas da biblioteca Shadcn/Radix UI para absorver a escala `mx-`.
+3. **Chart Theming:** Migrar as cores hardcoded nos componentes `<Tooltip />` do Recharts para ler as variáveis CSS do tema.
 
 ---
-**Audit Date:** April 11, 2026
-**Approval:** Orion (Master Orchestrator)
+**Approval:** Uma (UX Design Expert)

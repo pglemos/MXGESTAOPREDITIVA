@@ -43,6 +43,18 @@ export interface Store {
     updated_at: string
 }
 
+/** Mapeamento Multi-tenant (Membership): Vincula usuários a múltiplas lojas */
+export interface StoreSeller {
+    id: string
+    store_id: string
+    seller_id: string
+    is_active: boolean
+    created_at?: string
+    // Dados injetados em queries com JOIN
+    store?: Store
+    seller?: User
+}
+
 /** Regras de Meta da Unidade (Crucial para cálculos de performance) */
 export interface StoreMetaRules {
     store_id: string

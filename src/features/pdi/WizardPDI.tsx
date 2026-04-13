@@ -156,7 +156,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
             className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/80 backdrop-blur-md"
             role="dialog" aria-modal="true"
         >
-            <Card className="w-full max-w-6xl max-h-[95vh] overflow-y-auto no-scrollbar shadow-mx-elite border-none flex flex-col bg-white rounded-mx-2xl">
+            <Card className="w-full max-w-mx-6xl max-h-full overflow-y-auto no-scrollbar shadow-mx-elite border-none flex flex-col bg-white rounded-mx-2xl">
                 <header className="p-mx-lg md:p-10 border-b border-border-default flex flex-col gap-mx-lg sticky top-mx-0 bg-white z-10 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-mx-sm">
