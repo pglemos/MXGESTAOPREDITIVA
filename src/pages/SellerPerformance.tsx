@@ -12,7 +12,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/molec
 import { Input } from '@/components/atoms/Input'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
-import { DataGrid } from '@/components/organisms/DataGrid'
+import { DataGrid, type Column } from '@/components/organisms/DataGrid'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -51,13 +51,13 @@ export default function SellerPerformance() {
         return ranking.filter(r => r.user_name.toLowerCase().includes(search.toLowerCase()))
     }, [ranking, search])
 
-    const columns = useMemo(() => [
+    const columns = useMemo<Column<any>[]>(() => [
         {
             key: 'position',
             header: '#',
             width: '60px',
             align: 'center',
-            render: (_: any, __: any, index: number) => (
+            render: (_: any, index: number) => (
                 <span className={cn(
                     "font-black tabular-nums",
                     index === 0 ? "text-status-warning" : "text-text-tertiary"
@@ -151,11 +151,11 @@ export default function SellerPerformance() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={filteredRanking.slice(0, 5)} layout="vertical" margin={{ left: 0, right: 30, top: 0, bottom: 0 }}>
                                     <XAxis type="number" hide />
-                                    <YAxis dataKey="user_name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#fff', fontWeight: 900, fontSize: 8 }} width={100} />
-                                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900 }} />
+                                    <YAxis dataKey="user_name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-primary)', fontWeight: 900, fontSize: 8 }} width={100} />
+                                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-lg)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900 }} />
                                     <Bar dataKey="vnd_total" radius={[0, 4, 4, 0]} barSize={20}>
                                         {filteredRanking.slice(0, 5).map((_, i) => (
-                                            <Cell key={i} fill={i === 0 ? '#4f46e5' : '#6366f1'} />
+                                            <Cell key={i} fill={i === 0 ? 'var(--color-brand-primary)' : 'var(--color-brand-secondary)'} />
                                         ))}
                                     </Bar>
                                 </BarChart>

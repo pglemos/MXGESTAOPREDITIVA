@@ -125,15 +125,15 @@ export default function SalesPerformance() {
                                 <AreaChart data={[]} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2} />
-                                            <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="var(--color-brand-primary)" stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor="var(--color-brand-primary)" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1A1D20', borderRadius: '1.5rem', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
-                                    <Area type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" dot={{ r: 6, fill: '#4f46e5', strokeWidth: 4, stroke: '#fff' }} activeDot={{ r: 8, fill: '#4f46e5', stroke: '#fff', strokeWidth: 4 }} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-default)" />
+                                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
+                                    <Tooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
+                                    <Area type="monotone" dataKey="sales" stroke="var(--color-brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" dot={{ r: 6, fill: 'var(--color-brand-primary)', strokeWidth: 4, stroke: '#fff' }} activeDot={{ r: 8, fill: 'var(--color-brand-primary)', stroke: '#fff', strokeWidth: 4 }} />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </CardContent>
