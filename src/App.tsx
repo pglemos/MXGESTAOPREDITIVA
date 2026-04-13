@@ -43,12 +43,9 @@ const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
 const OperationalSettings = lazy(() => import('@/pages/OperationalSettings'))
 const Reprocessamento = lazy(() => import('@/pages/Reprocessamento'))
 const AiDiagnostics = lazy(() => import('@/pages/AiDiagnostics'))
-const CommissionRules = lazy(() => import('@/pages/CommissionRules'))
-const CrossSalesReports = lazy(() => import('@/pages/CrossSalesReports'))
 const MorningReport = lazy(() => import('@/pages/MorningReport'))
 const SalesPerformance = lazy(() => import('@/pages/SalesPerformance'))
-const Gamification = lazy(() => import('@/pages/Gamification'))
-const Activities = lazy(() => import('@/pages/Activities'))
+const SellerPerformance = lazy(() => import('@/pages/SellerPerformance'))
 
 const Spinner = () => (
   <div className="flex flex-col items-center gap-mx-md">
@@ -161,17 +158,10 @@ export default function App() {
             </Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
             <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}><SalesPerformance /></Suspense>} />
+            <Route path="relatorios/performance-vendedores" element={<Suspense fallback={<Spinner />}><SellerPerformance /></Suspense>} />
             <Route path="auditoria" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} dono={<Navigate to="/lojas" replace />} admin={<AiDiagnostics />} />
             </Suspense>} />
-
-            {/* Módulos Legados Isolados - Aguardando Migração MX */}
-            <Route path="legacy">
-              <Route path="configuracoes/comissoes" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CommissionRules />)}</Suspense>} />
-              <Route path="relatorios/vendas-cruzados" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<CrossSalesReports />)}</Suspense>} />
-              <Route path="gamification" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Gamification />)}</Suspense>} />
-              <Route path="activities" element={<Suspense fallback={<Spinner />}>{withLegacyShell(<Activities />)}</Suspense>} />
-            </Route>
 
             <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
           </Route>
