@@ -89,7 +89,7 @@ export function getDiasInfo(referenceDate?: Date | string, mode: 'calendar' | 'b
 
     const total = new Date(year, month + 1, 0).getDate()
     const decorridos = ref.getDate()
-    const restantes = total - decorridos
+    const restantes = Math.max(total - decorridos, 0)
     const referencia = ref.toISOString().split('T')[0]
     return { total, decorridos, restantes, referencia }
 }
@@ -132,6 +132,14 @@ export function gerarDiagnosticoMX(funil: FunnelData, isVendaLoja = false, rules
             gargalo: 'SISTEMICO',
             diagnostico: "Registro de Venda Loja (Saldo da Unidade).",
             sugestao: "Este item não possui funil individual e serve apenas para conciliação do total da loja."
+        }
+    }
+
+    if (funil.leads === 0 && funil.agd_total === 0 && funil.visitas === 0 && funil.vnd_total === 0) {
+        return {
+            gargalo: 'SEM_DADOS',
+            diagnostico: 'Sem dados suficientes para diagnóstico.',
+            sugestao: 'Realizar check-in regularmente para gerar dados de funil.'
         }
     }
 
@@ -187,8 +195,12 @@ export function validarFunil(data: CheckinFormData): string | null {
 
 /** Calculate MX Score (High Performance Indicator) */
 export function calcularScoreMX(vendas: number, meta: number, funil: FunnelData, checkinCount: number, daysElapsed: number): number {
-    // 1. Base Score from Sales (up to 1000 pts)
-    const salesScore = Math.min(calcularAtingimento(vendas, meta) * 10, 1000)
+    let salesScore: number
+    if (meta <= 0) {
+        salesScore = Math.min(vendas * 10, 1000)
+    } else {
+        salesScore = Math.min(calcularAtingimento(vendas, meta) * 10, 1000)
+    }
     
     // 2. Conversion Bonuses (up to 500 pts)
     let conversionBonus = 0
@@ -270,7 +282,7 @@ export function formatStructuredWhatsAppFeedback(data: {
 ${data.diagnostic.diagnostico}
 
 *🚀 PLANO DE AÇÃO (TOP 3):*
-${data.actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}
+${(data.actions || []).map((a: string, i: number) => `${i + 1}. ${a}`).join('\n')}
 
 *CONSELHO MX:* ${data.diagnostic.sugestao}
 

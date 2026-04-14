@@ -94,6 +94,9 @@ export interface DailyCheckin {
     
     zero_reason: string | null
     note: string | null
+    submitted_late?: boolean
+    edit_locked_at?: string | null
+    created_by?: string | null
     updated_at: string
 }
 
@@ -420,6 +423,9 @@ export interface ManagerRoutineLog {
     previous_day_sales: number
     ranking_snapshot?: Array<Record<string, unknown>>
     notes?: string | null
+    status?: string
+    executed_at?: string
+    updated_at?: string
     created_at?: string
 }
 
