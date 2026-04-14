@@ -15,7 +15,8 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { somarVendas, calcularProjecao, getDiasInfo, calcularAtingimento } from '@/lib/calculations'
+import { somarVendas, somarVendasPorCanal, calcularProjecao, getDiasInfo, calcularAtingimento } from '@/lib/calculations'
+import { exportToExcel } from '@/lib/export'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -30,12 +31,37 @@ export default function SalesPerformance() {
     
     const metrics = useMemo(() => {
         const currentSales = somarVendas(checkins)
+        const porCanal = somarVendasPorCanal(checkins)
         const teamGoal = metaRules?.monthly_goal ?? storeGoal?.target ?? 0
         const projection = calcularProjecao(currentSales, daysInfo.decorridos, daysInfo.total)
         const reaching = calcularAtingimento(currentSales, teamGoal)
         
-        return { currentSales, teamGoal, projection, reaching }
+        return { currentSales, porCanal, teamGoal, projection, reaching }
     }, [checkins, metaRules, storeGoal, daysInfo])
+
+    const chartData = useMemo(() => {
+        const byWeek: Record<string, number> = {}
+        for (const c of checkins) {
+            const week = c.reference_date?.slice(0, 7)
+            if (!week) continue
+            byWeek[week] = (byWeek[week] || 0) + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
+        }
+        return Object.entries(byWeek)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, sales]) => ({ month, sales }))
+    }, [checkins])
+
+    const handleExport = useCallback(() => {
+        const rows = checkins.map(c => ({
+            Data: c.reference_date,
+            Vendas: (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0),
+            Leads: c.leads_prev_day || 0,
+            Agendamentos: (c.agd_cart_prev_day || 0) + (c.agd_net_prev_day || 0),
+            Visitas: c.visit_prev_day || 0,
+        }))
+        exportToExcel(rows, `BI_Performance_${format(new Date(), 'yyyy-MM')}`)
+        toast.success('BI exportado!')
+    }, [checkins])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -72,7 +98,7 @@ export default function SalesPerformance() {
                         <Calendar size={18} className="text-brand-primary" />
                         <Typography variant="caption" className="font-black uppercase tracking-widest">Ciclo {format(new Date(), 'yyyy')}</Typography>
                     </div>
-                    <Button variant="secondary" className="h-mx-14 px-8 rounded-mx-full shadow-mx-xl font-black uppercase tracking-widest text-mx-tiny">
+                    <Button variant="secondary" onClick={handleExport} className="h-mx-14 px-8 rounded-mx-full shadow-mx-xl font-black uppercase tracking-widest text-mx-tiny">
                         <Download size={18} className="mr-2" /> EXPORTAR BI
                     </Button>
                 </div>
@@ -122,7 +148,7 @@ export default function SalesPerformance() {
                         </CardHeader>
                         <CardContent className="p-mx-10 h-mx-section-md">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={[]} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                                <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="var(--color-brand-primary)" stopOpacity={0.2} />

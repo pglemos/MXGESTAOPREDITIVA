@@ -204,7 +204,7 @@ export default function Notificacoes() {
               ))}
             </nav>
 
-            <footer className="pt-8 border-t border-border-default">
+            <footer className="pt-8 border-t border-border-default hidden">
                 <Button variant="outline" className="w-full h-mx-14 rounded-mx-full shadow-sm font-black uppercase tracking-widest text-xs bg-white border-border-strong hover:border-brand-primary">
                     AJUSTES DE ALERTA
                 </Button>

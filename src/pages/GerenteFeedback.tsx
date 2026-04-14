@@ -362,11 +362,7 @@ export default function GerenteFeedback() {
                                         <footer className="mt-10 pt-8 border-t border-border-default flex items-center justify-between relative z-10">
                                             <div className="flex gap-mx-xs">
                                                 <Button variant="ghost" size="icon" onClick={() => handleShareWhatsApp(f)} className="w-mx-10 h-mx-10 p-mx-0 text-status-success hover:bg-status-success-surface rounded-mx-xl border border-border-default shadow-sm bg-white" aria-label="Compartilhar no WhatsApp"><MessageSquare size={18} /></Button>
-                                                <Button variant="ghost" size="icon" className="w-mx-10 h-mx-10 p-mx-0 text-brand-primary hover:bg-mx-indigo-50 rounded-mx-xl border border-border-default shadow-sm bg-white" aria-label="Enviar por email"><Send size={18} /></Button>
                                             </div>
-                                            <Button variant="outline" size="sm" className="h-mx-10 px-4 text-mx-micro uppercase tracking-widest rounded-mx-xl shadow-sm bg-white font-black" aria-label="Ver PDF da mentoria">
-                                                <FileText size={14} className="mr-2" aria-hidden="true" /> PDF
-                                            </Button>
                                         </footer>
                                     </Card>
                                 </motion.li>

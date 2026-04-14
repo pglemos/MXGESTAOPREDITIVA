@@ -279,7 +279,10 @@ export default function MorningReport() {
                                             </div>
                                         ))}
                                     </div>
-                                    <Button variant="danger" className="w-full h-mx-xl rounded-mx-xl shadow-mx-lg">
+                                    <Button variant="danger" className="w-full h-mx-xl rounded-mx-xl shadow-mx-lg" onClick={() => {
+                                        const msg = encodeURIComponent(`🚨 MX PERFORMANCE — Lembrete de Check-in!\n\nPendente: ${metrics.pendingSellers.join(', ')}\n\nPreencha seu check-in agora.`)
+                                        window.open(`https://wa.me/?text=${msg}`, '_blank')
+                                    }}>
                                         <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">Notificar Time</Typography>
                                     </Button>
                                 </Card>
