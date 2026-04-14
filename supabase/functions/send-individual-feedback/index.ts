@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify({
-        from: "MX PERFORMANCE <onboarding@resend.dev>",
+        from: `MX PERFORMANCE <${Deno.env.get("RESEND_FROM_EMAIL") ?? "noreply@mxperformance.com.br"}>`,
         to: recipients,
         subject: `[Feedback MX] Auditoria de Performance: ${f.seller.name}`,
         html,
