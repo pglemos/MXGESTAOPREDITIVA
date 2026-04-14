@@ -104,7 +104,7 @@ export default function Login() {
                         <h1 className="text-5xl font-black text-white tracking-tight mb-4">
                             MX <span className="text-brand-primary">PERFORMANCE</span>
                         </h1>
-                        <p className="text-white/30 text-sm font-bold uppercase mb-16" style={{ letterSpacing: '0.3em' }}>
+                        <p className="text-white/50 text-sm font-bold uppercase mb-16" style={{ letterSpacing: '0.3em' }}>
                             Sistema de Gestao de Elite
                         </p>
                     </motion.div>
@@ -125,14 +125,14 @@ export default function Login() {
                                 <div className="w-mx-10 h-mx-10 rounded-xl bg-brand-primary/10 border border-brand-primary/15 flex items-center justify-center shrink-0 group-hover:bg-brand-primary/20 transition-colors">
                                     <Icon size={18} className="text-brand-primary" />
                                 </div>
-                                <span className="text-white/50 text-sm font-medium group-hover:text-white/70 transition-colors">{text}</span>
+                                <span className="text-white/60 text-sm font-medium group-hover:text-white/80 transition-colors">{text}</span>
                             </div>
                         ))}
                     </motion.div>
                 </div>
 
                 <div className="absolute text-center" style={{ bottom: '2rem', left: 0, right: 0 }}>
-                    <span className="text-white/15 text-xs font-bold uppercase" style={{ letterSpacing: '0.25em' }}>MX Performance v4.0</span>
+                    <span className="text-white/40 text-xs font-bold uppercase" style={{ letterSpacing: '0.25em' }}>MX Performance v4.0</span>
                 </div>
             </div>
 
@@ -165,7 +165,7 @@ export default function Login() {
                                 <input
                                     type="email" value={email} onChange={e => setEmail(e.target.value)}
                                     placeholder="seu@email.com.br" required autoFocus={!email}
-                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary/60 outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
                                     style={{ height: '3.25rem' }}
                                 />
                             </div>
@@ -178,7 +178,7 @@ export default function Login() {
                                 <input
                                     type="password" ref={passwordRef} value={password} onChange={e => setPassword(e.target.value)}
                                     placeholder="Digite sua senha" required
-                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary/60 outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
                                     style={{ height: '3.25rem' }}
                                 />
                             </div>

@@ -22,6 +22,14 @@ BEGIN
         RETURN OLD;
     END IF;
 
+    -- Nunca desativar usuários admin
+    IF EXISTS (
+        SELECT 1 FROM public.users
+        WHERE id = v_target_user_id AND role = 'admin'
+    ) THEN
+        RETURN OLD;
+    END IF;
+
     -- Se o usuário deletado não tem mais nenhuma outra loja vinculada
     IF NOT EXISTS (
         SELECT 1 
@@ -45,7 +53,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION public.check_orphan_users_after_membership_deletion IS 'Verifica e inativa usuários operacionais que perdem todas as conexões com as lojas MX.';
+COMMENT ON FUNCTION public.check_orphan_users_after_membership_deletion IS 'Verifica e inativa usuários operacionais que perdem todas as conexões com as lojas MX. Admins nunca são desativados.';
 
 -- 2. Associar trigger a tabela store_sellers e memberships
 DROP TRIGGER IF EXISTS tr_cleanup_orphans_on_store_seller_delete ON public.store_sellers;

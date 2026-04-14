@@ -1,6 +1,6 @@
 # Story [UI-04]: Login A11y & Contrast Refactor
 
-**Status:** READY
+**Status:** DONE
 **Agent:** @ux-design-expert
 **Effort:** 2h
 **Priority:** HIGH (A11y)

@@ -1,6 +1,6 @@
 # Story [SYS-01]: Root Directory Sanitization
 
-**Status:** READY
+**Status:** DONE
 **Agent:** @architect
 **Effort:** 2h
 **Priority:** LOW (Hygiene)
