@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { Training, TrainingProgress, Feedback, FeedbackFormData, WeeklyFeedbackReport, PDI, PDIReview, PDIFormData, Notification as AppNotification, DailyCheckin } from '@/types/database'
@@ -51,22 +51,6 @@ export function useTrainings() {
 
     useEffect(() => { fetchTrainings() }, [fetchTrainings])
     return { trainings, loading, error, markWatched, createTraining, refetch: fetchTrainings }
-}
-
-export function useCourses() {
-    const { trainings, loading, refetch } = useTrainings()
-    const courses = useMemo(() => trainings.map(t => ({
-        id: t.id,
-        title: t.title,
-        description: t.description,
-        category: t.type,
-        instructor: 'Especialista MX',
-        duration: '15 min',
-        url: t.video_url,
-        watched: t.watched
-    })), [trainings])
-
-    return { courses, loading, refetch }
 }
 
 // ============ FEEDBACKS ============

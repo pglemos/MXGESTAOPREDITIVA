@@ -5,7 +5,7 @@ import {
     GraduationCap, Play, CheckCircle, Search, 
     Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getAvatarUrl } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
@@ -290,7 +290,7 @@ export default function GerenteTreinamentos() {
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-32 h-mx-32 bg-brand-primary/5 rounded-mx-full blur-2xl -mr-16 -mt-16" />
                                         
                                         <div className="w-mx-20 h-mx-20 rounded-mx-full border-4 border-white shadow-mx-md overflow-hidden bg-surface-alt mb-6 group-hover:scale-105 transition-transform relative z-10">
-                                            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(p.seller_name)}&background=4f46e5&color=fff&bold=true`} alt={p.seller_name} className="w-full h-full object-cover" />
+                                            <img src={getAvatarUrl(p.seller_name, { background: '4f46e5', color: 'fff' })} alt={p.seller_name} className="w-full h-full object-cover" />
                                         </div>
 
                                         <div className="relative z-10 w-full">

@@ -6,7 +6,7 @@ import {
     TrendingUp, Zap, Filter, Calendar, Settings2, ShieldAlert, Clock, ShieldCheck
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/lib/utils'
+import { cn, getAvatarUrl } from '@/lib/utils'
 import { toast } from 'sonner'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -169,7 +169,7 @@ export default function Equipe() {
                 <div className="p-mx-lg flex flex-col items-center text-center flex-1">
                   <div className="w-mx-20 h-mx-20 rounded-mx-full border-4 border-white shadow-mx-md overflow-hidden bg-surface-alt mb-6 group-hover:scale-105 transition-transform shrink-0">
                     <img 
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || '')}&background=0D3B2E&color=22C55E&bold=true`} 
+                      src={getAvatarUrl(member.name || '', { background: '0D3B2E', color: '22C55E' })} 
                       alt={`Avatar de ${member.name}`} width={80} height={80} className="w-full h-full object-cover" 
                     />
                   </div>

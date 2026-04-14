@@ -220,7 +220,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             timeoutId = setTimeout(() => {
                 if (mounted) {
-                    console.warn("Audit Warn [useAuth]: loadUserData timeout reached. Forcing loading false.")
                     setLoading(false)
                 }
             }, 10000);
@@ -235,7 +234,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 
                 // Ejeção Ativa (Sessões Existentes): Se o usuário perder a loja ativada enquanto logado
                 if (currentRole !== 'admin' && loadedMemberships.length === 0) {
-                    console.warn('>>> ZERO TRUST EJECT: Sessão derrubada por inatividade de unidade.');
                     await supabase.auth.signOut()
                     setSupabaseUser(null)
                     setProfile(null)
@@ -272,16 +270,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId])
 
     const signIn = async (email: string, password: string) => {
-        console.log('>>> ORION LOGIN TRY:', email);
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         
         if (error) {
-            console.error('>>> ORION LOGIN ERROR:', error.message, error.status);
             return { error: error.message }
         }
 
         if (data?.user) {
-            console.log('>>> ORION LOGIN SUCCESS:', data.user.id);
             
             // Trava Zero Trust: Validar acesso operacional antes de liberar a interface
             const [loadedProfile, loadedMemberships] = await Promise.all([
@@ -292,7 +287,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
             
             if (currentRole !== 'admin' && loadedMemberships.length === 0) {
-                console.warn('>>> ZERO TRUST BLOCK: Usuário tentou acessar sistema sem lojas ativas.');
                 await supabase.auth.signOut()
                 setSupabaseUser(null)
                 setProfile(null)

@@ -7,7 +7,7 @@ import {
     ShieldCheck, Eye, EyeOff
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/lib/utils'
+import { cn, getAvatarUrl } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
@@ -64,7 +64,7 @@ export default function Configuracoes() {
                             <div className="relative group">
                                 <div className="w-mx-28 h-mx-3xl rounded-mx-3xl bg-surface-alt border border-border-default flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-500">
                                     <img 
-                                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(form.name)}&background=0D3B2E&color=22C55E&size=128&bold=true`} 
+                                        src={getAvatarUrl(form.name, { background: '0D3B2E', color: '22C55E', size: 128 })} 
                                         alt={form.name ? `Avatar de ${form.name}` : 'Avatar do usuário'} className="w-full h-full object-cover"
                                     />
                                 </div>

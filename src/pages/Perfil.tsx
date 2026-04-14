@@ -5,7 +5,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { cn } from '@/lib/utils'
+import { cn, getAvatarUrl } from '@/lib/utils'
 import { motion } from 'motion/react'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
@@ -65,7 +65,7 @@ export default function Perfil() {
             <div className="relative z-10 space-y-mx-lg">
               <div className="relative group/avatar inline-block">
                 <div className="w-mx-4xl h-mx-4xl rounded-mx-3xl border-8 border-white shadow-mx-xl overflow-hidden bg-surface-alt transition-transform group-hover/avatar:scale-105 duration-500">
-                  <img src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || '')}&size=256&background=4f46e5&color=fff&bold=true`} alt="" className="w-full h-full object-cover" />
+                  <img src={profile.avatar_url || getAvatarUrl(profile.name || '', { size: 256, background: '4f46e5', color: 'fff' })} alt="" className="w-full h-full object-cover" />
                 </div>
                 <button type="button" className="absolute inset-0 bg-black/60 rounded-mx-3xl opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-mx-xs">
                     <Camera size={24} />

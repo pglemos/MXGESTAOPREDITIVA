@@ -32,3 +32,10 @@ export function toSnakeCase(obj: any): any {
     }
     return obj
 }
+
+export function getAvatarUrl(name: string, options?: { size?: number; background?: string; color?: string }): string {
+    const params = new URLSearchParams({ name, size: String(options?.size ?? 128) })
+    if (options?.background) params.set('background', options.background)
+    if (options?.color) params.set('color', options.color)
+    return `https://ui-avatars.com/api/?${params.toString()}`
+}

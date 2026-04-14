@@ -108,7 +108,6 @@ export function useStores() {
         }
         const { data } = await query
         if (data) {
-            console.log('DEBUG: Stores from useStores:', data.length, data.map(s => s.name));
             setStores(data)
         }
         setLoading(false)

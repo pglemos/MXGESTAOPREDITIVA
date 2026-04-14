@@ -71,12 +71,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   // Debug log for auth state
   React.useEffect(() => {
-    console.log('Audit Info [ProtectedRoute]:', { initialized, loading, hasSupabaseUser: !!supabaseUser, hasProfile: !!profile })
+    if (import.meta.env.DEV) console.log('Audit Info [ProtectedRoute]:', { initialized, loading, hasSupabaseUser: !!supabaseUser, hasProfile: !!profile })
   }, [initialized, loading, supabaseUser, profile])
 
   if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-mx-black"><Spinner /></div>
   if (!profile) {
-    console.warn('Audit Warn [ProtectedRoute]: No profile found, redirecting to login.')
+    if (import.meta.env.DEV) console.warn('Audit Warn [ProtectedRoute]: No profile found, redirecting to login.')
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   return <>{children}</>
