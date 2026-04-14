@@ -7,14 +7,25 @@ import {
     somarVendas, 
     somarVendasPorCanal 
 } from '@/lib/calculations'
+import type { DailyCheckin, User, RankingEntry } from '@/types/database'
+
+interface SellerGoal {
+    user_id: string
+    target: number
+}
+
+interface StoreGoal {
+    target: number
+    projection_mode?: 'calendar' | 'business'
+}
 
 interface MetricsParams {
-    checkins: any[]
-    todayCheckin: any | null
-    profile: any | null
-    sellerGoals: any[]
-    storeGoal: any | null
-    ranking: any[]
+    checkins: DailyCheckin[]
+    todayCheckin: DailyCheckin | null
+    profile: User | null
+    sellerGoals: SellerGoal[]
+    storeGoal: StoreGoal | null
+    ranking: RankingEntry[]
     projectionMode?: 'calendar' | 'business'
 }
 

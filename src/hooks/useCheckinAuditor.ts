@@ -37,7 +37,7 @@ export function useCheckinAuditor() {
     }, [storeId])
 
     /** Gerente aprova e aplica a correção */
-    const approveRequest = async (request: any) => {
+    const approveRequest = async (request: CheckinCorrectionRequest) => {
         if (!profile?.id) return { error: 'Não autorizado' }
         setLoading(true)
 
@@ -91,8 +91,8 @@ export function useCheckinAuditor() {
                 .eq('id', request.id)
 
             return { error: null }
-        } catch (err: any) {
-            return { error: err.message }
+        } catch (err: unknown) {
+            return { error: err instanceof Error ? err.message : String(err) }
         } finally {
             setLoading(false)
         }

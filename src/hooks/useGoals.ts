@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { StoreMetaRules } from '@/types/database'
+import type { StoreMetaRules, StoreBenchmark } from '@/types/database'
 
 export function useGoals(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
@@ -50,7 +50,7 @@ export function useGoals(storeIdOverride?: string) {
 
 export function useAllStoreGoals() {
     const [goals, setGoals] = useState<{ store_id: string, target: number, store_name?: string }[]>([])
-    const [benchmarks, setBenchmarks] = useState<any[]>([])
+    const [benchmarks, setBenchmarks] = useState<StoreBenchmark[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchData = useCallback(async () => {
@@ -61,7 +61,7 @@ export function useAllStoreGoals() {
         ])
         
         if (goalsRes.data) {
-            setGoals(goalsRes.data.map((g: any) => ({
+            setGoals((goalsRes.data as { store_id: string; monthly_goal: number; stores?: { name?: string } }[]).map((g) => ({
                 store_id: g.store_id,
                 target: g.monthly_goal,
                 store_name: g.stores?.name
@@ -80,7 +80,7 @@ export function useAllStoreGoals() {
         return { error: error?.message || null }
     }
 
-    const updateBenchmark = async (storeId: string, data: any) => {
+    const updateBenchmark = async (storeId: string, data: Partial<StoreBenchmark>) => {
         const { error } = await supabase.from('store_benchmarks').upsert({
             store_id: storeId,
             ...data

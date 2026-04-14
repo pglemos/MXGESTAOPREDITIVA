@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import { startOfWeek } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
+import type { DailyCheckin, Training } from '@/types/database'
 
 interface PrescriptionParams {
-    checkins: any[]
-    trainings: any[]
+    checkins: DailyCheckin[]
+    trainings: Training[]
     userId?: string
 }
 
@@ -29,7 +30,7 @@ export function useTacticalPrescription({ checkins, trainings, userId }: Prescri
         }
 
         const category = categoryMap[diag.gargalo]
-        const recommended = trainings.find(t => t.type === category && !t.watched)
+        const recommended = trainings.find(t => t.type === category)
         
         if (!recommended) return null
 

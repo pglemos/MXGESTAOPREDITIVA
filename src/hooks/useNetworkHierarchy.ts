@@ -8,7 +8,7 @@ import { calculateReferenceDate } from '@/hooks/useCheckins'
  */
 export function useNetworkHierarchy() {
     const { role } = useAuth()
-    const [networkData, setNetworkData] = useState<any[]>([])
+    const [networkData, setNetworkData] = useState<{ store_id: string; store_name: string; members: (Record<string, unknown> & { role: string; checkin_today: boolean })[] }[]>([])
     const [loading, setLoading] = useState(true)
     const referenceDate = calculateReferenceDate()
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { RankingEntry } from '@/types/database'
+import type { RankingEntry, User } from '@/types/database'
 import { calcularAtingimento, getDiasInfo, getOperationalStatus } from '@/lib/calculations'
 
 export function useRanking(storeIdOverride?: string, filters?: { startDate?: string; endDate?: string }) {
@@ -78,7 +78,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             .maybeSingle()
 
         const members = (tenures && tenures.length > 0)
-            ? tenures.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))
+            ? (tenures as unknown as { seller_user_id: string; users?: User }[]).map((item) => ({ user_id: item.seller_user_id, users: item.users }))
             : (fallbackMembers || [])
 
         if (!checkins || !members) { setLoading(false); return }
@@ -87,13 +87,13 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         const includeVendaLojaInGoal = rules?.include_venda_loja_in_individual_goal || false
         
         const aggregated = new Map<string, { leads: number; agd: number; visitas: number; vnd: number; vnd_yesterday: number; name: string; isVendaLoja: boolean }>()
-        const realSellersCount = members.filter((m: any) => !m.users?.is_venda_loja).length
-        const goalDivisor = realSellersCount + (includeVendaLojaInGoal ? members.filter((m: any) => m.users?.is_venda_loja).length : 0)
+        const realSellersCount = members.filter((m) => !(m.users as User | undefined)?.is_venda_loja).length
+        const goalDivisor = realSellersCount + (includeVendaLojaInGoal ? members.filter((m) => (m.users as User | undefined)?.is_venda_loja).length : 0)
 
         const daysInfo = getDiasInfo()
 
         for (const m of members) {
-            const user = (m as any).users
+            const user = (m as { users?: User }).users
             aggregated.set(m.user_id, { 
                 leads: 0, agd: 0, visitas: 0, vnd: 0, vnd_yesterday: 0,
                 name: user?.name || 'Vendedor',

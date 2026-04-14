@@ -53,7 +53,7 @@ export function usePDI_MX() {
         return data as PDISuggestedAction[]
     }, [])
 
-    const saveSessionBundle = useCallback(async (payload: any) => {
+    const saveSessionBundle = useCallback(async (payload: Record<string, unknown>) => {
         setLoading(true)
         const { data, error } = await supabase.rpc('create_pdi_session_bundle', { p_payload: payload })
         setLoading(false)

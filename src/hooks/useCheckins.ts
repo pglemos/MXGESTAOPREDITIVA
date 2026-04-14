@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { DailyCheckin, CheckinFormData, CheckinWithTotals } from '@/types/database'
+import type { DailyCheckin, CheckinFormData, CheckinWithTotals, CheckinScope } from '@/types/database'
 import { calcularTotais } from '@/lib/calculations'
 
 export const CHECKIN_DEADLINE_MINUTES = 9 * 60 + 30
@@ -101,7 +101,7 @@ export function useCheckins(storeIdOverride?: string) {
         return data ? { ...data, ...calcularTotais(data) } : null
     }, [profile, storeId])
 
-    const saveCheckin = async (formData: CheckinFormData, scope: any = 'daily', customDate?: string): Promise<{ error: string | null }> => {
+    const saveCheckin = async (formData: CheckinFormData, scope: CheckinScope = 'daily', customDate?: string): Promise<{ error: string | null }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
         
         const finalDate = customDate || formData.reference_date || referenceDate

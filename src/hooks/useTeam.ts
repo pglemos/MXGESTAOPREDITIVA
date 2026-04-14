@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
-import type { User } from '@/types/database'
+import type { User, Store, StoreSeller } from '@/types/database'
 
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
@@ -41,7 +41,7 @@ export function useTeam(storeIdOverride?: string) {
 
         const checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
         const sourceRows = (tenures && tenures.length > 0)
-            ? tenures.map((item: any) => ({ 
+            ? (tenures as unknown as { seller_user_id: string; users?: User; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean }[]).map((item) => ({ 
                 user_id: item.seller_user_id, 
                 users: item.users,
                 tenure: {
@@ -54,7 +54,7 @@ export function useTeam(storeIdOverride?: string) {
             : (fallbackMembers || [])
 
         if (sourceRows) {
-            setSellers(sourceRows.map((m: any) => ({
+            setSellers((sourceRows as unknown as { user_id: string; users?: User; tenure?: { started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean } }[]).map((m) => ({
                 ...m.users,
                 checkin_today: checkedIn.has(m.user_id),
                 started_at: m.tenure?.started_at,
@@ -66,7 +66,7 @@ export function useTeam(storeIdOverride?: string) {
         setLoading(false)
     }, [storeId, referenceDate])
 
-    const updateVigencia = async (userId: string, data: any) => {
+    const updateVigencia = async (userId: string, data: Record<string, unknown>) => {
         if (!storeId) return { error: 'Loja não identificada' }
         const { error } = await supabase.from('store_sellers').upsert({
             store_id: storeId,
@@ -89,7 +89,7 @@ export function useTeam(storeIdOverride?: string) {
 
 export function useStores() {
     const { role, memberships, storeId } = useAuth()
-    const [stores, setStores] = useState<any[]>([])
+    const [stores, setStores] = useState<Store[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchStores = useCallback(async () => {
@@ -180,7 +180,7 @@ export function useStores() {
 
 export function useMemberships() {
     const { role } = useAuth()
-    const [memberships, setMemberships] = useState<any[]>([])
+    const [memberships, setMemberships] = useState<{ id: string; user_id: string; store_id: string; role: string; store?: { name?: string } }[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetch = useCallback(async () => {
@@ -226,14 +226,14 @@ export function useStoresStats() {
             const newStats: Record<string, { sellers: number; checkedIn: number; disciplinePct: number }> = {}
 
             if (sellersRes.data) {
-                sellersRes.data.forEach((s: any) => {
+                sellersRes.data.forEach((s: { store_id: string }) => {
                     if (!newStats[s.store_id]) newStats[s.store_id] = { sellers: 0, checkedIn: 0, disciplinePct: 0 }
                     newStats[s.store_id].sellers++
                 })
             }
 
             if (checkinsRes.data) {
-                checkinsRes.data.forEach((c: any) => {
+                checkinsRes.data.forEach((c: { store_id: string }) => {
                     if (!newStats[c.store_id]) newStats[c.store_id] = { sellers: 0, checkedIn: 0, disciplinePct: 0 }
                     newStats[c.store_id].checkedIn++
                 })
@@ -258,7 +258,7 @@ export function useStoresStats() {
 }
 
 export function useSellersByStore(storeId: string | null) {
-    const [sellers, setSellers] = useState<any[]>([])
+    const [sellers, setSellers] = useState<(User & { checkin_today: boolean })[]>([])
     const [loading, setLoading] = useState(true)
     const referenceDate = calculateReferenceDate()
 
@@ -284,10 +284,10 @@ export function useSellersByStore(storeId: string | null) {
         const checkedIn = new Set(checkins?.map(c => c.seller_user_id) || [])
 
         if (sellersData) {
-            setSellers(sellersData.map((s: any) => ({
+            setSellers(sellersData.map((s: { seller_user_id: string; users?: User }) => ({
                 ...s.users,
                 checkin_today: checkedIn.has(s.seller_user_id)
-            })))
+            } as User & { checkin_today: boolean })))
         }
         setLoading(false)
     }, [storeId, referenceDate])
