@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense, lazy, Component, type ReactNode, type ErrorInfo } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { Toaster } from 'sonner'
@@ -61,6 +61,42 @@ const Spinner = () => (
   </div>
 )
 
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  state = { hasError: false, error: null as Error | null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    if (import.meta.env.DEV) console.error('[ErrorBoundary]', error, info)
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children
+    return (
+      <div className="min-h-screen bg-mx-black flex flex-col items-center justify-center gap-mx-lg p-mx-xl">
+        <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary/10 flex items-center justify-center">
+          <span className="text-brand-primary font-black text-4xl">MX</span>
+        </div>
+        <h1 className="text-white text-xl font-black uppercase tracking-wider">Algo deu errado</h1>
+        <p className="text-white/50 text-sm text-center max-w-md">
+          A aplicação encontrou um erro inesperado. Tente recarregar a página.
+        </p>
+        {import.meta.env.DEV && this.state.error && (
+          <pre className="text-status-error text-xs bg-white/5 p-mx-md rounded-mx-lg max-w-lg overflow-auto text-left">{this.state.error.message}</pre>
+        )}
+        <button
+          onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload() }}
+          className="mt-mx-md px-8 py-3 bg-brand-primary text-white rounded-mx-full font-black uppercase tracking-widest hover:bg-brand-primary-hover transition-colors"
+        >
+          Recarregar
+        </button>
+      </div>
+    )
+  }
+}
+
 const withLegacyShell = (node: React.ReactNode) => (
   <LegacyModuleShell>{node}</LegacyModuleShell>
 )
@@ -98,15 +134,13 @@ const GoalManagementRedirect = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public */}
-          <Route path="/login" element={<Suspense fallback={<Spinner />}><Login /></Suspense>} />
-          <Route path="/privacy" element={<Suspense fallback={<Spinner />}><Privacy /></Suspense>} />
-          <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
-
-          {/* Protected */}
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <ErrorBoundary>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Suspense fallback={<Spinner />}><Login /></Suspense>} />
+            <Route path="/privacy" element={<Suspense fallback={<Spinner />}><Privacy /></Suspense>} />
+            <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
+            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<RoleRedirect />} />
             <Route path="dashboard" element={<RoleRedirect />} />
             <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
@@ -181,6 +215,7 @@ export default function App() {
         </Routes>
       </Router>
       <Toaster richColors position="top-right" />
+      </ErrorBoundary>
     </AuthProvider>
   )
 }

@@ -8,7 +8,7 @@ describe("getUserData", () => {
       from: mock(() => ({
         select: mock(() => ({
           eq: mock(() => ({
-            single: mock(() => Promise.resolve({ data: mockData, error: null }))
+            maybeSingle: mock(() => Promise.resolve({ data: mockData, error: null }))
           }))
         }))
       }))
@@ -25,7 +25,7 @@ describe("getUserData", () => {
       from: mock(() => ({
         select: mock(() => ({
           eq: mock(() => ({
-            single: mock(() => Promise.resolve({ data: null, error: mockError }))
+            maybeSingle: mock(() => Promise.resolve({ data: null, error: mockError }))
           }))
         }))
       }))
@@ -41,7 +41,7 @@ describe("getUserData", () => {
       from: mock(() => ({
         select: mock(() => ({
           eq: mock(() => ({
-            single: mock(() => new Promise((resolve) => setTimeout(resolve, 50)))
+            maybeSingle: mock(() => new Promise((resolve) => setTimeout(resolve, 50)))
           }))
         }))
       }))

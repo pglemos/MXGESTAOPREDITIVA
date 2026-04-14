@@ -6,7 +6,7 @@ export async function getManagerRoutineData(storeId: string, referenceDate: stri
         .select('*')
         .eq('store_id', storeId)
         .eq('reference_date', referenceDate)
-        .single();
+        .maybeSingle();
 
     if (error && error.code !== 'PGRST116') throw error;
     return data;

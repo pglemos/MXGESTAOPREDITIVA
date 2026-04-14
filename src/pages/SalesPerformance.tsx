@@ -16,7 +16,6 @@ import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { somarVendas, somarVendasPorCanal, calcularProjecao, getDiasInfo, calcularAtingimento } from '@/lib/calculations'
-import { exportToExcel } from '@/lib/export'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -51,7 +50,8 @@ export default function SalesPerformance() {
             .map(([month, sales]) => ({ month, sales }))
     }, [checkins])
 
-    const handleExport = useCallback(() => {
+    const handleExport = useCallback(async () => {
+        const { exportToExcel } = await import('@/lib/export')
         const rows = checkins.map(c => ({
             Data: c.reference_date,
             Vendas: (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0),

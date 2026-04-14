@@ -16,7 +16,7 @@ export async function storeCheckin(
         .eq('store_id', checkin.store_id)
         .eq('seller_user_id', checkin.seller_user_id)
         .eq('reference_date', checkin.reference_date)
-        .single();
+        .maybeSingle();
 
     if (existing) {
         throw new Error(`Deduplication error: Check-in already exists for ${checkin.reference_date}`);
@@ -35,7 +35,7 @@ export async function storeCheckin(
         .from('daily_checkins')
         .insert(checkin)
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) throw error;
     return data;

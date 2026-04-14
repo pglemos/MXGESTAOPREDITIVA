@@ -15,7 +15,7 @@ export const getUserData = async (
             .from('team')
             .select('role, agency_id')
             .eq('id', userId)
-            .single(),
+            .maybeSingle(),
         timeoutPromise
     ]) as { data: any; error: any }
 

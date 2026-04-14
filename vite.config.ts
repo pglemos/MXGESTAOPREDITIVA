@@ -19,7 +19,9 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
-          'vendor-ui': ['lucide-react', 'motion', 'recharts', 'sonner'],
+          'vendor-ui': ['lucide-react', 'motion', 'sonner'],
+          'vendor-charts': ['recharts'],
+          'vendor-export': ['xlsx'],
           'vendor-supabase': ['@supabase/supabase-js'],
         },
       },
