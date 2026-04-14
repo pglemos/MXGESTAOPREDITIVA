@@ -229,6 +229,67 @@ export function useConsultingClientDetail(clientId?: string) {
     return { error: null }
   }, [canManage, fetchClient, supabaseUser])
 
+  const upsertFinancial = useCallback(async (input: {
+    id?: string
+    reference_date: string
+    revenue: number
+    fixed_expenses: number
+    marketing_expenses: number
+    investments: number
+    financing: number
+  }) => {
+    if (!supabaseUser || !clientId || !canManage) {
+      return { error: 'Apenas admin pode lancar dados financeiros.' }
+    }
+
+    const net_profit = input.revenue - input.fixed_expenses - input.marketing_expenses - input.investments - input.financing
+    const roi = input.investments > 0 ? Number((net_profit / input.investments).toFixed(2)) : 0
+
+    const payload = {
+      client_id: clientId,
+      reference_date: input.reference_date,
+      revenue: input.revenue,
+      fixed_expenses: input.fixed_expenses,
+      marketing_expenses: input.marketing_expenses,
+      investments: input.investments,
+      financing: input.financing,
+      net_profit,
+      roi,
+      conversion_rate: 0,
+    }
+
+    if (input.id) {
+      const { error: updateError } = await supabase
+        .from('consulting_financials')
+        .update(payload)
+        .eq('id', input.id)
+      if (updateError) return { error: updateError.message }
+    } else {
+      const { error: insertError } = await supabase
+        .from('consulting_financials')
+        .insert(payload)
+      if (insertError) return { error: insertError.message }
+    }
+
+    await fetchClient()
+    return { error: null }
+  }, [canManage, clientId, fetchClient, supabaseUser])
+
+  const deleteFinancial = useCallback(async (financialId: string) => {
+    if (!supabaseUser || !canManage) {
+      return { error: 'Apenas admin pode excluir dados financeiros.' }
+    }
+
+    const { error: deleteError } = await supabase
+      .from('consulting_financials')
+      .delete()
+      .eq('id', financialId)
+
+    if (deleteError) return { error: deleteError.message }
+    await fetchClient()
+    return { error: null }
+  }, [canManage, fetchClient, supabaseUser])
+
   useEffect(() => {
     fetchClient()
   }, [fetchClient])
@@ -244,6 +305,8 @@ export function useConsultingClientDetail(clientId?: string) {
     createContact,
     upsertAssignment,
     toggleAssignment,
+    upsertFinancial,
+    deleteFinancial,
   }
 }
 

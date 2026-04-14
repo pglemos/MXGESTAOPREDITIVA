@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { 
   ArrowLeft, BriefcaseBusiness, Building2, Mail, Phone, User2, 
   Calendar, CheckCircle2, Clock, ChevronRight,
-  Plus, FileText
+  Plus, FileText, X, Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/atoms/Input'
@@ -14,6 +14,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { useConsultingClientDetail } from '@/hooks/useConsultingClients'
 import { cn } from '@/lib/utils'
 import { GoogleCalendarView } from '@/features/consultoria/components/GoogleCalendarView'
+import type { ConsultingFinancial } from '@/features/consultoria/types'
 
 type Tab = 'overview' | 'visits' | 'financial'
 
@@ -29,6 +30,8 @@ export default function ConsultoriaClienteDetalhe() {
     createContact,
     upsertAssignment,
     toggleAssignment,
+    upsertFinancial,
+    deleteFinancial,
   } = useConsultingClientDetail(clientId)
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [savingUnit, setSavingUnit] = useState(false)
@@ -40,6 +43,74 @@ export default function ConsultoriaClienteDetalhe() {
     user_id: '',
     assignment_role: 'responsavel',
   })
+  const [financialModal, setFinancialModal] = useState<{ open: boolean; editing?: ConsultingFinancial }>({ open: false })
+  const [savingFinancial, setSavingFinancial] = useState(false)
+  const [financialForm, setFinancialForm] = useState({
+    reference_date: '',
+    revenue: 0,
+    fixed_expenses: 0,
+    marketing_expenses: 0,
+    investments: 0,
+    financing: 0,
+  })
+
+  const openFinancialModal = (fin?: ConsultingFinancial) => {
+    if (fin) {
+      setFinancialForm({
+        reference_date: fin.reference_date?.slice(0, 7) || '',
+        revenue: fin.revenue,
+        fixed_expenses: fin.fixed_expenses,
+        marketing_expenses: fin.marketing_expenses,
+        investments: fin.investments,
+        financing: fin.financing,
+      })
+      setFinancialModal({ open: true, editing: fin })
+    } else {
+      setFinancialForm({
+        reference_date: new Date().toISOString().slice(0, 7),
+        revenue: 0,
+        fixed_expenses: 0,
+        marketing_expenses: 0,
+        investments: 0,
+        financing: 0,
+      })
+      setFinancialModal({ open: true })
+    }
+  }
+
+  const handleSaveFinancial = async () => {
+    if (!financialForm.reference_date) {
+      toast.error('Informe o mes de referencia.')
+      return
+    }
+    setSavingFinancial(true)
+    const { error: saveError } = await upsertFinancial({
+      id: financialModal.editing?.id,
+      reference_date: financialForm.reference_date + '-01',
+      revenue: Number(financialForm.revenue),
+      fixed_expenses: Number(financialForm.fixed_expenses),
+      marketing_expenses: Number(financialForm.marketing_expenses),
+      investments: Number(financialForm.investments),
+      financing: Number(financialForm.financing),
+    })
+    setSavingFinancial(false)
+    if (saveError) {
+      toast.error(saveError)
+    } else {
+      toast.success(financialModal.editing ? 'Dados atualizados!' : 'Mes lancado!')
+      setFinancialModal({ open: false })
+    }
+  }
+
+  const handleDeleteFinancial = async (finId: string) => {
+    const { error: delError } = await deleteFinancial(finId)
+    if (delError) {
+      toast.error(delError)
+    } else {
+      toast.success('Registro excluido.')
+      setFinancialModal({ open: false })
+    }
+  }
 
   const activeAssignments = useMemo(() => {
     return (client?.assignments || []).filter((assignment) => assignment.active)
@@ -536,7 +607,7 @@ export default function ConsultoriaClienteDetalhe() {
         <section className="flex flex-col gap-mx-lg">
           <div className="flex items-center justify-between">
             <Typography variant="h3">DRE & EVOLUÇÃO FINANCEIRA</Typography>
-            <Button size="sm" className="rounded-mx-xl">
+            <Button size="sm" className="rounded-mx-xl" onClick={() => openFinancialModal()}>
               <Plus size={16} className="mr-2" /> LANÇAR MÊS
             </Button>
           </div>
@@ -593,7 +664,7 @@ export default function ConsultoriaClienteDetalhe() {
                       <td className="p-mx-md font-bold text-sm">R$ {fin.marketing_expenses.toLocaleString('pt-BR')}</td>
                       <td className="p-mx-md font-black text-sm text-brand-primary">R$ {fin.net_profit.toLocaleString('pt-BR')}</td>
                       <td className="p-mx-md text-right">
-                        <Button variant="ghost" size="sm">EDITAR</Button>
+                        <Button variant="ghost" size="sm" onClick={() => openFinancialModal(fin)}>EDITAR</Button>
                       </td>
                     </tr>
                   ))}
@@ -607,6 +678,70 @@ export default function ConsultoriaClienteDetalhe() {
             </div>
           </Card>
         </section>
+      )}
+
+      {financialModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-mx-md" onClick={() => setFinancialModal({ open: false })}>
+          <div className="bg-white rounded-mx-2xl shadow-mx-xl w-full max-w-lg p-mx-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-mx-lg">
+              <Typography variant="h3">{financialModal.editing ? 'Editar DRE' : 'Lancar Mes'}</Typography>
+              <button onClick={() => setFinancialModal({ open: false })} className="text-text-tertiary hover:text-text-primary"><X size={20} /></button>
+            </div>
+
+            <div className="space-y-mx-md">
+              <div>
+                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Mes de Referencia</label>
+                <Input type="month" value={financialForm.reference_date} onChange={(e) => setFinancialForm({ ...financialForm, reference_date: e.target.value })} className="w-full" />
+              </div>
+              <div className="grid grid-cols-2 gap-mx-md">
+                <div>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Faturamento (R$)</label>
+                  <Input type="number" value={financialForm.revenue || ''} onChange={(e) => setFinancialForm({ ...financialForm, revenue: Number(e.target.value) })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Despesas Fixas (R$)</label>
+                  <Input type="number" value={financialForm.fixed_expenses || ''} onChange={(e) => setFinancialForm({ ...financialForm, fixed_expenses: Number(e.target.value) })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Marketing (R$)</label>
+                  <Input type="number" value={financialForm.marketing_expenses || ''} onChange={(e) => setFinancialForm({ ...financialForm, marketing_expenses: Number(e.target.value) })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Investimentos (R$)</label>
+                  <Input type="number" value={financialForm.investments || ''} onChange={(e) => setFinancialForm({ ...financialForm, investments: Number(e.target.value) })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Financiamento (R$)</label>
+                  <Input type="number" value={financialForm.financing || ''} onChange={(e) => setFinancialForm({ ...financialForm, financing: Number(e.target.value) })} placeholder="0" />
+                </div>
+                <div className="flex items-end">
+                  <div className="bg-brand-primary/10 rounded-mx-lg p-mx-md w-full">
+                    <Typography variant="tiny" className="text-text-tertiary uppercase">Lucro Liquido</Typography>
+                    <Typography variant="h3" className="text-brand-primary font-black">
+                      R$ {(financialForm.revenue - financialForm.fixed_expenses - financialForm.marketing_expenses - financialForm.investments - financialForm.financing).toLocaleString('pt-BR')}
+                    </Typography>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-mx-xl">
+              <div>
+                {financialModal.editing && (
+                  <Button variant="ghost" size="sm" className="text-status-error" onClick={() => handleDeleteFinancial(financialModal.editing!.id)}>
+                    <Trash2 size={14} className="mr-1" /> Excluir
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-mx-sm">
+                <Button variant="outline" size="sm" onClick={() => setFinancialModal({ open: false })}>Cancelar</Button>
+                <Button size="sm" className="bg-brand-primary text-white" onClick={handleSaveFinancial} disabled={savingFinancial}>
+                  {savingFinancial ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   )
