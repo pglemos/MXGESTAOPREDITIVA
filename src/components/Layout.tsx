@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
-import MxLogo from '@/assets/mx-logo.png'
+import MxLogo from '@/assets/mx-logo.svg'
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }

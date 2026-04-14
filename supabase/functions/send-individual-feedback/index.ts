@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "Erro ao processar envio." }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

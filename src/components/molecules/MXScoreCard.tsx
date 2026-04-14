@@ -1,3 +1,4 @@
+import React, { memo } from 'react'
 import { Trophy, Car, ShieldCheck, Crown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
@@ -14,7 +15,7 @@ interface MXScoreCardProps {
   isHighlight?: boolean
 }
 
-export function MXScoreCard({ label, value, sub, icon: Icon, tone, description, isHighlight }: MXScoreCardProps) {
+function MXScoreCardInner({ label, value, sub, icon: Icon, tone, description, isHighlight }: MXScoreCardProps) {
   return (
     <Card 
       className={cn(
@@ -46,7 +47,9 @@ export function MXScoreCard({ label, value, sub, icon: Icon, tone, description, 
   )
 }
 
-MXScoreCard.Skeleton = function MXScoreCardSkeleton() {
+const MXScoreCardMemo = memo(MXScoreCardInner)
+
+function MXScoreCardSkeleton() {
   return (
     <Card className="p-mx-lg border-none shadow-mx-sm bg-white overflow-hidden relative">
       <div className="flex items-center justify-between">
@@ -62,3 +65,5 @@ MXScoreCard.Skeleton = function MXScoreCardSkeleton() {
     </Card>
   )
 }
+
+export const MXScoreCard = Object.assign(MXScoreCardMemo, { Skeleton: MXScoreCardSkeleton })

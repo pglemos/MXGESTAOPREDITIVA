@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, memo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
@@ -27,7 +27,7 @@ interface DataGridProps<T> {
   stickyHeader?: boolean
 }
 
-export function DataGrid<T extends { id: string | number }>({
+function DataGridInner<T extends { id: string | number }>({
   columns,
   data,
   loading,
@@ -155,3 +155,5 @@ export function DataGrid<T extends { id: string | number }>({
     </div>
   )
 }
+
+export const DataGrid = memo(DataGridInner) as typeof DataGridInner

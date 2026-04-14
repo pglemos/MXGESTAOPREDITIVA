@@ -80,14 +80,14 @@ Deno.serve(async (req: Request) => {
                         });
 
                         if (error) {
-                            console.error(`[Matinal] Error sending email for ${store.name}:`, error);
+                            console.error(`[Matinal] Error sending email for ${store.name}:`, error?.message || "Unknown error");
                             emailStatus = "failed";
                             warnings = ["Falha no disparo do e-mail"];
                         } else {
                             emailStatus = "sent";
                         }
                     } catch (err) {
-                        console.error(`[Matinal] Critical error sending email for ${store.name}:`, err);
+                        console.error(`[Matinal] Critical error sending email for ${store.name}:`, err?.message || "Unknown error");
                         emailStatus = "failed";
                         warnings = ["Erro critico no disparo do e-mail"];
                     }
@@ -158,8 +158,8 @@ Deno.serve(async (req: Request) => {
 
         return jsonResponse({ message: "Processamento matinal concluido", reports });
     } catch (error) {
-        console.error("[Matinal] Fatal error:", error);
-        return jsonResponse({ error: String(error) }, 500);
+        console.error("[Matinal] Fatal error:", error?.message || "Unknown error");
+        return jsonResponse({ error: "Internal server error" }, 500);
     }
 });
 

@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { motion } from 'motion/react'
 import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
-import MxLogo from '@/assets/mx-logo.png'
+import MxLogo from '@/assets/mx-logo.svg'
 
 export default function Login() {
     const { signIn, profile, loading: authLoading } = useAuth()
@@ -23,6 +23,9 @@ export default function Login() {
     const [loading, setLoading] = useState(false)
     const [isHydrated, setIsHydrated] = useState(false)
 
+    const [loginAttempts, setLoginAttempts] = useState(0)
+    const [lockoutUntil, setLockoutUntil] = useState(0)
+
     useEffect(() => {
         const lastEmail = localStorage.getItem('mx_last_email')
         if (lastEmail) {
@@ -35,31 +38,37 @@ export default function Login() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (loading) return
-        setError('')
-        setLoading(true)
 
-        if (import.meta.env.DEV && email === 'admin@mxperformance.com.br' && password === 'Mx#2026!') {
-            localStorage.setItem('mx_last_email', email)
-            localStorage.setItem('mx_auth_profile', JSON.stringify({
-                id: 'dev-admin-mx',
-                email,
-                role: 'admin',
-                name: 'Admin MX Dev',
-            }))
-            setTimeout(() => navigate('/painel', { replace: true }), 500)
+        if (lockoutUntil && Date.now() < lockoutUntil) {
+            const secs = Math.ceil((lockoutUntil - Date.now()) / 1000)
+            setError(`Aguarde ${secs}s antes de tentar novamente.`)
             return
         }
+
+        setError('')
+        setLoading(true)
 
         try {
             const { error: err } = await signIn(email, password)
             if (err) {
-                setError(err)
+                const attempts = loginAttempts + 1
+                setLoginAttempts(attempts)
+                if (attempts >= 5) {
+                    const lockDuration = Math.min(30 * Math.pow(2, Math.floor(attempts / 5) - 1), 300)
+                    setLockoutUntil(Date.now() + lockDuration * 1000)
+                    setLoginAttempts(0)
+                    setError(`Muitas tentativas. Tente novamente em ${lockDuration}s.`)
+                } else {
+                    setError(err)
+                }
                 setLoading(false)
                 return
             }
+            setLoginAttempts(0)
+            setLockoutUntil(0)
             localStorage.setItem('mx_last_email', email)
-        } catch (err: any) {
-            setError(err.message || 'Erro inesperado ao realizar login.')
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro inesperado ao realizar login.')
             setLoading(false)
         }
     }
