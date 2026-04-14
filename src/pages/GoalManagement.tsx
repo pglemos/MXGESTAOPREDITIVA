@@ -115,7 +115,7 @@ export default function GoalManagement() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Governança <span className="text-brand-primary">Rede</span></Typography>
+                        <Typography variant="h1">Governança <span className="text-mx-green-700">Rede</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md">Configuração de Metas e Benchmarks MX</Typography>
                 </div>

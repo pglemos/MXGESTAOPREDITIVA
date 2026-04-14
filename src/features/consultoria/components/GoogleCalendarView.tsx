@@ -44,27 +44,27 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId
     window.location.href = authUrl;
   };
 
-  if (isLoading) return <div className="p-4 text-center">Verificando conexão com Google Calendar...</div>;
+  if (isLoading) return <div className="p-mx-md text-center">Verificando conexão com Google Calendar...</div>;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+    <div className="bg-white rounded-mx-xl shadow-mx-sm border border-border-default p-mx-lg">
+      <div className="flex items-center justify-between mb-mx-lg">
+        <div className="flex items-center gap-mx-sm">
+          <div className="p-mx-xs bg-mx-indigo-50 text-brand-primary rounded-mx-lg">
             <Calendar size={24} />
           </div>
           <div>
-            <Typography variant="h3" className="text-gray-900 font-bold">
+            <Typography variant="h3" className="text-text-primary font-bold">
               Gestão de Agendas
             </Typography>
-            <Typography variant="caption" className="text-gray-500">
+            <Typography variant="caption" className="text-text-tertiary">
               Sincronização com Google Calendar API
             </Typography>
           </div>
         </div>
         
         {isConnected && (
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-mx-xs">
             <RefreshCcw size={16} />
             Atualizar
           </Button>
@@ -72,29 +72,29 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId
       </div>
 
       {!isConnected ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-xl">
-          <Typography variant="body1" className="text-gray-600 mb-6">
+        <div className="text-center py-mx-xl border-2 border-dashed border-border-default rounded-mx-xl">
+          <Typography variant="p" className="text-text-secondary mb-mx-lg">
             Conecte sua agenda do Google para gerenciar compromissos com este cliente.
           </Typography>
           <Button 
             onClick={handleConnect}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 mx-auto"
+            className="bg-brand-primary hover:bg-brand-primary-hover text-white flex items-center gap-mx-xs mx-auto"
           >
             <ExternalLink size={18} />
             Conectar Google Calendar
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="p-4 bg-green-50 text-green-700 rounded-lg border border-green-100 flex items-center gap-2">
-            <Typography variant="body2" className="font-medium">
+        <div className="space-y-mx-sm">
+          <div className="p-mx-md bg-status-success-surface text-status-success rounded-mx-lg border border-status-success/20 flex items-center gap-mx-xs">
+            <Typography variant="caption" className="font-medium">
               Agenda Conectada! Sincronizando eventos...
             </Typography>
           </div>
           
           {/* Listagem de eventos será implementada aqui na CONS-02.2 */}
-          <div className="p-12 text-center text-gray-400">
-            <Typography variant="body2">
+          <div className="p-mx-lg text-center text-text-tertiary opacity-40">
+            <Typography variant="caption">
               Nenhum evento futuro encontrado para este cliente.
             </Typography>
           </div>

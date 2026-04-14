@@ -161,7 +161,7 @@ export default function GerenteFeedback() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Gestão de <span className="text-brand-primary">Feedback</span></Typography>
+                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Feedback</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Rotina Semanal Mandatória • Metodologia MX</Typography>
                 </div>

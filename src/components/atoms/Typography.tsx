@@ -17,7 +17,7 @@ const typographyVariants = cva(
       },
       tone: {
         default: "",
-        brand: "text-brand-primary",
+        brand: "text-mx-green-700",
         success: "text-status-success",
         warning: "text-status-warning",
         info: "text-status-info",

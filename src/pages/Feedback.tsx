@@ -59,7 +59,7 @@ export default function Feedback() {
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
-          <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
+          <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
           </Button>
           <Button className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary">

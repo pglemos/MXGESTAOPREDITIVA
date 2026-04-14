@@ -73,13 +73,13 @@ export default function ProdutosDigitais() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Vitrine <span className="text-brand-primary">Digital</span></Typography>
+                        <Typography variant="h1">Vitrine <span className="text-mx-green-700">Digital</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">CATÁLOGO DE SOLUÇÕES OPERACIONAIS • {products.length} ATIVOS</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={() => { setIsRefetching(true); fetchProducts().then(() => setIsRefetching(false)) }} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
+                    <Button variant="outline" size="icon" onClick={() => { setIsRefetching(true); fetchProducts().then(() => setIsRefetching(false)) }} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
                     <div className="relative group w-full sm:w-mx-sidebar-expanded">
@@ -113,7 +113,7 @@ export default function ProdutosDigitais() {
                                             <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">VITRINE DIGITAL MX</Typography>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm transition-all"><X size={24} /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} aria-label="Fechar" className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm transition-all"><X size={24} /></Button>
                                 </header>
 
                                 <div className="grid lg:grid-cols-2 gap-mx-14 relative z-10">

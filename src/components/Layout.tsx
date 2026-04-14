@@ -151,7 +151,7 @@ export default function Layout() {
           </button>
           <div className="flex flex-col min-w-0">
             <Typography as="span" variant="h3" className="text-xl tracking-tighter text-text-primary whitespace-nowrap truncate uppercase font-black">
-              MX <span className="text-brand-primary">PERFORMANCE</span>
+              MX <span className="text-mx-green-700">PERFORMANCE</span>
             </Typography>
           </div>
         </div>

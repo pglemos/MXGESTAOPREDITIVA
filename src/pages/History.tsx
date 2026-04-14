@@ -233,7 +233,7 @@ export default function HistoryPage() {
                                   <Typography variant="caption" tone="muted" className="font-black uppercase opacity-40">Ref: {format(parseISO(requestingCheckin.reference_date), "dd/MM/yyyy")}</Typography>
                               </div>
                           </div>
-                          <Button variant="ghost" size="icon" onClick={() => setRequestingCheckin(null)} className="rounded-mx-full w-mx-10 h-mx-10 hover:bg-surface-alt"><X size={20} /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setRequestingCheckin(null)} aria-label="Fechar" className="rounded-mx-full w-mx-10 h-mx-10 hover:bg-surface-alt"><X size={20} /></Button>
                       </header>
 
                       <div className="p-mx-lg md:p-10 space-y-mx-xl">

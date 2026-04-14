@@ -49,13 +49,13 @@ export default function VendedorFeedback() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Meus <span className="text-brand-primary">Feedbacks</span></Typography>
+                        <Typography variant="h1">Meus <span className="text-mx-green-700">Feedbacks</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md">Histórico de Performance e Ajustes Táticos</Typography>
                 </div>
 
                 <div className="flex items-center gap-mx-sm">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
                     <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm uppercase tracking-widest">Atualizado</Badge>

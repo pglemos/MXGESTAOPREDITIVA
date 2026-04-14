@@ -114,7 +114,7 @@ export default function VendedorHome() {
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Olá, <span className="text-brand-primary">{profile?.name?.split(' ')[0]}</span> 👋</Typography>
+                        <Typography variant="h1">Olá, <span className="text-mx-green-700">{profile?.name?.split(' ')[0]}</span> 👋</Typography>
                     </div>
                     <Typography variant="caption" className="uppercase tracking-widest font-black text-mx-micro sm:text-xs">PAINEL DE PERFORMANCE INDIVIDUAL • MX ELITE</Typography>
                 </div>
@@ -129,7 +129,7 @@ export default function VendedorHome() {
                     >
                         <MessageSquare size={18} />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="w-mx-12 h-mx-12 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" disabled={isRefetching} className="w-mx-12 h-mx-12 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     <div className="flex items-center gap-mx-sm bg-white border border-border-default p-mx-tiny px-4 sm:p-mx-xs sm:pr-8 rounded-mx-2xl sm:rounded-mx-3xl shadow-mx-sm">

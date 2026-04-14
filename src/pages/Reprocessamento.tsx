@@ -181,7 +181,7 @@ export default function Reprocessamento() {
                     <Button asChild variant="ghost" className="flex-1 sm:flex-none text-white/40 hover:text-white hover:bg-white/5 rounded-mx-full px-6 font-black uppercase tracking-widest text-mx-tiny">
                         <Link to="/configuracoes"><ArrowLeft size={14} className="mr-2" /> VOLTAR</Link>
                     </Button>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl border-white/10 text-white/40 h-mx-10 w-mx-10 sm:h-mx-14 sm:w-mx-14 hover:text-white bg-white/5">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl border-white/10 text-white/40 h-mx-10 w-mx-10 sm:h-mx-14 sm:w-mx-14 hover:text-white bg-white/5">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>

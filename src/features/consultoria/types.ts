@@ -53,6 +53,13 @@ export interface ConsultingAssignment {
   } | null
 }
 
+export interface ConsultingAssignableUser {
+  id: string
+  name: string
+  email: string
+  role: string
+}
+
 export interface ConsultingVisit {
   id: string
   client_id: string

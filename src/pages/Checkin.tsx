@@ -202,7 +202,7 @@ export default function Checkin() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Terminal <span className="text-brand-primary">MX</span></Typography>
+                        <Typography variant="h1">Terminal <span className="text-mx-green-700">MX</span></Typography>
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-mx-sm pl-6 mt-2">
                         <div className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm" role="group">
@@ -234,7 +234,7 @@ export default function Checkin() {
                             {canEditExisting || metricScope === 'adjustment' ? 'Edição Habilitada' : 'Visualização Somente'}
                         </Badge>
                     )}
-                    <Button variant="outline" size="icon" onClick={() => navigate('/home')} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={() => navigate('/home')} aria-label="Voltar ao início" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
                         <X size={24} />
                     </Button>
                 </div>

@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type {
   ConsultingAssignment,
+  ConsultingAssignableUser,
   ConsultingClient,
   ConsultingClientContact,
   ConsultingClientDetail,
@@ -94,10 +95,12 @@ export function useConsultingClients() {
 }
 
 export function useConsultingClientDetail(clientId?: string) {
-  const { supabaseUser } = useAuth()
+  const { supabaseUser, role } = useAuth()
   const [client, setClient] = useState<ConsultingClientDetail | null>(null)
+  const [assignableUsers, setAssignableUsers] = useState<ConsultingAssignableUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const canManage = role === 'admin'
 
   const fetchClient = useCallback(async () => {
     if (!supabaseUser || !clientId) {
@@ -109,13 +112,14 @@ export function useConsultingClientDetail(clientId?: string) {
     setLoading(true)
     setError(null)
 
-    const [clientRes, unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes] = await Promise.all([
+    const [clientRes, unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, usersRes] = await Promise.all([
       supabase.from('consulting_clients').select('*').eq('id', clientId).maybeSingle(),
       supabase.from('consulting_client_units').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_client_contacts').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_assignments').select('*, user:users(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
       supabase.from('consulting_visits').select('*, consultant:users(name,email), auxiliary_consultant:users(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
       supabase.from('consulting_financials').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
+      supabase.from('users').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
     ])
 
     if (clientRes.error) {
@@ -137,8 +141,93 @@ export function useConsultingClientDetail(clientId?: string) {
       : null
 
     setClient(detail)
+    setAssignableUsers((usersRes.data || []) as ConsultingAssignableUser[])
     setLoading(false)
   }, [clientId, supabaseUser])
+
+  const createUnit = useCallback(async (input: {
+    name: string
+    city?: string
+    state?: string
+    is_primary?: boolean
+  }) => {
+    if (!supabaseUser || !clientId || !canManage) {
+      return { error: 'Apenas admin pode cadastrar unidade.' }
+    }
+
+    const { error: insertError } = await supabase.from('consulting_client_units').insert({
+      client_id: clientId,
+      name: input.name.trim(),
+      city: input.city?.trim() || null,
+      state: input.state?.trim() || null,
+      is_primary: input.is_primary ?? false,
+    })
+
+    if (insertError) return { error: insertError.message }
+    await fetchClient()
+    return { error: null }
+  }, [canManage, clientId, fetchClient, supabaseUser])
+
+  const createContact = useCallback(async (input: {
+    name: string
+    email?: string
+    phone?: string
+    role?: string
+    is_primary?: boolean
+  }) => {
+    if (!supabaseUser || !clientId || !canManage) {
+      return { error: 'Apenas admin pode cadastrar contato.' }
+    }
+
+    const { error: insertError } = await supabase.from('consulting_client_contacts').insert({
+      client_id: clientId,
+      name: input.name.trim(),
+      email: input.email?.trim() || null,
+      phone: input.phone?.trim() || null,
+      role: input.role?.trim() || null,
+      is_primary: input.is_primary ?? false,
+    })
+
+    if (insertError) return { error: insertError.message }
+    await fetchClient()
+    return { error: null }
+  }, [canManage, clientId, fetchClient, supabaseUser])
+
+  const upsertAssignment = useCallback(async (input: {
+    user_id: string
+    assignment_role: 'responsavel' | 'auxiliar' | 'viewer'
+    active?: boolean
+  }) => {
+    if (!supabaseUser || !clientId || !canManage) {
+      return { error: 'Apenas admin pode vincular consultores.' }
+    }
+
+    const { error: upsertError } = await supabase.from('consulting_assignments').upsert({
+      client_id: clientId,
+      user_id: input.user_id,
+      assignment_role: input.assignment_role,
+      active: input.active ?? true,
+    }, { onConflict: 'client_id,user_id' })
+
+    if (upsertError) return { error: upsertError.message }
+    await fetchClient()
+    return { error: null }
+  }, [canManage, clientId, fetchClient, supabaseUser])
+
+  const toggleAssignment = useCallback(async (assignmentId: string, active: boolean) => {
+    if (!supabaseUser || !canManage) {
+      return { error: 'Apenas admin pode alterar vinculos.' }
+    }
+
+    const { error: updateError } = await supabase
+      .from('consulting_assignments')
+      .update({ active })
+      .eq('id', assignmentId)
+
+    if (updateError) return { error: updateError.message }
+    await fetchClient()
+    return { error: null }
+  }, [canManage, fetchClient, supabaseUser])
 
   useEffect(() => {
     fetchClient()
@@ -146,9 +235,15 @@ export function useConsultingClientDetail(clientId?: string) {
 
   return {
     client,
+    assignableUsers,
     loading,
     error,
+    canManage,
     refetch: fetchClient,
+    createUnit,
+    createContact,
+    upsertAssignment,
+    toggleAssignment,
   }
 }
 

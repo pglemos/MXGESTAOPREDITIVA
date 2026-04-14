@@ -41,7 +41,7 @@ export default function Configuracoes() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Ajustes de <span className="text-brand-primary">Identidade</span></Typography>
+                        <Typography variant="h1">Ajustes de <span className="text-mx-green-700">Identidade</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">PERFIL & EXPERIÊNCIA DO ESPECIALISTA</Typography>
                 </div>
@@ -64,11 +64,11 @@ export default function Configuracoes() {
                             <div className="relative group">
                                 <div className="w-mx-28 h-mx-3xl rounded-mx-3xl bg-surface-alt border border-border-default flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-500">
                                     <img 
-                                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(form.name)}&background=4f46e5&color=fff&size=128&bold=true`} 
-                                        alt="Avatar" className="w-full h-full object-cover" 
+                                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(form.name)}&background=0D3B2E&color=22C55E&size=128&bold=true`} 
+                                        alt={form.name ? `Avatar de ${form.name}` : 'Avatar do usuário'} className="w-full h-full object-cover"
                                     />
                                 </div>
-                                <Button size="icon" variant="secondary" className="absolute -bottom-2 -right-2 w-mx-10 h-mx-10 rounded-mx-xl shadow-mx-lg border-2 border-white">
+                                <Button size="icon" variant="secondary" className="absolute -bottom-2 -right-2 w-mx-10 h-mx-10 rounded-mx-xl shadow-mx-lg border-2 border-white" aria-label="Ação">
                                     <Camera size={16} />
                                 </Button>
                             </div>

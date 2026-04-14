@@ -54,13 +54,13 @@ export default function Funil() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Funil de <span className="text-brand-primary">Vendas</span></Typography>
+                        <Typography variant="h1">Funil de <span className="text-mx-green-700">Vendas</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">ANÁLISE DE CONVERSÃO & ESCOAMENTO MX</Typography>
                 </div>
 
                 <div className="flex items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     <div className="bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm flex gap-mx-tiny">

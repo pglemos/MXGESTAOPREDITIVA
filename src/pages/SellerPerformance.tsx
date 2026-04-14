@@ -125,7 +125,7 @@ export default function SellerPerformance() {
                             className="!pl-10 !h-12 text-mx-tiny font-black uppercase bg-white/5 border-white/10 text-white" 
                         />
                     </div>
-                    <Button variant="outline" size="icon" onClick={fetchPerformance} disabled={isRefetching} className="w-mx-12 h-mx-12 rounded-mx-xl shadow-mx-sm bg-white/5 border-white/10 text-white">
+                    <Button variant="outline" size="icon" onClick={fetchPerformance} disabled={isRefetching} className="w-mx-12 h-mx-12 rounded-mx-xl shadow-mx-sm bg-white/5 border-white/10 text-white" aria-label="Atualizar">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>

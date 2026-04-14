@@ -160,7 +160,7 @@ export default function Lojas() {
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Gestão de <span className="text-brand-primary">Lojas</span></Typography>
+                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Lojas</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CONTROLE DE UNIDADES & GOVERNANÇA MX</Typography>
                 </div>

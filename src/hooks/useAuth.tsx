@@ -4,6 +4,7 @@ import type { User as AppUser, UserRole, Membership, Store } from '@/types/datab
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 type StoreMembership = Membership & { store: Store }
+const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
 
 interface AuthState {
     initialized: boolean
@@ -47,6 +48,34 @@ function isTransientFetchError(error: { message?: string } | null) {
     return error?.message?.includes('Failed to fetch') || false
 }
 
+function readDevBypassProfile(): AppUser | null {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return null
+
+    try {
+        const raw = window.localStorage.getItem(DEV_BYPASS_STORAGE_KEY)
+        if (!raw) return null
+
+        const parsed = JSON.parse(raw) as Partial<AppUser>
+        if (!parsed.id || !parsed.email) return null
+
+        return {
+            id: parsed.id,
+            name: parsed.name || 'Admin MX',
+            email: parsed.email,
+            role: normalizeRole(parsed.role),
+            avatar_url: null,
+            is_venda_loja: false,
+            active: true,
+            created_at: parsed.created_at || new Date().toISOString(),
+            phone: parsed.phone,
+            store_id: parsed.store_id,
+        }
+    } catch {
+        window.localStorage.removeItem(DEV_BYPASS_STORAGE_KEY)
+        return null
+    }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
     const [profile, setProfile] = useState<AppUser | null>(null)
@@ -57,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [initialized, setInitialized] = useState(false)
     const authBootstrapCompleteRef = useRef(false)
     const lastLoadedUserIdRef = useRef<string | null>(null)
+    const devBypassRef = useRef(false)
 
     const fetchProfile = useCallback(async (userId: string): Promise<AppUser | null> => {
         const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
@@ -116,6 +146,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setInitialized(false)
             setLoading(true)
 
+            const devProfile = readDevBypassProfile()
+            if (devProfile && mounted) {
+                devBypassRef.current = true
+                setSupabaseUser({ id: devProfile.id, email: devProfile.email } as SupabaseUser)
+                setProfile(devProfile)
+                setMemberships([])
+                setActiveStoreId(null)
+                setFallbackStoreId(null)
+                lastLoadedUserIdRef.current = devProfile.id
+                authBootstrapCompleteRef.current = true
+                setInitialized(true)
+                setLoading(false)
+                return
+            }
+
+            devBypassRef.current = false
             const { data: { session } } = await supabase.auth.getSession()
             const nextUser = session?.user || null
 
@@ -130,6 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         bootstrapAuth()
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (devBypassRef.current) return
+
             if (mounted) {
                 const nextUser = session?.user || null;
                 setSupabaseUser(nextUser);
@@ -160,6 +208,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let timeoutId: any;
 
         async function loadUserData(userId: string) {
+            if (devBypassRef.current) {
+                setLoading(false)
+                return
+            }
+
             if (userId === lastLoadedUserIdRef.current && profile) {
                 setLoading(false)
                 return
@@ -252,6 +305,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const signOut = async () => {
+        if (devBypassRef.current && typeof window !== 'undefined') {
+            window.localStorage.removeItem(DEV_BYPASS_STORAGE_KEY)
+            devBypassRef.current = false
+        }
         await supabase.auth.signOut()
         setSupabaseUser(null)
         setProfile(null)

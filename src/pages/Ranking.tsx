@@ -58,7 +58,7 @@ export default function Ranking() {
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Arena de <span className="text-brand-primary">Performance</span></Typography>
+                        <Typography variant="h1">Arena de <span className="text-mx-green-700">Performance</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Meritocracia Real-time • MX ELITE TRACKING</Typography>
                 </div>
@@ -73,7 +73,7 @@ export default function Ranking() {
                         />
                     </div>
                     <div className="flex items-center gap-mx-sm w-full sm:w-auto order-1 sm:order-none">
-                        <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
+                        <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                         </Button>
                         <div className="flex-1 sm:flex-none flex items-center justify-center gap-mx-sm bg-white border border-border-default px-6 h-mx-xl rounded-mx-full shadow-mx-sm">

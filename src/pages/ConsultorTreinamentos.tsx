@@ -57,7 +57,7 @@ export default function ConsultorTreinamentos() {
                 </div>
 
                 <div className="flex items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetch().then(()=>setIsRefetching(false))}} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetch().then(()=>setIsRefetching(false))}} aria-label="Atualizar" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary">
@@ -81,7 +81,7 @@ export default function ConsultorTreinamentos() {
                                             <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">EXPANSÃO DE BASE TÉCNICA</Typography>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm"><X size={24} /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} aria-label="Fechar" className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm"><X size={24} /></Button>
                                 </header>
 
                                 <div className="grid lg:grid-cols-2 gap-mx-14 relative z-10">
@@ -171,7 +171,7 @@ export default function ConsultorTreinamentos() {
                                         <Typography variant="tiny" as="span">+12</Typography>
                                     </div>
                                 </div>
-                                <Button asChild size="icon" variant="secondary" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md group-hover:scale-110 transition-transform">
+                                <Button asChild size="icon" variant="secondary" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md group-hover:scale-110 transition-transform" aria-label="Ação">
                                     <a href={t.video_url} target="_blank" rel="noopener noreferrer">
                                         <ExternalLink size={20} />
                                     </a>

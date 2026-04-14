@@ -138,7 +138,7 @@ export default function RotinaGerente() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Centro de <span className="text-brand-primary">Comando</span></Typography>
+                        <Typography variant="h1">Centro de <span className="text-mx-green-700">Comando</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">GESTÃO DE UNIDADE • CICLO OPERACIONAL MX</Typography>
                 </div>
@@ -158,7 +158,7 @@ export default function RotinaGerente() {
                             </Button>
                         ))}
                     </nav>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>

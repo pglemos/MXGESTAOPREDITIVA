@@ -112,7 +112,7 @@ export default function DailyCheckin() {
                 </div>
                 
                 <div className="flex items-center gap-mx-sm">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
                     <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm">

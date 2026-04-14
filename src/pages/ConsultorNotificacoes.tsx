@@ -71,13 +71,13 @@ export default function ConsultorNotificacoes() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Central de <span className="text-brand-primary">Mensagens</span></Typography>
+                        <Typography variant="h1">Central de <span className="text-mx-green-700">Mensagens</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">COMUNICAÇÃO ESTRATÉGICA DE REDE</Typography>
                 </div>
 
                 <div className="flex items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg">
@@ -101,7 +101,7 @@ export default function ConsultorNotificacoes() {
                                             <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1">INTELIGÊNCIA DE REDE</Typography>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm"><X size={24} /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} aria-label="Fechar" className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm"><X size={24} /></Button>
                                 </header>
 
                                 <div className="grid lg:grid-cols-2 gap-mx-14 relative z-10">

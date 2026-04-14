@@ -61,7 +61,7 @@ export default function Historico() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Histórico <span className="text-brand-primary">Operacional</span></Typography>
+                        <Typography variant="h1">Histórico <span className="text-mx-green-700">Operacional</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md">Registros Sincronizados na Malha MX</Typography>
                 </div>
@@ -75,10 +75,10 @@ export default function Historico() {
                             className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest"
                         />
                     </div>
-                    <Button variant="outline" size="icon" onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')} className="rounded-mx-xl h-mx-xl w-mx-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')} aria-label="Alternar ordenação" className="rounded-mx-xl h-mx-xl w-mx-xl shadow-mx-sm">
                         <ArrowUpDown size={18} />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>

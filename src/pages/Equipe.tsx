@@ -98,7 +98,7 @@ export default function Equipe() {
         <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
           <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
             <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">Time de <span className="text-brand-primary">Elite</span></Typography>
+            <Typography variant="h1">Time de <span className="text-mx-green-700">Elite</span></Typography>
           </div>
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Gestão de Tropa & Hierarquia MX</Typography>
         </div>
@@ -113,7 +113,7 @@ export default function Equipe() {
             />
           </div>
           <div className="flex w-full sm:w-auto gap-mx-sm">
-            <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetch().then(() => setIsRefetching(false))}} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
+            <Button variant="outline" size="icon" onClick={() => {setIsRefetching(true); refetch().then(() => setIsRefetching(false))}} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
               <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
             </Button>
             {role === 'admin' && (
@@ -169,7 +169,7 @@ export default function Equipe() {
                 <div className="p-mx-lg flex flex-col items-center text-center flex-1">
                   <div className="w-mx-20 h-mx-20 rounded-mx-full border-4 border-white shadow-mx-md overflow-hidden bg-surface-alt mb-6 group-hover:scale-105 transition-transform shrink-0">
                     <img 
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || '')}&background=4f46e5&color=fff&bold=true`} 
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || '')}&background=0D3B2E&color=22C55E&bold=true`} 
                       alt={`Avatar de ${member.name}`} width={80} height={80} className="w-full h-full object-cover" 
                     />
                   </div>

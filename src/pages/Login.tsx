@@ -40,6 +40,12 @@ export default function Login() {
 
         if (import.meta.env.DEV && email === 'admin@mxperformance.com.br' && password === 'Mx#2026!') {
             localStorage.setItem('mx_last_email', email)
+            localStorage.setItem('mx_auth_profile', JSON.stringify({
+                id: 'dev-admin-mx',
+                email,
+                role: 'admin',
+                name: 'Admin MX Dev',
+            }))
             setTimeout(() => navigate('/painel', { replace: true }), 500)
             return
         }
@@ -136,7 +142,7 @@ export default function Login() {
                 <div className="lg:hidden mb-12 text-center">
                     <img src={MxLogo} alt="MX Performance" className="w-mx-20 h-mx-20 object-contain mx-auto mb-6" />
                     <h1 className="text-2xl font-black text-text-primary tracking-tight">
-                        MX <span className="text-brand-primary">PERFORMANCE</span>
+                        MX <span className="text-mx-green-700">PERFORMANCE</span>
                     </h1>
                 </div>
 
@@ -188,7 +194,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-brand-primary hover:bg-mx-green-400 text-white rounded-xl font-black text-sm uppercase tracking-wider flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/30 active:scale-[0.98] mt-2"
+                            className="w-full bg-brand-secondary hover:bg-mx-green-950 text-white rounded-xl font-black text-sm uppercase tracking-wider flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-primary/25 hover:shadow-brand-primary/40 active:scale-[0.98] mt-2"
                             style={{ height: '3.25rem', gap: '0.5rem' }}
                         >
                             {loading ? (

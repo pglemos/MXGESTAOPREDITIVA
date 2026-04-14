@@ -73,7 +73,7 @@ export default function GerentePDI() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">Evolução do <span className="text-brand-primary">Vendedor</span></Typography>
+                        <Typography variant="h1">Evolução do <span className="text-mx-green-700">Vendedor</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX</Typography>
                 </div>
@@ -87,7 +87,7 @@ export default function GerentePDI() {
                             className="!pl-11 !h-12 uppercase tracking-widest text-mx-tiny font-black"
                         />
                     </div>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     {canManagePDI && (
@@ -150,12 +150,12 @@ export default function GerentePDI() {
                                                         </Typography>
                                                     </div>
                                                     <Link to={`/pdi/print/${p.id}`}>
-                                                        <Button variant="ghost" size="icon" className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default">
+                                                        <Button variant="ghost" size="icon" className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default" aria-label="Ação">
                                                             <Printer size={18} />
                                                         </Button>
                                                     </Link>
                                                 </div>
-                                                <Button variant="secondary" size="icon" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md hover:scale-110 active:scale-95 transition-all">
+                                                <Button variant="secondary" size="icon" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md hover:scale-110 active:scale-95 transition-all" aria-label="Ação">
                                                     <ChevronRight size={24} strokeWidth={2} />
                                                 </Button>
                                             </footer>

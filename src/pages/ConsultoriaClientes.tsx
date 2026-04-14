@@ -90,9 +90,9 @@ export default function ConsultoriaClientes() {
       render: (client) => {
         const step = client.current_visit_step || 0
         return (
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-mx-xs">
             <Typography variant="tiny" className="font-black">{step} / 7</Typography>
-            <div className="w-24 h-1.5 bg-surface-alt rounded-full overflow-hidden">
+            <div className="h-1.5 bg-surface-alt rounded-full overflow-hidden" style={{ width: '6rem' }}>
               <div 
                 className="h-full bg-brand-primary transition-all" 
                 style={{ width: `${(step / 7) * 100}%` }}
@@ -133,7 +133,7 @@ export default function ConsultoriaClientes() {
         <div className="flex flex-col gap-mx-tiny">
           <div className="flex items-center gap-mx-sm">
             <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">CRM de <span className="text-brand-primary">Consultoria</span></Typography>
+            <Typography variant="h1">CRM de <span className="text-mx-green-700">Consultoria</span></Typography>
           </div>
           <Typography variant="caption" className="pl-mx-md">CLIENTES INTERNOS DA MX</Typography>
         </div>
@@ -154,7 +154,7 @@ export default function ConsultoriaClientes() {
             </Card>
           </div>
 
-          <Button variant="outline" size="icon" onClick={() => refetch()} className="rounded-mx-xl bg-white">
+          <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar" className="rounded-mx-xl bg-white">
             <RefreshCw size={18} />
           </Button>
 

@@ -311,7 +311,7 @@ export default function DashboardLoja() {
                         <input type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="hidden sm:block uppercase font-black text-text-primary bg-transparent outline-none text-mx-tiny" />
                     </div>
 
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>

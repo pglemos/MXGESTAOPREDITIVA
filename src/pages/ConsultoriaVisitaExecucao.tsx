@@ -4,6 +4,7 @@ import {
   ArrowLeft, CheckCircle2, Circle, Save, FileText, Send,
   AlertCircle, Info, Building2, User2, Calendar
 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
@@ -110,7 +111,7 @@ export default function ConsultoriaVisitaExecucao() {
             </Link>
           </Button>
           <div className="flex items-center gap-mx-sm">
-            <Typography variant="h1">Execução: <span className="text-brand-primary">Visita {visitNum}</span></Typography>
+            <Typography variant="h1">Execução: <span className="text-mx-green-700">Visita {visitNum}</span></Typography>
             <Badge variant={visit?.status === 'concluída' ? 'success' : 'warning'} className="rounded-mx-full px-4 py-1">
               {visit?.status?.toUpperCase() || 'NÃO INICIADA'}
             </Badge>
@@ -150,11 +151,11 @@ export default function ConsultoriaVisitaExecucao() {
               {step?.objective}
             </Typography>
             <div className="mt-mx-md grid grid-cols-1 md:grid-cols-2 gap-mx-md">
-              <div className="space-y-1">
+              <div className="space-y-mx-xs">
                 <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Alvo</Typography>
                 <Typography variant="p" className="font-bold">{step?.target || 'N/A'}</Typography>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-mx-xs">
                 <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Duração Prevista</Typography>
                 <Typography variant="p" className="font-bold">{step?.duration || 'N/A'}</Typography>
               </div>
@@ -224,7 +225,7 @@ export default function ConsultoriaVisitaExecucao() {
           </Card>
 
           <Card className="p-mx-lg border-none shadow-mx-md bg-brand-secondary text-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-mx-md opacity-10">
+            <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-10">
               <FileText size={80} />
             </div>
             <Typography variant="h3" tone="white" className="mb-mx-sm relative z-10">HANDOFF</Typography>

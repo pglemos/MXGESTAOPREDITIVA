@@ -78,7 +78,7 @@ export default function VendedorTreinamentos() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Minha <span className="text-brand-primary">Evolução</span></Typography>
+                        <Typography variant="h1">Minha <span className="text-mx-green-700">Evolução</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CURADORIA TÁTICA • MX ACADEMY</Typography>
                 </div>
@@ -93,7 +93,7 @@ export default function VendedorTreinamentos() {
                             <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-brand-primary rounded-mx-full" />
                         </div>
                     </Card>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>

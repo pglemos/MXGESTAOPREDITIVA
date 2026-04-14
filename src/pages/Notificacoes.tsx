@@ -77,7 +77,7 @@ export default function Notificacoes() {
         </div>
 
         <div className="flex items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
-          <Button variant="outline" size="icon" onClick={handleRefresh} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white">
+          <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white">
             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
           </Button>
           <Button variant="outline" onClick={() => {markAllAsRead(); toast.success('Tudo lido!')}} className="h-mx-xl px-6 flex-1 lg:flex-none rounded-mx-full shadow-mx-sm uppercase font-black text-xs bg-white tracking-widest">
