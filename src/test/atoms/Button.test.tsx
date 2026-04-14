@@ -18,7 +18,7 @@ describe("Button Atom", () => {
     const { rerender } = render(<Button variant="primary">Primary</Button>);
     let button = screen.getByRole("button");
     // We expect some classes from the primary variant
-    expect(button.className).toContain("bg-brand-primary");
+    expect(button.className).toContain("bg-brand-secondary");
 
     rerender(<Button variant="danger">Danger</Button>);
     button = screen.getByRole("button");

@@ -4,7 +4,8 @@ import { defineConfig, devices } from '@playwright/test';
  * MX Performance E2E Configuration
  */
 export default defineConfig({
-  testDir: './src/test/e2e',
+  testDir: './src/test',
+  testMatch: /.*\.playwright\.ts/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
