@@ -8,7 +8,15 @@ import {
     isBusinessDay,
     calcularFunil,
     gerarDiagnosticoMX,
-    MX_BENCHMARKS
+    MX_BENCHMARKS,
+    getBusinessDaysInMonth,
+    getBusinessDaysElapsed,
+    getDiasInfo,
+    validarFunil,
+    calcularScoreMX,
+    getOperationalStatus,
+    somarVendas,
+    somarVendasPorCanal,
 } from './calculations'
 import type { DailyCheckin, CheckinFormData, FunnelData } from '@/types/database'
 
@@ -134,5 +142,88 @@ describe('Business Calculations (MX Performance)', () => {
         // Cenário 5: Venda Loja (SISTEMICO)
         const diag5 = gerarDiagnosticoMX(funil4, true, rules)
         expect(diag5.gargalo).toBe('SISTEMICO')
+    })
+
+    test('gerarDiagnosticoMX — funil zerado retorna SEM_DADOS', () => {
+        const funilVazio: FunnelData = { leads: 0, agd_total: 0, visitas: 0, vnd_total: 0, tx_lead_agd: 0, tx_agd_visita: 0, tx_visita_vnd: 0 }
+        const diag = gerarDiagnosticoMX(funilVazio)
+        expect(diag.gargalo).toBe('SEM_DADOS')
+    })
+
+    test('getBusinessDaysInMonth', () => {
+        expect(getBusinessDaysInMonth(2026, 0)).toBe(27)
+        expect(getBusinessDaysInMonth(2026, 1)).toBe(24)
+        expect(getBusinessDaysInMonth(2026, 3)).toBe(26)
+    })
+
+    test('getBusinessDaysElapsed', () => {
+        expect(getBusinessDaysElapsed(new Date('2026-04-01T12:00:00'))).toBe(1)
+        expect(getBusinessDaysElapsed(new Date('2026-04-14T12:00:00'))).toBe(12)
+    })
+
+    test('getDiasInfo — modo calendar', () => {
+        const info = getDiasInfo('2026-04-14', 'calendar')
+        expect(info.total).toBe(30)
+        expect(info.decorridos).toBe(14)
+        expect(info.restantes).toBe(16)
+        expect(info.referencia).toBe('2026-04-14')
+    })
+
+    test('getDiasInfo — modo business', () => {
+        const info = getDiasInfo('2026-04-14', 'business')
+        expect(info.total).toBeGreaterThan(0)
+        expect(info.decorridos).toBeGreaterThan(0)
+        expect(info.restantes).toBeGreaterThanOrEqual(0)
+    })
+
+    test('getDiasInfo — restantes nunca negativo', () => {
+        const info = getDiasInfo('2026-04-30', 'calendar')
+        expect(info.restantes).toBeGreaterThanOrEqual(0)
+    })
+
+    test('validarFunil', () => {
+        expect(validarFunil({ agd_cart_prev: 5, agd_net_prev: 5, visitas: 8, vnd_porta: 2, vnd_cart: 1, vnd_net: 1 })).toBeNull()
+        expect(validarFunil({ agd_cart_prev: 0, agd_net_prev: 0, visitas: 0, vnd_porta: 10, vnd_cart: 0, vnd_net: 0 })).toBeTruthy()
+    })
+
+    test('calcularScoreMX', () => {
+        const funil: FunnelData = { leads: 100, agd_total: 25, visitas: 15, vnd_total: 6, tx_lead_agd: 25, tx_agd_visita: 60, tx_visita_vnd: 40 }
+        const score = calcularScoreMX(10, 10, funil, 10, 10)
+        expect(score).toBeGreaterThan(0)
+
+        const scoreMetaZero = calcularScoreMX(10, 0, funil, 10, 10)
+        expect(scoreMetaZero).toBeGreaterThan(0)
+    })
+
+    test('getOperationalStatus', () => {
+        expect(getOperationalStatus(20, 50).label).toBe('INDISCIPLINA')
+        expect(getOperationalStatus(20, 90).label).toBe('CRÍTICO')
+        expect(getOperationalStatus(50, 90).label).toBe('ALERTA RITMO')
+        expect(getOperationalStatus(90, 90).label).toBe('NO RITMO')
+        expect(getOperationalStatus(110, 90).label).toBe('EXCELÊNCIA')
+    })
+
+    test('somarVendas', () => {
+        const checkins: Partial<DailyCheckin>[] = [
+            { vnd_porta_prev_day: 1, vnd_cart_prev_day: 2, vnd_net_prev_day: 3 },
+            { vnd_porta_prev_day: 0, vnd_cart_prev_day: 1, vnd_net_prev_day: 0 },
+        ]
+        expect(somarVendas(checkins as DailyCheckin[])).toBe(7)
+        expect(somarVendas([])).toBe(0)
+    })
+
+    test('somarVendasPorCanal', () => {
+        const checkins: Partial<DailyCheckin>[] = [
+            { vnd_porta_prev_day: 1, vnd_cart_prev_day: 2, vnd_net_prev_day: 3 },
+        ]
+        const canais = somarVendasPorCanal(checkins as DailyCheckin[])
+        expect(canais.porta).toBe(1)
+        expect(canais.carteira).toBe(2)
+        expect(canais.internet).toBe(3)
+
+        const vazio = somarVendasPorCanal([])
+        expect(vazio.porta).toBe(0)
+        expect(vazio.carteira).toBe(0)
+        expect(vazio.internet).toBe(0)
     })
 })
