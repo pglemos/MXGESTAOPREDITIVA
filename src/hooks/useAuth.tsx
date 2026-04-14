@@ -19,6 +19,8 @@ interface AuthState {
     loading: boolean
     signIn: (email: string, password: string) => Promise<{ error: string | null }>
     signOut: () => Promise<void>
+    updateProfile: (updates: Partial<Pick<AppUser, 'name' | 'phone' | 'avatar_url'>>) => Promise<{ error: string | null }>
+    changePassword: (newPassword: string) => Promise<{ error: string | null }>
 }
 
 const AuthContext = createContext<AuthState>({
@@ -34,6 +36,8 @@ const AuthContext = createContext<AuthState>({
     loading: true,
     signIn: async () => ({ error: null }), 
     signOut: async () => { },
+    updateProfile: async () => ({ error: 'Not initialized' }),
+    changePassword: async () => ({ error: 'Not initialized' })
 })
 
 function normalizeRole(rawRole: string | null | undefined): UserRole {
@@ -298,6 +302,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: null }
     }
 
+    const updateProfile = async (updates: Partial<Pick<AppUser, 'name' | 'phone' | 'avatar_url'>>): Promise<{ error: string | null }> => {
+        if (!supabaseUser?.id) return { error: 'Não autenticado' }
+
+        const { error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', supabaseUser.id)
+
+        if (error) return { error: error.message }
+
+        const updatedProfile = { ...profile, ...updates } as AppUser
+        setProfile(updatedProfile)
+        return { error: null }
+    }
+
+    const changePassword = async (newPassword: string): Promise<{ error: string | null }> => {
+        const { error } = await supabase.auth.updateUser({ password: newPassword })
+        if (error) return { error: error.message }
+        return { error: null }
+    }
+
     const signOut = async () => {
         if (devBypassRef.current && typeof window !== 'undefined') {
             window.localStorage.removeItem(DEV_BYPASS_STORAGE_KEY)
@@ -328,7 +353,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             initialized, 
             loading, 
             signIn, 
-            signOut 
+            signOut,
+            updateProfile,
+            changePassword
         }}>
             {children}
         </AuthContext.Provider>

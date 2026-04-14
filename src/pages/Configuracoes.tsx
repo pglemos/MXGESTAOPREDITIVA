@@ -17,21 +17,29 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { FormField } from '@/components/molecules/FormField'
 
 export default function Configuracoes() {
-    const { profile, role, signOut } = useAuth()
+    const { profile, role, signOut, updateProfile } = useAuth()
     const [saving, setSaving] = useState(false)
     const [form, setForm] = useState({
         name: profile?.name || '',
         email: profile?.email || '',
+        phone: profile?.phone || '',
         notifications: true,
-        darkMode: false
     })
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!form.name.trim()) {
+            toast.error('Nome não pode ficar vazio.')
+            return
+        }
         setSaving(true)
-        await new Promise(r => setTimeout(r, 1000))
+        const { error } = await updateProfile({ name: form.name.trim(), phone: form.phone.trim() || undefined })
         setSaving(false)
-        toast.success('Configurações de perfil firmadas!')
+        if (error) {
+            toast.error(error)
+        } else {
+            toast.success('Configurações de perfil firmadas!')
+        }
     }
 
     return (
