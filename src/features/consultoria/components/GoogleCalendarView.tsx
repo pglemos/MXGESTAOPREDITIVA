@@ -1,90 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { Button } from '../../../components/atoms/Button';
 import { Typography } from '../../../components/atoms/Typography';
-import { supabase } from '../../../lib/supabase';
 import { Calendar, RefreshCcw, ExternalLink, Clock, MapPin } from 'lucide-react';
+import { useConsultingAgenda, type ConsultingAgendaEvent } from '@/hooks/useConsultingAgenda'
 
 interface GoogleCalendarViewProps {
   clientId: string;
-  userId: string;
 }
 
-interface CalendarEvent {
-  id: string;
-  summary: string;
-  start: { dateTime?: string; date?: string };
-  end: { dateTime?: string; date?: string };
-  location?: string;
-  htmlLink?: string;
-}
+export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId }) => {
+  const {
+    isConnected,
+    isLoading,
+    isRefreshing,
+    events,
+    error,
+    context,
+    connectGoogleCalendar,
+    refreshEvents,
+  } = useConsultingAgenda(clientId)
 
-export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId, userId }) => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  const checkConnection = useCallback(async () => {
-    setIsLoading(true);
-    const { data } = await supabase
-      .from('consulting_oauth_tokens')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('provider', 'google')
-      .single();
-
-    setIsConnected(!!data);
-    setIsLoading(false);
-  }, [userId]);
-
-  const fetchEvents = useCallback(async () => {
-    setIsRefreshing(true);
-    setError(null);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-events`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ userId, maxResults: 15 }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to fetch events');
-      setEvents(result.events || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    checkConnection();
-  }, [checkConnection]);
-
-  useEffect(() => {
-    if (isConnected) fetchEvents();
-  }, [isConnected, fetchEvents]);
-
-  const handleConnect = () => {
-    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
-    const scope = 'https://www.googleapis.com/auth/calendar.events.readonly';
-    const state = userId;
-
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent&state=${state}`;
-
-    window.location.href = authUrl;
-  };
-
-  const formatEventTime = (start: CalendarEvent['start']) => {
+  const formatEventTime = (start: ConsultingAgendaEvent['start']) => {
     if (start.dateTime) {
       return new Date(start.dateTime).toLocaleString('pt-BR', {
         day: '2-digit',
@@ -102,7 +38,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId
     return '';
   };
 
-  if (isLoading) return <div className="p-mx-md text-center text-text-tertiary">Verificando conexao com Google Calendar...</div>;
+  if (isLoading) return <div className="p-mx-md text-center text-text-tertiary">Verificando contexto da agenda...</div>;
 
   return (
     <div className="bg-white rounded-mx-xl shadow-mx-sm border border-border-default p-mx-lg">
@@ -118,6 +54,9 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId
             <Typography variant="caption" className="text-text-tertiary">
               Sincronizacao com Google Calendar API
             </Typography>
+            <Typography variant="caption" className="text-text-tertiary block mt-mx-xs">
+              {context.title}
+            </Typography>
           </div>
         </div>
 
@@ -126,7 +65,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId
             variant="outline"
             size="sm"
             className="flex items-center gap-mx-xs"
-            onClick={fetchEvents}
+            onClick={refreshEvents}
             disabled={isRefreshing}
           >
             <RefreshCcw size={16} className={isRefreshing ? 'animate-spin' : ''} />
@@ -138,10 +77,13 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId
       {!isConnected ? (
         <div className="text-center py-mx-xl border-2 border-dashed border-border-default rounded-mx-xl">
           <Typography variant="p" className="text-text-secondary mb-mx-lg">
-            Conecte sua agenda do Google para gerenciar compromissos com este cliente.
+            {context.description}
+          </Typography>
+          <Typography variant="caption" className="text-text-tertiary block mb-mx-md">
+            Conecte sua conta Google para liberar a leitura dos eventos futuros.
           </Typography>
           <Button
-            onClick={handleConnect}
+            onClick={connectGoogleCalendar}
             className="bg-brand-primary hover:bg-brand-primary-hover text-white flex items-center gap-mx-xs mx-auto"
           >
             <ExternalLink size={18} />
@@ -150,6 +92,12 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({ clientId
         </div>
       ) : (
         <div className="space-y-mx-sm">
+          {!context.linkedToClient && (
+            <div className="p-mx-md bg-surface-alt text-text-secondary rounded-mx-lg border border-border-default">
+              <Typography variant="caption">{context.description}</Typography>
+            </div>
+          )}
+
           <div className="p-mx-md bg-status-success-surface text-status-success rounded-mx-lg border border-status-success/20 flex items-center gap-mx-xs">
             <Typography variant="caption" className="font-medium">
               Agenda Conectada! {events.length > 0 ? `${events.length} evento(s) futuro(s).` : ''}

@@ -116,11 +116,6 @@ export default function ConsultoriaClienteDetalhe() {
     return (client?.assignments || []).filter((assignment) => assignment.active)
   }, [client?.assignments])
 
-  const currentUserId = useMemo(() => {
-    // Pegando o ID do primeiro consultor vinculado como fallback para o MVP
-    return activeAssignments[0]?.user_id || ''
-  }, [activeAssignments])
-
   const availableUsers = useMemo(() => {
     const assignedIds = new Set((client?.assignments || []).map((assignment) => assignment.user_id))
     return assignableUsers.filter((user) => !assignedIds.has(user.id))
@@ -542,10 +537,7 @@ export default function ConsultoriaClienteDetalhe() {
       {activeTab === 'visits' && (
         <section className="flex flex-col gap-mx-lg">
           {clientId && (
-            <GoogleCalendarView 
-              clientId={clientId} 
-              userId={currentUserId} 
-            />
+            <GoogleCalendarView clientId={clientId} />
           )}
 
           <div className="flex items-center justify-between">
