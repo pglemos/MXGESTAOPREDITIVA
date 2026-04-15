@@ -86,7 +86,7 @@ export default function Configuracoes() {
                                     <Badge variant="brand" className="px-4 py-1 uppercase font-black shadow-sm">{role} tier</Badge>
                                     <div className="flex items-center gap-mx-xs">
                                         <div className="w-1.5 h-1.5 rounded-mx-full bg-status-success shadow-mx-sm animate-pulse" />
-                                        <Typography variant="caption" tone="muted" className="font-black opacity-40 uppercase tracking-widest">MEMBRO ATIVO MX</Typography>
+                                        <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">MEMBRO ATIVO MX</Typography>
                                     </div>
                                 </div>
                             </div>
@@ -103,7 +103,7 @@ export default function Configuracoes() {
                             </div>
                             <div className="md:col-span-2 pt-10 border-t border-border-default flex items-start gap-mx-sm">
                                 <div className="w-mx-lg h-mx-lg rounded-mx-full bg-mx-indigo-50 text-brand-primary flex items-center justify-center shrink-0 shadow-inner border border-mx-indigo-100"><Info size={14} strokeWidth={2} /></div>
-                                <Typography variant="p" tone="muted" className="uppercase font-bold leading-relaxed opacity-40 text-xs">Os dados de e-mail e hierarquia são gerenciados exclusivamente pela administração da rede para fins de auditoria imutável.</Typography>
+                                <Typography variant="p" tone="muted" className="uppercase font-bold leading-relaxed text-xs">Os dados de e-mail e hierarquia são gerenciados exclusivamente pela administração da rede para fins de auditoria imutável.</Typography>
                             </div>
                         </form>
                     </Card>
@@ -113,7 +113,7 @@ export default function Configuracoes() {
                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100 shadow-inner"><Bell size={28} /></div>
                             <div>
                                 <Typography variant="h3" className="uppercase tracking-tight">Canais de Alerta</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">GERENCIAMENTO DE NOTIFICAÇÕES</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">GERENCIAMENTO DE NOTIFICAÇÕES</Typography>
                             </div>
                         </header>
                         
@@ -121,7 +121,7 @@ export default function Configuracoes() {
                             <Card className="flex items-center justify-between p-mx-lg bg-surface-alt border border-border-subtle shadow-inner group hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-sm transition-all">
                                 <div className="space-y-mx-tiny">
                                     <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors">Notificações Push</Typography>
-                                    <Typography variant="p" tone="muted" className="lowercase tracking-normal italic uppercase tracking-widest font-black opacity-40 text-xs">Alertas de gaps, rituais pendentes e novos feedbacks</Typography>
+                                    <Typography variant="p" tone="muted" className="lowercase tracking-normal italic uppercase tracking-widest font-black text-xs">Alertas de gaps, rituais pendentes e novos feedbacks</Typography>
                                 </div>
                                 <Button 
                                     variant={form.notifications ? 'primary' : 'outline'}
@@ -144,7 +144,7 @@ export default function Configuracoes() {
                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:rotate-6 transition-transform"><Palette size={28} className="text-brand-primary" /></div>
                             <div>
                                 <Typography variant="h3" tone="white" className="uppercase tracking-tight">Estética MX</Typography>
-                                <Typography variant="caption" tone="white" className="opacity-40 uppercase tracking-widest mt-1 font-black">PERSONALIZAÇÃO</Typography>
+                                <Typography variant="caption" tone="white" className="uppercase tracking-widest mt-1 font-black">PERSONALIZAÇÃO</Typography>
                             </div>
                         </header>
 

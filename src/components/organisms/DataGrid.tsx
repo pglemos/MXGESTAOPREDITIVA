@@ -50,7 +50,7 @@ function DataGridInner<T extends { id: string | number }>({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-mx-md opacity-40">
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-mx-md text-text-label">
         <SearchX size={48} className="text-text-tertiary" />
         <Typography variant="caption" className="uppercase font-black tracking-widest max-w-xs mx-auto">
           {emptyMessage}
@@ -137,7 +137,7 @@ function DataGridInner<T extends { id: string | number }>({
                         cIdx === 0 && "border-b border-border-default pb-4 mb-4"
                       )}
                     >
-                      {cIdx > 0 && <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">{col.header}</Typography>}
+                      {cIdx > 0 && <Typography variant="tiny" tone="muted" className="uppercase font-black">{col.header}</Typography>}
                       <div className={cn(
                         "text-sm font-bold",
                         cIdx === 0 && "text-lg font-black uppercase tracking-tight"

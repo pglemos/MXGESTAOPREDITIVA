@@ -224,7 +224,7 @@ export default function VendedorHome() {
                         <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-2xl bg-status-warning text-white flex items-center justify-center shadow-mx-md"><Trophy size={24} className="md:size-mx-md" /></div>
                         <div>
                             <Typography variant="h2" className="text-xl md:text-2xl uppercase tracking-tighter leading-none">Arena de Elite</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest opacity-40">SUA POSIÇÃO NO CAMPO DE BATALHA</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest">SUA POSIÇÃO NO CAMPO DE BATALHA</Typography>
                         </div>
                     </div>
                     <Button variant="ghost" asChild className="rounded-mx-full px-8 h-mx-xl bg-white border border-border-default shadow-sm uppercase font-black tracking-widest text-xs w-full sm:w-auto">
@@ -241,7 +241,7 @@ export default function VendedorHome() {
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center font-black text-xl border border-mx-amber-100 shadow-inner shrink-0">{metrics.myRank?.position ? metrics.myRank.position - 1 : '--'}º</div>
                                     <div className="min-w-0">
                                         <Typography variant="h3" className="text-base uppercase tracking-tight truncate">{metrics.competitors.above.user_name}</Typography>
-                                        <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">{metrics.competitors.above.vnd_total} VENDAS</Typography>
+                                        <Typography variant="tiny" tone="muted" className="uppercase font-black">{metrics.competitors.above.vnd_total} VENDAS</Typography>
                                     </div>
                                 </div>
                                 <div className="bg-status-warning-surface rounded-mx-xl p-mx-sm text-center border border-mx-amber-100/50">
@@ -261,7 +261,7 @@ export default function VendedorHome() {
                         <div className="text-center relative z-10">
                             <Typography variant="caption" tone="brand" className="mb-4 block tracking-mx-widest font-black uppercase text-mx-tiny">STATUS ATUAL</Typography>
                             <Typography variant="h1" tone="white" className="text-6xl sm:text-8xl tabular-nums leading-none mb-2 tracking-tighter">{metrics.myRank?.position || '--'}º</Typography>
-                            <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-mx-wider font-black text-mx-tiny">NA UNIDADE</Typography>
+                            <Typography variant="tiny" tone="white" className="uppercase tracking-mx-wider font-black text-mx-tiny">NA UNIDADE</Typography>
                         </div>
                         <div className="mt-10 pt-8 border-t border-white/10 flex justify-between items-center relative z-10">
                             <div>
@@ -283,7 +283,7 @@ export default function VendedorHome() {
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-error-surface text-status-error flex items-center justify-center font-black text-xl border border-mx-rose-100 shadow-inner shrink-0">{metrics.myRank?.position ? metrics.myRank.position + 1 : '--'}º</div>
                                     <div className="min-w-0">
                                         <Typography variant="h3" className="text-base uppercase tracking-tight truncate">{metrics.competitors.below.user_name}</Typography>
-                                        <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">{metrics.competitors.below.vnd_total} VENDAS</Typography>
+                                        <Typography variant="tiny" tone="muted" className="uppercase font-black">{metrics.competitors.below.vnd_total} VENDAS</Typography>
                                     </div>
                                 </div>
                                 <div className="bg-status-error-surface rounded-mx-xl p-mx-sm text-center border border-mx-rose-100/50">
@@ -307,7 +307,7 @@ export default function VendedorHome() {
                         <header className="flex items-center justify-between mb-12 relative z-10">
                             <div>
                                 <Typography variant="h2" className="text-xl md:text-2xl mb-2 uppercase tracking-tighter leading-none">Matrix de Canais</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest opacity-40">DISTRIBUIÇÃO DE FECHAMENTOS POR ORIGEM</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest">DISTRIBUIÇÃO DE FECHAMENTOS POR ORIGEM</Typography>
                             </div>
                             <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-text-tertiary shadow-inner shrink-0"><BarChart3 size={24} className="md:size-mx-md" /></div>
                         </header>
@@ -325,7 +325,7 @@ export default function VendedorHome() {
                                         <Badge variant="outline" className="text-mx-tiny font-mono-numbers font-black border-border-strong px-2 sm:px-3">{ch.pct}%</Badge>
                                     </div>
                                     <Typography variant="h1" className="text-3xl sm:text-5xl font-mono-numbers mb-1 leading-none">{ch.value}</Typography>
-                                    <Typography variant="caption" tone="muted" className="tracking-widest uppercase font-black text-mx-nano sm:text-mx-micro opacity-40">{ch.label}</Typography>
+                                    <Typography variant="caption" tone="muted" className="tracking-widest uppercase font-black text-mx-nano sm:text-mx-micro">{ch.label}</Typography>
                                 </Card>
                             ))}
                         </div>
@@ -336,7 +336,7 @@ export default function VendedorHome() {
                             <div className="w-mx-12 h-mx-12 md:w-mx-14 md:h-mx-14 rounded-mx-xl bg-status-info-surface text-status-info border border-status-info/20 flex items-center justify-center shadow-inner shrink-0"><Clock size={24} className="md:size-mx-md" /></div>
                             <div>
                                 <Typography variant="h2" className="text-xl md:text-2xl uppercase tracking-tighter leading-none">Rotina MX</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest opacity-40">AGENDA DE ALTA PERFORMANCE</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase font-black text-mx-tiny tracking-widest">AGENDA DE ALTA PERFORMANCE</Typography>
                             </div>
                         </header>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
@@ -376,10 +376,10 @@ export default function VendedorHome() {
 
                         <div className="relative z-10 space-y-mx-xl">
                             <div className="space-y-mx-md">
-                                <Typography variant="tiny" tone="white" className="opacity-40 tracking-mx-widest font-black uppercase text-mx-tiny">PERFORMANCE DA SEMANA</Typography>
+                                <Typography variant="tiny" tone="white" className="tracking-mx-widest font-black uppercase text-mx-tiny">PERFORMANCE DA SEMANA</Typography>
                                 <div className="flex items-baseline gap-mx-sm">
                                     <Typography variant="h1" tone="white" className="text-5xl sm:text-7xl font-mono-numbers leading-none tracking-tighter">{metrics.vendasSemana}</Typography>
-                                    <Typography variant="tiny" tone="white" className="opacity-40 uppercase font-black text-mx-tiny">UNIDADES</Typography>
+                                    <Typography variant="tiny" tone="white" className="uppercase font-black text-mx-tiny">UNIDADES</Typography>
                                 </div>
                                 <div className="h-mx-xs w-full bg-white/5 rounded-mx-full overflow-hidden border border-white/5 p-mx-tiny shadow-inner">
                                     <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} transition={{ duration: 2 }} className="h-full bg-gradient-to-r from-brand-primary to-mx-indigo-400 rounded-mx-full shadow-mx-glow-brand" />

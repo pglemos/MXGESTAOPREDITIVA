@@ -77,7 +77,7 @@ export default function Terms() {
                                 <ArrowLeft size={16} className="mr-2" /> VOLTAR AO SISTEMA
                             </Button>
                             <div className="text-center sm:text-right space-y-mx-tiny">
-                                <Typography variant="tiny" tone="muted" className="font-black opacity-40 uppercase">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
+                                <Typography variant="tiny" tone="muted" className="font-black uppercase">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
                                 <Typography variant="tiny" tone="muted" className="font-black opacity-20 block tracking-widest uppercase">PLATAFORMA LICENCIADA</Typography>
                             </div>
                         </footer>

@@ -192,7 +192,7 @@ export default function DashboardLoja() {
             key: 'position',
             header: 'POS',
             width: 'w-16',
-            render: (_, i) => <span className="font-black text-sm text-text-tertiary tabular-nums opacity-40">{(i + 1).toString().padStart(2, '0')}</span>
+            render: (_, i) => <span className="font-black text-sm text-text-label tabular-nums">{(i + 1).toString().padStart(2, '0')}</span>
         },
         {
             key: 'user_name',
@@ -331,14 +331,14 @@ export default function DashboardLoja() {
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Vendido Período</Typography>
+                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Vendido Período</Typography>
                     <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.totalSales}</Typography>
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest text-mx-tiny">REFERÊNCIA REAL-TIME</Typography>
                 </Card>
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-info-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Escoamento Médio</Typography>
+                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Escoamento Médio</Typography>
                     <div className="flex items-baseline gap-mx-xs mb-2">
                         <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalLeads}</Typography>
                         <Typography variant="h3" tone="muted" className="text-xl font-black uppercase opacity-20">LEADS</Typography>
@@ -348,11 +348,11 @@ export default function DashboardLoja() {
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-success-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="opacity-40 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Saúde Disciplinar</Typography>
+                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Saúde Disciplinar</Typography>
                     <Typography variant="h1" tone={metrics.checkedInCount < (sellers || []).length ? 'error' : 'success'} className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">
                         {metrics.checkedInCount}<span className="text-text-tertiary text-2xl font-black">/{(sellers || []).length}</span>
                     </Typography>
-                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40 text-mx-tiny">REGISTROS SINCRONIZADOS</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">REGISTROS SINCRONIZADOS</Typography>
                 </Card>
             </div>
 
@@ -362,7 +362,7 @@ export default function DashboardLoja() {
                         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
                             <div>
                                 <CardTitle className="text-xl md:text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Ranking Unidade'}</CardTitle>
-                                <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40 text-mx-tiny">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
+                                <CardDescription className="font-black uppercase tracking-widest mt-1 text-mx-tiny">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
                             </div>
                             <div className="relative group w-full sm:w-mx-sidebar-expanded">
                                 <Search size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
@@ -384,7 +384,7 @@ export default function DashboardLoja() {
                             {mixCanais.map(ch => (
                                 <div key={ch.label} className="space-y-mx-xs">
                                     <div className="flex justify-between items-end">
-                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40 text-mx-tiny">{ch.label}</Typography>
+                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">{ch.label}</Typography>
                                         <Typography variant="mono" tone={ch.tone as any} className="text-sm font-black">{ch.pct}%</Typography>
                                     </div>
                                     <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-0.5"><motion.div initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5 }} className={cn("h-full rounded-full", ch.color)} /></div>

@@ -67,7 +67,7 @@ export default function Lojas() {
                     </div>
                     <div className="min-w-0">
                         <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
-                        <Typography variant="tiny" tone="muted" className="text-mx-nano sm:text-mx-tiny font-black uppercase mt-0.5 opacity-40">ID: {store.id.split('-')[0]}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-mx-nano sm:text-mx-tiny font-black uppercase mt-0.5">ID: {store.id.split('-')[0]}</Typography>
                     </div>
                 </div>
             )
@@ -95,12 +95,12 @@ export default function Lojas() {
                 return (
                     <div className="flex items-center justify-center gap-mx-xs sm:gap-mx-md">
                         <div className="text-center">
-                            <Typography variant="tiny" className="font-black opacity-40 uppercase text-mx-nano sm:text-mx-tiny">Tropa</Typography>
+                            <Typography variant="tiny" className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny">Tropa</Typography>
                             <Typography variant="h3" className="text-xs sm:text-base tabular-nums">{sStat.sellers}</Typography>
                         </div>
                         <div className="w-px h-mx-sm sm:h-mx-md bg-border-default mx-1 sm:mx-2" aria-hidden="true" />
                         <div className="text-center">
-                            <Typography variant="tiny" className="font-black opacity-40 uppercase text-mx-nano sm:text-mx-tiny">Sinc.</Typography>
+                            <Typography variant="tiny" className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny">Sinc.</Typography>
                             <Typography variant="h3" tone={sStat.disciplinePct < 80 ? 'error' : 'success'} className="text-xs sm:text-base tabular-nums">{sStat.disciplinePct}%</Typography>
                         </div>
                     </div>

@@ -133,7 +133,7 @@ export default function Reprocessamento() {
             render: (h) => (
                 <div className="flex flex-col">
                     <Typography variant="h3" className="text-sm sm:text-base leading-none mb-1 font-black uppercase tracking-tight">{format(parseISO(h.created_at), 'dd/MM/yyyy')}</Typography>
-                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40 text-mx-nano sm:text-mx-micro">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase text-mx-nano sm:text-mx-micro">{format(parseISO(h.created_at), 'HH:mm:ss')}</Typography>
                 </div>
             )
         },
@@ -202,7 +202,7 @@ export default function Reprocessamento() {
 
                         <div className="space-y-mx-md relative z-10">
                             <div className="space-y-mx-xs">
-                                <Typography variant="tiny" tone="white" as="label" className="opacity-40 ml-2 font-black uppercase tracking-widest text-mx-nano">Unidade</Typography>
+                                <Typography variant="tiny" tone="white" as="label" className="ml-2 font-black uppercase tracking-widest text-mx-nano">Unidade</Typography>
                                 <select 
                                     value={selectedStoreId} onChange={e => setSelectedStoreId(e.target.value)}
                                     className="w-full h-mx-12 px-4 bg-white/5 border border-white/10 rounded-mx-xl text-white text-xs font-bold appearance-none cursor-pointer uppercase outline-none"
@@ -213,7 +213,7 @@ export default function Reprocessamento() {
                             </div>
 
                             <div className="space-y-mx-xs">
-                                <Typography variant="tiny" tone="white" className="opacity-40 ml-2 font-black uppercase tracking-widest text-mx-nano">Arquivo</Typography>
+                                <Typography variant="tiny" tone="white" className="ml-2 font-black uppercase tracking-widest text-mx-nano">Arquivo</Typography>
                                 <div className="relative group">
                                     <input id="csv-upload" type="file" accept=".csv,.xlsx" onChange={handleFileSelect} className="sr-only" />
                                     <label htmlFor="csv-upload" className={cn("flex flex-col items-center justify-center gap-mx-sm w-full min-h-24 border-2 border-dashed rounded-mx-2xl transition-all cursor-pointer", 
@@ -238,7 +238,7 @@ export default function Reprocessamento() {
                                                 <ShieldCheck size={14} className="text-status-success" />
                                                 <Typography variant="tiny" tone="white" className="font-black uppercase text-mx-nano">{validation.summary.validRows} VÁLIDOS</Typography>
                                             </div>
-                                            <Typography variant="tiny" tone="white" className="opacity-40 text-mx-nano">{validation.summary.sellersFound.length} VENDEDORES</Typography>
+                                            <Typography variant="tiny" tone="white" className="text-mx-nano">{validation.summary.sellersFound.length} VENDEDORES</Typography>
                                         </div>
                                     </motion.div>
                                 )}
@@ -249,7 +249,7 @@ export default function Reprocessamento() {
                     <Card className="bg-mx-black border-white/5 p-mx-md sm:p-10 space-y-mx-sm shadow-mx-lg flex-1">
                         <div className="flex items-center gap-mx-sm mb-2">
                             <TerminalIcon size={14} className="text-brand-primary" />
-                            <Typography variant="tiny" tone="white" className="opacity-40 font-black uppercase tracking-widest text-mx-nano">LOG DO COMPILADOR</Typography>
+                            <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest text-mx-nano">LOG DO COMPILADOR</Typography>
                         </div>
                         <div className="bg-mx-black rounded-mx-xl p-mx-sm font-mono text-mx-micro leading-tight h-mx-20 lg:h-mx-64 overflow-y-auto no-scrollbar border border-white/5 shadow-mx-inner">
                             {logs.map((log, idx) => (
@@ -272,7 +272,7 @@ export default function Reprocessamento() {
                                 <div className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg shrink-0"><History size={24} /></div>
                                 <div>
                                     <Typography variant="h2" className="uppercase tracking-tighter leading-none text-lg sm:text-2xl">Audit Trail</Typography>
-                                    <Typography variant="caption" tone="muted" className="tracking-widest mt-0.5 font-black uppercase opacity-40 text-mx-nano sm:text-xs">EVENTOS DE INGESTÃO</Typography>
+                                    <Typography variant="caption" tone="muted" className="tracking-widest mt-0.5 font-black uppercase text-mx-nano sm:text-xs">EVENTOS DE INGESTÃO</Typography>
                                 </div>
                             </div>
                         </header>

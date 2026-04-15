@@ -60,7 +60,7 @@ export default function Ranking() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Arena de <span className="text-mx-green-700">Performance</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Meritocracia Real-time • MX ELITE TRACKING</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Meritocracia Real-time • MX ELITE TRACKING</Typography>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
@@ -113,17 +113,17 @@ export default function Ranking() {
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-mx-md sm:gap-mx-10">
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Realizado</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Realizado</Typography>
                                                         <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.vnd_total} v</Typography>
                                                     </div>
                                                     <div className="w-px h-mx-lg bg-current opacity-10 hidden sm:block" />
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Objetivo</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Objetivo</Typography>
                                                         <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.meta} v</Typography>
                                                     </div>
                                                     <div className="w-px h-mx-lg bg-current opacity-10 hidden sm:block" />
                                                     <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Ritmo</Typography>
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Ritmo</Typography>
                                                         <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.ritmo} v/d</Typography>
                                                     </div>
                                                 </div>
@@ -132,7 +132,7 @@ export default function Ranking() {
 
                                         <div className="flex items-center justify-between sm:justify-end gap-mx-lg lg:gap-mx-10 shrink-0 mt-6 lg:mt-0 border-t lg:border-none border-current border-opacity-10 pt-6 lg:pt-0">
                                             <div className="text-left lg:text-right">
-                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="opacity-40 uppercase tracking-widest font-black text-mx-micro mb-1">Atingimento</Typography>
+                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-micro mb-1">Atingimento</Typography>
                                                 <Typography variant="h1" tone={isTop1 ? 'white' : 'brand'} className="text-4xl sm:text-5xl font-mono-numbers tracking-tighter leading-none font-black">{r.atingimento}%</Typography>
                                             </div>
                                             <div className={cn(

@@ -75,7 +75,7 @@ export default function GerentePDI() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
                         <Typography variant="h1">Evolução do <span className="text-mx-green-700">Vendedor</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
@@ -127,7 +127,7 @@ export default function GerentePDI() {
                                                         </div>
                                                         <div className="min-w-0">
                                                             <Typography variant="h3" className="text-base uppercase tracking-tight truncate group-hover:text-brand-primary transition-colors font-black">{(p as any).seller_name}</Typography>
-                                                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">ESPECIALISTA</Typography>
+                                                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">ESPECIALISTA</Typography>
                                                         </div>
                                                     </div>
                                                     <Badge variant={status.variant} className="px-4 py-1 rounded-mx-lg text-mx-tiny font-black shadow-sm uppercase border-none">{status.label}</Badge>
@@ -145,7 +145,7 @@ export default function GerentePDI() {
                                                 <div className="flex items-center gap-mx-md">
                                                     <div className="flex items-center gap-mx-xs">
                                                         <Calendar size={14} className="text-brand-primary" />
-                                                        <Typography variant="mono" tone="muted" className="text-mx-tiny font-black uppercase opacity-40">
+                                                        <Typography variant="mono" tone="muted" className="text-mx-tiny font-black uppercase">
                                                             {p.due_date ? format(parseISO(p.due_date), 'dd/MM/yy') : '--/--'}
                                                         </Typography>
                                                     </div>
@@ -171,7 +171,7 @@ export default function GerentePDI() {
                             <TrendingUp size={48} className="text-text-tertiary opacity-20" />
                         </div>
                         <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Matriz de Evolução Limpa</Typography>
-                        <Typography variant="caption" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest mb-10 font-black opacity-40">Não localizamos planos de desenvolvimento ativos na malha.</Typography>
+                        <Typography variant="caption" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest mb-10 font-black">Não localizamos planos de desenvolvimento ativos na malha.</Typography>
                         {canManagePDI && (
                             <Button onClick={() => setShowForm(true)} className="h-mx-2xl px-12 rounded-mx-full shadow-mx-elite font-black uppercase tracking-widest text-xs">
                                 <Plus size={20} className="mr-3" /> INICIAR PRIMEIRO PDI

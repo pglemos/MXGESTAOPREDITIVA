@@ -367,9 +367,9 @@ export default function PainelConsultor() {
                 <Card className="p-mx-lg border-none shadow-mx-sm bg-white">
                     <Typography variant="caption" tone="muted" className="mb-6 text-center block font-black uppercase tracking-widest">Escoamento Rede</Typography>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalLeads}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Leads</Typography></div>
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalAgd}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Agd</Typography></div>
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalVis}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">Vis</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalLeads}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Leads</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalAgd}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Agd</Typography></div>
+                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalVis}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Vis</Typography></div>
                     </div>
                 </Card>
 
@@ -395,7 +395,7 @@ export default function PainelConsultor() {
                 <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md pb-10">
                     <div>
                         <CardTitle className="text-3xl uppercase tracking-tighter">Malha de Performance</CardTitle>
-                        <CardDescription className="font-black uppercase tracking-widest mt-1 opacity-40">Auditoria em Tempo Real de Unidades MX.</CardDescription>
+                        <CardDescription className="font-black uppercase tracking-widest mt-1">Auditoria em Tempo Real de Unidades MX.</CardDescription>
                     </div>
                     <div className="flex flex-wrap items-center gap-mx-xs">
                         <div className="relative group w-full sm:w-mx-sidebar-expanded">
@@ -511,21 +511,21 @@ export default function PainelConsultor() {
                                         <td className="px-4 py-2 text-center">
                                             <div className="flex flex-col items-center">
                                                 <Typography variant="mono" className="text-lg font-black">{store.ritmo}</Typography>
-                                                <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">VND/DIA</Typography>
+                                                <Typography variant="tiny" tone="muted" className="font-black uppercase">VND/DIA</Typography>
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 text-center">
                                             <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1 mb-1 font-black shadow-sm uppercase border-none">
                                                 <Typography variant="tiny" as="span" className="font-black">{status.label}</Typography>
                                             </Badge>
-                                            <Typography variant="tiny" tone="muted" className="font-black block uppercase opacity-40">{store.efficiency}% EFIC.</Typography>
+                                            <Typography variant="tiny" tone="muted" className="font-black block uppercase">{store.efficiency}% EFIC.</Typography>
                                         </td>
                                         <td className="pr-10 py-2 text-center">
                                             <div className="flex flex-col items-center">
                                                 <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'} className="text-base font-black">
                                                     {store.checkedInToday}/{store.sellers}
                                                 </Typography>
-                                                <Typography variant="tiny" tone="muted" className="font-black tracking-tighter uppercase opacity-40">{Math.round(store.disciplinePct)}% OK</Typography>
+                                                <Typography variant="tiny" tone="muted" className="font-black tracking-tighter uppercase">{Math.round(store.disciplinePct)}% OK</Typography>
                                             </div>
                                         </td>
                                     </tr>

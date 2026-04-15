@@ -30,7 +30,7 @@ function MXScoreCardInner({ label, value, sub, icon: Icon, tone, description, is
           <Typography variant="caption" tone="muted" className="block uppercase tracking-widest text-mx-micro">{label}</Typography>
           <div className="flex items-baseline gap-mx-xs">
               <Typography variant="h1" className="text-4xl tabular-nums leading-none">{value}</Typography>
-              <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase opacity-40">{sub}</Typography>
+              <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">{sub}</Typography>
           </div>
         </div>
         <div className={cn(

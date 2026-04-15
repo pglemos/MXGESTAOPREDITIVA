@@ -176,7 +176,7 @@ export default function RotinaGerente() {
                                             <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl transform -rotate-2"><Zap size={32} /></div>
                                             <div>
                                                 <Typography variant="h2" className="uppercase tracking-tighter leading-none">Ritual Matinal</Typography>
-                                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SEQUÊNCIA MANDATÁRIA • LIMITE 10:30</Typography>
+                                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black font-black">SEQUÊNCIA MANDATÁRIA • LIMITE 10:30</Typography>
                                             </div>
                                         </div>
                                         <Badge variant="danger" className="animate-pulse shadow-mx-md px-6 py-2 rounded-mx-full font-black uppercase text-tiny">Prioridade 01</Badge>
@@ -214,7 +214,7 @@ export default function RotinaGerente() {
                                                 </div>
                                                 <div>
                                                     <Typography variant="h3" tone={canTriggerMatinal ? 'white' : 'default'} className="text-lg uppercase tracking-tight leading-none">Disparar Matinal</Typography>
-                                                    <Typography variant="caption" tone={canTriggerMatinal ? 'white' : 'muted'} className="uppercase tracking-widest mt-1 opacity-40 font-black">DIREÇÃO & GOVERNANÇA REDE</Typography>
+                                                    <Typography variant="caption" tone={canTriggerMatinal ? 'white' : 'muted'} className="uppercase tracking-widest mt-1 font-black">DIREÇÃO & GOVERNANÇA REDE</Typography>
                                                 </div>
                                             </div>
                                             <Button 
@@ -242,11 +242,11 @@ export default function RotinaGerente() {
                                         </header>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
                                             <div>
-                                                <Typography variant="tiny" tone="white" className="opacity-40 mb-2 block uppercase font-black">AGENDAMENTOS</Typography>
+                                                <Typography variant="tiny" tone="white" className="mb-2 block uppercase font-black">AGENDAMENTOS</Typography>
                                                 <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none tracking-tighter">{totalAgendamentosHoje}</Typography>
                                             </div>
                                             <div>
-                                                <Typography variant="tiny" tone="white" className="opacity-40 mb-2 block uppercase font-black">PENDÊNCIAS</Typography>
+                                                <Typography variant="tiny" tone="white" className="mb-2 block uppercase font-black">PENDÊNCIAS</Typography>
                                                 <Typography variant="h1" tone={pendingSellers.length > 0 ? 'brand' : 'white'} className="text-5xl tabular-nums leading-none tracking-tighter">{pendingSellers.length}</Typography>
                                             </div>
                                         </div>
@@ -287,7 +287,7 @@ export default function RotinaGerente() {
                                         <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-pure-black text-white flex items-center justify-center shadow-mx-xl transform rotate-2"><ShieldAlert size={32} className="text-brand-primary" /></div>
                                         <div>
                                             <Typography variant="h2" className="uppercase tracking-tighter leading-none">Auditoria de Ajustes</Typography>
-                                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SOLICITAÇÕES RETROATIVAS PENDENTES</Typography>
+                                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">SOLICITAÇÕES RETROATIVAS PENDENTES</Typography>
                                         </div>
                                     </div>
                                     <Badge variant={pendingRequests.length > 0 ? "warning" : "success"} className="shadow-mx-md px-6 py-2 rounded-mx-full font-black uppercase text-tiny">
@@ -311,7 +311,7 @@ export default function RotinaGerente() {
                                                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-inner font-black text-sm uppercase">{req.seller?.name?.charAt(0) || '?'}</div>
                                                                 <div>
                                                                     <Typography variant="h3" className="text-base uppercase font-black">{req.seller?.name || 'Vendedor'}</Typography>
-                                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">Solicitado em {new Date(req.created_at).toLocaleDateString('pt-BR')}</Typography>
+                                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase">Solicitado em {new Date(req.created_at).toLocaleDateString('pt-BR')}</Typography>
                                                                 </div>
                                                             </div>
                                                             <Badge variant="outline" className="font-mono-numbers">{req.id.split('-')[0]}</Badge>
@@ -335,7 +335,7 @@ export default function RotinaGerente() {
                                                                 { l: 'VND', v: (req.requested_values.vnd_porta || 0) + (req.requested_values.vnd_cart || 0) + (req.requested_values.vnd_net || 0), t: 'success' }
                                                             ].map(val => (
                                                                 <div key={val.l} className="bg-white p-mx-sm rounded-mx-xl border border-border-default shadow-sm text-center">
-                                                                    <Typography variant="tiny" tone="muted" className="font-black opacity-40 block">{val.l}</Typography>
+                                                                    <Typography variant="tiny" tone="muted" className="font-black block">{val.l}</Typography>
                                                                     <Typography variant="h3" tone={val.t as any} className="text-xl tabular-nums font-black">{val.v}</Typography>
                                                                 </div>
                                                             ))}

@@ -23,13 +23,13 @@ export const WeeklyStoreReport: React.FC<WeeklyStoreReportProps> = ({ report }) 
                     body { background: white !important; }
                 }
                 .legacy-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px; }
-                .legacy-table th, .legacy-table td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: center; }
-                .header-blue { background-color: #335c67; color: white; font-weight: bold; text-transform: uppercase; }
-                .header-gray { background-color: #f3f4f6; color: #374151; font-weight: bold; }
-                .header-yellow { background-color: #facc15; color: #1f2937; font-weight: bold; text-align: left !important; }
-                .row-highlight { background-color: #f9fafb; font-weight: bold; }
-                .status-bom { color: #059669; font-weight: bold; }
-                .status-abaixo { color: #dc2626; font-weight: bold; }
+                .legacy-table th, .legacy-table td { border: 1px solid var(--color-border-strong); padding: 6px 8px; text-align: center; }
+                .header-blue { background-color: var(--color-brand-secondary); color: white; font-weight: bold; text-transform: uppercase; }
+                .header-gray { background-color: var(--color-surface-alt); color: var(--color-text-secondary); font-weight: bold; }
+                .header-yellow { background-color: #facc15; color: var(--color-text-primary); font-weight: bold; text-align: left !important; }
+                .row-highlight { background-color: var(--color-surface-alt); font-weight: bold; }
+                .status-bom { color: var(--color-status-success); font-weight: bold; }
+                .status-abaixo { color: var(--color-status-error); font-weight: bold; }
                 .ranking-gold { background-color: #fef3c7; font-weight: bold; }
             `}</style>
 

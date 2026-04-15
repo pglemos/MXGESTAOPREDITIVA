@@ -391,7 +391,7 @@ export default function Checkin() {
                             <Zap size={240} fill="currentColor" />
                         </div>
                         <div className="relative z-10">
-                            <Typography variant="caption" tone="white" className="opacity-40 tracking-mx-widest mb-10 block">IMPACTO EM REDE</Typography>
+                            <Typography variant="caption" tone="white" className="tracking-mx-widest mb-10 block">IMPACTO EM REDE</Typography>
                             <div className="flex items-baseline gap-mx-sm mb-6">
                                 <Typography variant="h1" tone="white" className="text-8xl tabular-nums leading-none tracking-tighter" aria-live="polite">{totals.vnd_total}</Typography>
                                 <Typography variant="h3" tone="brand" className="text-xl">VENDAS</Typography>

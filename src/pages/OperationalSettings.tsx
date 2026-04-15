@@ -118,7 +118,7 @@ export default function OperationalSettings() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Parâmetros <span className="text-mx-green-700">MX</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">CONFIGURAÇÕES DE HARDENING & GOVERNANÇA</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">CONFIGURAÇÕES DE HARDENING & GOVERNANÇA</Typography>
                 </div>
 
                 <div className="flex items-center gap-mx-sm shrink-0">
@@ -175,7 +175,7 @@ export default function OperationalSettings() {
                     <Card className="p-mx-lg md:p-14 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
                         <header className="border-b border-border-default pb-8">
                             <Typography variant="h2" className="uppercase tracking-tighter">Políticas Operacionais</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black font-black">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>
                         </header>
 
                         <div className="space-y-mx-10" role="group" aria-label="Lista de políticas operacionais">
@@ -243,7 +243,7 @@ export default function OperationalSettings() {
 
                         <footer className="pt-12 border-t border-border-default flex items-start gap-mx-sm">
                             <ShieldAlert size={20} className="text-status-warning shrink-0 mt-0.5" aria-hidden="true" />
-                            <Typography variant="tiny" tone="muted" className="leading-relaxed uppercase font-black opacity-40">Qualquer alteração nestes parâmetros será registrada no log de auditoria global com timestamp imutável e ID do administrador responsável.</Typography>
+                            <Typography variant="tiny" tone="muted" className="leading-relaxed uppercase font-black">Qualquer alteração nestes parâmetros será registrada no log de auditoria global com timestamp imutável e ID do administrador responsável.</Typography>
                         </footer>
                     </Card>
 
@@ -253,7 +253,7 @@ export default function OperationalSettings() {
                             <header className="border-b border-border-default pb-8 flex items-center justify-between">
                                 <div>
                                     <Typography variant="h2" className="uppercase tracking-tighter">Destinatários Oficiais</Typography>
-                                    <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">DISTRIBUIÇÃO AUTOMÁTICA DE RELATÓRIOS</Typography>
+                                    <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">DISTRIBUIÇÃO AUTOMÁTICA DE RELATÓRIOS</Typography>
                                 </div>
                                 <Mail size={24} className="text-brand-primary opacity-20" aria-hidden="true" />
                             </header>
@@ -268,7 +268,7 @@ export default function OperationalSettings() {
                                         <div className="flex items-center justify-between px-2">
                                             <div className="space-y-mx-tiny">
                                                 <Typography variant="caption" className="font-black uppercase tracking-widest">{list.label}</Typography>
-                                                <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">{list.desc}</Typography>
+                                                <Typography variant="tiny" tone="muted" className="uppercase font-black">{list.desc}</Typography>
                                             </div>
                                             <Badge variant="outline" className="text-mx-micro font-black border-border-strong uppercase">{emailLists[list.key as keyof typeof emailLists].split(',').filter(Boolean).length} E-mails</Badge>
                                         </div>

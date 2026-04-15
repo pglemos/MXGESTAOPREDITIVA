@@ -177,7 +177,7 @@ export default function ProdutosDigitais() {
                                                 <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-tertiary shadow-inner" aria-hidden="true"><Smartphone size={14} /></div>
                                                 <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-tertiary shadow-inner" aria-hidden="true"><Globe size={14} /></div>
                                             </div>
-                                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase opacity-40">Gateway v2.4</Typography>
+                                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">Gateway v2.4</Typography>
                                         </div>
                                         <Button variant="outline" className="w-full h-mx-xl rounded-mx-xl group/btn font-black uppercase tracking-widest text-mx-micro shadow-sm border-border-strong hover:border-brand-primary" onClick={() => window.open(p.link, '_blank')}>
                                             ACESSAR SOLUÇÃO <ExternalLink size={14} className="ml-2 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />

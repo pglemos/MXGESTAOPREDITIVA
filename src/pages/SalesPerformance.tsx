@@ -180,7 +180,7 @@ export default function SalesPerformance() {
                             <div className="pt-14 border-t border-white/10 mt-14 space-y-mx-10">
                                 <div className="flex justify-between items-end">
                                     <div>
-                                        <Typography variant="caption" tone="white" className="opacity-40 font-black uppercase tracking-widest mb-2 block">Eficiência Real</Typography>
+                                        <Typography variant="caption" tone="white" className="font-black uppercase tracking-widest mb-2 block">Eficiência Real</Typography>
                                         <Typography variant="h1" tone="white" className="text-7xl tabular-nums leading-none tracking-tighter">{metrics.reaching}%</Typography>
                                     </div>
                                     <Badge variant="outline" className="text-white border-white/20 mb-2 uppercase font-black">TARGET OK</Badge>

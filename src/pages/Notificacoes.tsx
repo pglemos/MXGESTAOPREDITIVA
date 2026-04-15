@@ -98,7 +98,7 @@ export default function Notificacoes() {
                 <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl shrink-0"><Bell size={32} strokeWidth={2} /></div>
                 <div>
                   <Typography variant="h2" className="text-xl sm:text-2xl uppercase tracking-tighter leading-none">Meu Inbox</Typography>
-                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SINALIZAÇÕES DE AUDITORIA</Typography>
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">SINALIZAÇÕES DE AUDITORIA</Typography>
                 </div>
               </div>
               <Badge variant="brand" className="px-6 py-2 rounded-mx-full font-black shadow-mx-sm uppercase text-xs w-full sm:w-auto text-center">{unreadCount} NOVAS</Badge>
@@ -107,7 +107,7 @@ export default function Notificacoes() {
             <CardContent className="flex-1 overflow-y-auto no-scrollbar p-mx-lg md:p-14 relative z-10">
               <AnimatePresence mode="popLayout">
                 {Object.entries(grouped).length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-40">
+                    <div className="h-full flex flex-col items-center justify-center text-center py-20 text-text-label">
                         <ShieldCheck size={64} className="text-text-tertiary mb-8" />
                         <Typography variant="h2" className="uppercase tracking-tighter">Inbox Limpo</Typography>
                         <Typography variant="caption" tone="muted" className="max-w-xs mt-4 uppercase font-black tracking-widest">Nenhuma sinalização pendente na malha operacional.</Typography>
@@ -168,7 +168,7 @@ export default function Notificacoes() {
           <Card className="p-mx-lg md:p-10 border-none shadow-mx-lg bg-white space-y-mx-10">
             <header className="border-b border-border-default pb-8">
                 <Typography variant="h3" className="uppercase tracking-tight">Filtro Disciplinar</Typography>
-                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black opacity-40">SEGMENTAÇÃO DE ALERTAS</Typography>
+                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">SEGMENTAÇÃO DE ALERTAS</Typography>
             </header>
             
             <div className="relative group">
@@ -196,7 +196,7 @@ export default function Notificacoes() {
                   )}
                 >
                   <div className="flex items-center gap-mx-sm">
-                    <f.icon size={16} className={cn(filterType === f.type ? "text-white" : "text-text-tertiary opacity-40")} />
+                    <f.icon size={16} className={cn(filterType === f.type ? "text-white" : "text-text-label")} />
                     <Typography variant="caption" className={cn("font-black uppercase tracking-widest", filterType === f.type ? "text-white" : "text-text-primary")}>{f.label}</Typography>
                   </div>
                   <ChevronRight size={14} className={cn(filterType === f.type ? "text-white/40" : "text-text-tertiary opacity-20 group-hover/f:text-brand-primary")} />

@@ -181,7 +181,7 @@ export default function MorningReport() {
                             </Badge>
                         </div>
                         <Typography variant="h1" className="text-6xl tabular-nums leading-none mb-3 tracking-tighter font-black">{metrics.checkedInCount}<Typography as="span" variant="h3" tone="muted" className="text-2xl font-black">/{(sellers || []).length}</Typography></Typography>
-                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-40">SINCRONIA DISCIPLINAR D-0</Typography>
+                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">SINCRONIA DISCIPLINAR D-0</Typography>
                     </div>
                 </Card>
             </div>
@@ -193,7 +193,7 @@ export default function MorningReport() {
                             <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center shadow-mx-sm" aria-hidden="true"><BarChart3 size={24} className="text-brand-primary" /></div>
                             <div>
                                 <CardTitle className="text-xl uppercase tracking-tighter">Grade Operacional do Time</CardTitle>
-                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest block mt-1 opacity-40">EFICIÊNCIA INDIVIDUAL ACUMULADA</Typography>
+                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest block mt-1">EFICIÊNCIA INDIVIDUAL ACUMULADA</Typography>
                             </div>
                         </div>
                         <Badge variant="brand" className="px-4 py-1.5 rounded-mx-full shadow-sm">

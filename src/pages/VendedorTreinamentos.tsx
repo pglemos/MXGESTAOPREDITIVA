@@ -121,7 +121,7 @@ export default function VendedorTreinamentos() {
                                 <div className="flex-1 space-y-mx-sm">
                                     <div className="flex items-center gap-mx-xs">
                                         <Badge variant="danger" className="px-4 py-1 uppercase font-black shadow-sm">Gap Detectado: {gapAnalysis.gargalo}</Badge>
-                                        <Typography variant="caption" tone="white" className="opacity-40 tracking-widest font-black">PRESCRIÇÃO TÁTICA MX</Typography>
+                                        <Typography variant="caption" tone="white" className="tracking-widest font-black">PRESCRIÇÃO TÁTICA MX</Typography>
                                     </div>
                                     <Typography variant="h2" tone="white" className="text-3xl tracking-tight leading-none uppercase">{gapAnalysis.recommended.title}</Typography>
                                     <Typography variant="p" tone="white" className="text-base opacity-60 max-w-3xl italic">"{gapAnalysis.label} Este módulo foi indexado pela rede para corrigir sua conversão imediata."</Typography>

@@ -23,15 +23,15 @@ export const PrintableFeedback: React.FC<PrintableFeedbackProps> = ({ feedback }
                     body { background: white !important; }
                 }
                 .legacy-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
-                .legacy-table th, .legacy-table td { border: 1px solid #d1d5db; padding: 6px 10px; text-align: center; }
-                .header-blue { background-color: #335c67; color: white; font-weight: bold; text-transform: uppercase; }
-                .header-gray { background-color: #f3f4f6; color: #374151; font-weight: bold; }
-                .header-yellow { background-color: #facc15; color: #1f2937; font-weight: bold; text-align: left !important; }
+                .legacy-table th, .legacy-table td { border: 1px solid var(--color-border-strong); padding: 6px 10px; text-align: center; }
+                .header-blue { background-color: var(--color-brand-secondary); color: white; font-weight: bold; text-transform: uppercase; }
+                .header-gray { background-color: var(--color-surface-alt); color: var(--color-text-secondary); font-weight: bold; }
+                .header-yellow { background-color: #facc15; color: var(--color-text-primary); font-weight: bold; text-align: left !important; }
                 .header-lightblue { background-color: #dbeafe; color: #1e3a8a; font-weight: bold; text-align: left !important; }
-                .status-bom { color: #059669; font-weight: bold; }
-                .status-abaixo { color: #dc2626; font-weight: bold; }
-                .status-igual { color: #4b5563; font-weight: bold; }
-                .diagnostico { color: #dc2626; font-weight: bold; }
+                .status-bom { color: var(--color-status-success); font-weight: bold; }
+                .status-abaixo { color: var(--color-status-error); font-weight: bold; }
+                .status-igual { color: var(--color-text-secondary); font-weight: bold; }
+                .diagnostico { color: var(--color-status-error); font-weight: bold; }
             `}</style>
 
             <table className="legacy-table">

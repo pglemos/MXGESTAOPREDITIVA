@@ -86,7 +86,7 @@ export function AdminNetworkView() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <Typography className="font-black text-xs sm:text-sm uppercase tracking-tight truncate">{member.name}</Typography>
-                            <Typography variant="tiny" tone="muted" className="uppercase text-mx-tiny font-bold opacity-40">{member.role}</Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase text-mx-tiny font-bold">{member.role}</Typography>
                           </div>
                           {member.checkin_today ? <Zap size={16} className="text-status-success fill-status-success/20" /> : <Clock size={16} className="text-text-tertiary opacity-20" />}
                         </div>

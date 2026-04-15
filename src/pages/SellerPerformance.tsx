@@ -79,7 +79,7 @@ export default function SellerPerformance() {
                     </div>
                     <div className="min-w-0">
                         <Typography variant="h3" className="text-sm uppercase font-black truncate">{r.user_name}</Typography>
-                        <Typography variant="tiny" tone="muted" className="text-mx-nano font-black uppercase opacity-40">{r.store_name}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-mx-nano font-black uppercase">{r.store_name}</Typography>
                     </div>
                 </div>
             )
@@ -95,7 +95,7 @@ export default function SellerPerformance() {
                     <div className="h-1.5 bg-surface-alt rounded-full overflow-hidden border border-border-default" style={{ width: '5rem' }}>
                         <div className="h-full bg-brand-primary rounded-full" style={{ width: `${Math.min(r.atingimento, 100)}%` }} />
                     </div>
-                    <Typography variant="tiny" className="text-mx-nano font-black opacity-40 uppercase">{r.ritmo} V/DIA</Typography>
+                    <Typography variant="tiny" className="text-mx-nano font-black text-text-label uppercase">{r.ritmo} V/DIA</Typography>
                 </div>
             )
         }
@@ -168,7 +168,7 @@ export default function SellerPerformance() {
                         <div className="relative z-10 text-center py-8">
                             <BarChart3 className="mx-auto mb-6 text-brand-primary opacity-20" size={48} />
                             <Typography variant="h2" className="text-lg mb-2 uppercase tracking-tight font-black">Meta Global</Typography>
-                            <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase tracking-widest opacity-40">PROGRESSÃO EM TEMPO REAL</Typography>
+                            <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase tracking-widest">PROGRESSÃO EM TEMPO REAL</Typography>
                         </div>
                     </Card>
                 </aside>

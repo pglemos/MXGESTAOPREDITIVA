@@ -168,10 +168,11 @@ export default function Login() {
 
                     <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="flex flex-col" style={{ gap: '1.25rem' }}>
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">E-mail</label>
+                            <label htmlFor="login-email" className="text-xs font-bold text-text-secondary uppercase tracking-wider block">E-mail</label>
                             <div className="relative">
                                 <Mail className="absolute top-1/2 -translate-y-1/2 text-text-tertiary" style={{ left: '1rem' }} size={18} />
                                 <input
+                                    id="login-email"
                                     type="email" value={email} onChange={e => setEmail(e.target.value)}
                                     placeholder="seu@email.com.br" required autoFocus={!email}
                                     className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
@@ -181,10 +182,11 @@ export default function Login() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">Senha</label>
+                            <label htmlFor="login-password" className="text-xs font-bold text-text-secondary uppercase tracking-wider block">Senha</label>
                             <div className="relative">
                                 <Lock className="absolute top-1/2 -translate-y-1/2 text-text-tertiary" style={{ left: '1rem' }} size={18} />
                                 <input
+                                    id="login-password"
                                     type="password" ref={passwordRef} value={password} onChange={e => setPassword(e.target.value)}
                                     placeholder="Digite sua senha" required
                                     className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"

@@ -165,7 +165,7 @@ export default function Perfil() {
                 <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl transform rotate-2"><User size={32} /></div>
                 <div>
                   <Typography variant="h2" className="text-2xl uppercase tracking-tighter leading-none">Configurações de Conta</Typography>
-                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black mt-1 font-black opacity-40">SINC: IDENTITY GATEWAY v4.0</Typography>
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black mt-1 font-black">SINC: IDENTITY GATEWAY v4.0</Typography>
                 </div>
               </div>
             </CardHeader>

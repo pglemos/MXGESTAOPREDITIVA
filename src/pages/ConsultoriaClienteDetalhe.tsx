@@ -559,7 +559,7 @@ export default function ConsultoriaClienteDetalhe() {
                     <Badge variant={visit?.status === 'concluída' ? 'success' : 'outline'} className="rounded-mx-full">
                       VISITA {num}
                     </Badge>
-                    {visit?.status === 'concluída' ? <CheckCircle2 size={18} className="text-status-success" /> : <Clock size={18} className="text-text-tertiary opacity-40" />}
+                    {visit?.status === 'concluída' ? <CheckCircle2 size={18} className="text-status-success" /> : <Clock size={18} className="text-text-label" />}
                   </div>
                   
                   <div className="min-h-mx-24 mb-6">
@@ -616,14 +616,14 @@ export default function ConsultoriaClienteDetalhe() {
               <Typography variant="caption" tone="muted" className="mb-2 block">ROI DA CONSULTORIA</Typography>
               <div className="flex items-baseline gap-mx-xs">
                 <Typography variant="h1" className="text-4xl">{(client.financials?.[0]?.roi || 0)}x</Typography>
-                <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">Retorno</Typography>
+                <Typography variant="tiny" tone="muted" className="uppercase font-black">Retorno</Typography>
               </div>
             </Card>
             <Card className="p-mx-lg bg-white border-none shadow-mx-sm">
               <Typography variant="caption" tone="muted" className="mb-2 block">TAXA DE CONVERSÃO</Typography>
               <div className="flex items-baseline gap-mx-xs">
                 <Typography variant="h1" className="text-4xl">{(client.financials?.[0]?.conversion_rate || 0)}%</Typography>
-                <Typography variant="tiny" tone="muted" className="uppercase font-black opacity-40">Global</Typography>
+                <Typography variant="tiny" tone="muted" className="uppercase font-black">Global</Typography>
               </div>
             </Card>
           </div>
@@ -662,7 +662,7 @@ export default function ConsultoriaClienteDetalhe() {
                   ))}
                   {(client.financials || []).length === 0 && (
                     <tr>
-                      <td colSpan={6} className="p-mx-lg text-center opacity-40">Nenhum dado financeiro lançado.</td>
+                      <td colSpan={6} className="p-mx-lg text-center text-text-label">Nenhum dado financeiro lançado.</td>
                     </tr>
                   )}
                 </tbody>

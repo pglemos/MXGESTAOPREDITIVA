@@ -76,7 +76,7 @@ export default function Privacy() {
                                 <ArrowLeft size={16} className="mr-2" /> VOLTAR AO SISTEMA
                             </Button>
                             <div className="text-center sm:text-right space-y-mx-tiny">
-                                <Typography variant="tiny" tone="muted" className="font-black opacity-40">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
+                                <Typography variant="tiny" tone="muted" className="font-black">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
                                 <Typography variant="tiny" tone="muted" className="font-black opacity-20 block tracking-widest">PROTOCOLO AIOX SECURITY</Typography>
                             </div>
                         </footer>

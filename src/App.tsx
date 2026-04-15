@@ -2,6 +2,7 @@ import React, { Suspense, lazy, Component, type ReactNode, type ErrorInfo } from
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { Toaster } from 'sonner'
+import { MotionConfig } from 'motion/react'
 import Layout from '@/components/Layout'
 import LegacyModuleShell from '@/components/LegacyModuleShell'
 
@@ -135,6 +136,7 @@ export default function App() {
   return (
     <AuthProvider>
       <ErrorBoundary>
+        <MotionConfig reducedMotion="user">
         <Router>
           <Routes>
             <Route path="/login" element={<Suspense fallback={<Spinner />}><Login /></Suspense>} />
@@ -215,6 +217,7 @@ export default function App() {
         </Routes>
       </Router>
       <Toaster richColors position="top-right" />
+      </MotionConfig>
       </ErrorBoundary>
     </AuthProvider>
   )

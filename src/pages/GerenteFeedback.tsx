@@ -163,7 +163,7 @@ export default function GerenteFeedback() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Gestão de <span className="text-mx-green-700">Feedback</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Rotina Semanal Mandatória • Metodologia MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Rotina Semanal Mandatória • Metodologia MX</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
@@ -222,7 +222,7 @@ export default function GerenteFeedback() {
                                     <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg" aria-hidden="true"><MessageSquare size={24} /></div>
                                     <div>
                                         <Typography variant="h2" id="feedback-form-title" className="uppercase tracking-tighter">Nova Mentoria</Typography>
-                                        <Typography variant="tiny" tone="muted" className="font-black uppercase opacity-40">Ciclo de Feedback Semanal</Typography>
+                                        <Typography variant="tiny" tone="muted" className="font-black uppercase">Ciclo de Feedback Semanal</Typography>
                                     </div>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl hover:bg-surface-alt bg-white" aria-label="Fechar modal"><X size={24} /></Button>
@@ -247,7 +247,7 @@ export default function GerenteFeedback() {
                                         </div>
                                     </div>
                                     <div className="space-y-mx-xs">
-                                        <Typography variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest opacity-40">Semana de Referência</Typography>
+                                        <Typography variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Semana de Referência</Typography>
                                         <div className="h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md flex items-center text-sm font-black text-brand-primary shadow-inner">
                                             <Calendar size={18} className="mr-3 opacity-40" aria-hidden="true" />
                                             {previousWeek.label} (ANTERIOR)
@@ -266,7 +266,7 @@ export default function GerenteFeedback() {
                                                     { label: 'Vendas', val: formData.vnd_week, icon: Award, tone: 'success' },
                                                 ].map(item => (
                                                     <div key={item.label} className="bg-white p-mx-5 rounded-mx-2xl border border-border-default shadow-sm text-center">
-                                                        <Typography variant="tiny" tone="muted" className="mb-1 block uppercase text-mx-micro font-black opacity-40">{item.label}</Typography>
+                                                        <Typography variant="tiny" tone="muted" className="mb-1 block uppercase text-mx-micro font-black">{item.label}</Typography>
                                                         <Typography variant="h2" className="text-xl font-mono-numbers font-black">{item.val}</Typography>
                                                     </div>
                                                 ))}
@@ -342,7 +342,7 @@ export default function GerenteFeedback() {
                                                     <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase" aria-hidden="true">{(f as any).seller_name?.substring(0, 2)}</div>
                                                     <div>
                                                         <Typography variant="h3" className="text-base font-black uppercase tracking-tight">{(f as any).seller_name}</Typography>
-                                                        <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase opacity-40">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
+                                                        <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
                                                     </div>
                                                 </div>
                                                 <Badge variant={f.acknowledged ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black uppercase shadow-sm border-none">{f.acknowledged ? 'LIDO' : 'PENDENTE'}</Badge>
@@ -379,7 +379,7 @@ export default function GerenteFeedback() {
                                             <div className="flex items-center gap-mx-sm">
                                                 <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md" aria-hidden="true"><Calendar size={24} /></div>
                                                 <div>
-                                                    <Typography variant="tiny" tone="muted" className="uppercase tracking-widest font-black text-mx-micro opacity-40">FECHAMENTO SEMANAL</Typography>
+                                                    <Typography variant="tiny" tone="muted" className="uppercase tracking-widest font-black text-mx-micro">FECHAMENTO SEMANAL</Typography>
                                                     <Typography variant="h3" className="text-lg uppercase font-black tracking-tight">{format(parseISO(report.week_start), 'dd/MM')} - {format(parseISO(report.week_end), 'dd/MM')}</Typography>
                                                 </div>
                                             </div>
@@ -387,11 +387,11 @@ export default function GerenteFeedback() {
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md py-8 border-y border-border-default relative z-10">
                                             <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
-                                                <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">META REDE</Typography>
+                                                <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black">META REDE</Typography>
                                                 <Typography variant="h2" className="text-2xl font-mono-numbers tabular-nums font-black">{report.weekly_goal}v</Typography>
                                             </div>
                                             <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
-                                                <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black opacity-40">MÉDIA TROPA</Typography>
+                                                <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black">MÉDIA TROPA</Typography>
                                                 <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers tabular-nums font-black">{(report.team_avg_json as any).vnd || 0}v</Typography>
                                             </div>
                                         </div>

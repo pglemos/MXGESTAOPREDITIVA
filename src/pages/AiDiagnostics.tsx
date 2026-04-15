@@ -49,7 +49,7 @@ export default function AiDiagnostics() {
         <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-brand-secondary" id="main-content">
             <ShieldCheck size={48} className="text-white/20 mb-6" aria-hidden="true" />
             <Typography variant="h2" tone="white" className="uppercase tracking-tighter">Acesso Restrito</Typography>
-            <Typography variant="caption" tone="white" className="max-w-sm mx-auto opacity-40 uppercase tracking-widest mt-4 font-black">Motor de inteligência exclusivo para escalão administrativo.</Typography>
+            <Typography variant="caption" tone="white" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Motor de inteligência exclusivo para escalão administrativo.</Typography>
         </main>
     )
 
@@ -68,7 +68,7 @@ export default function AiDiagnostics() {
 
                 <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-mx-md shrink-0 w-full sm:w-auto">
                     <div className="flex flex-col items-center sm:items-end">
-                        <Typography variant="tiny" tone="white" className="opacity-40 uppercase tracking-widest font-black">Status do Motor</Typography>
+                        <Typography variant="tiny" tone="white" className="uppercase tracking-widest font-black">Status do Motor</Typography>
                         <Badge variant={isScanning ? 'warning' : 'success'} className="mt-1 shadow-mx-lg px-6 py-2 rounded-mx-full font-black border-none">
                             <Typography variant="tiny" as="span">{isScanning ? 'PROCESSANDO...' : 'SISTEMA EM STANDBY'}</Typography>
                         </Badge>
@@ -90,7 +90,7 @@ export default function AiDiagnostics() {
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="flex items-center gap-mx-sm">
                                 <TerminalIcon size={18} className="text-brand-primary/80" aria-hidden="true" />
-                                <Typography variant="caption" tone="white" className="opacity-40 font-black tracking-widest uppercase">Console de Auditoria Real-Time</Typography>
+                                <Typography variant="caption" tone="white" className="font-black tracking-widest uppercase">Console de Auditoria Real-Time</Typography>
                             </div>
                             <div className="flex gap-1.5" aria-hidden="true">
                                 <div className="w-2.5 h-2.5 rounded-mx-full bg-status-error opacity-30" />
@@ -125,7 +125,7 @@ export default function AiDiagnostics() {
                             <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl shrink-0" aria-hidden="true"><ShieldCheck size={32} /></div>
                             <div>
                                 <Typography variant="h2" className="text-xl sm:text-2xl uppercase tracking-tighter">Veredito MX</Typography>
-                                <Typography variant="caption" tone="muted" className="tracking-widest font-black uppercase opacity-40">CONCLUSÃO OPERACIONAL</Typography>
+                                <Typography variant="caption" tone="muted" className="tracking-widest font-black uppercase">CONCLUSÃO OPERACIONAL</Typography>
                             </div>
                         </header>
 
@@ -153,7 +153,7 @@ export default function AiDiagnostics() {
                                 ) : (
                                     <div className="h-full flex flex-col items-center justify-center py-20 text-center space-y-mx-md">
                                         <div className="w-mx-3xl h-mx-3xl rounded-mx-full border-4 border-border-default border-t-brand-primary animate-spin" aria-hidden="true" />
-                                        <Typography variant="caption" tone="muted" className="animate-pulse tracking-widest font-black uppercase opacity-40">ANALISANDO MALHA...</Typography>
+                                        <Typography variant="caption" tone="muted" className="animate-pulse tracking-widest font-black uppercase">ANALISANDO MALHA...</Typography>
                                     </div>
                                 )}
                             </AnimatePresence>

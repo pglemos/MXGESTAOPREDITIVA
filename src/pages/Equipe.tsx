@@ -100,7 +100,7 @@ export default function Equipe() {
             <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
             <Typography variant="h1">Time de <span className="text-mx-green-700">Elite</span></Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Gestão de Tropa & Hierarquia MX</Typography>
+          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Gestão de Tropa & Hierarquia MX</Typography>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
@@ -174,15 +174,15 @@ export default function Equipe() {
                     />
                   </div>
                   <Typography variant="h3" className="mb-1 text-base uppercase font-black truncate max-w-full group-hover:text-brand-primary transition-colors">{member.name}</Typography>
-                  <Typography variant="caption" tone="muted" className="text-mx-micro tracking-widest uppercase font-black opacity-40">{member.role || 'ESPECIALISTA'}</Typography>
+                  <Typography variant="caption" tone="muted" className="text-mx-micro tracking-widest uppercase font-black">{member.role || 'ESPECIALISTA'}</Typography>
                   
                   <div className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
                     <div className="bg-surface-alt p-mx-sm rounded-mx-xl border border-border-default shadow-inner group-hover:bg-white transition-all">
-                      <Typography variant="caption" className="text-mx-micro mb-1 block opacity-50 uppercase font-black">ENTRADA</Typography>
+                      <Typography variant="caption" className="text-mx-micro mb-1 block text-text-label uppercase font-black">ENTRADA</Typography>
                       <Typography variant="mono" className="text-xs font-black">{member.started_at ? format(parseISO(member.started_at), 'dd/MM/yy') : '---'}</Typography>
                     </div>
                     <div className="bg-surface-alt p-mx-sm rounded-mx-xl border border-border-default shadow-inner group-hover:bg-white transition-all">
-                      <Typography variant="caption" className="text-mx-micro mb-1 block opacity-50 uppercase font-black">SAÍDA</Typography>
+                      <Typography variant="caption" className="text-mx-micro mb-1 block text-text-label uppercase font-black">SAÍDA</Typography>
                       <Typography variant="mono" className="text-xs font-black">{member.ended_at ? format(parseISO(member.ended_at), 'dd/MM/yy') : 'ATIVA'}</Typography>
                     </div>
                   </div>
@@ -208,7 +208,7 @@ export default function Equipe() {
                 <Users size={48} className="text-text-tertiary opacity-20" />
             </div>
             <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Vácuo de Tropa</Typography>
-            <Typography variant="caption" tone="muted" className="max-w-xs uppercase tracking-widest font-black text-xs leading-relaxed opacity-40">Nenhum especialista localizado na malha desta unidade operacional.</Typography>
+            <Typography variant="caption" tone="muted" className="max-w-xs uppercase tracking-widest font-black text-xs leading-relaxed">Nenhum especialista localizado na malha desta unidade operacional.</Typography>
           </div>
         )}
       </div>
@@ -226,7 +226,7 @@ export default function Equipe() {
                       <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 flex items-center justify-center text-brand-primary border border-mx-indigo-100 shadow-inner"><Shield size={28} /></div>
                       <div>
                         <Typography variant="h3" className="font-black uppercase">Vigência Operacional</Typography>
-                        <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-widest font-black opacity-40">{editingMember.name}</Typography>
+                        <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-widest font-black">{editingMember.name}</Typography>
                       </div>
                     </div>
                     <Button 
@@ -255,7 +255,7 @@ export default function Equipe() {
                           <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-success shadow-mx-sm group-hover:scale-110 transition-transform"><BadgeCheck size={24} /></div>
                           <div className="space-y-mx-tiny">
                             <Typography variant="h3" className="text-base font-black uppercase tracking-tight">Contrato Ativo</Typography>
-                            <Typography variant="caption" tone="muted" className="text-mx-micro uppercase tracking-widest font-black opacity-40">Habilitar no sistema operacional</Typography>
+                            <Typography variant="caption" tone="muted" className="text-mx-micro uppercase tracking-widest font-black">Habilitar no sistema operacional</Typography>
                           </div>
                         </div>
                         <input type="checkbox" checked={editingMember.is_active} onChange={e => setEditingMember({...editingMember, is_active: e.target.checked})} className="w-mx-lg h-mx-lg rounded-mx-lg accent-brand-primary cursor-pointer shadow-sm" />
@@ -266,7 +266,7 @@ export default function Equipe() {
                           <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-warning shadow-mx-sm group-hover:scale-110 transition-transform"><ShieldAlert size={24} /></div>
                           <div className="space-y-mx-tiny">
                             <Typography variant="h3" className="text-base font-black uppercase tracking-tight">Carência MX</Typography>
-                            <Typography variant="caption" tone="muted" className="text-mx-micro uppercase tracking-widest font-black opacity-40">Ignorar métricas residuais do mês</Typography>
+                            <Typography variant="caption" tone="muted" className="text-mx-micro uppercase tracking-widest font-black">Ignorar métricas residuais do mês</Typography>
                           </div>
                         </div>
                         <input type="checkbox" checked={editingMember.closing_month_grace} onChange={e => setEditingMember({...editingMember, closing_month_grace: e.target.checked})} className="w-mx-lg h-mx-lg rounded-mx-lg accent-status-warning cursor-pointer shadow-sm" />

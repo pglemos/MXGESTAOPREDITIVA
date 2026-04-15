@@ -138,7 +138,7 @@ export default function GerenteTreinamentos() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
                         <Typography variant="h1">Academy <span className="text-mx-green-700">Gerencial</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black opacity-40">Mapeamento de Competências & Absorção MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Mapeamento de Competências & Absorção MX</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
@@ -219,7 +219,7 @@ export default function GerenteTreinamentos() {
                                         <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><LayoutDashboard size={20} /></div>
                                         <div>
                                             <Typography variant="h3" className="font-black uppercase">Matriz de Absorção</Typography>
-                                            <Typography variant="caption" tone="muted" className="font-black uppercase opacity-40">Mapeamento Cruzado de Conhecimento</Typography>
+                                            <Typography variant="caption" tone="muted" className="font-black uppercase">Mapeamento Cruzado de Conhecimento</Typography>
                                         </div>
                                     </div>
                                     <Badge variant="outline" className="px-4 py-1.5 rounded-mx-full uppercase font-black text-mx-micro shadow-sm border-border-strong">
@@ -295,11 +295,11 @@ export default function GerenteTreinamentos() {
 
                                         <div className="relative z-10 w-full">
                                             <Typography variant="h3" className="text-base uppercase font-black truncate">{p.seller_name}</Typography>
-                                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase opacity-40 mb-6 block">Especialista de Elite</Typography>
+                                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase mb-6 block">Especialista de Elite</Typography>
                                             
                                             <div className="space-y-mx-sm mb-8">
                                                 <div className="flex justify-between items-end px-2">
-                                                    <Typography variant="tiny" className="font-black opacity-40 uppercase">Absorção</Typography>
+                                                    <Typography variant="tiny" className="font-black text-text-label uppercase">Absorção</Typography>
                                                     <Typography variant="mono" tone="brand" className="text-sm font-black">{Math.round((p.watched.length / trainings.length) * 100)}%</Typography>
                                                 </div>
                                                 <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-mx-px">
@@ -332,7 +332,7 @@ export default function GerenteTreinamentos() {
                                     <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Target size={20} /></div>
                                     <div>
                                         <Typography variant="h3" className="font-black uppercase">Atribuir Reforço</Typography>
-                                        <Typography variant="caption" tone="muted" className="font-black uppercase opacity-40">Destino: {teamProgress.find(p => p.seller_id === assigningTo)?.seller_name}</Typography>
+                                        <Typography variant="caption" tone="muted" className="font-black uppercase">Destino: {teamProgress.find(p => p.seller_id === assigningTo)?.seller_name}</Typography>
                                     </div>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => setAssigningTo(null)} className="rounded-mx-full w-mx-10 h-mx-10"><X size={20} /></Button>
