@@ -60,6 +60,15 @@ export interface ConsultingAssignableUser {
   role: string
 }
 
+export interface ConsultingVisitAttachment {
+  id: string
+  filename: string
+  storage_path: string
+  content_type: string
+  size_bytes: number
+  uploaded_at: string
+}
+
 export interface ConsultingVisit {
   id: string
   client_id: string
@@ -75,6 +84,7 @@ export interface ConsultingVisit {
   feedback_client: string | null
   executive_summary: string | null
   google_event_id: string | null
+  attachments?: ConsultingVisitAttachment[]
   created_at: string
   updated_at: string
   consultant?: { name: string; email: string } | null

@@ -111,7 +111,7 @@ export function useConsultingAgenda(clientId?: string) {
   }, [clientId, supabaseUser?.id])
 
   const fetchAgendaState = useCallback(async () => {
-    if (!supabaseUser?.id || !clientId) {
+    if (!supabaseUser?.id) {
       setHasClientLink(false)
       setAssignmentRole(null)
       setIsConnected(false)
@@ -124,30 +124,26 @@ export function useConsultingAgenda(clientId?: string) {
     setIsLoading(true)
     setError(null)
 
-    const [assignmentRes, tokenRes] = await Promise.all([
-      supabase
-        .from('consulting_assignments')
-        .select('assignment_role, active')
-        .eq('client_id', clientId)
-        .eq('user_id', supabaseUser.id)
-        .maybeSingle(),
-      supabase
-        .from('consulting_oauth_tokens')
-        .select('id')
-        .eq('user_id', supabaseUser.id)
-        .eq('provider', 'google')
-        .maybeSingle(),
-    ])
+    const tokenQuery = supabase
+      .from('consulting_oauth_tokens')
+      .select('id')
+      .eq('user_id', supabaseUser.id)
+      .eq('provider', 'google')
+      .maybeSingle()
 
-    if (assignmentRes.error) {
-      setError(assignmentRes.error.message)
-      setHasClientLink(false)
-      setAssignmentRole(null)
-      setIsConnected(false)
-      setEvents([])
-      setIsLoading(false)
-      return
-    }
+    const assignmentQuery = clientId
+      ? supabase
+          .from('consulting_assignments')
+          .select('assignment_role, active')
+          .eq('client_id', clientId)
+          .eq('user_id', supabaseUser.id)
+          .maybeSingle()
+      : null
+
+    const [tokenRes, assignmentRes] = await Promise.all([
+      tokenQuery,
+      assignmentQuery ?? Promise.resolve({ data: null, error: null }),
+    ])
 
     if (tokenRes.error) {
       setError(tokenRes.error.message)
@@ -159,12 +155,23 @@ export function useConsultingAgenda(clientId?: string) {
       return
     }
 
-    const assignment = assignmentRes.data
-    setHasClientLink(Boolean(assignment?.active))
-    setAssignmentRole(assignment?.assignment_role || null)
+    if (assignmentRes?.error) {
+      setError(assignmentRes.error.message)
+      setHasClientLink(false)
+      setAssignmentRole(null)
+      setIsConnected(false)
+      setEvents([])
+      setIsLoading(false)
+      return
+    }
+
+    const assignment = assignmentRes?.data
+    const isAdminUser = role === 'admin'
+    setHasClientLink(Boolean(assignment?.active) || (isAdminUser && Boolean(clientId)))
+    setAssignmentRole(assignment?.assignment_role || (isAdminUser && clientId ? 'admin' : null))
     setIsConnected(Boolean(tokenRes.data))
     setIsLoading(false)
-  }, [clientId, supabaseUser?.id])
+  }, [clientId, supabaseUser?.id, role])
 
   const fetchEvents = useCallback(async () => {
     if (!supabaseUser?.id) {
@@ -239,8 +246,10 @@ export function useConsultingAgenda(clientId?: string) {
 
     if (!clientId) {
       return {
-        title: 'Cliente indisponível',
-        description: 'Não foi possível localizar o cliente atual para contextualizar a agenda.',
+        title: role === 'admin' ? 'Agenda do administrador' : 'Cliente indisponível',
+        description: role === 'admin'
+          ? 'Sua agenda Google está disponível abaixo como referência operacional.'
+          : 'Não foi possível localizar o cliente atual para contextualizar a agenda.',
         linkedToClient: false,
       }
     }

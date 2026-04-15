@@ -169,16 +169,25 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (settingsLookupError) throw settingsLookupError;
 
+    const { data: roleCheck } = await adminClient
+      .from("users")
+      .select("role")
+      .eq("id", stateRow.user_id)
+      .single();
+    const isAdmin = roleCheck?.role === 'admin' || roleCheck?.role === 'consultor';
+
+    const shouldLinkClient = stateRow.client_id && !isAdmin;
+
     const settingsPayload = {
       user_id: stateRow.user_id,
       google_calendar_id: "primary",
       sync_active: true,
-      ...(stateRow.client_id ? { client_id: stateRow.client_id } : {}),
+      ...(shouldLinkClient ? { client_id: stateRow.client_id } : {}),
     };
 
     if (existingSettings) {
       const updateSettings: Record<string, unknown> = {};
-      if (!existingSettings.client_id && stateRow.client_id) updateSettings.client_id = stateRow.client_id;
+      if (!existingSettings.client_id && shouldLinkClient) updateSettings.client_id = stateRow.client_id;
       updateSettings.google_calendar_id = "primary";
       updateSettings.sync_active = true;
       const { error: updateSettingsError } = await adminClient.from("consulting_calendar_settings").update(updateSettings).eq("id", existingSettings.id);

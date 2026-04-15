@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { requireEnv, encryptToken, decryptToken } from "../_shared/crypto.ts";
 import { parseClientId, createSessionClient, assertClientAccess, refreshAccessToken } from "../_shared/google.ts";
@@ -52,6 +53,17 @@ Deno.serve(async (req) => {
 
     if (requestedClientId) await assertClientAccess(sessionClient, requestedClientId);
 
+    const adminClient = createClient(
+      requireEnv("SUPABASE_URL", SUPABASE_URL),
+      requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
+    );
+    const { data: userProfile } = await adminClient
+      .from("users")
+      .select("role")
+      .eq("id", authData.user.id)
+      .single();
+    const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'consultor';
+
     const { data: tokenRow, error: tokenError } = await sessionClient
       .from("consulting_oauth_tokens")
       .select("id, access_token, refresh_token, expires_at")
@@ -78,7 +90,7 @@ Deno.serve(async (req) => {
           user_id: authData.user.id,
           google_calendar_id: "primary",
           sync_active: true,
-          ...(requestedClientId ? { client_id: requestedClientId } : {}),
+          ...((requestedClientId && !isAdmin) ? { client_id: requestedClientId } : {}),
         })
         .select("id, client_id, google_calendar_id, sync_active, last_sync_at")
         .single();
@@ -86,7 +98,7 @@ Deno.serve(async (req) => {
       calendarSettings = insertedSettings;
     }
 
-    if (requestedClientId) {
+    if (requestedClientId && !isAdmin) {
       if (calendarSettings.client_id && calendarSettings.client_id !== requestedClientId) {
         return new Response(JSON.stringify({ error: "Calendar settings belong to a different client" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }

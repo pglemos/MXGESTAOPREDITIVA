@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, CheckCircle2, Circle, Save, FileText, Send,
-  AlertCircle, Info, Building2, User2, Calendar
+  AlertCircle, Info, Building2, User2, Calendar,
+  Plus, Trash2, Download, Loader2, Paperclip, Image
 } from 'lucide-react'
-import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
@@ -12,14 +12,36 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Textarea } from '@/components/atoms/Textarea'
 import { useConsultingClientDetail, useConsultingMethodology } from '@/hooks/useConsultingClients'
+import type { ConsultingVisitAttachment } from '@/features/consultoria/types'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+const ALLOWED_TYPES = [
+  'image/png', 'image/jpeg', 'image/webp', 'image/gif',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/csv',
+  'application/vnd.ms-excel',
+]
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function isImageContentType(ct: string) {
+  return ct.startsWith('image/')
+}
 
 export default function ConsultoriaVisitaExecucao() {
   const { clientId, visitNumber } = useParams<{ clientId: string, visitNumber: string }>()
   const navigate = useNavigate()
   const { client, loading: clientLoading, refetch } = useConsultingClientDetail(clientId)
   const { steps, loading: methodologyLoading } = useConsultingMethodology()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const visitNum = parseInt(visitNumber || '1')
   const step = useMemo(() => steps.find(s => s.visit_number === visitNum), [steps, visitNum])
@@ -29,14 +51,16 @@ export default function ConsultoriaVisitaExecucao() {
   const [feedback, setFeedback] = useState('')
   const [summary, setSummary] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [attachments, setAttachments] = useState<ConsultingVisitAttachment[]>([])
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (visit) {
       setChecklist(visit.checklist_data || [])
       setFeedback(visit.feedback_client || '')
       setSummary(visit.executive_summary || '')
+      setAttachments((visit as any).attachments || [])
     } else if (step) {
-      // Initialize checklist from objective text or defaults if empty
       setChecklist([
         { task: 'Realizar abertura da visita e alinhar objetivos', completed: false },
         { task: 'Executar checklist metodológico da etapa', completed: false },
@@ -45,6 +69,134 @@ export default function ConsultoriaVisitaExecucao() {
       ])
     }
   }, [visit, step])
+
+  const ensureVisitExists = async (): Promise<string | null> => {
+    if (visit?.id) return visit.id
+    if (!clientId) return null
+
+    const { data, error } = await supabase
+      .from('consulting_visits')
+      .insert({
+        client_id: clientId,
+        visit_number: visitNum,
+        scheduled_at: new Date().toISOString(),
+        status: 'em_andamento',
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      toast.error('Erro ao criar visita: ' + error.message)
+      return null
+    }
+    await refetch()
+    return data.id
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files?.length) return
+
+    const file = files[0]
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`Arquivo muito grande: ${formatFileSize(file.size)}. Limite: 10MB.`)
+      e.target.value = ''
+      return
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error(`Tipo não permitido: ${file.type || 'desconhecido'}. Use PDF, PNG, JPG, XLSX, DOCX ou CSV.`)
+      e.target.value = ''
+      return
+    }
+
+    setUploading(true)
+    try {
+      const visitId = await ensureVisitExists()
+      if (!visitId) return
+
+      const ext = file.name.split('.').pop() || 'bin'
+      const fileId = crypto.randomUUID()
+      const storagePath = `${clientId}/${visitId}/${fileId}.${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('consulting-visit-files')
+        .upload(storagePath, file, { upsert: false })
+
+      if (uploadError) throw uploadError
+
+      const newAttachment: ConsultingVisitAttachment = {
+        id: fileId,
+        filename: file.name,
+        storage_path: storagePath,
+        content_type: file.type,
+        size_bytes: file.size,
+        uploaded_at: new Date().toISOString(),
+      }
+
+      const updatedAttachments = [...attachments, newAttachment]
+
+      const { error: updateError } = await supabase
+        .from('consulting_visits')
+        .update({ attachments: updatedAttachments })
+        .eq('id', visitId)
+
+      if (updateError) {
+        await supabase.storage.from('consulting-visit-files').remove([storagePath])
+        throw updateError
+      }
+
+      setAttachments(updatedAttachments)
+      toast.success(`Arquivo "${file.name}" anexado com sucesso!`)
+    } catch (err: any) {
+      toast.error('Erro ao enviar arquivo: ' + err.message)
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleDeleteAttachment = async (attachment: ConsultingVisitAttachment) => {
+    if (!visit?.id) return
+
+    try {
+      await supabase.storage.from('consulting-visit-files').remove([attachment.storage_path])
+
+      const updatedAttachments = attachments.filter(a => a.id !== attachment.id)
+
+      const { error } = await supabase
+        .from('consulting_visits')
+        .update({ attachments: updatedAttachments })
+        .eq('id', visit.id)
+
+      if (error) throw error
+
+      setAttachments(updatedAttachments)
+      toast.success(`Arquivo "${attachment.filename}" removido.`)
+    } catch (err: any) {
+      toast.error('Erro ao remover arquivo: ' + err.message)
+    }
+  }
+
+  const handleDownload = async (attachment: ConsultingVisitAttachment) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('consulting-visit-files')
+        .download(attachment.storage_path)
+
+      if (error) throw error
+
+      const url = URL.createObjectURL(data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = attachment.filename
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: any) {
+      toast.error('Erro ao baixar arquivo: ' + err.message)
+    }
+  }
 
   const toggleTask = (index: number) => {
     const newChecklist = [...checklist]
@@ -63,6 +215,7 @@ export default function ConsultoriaVisitaExecucao() {
         checklist_data: checklist,
         feedback_client: feedback,
         executive_summary: summary,
+        attachments,
         status: isFinal ? 'concluída' : 'em_andamento',
         updated_at: new Date().toISOString()
       }
@@ -79,7 +232,7 @@ export default function ConsultoriaVisitaExecucao() {
           .from('consulting_visits')
           .insert({
             ...payload,
-            scheduled_at: new Date().toISOString(), // Default to now if not scheduled
+            scheduled_at: new Date().toISOString(),
           })
         error = insertError
       }
@@ -102,6 +255,14 @@ export default function ConsultoriaVisitaExecucao() {
 
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ALLOWED_TYPES.join(',')}
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="space-y-mx-sm">
           <Button asChild variant="ghost" size="sm" className="pl-0">
@@ -209,19 +370,78 @@ export default function ConsultoriaVisitaExecucao() {
           </Card>
 
           <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-            <Typography variant="h3" className="mb-mx-md">EVIDÊNCIAS NECESSÁRIAS</Typography>
-            <div className="p-mx-md rounded-mx-lg bg-status-info-surface/10 border border-status-info/20 text-status-info flex gap-mx-sm mb-mx-md">
-              <AlertCircle size={18} className="shrink-0" />
-              <Typography variant="tiny" className="leading-tight">
-                <strong>Requisito:</strong> {step?.evidence_required}
-              </Typography>
-            </div>
-            <div className="flex flex-col gap-mx-sm">
-              <Button variant="outline" className="w-full justify-start border-dashed border-2 hover:border-brand-primary h-mx-24">
-                <Plus size={20} className="mr-2" /> ANEXAR FOTO / ARQUIVO
+            <Typography variant="h3" className="mb-mx-md">EVIDÊNCIAS E ANEXOS</Typography>
+            {step?.evidence_required && (
+              <div className="p-mx-md rounded-mx-lg bg-status-info-surface/10 border border-status-info/20 text-status-info flex gap-mx-sm mb-mx-md">
+                <AlertCircle size={18} className="shrink-0" />
+                <Typography variant="tiny" className="leading-tight">
+                  <strong>Requisito:</strong> {step.evidence_required}
+                </Typography>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-mx-sm mb-mx-md">
+              <Button
+                variant="outline"
+                className="w-full justify-start border-dashed border-2 hover:border-brand-primary h-mx-24"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <Loader2 size={20} className="mr-2 animate-spin" />
+                ) : (
+                  <Plus size={20} className="mr-2" />
+                )}
+                {uploading ? 'ENVIANDO...' : 'ANEXAR FOTO / ARQUIVO'}
               </Button>
-              <Typography variant="tiny" tone="muted" className="text-center italic">Até 10MB por arquivo (PDF, PNG, JPG)</Typography>
+              <Typography variant="tiny" tone="muted" className="text-center italic">Até 10MB por arquivo (PDF, PNG, JPG, XLSX, DOCX, CSV)</Typography>
             </div>
+
+            {attachments.length > 0 && (
+              <div className="space-y-mx-xs">
+                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
+                  Arquivos anexados ({attachments.length})
+                </Typography>
+                {attachments.map((att) => (
+                  <div
+                    key={att.id}
+                    className="flex items-center gap-mx-sm p-mx-sm rounded-mx-lg border border-border-default hover:border-brand-primary/30 transition-colors group"
+                  >
+                    <div className="p-mx-xs bg-brand-primary/10 rounded-mx-md shrink-0">
+                      {isImageContentType(att.content_type) ? (
+                        <Image size={16} className="text-brand-primary" />
+                      ) : (
+                        <Paperclip size={16} className="text-brand-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Typography variant="caption" className="font-bold text-text-primary block truncate">
+                        {att.filename}
+                      </Typography>
+                      <Typography variant="tiny" tone="muted">
+                        {formatFileSize(att.size_bytes)} • {new Date(att.uploaded_at).toLocaleDateString('pt-BR')}
+                      </Typography>
+                    </div>
+                    <div className="flex items-center gap-mx-xs shrink-0">
+                      <button
+                        onClick={() => handleDownload(att)}
+                        className="p-mx-xs rounded hover:bg-surface-alt transition-colors"
+                        title="Baixar"
+                      >
+                        <Download size={14} className="text-text-tertiary hover:text-brand-primary" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAttachment(att)}
+                        className="p-mx-xs rounded hover:bg-status-error-surface transition-colors"
+                        title="Remover"
+                      >
+                        <Trash2 size={14} className="text-text-tertiary hover:text-status-error" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           <Card className="p-mx-lg border-none shadow-mx-md bg-brand-secondary text-white overflow-hidden relative">
