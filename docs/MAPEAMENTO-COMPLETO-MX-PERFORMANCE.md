@@ -314,18 +314,38 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 #### Admin / Dono
 
-| Path | Component | Descrição |
-|------|-----------|-----------|
-| `/painel` | `PainelConsultor` | Dashboard administrativo (rede toda) |
-| `/lojas` | `Lojas` | CRUD de lojas |
-| `/produtos` | `ProdutosDigitais` | Catálogo de produtos digitais |
-| `/configuracoes` | `Configuracoes` | Settings do usuário |
-| `/configuracoes/operacional` | `OperationalSettings` | Config operacional (admin) |
-| `/configuracoes/reprocessamento` | `Reprocessamento` | Importação CSV + reprocessamento |
-| `/relatorio-matinal` | `MorningReport` | Relatório matinal manual |
-| `/relatorios/performance-vendas` | `SalesPerformance` | BI: gráficos de performance |
-| `/relatorios/performance-vendedores` | `SellerPerformance` | Ranking detalhado por vendedor |
-| `/notificacoes` | `ConsultorNotificacoes` | Notificações admin |
+| Path | Component | Sidebar admin | Descrição |
+|------|-----------|:---:|-----------|
+| `/painel` | `PainelConsultor` | Sim | Dashboard administrativo (rede toda) |
+| `/lojas` | `Lojas` | Sim | CRUD de lojas |
+| `/loja` | `DashboardLoja` | Não* | Dashboard de loja (acessível via link em Lojas) |
+| `/loja/:storeSlug` | `DashboardLoja` | Não* | Dashboard de loja específica |
+| `/consultoria/clientes` | `ConsultoriaClientes` | Sim | Lista de clientes CRM |
+| `/consultoria/clientes/:clientId` | `ConsultoriaClienteDetalhe` | Não* | Detalhe: visão geral, agenda/visitas, DRE/financeiro |
+| `/consultoria/clientes/:clientId/visitas/:visitNumber` | `ConsultoriaVisitaExecucao` | Não* | Execução de visita com checklist |
+| `/metas` | `GoalManagement` | Sim | Configuração de metas e benchmarks |
+| `/relatorios/performance-vendas` | `SalesPerformance` | Sim | BI: gráficos de performance (label: Benchmarks) |
+| `/funil` | `Funil` | Sim | Análise de funil |
+| `/checkin` | `Checkin` | Sim | Checkin diário |
+| `/ranking` | `Ranking` | Sim | Ranking mensal |
+| `/relatorio-matinal` | `MorningReport` | Sim | Relatório matinal manual |
+| `/feedback` | `GerenteFeedback` | Sim | Feedback/PDI (componente de gerente, admin vê mesmo) |
+| `/treinamentos` | `ConsultorTreinamentos` | Sim | Treinamentos admin |
+| `/produtos` | `ProdutosDigitais` | Sim | Catálogo de produtos digitais |
+| `/notificacoes` | `ConsultorNotificacoes` | Sim | Notificações admin |
+| `/configuracoes/operacional` | `OperationalSettings` | Sim | Config operacional (admin) |
+| `/configuracoes` | `Configuracoes` | Sim | Settings do usuário |
+| `/pdi` | `GerentePDI` | Não | PDI — acessível via URL mas sem link na sidebar admin |
+| `/equipe` | `Equipe` | Não | Equipe — acessível via URL mas sem link na sidebar admin |
+| `/rotina` | `RotinaGerente` | Não | Rotina gerente — acessível via URL mas sem link na sidebar admin |
+| `/auditoria` | `AiDiagnostics` | Não | Diagnóstico forense — acessível via URL mas sem link na sidebar admin |
+| `/configuracoes/reprocessamento` | `Reprocessamento` | Não | Importação CSV — acessível via URL mas sem link na sidebar admin |
+| `/relatorios/performance-vendedores` | `SellerPerformance` | Não | Ranking por vendedor — acessível via URL mas sem link na sidebar admin |
+| `/historico` | redirect `/painel` | — | Bloqueado para admin (redirect) |
+| `/home` | redirect `/painel` | — | Bloqueado para admin (redirect) |
+| `/perfil` | `Perfil` | Não | Editar perfil + avatar + senha (acessível via header) |
+
+*\* Não está na sidebar mas é acessível via navegação dentro do sistema (links, store switcher)*
 
 #### Consultoria CRM
 
@@ -363,12 +383,41 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `/consultoria/*` | Full | Full | Full | Full |
 | `/perfil` | Perfil | Perfil | Perfil | Perfil |
 
-### 5.4 Navegação Sidebar (role-segmentada)
+### 5.4 Navegação Sidebar Admin (validado em produção)
 
-**admin** — 3 categorias:
-- Governança MX: Painel Geral, Lojas, Consultoria, Metas, Benchmarks, Funil
-- Rituais MX: Checkin, Ranking, Matinal Oficial, Feedback/PDI, Treinamentos, Produtos Digitais, Notificações
-- Sustentação: Configuração Operacional, Configurações
+> Estas são as 16 páginas que o admin (MX) visualiza e interage diretamente pelo sistema.
+
+**Governança MX** (6 itens):
+1. Painel Geral → `/painel`
+2. Lojas → `/lojas`
+3. Consultoria → `/consultoria/clientes`
+4. Metas → `/metas`
+5. Benchmarks → `/relatorios/performance-vendas`
+6. Funil → `/funil`
+
+**Rituais MX** (7 itens):
+7. Checkin → `/checkin`
+8. Ranking → `/ranking`
+9. Matinal Oficial → `/relatorio-matinal`
+10. Feedback/PDI → `/feedback`
+11. Treinamentos → `/treinamentos`
+12. Produtos Digitais → `/produtos`
+13. Notificações → `/notificacoes`
+
+**Sustentação** (2 itens):
+14. Configuração Operacional → `/configuracoes/operacional`
+15. Configurações → `/configuracoes`
+
+**Header (não-sidebar):**
+16. Perfil → `/perfil` (via avatar no header)
+
+**Páginas acessíveis por navegação interna (não na sidebar):**
+- `/loja/{slug}` — via clique em loja
+- `/consultoria/clientes/:id` — via clique em cliente (3 tabs: visão geral, agenda/visitas, DRE/financeiro)
+- `/consultoria/clientes/:id/visitas/:n` — via clique em visita
+
+**Páginas acessíveis apenas por URL direta (sem link no sistema):**
+- `/pdi`, `/equipe`, `/rotina`, `/auditoria`, `/configuracoes/reprocessamento`, `/relatorios/performance-vendedores`
 
 **dono** — 2 categorias:
 - Visão Executiva: Minhas Lojas, Performance, Metas, Funil
@@ -659,7 +708,7 @@ Todas as 47 tabelas possuem RLS habilitado com policies baseadas em:
 | **Branch** | `main` (deploy automático) |
 | **CI** | GitHub Actions: "MX Atomic Design Enforcement" |
 | **Quality gates** | `npm run lint` + `npm run typecheck` + `npm test` (66/66) |
-| **Último commit** | `5ae272a` |
+| **Último commit** | `75663ca` |
 | **Framework** | Vite + React |
 | **Build** | `vite build` com manual chunks (6 vendor bundles) |
 
