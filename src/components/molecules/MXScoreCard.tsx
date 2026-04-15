@@ -24,7 +24,7 @@ function MXScoreCardInner({ label, value, sub, icon: Icon, tone, description, is
       )}
       aria-description={description}
     >
-      <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" />
+      <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" aria-hidden="true" />
       <div className="flex items-center justify-between relative z-10">
         <div className="space-y-mx-tiny">
           <Typography variant="caption" tone="muted" className="block uppercase tracking-widest text-mx-micro">{label}</Typography>

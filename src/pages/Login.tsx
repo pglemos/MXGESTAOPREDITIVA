@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { motion } from 'motion/react'
 import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
+import { FormField } from '@/components/molecules/FormField'
 import MxLogo from '@/assets/mx-logo.svg'
 
 export default function Login() {
@@ -21,6 +22,7 @@ export default function Login() {
     const passwordRef = React.useRef<HTMLInputElement>(null)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
     const [isHydrated, setIsHydrated] = useState(false)
 
     const [loginAttempts, setLoginAttempts] = useState(0)
@@ -45,7 +47,16 @@ export default function Login() {
             return
         }
 
+        const newFieldErrors: Record<string, string> = {}
+        if (!email.trim()) newFieldErrors.email = 'E-mail e obrigatorio'
+        if (!password.trim()) newFieldErrors.password = 'Senha e obrigatoria'
+        if (Object.keys(newFieldErrors).length > 0) {
+            setFieldErrors(newFieldErrors)
+            return
+        }
+
         setError('')
+        setFieldErrors({})
         setLoading(true)
 
         try {
@@ -87,7 +98,7 @@ export default function Login() {
             {/* Left Panel — Brand */}
             <div className="hidden lg:flex bg-brand-secondary relative overflow-hidden flex-col items-center justify-center p-mx-2xl" style={{ width: '52%' }}>
                 {/* Gradient mesh */}
-                <div className="absolute inset-0">
+                <div className="absolute inset-0" aria-hidden="true">
                     <div className="absolute bg-brand-primary/10 rounded-full" style={{ top: '-20%', left: '-10%', width: '70%', height: '70%', filter: 'blur(140px)' }} />
                     <div className="absolute bg-mx-green-900/40 rounded-full" style={{ bottom: '-15%', right: '-10%', width: '60%', height: '60%', filter: 'blur(120px)' }} />
                     <div className="absolute bg-brand-primary/6 rounded-full" style={{ top: '40%', right: '20%', width: '30%', height: '30%', filter: 'blur(80px)' }} />
@@ -166,34 +177,34 @@ export default function Login() {
                         <p className="text-text-tertiary text-sm">Entre com suas credenciais para continuar</p>
                     </div>
 
-                    <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} className="flex flex-col" style={{ gap: '1.25rem' }}>
-                        <div className="space-y-1.5">
-                            <label htmlFor="login-email" className="text-xs font-bold text-text-secondary uppercase tracking-wider block">E-mail</label>
-                            <div className="relative">
-                                <Mail className="absolute top-1/2 -translate-y-1/2 text-text-tertiary" style={{ left: '1rem' }} size={18} />
-                                <input
-                                    id="login-email"
-                                    type="email" value={email} onChange={e => setEmail(e.target.value)}
-                                    placeholder="seu@email.com.br" required autoFocus={!email}
-                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
-                                    style={{ height: '3.25rem' }}
-                                />
-                            </div>
-                        </div>
+                    <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} noValidate className="flex flex-col" style={{ gap: '1.25rem' }}>
+                        <FormField
+                            id="login-email"
+                            label="E-mail"
+                            type="email"
+                            value={email}
+                            onChange={e => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })) }}
+                            placeholder="seu@email.com.br"
+                            required
+                            autoFocus={!email}
+                            autoComplete="email"
+                            icon={<Mail size={18} />}
+                            error={fieldErrors.email}
+                        />
 
-                        <div className="space-y-1.5">
-                            <label htmlFor="login-password" className="text-xs font-bold text-text-secondary uppercase tracking-wider block">Senha</label>
-                            <div className="relative">
-                                <Lock className="absolute top-1/2 -translate-y-1/2 text-text-tertiary" style={{ left: '1rem' }} size={18} />
-                                <input
-                                    id="login-password"
-                                    type="password" ref={passwordRef} value={password} onChange={e => setPassword(e.target.value)}
-                                    placeholder="Digite sua senha" required
-                                    className="w-full pl-12 pr-4 bg-surface-alt border border-border-strong rounded-xl text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
-                                    style={{ height: '3.25rem' }}
-                                />
-                            </div>
-                        </div>
+                        <FormField
+                            id="login-password"
+                            label="Senha"
+                            type="password"
+                            ref={passwordRef}
+                            value={password}
+                            onChange={e => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' })) }}
+                            placeholder="Digite sua senha"
+                            required
+                            autoComplete="current-password"
+                            icon={<Lock size={18} />}
+                            error={fieldErrors.password}
+                        />
 
                         {error && (
                             <div className="flex items-center px-4 py-3 bg-status-error-surface border border-status-error/20 rounded-xl" style={{ gap: '0.75rem' }}>
