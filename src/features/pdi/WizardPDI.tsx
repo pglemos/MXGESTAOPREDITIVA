@@ -11,6 +11,7 @@ import { Card } from '@/components/molecules/Card'
 import { toast } from 'sonner'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
 import { cn } from '@/lib/utils'
+import * as Dialog from '@radix-ui/react-dialog'
 
 export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSuccess: () => void }) {
     const { storeId } = useAuth()
@@ -151,12 +152,15 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
     ]
 
     return (
-        <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/80 backdrop-blur-md"
-            role="dialog" aria-modal="true"
-        >
-            <Card className="w-full max-w-mx-6xl max-h-full overflow-y-auto no-scrollbar shadow-mx-elite border-none flex flex-col bg-white rounded-mx-2xl">
+        <Dialog.Root open onOpenChange={(open) => { if (!open) onClose() }}>
+            <Dialog.Portal forceMount>
+                <Dialog.Overlay asChild forceMount>
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/80 backdrop-blur-md"
+                    >
+                        <Dialog.Content asChild forceMount>
+                            <Card className="w-full max-w-mx-6xl max-h-full overflow-y-auto no-scrollbar shadow-mx-elite border-none flex flex-col bg-white rounded-mx-2xl">
                 <header className="p-mx-lg md:p-10 border-b border-border-default flex flex-col gap-mx-lg sticky top-mx-0 bg-white z-10 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-mx-sm">
@@ -194,6 +198,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                         <Typography variant="tiny" className="font-black uppercase text-text-tertiary">1. Selecione o Especialista</Typography>
                                         <select 
                                             value={form.colaborador_id} onChange={e => setForm({ ...form, colaborador_id: e.target.value })}
+                                            aria-label="Selecione o Especialista"
                                             className="w-full h-mx-2xl px-6 bg-surface-alt rounded-mx-2xl font-black text-lg outline-none border focus:border-brand-primary"
                                         >
                                             <option value="">Selecione o vendedor...</option>
@@ -204,6 +209,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                         <Typography variant="tiny" className="font-black uppercase text-text-tertiary">2. Escala de Avaliação (Cargo)</Typography>
                                         <select 
                                             value={form.cargo_id} onChange={e => setForm({ ...form, cargo_id: e.target.value })}
+                                            aria-label="Cargo do especialista"
                                             className="w-full h-mx-2xl px-6 bg-surface-alt rounded-mx-2xl font-black text-lg outline-none border focus:border-brand-primary"
                                         >
                                             <option value="">Selecione o nível do cargo...</option>
@@ -224,6 +230,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                         <select 
                                                             value={meta.tipo}
                                                             onChange={e => { const nm = [...form.metas]; nm[idx].tipo = e.target.value; setForm({ ...form, metas: nm }) }}
+                                                            aria-label="Tipo de meta"
                                                             className="text-mx-tiny font-black uppercase text-brand-primary bg-transparent outline-none cursor-pointer"
                                                         >
                                                             <option value="pessoal">META PESSOAL</option>
@@ -232,6 +239,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                     </div>
                                                     <textarea 
                                                         value={meta.descricao} placeholder="Descreva a meta..."
+                                                        aria-label="Descrição da meta"
                                                         onChange={e => { const nm = [...form.metas]; nm[idx].descricao = e.target.value; setForm({ ...form, metas: nm }) }}
                                                         className="w-full h-mx-header text-sm resize-none outline-none font-bold placeholder:font-normal"
                                                     />
@@ -277,6 +285,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                             <input 
                                                                 type="range" min={template.escala[0]?.nota} max={template.escala[template.escala.length - 1]?.nota} 
                                                                 value={nota}
+                                                                aria-label="Nível da competência"
                                                                 onChange={e => setForm(f => ({ ...f, avaliacoes: { ...f.avaliacoes, [c.id]: Number(e.target.value) } }))}
                                                                 className="w-full accent-brand-primary"
                                                             />
@@ -352,6 +361,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                     <Typography variant="tiny" className="uppercase font-black text-text-tertiary">Revisão Mensal</Typography>
                                                     <input 
                                                         type="date" value={form.proxima_revisao_data} onChange={e => setForm({ ...form, proxima_revisao_data: e.target.value })}
+                                                        aria-label="Data de revisão"
                                                         className="text-sm font-bold text-brand-primary border-none outline-none bg-transparent"
                                                     />
                                                 </div>
@@ -364,6 +374,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                     <div className="w-mx-lg h-mx-lg rounded-mx-full bg-brand-primary text-white flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</div>
                                                     <select 
                                                         value={acao.competencia_id} onChange={e => handleCompetenciaAcaoChange(idx, e.target.value)}
+                                                        aria-label="Competência"
                                                         className="flex-1 h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none uppercase"
                                                     >
                                                         <option value="">-- Vincular Competência (Lacuna) --</option>
@@ -394,17 +405,17 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                     <div className="flex gap-mx-sm">
                                                         <div className="flex-1">
                                                             <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-1 block">Conclusão</Typography>
-                                                            <input type="date" value={acao.data_conclusao} onChange={e => { const np = [...form.plano_acao]; np[idx].data_conclusao = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none" />
+                                                            <input type="date" aria-label="Data de conclusão" value={acao.data_conclusao} onChange={e => { const np = [...form.plano_acao]; np[idx].data_conclusao = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none" />
                                                         </div>
                                                         <div className="flex-1">
                                                             <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-1 block">Impacto</Typography>
-                                                            <select value={acao.impacto} onChange={e => { const np = [...form.plano_acao]; np[idx].impacto = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none uppercase">
+                                                            <select aria-label="Impacto" value={acao.impacto} onChange={e => { const np = [...form.plano_acao]; np[idx].impacto = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none uppercase">
                                                                 <option value="alto">Alto</option><option value="medio">Médio</option><option value="baixo">Baixo</option>
                                                             </select>
                                                         </div>
                                                         <div className="flex-1">
                                                             <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-1 block">Custo</Typography>
-                                                            <select value={acao.custo} onChange={e => { const np = [...form.plano_acao]; np[idx].custo = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none uppercase">
+                                                            <select aria-label="Custo" value={acao.custo} onChange={e => { const np = [...form.plano_acao]; np[idx].custo = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none uppercase">
                                                                 <option value="alto">Alto</option><option value="medio">Médio</option><option value="baixo">Baixo</option>
                                                             </select>
                                                         </div>
@@ -429,6 +440,10 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                     </Button>
                 </footer>
             </Card>
-        </motion.div>
+                        </Dialog.Content>
+                    </motion.div>
+                </Dialog.Overlay>
+            </Dialog.Portal>
+        </Dialog.Root>
     )
 }

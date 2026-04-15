@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
 import MxLogo from '@/assets/mx-logo.svg'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
@@ -119,6 +120,17 @@ export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(mobileMenuRef, mobileMenuOpen)
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [mobileMenuOpen])
 
   const categories = role ? (navConfig[role] || []) : []
   const activeCategoryData = categories.find(c => c.category === activeCategory) || categories[0]
@@ -321,7 +333,9 @@ export default function Layout() {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-xl pb-mx-32 max-h-full overflow-y-auto"
               onClick={e => e.stopPropagation()}
+              ref={mobileMenuRef}
               role="dialog"
+              aria-modal="true"
               aria-label="Menu Mobile Principal"
             >
               <div className="w-mx-xl h-1.5 bg-surface-alt rounded-mx-full mx-auto mb-8" aria-hidden="true" />
