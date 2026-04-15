@@ -5,7 +5,7 @@ dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, serviceKey);
+const supabase = createClient(supabaseUrl!, serviceKey!);
 
 async function recover() {
     console.log('--- 🚑 OPERAÇÃO RESGATE: RECUPERANDO CHECK-INS PERDIDOS ---');

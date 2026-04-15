@@ -61,7 +61,7 @@ export function useTeam(storeIdOverride?: string) {
                 ended_at: m.tenure?.ended_at,
                 is_active: m.tenure?.is_active ?? m.users?.active ?? true,
                 closing_month_grace: m.tenure?.closing_month_grace ?? false,
-            })))
+            } as User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean })))
         }
         setLoading(false)
     }, [storeId, referenceDate])
