@@ -2245,7 +2245,7 @@ CREATE OR REPLACE FUNCTION public.get_user_agency_id()
  LANGUAGE sql
  SECURITY DEFINER
 AS $function$
-    SELECT agency_id FROM team WHERE id = auth.uid() LIMIT 1;
+    SELECT agency_id FROM daily_lead_volumes WHERE seller_id = auth.uid() AND agency_id IS NOT NULL LIMIT 1;
 $function$;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()

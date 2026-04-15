@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../components/atoms/Button'
 import { Typography } from '../../../components/atoms/Typography'
 import { Input } from '../../../components/atoms/Input'
 import { Card } from '../../../components/molecules/Card'
 import { useDRE, computeDRE } from '@/hooks/useDRE'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { DREFinancial, DREComputed } from '@/features/consultoria/types'
 import { cn } from '@/lib/utils'
 import {
@@ -121,6 +122,8 @@ export const DREView: React.FC<DREViewProps> = ({ clientId }) => {
   } = useDRE(clientId)
 
   const [modalOpen, setModalOpen] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(modalRef, modalOpen)
   const [editingId, setEditingId] = useState<string | undefined>()
   const [form, setForm] = useState<Record<string, number | string>>(makeEmptyForm())
   const [collapsed, setCollapsed] = useState<Record<SectionKey, boolean>>({
@@ -213,6 +216,10 @@ export const DREView: React.FC<DREViewProps> = ({ clientId }) => {
     setCollapsed((c) => ({ ...c, [key]: !c[key] }))
   }
 
+  const handleModalEscape = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') setModalOpen(false)
+  }, [])
+
   const formComputed = useMemo(() => {
     const partial: Partial<DREFinancial> = {}
     for (const sec of Object.values(SECTION_FIELDS)) {
@@ -289,7 +296,7 @@ export const DREView: React.FC<DREViewProps> = ({ clientId }) => {
         <Card className="p-mx-lg bg-white border-none shadow-mx-sm">
           <Typography variant="caption" tone="muted" className="mb-2 block">RENTABILIDADE / CAPITAL</Typography>
           <div className="flex items-baseline gap-mx-xs">
-            <Typography variant="h1" className="text-4xl">{pct(latestComputed?.rentability ?? 0)}</Typography>
+            <Typography variant="h1" className="text-4xl">{pct((latestComputed?.rentability ?? 0) * 100)}</Typography>
             <Typography variant="tiny" tone="muted" className="uppercase font-black">a.m.</Typography>
           </div>
         </Card>
@@ -354,7 +361,7 @@ export const DREView: React.FC<DREViewProps> = ({ clientId }) => {
                           !row.color && isNeg ? 'text-status-error' : '',
                         )}>
                           {val !== null ? (row.label === 'Rentabilidade' || row.label === 'Volume Vendas'
-                            ? (row.label === 'Rentabilidade' ? pct(val) : String(val))
+                            ? (row.label === 'Rentabilidade' ? pct(val * 100) : String(val))
                             : `R$ ${fmt(val)}`) : '—'}
                         </td>
                       )
@@ -385,8 +392,8 @@ export const DREView: React.FC<DREViewProps> = ({ clientId }) => {
       </Card>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-mx-md overflow-y-auto" onClick={() => setModalOpen(false)}>
-          <div className="bg-white rounded-mx-2xl shadow-mx-xl w-full max-w-4xl my-mx-lg p-mx-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-mx-md overflow-y-auto" role="dialog" aria-modal="true" aria-label={editingId ? 'Editar DRE' : 'Lançar Mês'} onClick={() => setModalOpen(false)} onKeyDown={handleModalEscape}>
+          <div ref={modalRef} className="bg-white rounded-mx-2xl shadow-mx-xl w-full max-w-4xl my-mx-lg p-mx-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-mx-lg">
               <Typography variant="h3">{editingId ? 'Editar DRE' : 'Lançar Mês'}</Typography>
               <button onClick={() => setModalOpen(false)} className="text-text-tertiary hover:text-text-primary"><X size={20} /></button>
@@ -464,7 +471,7 @@ export const DREView: React.FC<DREViewProps> = ({ clientId }) => {
               </div>
               <div>
                 <Typography variant="tiny" tone="muted" className="uppercase">Rentabilidade</Typography>
-                <Typography variant="h3" className="font-black">{pct(formComputed.rentability)}</Typography>
+                <Typography variant="h3" className="font-black">{pct(formComputed.rentability * 100)}</Typography>
               </div>
             </div>
 

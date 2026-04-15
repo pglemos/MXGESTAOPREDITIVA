@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
@@ -27,6 +27,8 @@ export function useConsultingAgenda(clientId?: string) {
   const [error, setError] = useState<string | null>(null)
   const [hasClientLink, setHasClientLink] = useState(false)
   const [assignmentRole, setAssignmentRole] = useState<string | null>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const connectGoogleCalendar = useCallback(async () => {
     if (!supabaseUser?.id) {
@@ -75,6 +77,7 @@ export function useConsultingAgenda(clientId?: string) {
         try {
           if (popup.closed) {
             clearInterval(pollInterval)
+            if (pollIntervalRef.current === pollInterval) pollIntervalRef.current = null
             setIsLoading(true)
             supabase
               .from('consulting_oauth_tokens')
@@ -92,11 +95,14 @@ export function useConsultingAgenda(clientId?: string) {
           }
         } catch {
           clearInterval(pollInterval)
+          if (pollIntervalRef.current === pollInterval) pollIntervalRef.current = null
         }
       }, 500)
+      pollIntervalRef.current = pollInterval
 
-      setTimeout(() => {
+      pollTimeoutRef.current = setTimeout(() => {
         clearInterval(pollInterval)
+        if (pollIntervalRef.current === pollInterval) pollIntervalRef.current = null
         if (!popup.closed) popup.close()
       }, 120000)
     } catch (err) {
@@ -214,6 +220,13 @@ export function useConsultingAgenda(clientId?: string) {
 
     setEvents([])
   }, [fetchEvents, isConnected])
+
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current)
+    }
+  }, [])
 
   const context = useMemo<ConsultingAgendaContext>(() => {
     if (!supabaseUser?.id) {

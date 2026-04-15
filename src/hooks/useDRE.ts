@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { DREFinancial, DREComputed } from '@/features/consultoria/types'
@@ -37,7 +37,7 @@ function computeDRE(f: Partial<DREFinancial>): DREComputed {
     prep_cost_per_car: vol > 0 ? Math.round((v(f.ded_preparacao) / vol) * 100) / 100 : 0,
     posvenda_per_car: vol > 0 ? Math.round((v(f.exp_pos_venda) / vol) * 100) / 100 : 0,
     profit_per_car: vol > 0 ? Math.round((net_profit / vol) * 100) / 100 : 0,
-    rentability: cap > 0 ? Math.round((net_profit / cap) * 10000) / 100 : 0,
+    rentability: cap > 0 ? Math.round((net_profit / cap) * 10000) / 10000 : 0,
   }
 }
 
@@ -107,10 +107,13 @@ export function useDRE(clientId?: string) {
     fetchFinancials()
   }, [fetchFinancials])
 
-  const computedMap = new Map<string, DREComputed>()
-  for (const f of financials) {
-    computedMap.set(f.id, computeDRE(f))
-  }
+  const computedMap = useMemo(() => {
+    const map = new Map<string, DREComputed>()
+    for (const f of financials) {
+      map.set(f.id, computeDRE(f))
+    }
+    return map
+  }, [financials])
 
   return {
     financials,
