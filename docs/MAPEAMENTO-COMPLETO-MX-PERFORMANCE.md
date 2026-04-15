@@ -8,7 +8,7 @@
 
 1. [Visão Geral](#1-visão-geral)
 2. [Stack e Infraestrutura](#2-stack-e-infraestrutura)
-3. [Banco de Dados (47 tabelas)](#3-banco-de-dados)
+3. [Banco de Dados (45 tabelas + 4 views)](#3-banco-de-dados)
 4. [Edge Functions (6 + _shared)](#4-edge-functions)
 5. [Rotas e Páginas (38 rotas, 34 lazy-loaded)](#5-rotas-e-páginas)
 6. [Hooks (16 arquivos, ~40 hooks)](#6-hooks)
@@ -75,24 +75,41 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 ## 3. Banco de Dados
 
+> **Validado via Supabase Management API** — 45 tabelas BASE TABLE + 4 views no schema `public`.
+
 ### 3.1 Tabelas Core (pre-existentes)
 
-| Tabela | Propósito | RLS |
-|--------|-----------|-----|
-| `users` | Perfil de usuário (id, name, email, role, active, is_venda_loja, phone) | SELECT authenticated |
-| `stores` | Lojas (id, name, active, manager_email, source_mode) | Role matrix (admin/member) |
-| `memberships` | Vínculo usuário↔loja (user_id, store_id, role) | SELECT all, WRITE admin |
-| `daily_checkins` | Checkin diário (leads, visitas, vendas por canal) | Role matrix (seller own, manager store) |
-| `goals` | Metas por vendedor/store | Role matrix |
-| `benchmarks` | Benchmarks legados por loja | SELECT admin/owner/manager |
-| `feedbacks` | Feedback semanal estruturado | Role matrix |
-| `pdis` | PDI legado + colunas 2.0 | Role matrix |
-| `notifications` | Notificações in-app (recipient, sender, broadcast) | recipient_id = auth.uid() |
-| `notification_reads` | Controle de leitura | user_id = auth.uid() |
-| `trainings` | Catálogo de treinamentos | SELECT all, WRITE admin |
-| `training_progress` | Progresso do usuário em treinamentos | user_id control |
-| `digital_products` | Catálogo de produtos digitais | SELECT all, WRITE admin |
-| `roles` | Lookup de roles | — |
+| Tabela | Colunas | Propósito | RLS |
+|--------|---------|-----------|-----|
+| `users` | 10 | Perfil de usuário (id, name, email, role, active, is_venda_loja, phone) | SELECT authenticated, UPDATE own |
+| `stores` | 7 | Lojas (id, name, active, manager_email, source_mode) | Role matrix (admin/member) |
+| `memberships` | 5 | Vínculo usuário↔loja (user_id, store_id, role) | SELECT all, WRITE admin |
+| `daily_checkins` | 32 | Checkin diário (leads, visitas, vendas por canal) | Role matrix (seller own, manager store) |
+| `goals` | 8 | Metas por vendedor/store | Role matrix |
+| `benchmarks` | 5 | Benchmarks legados por loja | SELECT admin/owner/manager |
+| `feedbacks` | 23 | Feedback semanal estruturado | Role matrix |
+| `pdis` | 29 | PDI legado + colunas 2.0 | Role matrix |
+| `notifications` | 16 | Notificações in-app (recipient, sender, broadcast) | recipient_id = auth.uid() |
+| `notification_reads` | 4 | Controle de leitura | user_id = auth.uid() |
+| `trainings` | 8 | Catálogo de treinamentos | SELECT all, WRITE admin |
+| `training_progress` | 4 | Progresso do usuário em treinamentos | user_id control |
+| `digital_products` | 6 | Catálogo de produtos digitais | SELECT all, WRITE admin |
+| `roles` | 4 | Lookup de roles | — |
+| `user_roles` | 5 | Atribuição de roles (user_id, role_id, assigned_by, assigned_at) | — |
+| `goal_logs` | 6 | Audit de alterações em goals (goal_id, prev_value, new_value, changed_by) | INSERT/SELECT authenticated |
+| `inventory` | 9 | Inventário/estojo (model, year, price, agency_id, aging_days, plate, status) | OPEN (authenticated + anon) |
+| `agencies` | 5 | Agências (name, plan, logo_url) | SELECT public |
+| `daily_lead_volumes` | 6 | Volume de leads por dia (seller_id, date, volume, agency_id) | OPEN (authenticated + anon) |
+| `audit_logs` | 7 | Audit genérico (user_id, action, entity, entity_id, details_json) | INSERT authenticated, SELECT consultor |
+
+### 3.2 Tabelas de Automação e Comunicação (legadas, pre-existentes)
+
+| Tabela | Colunas | Propósito | RLS |
+|--------|---------|-----------|-----|
+| `automation_configs` | 13 | Config de automação (report_type, schedule_cron, recipients, ai_context, target_roles) | OPEN (authenticated + anon) |
+| `communication_instances` | 10 | Instâncias de comunicação/WhatsApp (provider, status, api_url, api_key, instance_name) | OPEN (authenticated + anon) |
+| `report_history` | 7 | Histórico de relatórios gerados (config_id, report_type, data_snapshot, ai_insight) | OPEN (authenticated + anon) |
+| `role_assignments_audit` | 6 | Audit de atribuição de roles (user_id, role_name, assigned_by, action) | — |
 
 ### 3.2 Tabelas Canonical Domain (migradas)
 
@@ -108,15 +125,17 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 ### 3.3 Tabelas Operacionais
 
-| Tabela | Propósito | Migration |
-|--------|-----------|-----------|
-| `manager_routine_logs` | Rotina diária do gerente (audit trail) | `20260407003000` |
-| `whatsapp_share_logs` | Log de compartilhamento WhatsApp | `20260407005000` |
-| `weekly_feedback_reports` | Snapshots de relatório semanal (email tracking) | `20260407006000` |
-| `checkin_correction_requests` | Solicitação de correção de checkin (seller→manager) | `20260411001000` |
-| `checkin_audit_logs` | Log imutável de alterações em checkins | `20260411001000` |
+| Tabela | Propósito | Migration | Status |
+|--------|-----------|-----------|--------|
+| `manager_routine_logs` | Rotina diária do gerente (audit trail) | `20260407003000` | Em produção |
+| `whatsapp_share_logs` | Log de compartilhamento WhatsApp | `20260407005000` | Em produção |
+| `weekly_feedback_reports` | Snapshots de relatório semanal (email tracking) | `20260407006000` | Em produção |
+| `checkin_correction_requests` | Solicitação de correção de checkin (seller→manager) | `20260411001000` | **Migration pendente** |
+| `checkin_audit_logs` | Log imutável de alterações em checkins | `20260411001000` | **Migration pendente** |
 
-### 3.4 Tabelas PDI 360
+### 3.4 Tabelas PDI 360 (Migrations pendentes — não aplicadas ao banco)
+
+> **ATENÇÃO:** As tabelas abaixo estão definidas em migrations SQL no repo mas NÃO existem no banco de produção. As RPCs que dependem delas também não estão disponíveis.
 
 | Tabela | Propósito |
 |--------|-----------|
@@ -130,6 +149,8 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `pdi_avaliacoes_competencia` | Notas de competência por sessão |
 | `pdi_plano_acao` | Plano de ação com impacto/custo/status |
 | `pdi_objetivos_pessoais` | Objetivos pessoais de desenvolvimento |
+
+**Tabelas PDI já em produção:** `pdis` (29 colunas), `pdi_reviews` (7 colunas)
 | `pdi_reviews` | Reviews/evoluções de PDI |
 
 ### 3.5 Tabelas Consultoria CRM
@@ -149,24 +170,63 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 ### 3.6 Funções e Triggers Principais
 
+> **Validado via Supabase Management API** — 27 funções + 29 triggers.
+
 | Função | Propósito |
 |--------|-----------|
-| `is_admin()` | Verifica se user é admin |
+| `is_admin()` | Verifica se user é admin (2 overloads) |
 | `has_store_role(store_id, roles[])` | Verifica role do user na loja |
 | `is_owner_of(store_id)` | admin OU dono da loja |
 | `is_manager_of(store_id)` | admin OU gerente da loja |
 | `is_member_of(store_id)` | admin OU membro da loja |
+| `is_consultor()` | Verifica se user é consultor (usado em audit_logs) |
+| `is_gerente_of(store_id)` | Verifica se é gerente (variante) |
+| `get_user_agency_id()` | Retorna agency_id do user corrente |
+| `check_user_role_in_store(store_id, roles[])` | RLS-safe role checker |
 | `can_access_consulting_client(client_id)` | admin OU assignment no cliente |
+| `normalize_mx_role(role)` | Mapeia roles legados → canônicos |
+| `handle_new_user()` | Trigger: cria profile automático no auth signup |
 | `sync_daily_checkins_canonical()` | Sync colunas legadas↔canônicas |
+| `update_updated_at()` / `update_updated_at_column()` / `update_updated_at_column_canonical()` | Generic trigger: updated_at = now() (3 variantes) |
 | `log_store_meta_rules_changes()` | Audit para store_meta_rules |
 | `process_import_data(log_id)` | Processa raw_imports → daily_checkins |
-| `configure_*_cron()` | Agenda pg_cron (matinal/semanal/mensal) |
+| `configure_*_cron()` | 3 funções: agenda pg_cron (matinal 08:30, semanal seg 12:30, mensal dia 1 10:30) |
 | `enforce_feedback_seller_ack_only()` | Vendedor só pode ack, não editar |
 | `send_broadcast_notification()` | Notificação em massa |
-| `get_pdi_form_template(cargo_id)` | Template PDI para wizard |
-| `create_pdi_session_bundle(payload)` | Cria sessão PDI completa |
-| `get_pdi_print_bundle(sessao_id)` | Bundle PDI para impressão |
-| `check_orphan_users_after_membership_deletion()` | Inativa users órfãos |
+| `sync_notification_reads()` | Trigger: escreve notification_reads |
+| `sync_pdi_legacy_shadow_columns()` | Compatibilidade PDI legada |
+| `set_manager_routine_logs_updated_at()` | Trigger updated_at em routine logs |
+
+### 3.7 Triggers (29)
+
+| Trigger | Tabela | Evento | Função |
+|---------|--------|--------|--------|
+| `sync_daily_checkins_canonical` | daily_checkins | BEFORE INSERT/UPDATE | `sync_daily_checkins_canonical()` |
+| `trg_checkins_updated` | daily_checkins | BEFORE UPDATE | `update_updated_at()` |
+| `update_daily_checkins_updated_at` | daily_checkins | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_users_updated_at` | users | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_stores_updated_at` | stores | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_store_sellers_updated_at` | store_sellers | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_store_benchmarks_updated_at` | store_benchmarks | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_store_delivery_rules_updated_at` | store_delivery_rules | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_store_meta_rules_updated_at` | store_meta_rules | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `tr_log_store_meta_rules_changes` | store_meta_rules | AFTER UPDATE | `log_store_meta_rules_changes()` |
+| `manager_routine_logs_set_updated_at` | manager_routine_logs | BEFORE UPDATE | `set_manager_routine_logs_updated_at()` |
+| `weekly_feedback_reports_set_updated_at` | weekly_feedback_reports | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `feedbacks_seller_ack_only` | feedbacks | BEFORE UPDATE | `enforce_feedback_seller_ack_only()` |
+| `pdis_sync_legacy_shadow_columns` | pdis | BEFORE INSERT/UPDATE | `sync_pdi_legacy_shadow_columns()` |
+| `trg_pdis_updated` | pdis | BEFORE UPDATE | `update_updated_at()` |
+| `trg_goals_updated` | goals | BEFORE UPDATE | `update_updated_at()` |
+| `notifications_sync_notification_reads` | notifications | AFTER INSERT/UPDATE | `sync_notification_reads()` |
+| `update_consulting_clients_updated_at` | consulting_clients | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_client_units_updated_at` | consulting_client_units | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_client_contacts_updated_at` | consulting_client_contacts | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_assignments_updated_at` | consulting_assignments | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_oauth_tokens_updated_at` | consulting_oauth_tokens | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_calendar_settings_updated_at` | consulting_calendar_settings | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_google_oauth_states_updated_at` | consulting_google_oauth_states | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_visits_updated_at` | consulting_visits | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_consulting_financials_updated_at` | consulting_financials | BEFORE UPDATE | `update_updated_at_column_canonical()` |
 
 ---
 
@@ -599,7 +659,7 @@ Todas as 47 tabelas possuem RLS habilitado com policies baseadas em:
 | **Branch** | `main` (deploy automático) |
 | **CI** | GitHub Actions: "MX Atomic Design Enforcement" |
 | **Quality gates** | `npm run lint` + `npm run typecheck` + `npm test` (66/66) |
-| **Último commit** | `638a033` |
+| **Último commit** | `5ae272a` |
 | **Framework** | Vite + React |
 | **Build** | `vite build` com manual chunks (6 vendor bundles) |
 
@@ -635,16 +695,17 @@ Principais índices compostos para performance:
 
 ## Anexo D: RPCs
 
-| RPC | Propósito |
-|-----|-----------|
-| `send_broadcast_notification` | Notificação em massa |
-| `get_pdi_form_template` | Template PDI por cargo |
-| `get_suggested_actions` | Ações sugeridas por competência |
-| `create_pdi_session_bundle` | Cria sessão PDI completa |
-| `get_pdi_print_bundle` | Bundle PDI para impressão |
-| `approve_pdi_action_evidence` | Aprova evidência de ação |
-| `get_ranking_snapshot` | Snapshot ranking para rotina |
-| `get_admin_executive_overview` | Overview executivo admin |
-| `configure_morning_report_cron` | Agenda cron matinal |
-| `configure_weekly_feedback_cron` | Agenda cron semanal |
-| `configure_monthly_report_cron` | Agenda cron mensal |
+| RPC | Status | Propósito |
+|-----|--------|-----------|
+| `send_broadcast_notification` | Em produção | Notificação em massa |
+| `process_import_data` | Em produção | Processa raw_imports → daily_checkins |
+| `configure_morning_report_cron` | Em produção | Agenda cron matinal (08:30 BRT) |
+| `configure_weekly_feedback_cron` | Em produção | Agenda cron semanal (seg 12:30 BRT) |
+| `configure_monthly_report_cron` | Em produção | Agenda cron mensal (dia 1 10:30 BRT) |
+| `get_pdi_form_template` | **Migration pendente** | Template PDI por cargo |
+| `get_suggested_actions` | **Migration pendente** | Ações sugeridas por competência |
+| `create_pdi_session_bundle` | **Migration pendente** | Cria sessão PDI completa |
+| `get_pdi_print_bundle` | **Migration pendente** | Bundle PDI para impressão |
+| `approve_pdi_action_evidence` | **Migration pendente** | Aprova evidência de ação |
+| `get_ranking_snapshot` | **Migration pendente** | Snapshot ranking para rotina |
+| `get_admin_executive_overview` | **Migration pendente** | Overview executivo admin |
