@@ -113,3 +113,87 @@ export interface ConsultingClientDetail extends ConsultingClient {
   visits?: ConsultingVisit[]
   financials?: ConsultingFinancial[]
 }
+
+export interface DREFinancial {
+  id: string
+  client_id: string
+  reference_date: string
+  revenue_proprios: number
+  revenue_consignados: number
+  revenue_repasse: number
+  ded_preparacao: number
+  ded_comissoes: number
+  ded_impostos: number
+  other_revenue_financiamento: number
+  other_revenue_outros1: number
+  other_revenue_outros2: number
+  other_revenue_outros3: number
+  payroll_salarios: number
+  payroll_inss: number
+  payroll_fgts: number
+  payroll_seguro_social: number
+  payroll_tempo_servico: number
+  payroll_13salario: number
+  payroll_ferias: number
+  payroll_indenizacao: number
+  payroll_outros: number
+  pro_labore: number
+  exp_fornecedores: number
+  exp_agua: number
+  exp_limpeza: number
+  exp_viagens: number
+  exp_energia: number
+  exp_telefone: number
+  exp_contabilidade: number
+  exp_aluguel: number
+  exp_frete: number
+  exp_contribuicoes: number
+  exp_terceiros: number
+  exp_marketing: number
+  exp_iptu: number
+  exp_combustivel: number
+  exp_manutencao_imovel: number
+  exp_seguranca: number
+  exp_cartorio: number
+  exp_pos_venda: number
+  exp_ir_csll: number
+  exp_sistemas: number
+  exp_emprestimo_pf: number
+  exp_emprestimo_pj: number
+  exp_tarifas: number
+  exp_informatica: number
+  exp_treinamentos: number
+  exp_outras: number
+  volume_vendas: number
+  capital_proprio: number
+  revenue: number
+  fixed_expenses: number
+  marketing_expenses: number
+  investments: number
+  financing: number
+  net_profit: number
+  roi: number
+  conversion_rate: number
+  created_at: string
+  updated_at: string
+}
+
+export interface DREComputed {
+  gross_margin: number
+  total_deductions: number
+  net_sales_margin: number
+  other_revenue: number
+  gross_profit: number
+  total_payroll: number
+  total_fixed: number
+  pro_labore: number
+  total_expenses: number
+  net_profit: number
+  avg_ticket: number
+  margin_per_car: number
+  net_margin_per_car: number
+  prep_cost_per_car: number
+  posvenda_per_car: number
+  profit_per_car: number
+  rentability: number
+}
