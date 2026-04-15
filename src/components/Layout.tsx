@@ -137,6 +137,9 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-mx-xl focus:shadow-mx-xl">
+        Pular para conteúdo principal
+      </a>
 
       {/* Top Header - Accessibility Hardening */}
       <header className="h-mx-header w-full px-mx-lg flex items-center justify-between z-60 bg-white border-b border-border-default shrink-0 sticky top-mx-0" role="banner">
@@ -371,7 +374,7 @@ export default function Layout() {
             to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}
             aria-label="Início"
             aria-current={location.pathname === (role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas') ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
           </NavLink>
@@ -381,7 +384,7 @@ export default function Layout() {
               to="/checkin" 
               aria-label="Fazer Checkin" 
               aria-current={location.pathname === '/checkin' ? 'page' : undefined}
-              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <CheckSquare size={22} />
             </NavLink>
@@ -392,7 +395,7 @@ export default function Layout() {
               to="/equipe" 
               aria-label="Gerir Equipe" 
               aria-current={location.pathname === '/equipe' ? 'page' : undefined}
-              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <Users size={22} />
             </NavLink>
@@ -411,7 +414,7 @@ export default function Layout() {
             to="/ranking" 
             aria-label="Ver Ranking" 
             aria-current={location.pathname === '/ranking' ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             <Trophy size={22} />
           </NavLink>
@@ -420,7 +423,7 @@ export default function Layout() {
             to="/perfil" 
             aria-label="Meu Perfil" 
             aria-current={location.pathname === '/perfil' ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/40 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             <User size={22} />
           </NavLink>
