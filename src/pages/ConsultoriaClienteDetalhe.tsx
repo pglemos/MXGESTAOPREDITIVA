@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { 
   ArrowLeft, BriefcaseBusiness, Building2, Mail, Phone, User2, 
   Calendar, CheckCircle2, Clock, ChevronRight,
@@ -34,6 +34,18 @@ export default function ConsultoriaClienteDetalhe() {
     deleteFinancial,
   } = useConsultingClientDetail(clientId)
   const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'visits' || tab === 'financial' || tab === 'overview') {
+      setActiveTab(tab as Tab)
+    }
+    if (searchParams.get('google_connected') === '1') {
+      toast.success('Google Calendar conectado com sucesso!')
+      window.history.replaceState({}, '', `/consultoria/clientes/${clientId}`)
+    }
+  }, [searchParams, clientId])
   const [savingUnit, setSavingUnit] = useState(false)
   const [savingContact, setSavingContact] = useState(false)
   const [savingAssignment, setSavingAssignment] = useState(false)

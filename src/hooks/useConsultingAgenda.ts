@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { toast } from 'sonner'
 
 export interface ConsultingAgendaEvent {
   id: string
@@ -55,7 +56,49 @@ export function useConsultingAgenda(clientId?: string) {
         throw new Error(result.error || 'Não foi possível iniciar a autorização Google.')
       }
 
-      window.location.href = result.authUrl
+      const width = 500
+      const height = 600
+      const left = window.screenX + (window.outerWidth - width) / 2
+      const top = window.screenY + (window.outerHeight - height) / 2
+      const popup = window.open(
+        result.authUrl,
+        'google-oauth',
+        `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,location=yes`,
+      )
+
+      if (!popup) {
+        window.location.href = result.authUrl
+        return
+      }
+
+      const pollInterval = setInterval(() => {
+        try {
+          if (popup.closed) {
+            clearInterval(pollInterval)
+            setIsLoading(true)
+            supabase
+              .from('consulting_oauth_tokens')
+              .select('id')
+              .eq('user_id', supabaseUser!.id)
+              .eq('provider', 'google')
+              .maybeSingle()
+              .then((tokenRes) => {
+                if (tokenRes.data) {
+                  setIsConnected(true)
+                  toast.success('Google Calendar conectado com sucesso!')
+                }
+                setIsLoading(false)
+              })
+          }
+        } catch {
+          clearInterval(pollInterval)
+        }
+      }, 500)
+
+      setTimeout(() => {
+        clearInterval(pollInterval)
+        if (!popup.closed) popup.close()
+      }, 120000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao iniciar a autorização Google.')
     }

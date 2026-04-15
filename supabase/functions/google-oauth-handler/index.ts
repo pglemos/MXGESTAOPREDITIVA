@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/function.ts";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { requireEnv, toBase64Url, deriveAesKey, encryptToken } from "../_shared/crypto.ts";
-import { parseClientId, createSessionClient, assertClientAccess } from "../_shared/google.ts";
+import { requireEnv, encryptToken } from "../_shared/crypto.ts";
+import { parseClientId, assertClientAccess } from "../_shared/google.ts";
 
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
 const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
@@ -40,7 +40,7 @@ function isExpired(expiresAt: string): boolean {
   return Date.parse(expiresAt) <= Date.now();
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -191,14 +191,22 @@ serve(async (req) => {
     const { error: consumeError } = await adminClient.from("consulting_google_oauth_states").delete().eq("id", stateRow.id);
     if (consumeError) throw consumeError;
 
-    return new Response("Agenda conectada com sucesso! Voce pode fechar esta aba.", {
+    const APP_URL = "https://mxperformance.vercel.app";
+    const redirectUrl = stateRow.client_id
+      ? `${APP_URL}/consultoria/clientes/${stateRow.client_id}?tab=visits&google_connected=1`
+      : `${APP_URL}/consultoria?google_connected=1`;
+
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Google Calendar Conectado</title><style>body{display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#0A0A0B;text-align:center}.box{padding:2rem;border-radius:1rem;background:white;box-shadow:0 1px 3px rgba(0,0,0,.1);max-width:400px}.icon{font-size:3rem;margin-bottom:1rem}h1{font-size:1.25rem;margin:0 0 .5rem}p{color:#475569;margin:0 0 1rem;font-size:.875rem}.btn{display:inline-block;padding:.5rem 1.5rem;background:#22C55E;color:white;border-radius:.5rem;text-decoration:none;font-weight:600}.btn:hover{background:#16a34a}</style></head><body><div class="box"><div class="icon">&#x2705;</div><h1>Agenda conectada!</h1><p>Sua conta Google Calendar foi vinculada com sucesso.</p><a class="btn" href="${redirectUrl}">Voltar ao MX Performance</a><script>setTimeout(function(){window.location.href="${redirectUrl}"},3000)</script></div></body></html>`;
+    return new Response(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "OAuth handler failed";
-    return new Response(JSON.stringify({ error: message }), {
+    const APP_URL = "https://mxperformance.vercel.app";
+    const errorHtml = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Erro na conexão</title><style>body{display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#0A0A0B;text-align:center}.box{padding:2rem;border-radius:1rem;background:white;box-shadow:0 1px 3px rgba(0,0,0,.1);max-width:400px}.icon{font-size:3rem;margin-bottom:1rem}h1{font-size:1.25rem;margin:0 0 .5rem;color:#ef4444}p{color:#475569;margin:0 0 1rem;font-size:.875rem}.btn{display:inline-block;padding:.5rem 1.5rem;background:#475569;color:white;border-radius:.5rem;text-decoration:none;font-weight:600}</style></head><body><div class="box"><div class="icon">&#x274C;</div><h1>Erro na conexão</h1><p>${message}</p><a class="btn" href="${APP_URL}/consultoria">Voltar ao MX Performance</a></div></body></html>`;
+    return new Response(errorHtml, {
       status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   }
 });

@@ -31,7 +31,7 @@ export function createSessionClient(authHeader: string | null) {
   const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
   return createClient(
     requireEnv("SUPABASE_URL", SUPABASE_URL),
-    requireEnv("SUPABASE_SESSION_KEY", SUPABASE_ANON_KEY ?? undefined),
+    requireEnv("SUPABASE_ANON_KEY", SUPABASE_ANON_KEY ?? undefined),
     {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false, autoRefreshToken: false },
