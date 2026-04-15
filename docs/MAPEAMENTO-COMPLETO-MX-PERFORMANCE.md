@@ -8,7 +8,7 @@
 
 1. [Visão Geral](#1-visão-geral)
 2. [Stack e Infraestrutura](#2-stack-e-infraestrutura)
-3. [Banco de Dados (45 tabelas + 4 views)](#3-banco-de-dados)
+3. [Banco de Dados (57 tabelas + 4 views)](#3-banco-de-dados)
 4. [Edge Functions (6 + _shared)](#4-edge-functions)
 5. [Rotas e Páginas (38 rotas, 34 lazy-loaded)](#5-rotas-e-páginas)
 6. [Hooks (16 arquivos, ~40 hooks)](#6-hooks)
@@ -42,12 +42,12 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Frontend | React 18 + TypeScript + Vite |
-| Roteamento | React Router v6 (BrowserRouter) |
+| Frontend | React 19 + TypeScript + Vite 6 |
+| Roteamento | React Router v7 (BrowserRouter) |
 | Estado | Context API (AuthProvider) |
 | Design System | Custom Atomic (atoms/molecules/organisms) |
 | Estilo | Tailwind CSS + CSS variables (MX tokens) |
-| Animação | Framer Motion (`motion/react`) |
+| Animação | Motion (`motion/react`, ex-Framer Motion) |
 | Gráficos | Recharts (RadarChart, AreaChart) |
 | Ícones | Lucide React |
 | Formulários | Zod (validação) |
@@ -75,7 +75,7 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 ## 3. Banco de Dados
 
-> **Validado via Supabase Management API** — 45 tabelas BASE TABLE + 4 views no schema `public`.
+> **Validado via Supabase Management API** — 57 tabelas BASE TABLE + 4 views no schema `public`.
 
 ### 3.1 Tabelas Core (pre-existentes)
 
@@ -130,12 +130,10 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `manager_routine_logs` | Rotina diária do gerente (audit trail) | `20260407003000` | Em produção |
 | `whatsapp_share_logs` | Log de compartilhamento WhatsApp | `20260407005000` | Em produção |
 | `weekly_feedback_reports` | Snapshots de relatório semanal (email tracking) | `20260407006000` | Em produção |
-| `checkin_correction_requests` | Solicitação de correção de checkin (seller→manager) | `20260411001000` | **Migration pendente** |
-| `checkin_audit_logs` | Log imutável de alterações em checkins | `20260411001000` | **Migration pendente** |
+| `checkin_correction_requests` | Solicitação de correção de checkin (seller→manager) | `20260411001000` | Em produção |
+| `checkin_audit_logs` | Log imutável de alterações em checkins | `20260411001000` | Em produção |
 
-### 3.4 Tabelas PDI 360 (Migrations pendentes — não aplicadas ao banco)
-
-> **ATENÇÃO:** As tabelas abaixo estão definidas em migrations SQL no repo mas NÃO existem no banco de produção. As RPCs que dependem delas também não estão disponíveis.
+### 3.4 Tabelas PDI 360 (Em produção — aplicadas 15/04/2026)
 
 | Tabela | Propósito |
 |--------|-----------|
@@ -850,7 +848,7 @@ Todas as 47 tabelas possuem RLS habilitado com policies baseadas em:
 | **Branch** | `main` (deploy automático) |
 | **CI** | GitHub Actions: "MX Atomic Design Enforcement" |
 | **Quality gates** | `npm run lint` + `npm run typecheck` + `npm test` (66/66) |
-| **Último commit** | `0295707` |
+| **Último commit** | `d5cbc0d` |
 | **Framework** | Vite + React |
 | **Build** | `vite build` com manual chunks (6 vendor bundles) |
 
@@ -893,10 +891,10 @@ Principais índices compostos para performance:
 | `configure_morning_report_cron` | Em produção | Agenda cron matinal (08:30 BRT) |
 | `configure_weekly_feedback_cron` | Em produção | Agenda cron semanal (seg 12:30 BRT) |
 | `configure_monthly_report_cron` | Em produção | Agenda cron mensal (dia 1 10:30 BRT) |
-| `get_pdi_form_template` | **Migration pendente** | Template PDI por cargo |
-| `get_suggested_actions` | **Migration pendente** | Ações sugeridas por competência |
-| `create_pdi_session_bundle` | **Migration pendente** | Cria sessão PDI completa |
-| `get_pdi_print_bundle` | **Migration pendente** | Bundle PDI para impressão |
-| `approve_pdi_action_evidence` | **Migration pendente** | Aprova evidência de ação |
-| `get_ranking_snapshot` | **Migration pendente** | Snapshot ranking para rotina |
-| `get_admin_executive_overview` | **Migration pendente** | Overview executivo admin |
+| `get_pdi_form_template` | Em produção | Template PDI por cargo |
+| `get_suggested_actions` | Em produção | Ações sugeridas por competência |
+| `create_pdi_session_bundle` | Em produção | Cria sessão PDI completa |
+| `get_pdi_print_bundle` | Em produção | Bundle PDI para impressão |
+| `approve_pdi_action_evidence` | Em produção | Aprova evidência de ação |
+| `get_ranking_snapshot` | Em produção | Snapshot ranking para rotina |
+| `get_admin_executive_overview` | Em produção | Overview executivo admin |
