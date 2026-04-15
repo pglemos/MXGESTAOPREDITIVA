@@ -1,18 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@3";
+import { createServiceClient, createResendClient } from "../_shared/supabase-client.ts";
+import { parseReportBody } from "../_shared/schemas.ts";
+import { sendReportEmail } from "../_shared/email.ts";
+import { jsonResponse } from "../_shared/response.ts";
+import { escapeXml, escapeHtml } from "../_shared/format.ts";
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const resendApiKey = Deno.env.get("RESEND_API_KEY");
-const supabase = createClient(supabaseUrl, serviceKey);
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
-type MonthlyRequest = {
-  store_id?: string;
-  dry_run?: boolean;
-  force?: boolean;
-};
+const supabase = createServiceClient();
+const resend = createResendClient();
 
 type SellerMonthlyRow = {
   uid: string;
@@ -29,7 +23,7 @@ type SellerMonthlyRow = {
 
 Deno.serve(async (req: Request) => {
   try {
-    const body = await parseBody(req);
+    const body = await parseReportBody(req);
     const dates = getSaoPauloMonthlyWindow();
 
     let storesQuery = supabase.from("stores").select("*").eq("active", true).order("name");
@@ -64,33 +58,18 @@ Deno.serve(async (req: Request) => {
       let warnings: string[] = [];
 
       if (!body.dry_run) {
-        if (!resend) {
-          warnings = ["RESEND_API_KEY nao configurada"];
-        } else if (payload.recipients.length === 0) {
-          warnings = ["Nenhum destinatario mensal configurado"];
-        } else {
-          try {
-            const { error } = await resend.emails.send({
-              from: "MX Relatórios <relatorios@mxperformance.com.br>",
-              to: payload.recipients,
-              subject: `Fechamento Mensal MX: ${store.name} - ${payload.monthLabel.toUpperCase()}`,
-              html,
-              attachments: [{ filename: fileName, content: xlsxBase64 }],
-            });
+        const result = await sendReportEmail({
+          resend,
+          to: payload.recipients,
+          subject: `Fechamento Mensal MX: ${store.name} - ${payload.monthLabel.toUpperCase()}`,
+          html,
+          attachments: [{ filename: fileName, content: xlsxBase64 }],
+          logPrefix: "[Mensal]",
+          storeName: store.name,
+        });
 
-            if (error) {
-              console.error(`[Mensal] Error sending email for ${store.name}:`, error?.message || "Unknown error");
-              emailStatus = "failed";
-              warnings = ["Falha no disparo do e-mail"];
-            } else {
-              emailStatus = "sent";
-            }
-          } catch (err) {
-            console.error(`[Mensal] Critical error sending email for ${store.name}:`, err?.message || "Unknown error");
-            emailStatus = "failed";
-            warnings = ["Erro critico no disparo do e-mail"];
-          }
-        }
+        emailStatus = result.status;
+        warnings = result.warnings;
 
         await supabase.from("reprocess_logs").insert({
           store_id: store.id,
@@ -119,19 +98,10 @@ Deno.serve(async (req: Request) => {
 
     return jsonResponse({ message: "Processamento mensal concluido", reports });
   } catch (error) {
-    console.error("[Mensal] Fatal error:", error?.message || "Unknown error");
+    console.error("[Mensal] Fatal error:", (error as Error)?.message || "Unknown error");
     return jsonResponse({ error: "Internal server error" }, 500);
   }
 });
-
-async function parseBody(req: Request): Promise<MonthlyRequest> {
-  if (req.method !== "POST") return {};
-  try {
-    return await req.json();
-  } catch {
-    return {};
-  }
-}
 
 function getSaoPauloMonthlyWindow() {
   const formatter = new Intl.DateTimeFormat("en-CA", {
@@ -155,39 +125,16 @@ function getSaoPauloMonthlyWindow() {
     year: "numeric",
   });
 
-  return {
-    year: referenceYear,
-    month: referenceMonth,
-    start,
-    end,
-    monthLabel,
-  };
+  return { year: referenceYear, month: referenceMonth, start, end, monthLabel };
 }
 
 async function buildMonthlyPayload(store: any, dates: ReturnType<typeof getSaoPauloMonthlyWindow>) {
   const [deliveryRulesRes, tenuresRes, fallbackMembersRes, checkinsRes, metaRulesRes] = await Promise.all([
     supabase.from("store_delivery_rules").select("monthly_recipients").eq("store_id", store.id).maybeSingle(),
-    supabase
-      .from("store_sellers")
-      .select("seller_user_id, is_active, users:seller_user_id(name, is_venda_loja)")
-      .eq("store_id", store.id)
-      .eq("is_active", true),
-    supabase
-      .from("memberships")
-      .select("user_id, users(name, is_venda_loja)")
-      .eq("store_id", store.id)
-      .eq("role", "vendedor"),
-    supabase
-      .from("daily_checkins")
-      .select("*")
-      .eq("store_id", store.id)
-      .gte("reference_date", dates.start)
-      .lte("reference_date", dates.end),
-    supabase
-      .from("store_meta_rules")
-      .select("monthly_goal, include_venda_loja_in_store_total")
-      .eq("store_id", store.id)
-      .maybeSingle(),
+    supabase.from("store_sellers").select("seller_user_id, is_active, users:seller_user_id(name, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
+    supabase.from("memberships").select("user_id, users(name, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
+    supabase.from("daily_checkins").select("*").eq("store_id", store.id).gte("reference_date", dates.start).lte("reference_date", dates.end),
+    supabase.from("store_meta_rules").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
   ]);
 
   const rosterRows = tenuresRes.data && tenuresRes.data.length > 0
@@ -237,16 +184,7 @@ async function buildMonthlyPayload(store: any, dates: ReturnType<typeof getSaoPa
   const reaching = storeGoal > 0 ? Math.round((totalSales / storeGoal) * 100) : 0;
   const recipients = deliveryRulesRes.data?.monthly_recipients || [];
 
-  return {
-    store,
-    monthLabel: dates.monthLabel,
-    recipients,
-    ranking,
-    totalSales,
-    storeGoal,
-    reaching,
-    year: dates.year,
-  };
+  return { store, monthLabel: dates.monthLabel, recipients, ranking, totalSales, storeGoal, reaching, year: dates.year };
 }
 
 function generateMonthlyHTML(payload: Awaited<ReturnType<typeof buildMonthlyPayload>>) {
@@ -257,7 +195,7 @@ function generateMonthlyHTML(payload: Awaited<ReturnType<typeof buildMonthlyPayl
       `Meta: ${payload.storeGoal}\n` +
       `Vendido: ${payload.totalSales} (${payload.reaching}%)\n\n` +
       `TOP 3\n` +
-      top3.map((row, index) => `${index + 1}º ${row.name} - ${row.vt}v`).join("\n")
+      top3.map((row, index) => `${index + 1}\u00ba ${row.name} - ${row.vt}v`).join("\n"),
   );
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
@@ -282,11 +220,11 @@ td:last-child{border-right:1px solid #e2e8f0;border-radius:0 14px 14px 0}
 <div class="card">
   <div class="hero">
     <h1>Fechamento Mensal MX</h1>
-    <p>${payload.store.name} • ${payload.monthLabel}</p>
+    <p>${payload.store.name} &bull; ${payload.monthLabel}</p>
   </div>
   <div class="content">
     <div class="grid">
-      <div class="stat"><div class="value">${payload.totalSales}</div><div class="label">Vendas do Mês</div></div>
+      <div class="stat"><div class="value">${payload.totalSales}</div><div class="label">Vendas do Mes</div></div>
       <div class="stat"><div class="value">${payload.reaching}%</div><div class="label">Atingimento</div></div>
     </div>
     <table>
@@ -300,9 +238,9 @@ td:last-child{border-right:1px solid #e2e8f0;border-radius:0 14px 14px 0}
 }
 
 function generateMonthlyXLSX(payload: any) {
-    const { ranking, store, monthLabel } = payload;
-    
-    let xml = `<?xml version="1.0"?>
+  const { ranking, store, monthLabel } = payload;
+
+  const xml = `<?xml version="1.0"?>
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -339,52 +277,12 @@ function generateMonthlyXLSX(payload: any) {
     <Cell><Data ss:Type="Number">${row.vc}</Data></Cell>
     <Cell><Data ss:Type="Number">${row.vn}</Data></Cell>
     <Cell><Data ss:Type="Number">${row.vt}</Data></Cell>
-   </Row>`).join('')}
+   </Row>`).join("")}
   </Table>
  </Worksheet>
 </Workbook>`;
 
-    const data = new TextEncoder().encode(xml);
-    const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
-    return btoa(binString);
-}
-
-function escapeXml(unsafe: string) {
-    if (!unsafe) return "";
-    return unsafe.replace(/[<>&'"]/g, (c) => {
-        switch (c) {
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '&': return '&amp;';
-            case '\'': return '&apos;';
-            case '"': return '&quot;';
-            default: return c;
-        }
-    });
-}
-
-function escapeHtml(value: string) {
-  return value.replace(/[<>&'"]/g, (char) => {
-    switch (char) {
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case "&":
-        return "&amp;";
-      case "'":
-        return "&apos;";
-      case '"':
-        return "&quot;";
-      default:
-        return char;
-    }
-  });
-}
-
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
+  const data = new TextEncoder().encode(xml);
+  const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
+  return btoa(binString);
 }
