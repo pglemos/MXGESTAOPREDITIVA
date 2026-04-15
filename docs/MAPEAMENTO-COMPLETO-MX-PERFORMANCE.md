@@ -32,6 +32,8 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `gerente` | Gerente de unidade | `/loja` |
 | `vendedor` | Vendedor/especialista | `/home` |
 
+**Zero Trust:** não-admin sem memberships ativas → deslogado automaticamente via `check_orphan_users_after_membership_deletion` trigger.
+
 **Módulos**: 19 módulos ativos (Checkin, Ranking, Feedback, PDI 360, Matinal, Mensal, Semanal, Consultoria CRM, DRE Financeiro, Google Calendar, Notificações, Treinamentos, Metas, Funil, Equipe, Rotina Gerente, BI, Auditoria, Reprocessamento).
 
 ---
@@ -174,9 +176,9 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 | Função | Trigger | Input (Zod) | Propósito |
 |--------|---------|-------------|-----------|
-| `relatorio-matinal` | pg_cron 10:30 BRT + manual | `{store_id?, dry_run?, force?}` | Gera relatório matinal por loja: ranking, meta, projeção, XLSX, email via Resend |
-| `relatorio-mensal` | pg_cron dia 1 + manual | `{store_id?, dry_run?, force?}` | Fechamento mensal por loja |
-| `feedback-semanal` | pg_cron segunda 12:30 + manual | `{store_id?, dry_run?, force?}` | Feedback semanal com diagnóstico de funil por vendedor |
+| `relatorio-matinal` | pg_cron 08:30 BRT + manual | `{store_id?, dry_run?, force?}` | Gera relatório matinal por loja: ranking, meta, projeção, XLSX, email via Resend |
+| `relatorio-mensal` | pg_cron dia 1 10:30 BRT + manual | `{store_id?, dry_run?, force?}` | Fechamento mensal por loja |
+| `feedback-semanal` | pg_cron segunda 12:30 BRT + manual | `{store_id?, dry_run?, force?}` | Feedback semanal com diagnóstico de funil por vendedor |
 | `send-individual-feedback` | Manual (botão no dashboard) | `{feedbackId: uuid}` | Envia feedback individual por email |
 | `google-oauth-handler` | Botão "Conectar Agenda" | `{clientId?}` + OAuth callback | OAuth2 Google Calendar (authorization code flow) |
 | `google-calendar-events` | Consulta de eventos | `{clientId?, maxResults?, timeMin?, timeMax?}` | Busca eventos Google Calendar com auto-refresh token |
@@ -597,7 +599,7 @@ Todas as 47 tabelas possuem RLS habilitado com policies baseadas em:
 | **Branch** | `main` (deploy automático) |
 | **CI** | GitHub Actions: "MX Atomic Design Enforcement" |
 | **Quality gates** | `npm run lint` + `npm run typecheck` + `npm test` (66/66) |
-| **Último commit** | `ec3984d` |
+| **Último commit** | `638a033` |
 | **Framework** | Vite + React |
 | **Build** | `vite build` com manual chunks (6 vendor bundles) |
 
@@ -616,12 +618,12 @@ Principais índices compostos para performance:
 
 ## Anexo B: Views
 
-| View | Propósito |
-|------|-----------|
-| `store_checkin_discipline_view` | Disciplina de checkin por loja (computed) |
-| `seller_active_store_view` | Loja ativa de cada vendedor |
-| `store_seller_active_vw` | Sellers ativos com dados do usuário |
-| `daily_checkins_canonical` | Checkins com colunas normalizadas |
+| View | Migration | Propósito |
+|------|-----------|-----------|
+| `view_sem_registro` | `20260407001000` | Vendedores sem registro no dia anterior |
+| `view_store_daily_production` | `20260407001000` | Produção diária agregada por loja |
+| `view_seller_tenure_status` | `20260407160000` | Status de tenure dos vendedores (ativo/inativo + datas) |
+| `view_daily_team_status` | `20260407160000` | Status diário da equipe com checkin info |
 
 ## Anexo C: ENUMs
 
