@@ -419,6 +419,148 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 **Páginas acessíveis apenas por URL direta (sem link no sistema):**
 - `/pdi`, `/equipe`, `/rotina`, `/auditoria`, `/configuracoes/reprocessamento`, `/relatorios/performance-vendedores`
 
+---
+
+### 5.5 Navegação Sidebar Dono (validado)
+
+> O dono de agência tem visão executiva de suas lojas com acompanhamento de feedback.
+
+**Visão Executiva** (4 itens):
+1. Minhas Lojas → `/lojas`
+2. Performance → `/loja`
+3. Metas → `/metas`
+4. Funil → `/funil`
+
+**Acompanhamento** (2 itens):
+5. Matinal Oficial → `/relatorio-matinal`
+6. Feedback/PDI → `/feedback`
+
+**Header (não-sidebar):**
+7. Perfil → `/perfil` (via avatar no header)
+
+**Mobile bar (bottom):** Início (`/lojas`), Menu, Ranking (`/ranking`), Perfil (`/perfil`)
+
+**Páginas acessíveis via rota (sem link na sidebar, mas renderizam componente):**
+
+| Rota | Component | Nota |
+|------|-----------|------|
+| `/checkin` | `Checkin` | Sem link — acessível por URL |
+| `/ranking` | `Ranking` | **Aparece na mobile bar** mas não na sidebar desktop |
+| `/notificacoes` | `Notificacoes` | Sem link — acessível por URL |
+| `/treinamentos` | redirect `/lojas` | Bloqueado |
+| `/pdi` | `GerentePDI` | Sem link — acessível por URL |
+| `/painel` | `PainelConsultor` | Sem link — acessível por URL |
+| `/equipe` | `Equipe` | Sem link — acessível por URL |
+| `/rotina` | redirect `/lojas` | Bloqueado |
+| `/auditoria` | redirect `/lojas` | Bloqueado |
+| `/configuracoes/reprocessamento` | redirect `/lojas` | Bloqueado |
+| `/home` | `VendedorHome` | Sem link — acessível por URL |
+| `/historico` | `Historico` | Sem link — acessível por URL |
+| `/produtos` | `ProdutosDigitais` | Sem link — acessível por URL |
+| `/configuracoes/operacional` | `OperationalSettings` | Sem link — acessível por URL |
+| `/configuracoes` | `Configuracoes` | Sem link — acessível por URL |
+| `/consultoria/*` | Full access | Sem link — acessível por URL |
+| `/relatorios/performance-vendas` | `SalesPerformance` | Sem link — acessível por URL |
+| `/relatorios/performance-vendedores` | `SellerPerformance` | Sem link — acessível por URL |
+
+---
+
+### 5.6 Navegação Sidebar Gerente (validado)
+
+> O gerente opera a loja com foco em equipe, ranking, feedback, PDI e treinamentos.
+
+**Operação Loja** (4 itens):
+1. Painel da Loja → `/loja`
+2. Equipe → `/equipe`
+3. Rotina Diária → `/rotina`
+4. Ranking → `/ranking`
+
+**Gestão de Gente** (3 itens):
+5. Feedback Estruturado → `/feedback`
+6. PDI → `/pdi`
+7. Treinamentos → `/treinamentos` (componente: `GerenteTreinamentos`)
+
+**Header (não-sidebar):**
+8. Perfil → `/perfil` (via avatar no header)
+
+**Mobile bar (bottom):** Início (`/loja`), Equipe (`/equipe`), Menu, Ranking (`/ranking`), Perfil (`/perfil`)
+
+**Páginas acessíveis via rota (sem link na sidebar, mas renderizam componente):**
+
+| Rota | Component | Nota |
+|------|-----------|------|
+| `/checkin` | `Checkin` | Sem link — acessível por URL |
+| `/metas` | `GoalManagement` | Sem link — acessível por URL |
+| `/funil` | `Funil` | Sem link — acessível por URL |
+| `/notificacoes` | `Notificacoes` | Sem link — acessível por URL |
+| `/configuracoes` | `Configuracoes` | Sem link — acessível por URL |
+| `/configuracoes/operacional` | `OperationalSettings` | Sem link — acessível por URL |
+| `/lojas` | `Lojas` | Sem link — acessível por URL |
+| `/painel` | `PainelConsultor` | Sem link — acessível por URL |
+| `/consultoria/*` | Full access | Sem link — acessível por URL |
+| `/relatorio-matinal` | `MorningReport` | Sem link — acessível por URL |
+| `/relatorios/performance-vendas` | `SalesPerformance` | Sem link — acessível por URL |
+| `/relatorios/performance-vendedores` | `SellerPerformance` | Sem link — acessível por URL |
+| `/produtos` | `ProdutosDigitais` | Sem link — acessível por URL |
+| `/home` | `VendedorHome` | Sem link — acessível por URL |
+| `/historico` | `Historico` | Sem link — acessível por URL |
+| `/auditoria` | `AiDiagnostics` | Sem link — acessível por URL |
+
+**Bloqueados (redirect):**
+
+| Rota | Redirect |
+|------|----------|
+| `/configuracoes/reprocessamento` | `/loja` |
+
+---
+
+### 5.7 Navegação Sidebar Vendedor (validado)
+
+> O vendedor foca no seu ritual diário e evolução profissional.
+
+**Meu Ritual** (4 itens):
+1. Home → `/home`
+2. Lançamento Diário → `/checkin`
+3. Histórico → `/historico`
+4. Ranking → `/ranking`
+
+**Evolução** (3 itens):
+5. Feedback → `/feedback` (componente: `VendedorFeedback`)
+6. PDI → `/pdi` (componente: `VendedorPDI`)
+7. Treinamentos → `/treinamentos` (componente: `VendedorTreinamentos`)
+
+**Header (não-sidebar):**
+8. Perfil → `/perfil` (via avatar no header)
+
+**Mobile bar (bottom):** Início (`/home`), Checkin (`/checkin`), Menu, Ranking (`/ranking`), Perfil (`/perfil`)
+
+**Páginas acessíveis via rota (sem link na sidebar, mas renderizam componente):**
+
+| Rota | Component | Nota |
+|------|-----------|------|
+| `/notificacoes` | `Notificacoes` | Sem link — acessível por URL |
+| `/configuracoes` | `Configuracoes` | Sem link — acessível por URL |
+| `/loja` | `DashboardLoja` | Sem link — acessível por URL |
+| `/loja/:slug` | `DashboardLoja` | Sem link — acessível por URL |
+| `/metas` | `GoalManagement` | Sem link — acessível por URL |
+| `/funil` | `Funil` | Sem link — acessível por URL |
+| `/painel` | `PainelConsultor` | Sem link — acessível por URL |
+| `/lojas` | `Lojas` | Sem link — acessível por URL |
+| `/produtos` | `ProdutosDigitais` | Sem link — acessível por URL |
+| `/consultoria/*` | Full access | Sem link — acessível por URL |
+| `/relatorio-matinal` | `MorningReport` | Sem link — acessível por URL |
+| `/relatorios/performance-vendas` | `SalesPerformance` | Sem link — acessível por URL |
+| `/relatorios/performance-vendedores` | `SellerPerformance` | Sem link — acessível por URL |
+
+**Bloqueados (redirect):**
+
+| Rota | Redirect |
+|------|----------|
+| `/equipe` | `/home` |
+| `/rotina` | `/home` |
+| `/configuracoes/reprocessamento` | `/home` |
+| `/auditoria` | `/home` |
+
 **dono** — 2 categorias:
 - Visão Executiva: Minhas Lojas, Performance, Metas, Funil
 - Acompanhamento: Matinal Oficial, Feedback/PDI
@@ -708,7 +850,7 @@ Todas as 47 tabelas possuem RLS habilitado com policies baseadas em:
 | **Branch** | `main` (deploy automático) |
 | **CI** | GitHub Actions: "MX Atomic Design Enforcement" |
 | **Quality gates** | `npm run lint` + `npm run typecheck` + `npm test` (66/66) |
-| **Último commit** | `75663ca` |
+| **Último commit** | `0295707` |
 | **Framework** | Vite + React |
 | **Build** | `vite build` com manual chunks (6 vendor bundles) |
 
