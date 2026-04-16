@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
-import { useStores } from '@/hooks/useTeam'
+
 import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
@@ -10,7 +10,6 @@ import {
   LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
   BriefcaseBusiness,
   CalendarDays,
-  ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
@@ -113,9 +112,8 @@ const navConfig: Record<string, NavCategory[]> = {
 }
 
 export default function Layout() {
-  const { profile, role, storeId: activeStoreId, setActiveStoreId, signOut } = useAuth()
+  const { profile, role, signOut } = useAuth()
   const { unreadCount } = useNotifications()
-  const { stores } = useStores()
   const navigate = useNavigate()
   const location = useLocation()
   
@@ -174,24 +172,6 @@ export default function Layout() {
         </div>
 
         <div className="flex items-center gap-mx-md justify-end">
-          {/* Store Switcher - Accessible Select */}
-          {(role === 'dono' || role === 'admin') && (stores?.length ?? 0) > 1 && (
-            <div className="hidden md:flex items-center gap-mx-xs px-4 py-2 bg-surface-alt rounded-mx-xl border border-border-default shadow-inner group relative">
-              <Building2 size={16} className="text-brand-primary opacity-40" aria-hidden="true" />
-              <label htmlFor="store-switcher" className="sr-only">Trocar Unidade Operacional</label>
-              <select 
-                id="store-switcher"
-                value={activeStoreId || ''} 
-                onChange={(e) => setActiveStoreId(e.target.value)}
-                className="bg-transparent border-none text-mx-tiny font-black uppercase tracking-widest outline-none appearance-none cursor-pointer pr-6 focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded-mx-md"
-              >
-                <option value="">TODAS AS LOJAS</option>
-                {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
-              </select>
-              <ChevronDown size={12} className="absolute right-mx-xs top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" aria-hidden="true" />
-            </div>
-          )}
-
           <div className="hidden sm:flex items-center gap-mx-xs">
             <button type="button" aria-label="Pesquisar no sistema" className="w-mx-10 h-mx-10 bg-surface-alt rounded-mx-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
               <Search size={18} aria-hidden="true" />
