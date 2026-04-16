@@ -1,153 +1,149 @@
 import React from 'react'
-import { format, parseISO } from 'date-fns'
+import { cn } from '@/lib/utils'
+import { Typography } from '@/components/atoms/Typography'
 
 interface PrintableFeedbackProps {
-    feedback: any
+  feedback: {
+    seller_name?: string
+    week_reference: string
+    leads_week: number
+    agd_week: number
+    visit_week: number
+    vnd_week: number
+    meta_compromisso: number
+    tx_lead_agd: number
+    tx_agd_visita: number
+    tx_visita_vnd: number
+    attention_points?: string
+    action?: string
+    diagnostic_json?: {
+      seller_snapshot?: Record<string, number>
+      team_snapshot?: Record<string, number>
+    }
+  } | null
 }
+
+const TH_BASE = "border border-border-strong p-2 text-center font-black uppercase text-mx-micro"
+const TD_BASE = "border border-border-strong p-2 text-center text-mx-micro"
+const TD_LEFT = "border border-border-strong p-2 text-left text-mx-micro"
 
 export const PrintableFeedback: React.FC<PrintableFeedbackProps> = ({ feedback }) => {
-    if (!feedback) return null
+  if (!feedback) return null
 
-    const f = feedback
-    const diag = f.diagnostic_json || {}
-    const seller = diag.seller_snapshot || {}
-    const team = diag.team_snapshot || {}
-    const weekStart = f.week_reference ? parseISO(f.week_reference) : new Date()
+  const f = feedback
+  const diag = f.diagnostic_json || {}
+  const team = diag.team_snapshot || {}
 
-    return (
-        <div className="printable-feedback p-mx-lg bg-white text-black font-sans leading-tight">
-            <style>{`
-                @media print {
-                    .printable-feedback { padding: 0 !important; }
-                    body { background: white !important; }
-                }
-                .legacy-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
-                .legacy-table th, .legacy-table td { border: 1px solid var(--color-border-strong); padding: 6px 10px; text-align: center; }
-                .header-blue { background-color: var(--color-brand-secondary); color: white; font-weight: bold; text-transform: uppercase; }
-                .header-gray { background-color: var(--color-surface-alt); color: var(--color-text-secondary); font-weight: bold; }
-                .header-yellow { background-color: #facc15; color: var(--color-text-primary); font-weight: bold; text-align: left !important; }
-                .header-lightblue { background-color: #dbeafe; color: #1e3a8a; font-weight: bold; text-align: left !important; }
-                .status-bom { color: var(--color-status-success); font-weight: bold; }
-                .status-abaixo { color: var(--color-status-error); font-weight: bold; }
-                .status-igual { color: var(--color-text-secondary); font-weight: bold; }
-                .diagnostico { color: var(--color-status-error); font-weight: bold; }
-            `}</style>
+  return (
+    <div className="print:p-0 p-mx-lg bg-white text-black font-sans leading-tight">
+      <table className="w-full border-collapse mb-mx-lg text-mx-micro">
+        <thead>
+          <tr>
+            <th colSpan={5} className={cn(TH_BASE, "bg-brand-secondary text-white")}>
+              RESUMO DO VENDEDOR: {f.seller_name || 'VENDEDOR'}
+            </th>
+          </tr>
+          <tr>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Leads Recebidos</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Agendamentos Feitos</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Visitas Realizadas</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Vendas Fechadas</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Sua Meta Semanal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className={TD_BASE}>{f.leads_week || 0}</td>
+            <td className={TD_BASE}>{f.agd_week || 0}</td>
+            <td className={TD_BASE}>{f.visit_week || 0}</td>
+            <td className={TD_BASE}>{f.vnd_week || 0}</td>
+            <td className={TD_BASE}>{f.meta_compromisso || 0}</td>
+          </tr>
+        </tbody>
+      </table>
 
-            <table className="legacy-table">
-                <thead>
-                    <tr className="header-blue">
-                        <th colSpan={5}>RESUMO DO VENDEDOR: {f.seller_name || 'VENDEDOR'}</th>
-                    </tr>
-                    <tr className="header-gray text-mx-micro">
-                        <th>Leads Recebidos</th>
-                        <th>Agendamentos Feitos</th>
-                        <th>Visitas Realizadas</th>
-                        <th>Vendas Fechadas</th>
-                        <th>Sua Meta Semanal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{f.leads_week || 0}</td>
-                        <td>{f.agd_week || 0}</td>
-                        <td>{f.visit_week || 0}</td>
-                        <td>{f.vnd_week || 0}</td>
-                        <td>{f.meta_compromisso || 0}</td>
-                    </tr>
-                </tbody>
-            </table>
+      <table className="w-full border-collapse mb-mx-lg text-mx-micro">
+        <thead>
+          <tr>
+            <th colSpan={4} className={cn(TH_BASE, "bg-status-warning text-text-primary text-left")}>
+              ANÁLISE DE APROVEITAMENTO (REAL vs IDEAL)
+            </th>
+          </tr>
+          <tr>
+            <th className={cn(TH_BASE, "text-left bg-surface-alt text-text-secondary")}>Etapa do Processo</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Seu Resultado</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>O Ideal Seria</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { label: 'De Leads para Agendamentos', val: f.tx_lead_agd, ideal: 20 },
+            { label: 'De Agendamentos para Visitas', val: f.tx_agd_visita, ideal: 60 },
+            { label: 'De Visitas para Vendas', val: f.tx_visita_vnd, ideal: 33 },
+          ].map((row) => (
+            <tr key={row.label}>
+              <td className={TD_LEFT}>{row.label}</td>
+              <td className={TD_BASE}>{row.val || 0}%</td>
+              <td className={TD_BASE}>{row.ideal}%</td>
+              <td className={cn(TD_BASE, (row.val || 0) >= row.ideal ? 'text-status-success font-black' : 'text-status-error font-black')}>
+                {(row.val || 0) >= row.ideal ? 'Bom' : 'Abaixo'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-            <table className="legacy-table">
-                <thead>
-                    <tr className="header-yellow">
-                        <th colSpan={4}>ANÁLISE DE APROVEITAMENTO (REAL vs IDEAL)</th>
-                    </tr>
-                    <tr className="header-gray">
-                        <th style={{ textAlign: 'left' }}>Etapa do Processo</th>
-                        <th>Seu Resultado</th>
-                        <th>O Ideal Seria</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style={{ textAlign: 'left' }}>De Leads para Agendamentos</td>
-                        <td>{f.tx_lead_agd || 0}%</td>
-                        <td>20%</td>
-                        <td className={f.tx_lead_agd >= 20 ? 'status-bom' : 'status-abaixo'}>
-                            {f.tx_lead_agd >= 20 ? 'Bom' : 'Abaixo'}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style={{ textAlign: 'left' }}>De Agendamentos para Visitas</td>
-                        <td>{f.tx_agd_visita || 0}%</td>
-                        <td>60%</td>
-                        <td className={f.tx_agd_visita >= 60 ? 'status-bom' : 'status-abaixo'}>
-                            {f.tx_agd_visita >= 60 ? 'Bom' : 'Abaixo'}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style={{ textAlign: 'left' }}>De Visitas para Vendas</td>
-                        <td>{f.tx_visita_vnd || 0}%</td>
-                        <td>33%</td>
-                        <td className={f.tx_visita_vnd >= 33 ? 'status-bom' : 'status-abaixo'}>
-                            {f.tx_visita_vnd >= 33 ? 'Bom' : 'Abaixo'}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+      <table className="w-full border-collapse mb-mx-lg text-mx-micro">
+        <thead>
+          <tr>
+            <th colSpan={4} className={cn(TH_BASE, "bg-status-info-surface text-brand-secondary text-left")}>
+              SEU DESEMPENHO COMPARADO À MÉDIA DA EQUIPE
+            </th>
+          </tr>
+          <tr>
+            <th className={cn(TH_BASE, "text-left bg-surface-alt text-text-secondary")}>Critério</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Sua Produção</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Média da Equipe</th>
+            <th className={cn(TH_BASE, "bg-surface-alt text-text-secondary")}>Conclusão</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { label: 'Volume de Vendas', val: f.vnd_week, avg: team.vnd_total },
+            { label: 'Volume de Agendamentos', val: f.agd_week, avg: team.agd_total },
+            { label: 'Volume de Visitas', val: f.visit_week, avg: team.visitas },
+          ].map((row) => (
+            <tr key={row.label}>
+              <td className={TD_LEFT}>{row.label}</td>
+              <td className={TD_BASE}>{row.val || 0}</td>
+              <td className={TD_BASE}>{row.avg || '0'}</td>
+              <td className={TD_BASE}>
+                {(row.val || 0) >= (row.avg || 0) ? 'MAIOR que a média (+)' : 'MENOR que a média (-)'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-            <table className="legacy-table">
-                <thead>
-                    <tr className="header-lightblue">
-                        <th colSpan={4}>SEU DESEMPENHO COMPARADO À MÉDIA DA EQUIPE</th>
-                    </tr>
-                    <tr className="header-gray">
-                        <th style={{ textAlign: 'left' }}>Critério</th>
-                        <th>Sua Produção</th>
-                        <th>Média da Equipe</th>
-                        <th>Conclusão</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style={{ textAlign: 'left' }}>Volume de Vendas</td>
-                        <td>{f.vnd_week || 0}</td>
-                        <td>{team.vnd_total || '0'}</td>
-                        <td>{f.vnd_week >= (team.vnd_total || 0) ? 'MAIOR que a média (+)' : 'MENOR que a média (-)'}</td>
-                    </tr>
-                    <tr>
-                        <td style={{ textAlign: 'left' }}>Volume de Agendamentos</td>
-                        <td>{f.agd_week || 0}</td>
-                        <td>{team.agd_total || '0'}</td>
-                        <td>{f.agd_week >= (team.agd_total || 0) ? 'MAIOR que a média (+)' : 'MENOR que a média (-)'}</td>
-                    </tr>
-                    <tr>
-                        <td style={{ textAlign: 'left' }}>Volume de Visitas</td>
-                        <td>{f.visit_week || 0}</td>
-                        <td>{team.visitas || '0'}</td>
-                        <td>{f.visit_week >= (team.visitas || 0) ? 'MAIOR que a média (+)' : 'MENOR que a média (-)'}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div className="mt-6 flex flex-col gap-mx-sm">
-                <div className="flex gap-mx-xs">
-                    <span className="font-bold uppercase min-w-mx-label-lg text-mx-tiny">Diagnóstico da Semana:</span>
-                    <span className="diagnostico text-mx-tiny whitespace-pre-wrap">{f.attention_points}</span>
-                </div>
-                <div className="flex gap-mx-xs">
-                    <span className="font-bold uppercase min-w-mx-label-lg text-mx-tiny">Orientação de Ação:</span>
-                    <span className="text-mx-tiny whitespace-pre-wrap">{f.action}</span>
-                </div>
-            </div>
-
-            <div className="mt-10 pt-4 border-t border-border-strong">
-                 <p className="font-bold text-mx-tiny uppercase text-text-tertiary mb-2">Entenda a conta (Boas Práticas do Setor)</p>
-                 <p className="text-mx-micro text-text-tertiary italic">
-                    Consideramos como ideal: 20% do volume total de leads vira agendamento | Para cada 5 agendamentos, 3 viram visitas (60%) | Para cada 3 visitas, 1 vira venda (33%).
-                 </p>
-            </div>
+      <div className="mt-mx-lg flex flex-col gap-mx-sm">
+        <div className="flex gap-mx-xs">
+          <Typography variant="tiny" className="font-black uppercase min-w-mx-label-lg">Diagnóstico da Semana:</Typography>
+          <Typography variant="tiny" className="text-status-error whitespace-pre-wrap">{f.attention_points}</Typography>
         </div>
-    )
+        <div className="flex gap-mx-xs">
+          <Typography variant="tiny" className="font-black uppercase min-w-mx-label-lg">Orientação de Ação:</Typography>
+          <Typography variant="tiny" className="whitespace-pre-wrap">{f.action}</Typography>
+        </div>
+      </div>
+
+      <div className="mt-mx-xl pt-mx-md border-t border-border-strong">
+        <Typography variant="tiny" className="text-text-tertiary mb-mx-xs block">Entenda a conta (Boas Práticas do Setor)</Typography>
+        <Typography variant="tiny" tone="muted" className="italic">
+          Consideramos como ideal: 20% do volume total de leads vira agendamento | Para cada 5 agendamentos, 3 viram visitas (60%) | Para cada 3 visitas, 1 vira venda (33%).
+        </Typography>
+      </div>
+    </div>
+  )
 }
+

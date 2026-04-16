@@ -27,14 +27,24 @@ export interface TooltipProps
 
 const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
   ({ className, position, content, children, ...props }, ref) => {
+    const [visible, setVisible] = React.useState(false)
+
     return (
-      <div ref={ref} className="relative inline-flex group/tooltip" {...props}>
+      <div
+        ref={ref}
+        className="relative inline-flex"
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        onFocus={() => setVisible(true)}
+        onBlur={() => setVisible(false)}
+        {...props}
+      >
         {children}
         <div
           role="tooltip"
           className={cn(
             tooltipVariants({ position }),
-            "group-hover/tooltip:opacity-100",
+            visible && "opacity-100",
             className
           )}
         >
