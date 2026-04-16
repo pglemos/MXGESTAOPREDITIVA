@@ -91,7 +91,7 @@ export function AgendaCalendar({
 
           return (
             <button
-              key={idx}
+              key={dateKey}
               type="button"
               onClick={() => {
                 onDateSelect(dayInfo.isCurrentMonth ? dayInfo.date : null)

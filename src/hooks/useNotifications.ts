@@ -20,8 +20,7 @@ export function useNotifications() {
         .limit(50)
 
       if (error) {
-        console.error('Audit Error [useNotifications]: fetch fail ->', error.message)
-        return { notifications: [] as AppNotification[], unreadCount: 0 }
+        throw error
       }
 
       const notifications = parseNotificationArray(data || [])
@@ -64,7 +63,7 @@ export function useNotifications() {
     mutationFn: async (input: { title: string; message: string; type?: string; priority?: string; recipient_id?: string; store_id?: string; target_role?: string; link?: string }) => {
       if (!profile) return { error: 'Não autenticado' }
 
-      if (!input.recipient_id && (input.target_role || input.store_id || !input.store_id)) {
+      if (!input.recipient_id && (input.target_role || input.store_id)) {
         const { error } = await supabase.rpc('send_broadcast_notification', {
           p_title: input.title,
           p_message: input.message,

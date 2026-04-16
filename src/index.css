@@ -206,3 +206,12 @@
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
+
+@keyframes accordion-down {
+  from { height: 0; opacity: 0; overflow: hidden; }
+  to { height: auto; opacity: 1; overflow: visible; }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}

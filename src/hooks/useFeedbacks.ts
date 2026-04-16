@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { FeedbackFormData } from '@/types/database'
-import { parseFeedbackArray, type Feedback } from '@/lib/schemas/feedback.schema'
+import { parseFeedback, type Feedback } from '@/lib/schemas/feedback.schema'
 
 export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
   const { profile, storeId: authStoreId, role } = useAuth()
@@ -28,12 +28,19 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
 
       const { data } = await query.order('created_at', { ascending: false })
       if (data) {
-        const validated = parseFeedbackArray(data.map(({ seller, manager, ...rest }: Record<string, unknown>) => rest))
-        return (data as (Feedback & { seller?: { name?: string }; manager?: { name?: string } })[]).map((f, i) => ({
-          ...validated[i],
-          seller_name: f.seller?.name,
-          manager_name: f.manager?.name,
-        }))
+        return (data as (Record<string, unknown> & { seller?: { name?: string }; manager?: { name?: string } })[]).map((f) => {
+          const { seller, manager, ...rest } = f
+          try {
+            const validated = parseFeedback(rest)
+            return {
+              ...validated,
+              seller_name: seller?.name,
+              manager_name: manager?.name,
+            }
+          } catch {
+            return null
+          }
+        }).filter(Boolean) as (Feedback & { seller_name?: string; manager_name?: string })[]
       }
       return []
     },

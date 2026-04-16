@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { Notification as AppNotification } from '@/types/database'
+import { type Notification as AppNotification } from '@/lib/schemas/notification.schema'
 
 export function useBroadcasts() {
   const { profile, role } = useAuth()

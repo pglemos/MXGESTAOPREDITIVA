@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { 
   ArrowLeft, BriefcaseBusiness, Building2, Mail, Phone, User2, 
@@ -355,11 +355,10 @@ export default function ConsultoriaClienteDetalhe() {
                     <Typography variant="tiny" tone="muted">NOVO VÍNCULO</Typography>
                     <div className="space-y-mx-xs">
                       <Typography as="label" htmlFor="consulting-assignment-user" variant="caption">Usuário</Typography>
-                      <select
+                      <Select
                         id="consulting-assignment-user"
                         value={assignmentForm.user_id}
                         onChange={(event) => setAssignmentForm((current) => ({ ...current, user_id: event.target.value }))}
-                        className="w-full h-mx-12 px-4 bg-white border border-border-default rounded-mx-lg text-sm font-bold text-text-primary outline-none"
                       >
                         <option value="">Selecionar usuário...</option>
                         {availableUsers.map((user) => (
@@ -367,20 +366,19 @@ export default function ConsultoriaClienteDetalhe() {
                             {user.name} ({user.role})
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                     <div className="space-y-mx-xs">
                       <Typography as="label" htmlFor="consulting-assignment-role" variant="caption">Papel no cliente</Typography>
-                      <select
+                      <Select
                         id="consulting-assignment-role"
                         value={assignmentForm.assignment_role}
                         onChange={(event) => setAssignmentForm((current) => ({ ...current, assignment_role: event.target.value as 'responsavel' | 'auxiliar' | 'viewer' }))}
-                        className="w-full h-mx-12 px-4 bg-white border border-border-default rounded-mx-lg text-sm font-bold text-text-primary outline-none"
                       >
                         <option value="responsavel">Responsável</option>
                         <option value="auxiliar">Auxiliar</option>
                         <option value="viewer">Viewer</option>
-                      </select>
+                      </Select>
                     </div>
                     <div className="flex justify-end">
                       <Button type="submit" size="sm" disabled={savingAssignment || availableUsers.length === 0}>

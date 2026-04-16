@@ -28,7 +28,7 @@ export interface TooltipProps
 const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
   ({ className, position, content, children, ...props }, ref) => {
     return (
-      <div ref={ref} className="relative inline-flex" {...props}>
+      <div ref={ref} className="relative inline-flex group/tooltip" {...props}>
         {children}
         <div
           role="tooltip"

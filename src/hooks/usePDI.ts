@@ -1,15 +1,30 @@
-import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { PDIFormData } from '@/types/database'
 import { parsePDIArray, parsePDIReviewArray, type PDI, type PDIReview } from '@/lib/schemas/pdi.schema'
 
+interface PDIReviewCreateDTO {
+  notes?: string
+  rating?: number
+  pdi_id?: string
+  reviewer_id?: string
+}
+
+const ALLOWED_REVIEW_KEYS = new Set<string>(['notes', 'rating', 'pdi_id', 'reviewer_id'])
+
+function sanitizeReviewPayload(data: Record<string, unknown>): PDIReviewCreateDTO {
+  const sanitized: PDIReviewCreateDTO = {}
+  for (const key of ALLOWED_REVIEW_KEYS) {
+    if (key in data) (sanitized as Record<string, unknown>)[key] = data[key]
+  }
+  return sanitized
+}
+
 export function usePDIs(storeIdOverride?: string) {
   const { profile, storeId: authStoreId, role } = useAuth()
   const queryClient = useQueryClient()
   const storeId = storeIdOverride || authStoreId
-  const [reviews, setReviews] = useState<Record<string, PDIReview[]>>({})
 
   const { data: pdis, isLoading: loading, refetch } = useQuery({
     queryKey: ['pdis', storeId, role, profile?.id],
@@ -34,9 +49,8 @@ export function usePDIs(storeIdOverride?: string) {
     enabled: !!profile,
   })
 
-  const fetchReviews = async (pdiId: string) => {
-    const { data } = await supabase.from('pdi_reviews').select('*').eq('pdi_id', pdiId).order('created_at', { ascending: false })
-    if (data) setReviews(prev => ({ ...prev, [pdiId]: parsePDIReviewArray(data) }))
+  const fetchReviews = (pdiId: string) => {
+    queryClient.invalidateQueries({ queryKey: ['pdi-reviews', pdiId] })
   }
 
   const createPDIMut = useMutation({
@@ -86,26 +100,39 @@ export function usePDIs(storeIdOverride?: string) {
     },
   })
 
+  const usePDIReviews = (pdiId: string) => {
+    const { data } = useQuery({
+      queryKey: ['pdi-reviews', pdiId],
+      queryFn: async () => {
+        const { data } = await supabase.from('pdi_reviews').select('*').eq('pdi_id', pdiId).order('created_at', { ascending: false })
+        return parsePDIReviewArray(data || [])
+      },
+      enabled: !!pdiId,
+    })
+    return data || []
+  }
+
   const createReviewMut = useMutation({
-    mutationFn: async ({ pdiId, data }: { pdiId: string; data: { notes?: string; [key: string]: unknown } }) => {
+    mutationFn: async ({ pdiId, data }: { pdiId: string; data: Record<string, unknown> }) => {
       if (role !== 'admin' && role !== 'gerente') return { error: new Error('Seu papel permite acompanhar PDIs, mas não revisar.') }
-      const { error } = await supabase.from('pdi_reviews').insert({ pdi_id: pdiId, ...data })
+      const sanitized = sanitizeReviewPayload(data)
+      const { error } = await supabase.from('pdi_reviews').insert({ pdi_id: pdiId, ...sanitized })
       return { error }
     },
     onSuccess: (_result, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pdis'] })
-      fetchReviews(variables.pdiId)
+      queryClient.invalidateQueries({ queryKey: ['pdi-reviews', variables.pdiId] })
     },
   })
 
   return {
     pdis: pdis || [],
-    reviews,
+    usePDIReviews,
     loading,
     createPDI: (data: PDIFormData) => createPDIMut.mutateAsync(data),
     updateStatus: (id: string, status: string) => updateStatusMut.mutateAsync({ id, status }),
     acknowledge: (id: string) => acknowledgeMut.mutateAsync(id),
-    createReview: (pdiId: string, data: { notes?: string; [key: string]: unknown }) => createReviewMut.mutateAsync({ pdiId, data }),
+    createReview: (pdiId: string, data: Record<string, unknown>) => createReviewMut.mutateAsync({ pdiId, data }),
     fetchReviews,
     refetch,
   }
