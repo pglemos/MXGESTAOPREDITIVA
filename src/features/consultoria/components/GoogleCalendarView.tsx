@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from '../../../components/atoms/Button';
-import { Typography } from '../../../components/atoms/Typography';
+import { Button } from '@/components/atoms/Button';
+import { Typography } from '@/components/atoms/Typography';
 import { Calendar, RefreshCcw, ExternalLink, Clock, MapPin } from 'lucide-react';
 import { useConsultingAgenda, type ConsultingAgendaEvent } from '@/hooks/useConsultingAgenda'
 

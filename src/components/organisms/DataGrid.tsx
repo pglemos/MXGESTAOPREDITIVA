@@ -1,10 +1,10 @@
-import React, { ReactNode, memo } from 'react'
+import { ReactNode, memo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
-import { AlertCircle, SearchX } from 'lucide-react'
+import { SearchX } from 'lucide-react'
 
 export interface Column<T> {
   key: string
@@ -16,7 +16,7 @@ export interface Column<T> {
   desktopOnly?: boolean
 }
 
-interface DataGridProps<T> {
+export interface DataGridProps<T> {
   columns: Column<T>[]
   data: T[]
   loading?: boolean

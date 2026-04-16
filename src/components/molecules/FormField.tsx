@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Input } from '@/components/atoms/Input'
 
-interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
   id?: string

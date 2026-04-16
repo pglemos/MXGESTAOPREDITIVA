@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Input } from '@/components/atoms/Input'
 import { Button } from '@/components/atoms/Button'

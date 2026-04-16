@@ -1,4 +1,3 @@
-import { type ReactNode } from 'react'
 import { format, isToday, isSameDay } from 'date-fns'
 import { ChevronLeft, ChevronRightIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'

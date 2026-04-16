@@ -33,27 +33,34 @@ const typographyVariants = cva(
   }
 )
 
-interface TypographyProps
+type TypographyElementType = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'label' | 'div'
+
+export interface TypographyProps
   extends React.HTMLAttributes<HTMLElement>,
     VariantProps<typeof typographyVariants> {
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'label' | 'div'
+  as?: TypographyElementType
   htmlFor?: string
 }
 
+const DEFAULT_ELEMENT_MAP: Record<string, TypographyElementType> = {
+  caption: 'span',
+  tiny: 'span',
+  mono: 'span',
+}
+
 const Typography = React.forwardRef<HTMLElement, TypographyProps>(
-  ({ className, variant, tone, as, ...props }, ref) => {
-    const Component = as || (variant === 'caption' || variant === 'tiny' || variant === 'mono' ? 'span' : (variant as any) || 'p')
-    const Tag = Component as any
+  ({ className, variant, tone, as, htmlFor, ...props }, ref) => {
+    const Component = as || DEFAULT_ELEMENT_MAP[variant as string] || (variant as TypographyElementType) || 'p'
     return (
-      <Tag
+      <Component
         className={cn(typographyVariants({ variant, tone, className }))}
-        ref={ref}
+        ref={ref as React.Ref<never>}
+        {...(htmlFor ? { htmlFor } : {})}
         {...props}
       />
     )
   }
 )
-
 Typography.displayName = "Typography"
 
 export { Typography, typographyVariants }

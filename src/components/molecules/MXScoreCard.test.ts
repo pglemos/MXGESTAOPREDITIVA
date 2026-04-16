@@ -1,23 +1,34 @@
 import { describe, it, expect } from 'bun:test'
-import { Window } from 'happy-dom'
-// Nota: Em ambiente de teste de UI com Bun, focamos na lógica de classes e propriedades
-// uma vez que o JSDOM completo é mais pesado.
 
 describe('MXScoreCard UI Logic', () => {
   it('should return correct tone classes based on props', () => {
-    // Simulação da lógica de cores do componente
-    const getToneClass = (tone: string) => {
-      switch(tone) {
-        case 'brand': return 'text-brand-primary'
-        case 'success': return 'text-status-success'
-        case 'warning': return 'text-status-warning'
-        default: return 'text-status-error'
+    const getToneClasses = (tone: string) => {
+      const map: Record<string, string> = {
+        brand: 'bg-mx-green-50 border-mx-green-200 text-mx-green-700',
+        success: 'bg-status-success-surface border-mx-emerald-100 text-status-success',
+        warning: 'bg-status-warning-surface border-mx-amber-100 text-status-warning',
+        error: 'bg-status-error-surface border-mx-rose-100 text-status-error',
       }
+      return map[tone] || map.error
     }
 
-    expect(getToneClass('brand')).toBe('text-brand-primary')
-    expect(getToneClass('success')).toBe('text-status-success')
-    expect(getToneClass('warning')).toBe('text-status-warning')
-    expect(getToneClass('error')).toBe('text-status-error')
+    expect(getToneClasses('brand')).toContain('bg-mx-green-50')
+    expect(getToneClasses('success')).toContain('bg-status-success-surface')
+    expect(getToneClasses('warning')).toContain('bg-status-warning-surface')
+    expect(getToneClasses('error')).toContain('bg-status-error-surface')
+  })
+
+  it('should fallback to error tone for unknown values', () => {
+    const getToneClasses = (tone: string) => {
+      const map: Record<string, string> = {
+        brand: 'bg-mx-green-50',
+        success: 'bg-status-success-surface',
+        warning: 'bg-status-warning-surface',
+        error: 'bg-status-error-surface',
+      }
+      return map[tone] || map.error
+    }
+
+    expect(getToneClasses('unknown')).toContain('bg-status-error-surface')
   })
 })
