@@ -14,7 +14,7 @@
     "lint": "tsc --noEmit && node scripts/lint-tokens.js",
     "lint:tokens": "node scripts/lint-tokens.js",
     "typecheck": "tsc --noEmit",
-    "test": "bun test src/lib src/benchmarks src/hooks src/components src/test/atoms",
+    "test": "bun test src/lib src/benchmarks src/hooks src/components src/test",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "deploy": "vercel --prod",
