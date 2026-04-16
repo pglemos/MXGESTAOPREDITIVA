@@ -9,6 +9,7 @@ import {
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
   LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
   BriefcaseBusiness,
+  CalendarDays,
   ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
+        { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
         { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
         { label: 'Funil', path: '/funil', icon: <TrendingUp size={16} /> },

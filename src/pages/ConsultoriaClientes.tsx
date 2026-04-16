@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, RefreshCw, Search, BriefcaseBusiness, Building2 } from 'lucide-react'
+import { Plus, RefreshCw, Search, BriefcaseBusiness, Building2, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
@@ -156,6 +156,12 @@ export default function ConsultoriaClientes() {
 
           <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar" className="rounded-mx-xl bg-white">
             <RefreshCw size={18} />
+          </Button>
+
+          <Button asChild variant="outline" size="default" className="rounded-mx-xl bg-white">
+            <Link to="/agenda">
+              <CalendarDays size={18} className="mr-2" /> AGENDA MX
+            </Link>
           </Button>
 
           {canCreate && (
