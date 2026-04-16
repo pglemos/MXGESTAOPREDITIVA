@@ -1,7 +1,7 @@
 import { execSync } from 'child_process'
 import dotenv from 'dotenv'
 
-dotenv.config()
+dotenv.config({ override: false })
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY

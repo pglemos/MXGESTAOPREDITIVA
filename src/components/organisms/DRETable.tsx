@@ -1,12 +1,12 @@
-import { Fragment } from 'react'
 import { FileText, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
+import { formatValue, formatMonthLabel, type ValueFormat } from '@/lib/format'
 import type { DREFinancial, DREComputed } from '@/features/consultoria/types'
 
-export type DRETableRowFormat = 'currency' | 'percent' | 'number'
+export type DRETableRowFormat = ValueFormat
 
 export interface DRETableRow {
   label: string
@@ -28,26 +28,6 @@ export interface DRETableProps {
   data: Map<string, DRETableEntry>
   onEdit?: (financial: DREFinancial) => void
   className?: string
-}
-
-function fmt(n: number): string {
-  return n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-}
-
-function pct(n: number): string {
-  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%'
-}
-
-function formatValue(val: number, rowFormat: DRETableRowFormat = 'currency'): string {
-  switch (rowFormat) {
-    case 'percent': return pct(val * 100)
-    case 'number': return String(val)
-    case 'currency': return `R$ ${fmt(val)}`
-  }
-}
-
-function formatMonthLabel(m: string): string {
-  return new Date(m + '-15').toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).toUpperCase()
 }
 
 export function DRETable({

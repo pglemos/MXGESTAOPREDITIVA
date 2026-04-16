@@ -5,6 +5,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Input } from '@/components/atoms/Input'
 import { Button } from '@/components/atoms/Button'
 import { Modal } from '@/components/organisms/Modal'
+import { fmt, pct } from '@/lib/format'
 
 export interface DREFormSection {
   key: string
@@ -32,14 +33,6 @@ export interface DREFormProps {
   loading?: boolean
   computedPreview?: DREFormComputedPreview
   className?: string
-}
-
-function fmt(n: number): string {
-  return n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-}
-
-function pct(n: number): string {
-  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%'
 }
 
 export function DREForm({
