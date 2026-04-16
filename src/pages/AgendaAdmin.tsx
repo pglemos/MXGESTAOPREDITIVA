@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  CalendarDays, RefreshCw, Filter,
+  CalendarDays, Clock, MapPin, RefreshCw, Filter,
   Building2, User, ChevronRight, Calendar,
-  Plus, X,
+  ChevronLeft, ChevronRightIcon, X, Plus, Trash2, Play,
 } from 'lucide-react'
-import { format, parseISO, isToday, isTomorrow } from 'date-fns'
+import { format, parseISO, isToday, isTomorrow, isPast, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
@@ -13,7 +13,9 @@ import { Card } from '@/components/molecules/Card'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Typography } from '@/components/atoms/Typography'
+import { Badge } from '@/components/atoms/Badge'
 import { Skeleton } from '@/components/atoms/Skeleton'
+import { FilterBar } from '@/components/molecules/FilterBar'
 import { useAgendaAdmin } from '@/hooks/useAgendaAdmin'
 import { cn } from '@/lib/utils'
 import { Modal } from '@/components/organisms/Modal'
@@ -263,12 +265,8 @@ export default function AgendaAdmin() {
       </header>
 
       <Card className="p-mx-md border-none shadow-mx-md bg-white">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-mx-md">
-          <div className="flex items-center gap-mx-xs">
-            <CalendarDays size={16} className="text-brand-primary" />
-            <Typography variant="caption" className="font-black uppercase tracking-widest">Período</Typography>
-          </div>
-          <div className="flex flex-wrap gap-mx-xs">
+        <div className="flex flex-col gap-mx-sm">
+          <FilterBar label="Período" icon={<CalendarDays size={16} className="text-brand-primary" />}>
             {dateFilters.map((f) => (
               <button
                 key={f.key}
@@ -284,15 +282,8 @@ export default function AgendaAdmin() {
                 {f.label}
               </button>
             ))}
-          </div>
-
-          <div className="hidden sm:block w-px h-mx-lg bg-border-default" />
-
-          <div className="flex items-center gap-mx-xs">
-            <Filter size={16} className="text-brand-primary" />
-            <Typography variant="caption" className="font-black uppercase tracking-widest">Status</Typography>
-          </div>
-          <div className="flex flex-wrap gap-mx-xs">
+          </FilterBar>
+          <FilterBar label="Status" icon={<Filter size={16} className="text-brand-primary" />}>
             {statusFilters.map((f) => (
               <button
                 key={f.key}
@@ -308,7 +299,7 @@ export default function AgendaAdmin() {
                 {f.label}
               </button>
             ))}
-          </div>
+          </FilterBar>
         </div>
       </Card>
 
