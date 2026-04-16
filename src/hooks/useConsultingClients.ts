@@ -2,16 +2,30 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type {
-  ConsultingAssignment,
-  ConsultingAssignableUser,
-  ConsultingClient,
   ConsultingClientContact,
   ConsultingClientDetail,
-  ConsultingClientUnit,
   ConsultingVisit,
-  ConsultingFinancial,
-  ConsultingMethodologyStep,
 } from '@/features/consultoria/types'
+import {
+  parseConsultingClientArray,
+  parseConsultingClientUnitArray,
+  parseConsultingClientContactArray,
+  parseConsultingAssignmentArray,
+  parseConsultingFinancialArray,
+  parseConsultingMethodologyStepArray,
+  type ConsultingClient,
+  type ConsultingClientUnit,
+  type ConsultingAssignment,
+  type ConsultingFinancial,
+  type ConsultingMethodologyStep,
+} from '@/lib/schemas/consulting-client.schema'
+
+type ConsultingAssignableUser = {
+  id: string
+  name: string
+  email: string
+  role: string
+}
 
 type CreateConsultingClientInput = {
   name: string
@@ -48,7 +62,7 @@ export function useConsultingClients() {
       setError(fetchError.message)
       setClients([])
     } else {
-      setClients((data || []) as ConsultingClient[])
+      setClients(parseConsultingClientArray(data || []))
     }
 
     setLoading(false)
@@ -132,11 +146,11 @@ export function useConsultingClientDetail(clientId?: string) {
     const detail = clientRes.data
       ? {
           ...(clientRes.data as ConsultingClient),
-          units: (unitsRes.data || []) as ConsultingClientUnit[],
-          contacts: (contactsRes.data || []) as ConsultingClientContact[],
-          assignments: (assignmentsRes.data || []) as ConsultingAssignment[],
+          units: parseConsultingClientUnitArray(unitsRes.data || []),
+          contacts: parseConsultingClientContactArray(contactsRes.data || []),
+          assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
           visits: (visitsRes.data || []) as ConsultingVisit[],
-          financials: (financialsRes.data || []) as ConsultingFinancial[],
+          financials: parseConsultingFinancialArray(financialsRes.data || []),
         }
       : null
 
@@ -321,7 +335,7 @@ export function useConsultingMethodology() {
         .select('*')
         .order('visit_number', { ascending: true })
       
-      setSteps((data || []) as ConsultingMethodologyStep[])
+      setSteps(parseConsultingMethodologyStepArray(data || []))
       setLoading(false)
     }
     fetchSteps()

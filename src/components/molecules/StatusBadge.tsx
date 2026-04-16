@@ -1,0 +1,92 @@
+import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+import { Typography } from '@/components/atoms/Typography'
+
+const statusBadgeVariants = cva(
+  "inline-flex items-center gap-mx-xs rounded-mx-full border px-3 py-1 transition-colors",
+  {
+    variants: {
+      status: {
+        success: "border-status-success/20 bg-status-success-surface",
+        warning: "border-status-warning/20 bg-status-warning-surface",
+        error: "border-status-error/20 bg-status-error-surface",
+        info: "border-status-info/20 bg-status-info-surface",
+        neutral: "border-border-default bg-surface-alt",
+        pending: "border-status-warning/20 bg-status-warning-surface",
+      },
+    },
+    defaultVariants: {
+      status: "neutral",
+    },
+  }
+)
+
+const dotVariants = cva(
+  "size-mx-tiny rounded-mx-full shrink-0",
+  {
+    variants: {
+      status: {
+        success: "bg-status-success",
+        warning: "bg-status-warning",
+        error: "bg-status-error",
+        info: "bg-status-info",
+        neutral: "bg-text-tertiary",
+        pending: "bg-status-warning animate-pulse",
+      },
+    },
+    defaultVariants: {
+      status: "neutral",
+    },
+  }
+)
+
+const labelVariants = cva(
+  "font-black uppercase tracking-widest",
+  {
+    variants: {
+      status: {
+        success: "text-status-success",
+        warning: "text-status-warning",
+        error: "text-status-error",
+        info: "text-status-info",
+        neutral: "text-text-secondary",
+        pending: "text-status-warning",
+      },
+    },
+    defaultVariants: {
+      status: "neutral",
+    },
+  }
+)
+
+export interface StatusBadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof statusBadgeVariants> {
+  label: string
+  description?: string
+}
+
+const StatusBadge = React.forwardRef<HTMLDivElement, StatusBadgeProps>(
+  ({ className, status, label, description, ...props }, ref) => {
+    return (
+      <div ref={ref} className={cn(statusBadgeVariants({ status }), className)} {...props}>
+        <span className={cn(dotVariants({ status }))} aria-hidden="true" />
+        <span className={cn(labelVariants({ status }))}>
+          <Typography variant="tiny" className="text-inherit tracking-inherit">
+            {label}
+          </Typography>
+        </span>
+        {description && (
+          <>
+            <span className="text-text-tertiary" aria-hidden="true">&middot;</span>
+            <Typography variant="tiny" tone="muted">{description}</Typography>
+          </>
+        )}
+      </div>
+    )
+  }
+)
+StatusBadge.displayName = "StatusBadge"
+
+export { StatusBadge, statusBadgeVariants }

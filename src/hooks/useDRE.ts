@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import type { DREFinancial, DREComputed } from '@/features/consultoria/types'
+import { parseDREFinancialArray, type DREFinancial, type DREComputed } from '@/lib/schemas/dre.schema'
 
 function computeDRE(f: Partial<DREFinancial>): DREComputed {
   const v = (n: number | undefined | null) => n ?? 0
@@ -65,7 +65,7 @@ export function useDRE(clientId?: string) {
       setError(fetchError.message)
       setFinancials([])
     } else {
-      setFinancials((data as DREFinancial[]) || [])
+      setFinancials(parseDREFinancialArray(data || []))
     }
     setLoading(false)
   }, [clientId, supabaseUser?.id])

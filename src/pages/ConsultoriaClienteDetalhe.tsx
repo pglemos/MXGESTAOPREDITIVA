@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { 
   ArrowLeft, BriefcaseBusiness, Building2, Mail, Phone, User2, 
   Calendar, CheckCircle2, Clock, ChevronRight,
-  Plus, FileText, X, CalendarDays
+  Plus, FileText, CalendarDays
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/atoms/Input'
@@ -17,6 +17,9 @@ import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { GoogleCalendarView } from '@/features/consultoria/components/GoogleCalendarView'
 import { DREView } from '@/features/consultoria/components/DREView'
+import { Modal } from '@/components/organisms/Modal'
+import { Select } from '@/components/atoms/Select'
+import { DatePicker } from '@/components/atoms/DatePicker'
 
 type Tab = 'overview' | 'visits' | 'financial'
 
@@ -623,111 +626,92 @@ export default function ConsultoriaClienteDetalhe() {
         <DREView clientId={clientId} />
       )}
 
-      {showScheduleModal && (
-        <div className="fixed inset-mx-0 bg-mx-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-mx-md" onClick={() => setShowScheduleModal(false)}>
-          <Card className="w-full max-w-mx-sidebar-expanded bg-white border-none shadow-mx-xl max-h-mx-7xl overflow-y-auto no-scrollbar" onClick={(e) => e.stopPropagation()}>
-            <div className="p-mx-lg border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
-              <div className="flex items-center gap-mx-sm">
-                <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-                  <CalendarDays size={20} />
-                </div>
-                <div>
-                  <Typography variant="h3">Agendar Visita</Typography>
-                  <Typography variant="tiny" tone="muted">{client?.name} — Visita {(client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1}/7</Typography>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowScheduleModal(false)} className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all">
-                <X size={20} />
-              </button>
+      <Modal
+        open={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        title="Agendar Visita"
+        description={`${client?.name} — Visita ${(client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1}/7`}
+        size="xl"
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setShowScheduleModal(false)}>CANCELAR</Button>
+            <Button type="submit" form="client-schedule-form" disabled={submittingVisit} className="bg-brand-secondary">
+              {submittingVisit ? 'AGENDANDO...' : 'CONFIRMAR AGENDAMENTO'}
+            </Button>
+          </>
+        }
+      >
+        <form id="client-schedule-form" onSubmit={handleSubmitSchedule} className="space-y-mx-lg">
+          <div className="grid grid-cols-2 gap-mx-md">
+            <div className="space-y-mx-xs">
+              <Typography as="label" htmlFor="client-schedule-date" variant="caption" className="font-black uppercase tracking-widest">Data *</Typography>
+              <DatePicker
+                id="client-schedule-date"
+                value={scheduleForm.scheduled_at}
+                onChange={(e) => setScheduleForm((prev) => ({ ...prev, scheduled_at: e.target.value }))}
+              />
             </div>
+            <div className="space-y-mx-xs">
+              <Typography as="label" htmlFor="client-schedule-time" variant="caption" className="font-black uppercase tracking-widest">Horário *</Typography>
+              <Input
+                id="client-schedule-time"
+                type="time"
+                value={scheduleForm.scheduled_time}
+                onChange={(e) => setScheduleForm((prev) => ({ ...prev, scheduled_time: e.target.value }))}
+              />
+            </div>
+          </div>
 
-            <form onSubmit={handleSubmitSchedule} className="p-mx-lg space-y-mx-lg">
-              <div className="grid grid-cols-2 gap-mx-md">
-                <div className="space-y-mx-xs">
-                  <Typography as="label" htmlFor="client-schedule-date" variant="caption" className="font-black uppercase tracking-widest">Data *</Typography>
-                  <Input
-                    id="client-schedule-date"
-                    type="date"
-                    value={scheduleForm.scheduled_at}
-                    onChange={(e) => setScheduleForm((prev) => ({ ...prev, scheduled_at: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-mx-xs">
-                  <Typography as="label" htmlFor="client-schedule-time" variant="caption" className="font-black uppercase tracking-widest">Horário *</Typography>
-                  <Input
-                    id="client-schedule-time"
-                    type="time"
-                    value={scheduleForm.scheduled_time}
-                    onChange={(e) => setScheduleForm((prev) => ({ ...prev, scheduled_time: e.target.value }))}
-                  />
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-mx-md">
+            <div className="space-y-mx-xs">
+              <Typography as="label" htmlFor="client-schedule-duration" variant="caption" className="font-black uppercase tracking-widest">Duração (horas)</Typography>
+              <Input
+                id="client-schedule-duration"
+                type="number"
+                min="1"
+                max="12"
+                value={scheduleForm.duration_hours}
+                onChange={(e) => setScheduleForm((prev) => ({ ...prev, duration_hours: e.target.value }))}
+              />
+            </div>
+            <Select
+              id="client-schedule-modality"
+              label="Modalidade"
+              value={scheduleForm.modality}
+              onChange={(e) => setScheduleForm((prev) => ({ ...prev, modality: e.target.value }))}
+            >
+              <option value="Presencial">Presencial</option>
+              <option value="Online">Online</option>
+            </Select>
+          </div>
 
-              <div className="grid grid-cols-2 gap-mx-md">
-                <div className="space-y-mx-xs">
-                  <Typography as="label" htmlFor="client-schedule-duration" variant="caption" className="font-black uppercase tracking-widest">Duração (horas)</Typography>
-                  <Input
-                    id="client-schedule-duration"
-                    type="number"
-                    min="1"
-                    max="12"
-                    value={scheduleForm.duration_hours}
-                    onChange={(e) => setScheduleForm((prev) => ({ ...prev, duration_hours: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-mx-xs">
-                  <Typography as="label" htmlFor="client-schedule-modality" variant="caption" className="font-black uppercase tracking-widest">Modalidade</Typography>
-                  <select
-                    id="client-schedule-modality"
-                    value={scheduleForm.modality}
-                    onChange={(e) => setScheduleForm((prev) => ({ ...prev, modality: e.target.value }))}
-                    className="w-full h-mx-12 px-4 bg-white border border-border-default rounded-mx-lg text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20"
-                  >
-                    <option value="Presencial">Presencial</option>
-                    <option value="Online">Online</option>
-                  </select>
-                </div>
-              </div>
+          <Select
+            id="client-schedule-consultant"
+            label="Consultor Responsável"
+            value={scheduleForm.consultant_id}
+            onChange={(e) => setScheduleForm((prev) => ({ ...prev, consultant_id: e.target.value }))}
+          >
+            <option value="">Sem consultor...</option>
+            {activeAssignments.filter((a) => a.assignment_role === 'responsavel' && a.user).map((a) => (
+              <option key={a.user_id} value={a.user_id}>{a.user?.name}</option>
+            ))}
+            {assignableUsers.filter((u) => u.role === 'admin').map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </Select>
 
-              <div className="space-y-mx-xs">
-                <Typography as="label" htmlFor="client-schedule-consultant" variant="caption" className="font-black uppercase tracking-widest">Consultor Responsável</Typography>
-                <select
-                  id="client-schedule-consultant"
-                  value={scheduleForm.consultant_id}
-                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, consultant_id: e.target.value }))}
-                  className="w-full h-mx-12 px-4 bg-white border border-border-default rounded-mx-lg text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20"
-                >
-                  <option value="">Sem consultor...</option>
-                  {activeAssignments.filter((a) => a.assignment_role === 'responsavel' && a.user).map((a) => (
-                    <option key={a.user_id} value={a.user_id}>{a.user?.name}</option>
-                  ))}
-                  {assignableUsers.filter((u) => u.role === 'admin').map((u) => (
-                    <option key={u.id} value={u.id}>{u.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-mx-xs">
-                <Typography as="label" htmlFor="client-schedule-objective" variant="caption" className="font-black uppercase tracking-widest">Objetivo da Visita</Typography>
-                <Textarea
-                  id="client-schedule-objective"
-                  value={scheduleForm.objective}
-                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, objective: e.target.value }))}
-                  placeholder="Descreva o objetivo principal desta visita..."
-                  className="min-h-mx-24"
-                />
-              </div>
-
-              <div className="flex justify-end gap-mx-sm pt-mx-sm border-t border-border-default">
-                <Button type="button" variant="ghost" onClick={() => setShowScheduleModal(false)}>CANCELAR</Button>
-                <Button type="submit" disabled={submittingVisit} className="bg-brand-secondary">
-                  {submittingVisit ? 'AGENDANDO...' : 'CONFIRMAR AGENDAMENTO'}
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
+          <div className="space-y-mx-xs">
+            <Typography as="label" htmlFor="client-schedule-objective" variant="caption" className="font-black uppercase tracking-widest">Objetivo da Visita</Typography>
+            <Textarea
+              id="client-schedule-objective"
+              value={scheduleForm.objective}
+              onChange={(e) => setScheduleForm((prev) => ({ ...prev, objective: e.target.value }))}
+              placeholder="Descreva o objetivo principal desta visita..."
+              className="min-h-mx-24"
+            />
+          </div>
+        </form>
+      </Modal>
 
     </main>
   )
