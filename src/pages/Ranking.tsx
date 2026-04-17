@@ -252,7 +252,7 @@ function GlobalRanking() {
                                             <div className={`rounded-full p-1 transition-all ${isFirst ? 'bg-gradient-to-br from-brand-primary to-yellow-300 shadow-[0_0_30px_#00E5FF]' : 'bg-white shadow-xl'}`}>
                                                 <img src={avatar} alt="" className={`rounded-full object-cover border-4 border-mx-black ${isFirst ? 'w-24 h-24 sm:w-28 sm:h-28' : isSecond ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-14 h-14 sm:w-16 sm:h-16'}`} />
                                             </div>
-                                            <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-white'}`}>
+                                            <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-text-primary'}`}>
                                                 {isFirst ? 'Campeão' : `#${seller.position} Lugar`}
                                             </div>
                                         </div>
@@ -506,7 +506,7 @@ function StoreRankingView() {
                                             <div className={`rounded-full p-1 transition-all ${isFirst ? 'bg-gradient-to-br from-brand-primary to-yellow-300 shadow-[0_0_30px_#00E5FF]' : 'bg-white shadow-xl'}`}>
                                                 <img src={avatar} alt="" className={`rounded-full object-cover border-4 border-mx-black ${isFirst ? 'w-24 h-24 sm:w-28 sm:h-28' : isSecond ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-14 h-14 sm:w-16 sm:h-16'}`} />
                                             </div>
-                                            <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-white'}`}>
+                                            <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-text-primary'}`}>
                                                 {isFirst ? 'Campeão' : `#${seller.position} Lugar`}
                                             </div>
                                         </div>
