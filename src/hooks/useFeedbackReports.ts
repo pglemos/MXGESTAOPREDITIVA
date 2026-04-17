@@ -10,11 +10,11 @@ export function useFeedbackReports(filters?: { storeId?: string }) {
   const { data: reports, isLoading: loading, refetch } = useQuery({
     queryKey: ['feedback-reports', storeId, role],
     queryFn: async () => {
-      if (!profile || (!storeId && role !== 'admin')) return []
+      if (!profile) return []
 
       let query = supabase.from('weekly_feedback_reports').select('*')
-      if (storeId) query = query.eq('store_id', storeId)
-      const { data } = await query.order('week_start', { ascending: false }).limit(12)
+      if (role !== 'admin' && storeId) query = query.eq('store_id', storeId)
+      const { data } = await query.order('week_start', { ascending: false }).limit(role === 'admin' ? 50 : 12)
       return (data || []) as WeeklyFeedbackReport[]
     },
     enabled: !!profile,

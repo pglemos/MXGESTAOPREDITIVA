@@ -295,3 +295,34 @@ export function useSellersByStore(storeId: string | null) {
     useEffect(() => { fetch() }, [fetch])
     return { sellers, loading, refetch: fetch }
 }
+
+export function useAllSellers() {
+    const [sellers, setSellers] = useState<(User & { store_id: string; store_name: string })[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetch = useCallback(async () => {
+        setLoading(true)
+        const [{ data: tenures }, { data: stores }] = await Promise.all([
+            supabase.from('store_sellers')
+                .select('seller_user_id, store_id, users:seller_user_id(id, name, email, role), stores(name)')
+                .eq('is_active', true),
+            supabase.from('stores').select('id, name'),
+        ])
+
+        const storeMap = new Map((stores || []).map(s => [s.id, s.name]))
+        if (tenures) {
+            setSellers(tenures
+                .filter(t => (t as any).users?.role === 'vendedor')
+                .map(t => ({
+                    ...(t as any).users as User,
+                    store_id: t.store_id,
+                    store_name: storeMap.get(t.store_id) || '',
+                }))
+            )
+        }
+        setLoading(false)
+    }, [])
+
+    useEffect(() => { fetch() }, [fetch])
+    return { sellers, loading, refetch: fetch }
+}
