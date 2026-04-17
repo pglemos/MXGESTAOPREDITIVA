@@ -30,7 +30,6 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
         { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
-        { label: 'Funil', path: '/funil', icon: <TrendingUp size={16} /> },
       ]
     },
     {
@@ -60,7 +59,6 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Minhas Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Performance', path: '/loja', icon: <LayoutDashboard size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
-        { label: 'Funil', path: '/funil', icon: <TrendingUp size={16} /> },
       ]
     },
     {

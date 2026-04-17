@@ -5,7 +5,8 @@ import { useStoreGoal } from '@/hooks/useGoals'
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { 
-    Target, RefreshCw, Search, Globe, ChevronDown, Calendar, History, Settings, Users
+    Target, RefreshCw, Search, Globe, ChevronDown, Calendar, History, Settings, Users,
+    ArrowRight
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, subDays, startOfMonth } from 'date-fns'
@@ -15,7 +16,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/molecules/Card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { AdminNetworkView } from '@/components/admin/AdminNetworkView'
 import { useSearchParams, useParams, Link, Navigate } from 'react-router-dom'
@@ -169,10 +170,8 @@ export default function DashboardLoja() {
         }
     }, [storeSales, sellers, memberships, storeId])
 
-    const diagnostics = useMemo(() => {
-        const funil = calcularFunil(checkins as any)
-        return gerarDiagnosticoMX(funil)
-    }, [checkins])
+    const funilData = useMemo(() => calcularFunil(checkins as any), [checkins])
+    const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
 
     const mixCanais = useMemo(() => {
         const total = metrics.totalSales || 1
@@ -355,6 +354,51 @@ export default function DashboardLoja() {
                     <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">REGISTROS SINCRONIZADOS</Typography>
                 </Card>
             </div>
+
+            <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
+                <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="text-lg md:text-xl uppercase tracking-tighter">Fluxo de Escoamento</CardTitle>
+                            <CardDescription className="uppercase tracking-widest font-black mt-1 text-mx-tiny">TAXAS DE CONVERSÃO & BENCHMARKS MX</CardDescription>
+                        </div>
+                        <div className="hidden sm:flex items-baseline gap-mx-xs">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Eficiência Global</Typography>
+                            <Typography variant="h2" tone={funilData.tx_visita_vnd >= 33 ? 'success' : 'error'} className="tabular-nums">{funilData.tx_visita_vnd}%</Typography>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-mx-lg md:p-mx-10">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg md:gap-mx-14">
+                        {[
+                            { from: 'Leads', to: 'Agendamentos', val: funilData.tx_lead_agd, bench: 20 },
+                            { from: 'Agendamentos', to: 'Visitas', val: funilData.tx_agd_visita, bench: 60 },
+                            { from: 'Visitas', to: 'Vendas', val: funilData.tx_visita_vnd, bench: 33 },
+                        ].map((step, idx) => (
+                            <div key={idx} className="space-y-mx-md">
+                                <div className="flex justify-between items-end">
+                                    <div className="flex items-center gap-mx-xs">
+                                        <div className="w-mx-8 h-mx-8 rounded-mx-lg bg-surface-alt flex items-center justify-center font-black text-text-tertiary text-xs border border-border-default shadow-sm">0{idx+1}</div>
+                                        <Typography variant="tiny" className="font-black uppercase tracking-tight">{step.from} <ArrowRight size={10} className="inline opacity-30" /> {step.to}</Typography>
+                                    </div>
+                                    <div className="flex items-baseline gap-mx-xs">
+                                        <Typography variant="h2" tone={step.val >= step.bench ? 'success' : 'error'} className="text-2xl tabular-nums">{step.val}%</Typography>
+                                        <Typography variant="tiny" tone="muted" className="font-black text-mx-micro">BENCH {step.bench}%</Typography>
+                                    </div>
+                                </div>
+                                <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-inner p-px">
+                                    <motion.div 
+                                        initial={{ width: 0 }} animate={{ width: `${Math.min(step.val, 100)}%` }} transition={{ duration: 1.2, delay: idx * 0.15, ease: "circOut" }}
+                                        className={cn("h-full rounded-mx-full shadow-sm transition-all duration-1000", 
+                                            step.val >= step.bench ? 'bg-status-success shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-status-error shadow-[0_0_12px_rgba(239,68,68,0.4)]'
+                                        )} 
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
                 <section className="xl:col-span-8 flex flex-col">

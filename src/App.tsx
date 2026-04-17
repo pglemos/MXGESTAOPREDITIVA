@@ -27,7 +27,6 @@ const Perfil = lazy(() => import('@/pages/Perfil'))
 const DashboardLoja = lazy(() => import('@/pages/DashboardLoja'))
 const Equipe = lazy(() => import('@/pages/Equipe'))
 const GoalManagement = lazy(() => import('@/pages/GoalManagement'))
-const Funil = lazy(() => import('@/pages/Funil'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
 const PDIPrint = lazy(() => import('@/pages/PDIPrint'))
@@ -147,7 +146,6 @@ export default function App() {
             <Route index element={<RoleRedirect />} />
             <Route path="dashboard" element={<RoleRedirect />} />
             <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
-            <Route path="funnel" element={<Navigate to="/funil" replace />} />
             <Route path="team" element={<Navigate to="/equipe" replace />} />
             <Route path="training" element={<Navigate to="/treinamentos" replace />} />
 
@@ -179,7 +177,6 @@ export default function App() {
             </Suspense>} />
             <Route path="metas" element={<Suspense fallback={<Spinner />}><GoalManagement /></Suspense>} />
             <Route path="goal-management" element={<GoalManagementRedirect />} />
-            <Route path="funil" element={<Suspense fallback={<Spinner />}><Funil /></Suspense>} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorPDI />} gerente={<GerentePDI />} dono={<GerentePDI />} admin={<GerentePDI />} />
             </Suspense>} />
