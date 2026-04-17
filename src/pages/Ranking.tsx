@@ -614,5 +614,3 @@ function StoreRankingView() {
         </main>
     )
 }
-  )
-}
