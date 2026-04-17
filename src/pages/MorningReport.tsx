@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { 
-    TrendingUp, Target, Zap, AlertTriangle, 
+    TrendingUp, Target, Zap, 
     RefreshCw, MessageCircle, BarChart3, Mail, FileDown,
-    Users, Calendar, Activity, ChevronDown, Building2,
-    ArrowRight
+    Users, Activity, ChevronDown, Building2
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -18,8 +17,7 @@ import { somarVendas, calcularProjecao, getDiasInfo, calcularAtingimento, format
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { Skeleton } from '@/components/atoms/Skeleton'
+import { Card, CardHeader, CardTitle } from '@/components/molecules/Card'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 
@@ -61,21 +59,22 @@ function AdminMorningReport() {
 
     const fetchData = useCallback(async () => {
         setLoading(true)
-        const [storesRes, goalsRes, checkinsRes, todayCheckinsRes, membershipsRes] = await Promise.all([
-            supabase.from('stores').select('id, name').eq('active', true).order('name'),
-            supabase.from('store_meta_rules').select('store_id, monthly_goal'),
-            supabase.from('daily_checkins')
-                .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-                .gte('reference_date', monthStart).lte('reference_date', monthEnd),
-            supabase.from('daily_checkins').select('seller_user_id, store_id').eq('reference_date', referenceDate),
-            supabase.from('memberships').select('user_id, store_id, users:user_id(id, name, active)').eq('users.active', true),
-        ])
+        try {
+            const [storesRes, goalsRes, checkinsRes, todayCheckinsRes, membershipsRes] = await Promise.all([
+                supabase.from('stores').select('id, name').eq('active', true).order('name'),
+                supabase.from('store_meta_rules').select('store_id, monthly_goal'),
+                supabase.from('daily_checkins')
+                    .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                    .gte('reference_date', monthStart).lte('reference_date', monthEnd),
+                supabase.from('daily_checkins').select('seller_user_id, store_id').eq('reference_date', referenceDate),
+                supabase.from('memberships').select('user_id, store_id, users:user_id(id, name, active)'),
+            ])
 
         const stores = storesRes.data || []
         const goals = goalsRes.data || []
         const checkins = checkinsRes.data || []
         const todayCheckins = todayCheckinsRes.data || []
-        const members = (membershipsRes.data || []) as any[]
+        const members = ((membershipsRes.data || []) as any[]).filter(m => m.users?.active)
 
         const goalMap = new Map(goals.map((g: any) => [g.store_id, g.monthly_goal || 0]))
         const checkedInSet = new Set(todayCheckins.map((c: any) => `${c.store_id}-${c.seller_user_id}`))
@@ -137,7 +136,11 @@ function AdminMorningReport() {
         })
 
         setStoreData(computed)
-        setLoading(false)
+        } catch (err) {
+            console.error('[AdminMorningReport] fetchData failed:', err)
+        } finally {
+            setLoading(false)
+        }
     }, [monthStart, monthEnd, referenceDate, daysInfo])
 
     useEffect(() => { fetchData() }, [fetchData])
