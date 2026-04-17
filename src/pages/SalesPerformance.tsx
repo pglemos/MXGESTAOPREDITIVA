@@ -132,7 +132,7 @@ function AdminPerformance() {
                             </div>
                             <Badge variant="brand" className="animate-pulse px-4 py-1.5 rounded-mx-full">LIVE MATRIX</Badge>
                         </CardHeader>
-                        <CardContent className="p-mx-10 h-mx-section-md">
+                        <CardContent className="p-mx-10" style={{ height: 'var(--height-mx-chart)' }}>
                             {metrics.byMonth.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={metrics.byMonth} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
@@ -334,7 +334,7 @@ function StorePerformance() {
                             </div>
                             <Badge variant="brand" className="animate-pulse px-4 py-1.5 rounded-mx-full">LIVE MATRIX</Badge>
                         </CardHeader>
-                        <CardContent className="p-mx-10 h-mx-section-md">
+                        <CardContent className="p-mx-10" style={{ height: 'var(--height-mx-chart)' }}>
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
