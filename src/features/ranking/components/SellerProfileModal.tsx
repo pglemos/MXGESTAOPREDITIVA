@@ -55,7 +55,7 @@ export function SellerProfileModal({ seller, onClose }: SellerProfileModalProps)
             
             <motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-gradient-to-br from-surface-alt to-mx-black w-full max-w-3xl rounded-mx-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row text-white max-h-[90vh] border border-white/10"
+                className="bg-mx-black w-full max-w-3xl rounded-mx-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row text-white max-h-[90vh] border border-white/10"
             >
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors z-20">
                     <X className="w-6 h-6 text-text-tertiary" />

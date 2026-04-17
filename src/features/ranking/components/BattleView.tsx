@@ -49,7 +49,7 @@ export function BattleView({ opponents, ranking }: BattleViewProps) {
                 </div>
 
                 {/* Player 1 */}
-                <div className="bg-mx-black/50 p-6 rounded-3xl border border-brand-primary/20 flex flex-col items-center w-full md:w-5/12 relative overflow-hidden">
+                <div className="bg-mx-black p-6 rounded-3xl border border-brand-primary/20 flex flex-col items-center w-full md:w-5/12 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary blur-[80px] opacity-20 rounded-full"></div>
                     <img src={avatar1} alt={p1.user_name} className="w-24 h-24 rounded-2xl border-2 border-brand-primary shadow-[0_0_20px_rgba(0,229,255,0.3)] mb-4" />
                     <h3 className="font-display font-bold text-2xl text-white text-center">{p1.user_name}</h3>
@@ -57,7 +57,7 @@ export function BattleView({ opponents, ranking }: BattleViewProps) {
                 </div>
 
                 {/* Player 2 */}
-                <div className="bg-mx-black/50 p-6 rounded-3xl border border-blue-500/20 flex flex-col items-center w-full md:w-5/12 relative overflow-hidden">
+                <div className="bg-mx-black p-6 rounded-3xl border border-blue-500/20 flex flex-col items-center w-full md:w-5/12 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500 blur-[80px] opacity-20 rounded-full"></div>
                     <img src={avatar2} alt={p2.user_name} className="w-24 h-24 rounded-2xl border-2 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)] mb-4" />
                     <h3 className="font-display font-bold text-2xl text-white text-center">{p2.user_name}</h3>

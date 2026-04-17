@@ -210,7 +210,7 @@ export function LiveFloor({ ranking }: LiveFloorProps) {
 
             {/* 4. Active Monitoring Dock */}
             {monitoringTarget && activeAgent && (
-                <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-6 left-6 right-6 lg:left-24 lg:right-24 bg-surface-alt/90 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] text-white p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 z-[60]">
+                <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-6 left-6 right-6 lg:left-24 lg:right-24 bg-mx-black/90 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] text-white p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 z-[60]">
                     <div className="flex items-center gap-4 min-w-[200px]">
                         <div className="relative">
                             <img src={activeAgent.avatar} alt="" className="w-12 h-12 rounded-xl border border-white/20" />
