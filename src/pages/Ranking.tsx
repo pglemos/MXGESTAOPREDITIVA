@@ -259,7 +259,7 @@ function GlobalRanking() {
                                         <div className={`w-20 sm:w-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
                                             ${isFirst ? 'h-56 bg-gradient-to-b from-brand-primary/80 to-brand-primary/5' : isSecond ? 'h-40 bg-gradient-to-b from-slate-300/80 to-slate-200/10' : 'h-28 bg-gradient-to-b from-amber-700/60 to-amber-900/10'}`}>
                                             <div className={`font-display font-black text-2xl sm:text-3xl mb-1 drop-shadow-sm ${isFirst ? 'text-mx-black' : 'text-text-primary'}`}>{seller.atingimento}%</div>
-                                            <div className={`text-[8px] sm:text-[9px] uppercase font-bold tracking-widest ${isFirst ? 'text-surface-alt' : 'text-text-tertiary'}`}>ATINGIMENTO</div>
+                                            <div className={`text-[8px] sm:text-[9px] uppercase font-bold tracking-widest ${isFirst ? 'text-brand-secondary' : 'text-text-tertiary'}`}>ATINGIMENTO</div>
                                         </div>
                                     </div>
                                 )
@@ -513,7 +513,7 @@ function StoreRankingView() {
                                         <div className={`w-20 sm:w-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
                                             ${isFirst ? 'h-56 bg-gradient-to-b from-brand-primary/80 to-brand-primary/5' : isSecond ? 'h-40 bg-gradient-to-b from-slate-300/80 to-slate-200/10' : 'h-28 bg-gradient-to-b from-amber-700/60 to-amber-900/10'}`}>
                                             <div className={`font-display font-black text-2xl sm:text-3xl mb-1 drop-shadow-sm ${isFirst ? 'text-mx-black' : 'text-text-primary'}`}>{seller.atingimento}%</div>
-                                            <div className={`text-[8px] sm:text-[9px] uppercase font-bold tracking-widest ${isFirst ? 'text-surface-alt' : 'text-text-tertiary'}`}>ATINGIMENTO</div>
+                                            <div className={`text-[8px] sm:text-[9px] uppercase font-bold tracking-widest ${isFirst ? 'text-brand-secondary' : 'text-text-tertiary'}`}>ATINGIMENTO</div>
                                         </div>
                                     </div>
                                 )
@@ -613,4 +613,6 @@ function StoreRankingView() {
             )}
         </main>
     )
+}
+  )
 }
