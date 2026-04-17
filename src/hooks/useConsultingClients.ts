@@ -73,9 +73,15 @@ export function useConsultingClients() {
     setLoading(false)
   }, [supabaseUser])
 
+  const BLOCKED_NAMES = ['MX PERFORMANCE', 'MX GESTAO PREDITIVA', 'MXGESTAO']
+
   const createClient = useCallback(async (input: CreateConsultingClientInput) => {
     if (!canCreate || !supabaseUser) {
       return { error: 'Apenas admin pode criar clientes da consultoria.' }
+    }
+
+    if (BLOCKED_NAMES.includes(input.name.trim().toUpperCase())) {
+      return { error: 'Não é possível cadastrar o próprio sistema como cliente.' }
     }
 
     const payload = {
