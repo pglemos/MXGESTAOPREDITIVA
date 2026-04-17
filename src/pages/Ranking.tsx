@@ -183,7 +183,7 @@ function GlobalRanking() {
                             onClick={() => setFilterStore(store === filterStore ? 'all' : (store || 'all'))}
                             className={cn(
                                 "px-3 py-1 rounded-mx-sm text-mx-tiny font-black uppercase tracking-widest whitespace-nowrap transition-colors",
-                                filterStore === store ? 'bg-brand-primary text-white' : 'text-text-tertiary hover:bg-surface-alt'
+                                filterStore === store ? 'bg-brand-primary text-mx-black' : 'text-text-tertiary hover:bg-surface-alt'
                             )}
                         >{store}</button>
                     ))}
