@@ -35,7 +35,6 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Rituais MX', icon: <Target size={22} />,
       items: [
-        { label: 'Checkin', path: '/checkin', icon: <CheckSquare size={16} /> },
         { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
         { label: 'Feedback/PDI', path: '/feedback', icon: <MessageSquare size={16} /> },
