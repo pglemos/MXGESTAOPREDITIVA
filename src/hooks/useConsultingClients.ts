@@ -62,7 +62,12 @@ export function useConsultingClients() {
       setError(fetchError.message)
       setClients([])
     } else {
-      setClients(parseConsultingClientArray(data || []))
+      try {
+        setClients(parseConsultingClientArray(data || []))
+      } catch (parseErr) {
+        console.error('[useConsultingClients] Zod parse failed:', parseErr)
+        setClients((data || []) as ConsultingClient[])
+      }
     }
 
     setLoading(false)
