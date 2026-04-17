@@ -190,28 +190,52 @@ export function useGlobalRanking() {
     const fetchGlobal = useCallback(async () => {
         const now = new Date()
         const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+        const dias = getDiasInfo()
         setLoading(true)
 
-        const { data: checkins } = await supabase
-            .from('daily_checkins')
-            .select('seller_user_id, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-            .eq('metric_scope', 'daily')
-            .gte('reference_date', startOfMonth)
-
-        const { data: tenures } = await supabase
-            .from('store_sellers')
-            .select('seller_user_id, store_id, users:seller_user_id(name, is_venda_loja), stores(name)')
-            .eq('is_active', true)
+        const [{ data: checkins }, { data: tenures }, { data: rules }, { data: yesterdayCheckins }] = await Promise.all([
+            supabase.from('daily_checkins')
+                .select('seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                .eq('metric_scope', 'daily')
+                .gte('reference_date', startOfMonth),
+            supabase.from('store_sellers')
+                .select('seller_user_id, store_id, users:seller_user_id(name, is_venda_loja), stores(name)')
+                .eq('is_active', true),
+            supabase.from('store_meta_rules')
+                .select('store_id, monthly_goal, include_venda_loja_in_individual_goal'),
+            supabase.from('daily_checkins')
+                .select('seller_user_id')
+                .eq('metric_scope', 'daily')
+                .eq('reference_date', dias.referencia),
+        ])
 
         if (!checkins || !tenures) { setLoading(false); return }
 
-        const agg = new Map<string, { vnd: number; leads: number; agd: number; vis: number; name: string; store: string; isVendaLoja: boolean }>()
+        const storeGoals = new Map<string, { goal: number; includeVL: boolean }>()
+        for (const r of rules || []) {
+            storeGoals.set(r.store_id, { goal: r.monthly_goal || 0, includeVL: r.include_venda_loja_in_individual_goal || false })
+        }
+
+        const storeSellerCounts = new Map<string, number>()
+        for (const t of tenures) {
+            storeSellerCounts.set(t.store_id, (storeSellerCounts.get(t.store_id) || 0) + 1)
+        }
+
+        const checkedInYesterday = new Set<string>()
+        for (const c of yesterdayCheckins || []) {
+            checkedInYesterday.add(c.seller_user_id)
+        }
+
+        const agg = new Map<string, { vnd: number; leads: number; agd: number; vis: number; name: string; store: string; storeId: string; isVendaLoja: boolean; checkedIn: boolean }>()
         for (const m of tenures) {
+            const mu = m as unknown as { users?: User; stores?: { name: string } }
             agg.set(m.seller_user_id, {
-                vnd: 0, leads: 0, agd: 0, vis: 0, 
-                name: (m as any).users?.name || '', 
-                store: (m as any).stores?.name || '',
-                isVendaLoja: (m as any).users?.is_venda_loja || false
+                vnd: 0, leads: 0, agd: 0, vis: 0,
+                name: mu.users?.name || '',
+                store: mu.stores?.name || '',
+                storeId: m.store_id,
+                isVendaLoja: mu.users?.is_venda_loja || false,
+                checkedIn: checkedInYesterday.has(m.seller_user_id),
             })
         }
         for (const c of checkins) {
@@ -225,33 +249,41 @@ export function useGlobalRanking() {
         }
 
         const entries: RankingEntry[] = Array.from(agg.entries())
-            .map(([uid, d]) => ({ 
-                user_id: uid, 
-                user_name: d.name, 
-                store_name: d.store, 
-                is_venda_loja: d.isVendaLoja,
-                vnd_total: d.vnd, 
-                leads: d.leads, 
-                agd_total: d.agd, 
-                visitas: d.vis, 
-                meta: 0, 
-                atingimento: 0, 
-                projecao: d.vnd,
-                ritmo: 0,
-                gap: 0,
-                position: 0 
-              }))
+            .map(([uid, d]) => {
+                const sg = storeGoals.get(d.storeId)
+                const storeGoal = sg?.goal || 0
+                const includeVL = sg?.includeVL || false
+                const sellerCount = storeSellerCounts.get(d.storeId) || 1
+                const meta = d.isVendaLoja
+                    ? (includeVL ? Math.round(storeGoal / Math.max(sellerCount, 1)) : 0)
+                    : Math.round(storeGoal / Math.max(sellerCount, 1))
+
+                return {
+                    user_id: uid,
+                    user_name: d.name,
+                    store_name: d.store,
+                    is_venda_loja: d.isVendaLoja,
+                    vnd_total: d.vnd,
+                    leads: d.leads,
+                    agd_total: d.agd,
+                    visitas: d.vis,
+                    meta,
+                    atingimento: meta > 0 ? calcularAtingimento(d.vnd, meta) : 0,
+                    projecao: d.isVendaLoja ? d.vnd : Math.round((d.vnd / Math.max(dias.decorridos, 1)) * dias.total),
+                    ritmo: d.isVendaLoja ? 0 : Math.max(0, Math.ceil(Math.max(0, meta - d.vnd) / Math.max(dias.restantes, 1))),
+                    gap: Math.max(0, meta - d.vnd),
+                    position: 0,
+                    efficiency: 0,
+                    status: { label: d.checkedIn ? 'Presente' : 'Ausente', color: d.checkedIn ? 'bg-status-success-surface text-status-success' : 'bg-status-error-surface text-status-error' },
+                    checked_in: d.checkedIn,
+                }
+            })
             .sort((a, b) => {
                 if (b.vnd_total !== a.vnd_total) return b.vnd_total - a.vnd_total
                 if (a.is_venda_loja !== b.is_venda_loja) return a.is_venda_loja ? 1 : -1
                 return b.visitas - a.visitas
             })
-            .map((e, i) => ({ 
-                ...e, 
-                position: i + 1,
-                efficiency: 0,
-                status: { label: '-', color: 'bg-gray-100 text-text-tertiary' }
-            }))
+            .map((e, i) => ({ ...e, position: i + 1 }))
 
         setRanking(entries)
         setLoading(false)

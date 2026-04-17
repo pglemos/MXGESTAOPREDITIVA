@@ -207,6 +207,7 @@ export interface RankingEntry {
     status: { label: string; color: string }
     gap: number
     position: number
+    checked_in?: boolean
 }
 
 /** Dados do Funil de Vendas */
