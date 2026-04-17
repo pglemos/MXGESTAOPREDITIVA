@@ -1,4 +1,4 @@
-import { useTeam } from '@/hooks/useTeam'
+import { useTeam, useStores } from '@/hooks/useTeam'
 import { useState, useMemo, useCallback } from 'react'
 import { 
     Users, UserPlus, Search, Mail, Phone, Shield, 
@@ -23,8 +23,13 @@ import { useAuth } from '@/hooks/useAuth'
 export default function Equipe() {
   const [searchParams] = useSearchParams()
   const urlStoreId = searchParams.get('id')
-  const { team, loading, refetch, updateVigencia } = useTeam(urlStoreId || undefined)
   const { role } = useAuth()
+  const isAdmin = role === 'admin'
+  const { stores } = useStores()
+  const [selectedStoreId, setSelectedStoreId] = useState(urlStoreId || '')
+  
+  const effectiveStoreId = isAdmin ? selectedStoreId : (urlStoreId || undefined)
+  const { team, loading, refetch, updateVigencia } = useTeam(effectiveStoreId || undefined)
   const [searchTerm, setSearchTerm] = useState('')
   const [editingMember, setEditingMember] = useState<any>(null)
   const [saving, setSaving] = useState(false)
@@ -93,6 +98,46 @@ export default function Equipe() {
 
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+      
+      {isAdmin && !selectedStoreId && (
+        <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white text-center space-y-mx-lg mt-mx-lg">
+          <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-brand-primary/10 flex items-center justify-center mx-auto">
+            <Users size={48} className="text-brand-primary" />
+          </div>
+          <Typography variant="h2" className="uppercase tracking-tighter">Selecione uma Unidade</Typography>
+          <Typography variant="p" tone="muted" className="max-w-md mx-auto uppercase tracking-widest font-black text-xs">
+            Escolha qual unidade visualizar para gerenciar a tropa.
+          </Typography>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-mx-sm max-w-3xl mx-auto pt-mx-lg">
+            {stores.map(store => (
+              <Button
+                key={store.id}
+                variant="outline"
+                onClick={() => setSelectedStoreId(store.id)}
+                className="h-mx-2xl rounded-mx-2xl font-black uppercase tracking-widest text-xs border-border-default hover:border-brand-primary hover:bg-brand-primary/5 transition-all"
+              >
+                {store.name}
+              </Button>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {isAdmin && selectedStoreId && (
+        <div className="flex items-center gap-mx-sm bg-white rounded-mx-full px-6 py-2 shadow-mx-sm border border-border-default self-start">
+          <Users size={16} className="text-brand-primary" />
+          <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-tertiary">Unidade:</Typography>
+          <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">
+            {stores.find(s => s.id === selectedStoreId)?.name || '...'}
+          </Typography>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedStoreId('')} className="h-mx-10 px-4 text-xs uppercase font-black ml-2">
+            Trocar
+          </Button>
+        </div>
+      )}
+
+      {(!isAdmin || selectedStoreId) && (
+      <>
       
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
@@ -285,7 +330,9 @@ export default function Equipe() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+       </AnimatePresence>
+      </>
+      )}
     </main>
   )
 }

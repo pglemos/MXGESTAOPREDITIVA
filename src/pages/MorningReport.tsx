@@ -7,7 +7,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { format, parseISO, startOfMonth } from 'date-fns'
+import { format, parseISO, startOfMonth, startOfWeek, endOfWeek, endOfMonth, startOfDay, subDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useCheckins, calculateReferenceDate } from '@/hooks/useCheckins'
 import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
@@ -44,18 +44,38 @@ export default function MorningReport() {
     return <StoreMorningReport />
 }
 
+type ReportTimeframe = 'diario' | 'semanal' | 'mensal'
+
+function getRange(tf: ReportTimeframe) {
+    const now = new Date()
+    switch (tf) {
+        case 'diario': {
+            const ref = subDays(now, 1)
+            return { start: format(ref, 'yyyy-MM-dd'), end: format(ref, 'yyyy-MM-dd'), label: format(ref, 'dd/MM/yyyy', { locale: ptBR }) }
+        }
+        case 'semanal': {
+            const ws = startOfWeek(now, { weekStartsOn: 1 })
+            const we = endOfWeek(now, { weekStartsOn: 1 })
+            return { start: format(ws, 'yyyy-MM-dd'), end: format(we, 'yyyy-MM-dd'), label: `${format(ws, 'dd/MM', { locale: ptBR })} — ${format(we, 'dd/MM/yyyy', { locale: ptBR })}` }
+        }
+        case 'mensal': {
+            return { start: format(startOfMonth(now), 'yyyy-MM-dd'), end: format(endOfMonth(now), 'yyyy-MM-dd'), label: format(now, 'MMMM yyyy', { locale: ptBR }) }
+        }
+    }
+}
+
 function AdminMorningReport() {
     const [storeData, setStoreData] = useState<StoreMorningData[]>([])
     const [loading, setLoading] = useState(true)
     const [isRefetching, setIsRefetching] = useState(false)
     const [expandedStoreId, setExpandedStoreId] = useState<string | null>(null)
     const [isSendingEmail, setIsSendingEmail] = useState(false)
+    const [isTriggering, setIsTriggering] = useState<string | null>(null)
+    const [timeframe, setTimeframe] = useState<ReportTimeframe>('mensal')
 
     const daysInfo = useMemo(() => getDiasInfo(), [])
     const referenceDate = useMemo(() => calculateReferenceDate(), [])
-    const referenceDateLabel = useMemo(() => format(parseISO(referenceDate), 'dd/MM/yyyy', { locale: ptBR }), [referenceDate])
-    const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
-    const monthEnd = format(new Date(), 'yyyy-MM-dd')
+    const range = useMemo(() => getRange(timeframe), [timeframe])
 
     const fetchData = useCallback(async () => {
         setLoading(true)
@@ -65,7 +85,7 @@ function AdminMorningReport() {
                 supabase.from('store_meta_rules').select('store_id, monthly_goal'),
                 supabase.from('daily_checkins')
                     .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-                    .gte('reference_date', monthStart).lte('reference_date', monthEnd),
+                    .gte('reference_date', range.start).lte('reference_date', range.end),
                 supabase.from('daily_checkins').select('seller_user_id, store_id').eq('reference_date', referenceDate),
                 supabase.from('memberships').select('user_id, store_id, users:user_id(id, name, active)'),
             ])
@@ -141,7 +161,7 @@ function AdminMorningReport() {
         } finally {
             setLoading(false)
         }
-    }, [monthStart, monthEnd, referenceDate, daysInfo])
+    }, [range.start, range.end, referenceDate, daysInfo])
 
     useEffect(() => { fetchData() }, [fetchData])
 
@@ -211,7 +231,7 @@ function AdminMorningReport() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Matinal <Typography as="span" className="text-brand-primary">Rede MX</Typography></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">Visão Administrativa • Todas as Unidades • {referenceDateLabel}</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">Visão Administrativa • Todas as Unidades • {range.label}</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
@@ -288,7 +308,7 @@ function AdminMorningReport() {
                         <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center shadow-mx-sm" aria-hidden="true"><Building2 size={24} className="text-brand-primary" /></div>
                         <div>
                             <CardTitle className="text-xl uppercase tracking-tighter">Grade Operacional da Rede</CardTitle>
-                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest block mt-1">TODAS AS UNIDADES • {referenceDateLabel}</Typography>
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest block mt-1">TODAS AS UNIDADES • {range.label}</Typography>
                         </div>
                     </div>
                 </CardHeader>

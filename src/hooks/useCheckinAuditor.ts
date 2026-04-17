@@ -3,8 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { CheckinCorrectionRequest, CheckinFormData, DailyCheckin } from '@/types/database'
 
-export function useCheckinAuditor() {
-    const { profile, storeId } = useAuth()
+export function useCheckinAuditor(storeIdOverride?: string) {
+    const { profile, storeId: authStoreId } = useAuth()
+    const storeId = storeIdOverride || authStoreId
     const [loading, setLoading] = useState(false)
 
     /** Vendedor solicita correção */

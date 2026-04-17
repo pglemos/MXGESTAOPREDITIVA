@@ -7,7 +7,8 @@ import { useState, useMemo, useCallback } from 'react'
 import { 
     Trophy, Crown, TrendingUp, RefreshCw, 
     Search, Building2, Calendar, Zap, Target,
-    Phone, Users, CheckCircle2, XCircle
+    Phone, Users, CheckCircle2, XCircle,
+    Flame, Swords, X
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -16,6 +17,11 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card } from '@/components/molecules/Card'
+
+// New components
+import { LiveFloor } from '@/features/ranking/components/LiveFloor'
+import { BattleView } from '@/features/ranking/components/BattleView'
+import { SellerProfileModal } from '@/features/ranking/components/SellerProfileModal'
 
 export default function Ranking() {
     const { role } = useAuth()
@@ -29,6 +35,7 @@ function GlobalRanking() {
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [filterStore, setFilterStore] = useState<string>('all')
+    const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
 
     const stores = useMemo(() => {
         const set = new Set(ranking.map(r => r.store_name).filter(Boolean))
@@ -70,7 +77,7 @@ function GlobalRanking() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
@@ -162,7 +169,10 @@ function GlobalRanking() {
                             if (r.is_venda_loja) return null
 
                             return (
-                                <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
+                                <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}
+                                    onClick={() => setSelectedSeller(r.user_id)}
+                                    className="cursor-pointer hover:scale-[1.01] transition-transform"
+                                >
                                     <Card className={cn(
                                         "p-mx-md flex items-center gap-mx-md border-none shadow-mx-sm transition-all relative overflow-hidden",
                                         isTop1 ? "bg-brand-secondary text-white shadow-mx-xl ring-2 ring-mx-amber-400 ring-offset-4" :
@@ -178,6 +188,7 @@ function GlobalRanking() {
                                             <div className="flex items-center gap-mx-sm mb-mx-xs">
                                                 <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="truncate text-base font-black uppercase tracking-tight">{r.user_name}</Typography>
                                                 {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md text-mx-nano">LÍDER</Badge>}
+                                                {r.atingimento >= 100 && !isTop1 && <Badge variant="danger" className="text-mx-nano"><Flame size={10} className="mr-1"/> ON FIRE</Badge>}
                                                 {isMe && !isTop1 && <Badge variant="brand" className="text-mx-nano">VOCÊ</Badge>}
                                             </div>
                                             <div className="flex items-center gap-mx-xs mb-mx-xs">
@@ -234,17 +245,28 @@ function GlobalRanking() {
                     </AnimatePresence>
                 </ol>
             </div>
+
+            {selectedSeller && (
+                <SellerProfileModal 
+                    seller={filtered.find(s => s.user_id === selectedSeller)!} 
+                    onClose={() => setSelectedSeller(null)} 
+                />
+            )}
         </main>
     )
 }
 
 function StoreRankingView() {
-    const { profile, storeId } = useAuth()
+    const { profile } = useAuth()
     const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
     const { checkins, loading: checkinsLoading, fetchCheckins } = useCheckins()
     const { metaRules, fetchMetaRules } = useStoreMetaRules()
+    
+    const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'live'>('leaderboard')
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+    const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
+    const [battleOpponents, setBattleOpponents] = useState<string[]>([])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -259,8 +281,21 @@ function StoreRankingView() {
     })
 
     const sortedRanking = useMemo(() => {
-        return (storeSales.processedRanking || []).filter(r => r.user_name.toLowerCase().includes(searchTerm.toLowerCase()))
+        return (storeSales.processedRanking || []).filter(r => r.user_name.toLowerCase().includes(searchTerm.toLowerCase()) && !r.is_venda_loja)
     }, [storeSales.processedRanking, searchTerm])
+
+    // Podium 
+    const top3 = [...sortedRanking].sort((a, b) => a.position - b.position).slice(0, 3)
+    const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean)
+
+    const toggleOpponent = (id: string) => {
+        if (battleOpponents.includes(id)) {
+            setBattleOpponents(prev => prev.filter(oid => oid !== id))
+        } else {
+            if (battleOpponents.length < 2) setBattleOpponents(prev => [...prev, id])
+            else setBattleOpponents([battleOpponents[0], id])
+        }
+    }
 
     if (rankingLoading || checkinsLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
@@ -270,7 +305,7 @@ function StoreRankingView() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
@@ -279,15 +314,20 @@ function StoreRankingView() {
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Meritocracia Real-time • MX ELITE TRACKING</Typography>
                 </div>
+                
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="relative group w-full sm:w-mx-sidebar-expanded order-2 sm:order-none">
-                        <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
-                        <Input
-                            placeholder="LOCALIZAR VENDEDOR..." value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest font-black"
-                        />
+                    <div className="flex bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-4">
+                        <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                            <Trophy size={14} /> Ranking
+                        </button>
+                        <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Live Floor
+                        </button>
+                        <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                            <Swords size={14} /> Arena X1
+                        </button>
                     </div>
+
                     <div className="flex items-center gap-mx-sm w-full sm:w-auto order-1 sm:order-none">
                         <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
@@ -299,69 +339,173 @@ function StoreRankingView() {
                     </div>
                 </div>
             </header>
+
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-                <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none">
-                    <AnimatePresence mode="popLayout">
-                        {sortedRanking.map((r, i) => {
-                            const isMe = r.user_id === profile?.id
-                            const isTop1 = i === 0 && !r.is_venda_loja
-                            return (
-                                <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
-                                    <Card className={cn(
-                                        "p-mx-lg md:p-10 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
-                                        isTop1 ? "bg-brand-secondary text-white shadow-mx-xl ring-2 ring-mx-amber-400 ring-offset-4" :
-                                        isMe ? "bg-mx-indigo-50 border-2 border-brand-primary shadow-mx-sm" : "bg-white"
-                                    )}>
-                                        <div className="flex items-center gap-mx-lg flex-1 min-w-0">
-                                            <div className={cn(
-                                                "w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-header rounded-mx-2xl border-4 flex items-center justify-center font-black text-xl sm:text-3xl shadow-mx-lg shrink-0",
-                                                isTop1 ? "bg-mx-amber-400 border-mx-amber-300 text-mx-black rotate-3 scale-110" : "bg-surface-alt border-white text-text-primary"
-                                            )}>
-                                                {isTop1 ? <Crown size={32} fill="currentColor" /> : <span>#{i + 1}</span>}
+                {viewMode === 'live' && <LiveFloor ranking={sortedRanking} />}
+
+                {viewMode === 'battle' && (
+                    <div className="animate-slide-up">
+                        {battleOpponents.length < 2 && (
+                             <div className="mb-8 text-center animate-pulse">
+                                 <p className="text-sm font-bold text-text-tertiary bg-white/50 inline-block px-4 py-2 rounded-full border border-white/60 shadow-sm">
+                                     Selecione {2 - battleOpponents.length} {2 - battleOpponents.length === 1 ? 'vendedor' : 'vendedores'} abaixo para iniciar o X1
+                                 </p>
+                             </div>
+                        )}
+                        
+                        <div className="relative mb-10">
+                             {battleOpponents.length > 0 && (
+                                <button onClick={() => setBattleOpponents([])} className="absolute top-0 right-0 z-50 p-2 bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                             )}
+                             <BattleView opponents={battleOpponents} ranking={sortedRanking} />
+                        </div>
+
+                        <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2">Escolha os Combatentes</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {sortedRanking.map(seller => {
+                                const selected = battleOpponents.includes(seller.user_id)
+                                const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
+                                return (
+                                    <button 
+                                        key={seller.user_id}
+                                        onClick={() => toggleOpponent(seller.user_id)}
+                                        className={`p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-3 relative overflow-hidden group active:scale-95
+                                            ${selected ? 'bg-mx-black border-brand-primary shadow-xl scale-105' : 'bg-white/40 border-white/40 hover:bg-white hover:border-white'}`}
+                                    >
+                                        <img src={avatar} alt="" className={`w-14 h-14 rounded-full object-cover border-2 shadow-sm ${selected ? 'border-brand-primary' : 'border-white'}`} />
+                                        <span className={`font-bold text-xs ${selected ? 'text-white' : 'text-mx-black'}`}>{seller.user_name}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {viewMode === 'leaderboard' && (
+                    <div className="space-y-10 animate-slide-up">
+                        {/* PODIUM */}
+                        <div className="flex justify-center items-end gap-3 sm:gap-8 relative pt-4 min-h-[300px]">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-64 bg-brand-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
+
+                            {podiumOrder.map((seller) => {
+                                const isFirst = seller.position === 1
+                                const isSecond = seller.position === 2
+                                const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
+                                
+                                return (
+                                    <div key={seller.user_id} onClick={() => setSelectedSeller(seller.user_id)} className={`flex flex-col items-center group cursor-pointer transition-transform duration-500 hover:-translate-y-2 z-10 ${isFirst ? '-mb-4 sm:-mb-0' : ''}`}>
+                                        <div className="relative mb-3 flex flex-col items-center">
+                                            {isFirst && <Crown className="w-8 h-8 text-yellow-500 mb-2 animate-bounce drop-shadow-lg" />}
+                                            <div className={`rounded-full p-1 transition-all ${isFirst ? 'bg-gradient-to-br from-brand-primary to-yellow-300 shadow-[0_0_30px_#00E5FF]' : 'bg-white shadow-xl'}`}>
+                                                <img src={avatar} alt="" className={`rounded-full object-cover border-4 border-mx-black ${isFirst ? 'w-24 h-24 sm:w-28 sm:h-28' : isSecond ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-14 h-14 sm:w-16 sm:h-16'}`} />
                                             </div>
-                                            <div className="min-w-0 flex-1 space-y-mx-xs">
-                                                <div className="flex items-center gap-mx-sm">
-                                                    <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
-                                                    {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md px-3 text-mx-nano sm:text-xs">LÍDER</Badge>}
-                                                    {isMe && !isTop1 && <Badge variant="brand" className="px-3 text-mx-nano sm:text-xs">VOCÊ</Badge>}
-                                                </div>
-                                                <div className="flex flex-wrap items-center gap-mx-md sm:gap-mx-10">
-                                                    <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Vendas</Typography>
-                                                        <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.vnd_total} v</Typography>
-                                                    </div>
-                                                    <div className="w-px h-mx-lg bg-current opacity-10 hidden sm:block" />
-                                                    <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Objetivo</Typography>
-                                                        <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.meta} v</Typography>
-                                                    </div>
-                                                    <div className="w-px h-mx-lg bg-current opacity-10 hidden sm:block" />
-                                                    <div className="flex flex-col">
-                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Ritmo</Typography>
-                                                        <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.ritmo} v/d</Typography>
-                                                    </div>
-                                                </div>
+                                            <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-white'}`}>
+                                                {isFirst ? 'Campeão' : `#${seller.position} Lugar`}
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between sm:justify-end gap-mx-lg lg:gap-mx-10 shrink-0 mt-6 lg:mt-0 border-t lg:border-none border-current border-opacity-10 pt-6 lg:pt-0">
-                                            <div className="text-left lg:text-right">
-                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-micro mb-1">Atingimento</Typography>
-                                                <Typography variant="h1" tone={isTop1 ? 'white' : 'brand'} className="text-4xl sm:text-5xl font-mono-numbers tracking-tighter leading-none font-black">{r.atingimento}%</Typography>
-                                            </div>
-                                            <div className={cn(
-                                                "w-mx-2xl h-mx-2xl rounded-mx-2xl flex items-center justify-center border shadow-inner shrink-0",
-                                                isTop1 ? "bg-white/10 border-white/20 text-white" : "bg-surface-alt border-border-default text-brand-primary"
-                                            )}>
-                                                <TrendingUp size={28} className={cn(r.atingimento < 50 && "rotate-180 text-status-error")} />
-                                            </div>
+                                        <div className={`w-20 sm:w-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
+                                            ${isFirst ? 'h-56 bg-gradient-to-b from-brand-primary/80 to-brand-primary/5' : isSecond ? 'h-40 bg-gradient-to-b from-slate-300/80 to-slate-200/10' : 'h-28 bg-gradient-to-b from-amber-700/60 to-amber-900/10'}`}>
+                                            <div className={`font-display font-black text-2xl sm:text-3xl mb-1 drop-shadow-sm ${isFirst ? 'text-mx-black' : 'text-text-primary'}`}>{seller.atingimento}%</div>
+                                            <div className={`text-[8px] sm:text-[9px] uppercase font-bold tracking-widest ${isFirst ? 'text-surface-alt' : 'text-text-tertiary'}`}>ATINGIMENTO</div>
                                         </div>
-                                    </Card>
-                                </motion.li>
-                            )
-                        })}
-                    </AnimatePresence>
-                </ol>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        {/* LIST */}
+                        <div className="relative group w-full max-w-sm mb-4">
+                            <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                            <Input placeholder="LOCALIZAR VENDEDOR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest font-black" />
+                        </div>
+
+                        <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none">
+                            <AnimatePresence mode="popLayout">
+                                {sortedRanking.map((r, i) => {
+                                    const isMe = r.user_id === profile?.id
+                                    const isTop1 = r.position === 1
+                                    const isBattleSelected = battleOpponents.includes(r.user_id)
+
+                                    return (
+                                        <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}
+                                            onClick={() => setSelectedSeller(r.user_id)} className="cursor-pointer hover:scale-[1.01] transition-transform"
+                                        >
+                                            <Card className={cn(
+                                                "p-mx-lg md:p-10 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
+                                                isTop1 ? "bg-brand-secondary text-white shadow-mx-xl ring-2 ring-mx-amber-400 ring-offset-4" :
+                                                isMe ? "bg-mx-indigo-50 border-2 border-brand-primary shadow-mx-sm" : "bg-white"
+                                            )}>
+                                                <div className="flex items-center gap-mx-lg flex-1 min-w-0">
+                                                    <div className={cn(
+                                                        "w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-header rounded-mx-2xl border-4 flex items-center justify-center font-black text-xl sm:text-3xl shadow-mx-lg shrink-0",
+                                                        isTop1 ? "bg-mx-amber-400 border-mx-amber-300 text-mx-black rotate-3 scale-110" : "bg-surface-alt border-white text-text-primary"
+                                                    )}>
+                                                        {isTop1 ? <Crown size={32} fill="currentColor" /> : <span>#{r.position}</span>}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1 space-y-mx-xs">
+                                                        <div className="flex items-center gap-mx-sm">
+                                                            <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
+                                                            {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md px-3 text-mx-nano sm:text-xs">LÍDER</Badge>}
+                                                            {r.atingimento >= 100 && !isTop1 && <Badge variant="danger" className="px-3 text-mx-nano sm:text-xs"><Flame size={12} className="mr-1 inline-block"/> ON FIRE</Badge>}
+                                                            {isMe && !isTop1 && <Badge variant="brand" className="px-3 text-mx-nano sm:text-xs">VOCÊ</Badge>}
+                                                        </div>
+                                                        <div className="flex flex-wrap items-center gap-mx-md sm:gap-mx-10">
+                                                            <div className="flex flex-col">
+                                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Vendas</Typography>
+                                                                <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.vnd_total} v</Typography>
+                                                            </div>
+                                                            <div className="w-px h-mx-lg bg-current opacity-10 hidden sm:block" />
+                                                            <div className="flex flex-col">
+                                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Objetivo</Typography>
+                                                                <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.meta} v</Typography>
+                                                            </div>
+                                                            <div className="w-px h-mx-lg bg-current opacity-10 hidden sm:block" />
+                                                            <div className="flex flex-col">
+                                                                <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-nano sm:text-mx-micro">Ritmo</Typography>
+                                                                <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="text-lg sm:text-2xl font-mono-numbers">{r.ritmo} v/d</Typography>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between sm:justify-end gap-mx-lg lg:gap-mx-10 shrink-0 mt-6 lg:mt-0 border-t lg:border-none border-current border-opacity-10 pt-6 lg:pt-0">
+                                                    <div className="text-left lg:text-right">
+                                                        <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-micro mb-1">Atingimento</Typography>
+                                                        <div className="flex items-center gap-3">
+                                                            <Typography variant="h1" tone={isTop1 ? 'white' : 'brand'} className="text-4xl sm:text-5xl font-mono-numbers tracking-tighter leading-none font-black">{r.atingimento}%</Typography>
+                                                            <div className={cn(
+                                                                "w-mx-2xl h-mx-2xl rounded-mx-2xl flex items-center justify-center border shadow-inner shrink-0",
+                                                                isTop1 ? "bg-white/10 border-white/20 text-white" : "bg-surface-alt border-border-default text-brand-primary"
+                                                            )}>
+                                                                <TrendingUp size={28} className={cn(r.atingimento < 50 && "rotate-180 text-status-error")} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button 
+                                                      onClick={(e) => { e.stopPropagation(); toggleOpponent(r.user_id); setViewMode('battle') }}
+                                                      className={`ml-4 p-3 rounded-xl transition-all border group/btn hover:scale-110 active:scale-95 ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-[0_0_10px_#00E5FF]' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
+                                                      title="Desafiar para X1"
+                                                    >
+                                                        <Swords className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </Card>
+                                        </motion.li>
+                                    )
+                                })}
+                            </AnimatePresence>
+                        </ol>
+                    </div>
+                )}
             </div>
+
+            {selectedSeller && (
+                <SellerProfileModal 
+                    seller={sortedRanking.find(s => s.user_id === selectedSeller)!} 
+                    onClose={() => setSelectedSeller(null)} 
+                />
+            )}
         </main>
     )
 }

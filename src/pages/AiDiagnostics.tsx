@@ -9,16 +9,33 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { useCheckins } from '@/hooks/useCheckins'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 
 interface AuditLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
 
 export default function AiDiagnostics() {
     const { role } = useAuth()
-    const { checkins } = useCheckins()
+    const { checkins: storeCheckins } = useCheckins()
+    const [adminCheckins, setAdminCheckins] = useState<any[]>([])
     const [isScanning, setIsScanning] = useState(false)
     const [logs, setLogs] = useState<AuditLog[]>([])
     const [summary, setSummary] = useState<{ diagnostic: string; action: string } | null>(null)
     const terminalEndRef = useRef<HTMLDivElement>(null)
+
+    const checkins = role === 'admin' ? adminCheckins : storeCheckins
+
+    useEffect(() => {
+        if (role !== 'admin') return
+        const fetchAll = async () => {
+            const { data } = await supabase.from('daily_checkins')
+                .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                .eq('metric_scope', 'daily')
+                .order('reference_date', { ascending: false })
+                .limit(5000)
+            setAdminCheckins(data || [])
+        }
+        fetchAll()
+    }, [role])
 
     const addLog = useCallback((msg: string, type: AuditLog['type'] = 'info') => {
         setLogs(prev => [...prev, { type, msg: `[${new Date().toLocaleTimeString('pt-BR')}] ${msg}` }])
@@ -32,7 +49,7 @@ export default function AiDiagnostics() {
         addLog('Conectando ao banco de dados Supabase...', 'info')
         await new Promise(r => setTimeout(r, 600))
         addLog('Conexão estabelecida. Protocolo SSL verificado.', 'success')
-        addLog(`Escaneando ${checkins.length} registros de check-in...`, 'info')
+        addLog(`Escaneando ${checkins.length} registros de check-in${role === 'admin' ? ' (REDE COMPLETA)' : ''}...`, 'info')
         await new Promise(r => setTimeout(r, 1000))
         addLog('Executando heurística de conversão (MX 20/60/33)...', 'warning')
         const funnel = calcularFunil(checkins); const diagnosis = gerarDiagnosticoMX(funnel)
@@ -63,7 +80,7 @@ export default function AiDiagnostics() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-glow-brand animate-pulse" aria-hidden="true" />
                         <Typography variant="h1" tone="white">Auditoria <Typography as="span" className="text-brand-primary/80">Forense</Typography></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0</Typography>
+                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0{role === 'admin' ? ' • REDE COMPLETA' : ''}</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-mx-md shrink-0 w-full sm:w-auto">

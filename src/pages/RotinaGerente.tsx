@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
-import { useTeam } from '@/hooks/useTeam'
+import { useTeam, useStores } from '@/hooks/useTeam'
 import { calculateReferenceDate, useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
@@ -13,7 +13,7 @@ import {
     Zap, FileCheck, Target, TrendingUp,
     MessageSquare, Award, ChevronRight, Mail,
     BarChart3, RefreshCw, User, X, ShieldCheck, ShieldAlert, Users,
-    Smartphone, History, AlertTriangle, Send
+    Smartphone, History, AlertTriangle, Send, Store
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -34,17 +34,24 @@ type RoutineTab = 'diario' | 'semanal' | 'mensal' | 'ajustes'
 
 export default function RotinaGerente() {
     const [tab, setTab] = useState<RoutineTab>('diario')
-    const { sellers, refetch: refetchTeam } = useTeam()
+    const { role } = useAuth()
+    const isAdmin = role === 'admin'
+    const { stores } = useStores()
+    const [selectedStoreId, setSelectedStoreId] = useState<string>('')
+    
+    const effectiveStoreId = isAdmin ? selectedStoreId : undefined
+
+    const { sellers, refetch: refetchTeam } = useTeam(effectiveStoreId)
     const { membership } = useAuth()
-    const { checkins, fetchCheckins } = useCheckins()
-    const { storeGoal, fetchGoals } = useGoals()
-    const { metaRules, fetchMetaRules } = useStoreMetaRules()
-    const { ranking, refetch: refetchRanking } = useRanking()
-    const { routineLog, registerRoutine } = useManagerRoutine()
-    const { feedbacks, refetch: refetchFeedbacks } = useFeedbacks()
-    const { pdis, refetch: refetchPDIs } = usePDIs()
+    const { checkins, fetchCheckins } = useCheckins(effectiveStoreId)
+    const { storeGoal, fetchGoals } = useGoals(effectiveStoreId)
+    const { metaRules, fetchMetaRules } = useStoreMetaRules(effectiveStoreId)
+    const { ranking, refetch: refetchRanking } = useRanking(effectiveStoreId)
+    const { routineLog, registerRoutine } = useManagerRoutine(effectiveStoreId)
+    const { feedbacks, refetch: refetchFeedbacks } = useFeedbacks(isAdmin ? { storeId: effectiveStoreId } : undefined)
+    const { pdis, refetch: refetchPDIs } = usePDIs(effectiveStoreId)
     const { sendNotification } = useNotifications()
-    const { fetchPendingRequests, approveRequest, rejectRequest, loading: auditorLoading } = useCheckinAuditor()
+    const { fetchPendingRequests, approveRequest, rejectRequest, loading: auditorLoading } = useCheckinAuditor(effectiveStoreId)
     
     const [pendingRequests, setPendingRequests] = useState<any[]>([])
     const [executing, setExecuting] = useState(false)
@@ -133,6 +140,46 @@ export default function RotinaGerente() {
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+            
+            {isAdmin && !selectedStoreId && (
+                <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white text-center space-y-mx-lg">
+                    <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-brand-primary/10 flex items-center justify-center mx-auto">
+                        <Store size={48} className="text-brand-primary" />
+                    </div>
+                    <Typography variant="h2" className="uppercase tracking-tighter">Selecione uma Unidade</Typography>
+                    <Typography variant="p" tone="muted" className="max-w-md mx-auto uppercase tracking-widest font-black text-xs">
+                        Como administrador, escolha qual unidade gerenciar no Centro de Comando.
+                    </Typography>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-mx-sm max-w-3xl mx-auto pt-mx-lg">
+                        {stores.map(store => (
+                            <Button
+                                key={store.id}
+                                variant="outline"
+                                onClick={() => setSelectedStoreId(store.id)}
+                                className="h-mx-2xl rounded-mx-2xl font-black uppercase tracking-widest text-xs border-border-default hover:border-brand-primary hover:bg-brand-primary/5 transition-all"
+                            >
+                                {store.name}
+                            </Button>
+                        ))}
+                    </div>
+                </Card>
+            )}
+
+            {isAdmin && selectedStoreId && (
+                <div className="flex items-center gap-mx-sm bg-white rounded-mx-full px-6 py-2 shadow-mx-sm border border-border-default self-start">
+                    <Store size={16} className="text-brand-primary" />
+                    <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-tertiary">Unidade:</Typography>
+                    <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">
+                        {stores.find(s => s.id === selectedStoreId)?.name || '...'}
+                    </Typography>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedStoreId('')} className="h-mx-10 px-4 text-xs uppercase font-black ml-2">
+                        Trocar
+                    </Button>
+                </div>
+            )}
+
+            {(!isAdmin || selectedStoreId) && (
+            <>
             
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
@@ -365,8 +412,10 @@ export default function RotinaGerente() {
                             </Card>
                         </motion.div>
                     )}
-                </AnimatePresence>
-            </div>
+                 </AnimatePresence>
+             </div>
+            </>
+            )}
         </main>
     )
 }
