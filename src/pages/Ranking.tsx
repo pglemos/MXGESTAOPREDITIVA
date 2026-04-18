@@ -105,14 +105,14 @@ function GlobalRanking() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="flex bg-white/40 p-mx-tiny.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-4">
-                        <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                    <div className="flex w-full sm:w-auto overflow-x-auto no-scrollbar bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4">
+                        <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Ranking
                         </button>
-                        <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                        <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <div className="w-mx-xs h-mx-xs rounded-full bg-status-success animate-pulse" /> Live Floor
                         </button>
-                        <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                        <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
                         </button>
                     </div>
@@ -421,14 +421,14 @@ function StoreRankingView() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="flex bg-white/40 p-mx-tiny.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-4">
-                        <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                    <div className="flex w-full sm:w-auto overflow-x-auto no-scrollbar bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4">
+                        <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Ranking
                         </button>
-                        <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                        <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <div className="w-mx-xs h-mx-xs rounded-full bg-status-success animate-pulse" /> Live Floor
                         </button>
-                        <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                        <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
                         </button>
                     </div>
