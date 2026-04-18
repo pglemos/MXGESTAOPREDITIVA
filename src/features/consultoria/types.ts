@@ -386,4 +386,5 @@ export interface DREComputed {
   posvenda_per_car: number
   profit_per_car: number
   rentability: number
+  cac: number
 }

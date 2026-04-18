@@ -127,6 +127,7 @@ const TABLE_ROWS: DRETableRow[] = [
   { label: 'Volume Vendas', getValue: (_c, f) => f.volume_vendas || 0, format: 'number' },
   { label: 'Ticket Médio', getValue: (c) => c.avg_ticket },
   { label: 'Margem Bruta/Carro', getValue: (c) => c.margin_per_car },
+  { label: 'Custo por Venda (CAC)', getValue: (c) => c.cac },
   { label: 'Margem Líquida/Carro', getValue: (c) => c.net_margin_per_car },
   { label: 'Custo Prep./Carro', getValue: (c) => c.prep_cost_per_car },
   { label: 'Pós-Venda/Carro', getValue: (c) => c.posvenda_per_car },
@@ -305,6 +306,7 @@ export const DREView: React.FC<DREViewProps> = ({ clientId }) => {
           total_expenses: formComputed.total_expenses,
           net_profit: formComputed.net_profit,
           rentability: formComputed.rentability,
+          cac: formComputed.cac,
         }}
       />
     </section>

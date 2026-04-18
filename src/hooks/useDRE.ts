@@ -38,6 +38,7 @@ function computeDRE(f: Partial<DREFinancial>): DREComputed {
     posvenda_per_car: vol > 0 ? Math.round((v(f.exp_pos_venda) / vol) * 100) / 100 : 0,
     profit_per_car: vol > 0 ? Math.round((net_profit / vol) * 100) / 100 : 0,
     rentability: cap > 0 ? Math.round((net_profit / cap) * 10000) / 10000 : 0,
+    cac: vol > 0 ? Math.round((v(f.exp_marketing) / vol) * 100) / 100 : 0,
   }
 }
 

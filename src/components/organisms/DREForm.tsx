@@ -17,6 +17,7 @@ export interface DREFormComputedPreview {
   total_expenses: number
   net_profit: number
   rentability: number
+  cac: number
 }
 
 export interface DREFormProps {

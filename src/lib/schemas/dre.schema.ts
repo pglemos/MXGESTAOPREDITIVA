@@ -92,6 +92,7 @@ export const DREComputedSchema = z.object({
   posvenda_per_car: z.number(),
   profit_per_car: z.number(),
   rentability: z.number(),
+  cac: z.number(),
 })
 
 export type DREComputed = z.infer<typeof DREComputedSchema>

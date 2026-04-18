@@ -32,18 +32,18 @@ para garantir autonomia operacional e gerar entregáveis precisos em tempo real.
 - [x] Os dados são salvos em `consulting_parameter_values` baseados nos conjuntos ativos em `consulting_parameter_sets`.
 
 ### 3. Formulários Nativos do Diagnóstico PMR
-- [ ] Construir a UI de renderização do formulário nativo em `PmrDiagnosticsView.tsx` consumindo `consulting_pmr_form_templates`.
-- [ ] O formulário deve suportar os 4 tipos de roles: Dono, Gerente, Vendedor e Processos.
-- [ ] Submissão do formulário salva os resultados estruturados em `consulting_pmr_form_responses`.
-- [ ] Respostas alimentam (via summary/LLM) as visões de planejamento estratégico.
+- [x] Construir a UI de renderização do formulário nativo em `PmrDiagnosticsView.tsx` consumindo `consulting_pmr_form_templates`.
+- [x] O formulário deve suportar os 4 tipos de roles: Dono, Gerente, Vendedor e Processos.
+- [x] Submissão do formulário salva os resultados estruturados em `consulting_pmr_form_responses`.
+- [x] Respostas alimentam (via summary/LLM) as visões de planejamento estratégico.
 
 ### 4. Fluxo de Dados Diário e Mensal
-- [ ] A aba de `Fechamento Mensal` (ou integração via `DRE`) deve capturar o investimento em Marketing para calcular o Custo por Venda.
-- [ ] Integração do Tracking de Vendas com as Metas estabelecidas no *Planejamento Estratégico*.
+- [x] A aba de `Fechamento Mensal` (ou integração via `DRE`) deve capturar o investimento em Marketing para calcular o Custo por Venda.
+- [x] Integração do Tracking de Vendas com as Metas estabelecidas no *Planejamento Estratégico*.
 
 ### 5. Artefatos de Saída
-- [ ] Scripts CLI de geração de documentos e planos de ação lendo do banco e criando saídas .md ou .pptx equivalentes aos arquivos locais (e.g. `PMR - DNA VEICULOS - PLANEJAMENTO ESTRATEGICO.pptx`).
-- [ ] Resumo executivo (`GED - RELATÓRIO EXECUTIVO DE DIAGNÓSTICO.pdf` equivalente).
+- [x] Scripts CLI de geração de documentos e planos de ação lendo do banco e criando saídas .md ou .pptx equivalentes aos arquivos locais (e.g. `PMR - DNA VEICULOS - PLANEJAMENTO ESTRATEGICO.pptx`).
+- [x] Resumo executivo (`GED - RELATÓRIO EXECUTIVO DE DIAGNÓSTICO.pdf` equivalente).
 
 ## Initial Data Model (Já contido em migrations previas)
 - `consulting_pmr_form_templates` e `consulting_pmr_form_responses`: Estrutura dos questionários nativos.
