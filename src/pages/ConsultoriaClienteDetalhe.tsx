@@ -60,7 +60,7 @@ export default function ConsultoriaClienteDetalhe() {
   } = useConsultingModules(clientId)
   const { steps: methodologySteps, program } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const [activeTab, setActiveTab] = useState<Tab>('overview')
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
     const tab = searchParams.get('tab')
@@ -74,11 +74,17 @@ export default function ConsultoriaClienteDetalhe() {
   }, [searchParams, clientId])
 
   useEffect(() => {
+    if (modulesLoading) return
     if (activeTab === 'diagnostics' && !isModuleEnabled('diagnostics')) setActiveTab('overview')
     if (activeTab === 'strategic' && !isModuleEnabled('strategic_plan')) setActiveTab('overview')
     if (activeTab === 'action' && !isModuleEnabled('action_plan')) setActiveTab('overview')
     if (activeTab === 'financial' && !isModuleEnabled('dre')) setActiveTab('overview')
-  }, [activeTab, isModuleEnabled])
+  }, [activeTab, isModuleEnabled, modulesLoading])
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab)
+    setSearchParams({ tab }, { replace: true })
+  }
   const [savingUnit, setSavingUnit] = useState(false)
   const [savingContact, setSavingContact] = useState(false)
   const [savingAssignment, setSavingAssignment] = useState(false)
@@ -308,15 +314,15 @@ export default function ConsultoriaClienteDetalhe() {
           </Typography>
         </div>
 
-        <div className="flex items-center gap-mx-sm">
-          <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm">
+        <div className="flex items-center gap-mx-sm w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+          <nav className="flex items-center gap-mx-tiny bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm">
             {visibleTabs.map((tab) => (
               <Button
                 key={tab}
                 variant={activeTab === tab ? 'secondary' : 'ghost'}
                 size="sm"
-                onClick={() => setActiveTab(tab)}
-                className="rounded-mx-full px-6 h-mx-lg uppercase font-black"
+                onClick={() => handleTabChange(tab)}
+                className="rounded-mx-full px-6 h-mx-lg uppercase font-black whitespace-nowrap"
               >
                 {tabLabels[tab]}
               </Button>
