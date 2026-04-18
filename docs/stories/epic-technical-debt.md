@@ -274,14 +274,14 @@
 - **Estimativa:** 4h
 - **Descrição:** `text-text-tertiary` (#94a3b8) com `opacity-40` resulta em contraste ≈ 1.43:1 (FALHA CRÍTICA WCAG AA). 40+ ocorrências em 10 arquivos. Criar novo token `--color-text-label: #64748b` e substituir todas as instâncias.
 - **Critérios de Aceitação:**
-  1. Novo token `--color-text-label: #64748b` adicionado no bloco `@theme` do Tailwind
-  2. Novo tone `"label": "text-[#64748b]"` no Typography
-  3. Todas as ~40 instâncias de `text-text-tertiary opacity-40` substituídas por `text-text-label` (sem opacity)
-  4. Labels de seção: `tone="muted"` + `opacity-40` → `tone="label"` ou classe `text-text-label`
-  5. Timestamps e metadados: usar `text-text-secondary` sem opacity (7.12:1)
-  6. Empty states: manter `text-text-tertiary` **sem opacity** (exceção WCAG para large text com `font-black`)
-  7. Contraste ≥ 4.5:1 em dark mode e light mode para todos os textos corrigidos
-  8. Zero violações WCAG AA para contraste de texto
+  1. [x] Novo token `--color-text-label: #64748b` adicionado no bloco `@theme` do Tailwind
+  2. [x] Novo tone `"label": "text-[#64748b]"` no Typography
+  3. [x] Todas as ~40 instâncias de `text-text-tertiary opacity-40` substituídas por `text-text-label` (sem opacity)
+  4. [x] Labels de seção: `tone="muted"` + `opacity-40` → `tone="label"` ou classe `text-text-label`
+  5. [x] Timestamps e metadados: usar `text-text-secondary` sem opacity (7.12:1)
+  6. [x] Empty states: manter `text-text-tertiary` **sem opacity** (exceção WCAG para large text com `font-black`)
+  7. [x] Contraste ≥ 4.5:1 em dark mode e light mode para todos os textos corrigidos
+  8. [x] Zero violações WCAG AA para contraste de texto
 - **Dependências:** SYS-05 (STORY-TD-003 — Tailwind v4 deve reconhecer o novo token no JIT)
 - **Notas Técnicas:** `#64748b` (Slate 500) sobre `#ffffff` = 5.62:1 (PASS AA 4.5:1, PASS AAA 7:1 para large). Arquivos afetados: `MXScoreCard.tsx`, `DataGrid.tsx`, `MorningReport.tsx`, `Notificacoes.tsx`, `GerenteFeedback.tsx`, `GerenteTreinamentos.tsx`, `Equipe.tsx`, `Configuracoes.tsx`, `Perfil.tsx`, `SalesPerformance.tsx`. Se SYS-05 não validou, esta story NÃO pode iniciar (QA Review CR-04).
 
@@ -293,14 +293,14 @@
 - **Estimativa:** 4h
 - **Descrição:** `PrintableFeedback.tsx` e `WeeklyStoreReport.tsx` usam cores hardcoded (`#335c67`, `#dc2626`, `#059669`, etc.) que divergem dos tokens MX do design system. Divergências são bugs de marca em relatórios impressos que circulam fisicamente.
 - **Critérios de Aceitação:**
-  1. Cores hardcoded migradas para tokens MX correspondentes
-  2. `.header-blue { background: #335c67 }` → `bg-brand-secondary`
-  3. `.status-bom { color: #059669 }` → `text-status-success`
-  4. `.status-abaixo { color: #dc2626 }` → `text-status-error`
-  5. `.legacy-table td { border: 1px solid #d1d5db }` → `border-border-strong`
-  6. Novos tokens print-safe adicionados: `--color-print-highlight: #facc15`, `--color-print-gold: #fef3c7`
-  7. `@media print` existente mantido (overrides de padding/background)
-  8. Visual output de impressão inalterado (tokens resolvem para mesmos valores hex)
+  1. [x] Cores hardcoded migradas para tokens MX correspondentes
+  2. [x] `.header-blue { background: #335c67 }` → `bg-brand-secondary`
+  3. [x] `.status-bom { color: #059669 }` → `text-status-success`
+  4. [x] `.status-abaixo { color: #dc2626 }` → `text-status-error`
+  5. [x] `.legacy-table td { border: 1px solid #d1d5db }` → `border-border-strong`
+  6. [x] Novos tokens print-safe adicionados: `--color-print-highlight: #facc15`, `--color-print-gold: #fef3c7`
+  7. [x] `@media print` existente mantido (overrides de padding/background)
+  8. [x] Visual output de impressão inalterado (tokens resolvem para mesmos valores hex)
 - **Dependências:** SYS-05 (STORY-TD-003 — Tailwind v4)
 - **Notas Técnicas:** Os prints rodam dentro do app como componentes React — têm acesso aos tokens CSS. A separação via `<style>` hardcoded é desnecessária. `#dc2626` (print) vs `#ef4444` (app `--color-status-error`) e `#059669` (print) vs `#10b981` (app `--color-status-success`) são divergências de marca.
 
