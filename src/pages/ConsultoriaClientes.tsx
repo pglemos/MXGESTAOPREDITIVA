@@ -9,6 +9,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { DataGrid, type Column } from '@/components/organisms/DataGrid'
 import { Badge } from '@/components/atoms/Badge'
 import { useConsultingClients, useConsultingClientMetrics } from '@/hooks/useConsultingClients'
+import { DEFAULT_CONSULTING_MODULES } from '@/hooks/useConsultingModules'
 
 export default function ConsultoriaClientes() {
   const navigate = useNavigate()
@@ -17,12 +18,20 @@ export default function ConsultoriaClientes() {
   const [searchTerm, setSearchTerm] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    name: string
+    legal_name: string
+    cnpj: string
+    product_name: string
+    notes: string
+    enabled_modules: string[]
+  }>({
     name: '',
     legal_name: '',
     cnpj: '',
     product_name: '',
     notes: '',
+    enabled_modules: DEFAULT_CONSULTING_MODULES.filter((m: any) => m.enabled).map((m: any) => m.module_key),
   })
 
   const filteredClients = useMemo(() => {
@@ -53,8 +62,21 @@ export default function ConsultoriaClientes() {
     }
 
     toast.success('Cliente da consultoria criado.')
-    setForm({ name: '', legal_name: '', cnpj: '', product_name: '', notes: '' })
+    setForm({ 
+        name: '', legal_name: '', cnpj: '', product_name: '', notes: '', 
+        enabled_modules: DEFAULT_CONSULTING_MODULES.filter((m: any) => m.enabled).map((m: any) => m.module_key) 
+    })
     setShowCreate(false)
+  }
+
+  const toggleModule = (key: string) => {
+    setForm(prev => {
+        const has = prev.enabled_modules.includes(key)
+        return {
+            ...prev,
+            enabled_modules: has ? prev.enabled_modules.filter(k => k !== key) : [...prev.enabled_modules, key]
+        }
+    })
   }
 
   const columns = useMemo<Column<any>[]>(() => [
@@ -244,7 +266,34 @@ export default function ConsultoriaClientes() {
               />
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-mx-sm">
+            <div className="md:col-span-2 pt-4 border-t border-border-default">
+              <Typography variant="h3" className="mb-2">MÓDULOS & RECURSOS DA CONSULTORIA</Typography>
+              <Typography variant="caption" tone="muted" className="block mb-4">
+                Selecione os módulos internos que este cliente terá acesso (DRE, Planos, etc). 
+                Diferente do 'Produto Comercial', esses são os recursos habilitados no painel.
+              </Typography>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {DEFAULT_CONSULTING_MODULES.map((mod: any) => {
+                  const isEnabled = form.enabled_modules.includes(mod.module_key)
+                  return (
+                    <label key={mod.module_key} className={`flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${isEnabled ? 'bg-mx-indigo-50 border-brand-primary' : 'bg-surface-alt border-border-default hover:bg-white'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={isEnabled} 
+                        onChange={() => toggleModule(mod.module_key)} 
+                        className="mt-1"
+                      />
+                      <div>
+                        <Typography variant="p" className="font-bold leading-none">{mod.label}</Typography>
+                        {mod.premium && <Badge variant="warning" className="mt-1 px-2 py-0.5 text-[9px]">PREMIUM</Badge>}
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="md:col-span-2 flex justify-end gap-mx-sm mt-4">
               <Button type="button" variant="ghost" onClick={() => setShowCreate(false)}>CANCELAR</Button>
               <Button type="submit" disabled={submitting}>
                 <BriefcaseBusiness size={16} className="mr-2" />

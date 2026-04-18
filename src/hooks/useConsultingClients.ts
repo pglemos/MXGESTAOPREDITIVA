@@ -36,6 +36,7 @@ type CreateConsultingClientInput = {
   cnpj?: string
   product_name?: string
   notes?: string
+  enabled_modules?: string[]
 }
 
 export function useConsultingClients() {
@@ -96,12 +97,35 @@ export function useConsultingClients() {
       created_by: supabaseUser.id,
     }
 
-    const { error: insertError } = await supabase
+    const { data: newClient, error: insertError } = await supabase
       .from('consulting_clients')
       .insert(payload)
+      .select('id')
+      .single()
 
     if (insertError) {
       return { error: insertError.message }
+    }
+
+    // If modules were selected, insert them
+    if (input.enabled_modules && input.enabled_modules.length > 0 && newClient) {
+      const { DEFAULT_CONSULTING_MODULES } = await import('@/hooks/useConsultingModules')
+      
+      const moduleInserts = input.enabled_modules.map(moduleKey => {
+        const defaults = DEFAULT_CONSULTING_MODULES.find(m => m.module_key === moduleKey)
+        return {
+          client_id: newClient.id,
+          module_key: moduleKey,
+          label: defaults?.label || moduleKey,
+          premium: defaults?.premium || false,
+          enabled: true,
+          configured_by: supabaseUser.id,
+        }
+      })
+
+      if (moduleInserts.length > 0) {
+        await supabase.from('consulting_client_modules').insert(moduleInserts)
+      }
     }
 
     await fetchClients()

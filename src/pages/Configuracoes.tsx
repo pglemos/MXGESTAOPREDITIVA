@@ -168,10 +168,17 @@ export default function Configuracoes() {
                     <Card className="p-mx-10 md:p-12 border-none shadow-mx-lg bg-white space-y-mx-10">
                         <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt flex items-center justify-center text-text-tertiary shadow-inner border border-border-default group-hover:bg-brand-primary group-hover:text-white transition-all"><ShieldCheck size={28} /></div>
-                            <Typography variant="h3" className="uppercase tracking-tight">Segurança</Typography>
+                            <Typography variant="h3" className="uppercase tracking-tight">Administração</Typography>
                         </header>
                         
                         <div className="space-y-mx-md">
+                            {role === 'admin' && (
+                                <Button variant="outline" className="w-full h-mx-2xl rounded-mx-2xl justify-between px-8 border-border-strong group hover:border-brand-primary transition-all shadow-sm font-black uppercase tracking-widest bg-white text-xs" asChild>
+                                    <a href="/configuracoes/consultoria-pmr">
+                                        PARÂMETROS DA CONSULTORIA PMR <ChevronRight size={18} className="text-text-tertiary group-hover:text-brand-primary transition-colors" />
+                                    </a>
+                                </Button>
+                            )}
                             <Button variant="outline" className="w-full h-mx-2xl rounded-mx-2xl justify-between px-8 border-border-strong group hover:border-brand-primary transition-all shadow-sm font-black uppercase tracking-widest bg-white text-xs">
                                 ALTERAR CREDENCIAIS <Lock size={18} className="text-text-tertiary group-hover:text-brand-primary transition-colors" />
                             </Button>
