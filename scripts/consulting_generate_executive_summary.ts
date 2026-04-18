@@ -27,65 +27,103 @@ async function main() {
   if (!args.clientId) throw new Error('Use --client-id UUID')
   const supabase = envClient()
 
-  const [clientRes, plansRes, responsesRes, actionsRes, metricsRes] = await Promise.all([
+  const [clientRes, plansRes, responsesRes, actionsRes] = await Promise.all([
     supabase.from('consulting_clients').select('*').eq('id', args.clientId).single(),
     supabase.from('consulting_strategic_plans').select('*').eq('client_id', args.clientId).order('generated_at', { ascending: false }).limit(1),
     supabase.from('consulting_pmr_form_responses').select('*, template:consulting_pmr_form_templates(*)').eq('client_id', args.clientId).order('submitted_at', { ascending: false }),
     supabase.from('consulting_action_items').select('*').eq('client_id', args.clientId).order('priority', { ascending: true }),
-    supabase.from('consulting_client_metric_results').select('*, metric:consulting_metric_catalog(*)').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
   ])
 
-  const fetchError = clientRes.error || plansRes.error || responsesRes.error || actionsRes.error || metricsRes.error
+  const fetchError = clientRes.error || plansRes.error || responsesRes.error || actionsRes.error
   if (fetchError) throw fetchError
 
   const latestPlan = plansRes.data?.[0] || null
-  const openActions = (actionsRes.data || []).filter((action) => action.status !== 'realizado')
-  const topMetrics = (metricsRes.data || []).slice(0, 8).map((metric) => ({
-    label: metric.metric?.label || metric.metric_key,
-    value: metric.result_value,
-    reference_date: metric.reference_date,
-  }))
+  const actions = actionsRes.data || []
+  
+  // Categorize responses by role
+  const getResp = (role: string) => responsesRes.data?.find(r => r.respondent_role?.toLowerCase().includes(role.toLowerCase())) || null
+
+  const donoResp = getResp('dono') || getResp('socio') || responsesRes.data?.[0]
+  const gerenteResp = getResp('gerente')
+  const vendedorResp = getResp('vendedor')
+  const processoResp = getResp('processo')
 
   const summary = {
     client: clientRes.data.name,
     generated_at: new Date().toISOString(),
     headline: latestPlan?.diagnosis_summary || `${clientRes.data.name}: resumo gerado a partir do diagnostico PMR nativo.`,
-    diagnostics: (responsesRes.data || []).slice(0, 4).map((response) => ({
-      form: response.template?.title || response.template_id,
-      respondent: response.respondent_name,
-      summary: response.summary,
-    })),
-    indicators: topMetrics,
+    diagnostics: {
+        dono: donoResp ? { name: donoResp.respondent_name, summary: donoResp.summary } : null,
+        gerente: gerenteResp ? { name: gerenteResp.respondent_name, summary: gerenteResp.summary } : null,
+        vendedor: vendedorResp ? { name: vendedorResp.respondent_name, summary: vendedorResp.summary } : null,
+        processos: processoResp ? { name: processoResp.respondent_name, summary: processoResp.summary } : null,
+    },
     action_plan: {
-      total: actionsRes.data?.length || 0,
-      open: openActions.length,
-      top_priorities: openActions.slice(0, 5).map((action) => ({
-        priority: action.priority,
-        action: action.action,
-        owner_name: action.owner_name,
-        due_date: action.due_date,
-      })),
+      total: actions.length,
+      priorities: actions.reduce((acc, curr) => {
+          if (!acc[curr.priority]) acc[curr.priority] = []
+          acc[curr.priority].push(curr.action)
+          return acc
+      }, {} as Record<number, string[]>)
     },
   }
 
   const contentMd = [
-    `# Resumo Executivo PMR - ${summary.client}`,
+    `# RELATÓRIO EXECUTIVO DE DIAGNÓSTICO`,
+    `**Programa PMR – Programa de Maximização de Resultados**`,
+    `**Empresa:** ${summary.client}`,
+    `**Data:** ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`,
     '',
-    `Gerado em: ${summary.generated_at}`,
+    `---`,
     '',
-    '## Sintese',
+    `## 1. VISÃO GERAL DO NEGÓCIO`,
     summary.headline,
     '',
-    '## Diagnostico',
-    ...(summary.diagnostics.length ? summary.diagnostics.map((item) => `- ${item.form}: ${item.summary || 'Sem resumo registrado.'}`) : ['- Sem entrevistas registradas.']),
+    `---`,
     '',
-    '## Indicadores',
-    ...(summary.indicators.length ? summary.indicators.map((item) => `- ${item.label}: ${item.value} (${item.reference_date})`) : ['- Sem indicadores realizados registrados.']),
+    `## 2. DIAGNÓSTICO ESTRATÉGICO DOS SÓCIOS`,
+    summary.diagnostics.dono ? `**${summary.diagnostics.dono.name || 'Sócio/Dono'} (visão macro e potencial)**\n${summary.diagnostics.dono.summary}` : `*(Diagnóstico de Sócio pendente)*`,
     '',
-    '## Plano de Acao',
-    `Total de acoes: ${summary.action_plan.total}`,
-    `Acoes abertas: ${summary.action_plan.open}`,
-    ...(summary.action_plan.top_priorities.length ? summary.action_plan.top_priorities.map((item) => `- P${item.priority}: ${item.action} (${item.owner_name || 'sem responsavel'})`) : ['- Sem acoes abertas.']),
+    `---`,
+    '',
+    `## 3. DIAGNÓSTICO GERENCIAL`,
+    summary.diagnostics.gerente ? `**${summary.diagnostics.gerente.name || 'Gerente'}**\n${summary.diagnostics.gerente.summary}` : `*(Diagnóstico Gerencial pendente)*`,
+    '',
+    `---`,
+    '',
+    `## 4. DIAGNÓSTICO COMERCIAL (VENDEDORES)`,
+    summary.diagnostics.vendedor ? `**Equipe de Vendas**\n${summary.diagnostics.vendedor.summary}` : `*(Diagnóstico Comercial pendente)*`,
+    '',
+    `---`,
+    '',
+    `## 5. DIAGNÓSTICO DE PROCESSOS`,
+    summary.diagnostics.processos ? `${summary.diagnostics.processos.summary}` : `*(Diagnóstico de Processos pendente)*`,
+    '',
+    `---`,
+    '',
+    `## 6. PRINCIPAIS GARGALOS`,
+    `- Identificados na Visão Geral e nas entrevistas. (Consolidado automático pendente da IA)`,
+    '',
+    `---`,
+    '',
+    `## 7. RISCOS DO NEGÓCIO`,
+    `- Identificados nas entrevistas. (Consolidado automático pendente da IA)`,
+    '',
+    `---`,
+    '',
+    `## 8. DIRECIONAMENTO ESTRATÉGICO (PMR)`,
+    ...Object.entries(summary.action_plan.priorities as Record<string, string[]>).map(([priority, acts]) => {
+        return `\n**PRIORIDADE ${priority}**\n` + acts.map(a => `• ${a}`).join('\n')
+    }),
+    '',
+    `---`,
+    '',
+    `## CONCLUSÃO EXECUTIVA`,
+    `A ${summary.client} possui potencial que será destravado mediante execução rigorosa da gestão.`,
+    '',
+    `## DIAGNÓSTICO FINAL (DIRETO)`,
+    `👉 O gargalo não está no mercado`,
+    `👉 Está dentro da operação`
   ].join('\n')
 
   if (args.dryRun) {

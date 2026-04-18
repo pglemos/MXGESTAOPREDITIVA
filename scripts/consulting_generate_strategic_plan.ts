@@ -61,6 +61,21 @@ async function main() {
     }
   })
 
+  // Categorize responses by role for the presentation slides
+  const getResp = (role: string) => responsesRes.data?.find(r => r.respondent_role?.toLowerCase().includes(role.toLowerCase())) || null
+
+  const donoResp = getResp('dono') || getResp('socio') || responsesRes.data?.[0]
+  const gerenteResp = getResp('gerente')
+  const vendedorResp = getResp('vendedor')
+  const processoResp = getResp('processo')
+
+  const actions = actionsRes.data || []
+  const actionPlanGroups = actions.reduce((acc, curr) => {
+      if (!acc[curr.priority]) acc[curr.priority] = []
+      acc[curr.priority].push(curr)
+      return acc
+  }, {} as Record<number, any[]>)
+
   const payload = {
     client: {
       id: clientRes.data.id,
@@ -72,24 +87,51 @@ async function main() {
       name: parameterSetRes.data.name,
       version: parameterSetRes.data.version,
     } : null,
-    diagnostics: (responsesRes.data || []).map((response) => ({
-      form: response.template?.title || response.template_id,
-      respondent: response.respondent_name,
-      summary: response.summary,
-      submitted_at: response.submitted_at,
-    })),
+    diagnostics: {
+        dono: donoResp ? { name: donoResp.respondent_name, summary: donoResp.summary } : null,
+        gerente: gerenteResp ? { name: gerenteResp.respondent_name, summary: gerenteResp.summary } : null,
+        vendedor: vendedorResp ? { name: vendedorResp.respondent_name, summary: vendedorResp.summary } : null,
+        processos: processoResp ? { name: processoResp.respondent_name, summary: processoResp.summary } : null,
+    },
     market_comparison: marketComparison,
-    action_items: actionsRes.data || [],
+    action_plan: actionPlanGroups,
   }
 
-  const diagnosisSummary = [
-    `${payload.client.name}: planejamento gerado por dados PMR nativos.`,
-    `${payload.diagnostics.length} entrevistas diagnosticas registradas.`,
-    `${payload.market_comparison.length} indicadores com realizado para comparativo.`,
-    `${payload.action_items.length} acoes cadastradas no plano de acao.`,
-  ].join(' ')
+  // Generate markdown representing presentation slides
+  const slidesMd = [
+    `# SLIDE 1: CAPA`,
+    `## PLANEJAMENTO ESTRATÉGICO PMR`,
+    `**Cliente:** ${payload.client.name}`,
+    `**Data:** ${new Date().toLocaleDateString('pt-BR')}`,
+    `---`,
+    `# SLIDE 2: DIAGNÓSTICO DOS SÓCIOS`,
+    payload.diagnostics.dono ? `**${payload.diagnostics.dono.name}**\n${payload.diagnostics.dono.summary}` : `(Sem dados de sócio/dono)`,
+    `---`,
+    `# SLIDE 3: DIAGNÓSTICO DA LIDERANÇA`,
+    payload.diagnostics.gerente ? `**${payload.diagnostics.gerente.name}**\n${payload.diagnostics.gerente.summary}` : `(Sem dados de gerente)`,
+    `---`,
+    `# SLIDE 4: DIAGNÓSTICO COMERCIAL`,
+    payload.diagnostics.vendedor ? `**Equipe de Vendas**\n${payload.diagnostics.vendedor.summary}` : `(Sem dados de vendedores)`,
+    `---`,
+    `# SLIDE 5: BENCHMARK E MÉTRICAS DE MERCADO`,
+    ...payload.market_comparison.map(m => {
+        return `- **${m.label}**: Realizado: ${m.latest_result} | Mercado: ${m.market_average || 'N/A'} | Boa Prática: ${m.best_practice || 'N/A'}`
+    }),
+    `---`,
+    `# SLIDE 6+: PLANO DE AÇÃO E PRIORIDADES`,
+    ...Object.entries(payload.action_plan).map(([priority, acts]) => {
+        return `\n### PRIORIDADE ${priority}\n` + (acts as any[]).map(a => `- **Ação:** ${a.action}\n  - **Como:** ${a.how || 'N/A'}\n  - **Resp:** ${a.owner_name || 'N/A'} | **Prazo:** ${a.due_date || 'N/A'}`).join('\n')
+    }),
+    `---`,
+    `# SLIDE FINAL: ENCERRAMENTO`,
+    `Próximos passos e assinaturas.`
+  ].join('\n')
+
+  const diagnosisSummary = `Planejamento Estratégico gerado nativamente contendo ${payload.market_comparison.length} indicadores mapeados contra as Boas Práticas do Mercado e estruturado em ${Object.keys(payload.action_plan).length} níveis de prioridade.`
 
   if (args.dryRun) {
+    console.log(slidesMd)
+    console.log('\n--- payload ---')
     console.log(JSON.stringify({ diagnosisSummary, payload }, null, 2))
     return
   }
@@ -98,7 +140,7 @@ async function main() {
     .from('consulting_strategic_plans')
     .insert({
       client_id: args.clientId,
-      title: `Planejamento PMR - ${payload.client.name}`,
+      title: `Planejamento Estratégico PMR - ${payload.client.name}`,
       diagnosis_summary: diagnosisSummary,
       market_comparison: { metrics: marketComparison },
       generated_payload: payload,
@@ -111,7 +153,8 @@ async function main() {
     client_id: args.clientId,
     strategic_plan_id: plan.id,
     artifact_type: 'strategic_payload',
-    title: `Payload Planejamento PMR - ${payload.client.name}`,
+    title: `Apresentação Planejamento PMR - ${payload.client.name}`,
+    content_md: slidesMd,
     payload,
   })
   if (artifactError) throw artifactError
