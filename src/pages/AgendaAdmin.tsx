@@ -399,12 +399,12 @@ export default function AgendaAdmin() {
             <div className="p-mx-md max-h-mx-6xl overflow-y-auto no-scrollbar">
               {!selectedDate ? (
                 <div className="flex flex-col items-center justify-center py-mx-2xl text-center gap-mx-sm">
-                  <CalendarDays size={32} className="text-text-tertiary opacity-40" />
+                  <CalendarDays size={32} className="text-text-label" />
                   <Typography variant="tiny" tone="muted">Clique em um dia no calendário para ver os detalhes</Typography>
                 </div>
               ) : selectedDayVisits.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-mx-2xl text-center gap-mx-sm">
-                  <CalendarDays size={32} className="text-text-tertiary opacity-40" />
+                  <CalendarDays size={32} className="text-text-label" />
                   <Typography variant="tiny" tone="muted">Nenhuma visita neste dia</Typography>
                   <Button variant="secondary" size="sm" className="mt-mx-sm" onClick={() => handleOpenSchedule(selectedDate)}>
                     <Plus size={14} className="mr-2" /> AGENDAR

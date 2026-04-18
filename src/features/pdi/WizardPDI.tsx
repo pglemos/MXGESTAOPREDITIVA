@@ -385,6 +385,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                 {acao.competencia_id && suggestedActions[acao.competencia_id]?.length > 0 && (
                                                     <div className="pl-12">
                                                         <select 
+                                                            aria-label="Ação Recomendada"
                                                             onChange={e => { const np = [...form.plano_acao]; np[idx].descricao_acao = e.target.value; setForm({ ...form, plano_acao: np }) }}
                                                             className="w-full p-mx-xs bg-mx-indigo-50 border border-brand-primary/20 rounded-mx-lg text-xs font-bold text-brand-primary outline-none cursor-pointer"
                                                         >

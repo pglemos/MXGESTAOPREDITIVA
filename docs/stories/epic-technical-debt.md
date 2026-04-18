@@ -73,12 +73,12 @@
 - **Estimativa:** 3h
 - **Descrição:** A migration para Tailwind v4 pode estar incompleta. A engine de parsing mudou (`@theme` block). Tokens novos (UX-05) e animações CSS (UX-03) dependem de uma base Tailwind funcional.
 - **Critérios de Aceitação:**
-  1. Auditoria completa de classes v3 vs v4 no codebase
-  2. Classes v3 migradas ou aliases criados
-  3. `tailwind.config.ts` compatível com v4 CSS-first
-  4. `npm run build` gera bundle sem warnings de classes não resolvidas
-  5. Todos os tokens `@theme` são resolvidos pelo JIT
-  6. Visual regression: nenhuma mudança visual em produção após validação
+  1. [x] Auditoria completa de classes v3 vs v4 no codebase
+  2. [x] Classes v3 migradas ou aliases criados
+  3. [x] `tailwind.config.ts` compatível com v4 CSS-first
+  4. [x] `npm run build` gera bundle sem warnings de classes não resolvidas
+  5. [x] Todos os tokens `@theme` são resolvidos pelo JIT
+  6. [x] Visual regression: nenhuma mudança visual em produção após validação
 - **Dependências:** Nenhuma — início imediato
 - **Notas Técnicas:** SYS-05 é pré-requisito (gating item) para UX-05 (contrast tokens), UX-03 (reduced motion CSS) e UX-10 (print tokens). Se `--color-text-label` não for reconhecido pelo JIT, todas as 40+ correções de contraste falham em runtime (QA Review CR-04). Promovido para Sprint 1 pela QA.
 
@@ -90,16 +90,16 @@
 - **Estimativa:** 6h (economia de 2h por agrupamento)
 - **Descrição:** Dois modais centrais sem focus trap: mobile menu (`Layout.tsx:307-365`) e WizardPDI (`WizardPDI.tsx:154-432`). O WizardPDI também possui 10+ campos de formulário sem label programático (`select`, `textarea`, `input[type=range]`, `input[type=date]`). Viola WCAG 2.4.3, 2.1.2, 1.3.1 e 3.3.2 (Level A).
 - **Critérios de Aceitação:**
-  1. Focus trap ativo no mobile menu — Tab/Shift+Tab cicla apenas entre elementos do menu
-  2. Focus trap ativo no WizardPDI — Tab/Shift+Tab cicla apenas entre campos do wizard
-  3. Escape fecha ambos os modais
-  4. Focus retorna ao trigger element ao fechar
-  5. Todos os inputs do WizardPDI com `<label>` associado via `htmlFor` ou `aria-labelledby`
-  6. `select` de colaborador, cargo, tipo de meta, competência, impacto, custo — todos com label
-  7. `input[type=range]` com `aria-label` descritivo e `aria-valuemin`/`aria-valuemax`
-  8. `input[type=date]` de revisão e conclusão com label
-  9. `textarea` de meta com label
-  10. Teste manual: navegação completa por teclado no WizardPDI sem perder foco
+  1. [x] Focus trap ativo no mobile menu — Tab/Shift+Tab cicla apenas entre elementos do menu
+  2. [x] Focus trap ativo no WizardPDI — Tab/Shift+Tab cicla apenas entre campos do wizard
+  3. [x] Escape fecha ambos os modais
+  4. [x] Focus retorna ao trigger element ao fechar
+  5. [x] Todos os inputs do WizardPDI com `<label>` associado via `htmlFor` ou `aria-labelledby`
+  6. [x] `select` de colaborador, cargo, tipo de meta, competência, impacto, custo — todos com label
+  7. [x] `input[type=range]` com `aria-label` descritivo e `aria-valuemin`/`aria-valuemax`
+  8. [x] `input[type=date]` de revisão e conclusão com label
+  9. [x] `textarea` de meta com label
+  10. [x] Teste manual: navegação completa por teclado no WizardPDI sem perder foco
 - **Dependências:** SYS-01 recomendado antes (tipagem segura nos handlers)
 - **Notas Técnicas:** WizardPDI: usar `Dialog.Root` + `Dialog.Portal` + `Dialog.Overlay` + `Dialog.Content` do `@radix-ui/react-dialog` (já disponível no bundle, v1.1.15). Mobile menu: hook custom `useFocusTrap(containerRef, isActive)` com ~40 linhas (0 bytes adicionais). Não usar `focus-trap-react` (4.2KB gzipped, over-engineering para 2 pontos). Refatorar apenas markup/ARIA, preservar lógica de estado intacta.
 
@@ -181,12 +181,12 @@
 - **Estimativa:** 4h
 - **Descrição:** `users.phone` armazena PII em plaintext. Cifrar com `pgcrypto` para proteger dados em repouso. `users.email` mantido plaintext (necessário para `process_import_data` com `WHERE email ILIKE`). `consulting_oauth_tokens` já protegido por AES-256-GCM nas Edge Functions.
 - **Critérios de Aceitação:**
-  1. `users.phone` cifrado com `pgcrypto.encrypt()` usando `current_setting('app.crypto_key')` (não hardcoded)
-  2. Função de decriptação `decrypt_phone()` acessível apenas via Service Role
-  3. RPC `process_import_data` com busca por email funciona normalmente (email não cifrado)
-  4. RLS policies testadas com workflow `test-as-user`
-  5. Zero regressão em queries de autenticação
-  6. Frontend `/perfil` renderiza phone decriptado apenas para o próprio usuário
+  1. [x] `users.phone` cifrado com `pgcrypto.encrypt()` usando `current_setting('app.crypto_key')` (não hardcoded)
+  2. [x] Função de decriptação `decrypt_phone()` acessível apenas via Service Role
+  3. [x] RPC `process_import_data` com busca por email funciona normalmente (email não cifrado)
+  4. [x] RLS policies testadas com workflow `test-as-user`
+  5. [x] Zero regressão em queries de autenticação
+  6. [x] Frontend `/perfil` renderiza phone decriptado apenas para o próprio usuário
 - **Dependências:** DB-08 (baseline migrations)
 - **Notas Técnicas:** Usar `pgcrypto` (não pgsodium) — menor impacto em queries RLS, complexidade baixa. Chave via `current_setting('app.crypto_key')` com custom GUC. `users.email` NÃO cifrar — necessário para importação e busca. `stores.manager_email` NÃO cifrar — dado corporativo.
 
@@ -225,11 +225,11 @@
 - **Estimativa:** 2h
 - **Descrição:** `consulting_google_oauth_states` acumula states consumidos e expirados sem cleanup. Agendar `pg_cron` para remover states com mais de 1h.
 - **Critérios de Aceitação:**
-  1. Cron job `cleanup-oauth-states` agendado via `pg_cron` (execução a cada 15 minutos)
-  2. Remove states onde `consumed_at IS NOT NULL OR expires_at < now()` E `created_at < now() - interval '1 hour'`
-  3. Log de cleanup registrado (rows removidas por execução)
-  4. Testado com volume de produção em staging
-  5. Extensão `pg_cron` já disponível no Supabase (usada pelas funções `configure_*_cron()`)
+  1. [x] Cron job `cleanup-oauth-states` agendado via `pg_cron` (execução a cada 15 minutos)
+  2. [x] Remove states onde `consumed_at IS NOT NULL OR expires_at < now()` E `created_at < now() - interval '1 hour'`
+  3. [x] Log de cleanup registrado (rows removidas por execução)
+  4. [x] Testado com volume de produção em staging
+  5. [x] Extensão `pg_cron` já disponível no Supabase (usada pelas funções `configure_*_cron()`)
 - **Dependências:** Nenhuma
 - **Notas Técnicas:** Usar `SELECT cron.schedule('cleanup-oauth-states', '*/15 * * * *', $$ DELETE ... $$)`. Solução simples — 2h inclui teste.
 
@@ -574,3 +574,4 @@ SYS-03 (auth cleanup) ──► DB-12 (FK CASCADE)
 **Assinatura:** @pm (Morgan)
 **Data:** 15 de Abril de 2026
 **Próximo passo:** Aprovação de budget pelo stakeholder + kick-off Sprint 1 (DB-08, SYS-01, UX-14, UX-02 podem iniciar imediatamente)
+, UX-14, UX-02 podem iniciar imediatamente)

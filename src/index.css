@@ -215,3 +215,21 @@
 .animate-accordion-down {
   animation: accordion-down 0.2s ease-out;
 }
+
+@media print {
+  .bg-brand-secondary {
+    background-color: var(--color-brand-secondary) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .bg-status-warning {
+    background-color: var(--color-print-highlight) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .bg-status-warning-surface {
+    background-color: var(--color-print-gold) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
