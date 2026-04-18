@@ -9,10 +9,10 @@
 O diretório raiz está poluído com arquivos temporários de auditoria, capturas de tela e scripts de teste `.cjs`/`.mjs` que não pertencem ao ambiente de produção ou CI oficial.
 
 ## 2. Acceptance Criteria
-- [ ] Remoção de todos os arquivos `.png` e `.html` da raiz.
-- [ ] Migração de scripts úteis (ex: `seed_live_sandbox.ts`) para `scripts/`.
-- [ ] Exclusão definitiva de arquivos `audit-*`, `test-*` e `debug-*` da raiz.
-- [ ] Repositório limpo contendo apenas arquivos de configuração core (`package.json`, `vite.config.ts`, etc.).
+- [x] Remoção de todos os arquivos `.png` e `.html` da raiz.
+- [x] Migração de scripts úteis (ex: `seed_live_sandbox.ts`) para `scripts/`.
+- [x] Exclusão definitiva de arquivos `audit-*`, `test-*` e `debug-*` da raiz.
+- [x] Repositório limpo contendo apenas arquivos de configuração core (`package.json`, `vite.config.ts`, etc.).
 
 ## 3. Implementation Tasks
 1. Listar todos os arquivos não-rastreados ou órfãos.

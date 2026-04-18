@@ -19,13 +19,13 @@ so that I can build complex UIs from consistent, reusable building blocks.
 
 ## Acceptance Criteria
 
-- [ ] All 6 atoms export from `src/components/atoms/` with proper TypeScript interfaces
-- [ ] All 2 molecules export from `src/components/molecules/` with proper TypeScript interfaces
-- [ ] All components follow CVA + `cn()` pattern from existing Button/Badge
-- [ ] All components use MX design tokens only (no raw Tailwind colors like `bg-gray-100`)
-- [ ] `npm run typecheck` passes with zero new errors
-- [ ] `npm run lint` passes
-- [ ] Unit tests for StatusBadge mapping logic
+- [x] All 6 atoms export from `src/components/atoms/` with proper TypeScript interfaces
+- [x] All 2 molecules export from `src/components/molecules/` with proper TypeScript interfaces
+- [x] All components follow CVA + `cn()` pattern from existing Button/Badge
+- [x] All components use MX design tokens only (no raw Tailwind colors like `bg-gray-100`)
+- [x] `npm run typecheck` passes with zero new errors
+- [x] `npm run lint` passes
+- [x] Unit tests for StatusBadge mapping logic
 
 ---
 
