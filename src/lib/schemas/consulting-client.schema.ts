@@ -10,6 +10,7 @@ export const ConsultingClientSchema = z.object({
   notes: z.string().nullable(),
   modality: z.enum(['Presencial', 'Online']).optional(),
   current_visit_step: z.number().optional(),
+  program_template_key: z.string().optional(),
   primary_store_id: z.string().nullable(),
   created_by: z.string().nullable(),
   created_at: z.string(),
@@ -69,6 +70,12 @@ export const ConsultingAssignmentSchema = z.object({
   active: z.boolean(),
   created_at: z.string(),
   updated_at: z.string(),
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    role: z.string(),
+  }).nullable().optional(),
 })
 
 export type ConsultingAssignment = z.infer<typeof ConsultingAssignmentSchema>
@@ -84,6 +91,7 @@ export const ConsultingMethodologyStepSchema = z.object({
   target: z.string().nullable(),
   duration: z.string().nullable(),
   evidence_required: z.string().nullable(),
+  checklist_template: z.array(z.union([z.string(), z.object({ task: z.string(), completed: z.boolean().optional() })])).optional().default([]),
 })
 
 export type ConsultingMethodologyStep = z.infer<typeof ConsultingMethodologyStepSchema>
@@ -112,4 +120,269 @@ export type ConsultingFinancial = z.infer<typeof ConsultingFinancialSchema>
 
 export function parseConsultingFinancialArray(data: unknown): ConsultingFinancial[] {
   return z.array(ConsultingFinancialSchema).parse(data)
+}
+
+export const ConsultingVisitProgramSchema = z.object({
+  program_key: z.string(),
+  name: z.string(),
+  total_visits: z.number(),
+  active: z.boolean(),
+})
+
+export type ConsultingVisitProgram = z.infer<typeof ConsultingVisitProgramSchema>
+
+export function parseConsultingVisitProgram(data: unknown): ConsultingVisitProgram {
+  return ConsultingVisitProgramSchema.parse(data)
+}
+
+export function parseConsultingVisitProgramArray(data: unknown): ConsultingVisitProgram[] {
+  return z.array(ConsultingVisitProgramSchema).parse(data)
+}
+
+export const ConsultingClientModuleSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  module_key: z.enum(['diagnostics', 'strategic_plan', 'action_plan', 'dre', 'monthly_close', 'daily_tracking']),
+  label: z.string(),
+  enabled: z.boolean(),
+  premium: z.boolean(),
+  notes: z.string().nullable(),
+  configured_by: z.string().nullable(),
+  configured_at: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+export type ConsultingClientModule = z.infer<typeof ConsultingClientModuleSchema>
+
+export function parseConsultingClientModuleArray(data: unknown): ConsultingClientModule[] {
+  return z.array(ConsultingClientModuleSchema).parse(data)
+}
+
+export const PmrFormFieldSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  type: z.enum(['text', 'textarea', 'number', 'scale', 'boolean', 'select']),
+  required: z.boolean().optional(),
+  options: z.array(z.string()).optional(),
+})
+
+export type PmrFormField = z.infer<typeof PmrFormFieldSchema>
+
+export const PmrFormTemplateSchema = z.object({
+  id: z.string().uuid(),
+  form_key: z.string(),
+  title: z.string(),
+  target_role: z.string(),
+  visit_number: z.number(),
+  fields: z.array(PmrFormFieldSchema),
+  active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+export type PmrFormTemplate = z.infer<typeof PmrFormTemplateSchema>
+
+export function parsePmrFormTemplateArray(data: unknown): PmrFormTemplate[] {
+  return z.array(PmrFormTemplateSchema).parse(data)
+}
+
+export const PmrFormResponseSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  visit_id: z.string().nullable(),
+  template_id: z.string(),
+  respondent_name: z.string().nullable(),
+  respondent_role: z.string().nullable(),
+  answers: z.record(z.string(), z.unknown()),
+  summary: z.string().nullable(),
+  submitted_by: z.string().nullable(),
+  submitted_at: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  template: PmrFormTemplateSchema.nullable().optional(),
+})
+
+export type PmrFormResponse = z.infer<typeof PmrFormResponseSchema>
+
+export function parsePmrFormResponseArray(data: unknown): PmrFormResponse[] {
+  return z.array(PmrFormResponseSchema).parse(data)
+}
+
+export const ConsultingMetricCatalogItemSchema = z.object({
+  metric_key: z.string(),
+  label: z.string(),
+  direction: z.enum(['increase', 'decrease']),
+  value_type: z.enum(['number', 'percent', 'currency']),
+  area: z.string(),
+  source_scope: z.string(),
+  formula_key: z.string().nullable(),
+  active: z.boolean(),
+  sort_order: z.number(),
+})
+
+export type ConsultingMetricCatalogItem = z.infer<typeof ConsultingMetricCatalogItemSchema>
+
+export function parseConsultingMetricCatalogArray(data: unknown): ConsultingMetricCatalogItem[] {
+  return z.array(ConsultingMetricCatalogItemSchema).parse(data)
+}
+
+export const ConsultingParameterSetSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  version: z.string(),
+  active: z.boolean(),
+  source_reference: z.string().nullable(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+export type ConsultingParameterSet = z.infer<typeof ConsultingParameterSetSchema>
+
+export const ConsultingParameterValueSchema = z.object({
+  id: z.string().uuid(),
+  parameter_set_id: z.string(),
+  metric_key: z.string(),
+  market_average: z.number().nullable(),
+  best_practice: z.number().nullable(),
+  target_default: z.number().nullable(),
+  red_threshold: z.number().nullable(),
+  yellow_threshold: z.number().nullable(),
+  green_threshold: z.number().nullable(),
+  formula: z.record(z.string(), z.unknown()),
+  notes: z.string().nullable(),
+  metric: ConsultingMetricCatalogItemSchema.nullable().optional(),
+})
+
+export type ConsultingParameterValue = z.infer<typeof ConsultingParameterValueSchema>
+
+export function parseConsultingParameterValueArray(data: unknown): ConsultingParameterValue[] {
+  return z.array(ConsultingParameterValueSchema).parse(data)
+}
+
+export const ConsultingMetricTargetSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  metric_key: z.string(),
+  reference_month: z.string(),
+  target_value: z.number(),
+  source: z.string(),
+})
+
+export type ConsultingMetricTarget = z.infer<typeof ConsultingMetricTargetSchema>
+
+export function parseConsultingMetricTargetArray(data: unknown): ConsultingMetricTarget[] {
+  return z.array(ConsultingMetricTargetSchema).parse(data)
+}
+
+export const ConsultingMetricResultSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  metric_key: z.string(),
+  reference_date: z.string(),
+  result_value: z.number(),
+  source: z.string(),
+  source_payload: z.record(z.string(), z.unknown()),
+})
+
+export type ConsultingMetricResult = z.infer<typeof ConsultingMetricResultSchema>
+
+export function parseConsultingMetricResultArray(data: unknown): ConsultingMetricResult[] {
+  return z.array(ConsultingMetricResultSchema).parse(data)
+}
+
+export const ConsultingMarketingMonthlySchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  reference_month: z.string(),
+  media: z.string(),
+  leads_volume: z.number(),
+  sales_volume: z.number(),
+  investment: z.number(),
+})
+
+export type ConsultingMarketingMonthly = z.infer<typeof ConsultingMarketingMonthlySchema>
+
+export function parseConsultingMarketingMonthlyArray(data: unknown): ConsultingMarketingMonthly[] {
+  return z.array(ConsultingMarketingMonthlySchema).parse(data)
+}
+
+export const ConsultingInventorySnapshotSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  reference_month: z.string(),
+  active_stock: z.number(),
+  total_stock: z.number(),
+  avg_price: z.number(),
+  avg_km: z.number(),
+  percent_over_90_days: z.number(),
+})
+
+export type ConsultingInventorySnapshot = z.infer<typeof ConsultingInventorySnapshotSchema>
+
+export function parseConsultingInventorySnapshotArray(data: unknown): ConsultingInventorySnapshot[] {
+  return z.array(ConsultingInventorySnapshotSchema).parse(data)
+}
+
+export const ConsultingStrategicPlanSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  title: z.string(),
+  period_start: z.string().nullable(),
+  period_end: z.string().nullable(),
+  status: z.string(),
+  diagnosis_summary: z.string().nullable(),
+  market_comparison: z.record(z.string(), z.unknown()),
+  generated_payload: z.record(z.string(), z.unknown()),
+  generated_at: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+export type ConsultingStrategicPlan = z.infer<typeof ConsultingStrategicPlanSchema>
+
+export function parseConsultingStrategicPlanArray(data: unknown): ConsultingStrategicPlan[] {
+  return z.array(ConsultingStrategicPlanSchema).parse(data)
+}
+
+export const ConsultingActionItemSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  strategic_plan_id: z.string().nullable(),
+  metric_key: z.string().nullable(),
+  action: z.string(),
+  how: z.string().nullable(),
+  owner_name: z.string().nullable(),
+  due_date: z.string().nullable(),
+  completed_at: z.string().nullable(),
+  status: z.enum(['nao_iniciado', 'em_andamento', 'atrasado', 'realizado', 'cancelado']),
+  efficacy: z.string().nullable(),
+  priority: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  visit_number: z.number().nullable(),
+  metric: ConsultingMetricCatalogItemSchema.nullable().optional(),
+})
+
+export type ConsultingActionItem = z.infer<typeof ConsultingActionItemSchema>
+
+export function parseConsultingActionItemArray(data: unknown): ConsultingActionItem[] {
+  return z.array(ConsultingActionItemSchema).parse(data)
+}
+
+export const ConsultingGeneratedArtifactSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  strategic_plan_id: z.string().nullable(),
+  artifact_type: z.string(),
+  title: z.string(),
+  content_md: z.string().nullable(),
+  payload: z.record(z.string(), z.unknown()),
+  storage_path: z.string().nullable(),
+  generated_at: z.string(),
+})
+
+export type ConsultingGeneratedArtifact = z.infer<typeof ConsultingGeneratedArtifactSchema>
+
+export function parseConsultingGeneratedArtifactArray(data: unknown): ConsultingGeneratedArtifact[] {
+  return z.array(ConsultingGeneratedArtifactSchema).parse(data)
 }

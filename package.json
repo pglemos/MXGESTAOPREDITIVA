@@ -17,10 +17,20 @@
     "test": "bun test src/lib src/benchmarks src/hooks src/components src/test",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "sync:ide": "node .aiox-core/infrastructure/scripts/ide-sync/index.js sync",
+    "sync:ide:check": "node .aiox-core/infrastructure/scripts/ide-sync/index.js validate",
+    "sync:skills:codex": "node .aiox-core/infrastructure/scripts/codex-skills-sync/index.js",
+    "sync:skills:codex:global": "node .aiox-core/infrastructure/scripts/codex-skills-sync/index.js --global",
+    "validate:structure": "node .aiox-core/infrastructure/scripts/validate-paths.js",
+    "validate:agents": "node .aiox-core/infrastructure/scripts/validate-agents.js",
     "deploy": "vercel --prod",
     "fix:admin-access": "tsx scripts/fix_admin_access.ts",
     "seed:sandbox:live": "tsx scripts/seed_live_sandbox.ts",
-    "validate:e2e:live": "tsx scripts/validate_live_end_to_end.ts"
+    "validate:e2e:live": "tsx scripts/validate_live_end_to_end.ts",
+    "consulting:seed-parameters": "tsx scripts/consulting_seed_parameters.ts",
+    "consulting:import-monthly-close": "tsx scripts/consulting_import_monthly_close.ts",
+    "consulting:generate-strategic-plan": "tsx scripts/consulting_generate_strategic_plan.ts",
+    "consulting:generate-executive-summary": "tsx scripts/consulting_generate_executive_summary.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

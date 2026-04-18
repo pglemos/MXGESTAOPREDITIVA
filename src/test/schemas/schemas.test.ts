@@ -3,7 +3,7 @@ import { FeedbackSchema, parseFeedback, parseFeedbackArray } from "@/lib/schemas
 import { NotificationSchema, parseNotification, parseNotificationArray } from "@/lib/schemas/notification.schema";
 import { PDISchema, parsePDI, parsePDIArray, PDIReviewSchema, parsePDIReview, parsePDIReviewArray } from "@/lib/schemas/pdi.schema";
 import { TeamProgressEntrySchema, parseTeamProgressEntry, parseTeamProgressEntryArray, TrainingProgressSchema, TrainingSchema } from "@/lib/schemas/performance.schema";
-import { ConsultingClientSchema, parseConsultingClient, parseConsultingClientArray, ConsultingClientUnitSchema, parseConsultingClientUnitArray, ConsultingClientContactSchema, parseConsultingClientContactArray, ConsultingAssignmentSchema, parseConsultingAssignmentArray, ConsultingMethodologyStepSchema, parseConsultingMethodologyStepArray, ConsultingFinancialSchema, parseConsultingFinancialArray } from "@/lib/schemas/consulting-client.schema";
+import { ConsultingClientSchema, parseConsultingClient, parseConsultingClientArray, ConsultingClientUnitSchema, parseConsultingClientUnitArray, ConsultingClientContactSchema, parseConsultingClientContactArray, ConsultingAssignmentSchema, parseConsultingAssignmentArray, ConsultingMethodologyStepSchema, parseConsultingMethodologyStepArray, ConsultingFinancialSchema, parseConsultingFinancialArray, ConsultingClientModuleSchema, PmrFormTemplateSchema, PmrFormResponseSchema, ConsultingMetricCatalogItemSchema, ConsultingParameterValueSchema, ConsultingActionItemSchema, ConsultingStrategicPlanSchema } from "@/lib/schemas/consulting-client.schema";
 import { DREFinancialSchema, parseDREFinancial, parseDREFinancialArray, DREComputedSchema } from "@/lib/schemas/dre.schema";
 
 const UUID = "550e8400-e29b-41d4-a716-446655440000";
@@ -339,6 +339,117 @@ describe("ConsultingClientSchema", () => {
   it("parses valid ConsultingFinancial", () => {
     const result = parseConsultingFinancialArray([validFinancial]);
     expect(result[0].revenue).toBe(100000);
+  });
+
+  it("parses PMR client module", () => {
+    const result = ConsultingClientModuleSchema.parse({
+      id: UUID,
+      client_id: UUID,
+      module_key: "dre",
+      label: "DRE Financeiro",
+      enabled: true,
+      premium: true,
+      notes: null,
+      configured_by: null,
+      configured_at: "2026-04-18T10:00:00Z",
+      created_at: "2026-04-18T10:00:00Z",
+      updated_at: "2026-04-18T10:00:00Z",
+    });
+    expect(result.module_key).toBe("dre");
+  });
+
+  it("parses PMR form template and response", () => {
+    const template = PmrFormTemplateSchema.parse({
+      id: UUID,
+      form_key: "owner",
+      title: "Diagnostico - Dono/Socio",
+      target_role: "dono",
+      visit_number: 1,
+      fields: [{ key: "strategic_goal", label: "Meta", type: "textarea", required: true }],
+      active: true,
+      created_at: "2026-04-18T10:00:00Z",
+      updated_at: "2026-04-18T10:00:00Z",
+    });
+    const response = PmrFormResponseSchema.parse({
+      id: UUID,
+      client_id: UUID,
+      visit_id: null,
+      template_id: UUID,
+      respondent_name: "Jose",
+      respondent_role: "dono",
+      answers: { strategic_goal: "Crescer" },
+      summary: "Resumo",
+      submitted_by: null,
+      submitted_at: "2026-04-18T10:00:00Z",
+      created_at: "2026-04-18T10:00:00Z",
+      updated_at: "2026-04-18T10:00:00Z",
+      template,
+    });
+    expect(response.template?.title).toContain("Dono");
+  });
+
+  it("parses PMR metric, parameter and action item", () => {
+    const metric = ConsultingMetricCatalogItemSchema.parse({
+      metric_key: "lead_to_appointment_rate",
+      label: "Conversao de leads em agendamentos",
+      direction: "increase",
+      value_type: "percent",
+      area: "Vendas",
+      source_scope: "computed",
+      formula_key: "appointments/leads_received",
+      active: true,
+      sort_order: 10,
+    });
+    const parameter = ConsultingParameterValueSchema.parse({
+      id: UUID,
+      parameter_set_id: UUID,
+      metric_key: metric.metric_key,
+      market_average: 0.2,
+      best_practice: 0.3,
+      target_default: 0.2,
+      red_threshold: 0.1,
+      yellow_threshold: 0.2,
+      green_threshold: 0.3,
+      formula: { from: "appointments/leads_received" },
+      notes: null,
+      metric,
+    });
+    const action = ConsultingActionItemSchema.parse({
+      id: UUID,
+      client_id: UUID,
+      strategic_plan_id: null,
+      metric_key: metric.metric_key,
+      action: "Revisar cadencia de follow-up",
+      how: "Rotina diaria no CRM",
+      owner_name: "Gerente",
+      due_date: "2026-04-30",
+      completed_at: null,
+      status: "em_andamento",
+      efficacy: "Aumentar agendamentos",
+      priority: 1,
+      visit_number: 2,
+      metric,
+    });
+    expect(parameter.best_practice).toBe(0.3);
+    expect(action.status).toBe("em_andamento");
+  });
+
+  it("parses PMR strategic plan payload", () => {
+    const plan = ConsultingStrategicPlanSchema.parse({
+      id: UUID,
+      client_id: UUID,
+      title: "Planejamento PMR",
+      period_start: null,
+      period_end: null,
+      status: "draft",
+      diagnosis_summary: "Resumo",
+      market_comparison: { metrics: [] },
+      generated_payload: { source: "test" },
+      generated_at: "2026-04-18T10:00:00Z",
+      created_at: "2026-04-18T10:00:00Z",
+      updated_at: "2026-04-18T10:00:00Z",
+    });
+    expect(plan.title).toBe("Planejamento PMR");
   });
 });
 

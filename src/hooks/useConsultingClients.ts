@@ -13,11 +13,14 @@ import {
   parseConsultingAssignmentArray,
   parseConsultingFinancialArray,
   parseConsultingMethodologyStepArray,
+  parseConsultingClientModuleArray,
+  parseConsultingVisitProgram,
   type ConsultingClient,
   type ConsultingClientUnit,
   type ConsultingAssignment,
   type ConsultingFinancial,
   type ConsultingMethodologyStep,
+  type ConsultingVisitProgram,
 } from '@/lib/schemas/consulting-client.schema'
 
 type ConsultingAssignableUser = {
@@ -137,13 +140,14 @@ export function useConsultingClientDetail(clientId?: string) {
     setLoading(true)
     setError(null)
 
-    const [clientRes, unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, usersRes] = await Promise.all([
+    const [clientRes, unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, modulesRes, usersRes] = await Promise.all([
       supabase.from('consulting_clients').select('*').eq('id', clientId).maybeSingle(),
       supabase.from('consulting_client_units').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_client_contacts').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_assignments').select('*, user:users(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
       supabase.from('consulting_visits').select('*, consultant:users(name,email), auxiliary_consultant:users(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
       supabase.from('consulting_financials').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
+      supabase.from('consulting_client_modules').select('*').eq('client_id', clientId).order('module_key', { ascending: true }),
       supabase.from('users').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
     ])
 
@@ -162,6 +166,7 @@ export function useConsultingClientDetail(clientId?: string) {
           assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
           visits: (visitsRes.data || []) as ConsultingVisit[],
           financials: parseConsultingFinancialArray(financialsRes.data || []),
+          modules: parseConsultingClientModuleArray(modulesRes.data || []),
         }
       : null
 
@@ -335,24 +340,45 @@ export function useConsultingClientDetail(clientId?: string) {
   }
 }
 
-export function useConsultingMethodology() {
+export function useConsultingMethodology(programKey = 'pmr_7') {
   const [steps, setSteps] = useState<ConsultingMethodologyStep[]>([])
+  const [program, setProgram] = useState<ConsultingVisitProgram | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchSteps() {
-      const { data } = await supabase
-        .from('consulting_methodology_steps')
-        .select('*')
-        .order('visit_number', { ascending: true })
-      
-      setSteps(parseConsultingMethodologyStepArray(data || []))
+      setLoading(true)
+      const [programRes, templateRes] = await Promise.all([
+        supabase.from('consulting_visit_programs').select('*').eq('program_key', programKey).maybeSingle(),
+        supabase
+          .from('consulting_visit_template_steps')
+          .select('*')
+          .eq('program_key', programKey)
+          .eq('active', true)
+          .order('visit_number', { ascending: true }),
+      ])
+
+      if (programRes.data) {
+        setProgram(parseConsultingVisitProgram(programRes.data))
+      } else {
+        setProgram(null)
+      }
+
+      if (templateRes.data && templateRes.data.length > 0) {
+        setSteps(parseConsultingMethodologyStepArray(templateRes.data || []))
+      } else {
+        const { data } = await supabase
+          .from('consulting_methodology_steps')
+          .select('*')
+          .order('visit_number', { ascending: true })
+        setSteps(parseConsultingMethodologyStepArray(data || []))
+      }
       setLoading(false)
     }
     fetchSteps()
-  }, [])
+  }, [programKey])
 
-  return { steps, loading }
+  return { steps, program, loading }
 }
 
 export function useConsultingClientMetrics() {

@@ -12,16 +12,30 @@ import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
-import { useConsultingClientDetail } from '@/hooks/useConsultingClients'
+import { useConsultingClientDetail, useConsultingMethodology } from '@/hooks/useConsultingClients'
+import { useConsultingModules } from '@/hooks/useConsultingModules'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { GoogleCalendarView } from '@/features/consultoria/components/GoogleCalendarView'
 import { DREView } from '@/features/consultoria/components/DREView'
+import { ConsultingActionPlanView } from '@/features/consultoria/components/ConsultingActionPlanView'
+import { ConsultingModulesPanel } from '@/features/consultoria/components/ConsultingModulesPanel'
+import { ConsultingStrategicView } from '@/features/consultoria/components/ConsultingStrategicView'
+import { PmrDiagnosticsView } from '@/features/consultoria/components/PmrDiagnosticsView'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
 import { DatePicker } from '@/components/atoms/DatePicker'
 
-type Tab = 'overview' | 'visits' | 'financial'
+type Tab = 'overview' | 'diagnostics' | 'visits' | 'strategic' | 'action' | 'financial'
+
+const tabLabels: Record<Tab, string> = {
+  overview: 'Visão Geral',
+  diagnostics: 'Diagnóstico',
+  visits: 'Agenda/Visitas',
+  strategic: 'Estratégico',
+  action: 'Plano de Ação',
+  financial: 'DRE/Financeiro',
+}
 
 export default function ConsultoriaClienteDetalhe() {
   const { clientId } = useParams<{ clientId: string }>()
@@ -37,12 +51,20 @@ export default function ConsultoriaClienteDetalhe() {
     toggleAssignment,
     refetch,
   } = useConsultingClientDetail(clientId)
+  const {
+    modules,
+    loading: modulesLoading,
+    canManage: canManageModules,
+    isEnabled: isModuleEnabled,
+    upsertModule,
+  } = useConsultingModules(clientId)
+  const { steps: methodologySteps, program } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
     const tab = searchParams.get('tab')
-    if (tab === 'visits' || tab === 'financial' || tab === 'overview') {
+    if (tab === 'visits' || tab === 'financial' || tab === 'overview' || tab === 'diagnostics' || tab === 'strategic' || tab === 'action') {
       setActiveTab(tab as Tab)
     }
     if (searchParams.get('google_connected') === '1') {
@@ -50,6 +72,13 @@ export default function ConsultoriaClienteDetalhe() {
       window.history.replaceState({}, '', `/consultoria/clientes/${clientId}`)
     }
   }, [searchParams, clientId])
+
+  useEffect(() => {
+    if (activeTab === 'diagnostics' && !isModuleEnabled('diagnostics')) setActiveTab('overview')
+    if (activeTab === 'strategic' && !isModuleEnabled('strategic_plan')) setActiveTab('overview')
+    if (activeTab === 'action' && !isModuleEnabled('action_plan')) setActiveTab('overview')
+    if (activeTab === 'financial' && !isModuleEnabled('dre')) setActiveTab('overview')
+  }, [activeTab, isModuleEnabled])
   const [savingUnit, setSavingUnit] = useState(false)
   const [savingContact, setSavingContact] = useState(false)
   const [savingAssignment, setSavingAssignment] = useState(false)
@@ -78,6 +107,33 @@ export default function ConsultoriaClienteDetalhe() {
     const assignedIds = new Set((client?.assignments || []).map((assignment) => assignment.user_id))
     return assignableUsers.filter((user) => !assignedIds.has(user.id))
   }, [assignableUsers, client?.assignments])
+
+  const visitSteps = useMemo(() => {
+    if (methodologySteps.length > 0) return methodologySteps
+    return [1, 2, 3, 4, 5, 6, 7].map((visitNumber) => ({
+      id: `fallback-${visitNumber}`,
+      visit_number: visitNumber,
+      title: `Visita ${visitNumber}`,
+      objective: `Aguardando agendamento da etapa ${visitNumber}...`,
+      target: null,
+      duration: null,
+      evidence_required: null,
+      checklist_template: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }))
+  }, [methodologySteps])
+
+  const maxVisits = program?.total_visits || visitSteps.length || 7
+  const visibleTabs = useMemo(() => {
+    const tabs: Tab[] = ['overview']
+    if (isModuleEnabled('diagnostics')) tabs.push('diagnostics')
+    tabs.push('visits')
+    if (isModuleEnabled('strategic_plan')) tabs.push('strategic')
+    if (isModuleEnabled('action_plan')) tabs.push('action')
+    if (isModuleEnabled('dre')) tabs.push('financial')
+    return tabs
+  }, [isModuleEnabled])
 
   const handleCreateUnit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -141,17 +197,18 @@ export default function ConsultoriaClienteDetalhe() {
 
   const handleOpenSchedule = () => {
     const nextNum = (client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1
-    if (nextNum > 7) {
-      toast.error('Todas as 7 visitas já foram criadas para este cliente.')
+    if (nextNum > maxVisits) {
+      toast.error(`Todas as ${maxVisits} visitas já foram criadas para este cliente.`)
       return
     }
+    const nextStep = visitSteps.find((step) => step.visit_number === nextNum)
     setScheduleForm({
       scheduled_at: '',
       scheduled_time: '09:00',
       duration_hours: '3',
       modality: 'Presencial',
       consultant_id: '',
-      objective: '',
+      objective: nextStep?.objective || '',
     })
     setShowScheduleModal(true)
   }
@@ -166,8 +223,8 @@ export default function ConsultoriaClienteDetalhe() {
 
     const existingVisits = client?.visits || []
     const nextNum = existingVisits.reduce((max, v) => Math.max(max, v.visit_number), 0) + 1
-    if (nextNum > 7) {
-      toast.error('Todas as 7 visitas já foram criadas.')
+    if (nextNum > maxVisits) {
+      toast.error(`Todas as ${maxVisits} visitas já foram criadas.`)
       return
     }
 
@@ -253,7 +310,7 @@ export default function ConsultoriaClienteDetalhe() {
 
         <div className="flex items-center gap-mx-sm">
           <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm">
-            {(['overview', 'visits', 'financial'] as Tab[]).map((tab) => (
+            {visibleTabs.map((tab) => (
               <Button
                 key={tab}
                 variant={activeTab === tab ? 'secondary' : 'ghost'}
@@ -261,7 +318,7 @@ export default function ConsultoriaClienteDetalhe() {
                 onClick={() => setActiveTab(tab)}
                 className="rounded-mx-full px-6 h-mx-lg uppercase font-black"
               >
-                {tab === 'overview' ? 'Visão Geral' : tab === 'visits' ? 'Agenda/Visitas' : 'DRE/Financeiro'}
+                {tabLabels[tab]}
               </Button>
             ))}
           </nav>
@@ -270,6 +327,13 @@ export default function ConsultoriaClienteDetalhe() {
 
       {activeTab === 'overview' && (
         <>
+          <ConsultingModulesPanel
+            modules={modules}
+            loading={modulesLoading}
+            canManage={canManageModules}
+            onToggle={upsertModule}
+          />
+
           <section className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
             <Card className="p-mx-lg border-none shadow-mx-md bg-white xl:col-span-2">
               <Typography variant="h3" className="mb-mx-md">DADOS CADASTRAIS</Typography>
@@ -550,6 +614,10 @@ export default function ConsultoriaClienteDetalhe() {
         </>
       )}
 
+      {activeTab === 'diagnostics' && clientId && (
+        <PmrDiagnosticsView clientId={clientId} />
+      )}
+
       {activeTab === 'visits' && (
         <section className="flex flex-col gap-mx-lg">
           {clientId && (
@@ -557,7 +625,12 @@ export default function ConsultoriaClienteDetalhe() {
           )}
 
           <div className="flex items-center justify-between">
-            <Typography variant="h3">CRONOGRAMA DE VISITAS (MÉTODO 7 PASSOS)</Typography>
+            <div>
+              <Typography variant="h3">CRONOGRAMA DE VISITAS</Typography>
+              <Typography variant="caption" tone="muted">
+                {program?.name || 'Template PMR'} • {maxVisits} visitas
+              </Typography>
+            </div>
             <div className="flex items-center gap-mx-sm">
               <Button asChild variant="ghost" size="sm" className="rounded-mx-xl">
                 <Link to="/agenda">
@@ -573,7 +646,8 @@ export default function ConsultoriaClienteDetalhe() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-mx-md">
-            {[1, 2, 3, 4, 5, 6, 7].map((num) => {
+            {visitSteps.map((step) => {
+              const num = step.visit_number
               const visit = client.visits?.find(v => v.visit_number === num)
               return (
                 <Card key={num} className={cn(
@@ -589,7 +663,7 @@ export default function ConsultoriaClienteDetalhe() {
                   
                   <div className="min-h-mx-24 mb-6">
                     <Typography variant="p" className="text-xs leading-snug">
-                      {visit?.objective || `Aguardando agendamento da etapa ${num}...`}
+                      {visit?.objective || step.objective || `Aguardando agendamento da etapa ${num}...`}
                     </Typography>
                   </div>
 
@@ -620,7 +694,15 @@ export default function ConsultoriaClienteDetalhe() {
         </section>
       )}
 
-      {activeTab === 'financial' && clientId && (
+      {activeTab === 'strategic' && clientId && (
+        <ConsultingStrategicView clientId={clientId} />
+      )}
+
+      {activeTab === 'action' && clientId && (
+        <ConsultingActionPlanView clientId={clientId} />
+      )}
+
+      {activeTab === 'financial' && clientId && isModuleEnabled('dre') && (
         <DREView clientId={clientId} />
       )}
 
@@ -628,7 +710,7 @@ export default function ConsultoriaClienteDetalhe() {
         open={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}
         title="Agendar Visita"
-        description={`${client?.name} — Visita ${(client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1}/7`}
+        description={`${client?.name} — Visita ${(client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1}/${maxVisits}`}
         size="xl"
         footer={
           <>

@@ -47,6 +47,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'Sustentação', icon: <Settings size={22} />,
       items: [
         { label: 'Configuração Operacional', path: '/configuracoes/operacional', icon: <SlidersHorizontal size={16} /> },
+        { label: 'Parâmetros PMR', path: '/configuracoes/consultoria-pmr', icon: <Database size={16} /> },
         { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }

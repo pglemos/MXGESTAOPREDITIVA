@@ -41,6 +41,7 @@ const ProdutosDigitais = lazy(() => import('@/pages/ProdutosDigitais'))
 const ConsultorNotificacoes = lazy(() => import('@/pages/ConsultorNotificacoes'))
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
 const OperationalSettings = lazy(() => import('@/pages/OperationalSettings'))
+const ConsultoriaParametros = lazy(() => import('@/pages/ConsultoriaParametros'))
 const Reprocessamento = lazy(() => import('@/pages/Reprocessamento'))
 const AiDiagnostics = lazy(() => import('@/pages/AiDiagnostics'))
 const MorningReport = lazy(() => import('@/pages/MorningReport'))
@@ -205,6 +206,7 @@ export default function App() {
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
+            <Route path="configuracoes/consultoria-pmr" element={<Suspense fallback={<Spinner />}><ConsultoriaParametros /></Suspense>} />
             <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Navigate to="/loja" replace />} dono={<Navigate to="/lojas" replace />} admin={<Reprocessamento />} />
             </Suspense>} />

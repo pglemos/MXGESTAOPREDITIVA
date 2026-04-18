@@ -8,6 +8,7 @@ export interface ConsultingClient {
   notes: string | null
   modality?: 'Presencial' | 'Online'
   current_visit_step?: number
+  program_template_key?: string
   primary_store_id: string | null
   created_by: string | null
   created_at: string
@@ -114,6 +115,184 @@ export interface ConsultingMethodologyStep {
   target: string | null
   duration: string | null
   evidence_required: string | null
+  checklist_template?: string[] | Array<{ task: string; completed?: boolean }>
+}
+
+export interface ConsultingVisitProgram {
+  program_key: string
+  name: string
+  total_visits: number
+  active: boolean
+}
+
+export interface ConsultingClientModule {
+  id: string
+  client_id: string
+  module_key: 'diagnostics' | 'strategic_plan' | 'action_plan' | 'dre' | 'monthly_close' | 'daily_tracking'
+  label: string
+  enabled: boolean
+  premium: boolean
+  notes: string | null
+  configured_by: string | null
+  configured_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PmrFormField {
+  key: string
+  label: string
+  type: 'text' | 'textarea' | 'number' | 'scale' | 'boolean'
+}
+
+export interface PmrFormTemplate {
+  id: string
+  form_key: 'owner' | 'manager' | 'seller' | 'process' | string
+  title: string
+  target_role: string
+  visit_number: number
+  fields: PmrFormField[]
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface PmrFormResponse {
+  id: string
+  client_id: string
+  visit_id: string | null
+  template_id: string
+  respondent_name: string | null
+  respondent_role: string | null
+  answers: Record<string, unknown>
+  summary: string | null
+  submitted_by: string | null
+  submitted_at: string
+  created_at: string
+  updated_at: string
+  template?: PmrFormTemplate | null
+}
+
+export interface ConsultingMetricCatalogItem {
+  metric_key: string
+  label: string
+  direction: 'increase' | 'decrease'
+  value_type: 'number' | 'percent' | 'currency'
+  area: string
+  source_scope: string
+  formula_key: string | null
+  active: boolean
+  sort_order: number
+}
+
+export interface ConsultingParameterSet {
+  id: string
+  name: string
+  version: string
+  active: boolean
+  source_reference: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ConsultingParameterValue {
+  id: string
+  parameter_set_id: string
+  metric_key: string
+  market_average: number | null
+  best_practice: number | null
+  target_default: number | null
+  red_threshold: number | null
+  yellow_threshold: number | null
+  green_threshold: number | null
+  formula: Record<string, unknown>
+  notes: string | null
+  metric?: ConsultingMetricCatalogItem | null
+}
+
+export interface ConsultingMetricTarget {
+  id: string
+  client_id: string
+  metric_key: string
+  reference_month: string
+  target_value: number
+  source: string
+}
+
+export interface ConsultingMetricResult {
+  id: string
+  client_id: string
+  metric_key: string
+  reference_date: string
+  result_value: number
+  source: string
+  source_payload: Record<string, unknown>
+}
+
+export interface ConsultingMarketingMonthly {
+  id: string
+  client_id: string
+  reference_month: string
+  media: string
+  leads_volume: number
+  sales_volume: number
+  investment: number
+}
+
+export interface ConsultingInventorySnapshot {
+  id: string
+  client_id: string
+  reference_month: string
+  active_stock: number
+  total_stock: number
+  avg_price: number
+  avg_km: number
+  percent_over_90_days: number
+}
+
+export interface ConsultingStrategicPlan {
+  id: string
+  client_id: string
+  title: string
+  period_start: string | null
+  period_end: string | null
+  status: string
+  diagnosis_summary: string | null
+  market_comparison: Record<string, unknown>
+  generated_payload: Record<string, unknown>
+  generated_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ConsultingActionItem {
+  id: string
+  client_id: string
+  strategic_plan_id: string | null
+  metric_key: string | null
+  action: string
+  how: string | null
+  owner_name: string | null
+  due_date: string | null
+  completed_at: string | null
+  status: 'nao_iniciado' | 'em_andamento' | 'atrasado' | 'realizado' | 'cancelado'
+  efficacy: string | null
+  priority: 1 | 2 | 3
+  visit_number: number | null
+  metric?: ConsultingMetricCatalogItem | null
+}
+
+export interface ConsultingGeneratedArtifact {
+  id: string
+  client_id: string
+  strategic_plan_id: string | null
+  artifact_type: string
+  title: string
+  content_md: string | null
+  payload: Record<string, unknown>
+  storage_path: string | null
+  generated_at: string
 }
 
 export interface ConsultingClientDetail extends ConsultingClient {
@@ -122,6 +301,7 @@ export interface ConsultingClientDetail extends ConsultingClient {
   assignments?: ConsultingAssignment[]
   visits?: ConsultingVisit[]
   financials?: ConsultingFinancial[]
+  modules?: ConsultingClientModule[]
 }
 
 export interface DREFinancial {

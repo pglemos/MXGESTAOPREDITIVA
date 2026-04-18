@@ -40,7 +40,7 @@ export default function ConsultoriaVisitaExecucao() {
   const { clientId, visitNumber } = useParams<{ clientId: string, visitNumber: string }>()
   const navigate = useNavigate()
   const { client, loading: clientLoading, refetch } = useConsultingClientDetail(clientId)
-  const { steps, loading: methodologyLoading } = useConsultingMethodology()
+  const { steps, loading: methodologyLoading } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const visitNum = parseInt(visitNumber || '1')
@@ -61,7 +61,11 @@ export default function ConsultoriaVisitaExecucao() {
       setSummary(visit.executive_summary || '')
       setAttachments((visit as any).attachments || [])
     } else if (step) {
-      setChecklist([
+      const templateChecklist = (step.checklist_template || []).map((item) => {
+        if (typeof item === 'string') return { task: item, completed: false }
+        return { task: item.task, completed: Boolean(item.completed) }
+      })
+      setChecklist(templateChecklist.length ? templateChecklist : [
         { task: 'Realizar abertura da visita e alinhar objetivos', completed: false },
         { task: 'Executar checklist metodológico da etapa', completed: false },
         { task: 'Coletar evidências e feedbacks do cliente', completed: false },

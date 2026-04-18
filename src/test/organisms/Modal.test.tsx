@@ -13,9 +13,9 @@ mock.module("@radix-ui/react-dialog", () => ({
   },
   Portal: ({ children }: any) => React.createElement(React.Fragment, null, children),
   Overlay: (props: any) => React.createElement("div", { ...props, "data-testid": "overlay" }),
-  Content: (props: any) => React.createElement("div", { ...props }),
-  Title: (props: any) => React.createElement("div", { ...props }),
-  Description: (props: any) => React.createElement("div", { ...props }),
+  Content: ({ asChild, ...props }: any) => React.createElement("div", { ...props }),
+  Title: ({ asChild, ...props }: any) => React.createElement("div", { ...props }),
+  Description: ({ asChild, ...props }: any) => React.createElement("div", { ...props }),
   Close: ({ children, asChild, ...props }: any) => {
     const { onOpenChange } = React.useContext(DialogContext);
     const handleClick = () => onOpenChange?.(false);
