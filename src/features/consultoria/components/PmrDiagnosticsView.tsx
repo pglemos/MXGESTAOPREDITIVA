@@ -22,8 +22,62 @@ const formLabels: Record<string, string> = {
   process: 'Processos',
 }
 
+// All questions extracted from the PMR documents (PDF/PPTX/DOCX)
+const FULL_TEMPLATE_FIELDS: Record<string, PmrFormField[]> = {
+  owner: [
+    { key: 'macro_vision', label: 'Visão Macro e Potencial', type: 'textarea', required: true },
+    { key: 'monthly_meta_goal', label: 'Meta Mensal Desejada (Vendas)', type: 'number', required: true },
+    { key: 'operation_autonomy_desire', label: 'Desejo: % da operação sem sua presença', type: 'number' },
+    { key: 'owner_dependency', label: 'Dependência do Dono (1-5)', type: 'scale', required: true },
+    { key: 'partner_alignment', label: 'Alinhamento e Sinergia Societária (1-5)', type: 'scale', required: true },
+    { key: 'business_stage', label: 'Estágio Atual do Negócio', type: 'select', options: ['Sobrevivência', 'Intermediário', 'Boa Prática'], required: true },
+    { key: 'strategic_clarity', label: 'Clareza Estratégica (1-5)', type: 'scale' },
+    { key: 'long_term_vision', label: 'Visão de Longo Prazo (1-5)', type: 'scale' },
+    { key: 'investment_traps', label: 'Principais Travas de Investimento/Decisão', type: 'textarea' }
+  ],
+  manager: [
+    { key: 'manager_autonomy', label: 'Autonomia Gerencial e Flexibilidade de Preço', type: 'scale', required: true },
+    { key: 'daily_tracking_process', label: 'Processo de Acompanhamento Diário de Vendas', type: 'scale', required: true },
+    { key: 'team_training_process', label: 'Processo de Treinamento da Equipe', type: 'scale', required: true },
+    { key: 'team_dev_process', label: 'Processo de Desenvolvimento da Equipe', type: 'scale', required: true },
+    { key: 'manager_team_synergy', label: 'Sinergia entre Equipe e Gerente', type: 'scale', required: true },
+    { key: 'manager_owner_synergy', label: 'Sinergia entre Gerente e Donos', type: 'scale', required: true },
+    { key: 'recruitment_process', label: 'Processo de Contratação de Vendedores', type: 'scale' },
+    { key: 'feedback_routine', label: 'Rotina de Feedback Individual', type: 'scale' },
+    { key: 'strategic_communication', label: 'Comunicação Estratégica (1-5)', type: 'scale' },
+    { key: 'operational_focus', label: 'Gargalo: Excesso de Foco Operacional', type: 'scale' }
+  ],
+  seller: [
+    { key: 'crm_funnel_usage', label: 'Uso do CRM e Gestão de Funil', type: 'scale', required: true },
+    { key: 'online_service', label: 'Qualidade do Atendimento Online', type: 'scale', required: true },
+    { key: 'in_person_service', label: 'Qualidade do Atendimento Presencial', type: 'scale', required: true },
+    { key: 'lead_to_appointment', label: 'Conversão de Leads em Agendamentos', type: 'scale', required: true },
+    { key: 'referral_sales', label: 'Canal de Vendas – Indicação', type: 'scale' },
+    { key: 'seller_wallet', label: 'Canal de Vendas – Carteira do Vendedor', type: 'scale' },
+    { key: 'result_culture', label: 'Cultura de Resultado (Comprometimento)', type: 'scale' },
+    { key: 'team_climate', label: 'Clima e Motivação da Equipe', type: 'scale' },
+    { key: 'compensation_plan', label: 'Satisfação com Plano de Remuneração', type: 'scale' },
+    { key: 'main_limitator', label: 'Principal Limitador de Vendas Individual', type: 'textarea' }
+  ],
+  process: [
+    { key: 'traffic_leads_strategy', label: 'Estratégia de Tráfego Pago e Leads', type: 'scale', required: true },
+    { key: 'instagram_innovation', label: 'Instagram: Frequência, Qualidade e Inovação', type: 'scale', required: true },
+    { key: 'branding_investment', label: 'Investimento em Branding', type: 'scale' },
+    { key: 'ad_photo_quality', label: 'Qualidade das Fotos dos Anúncios', type: 'scale' },
+    { key: 'lead_distribution_system', label: 'Sistema de Distribuição de Leads', type: 'scale' },
+    { key: 'vehicle_preparation', label: 'Processo de Preparação de Veículos', type: 'scale', required: true },
+    { key: 'post_sale_process', label: 'Processo de Pós-Venda', type: 'scale', required: true },
+    { key: 'trade_in_evaluation', label: 'Processo de Avaliação de Usado na Troca', type: 'scale', required: true },
+    { key: 'inventory_90_days', label: 'Gestão de Veículos +90 dias no Estoque', type: 'scale' },
+    { key: 'pricing_autonomy_process', label: 'Processo de Precificação e Margem', type: 'scale' },
+    { key: 'information_control', label: 'Controle da Origem das Vendas', type: 'scale' }
+  ]
+}
+
 function emptyAnswers(template?: PmrFormTemplate) {
-  return Object.fromEntries((template?.fields || []).map((field) => [field.key, field.type === 'boolean' ? false : '']))
+  if (!template) return {}
+  const fields = FULL_TEMPLATE_FIELDS[template.form_key] || template.fields || []
+  return Object.fromEntries(fields.map((field) => [field.key, field.type === 'boolean' ? false : '']))
 }
 
 function parseAnswerValue(field: PmrFormField, value: string | boolean) {
@@ -39,9 +93,17 @@ function parseAnswerValue(field: PmrFormField, value: string | boolean) {
 export function PmrDiagnosticsView({ clientId }: Props) {
   const { templates, responsesByTemplate, loading, error, saveResponse } = usePmrDiagnostics(clientId)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
+  
+  const enrichedTemplates = useMemo(() => {
+      return templates.map(t => ({
+          ...t,
+          fields: FULL_TEMPLATE_FIELDS[t.form_key] || t.fields
+      }))
+  }, [templates])
+
   const selectedTemplate = useMemo(() => {
-    return templates.find((template) => template.id === (selectedTemplateId || templates[0]?.id))
-  }, [selectedTemplateId, templates])
+    return enrichedTemplates.find((template) => template.id === (selectedTemplateId || enrichedTemplates[0]?.id))
+  }, [selectedTemplateId, enrichedTemplates])
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [respondentName, setRespondentName] = useState('')
   const [summary, setSummary] = useState('')
