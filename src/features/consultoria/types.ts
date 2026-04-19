@@ -9,6 +9,7 @@ export interface ConsultingClient {
   modality?: 'Presencial' | 'Online'
   current_visit_step?: number
   program_template_key?: string
+  store_id: string | null
   primary_store_id: string | null
   created_by: string | null
   created_at: string
@@ -85,6 +86,10 @@ export interface ConsultingVisit {
   feedback_client: string | null
   executive_summary: string | null
   google_event_id: string | null
+  meta_mensal: string | null
+  projecao: string | null
+  leads_mes: string | null
+  estoque_disponivel: string | null
   attachments?: ConsultingVisitAttachment[]
   created_at: string
   updated_at: string

@@ -8,6 +8,7 @@ import { Select } from '@/components/atoms/Select'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { FileText } from 'lucide-react'
 import { useConsultingMetrics } from '@/hooks/useConsultingMetrics'
 import { useConsultingParameters } from '@/hooks/useConsultingParameters'
 import { useConsultingStrategicPlan } from '@/hooks/useConsultingStrategicPlan'
@@ -58,6 +59,12 @@ export function ConsultingStrategicView({ clientId }: Props) {
   const [targetMonth, setTargetMonth] = useState(new Date().toISOString().slice(0, 7))
   const [targetValue, setTargetValue] = useState('')
   const [planSummary, setPlanSummary] = useState('')
+  const [swot, setSwot] = useState({
+    strengths: '',
+    weaknesses: '',
+    opportunities: '',
+    threats: '',
+  })
   const [submitting, setSubmitting] = useState(false)
 
   const selectedMetric = metrics.catalog.find((metric) => metric.metric_key === metricKey) || metrics.catalog[0]
@@ -145,6 +152,7 @@ export function ConsultingStrategicView({ clientId }: Props) {
         market_average: row.params?.market_average ?? null,
         best_practice: row.params?.best_practice ?? null,
       })),
+      swot,
       generated_from: 'ui',
     }
 
@@ -164,6 +172,7 @@ export function ConsultingStrategicView({ clientId }: Props) {
 
     toast.success('Planejamento estrategico criado.')
     setPlanSummary('')
+    setSwot({ strengths: '', weaknesses: '', opportunities: '', threats: '' })
   }
 
   if (metrics.loading || parameters.loading || strategic.loading) {
@@ -263,12 +272,72 @@ export function ConsultingStrategicView({ clientId }: Props) {
           ) : (
             <Typography variant="p" tone="muted" className="mb-mx-md">Nenhum planejamento gerado ainda.</Typography>
           )}
+
+          <div className="space-y-mx-md mb-mx-md pt-4 border-t border-border-default">
+            <Typography variant="h3" className="uppercase text-xs font-black text-text-tertiary">Entregáveis Disponíveis</Typography>
+            {strategic.artifacts.length === 0 && (
+                <Typography variant="tiny" tone="muted">Nenhum arquivo gerado via CLI ainda.</Typography>
+            )}
+            {strategic.artifacts.map(art => (
+                <div key={art.id} className="flex items-center justify-between p-2 rounded-lg border border-border-subtle bg-surface-alt/50">
+                    <div className="min-w-0">
+                        <Typography variant="p" className="text-xs font-bold truncate">{art.title}</Typography>
+                        <Typography variant="tiny" tone="muted" className="block capitalize">{art.artifact_type.replace('_', ' ')}</Typography>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                        <a href={`#artifact-${art.id}`} title="Ver Markdown">
+                            <FileText size={14} />
+                        </a>
+                    </Button>
+                </div>
+            ))}
+          </div>
+
           <Textarea
             value={planSummary}
             onChange={(event) => setPlanSummary(event.target.value)}
             placeholder="Resumo executivo do planejamento..."
             className="min-h-mx-28 mb-mx-md"
           />
+
+          <div className="space-y-mx-md mb-mx-md pt-4 border-t border-border-default">
+            <Typography variant="h3" className="uppercase text-xs font-black text-text-tertiary">Análise SWOT (Forças e Fraquezas)</Typography>
+            <div className="grid grid-cols-1 gap-mx-sm">
+                <div className="space-y-mx-xs">
+                  <Typography as="label" variant="caption">Forças (Pontos Fortes)</Typography>
+                  <Textarea 
+                      value={swot.strengths} 
+                      onChange={e => setSwot(prev => ({ ...prev, strengths: e.target.value }))}
+                      placeholder="Experiência do sócio, qualidade do estoque..."
+                  />
+                </div>
+                <div className="space-y-mx-xs">
+                  <Typography as="label" variant="caption">Fraquezas (Pontos de Melhoria)</Typography>
+                  <Textarea 
+                      value={swot.weaknesses} 
+                      onChange={e => setSwot(prev => ({ ...prev, weaknesses: e.target.value }))}
+                      placeholder="Falta de clareza nos processos, baixo foco em vendas..."
+                  />
+                </div>
+                <div className="space-y-mx-xs">
+                  <Typography as="label" variant="caption">Oportunidades (Crescimento)</Typography>
+                  <Textarea 
+                      value={swot.opportunities} 
+                      onChange={e => setSwot(prev => ({ ...prev, opportunities: e.target.value }))}
+                      placeholder="Aumento do ticket médio, diversificação de canais..."
+                  />
+                </div>
+                <div className="space-y-mx-xs">
+                  <Typography as="label" variant="caption">Ameaças (Riscos)</Typography>
+                  <Textarea 
+                      value={swot.threats} 
+                      onChange={e => setSwot(prev => ({ ...prev, threats: e.target.value }))}
+                      placeholder="Aumento de custos, volatilidade econômica..."
+                  />
+                </div>
+            </div>
+          </div>
+
           <Button type="button" className="w-full" onClick={handleCreatePlan} disabled={submitting}>
             GERAR PLANEJAMENTO
           </Button>

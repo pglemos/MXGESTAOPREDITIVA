@@ -19,6 +19,8 @@ function computeDRE(f: Partial<DREFinancial>): DREComputed {
 
   const vol = v(f.volume_vendas) || 0
   const cap = v(f.capital_proprio) || 0
+  const leads = v(f.volume_leads) || 0
+  const agds = v(f.volume_agendamentos) || 0
 
   return {
     gross_margin,
@@ -39,6 +41,8 @@ function computeDRE(f: Partial<DREFinancial>): DREComputed {
     profit_per_car: vol > 0 ? Math.round((net_profit / vol) * 100) / 100 : 0,
     rentability: cap > 0 ? Math.round((net_profit / cap) * 10000) / 10000 : 0,
     cac: vol > 0 ? Math.round((v(f.exp_marketing) / vol) * 100) / 100 : 0,
+    lead_to_agd_rate: leads > 0 ? Math.round((agds / leads) * 10000) / 10000 : 0,
+    agd_to_sale_rate: agds > 0 ? Math.round((vol / agds) * 10000) / 10000 : 0,
   }
 }
 

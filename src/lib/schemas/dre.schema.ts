@@ -51,6 +51,8 @@ export const DREFinancialSchema = z.object({
   exp_treinamentos: z.number(),
   exp_outras: z.number(),
   volume_vendas: z.number(),
+  volume_leads: z.number().optional().default(0),
+  volume_agendamentos: z.number().optional().default(0),
   capital_proprio: z.number(),
   revenue: z.number(),
   fixed_expenses: z.number(),
@@ -93,6 +95,8 @@ export const DREComputedSchema = z.object({
   profit_per_car: z.number(),
   rentability: z.number(),
   cac: z.number(),
+  lead_to_agd_rate: z.number(),
+  agd_to_sale_rate: z.number(),
 })
 
 export type DREComputed = z.infer<typeof DREComputedSchema>

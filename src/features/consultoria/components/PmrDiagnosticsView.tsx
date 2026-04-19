@@ -16,18 +16,17 @@ type Props = {
 }
 
 const formLabels: Record<string, string> = {
-  owner: 'Socio / Dono',
-  manager: 'Gerente',
-  seller: 'Vendedor',
-  process: 'Processos',
+  dono: 'Socio / Dono',
+  gerente: 'Gerente',
+  vendedor: 'Vendedor',
+  processo: 'Processos',
 }
 
 // All questions extracted from the PMR documents (PDF/PPTX/DOCX)
 const FULL_TEMPLATE_FIELDS: Record<string, PmrFormField[]> = {
-  owner: [
+  dono: [
     { key: 'macro_vision', label: 'Visão Macro e Potencial', type: 'textarea', required: true },
     { key: 'monthly_meta_goal', label: 'Meta Mensal Desejada (Vendas)', type: 'number', required: true },
-    { key: 'operation_autonomy_desire', label: 'Desejo: % da operação sem sua presença', type: 'number' },
     { key: 'owner_dependency', label: 'Dependência do Dono (1-5)', type: 'scale', required: true },
     { key: 'partner_alignment', label: 'Alinhamento e Sinergia Societária (1-5)', type: 'scale', required: true },
     { key: 'business_stage', label: 'Estágio Atual do Negócio', type: 'select', options: ['Sobrevivência', 'Intermediário', 'Boa Prática'], required: true },
@@ -35,7 +34,10 @@ const FULL_TEMPLATE_FIELDS: Record<string, PmrFormField[]> = {
     { key: 'long_term_vision', label: 'Visão de Longo Prazo (1-5)', type: 'scale' },
     { key: 'investment_traps', label: 'Principais Travas de Investimento/Decisão', type: 'textarea' }
   ],
-  manager: [
+  gerente: [
+    { key: 'clear_goals', label: 'Metas claras para a equipe (1-5)', type: 'scale', required: true },
+    { key: 'lead_followup', label: 'Acompanhamento de leads (1-5)', type: 'scale', required: true },
+    { key: 'routine', label: 'Rotina gerencial estruturada (1-5)', type: 'scale', required: true },
     { key: 'manager_autonomy', label: 'Autonomia Gerencial e Flexibilidade de Preço', type: 'scale', required: true },
     { key: 'daily_tracking_process', label: 'Processo de Acompanhamento Diário de Vendas', type: 'scale', required: true },
     { key: 'team_training_process', label: 'Processo de Treinamento da Equipe', type: 'scale', required: true },
@@ -45,9 +47,9 @@ const FULL_TEMPLATE_FIELDS: Record<string, PmrFormField[]> = {
     { key: 'recruitment_process', label: 'Processo de Contratação de Vendedores', type: 'scale' },
     { key: 'feedback_routine', label: 'Rotina de Feedback Individual', type: 'scale' },
     { key: 'strategic_communication', label: 'Comunicação Estratégica (1-5)', type: 'scale' },
-    { key: 'operational_focus', label: 'Gargalo: Excesso de Foco Operacional', type: 'scale' }
+    { key: 'operational_focus', label: 'Gargalo: Excesso de Foco Operacional (1-5)', type: 'scale' }
   ],
-  seller: [
+  vendedor: [
     { key: 'crm_funnel_usage', label: 'Uso do CRM e Gestão de Funil', type: 'scale', required: true },
     { key: 'online_service', label: 'Qualidade do Atendimento Online', type: 'scale', required: true },
     { key: 'in_person_service', label: 'Qualidade do Atendimento Presencial', type: 'scale', required: true },
@@ -57,9 +59,11 @@ const FULL_TEMPLATE_FIELDS: Record<string, PmrFormField[]> = {
     { key: 'result_culture', label: 'Cultura de Resultado (Comprometimento)', type: 'scale' },
     { key: 'team_climate', label: 'Clima e Motivação da Equipe', type: 'scale' },
     { key: 'compensation_plan', label: 'Satisfação com Plano de Remuneração', type: 'scale' },
+    { key: 'routine_vendedor', label: 'Rotina da Equipe de Vendas', type: 'scale' },
+    { key: 'vendedor_capacity', label: 'Capacidade dos Vendedores (Técnica)', type: 'scale' },
     { key: 'main_limitator', label: 'Principal Limitador de Vendas Individual', type: 'textarea' }
   ],
-  process: [
+  processo: [
     { key: 'traffic_leads_strategy', label: 'Estratégia de Tráfego Pago e Leads', type: 'scale', required: true },
     { key: 'instagram_innovation', label: 'Instagram: Frequência, Qualidade e Inovação', type: 'scale', required: true },
     { key: 'branding_investment', label: 'Investimento em Branding', type: 'scale' },
@@ -70,7 +74,7 @@ const FULL_TEMPLATE_FIELDS: Record<string, PmrFormField[]> = {
     { key: 'trade_in_evaluation', label: 'Processo de Avaliação de Usado na Troca', type: 'scale', required: true },
     { key: 'inventory_90_days', label: 'Gestão de Veículos +90 dias no Estoque', type: 'scale' },
     { key: 'pricing_autonomy_process', label: 'Processo de Precificação e Margem', type: 'scale' },
-    { key: 'information_control', label: 'Controle da Origem das Vendas', type: 'scale' }
+    { key: 'information_control', label: 'Controle da Informação da Origem das Vendas', type: 'scale' }
   ]
 }
 

@@ -28,12 +28,13 @@ export function LiveFloor({ ranking }: LiveFloorProps) {
     ]
 
     const liveAgents = ranking.map((seller, idx) => {
-        const statusIndex = (idx + Math.floor(currentTime.getMinutes() / 10)) % 4
+        const isOffline = !seller.checked_in
+        const statusIndex = isOffline ? 2 : (idx % 2 === 0 ? 1 : (idx % 3 === 0 ? 0 : 3))
         const status = statuses[statusIndex]
-        const durationSeconds = (idx * 120) + (currentTime.getSeconds() * (idx + 1)) % 600
+        const durationSeconds = isOffline ? 0 : (idx * 120) + (currentTime.getSeconds() * (idx + 1)) % 600
 
-        const duration = new Date(durationSeconds * 1000).toISOString().substring(14, 19)
-        const isCritical = (status.type === 'paused' && durationSeconds > 600) || (status.type === 'on_call' && durationSeconds > 900)
+        const duration = isOffline ? '--:--' : new Date(durationSeconds * 1000).toISOString().substring(14, 19)
+        const isCritical = !isOffline && ((status.type === 'paused' && durationSeconds > 600) || (status.type === 'on_call' && durationSeconds > 900))
 
         return {
             ...seller,

@@ -21,20 +21,21 @@ import { DREView } from '@/features/consultoria/components/DREView'
 import { ConsultingActionPlanView } from '@/features/consultoria/components/ConsultingActionPlanView'
 import { ConsultingModulesPanel } from '@/features/consultoria/components/ConsultingModulesPanel'
 import { ConsultingStrategicView } from '@/features/consultoria/components/ConsultingStrategicView'
-import { PmrDiagnosticsView } from '@/features/consultoria/components/PmrDiagnosticsView'
+import { ConsultingDailyTrackingView } from '@/features/consultoria/components/ConsultingDailyTrackingView'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
 import { DatePicker } from '@/components/atoms/DatePicker'
 
-type Tab = 'overview' | 'diagnostics' | 'visits' | 'strategic' | 'action' | 'financial'
+type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly'
 
 const tabLabels: Record<Tab, string> = {
   overview: 'Visão Geral',
-  diagnostics: 'Diagnóstico',
   visits: 'Agenda/Visitas',
   strategic: 'Estratégico',
   action: 'Plano de Ação',
   financial: 'DRE/Financeiro',
+  daily: 'Acompanhamento Diário',
+  monthly: 'Fechamento Mensal',
 }
 
 export default function ConsultoriaClienteDetalhe() {
@@ -64,7 +65,7 @@ export default function ConsultoriaClienteDetalhe() {
 
   useEffect(() => {
     const tab = searchParams.get('tab')
-    if (tab === 'visits' || tab === 'financial' || tab === 'overview' || tab === 'diagnostics' || tab === 'strategic' || tab === 'action') {
+    if (tab === 'visits' || tab === 'financial' || tab === 'overview' || tab === 'strategic' || tab === 'action' || tab === 'daily' || tab === 'monthly') {
       setActiveTab(tab as Tab)
     }
     if (searchParams.get('google_connected') === '1') {
@@ -75,10 +76,11 @@ export default function ConsultoriaClienteDetalhe() {
 
   useEffect(() => {
     if (modulesLoading) return
-    if (activeTab === 'diagnostics' && !isModuleEnabled('diagnostics')) setActiveTab('overview')
     if (activeTab === 'strategic' && !isModuleEnabled('strategic_plan')) setActiveTab('overview')
     if (activeTab === 'action' && !isModuleEnabled('action_plan')) setActiveTab('overview')
     if (activeTab === 'financial' && !isModuleEnabled('dre')) setActiveTab('overview')
+    if (activeTab === 'daily' && !isModuleEnabled('daily_tracking')) setActiveTab('overview')
+    if (activeTab === 'monthly' && !isModuleEnabled('monthly_close')) setActiveTab('overview')
   }, [activeTab, isModuleEnabled, modulesLoading])
 
   const handleTabChange = (tab: Tab) => {
@@ -132,11 +134,11 @@ export default function ConsultoriaClienteDetalhe() {
 
   const maxVisits = program?.total_visits || visitSteps.length || 7
   const visibleTabs = useMemo(() => {
-    const tabs: Tab[] = ['overview']
-    if (isModuleEnabled('diagnostics')) tabs.push('diagnostics')
-    tabs.push('visits')
+    const tabs: Tab[] = ['overview', 'visits']
     if (isModuleEnabled('strategic_plan')) tabs.push('strategic')
     if (isModuleEnabled('action_plan')) tabs.push('action')
+    if (isModuleEnabled('daily_tracking')) tabs.push('daily')
+    if (isModuleEnabled('monthly_close')) tabs.push('monthly')
     if (isModuleEnabled('dre')) tabs.push('financial')
     return tabs
   }, [isModuleEnabled])
@@ -227,13 +229,6 @@ export default function ConsultoriaClienteDetalhe() {
       return
     }
 
-    const existingVisits = client?.visits || []
-    const nextNum = existingVisits.reduce((max, v) => Math.max(max, v.visit_number), 0) + 1
-    if (nextNum > maxVisits) {
-      toast.error(`Todas as ${maxVisits} visitas já foram criadas.`)
-      return
-    }
-
     const scheduledAt = `${scheduleForm.scheduled_at}T${scheduleForm.scheduled_time}:00`
 
     setSubmittingVisit(true)
@@ -241,7 +236,7 @@ export default function ConsultoriaClienteDetalhe() {
       .from('consulting_visits')
       .insert({
         client_id: clientId,
-        visit_number: nextNum,
+        visit_number: (client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1,
         scheduled_at: scheduledAt,
         duration_hours: Number(scheduleForm.duration_hours) || 3,
         modality: scheduleForm.modality,
@@ -257,7 +252,7 @@ export default function ConsultoriaClienteDetalhe() {
       return
     }
 
-    toast.success(`Visita ${nextNum} agendada com sucesso!`)
+    toast.success(`Visita agendada com sucesso!`)
     setShowScheduleModal(false)
     await refetch()
   }
@@ -275,7 +270,7 @@ export default function ConsultoriaClienteDetalhe() {
     return (
       <main className="w-full h-full p-mx-lg bg-surface-alt">
         <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-          <Typography variant="p">Carregando cliente da consultoria...</Typography>
+          <Typography variant="p">Carregando...</Typography>
         </Card>
       </main>
     )
@@ -284,10 +279,9 @@ export default function ConsultoriaClienteDetalhe() {
   if (error || !client) {
     return (
       <main className="w-full h-full p-mx-lg bg-surface-alt">
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white space-y-mx-sm">
+        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
           <Typography variant="h2" tone="error">Cliente não disponível</Typography>
-          <Typography variant="p" tone="muted">{error || 'Você não tem acesso a este cliente ou ele não existe.'}</Typography>
-          <Button asChild variant="secondary" size="sm">
+          <Button asChild variant="secondary" size="sm" className="mt-4">
             <Link to="/consultoria/clientes">VOLTAR</Link>
           </Button>
         </Card>
@@ -295,510 +289,165 @@ export default function ConsultoriaClienteDetalhe() {
     )
   }
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <>
+            <ConsultingModulesPanel
+              modules={modules}
+              loading={modulesLoading}
+              canManage={canManageModules}
+              onToggle={upsertModule}
+            />
+
+            <section className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
+              <Card className="p-mx-lg border-none shadow-mx-md bg-white xl:col-span-2">
+                <Typography variant="h3" className="mb-mx-md uppercase">Dados Cadastrais</Typography>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
+                  <div className="space-y-mx-xs">
+                    <Typography variant="tiny" tone="muted">RAZÃO SOCIAL</Typography>
+                    <Typography variant="p" className="font-bold">{client.legal_name || 'Não informada'}</Typography>
+                  </div>
+                  <div className="space-y-mx-xs">
+                    <Typography variant="tiny" tone="muted">CNPJ</Typography>
+                    <Typography variant="p" className="font-bold">{client.cnpj || 'Não informado'}</Typography>
+                  </div>
+                  <div className="space-y-mx-xs">
+                    <Typography variant="tiny" tone="muted">PRODUTO</Typography>
+                    <Typography variant="p" className="font-bold">{client.product_name || 'Não definido'}</Typography>
+                  </div>
+                  <div className="space-y-mx-xs">
+                    <Typography variant="tiny" tone="muted">STATUS</Typography>
+                    <Badge variant={client.status === 'ativo' ? 'success' : 'warning'}>{client.status.toUpperCase()}</Badge>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-mx-lg border-none shadow-mx-md bg-white">
+                <Typography variant="h3" className="mb-mx-md uppercase">Equipe MX</Typography>
+                <div className="space-y-mx-sm">
+                  {activeAssignments.map((assignment) => (
+                    <div key={assignment.id} className="p-mx-md rounded-mx-lg bg-surface-alt border border-border-default">
+                      <div className="flex items-center justify-between">
+                        <Typography variant="p" className="font-bold">{assignment.user?.name}</Typography>
+                        <Badge variant="outline">{assignment.assignment_role.toUpperCase()}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </section>
+          </>
+        )
+
+      case 'visits':
+        return (
+          <section className="space-y-mx-lg">
+            <div className="flex items-center justify-between">
+              <Typography variant="h3" className="font-black italic uppercase">Agenda e Cronograma</Typography>
+              <Button onClick={handleOpenSchedule} className="bg-brand-secondary h-12 px-8 font-black">
+                <Plus size={18} className="mr-2" />
+                AGENDAR VISITA
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg">
+              {visitSteps.map((step) => {
+                const visit = client.visits?.find((v) => v.visit_number === step.visit_number)
+                return (
+                  <Card key={step.visit_number} className={cn("p-mx-lg border-none shadow-mx-md bg-white flex flex-col justify-between transition-all", visit?.status === 'concluída' ? "opacity-80" : "hover:shadow-mx-lg hover:-translate-y-1")}>
+                    <div className="space-y-mx-sm">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="font-black">ETAPA {step.visit_number}</Badge>
+                        {visit && <Badge variant={visit.status === 'concluída' ? 'success' : 'warning'}>{visit.status.toUpperCase()}</Badge>}
+                      </div>
+                      <Typography variant="h4" className="font-bold min-h-mx-12">{step.objective}</Typography>
+                      {visit ? (
+                        <div className="pt-2 text-text-tertiary">
+                          <Typography variant="tiny" className="flex items-center gap-1 font-bold"><Calendar size={12} /> {new Date(visit.scheduled_at).toLocaleDateString('pt-BR')}</Typography>
+                          <Typography variant="tiny" className="flex items-center gap-1 font-bold"><Clock size={12} /> {visit.duration_hours}H • {visit.modality}</Typography>
+                        </div>
+                      ) : <Typography variant="tiny" tone="muted">Pendente de agendamento</Typography>}
+                    </div>
+                    <div className="pt-mx-lg">
+                      {visit ? (
+                        <Button asChild className="w-full font-black" variant="secondary">
+                          <Link to={`/consultoria/clientes/${clientId}/visitas/${visit.visit_number}`}>
+                            {visit.status === 'concluída' ? 'VER RELATÓRIO' : 'EXECUTAR AGORA'}
+                            <ChevronRight size={16} className="ml-2" />
+                          </Link>
+                        </Button>
+                      ) : <Button className="w-full" variant="ghost" onClick={handleOpenSchedule}>AGENDAR</Button>}
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+            
+            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
+              <Typography variant="h3" className="mb-4 font-black">CALENDÁRIO GOOGLE</Typography>
+              <GoogleCalendarView clientId={clientId!} />
+            </Card>
+          </section>
+        )
+
+      case 'strategic': return <ConsultingStrategicView clientId={clientId!} />
+      case 'action': return <ConsultingActionPlanView clientId={clientId!} />
+      case 'financial': return <DREView clientId={clientId!} />
+      case 'daily': return <ConsultingDailyTrackingView clientId={clientId!} />
+
+      default: return null
+    }
+  }
+
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
         <div className="space-y-mx-sm">
-          <Button asChild variant="ghost" size="sm" className="pl-0">
-            <Link to="/consultoria/clientes">
-              <ArrowLeft size={16} className="mr-2" />
-              VOLTAR PARA CLIENTES
-            </Link>
+          <Button asChild variant="ghost" size="sm" className="pl-0 text-brand-secondary hover:text-brand-primary">
+            <Link to="/consultoria/clientes"><ArrowLeft size={16} className="mr-2" />VOLTAR</Link>
           </Button>
           <div className="flex items-center gap-mx-sm">
-            <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">{client.name}</Typography>
+            <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
+            <Typography variant="h1" className="font-black italic">{client.name.toUpperCase()}</Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md">
-            {client.product_name || 'PRODUTO NÃO DEFINIDO'} • {client.status.toUpperCase()}
+          <Typography variant="caption" className="pl-mx-md uppercase font-bold tracking-widest text-text-tertiary">
+            {client.product_name || 'PMR'} • {client.status.toUpperCase()}
           </Typography>
         </div>
 
-        <div className="flex items-center gap-mx-sm w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0">
-          <nav className="flex items-center gap-mx-tiny bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm">
-            {visibleTabs.map((tab) => (
-              <Button
-                key={tab}
-                variant={activeTab === tab ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => handleTabChange(tab)}
-                className="rounded-mx-full px-6 h-mx-lg uppercase font-black whitespace-nowrap"
-              >
-                {tabLabels[tab]}
-              </Button>
-            ))}
-          </nav>
-        </div>
+        <nav className="flex items-center gap-mx-tiny bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm overflow-x-auto no-scrollbar">
+          {visibleTabs.map((tab) => (
+            <Button
+              key={tab}
+              variant={activeTab === tab ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => handleTabChange(tab)}
+              className="rounded-mx-full px-6 h-mx-lg uppercase font-black whitespace-nowrap text-xs"
+            >
+              {tabLabels[tab]}
+            </Button>
+          ))}
+        </nav>
       </header>
 
-      {activeTab === 'overview' && (
-        <>
-          <ConsultingModulesPanel
-            modules={modules}
-            loading={modulesLoading}
-            canManage={canManageModules}
-            onToggle={upsertModule}
-          />
+      {renderTabContent()}
 
-          <section className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white xl:col-span-2">
-              <Typography variant="h3" className="mb-mx-md">DADOS CADASTRAIS</Typography>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
-                <div className="space-y-mx-xs">
-                  <Typography variant="tiny" tone="muted">RAZÃO SOCIAL</Typography>
-                  <Typography variant="p">{client.legal_name || 'Não informada'}</Typography>
-                </div>
-                <div className="space-y-mx-xs">
-                  <Typography variant="tiny" tone="muted">CNPJ</Typography>
-                  <Typography variant="p">{client.cnpj || 'Não informado'}</Typography>
-                </div>
-                <div className="space-y-mx-xs">
-                  <Typography variant="tiny" tone="muted">PRODUTO</Typography>
-                  <Typography variant="p">{client.product_name || 'Não definido'}</Typography>
-                </div>
-                <div className="space-y-mx-xs">
-                  <Typography variant="tiny" tone="muted">CRIADO EM</Typography>
-                  <Typography variant="p">{new Date(client.created_at).toLocaleDateString('pt-BR')}</Typography>
-                </div>
-                <div className="space-y-mx-xs md:col-span-2">
-                  <Typography variant="tiny" tone="muted">NOTAS</Typography>
-                  <Typography variant="p">{client.notes || 'Sem observações iniciais.'}</Typography>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-              <Typography variant="h3" className="mb-mx-md">CONSULTORES</Typography>
-              <div className="space-y-mx-sm">
-                {activeAssignments.length === 0 && (
-                  <Typography variant="p" tone="muted">Nenhum consultor vinculado ainda.</Typography>
-                )}
-                {activeAssignments.map((assignment) => (
-                  <div key={assignment.id} className="p-mx-md rounded-mx-lg bg-surface-alt border border-border-default space-y-mx-xs">
-                    <div className="flex items-center justify-between gap-mx-sm">
-                      <div className="flex items-center gap-mx-xs min-w-0">
-                        <User2 size={16} className="text-brand-primary shrink-0" />
-                        <Typography variant="p" className="truncate">{assignment.user?.name || assignment.user_id}</Typography>
-                      </div>
-                      <Badge variant="outline" className="rounded-mx-full px-3 py-1">
-                        {assignment.assignment_role.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <Typography variant="tiny" tone="muted">{assignment.user?.email || 'Sem e-mail'}</Typography>
-                    {canManage && (
-                      <div className="pt-mx-xs">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-mx-lg"
-                          onClick={() => handleToggleAssignment(assignment.id, false)}
-                        >
-                          DESATIVAR
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {canManage && client.assignments?.filter((assignment) => !assignment.active).map((assignment) => (
-                  <div key={assignment.id} className="p-mx-md rounded-mx-lg bg-surface-alt border border-border-default opacity-70 space-y-mx-xs">
-                    <div className="flex items-center justify-between gap-mx-sm">
-                      <Typography variant="p">{assignment.user?.name || assignment.user_id}</Typography>
-                      <Badge variant="outline" className="rounded-mx-full px-3 py-1">INATIVO</Badge>
-                    </div>
-                    <Typography variant="tiny" tone="muted">{assignment.user?.email || 'Sem e-mail'}</Typography>
-                    <div className="pt-mx-xs">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        className="rounded-mx-lg"
-                        onClick={() => handleToggleAssignment(assignment.id, true)}
-                      >
-                        REATIVAR
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {canManage && (
-                  <form onSubmit={handleCreateAssignment} className="mt-mx-md border border-border-default rounded-mx-lg p-mx-md bg-surface-alt space-y-mx-sm">
-                    <Typography variant="tiny" tone="muted">NOVO VÍNCULO</Typography>
-                    <div className="space-y-mx-xs">
-                      <Typography as="label" htmlFor="consulting-assignment-user" variant="caption">Usuário</Typography>
-                      <Select
-                        id="consulting-assignment-user"
-                        value={assignmentForm.user_id}
-                        onChange={(event) => setAssignmentForm((current) => ({ ...current, user_id: event.target.value }))}
-                      >
-                        <option value="">Selecionar usuário...</option>
-                        {availableUsers.map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.name} ({user.role})
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div className="space-y-mx-xs">
-                      <Typography as="label" htmlFor="consulting-assignment-role" variant="caption">Papel no cliente</Typography>
-                      <Select
-                        id="consulting-assignment-role"
-                        value={assignmentForm.assignment_role}
-                        onChange={(event) => setAssignmentForm((current) => ({ ...current, assignment_role: event.target.value as 'responsavel' | 'auxiliar' | 'viewer' }))}
-                      >
-                        <option value="responsavel">Responsável</option>
-                        <option value="auxiliar">Auxiliar</option>
-                        <option value="viewer">Viewer</option>
-                      </Select>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button type="submit" size="sm" disabled={savingAssignment || availableUsers.length === 0}>
-                        {savingAssignment ? 'SALVANDO...' : 'VINCULAR'}
-                      </Button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </Card>
-          </section>
-
-          <section className="grid grid-cols-1 xl:grid-cols-2 gap-mx-lg">
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-              <Typography variant="h3" className="mb-mx-md">UNIDADES</Typography>
-              <div className="space-y-mx-sm">
-                {(client.units || []).length === 0 && (
-                  <Typography variant="p" tone="muted">Nenhuma unidade cadastrada ainda.</Typography>
-                )}
-                {(client.units || []).map((unit) => (
-                  <div key={unit.id} className="p-mx-md rounded-mx-lg bg-surface-alt border border-border-default">
-                    <div className="flex items-center justify-between gap-mx-sm">
-                      <div className="flex items-center gap-mx-xs min-w-0">
-                        <Building2 size={16} className="text-brand-primary shrink-0" />
-                        <Typography variant="p" className="truncate">{unit.name}</Typography>
-                      </div>
-                      {unit.is_primary && (
-                        <Badge variant="success" className="rounded-mx-full px-3 py-1 border-none">PRINCIPAL</Badge>
-                      )}
-                    </div>
-                    <Typography variant="tiny" tone="muted">
-                      {[unit.city, unit.state].filter(Boolean).join(' / ') || 'Localização não informada'}
-                    </Typography>
-                  </div>
-                ))}
-                {canManage && (
-                  <form onSubmit={handleCreateUnit} className="mt-mx-md border border-border-default rounded-mx-lg p-mx-md bg-surface-alt grid grid-cols-1 md:grid-cols-2 gap-mx-sm">
-                    <div className="space-y-mx-xs md:col-span-2">
-                      <Typography as="label" htmlFor="consulting-unit-name" variant="caption">Nome da unidade</Typography>
-                      <Input
-                        id="consulting-unit-name"
-                        value={unitForm.name}
-                        onChange={(event) => setUnitForm((current) => ({ ...current, name: event.target.value }))}
-                        placeholder="Ex: DNA Veículos - Matriz"
-                      />
-                    </div>
-                    <div className="space-y-mx-xs">
-                      <Typography as="label" htmlFor="consulting-unit-city" variant="caption">Cidade</Typography>
-                      <Input
-                        id="consulting-unit-city"
-                        value={unitForm.city}
-                        onChange={(event) => setUnitForm((current) => ({ ...current, city: event.target.value }))}
-                        placeholder="Cidade"
-                      />
-                    </div>
-                    <div className="space-y-mx-xs">
-                      <Typography as="label" htmlFor="consulting-unit-state" variant="caption">UF</Typography>
-                      <Input
-                        id="consulting-unit-state"
-                        value={unitForm.state}
-                        onChange={(event) => setUnitForm((current) => ({ ...current, state: event.target.value.toUpperCase() }))}
-                        placeholder="UF"
-                      />
-                    </div>
-                    <label className="md:col-span-2 flex items-center gap-mx-xs text-sm font-bold text-text-primary">
-                      <input
-                        type="checkbox"
-                        checked={unitForm.is_primary}
-                        onChange={(event) => setUnitForm((current) => ({ ...current, is_primary: event.target.checked }))}
-                      />
-                      Definir como unidade principal
-                    </label>
-                    <div className="md:col-span-2 flex justify-end">
-                      <Button type="submit" size="sm" disabled={savingUnit}>
-                        {savingUnit ? 'SALVANDO...' : 'ADICIONAR UNIDADE'}
-                      </Button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </Card>
-
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-              <Typography variant="h3" className="mb-mx-md">CONTATOS</Typography>
-              <div className="space-y-mx-sm">
-                {(client.contacts || []).length === 0 && (
-                  <Typography variant="p" tone="muted">Nenhum contato cadastrado ainda.</Typography>
-                )}
-                {(client.contacts || []).map((contact) => (
-                  <div key={contact.id} className="p-mx-md rounded-mx-lg bg-surface-alt border border-border-default">
-                    <div className="flex items-center justify-between gap-mx-sm">
-                      <Typography variant="p">{contact.name}</Typography>
-                      {contact.is_primary && (
-                        <Badge variant="outline" className="rounded-mx-full px-3 py-1">PRINCIPAL</Badge>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-mx-xs mt-mx-xs">
-                      <div className="flex items-center gap-mx-xs">
-                        <BriefcaseBusiness size={14} className="text-text-tertiary" />
-                        <Typography variant="tiny" tone="muted">{contact.role || 'Função não informada'}</Typography>
-                      </div>
-                      <div className="flex items-center gap-mx-xs">
-                        <Mail size={14} className="text-text-tertiary" />
-                        <Typography variant="tiny" tone="muted">{contact.email || 'Sem e-mail'}</Typography>
-                      </div>
-                      <div className="flex items-center gap-mx-xs">
-                        <Phone size={14} className="text-text-tertiary" />
-                        <Typography variant="tiny" tone="muted">{contact.phone || 'Sem telefone'}</Typography>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {canManage && (
-                  <form onSubmit={handleCreateContact} className="mt-mx-md border border-border-default rounded-mx-lg p-mx-md bg-surface-alt grid grid-cols-1 md:grid-cols-2 gap-mx-sm">
-                    <div className="space-y-mx-xs md:col-span-2">
-                      <Typography as="label" htmlFor="consulting-contact-name" variant="caption">Nome do contato</Typography>
-                      <Input
-                        id="consulting-contact-name"
-                        value={contactForm.name}
-                        onChange={(event) => setContactForm((current) => ({ ...current, name: event.target.value }))}
-                        placeholder="Nome"
-                      />
-                    </div>
-                    <div className="space-y-mx-xs">
-                      <Typography as="label" htmlFor="consulting-contact-email" variant="caption">E-mail</Typography>
-                      <Input
-                        id="consulting-contact-email"
-                        value={contactForm.email}
-                        onChange={(event) => setContactForm((current) => ({ ...current, email: event.target.value }))}
-                        placeholder="email@cliente.com"
-                      />
-                    </div>
-                    <div className="space-y-mx-xs">
-                      <Typography as="label" htmlFor="consulting-contact-phone" variant="caption">Telefone</Typography>
-                      <Input
-                        id="consulting-contact-phone"
-                        value={contactForm.phone}
-                        onChange={(event) => setContactForm((current) => ({ ...current, phone: event.target.value }))}
-                        placeholder="Telefone"
-                      />
-                    </div>
-                    <div className="space-y-mx-xs md:col-span-2">
-                      <Typography as="label" htmlFor="consulting-contact-role" variant="caption">Função</Typography>
-                      <Input
-                        id="consulting-contact-role"
-                        value={contactForm.role}
-                        onChange={(event) => setContactForm((current) => ({ ...current, role: event.target.value }))}
-                        placeholder="Ex: Diretor comercial"
-                      />
-                    </div>
-                    <label className="md:col-span-2 flex items-center gap-mx-xs text-sm font-bold text-text-primary">
-                      <input
-                        type="checkbox"
-                        checked={contactForm.is_primary}
-                        onChange={(event) => setContactForm((current) => ({ ...current, is_primary: event.target.checked }))}
-                      />
-                      Definir como contato principal
-                    </label>
-                    <div className="md:col-span-2 flex justify-end">
-                      <Button type="submit" size="sm" disabled={savingContact}>
-                        {savingContact ? 'SALVANDO...' : 'ADICIONAR CONTATO'}
-                      </Button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </Card>
-          </section>
-        </>
-      )}
-
-      {activeTab === 'diagnostics' && clientId && (
-        <PmrDiagnosticsView clientId={clientId} />
-      )}
-
-      {activeTab === 'visits' && (
-        <section className="flex flex-col gap-mx-lg">
-          {clientId && (
-            <GoogleCalendarView clientId={clientId} />
-          )}
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="h3">CRONOGRAMA DE VISITAS</Typography>
-              <Typography variant="caption" tone="muted">
-                {program?.name || 'Template PMR'} • {maxVisits} visitas
-              </Typography>
-            </div>
-            <div className="flex items-center gap-mx-sm">
-              <Button asChild variant="ghost" size="sm" className="rounded-mx-xl">
-                <Link to="/agenda">
-                  <CalendarDays size={16} className="mr-2" /> VER AGENDA MX
-                </Link>
-              </Button>
-              {canManage && (
-                <Button size="sm" className="rounded-mx-xl" onClick={handleOpenSchedule}>
-                  <Plus size={16} className="mr-2" /> AGENDAR NOVA VISITA
-                </Button>
-              )}
-            </div>
+      <Modal open={showScheduleModal} onClose={() => setShowScheduleModal(false)} title="Agendar Nova Visita" size="xl">
+        <form onSubmit={handleSubmitSchedule} className="p-8 space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-1"><Typography variant="tiny" className="font-black">DATA</Typography><DatePicker value={scheduleForm.scheduled_at} onChange={e => setScheduleForm(p => ({ ...p, scheduled_at: e.target.value }))} /></div>
+            <div className="space-y-1"><Typography variant="tiny" className="font-black">HORA</Typography><Input type="time" value={scheduleForm.scheduled_time} onChange={e => setScheduleForm(p => ({ ...p, scheduled_time: e.target.value }))} /></div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-mx-md">
-            {visitSteps.map((step) => {
-              const num = step.visit_number
-              const visit = client.visits?.find(v => v.visit_number === num)
-              return (
-                <Card key={num} className={cn(
-                  "p-mx-md border-none shadow-mx-sm transition-all",
-                  visit?.status === 'concluída' ? 'bg-status-success-surface/20' : 'bg-white'
-                )}>
-                  <div className="flex items-center justify-between mb-4">
-                    <Badge variant={visit?.status === 'concluída' ? 'success' : 'outline'} className="rounded-mx-full">
-                      VISITA {num}
-                    </Badge>
-                    {visit?.status === 'concluída' ? <CheckCircle2 size={18} className="text-status-success" /> : <Clock size={18} className="text-text-label" />}
-                  </div>
-                  
-                  <div className="min-h-mx-24 mb-6">
-                    <Typography variant="p" className="text-xs leading-snug">
-                      {visit?.objective || step.objective || `Aguardando agendamento da etapa ${num}...`}
-                    </Typography>
-                  </div>
-
-                  <div className="space-y-mx-xs pt-4 border-t border-border-subtle">
-                    <div className="flex items-center gap-mx-xs">
-                      <Calendar size={12} className="text-text-tertiary" />
-                      <Typography variant="tiny" tone="muted">
-                        {visit?.scheduled_at ? new Date(visit.scheduled_at).toLocaleDateString('pt-BR') : 'Sem data'}
-                      </Typography>
-                    </div>
-                    <div className="flex items-center gap-mx-xs">
-                      <User2 size={12} className="text-text-tertiary" />
-                      <Typography variant="tiny" tone="muted" className="truncate">
-                        {visit?.consultant?.name || 'Não definido'}
-                      </Typography>
-                    </div>
-                  </div>
-
-                  <Button variant="ghost" size="sm" className="w-full mt-6 rounded-mx-lg text-xs" asChild>
-                    <Link to={`/consultoria/clientes/${clientId}/visitas/${num}`}>
-                      DETALHES <ChevronRight size={14} className="ml-1" />
-                    </Link>
-                  </Button>
-                </Card>
-              )
-            })}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-1"><Typography variant="tiny" className="font-black">DURAÇÃO (H)</Typography><Input type="number" value={scheduleForm.duration_hours} onChange={e => setScheduleForm(p => ({ ...p, duration_hours: e.target.value }))} /></div>
+            <div className="space-y-1"><Typography variant="tiny" className="font-black">MODALIDADE</Typography><Select value={scheduleForm.modality} onChange={e => setScheduleForm(p => ({ ...p, modality: e.target.value }))}><option value="Presencial">Presencial</option><option value="Online">Online</option></Select></div>
           </div>
-        </section>
-      )}
-
-      {activeTab === 'strategic' && clientId && (
-        <ConsultingStrategicView clientId={clientId} />
-      )}
-
-      {activeTab === 'action' && clientId && (
-        <ConsultingActionPlanView clientId={clientId} />
-      )}
-
-      {activeTab === 'financial' && clientId && isModuleEnabled('dre') && (
-        <DREView clientId={clientId} />
-      )}
-
-      <Modal
-        open={showScheduleModal}
-        onClose={() => setShowScheduleModal(false)}
-        title="Agendar Visita"
-        description={`${client?.name} — Visita ${(client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1}/${maxVisits}`}
-        size="xl"
-        footer={
-          <>
-            <Button type="button" variant="ghost" onClick={() => setShowScheduleModal(false)}>CANCELAR</Button>
-            <Button type="submit" form="client-schedule-form" disabled={submittingVisit} className="bg-brand-secondary">
-              {submittingVisit ? 'AGENDANDO...' : 'CONFIRMAR AGENDAMENTO'}
-            </Button>
-          </>
-        }
-      >
-        <form id="client-schedule-form" onSubmit={handleSubmitSchedule} className="space-y-mx-lg">
-          <div className="grid grid-cols-2 gap-mx-md">
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="client-schedule-date" variant="caption" className="font-black uppercase tracking-widest">Data *</Typography>
-              <DatePicker
-                id="client-schedule-date"
-                value={scheduleForm.scheduled_at}
-                onChange={(e) => setScheduleForm((prev) => ({ ...prev, scheduled_at: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="client-schedule-time" variant="caption" className="font-black uppercase tracking-widest">Horário *</Typography>
-              <Input
-                id="client-schedule-time"
-                type="time"
-                value={scheduleForm.scheduled_time}
-                onChange={(e) => setScheduleForm((prev) => ({ ...prev, scheduled_time: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-mx-md">
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="client-schedule-duration" variant="caption" className="font-black uppercase tracking-widest">Duração (horas)</Typography>
-              <Input
-                id="client-schedule-duration"
-                type="number"
-                min="1"
-                max="12"
-                value={scheduleForm.duration_hours}
-                onChange={(e) => setScheduleForm((prev) => ({ ...prev, duration_hours: e.target.value }))}
-              />
-            </div>
-            <Select
-              id="client-schedule-modality"
-              label="Modalidade"
-              value={scheduleForm.modality}
-              onChange={(e) => setScheduleForm((prev) => ({ ...prev, modality: e.target.value }))}
-            >
-              <option value="Presencial">Presencial</option>
-              <option value="Online">Online</option>
-            </Select>
-          </div>
-
-          <Select
-            id="client-schedule-consultant"
-            label="Consultor Responsável"
-            value={scheduleForm.consultant_id}
-            onChange={(e) => setScheduleForm((prev) => ({ ...prev, consultant_id: e.target.value }))}
-          >
-            <option value="">Sem consultor...</option>
-            {activeAssignments.filter((a) => a.assignment_role === 'responsavel' && a.user).map((a) => (
-              <option key={a.user_id} value={a.user_id}>{a.user?.name}</option>
-            ))}
-            {assignableUsers.filter((u) => u.role === 'admin').map((u) => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
-          </Select>
-
-          <div className="space-y-mx-xs">
-            <Typography as="label" htmlFor="client-schedule-objective" variant="caption" className="font-black uppercase tracking-widest">Objetivo da Visita</Typography>
-            <Textarea
-              id="client-schedule-objective"
-              value={scheduleForm.objective}
-              onChange={(e) => setScheduleForm((prev) => ({ ...prev, objective: e.target.value }))}
-              placeholder="Descreva o objetivo principal desta visita..."
-              className="min-h-mx-24"
-            />
-          </div>
+          <div className="space-y-1"><Typography variant="tiny" className="font-black">OBJETIVO</Typography><Textarea value={scheduleForm.objective} onChange={e => setScheduleForm(p => ({ ...p, objective: e.target.value }))} className="min-h-mx-24" /></div>
+          <div className="flex justify-end pt-4"><Button type="submit" disabled={submittingVisit} className="bg-brand-secondary h-14 px-12 font-black">CONFIRMAR AGENDAMENTO</Button></div>
         </form>
       </Modal>
-
     </main>
   )
 }

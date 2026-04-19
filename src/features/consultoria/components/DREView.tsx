@@ -74,6 +74,8 @@ const SECTION_FIELDS: Record<SectionKey, { key: keyof DREFinancial; label: strin
   ],
   indicadores: [
     { key: 'volume_vendas', label: 'Volume Vendas' },
+    { key: 'volume_leads', label: 'Volume Leads' },
+    { key: 'volume_agendamentos', label: 'Volume Agendamentos' },
     { key: 'capital_proprio', label: 'Capital Próprio' },
   ],
 }
@@ -125,6 +127,8 @@ const TABLE_ROWS: DRETableRow[] = [
   { label: 'Lucro Líquido', getValue: (c) => c.net_profit, bold: true },
   { label: 'INDICADORES', getValue: () => null, isHeader: true },
   { label: 'Volume Vendas', getValue: (_c, f) => f.volume_vendas || 0, format: 'number' },
+  { label: 'Taxa Leads -> Agd', getValue: (c) => c.lead_to_agd_rate, format: 'percent' },
+  { label: 'Taxa Agd -> Venda', getValue: (c) => c.agd_to_sale_rate, format: 'percent' },
   { label: 'Ticket Médio', getValue: (c) => c.avg_ticket },
   { label: 'Margem Bruta/Carro', getValue: (c) => c.margin_per_car },
   { label: 'Custo por Venda (CAC)', getValue: (c) => c.cac },

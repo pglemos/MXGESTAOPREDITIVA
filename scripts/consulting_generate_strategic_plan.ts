@@ -95,6 +95,12 @@ async function main() {
     },
     market_comparison: marketComparison,
     action_plan: actionPlanGroups,
+    swot: {
+        strengths: 'Não informado',
+        weaknesses: 'Não informado',
+        opportunities: 'Não informado',
+        threats: 'Não informado',
+    },
   }
 
   // Generate markdown representing presentation slides
@@ -118,7 +124,19 @@ async function main() {
         return `- **${m.label}**: Realizado: ${m.latest_result} | Mercado: ${m.market_average || 'N/A'} | Boa Prática: ${m.best_practice || 'N/A'}`
     }),
     `---`,
-    `# SLIDE 6+: PLANO DE AÇÃO E PRIORIDADES`,
+    `# SLIDE 6: FORÇAS (STRENGTHS)`,
+    payload.swot.strengths,
+    `---`,
+    `# SLIDE 7: FRAQUEZAS (WEAKNESSES)`,
+    payload.swot.weaknesses,
+    `---`,
+    `# SLIDE 8: OPORTUNIDADES (OPPORTUNITIES)`,
+    payload.swot.opportunities,
+    `---`,
+    `# SLIDE 9: AMEAÇAS (THREATS)`,
+    payload.swot.threats,
+    `---`,
+    `# SLIDE 10+: PLANO DE AÇÃO E PRIORIDADES`,
     ...Object.entries(payload.action_plan).map(([priority, acts]) => {
         return `\n### PRIORIDADE ${priority}\n` + (acts as any[]).map(a => `- **Ação:** ${a.action}\n  - **Como:** ${a.how || 'N/A'}\n  - **Resp:** ${a.owner_name || 'N/A'} | **Prazo:** ${a.due_date || 'N/A'}`).join('\n')
     }),

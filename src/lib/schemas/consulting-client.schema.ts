@@ -11,6 +11,7 @@ export const ConsultingClientSchema = z.object({
   modality: z.enum(['Presencial', 'Online']).optional(),
   current_visit_step: z.number().optional(),
   program_template_key: z.string().optional(),
+  store_id: z.string().uuid().nullable().optional(),
   primary_store_id: z.string().nullable(),
   created_by: z.string().nullable(),
   created_at: z.string(),
@@ -112,6 +113,8 @@ export const ConsultingFinancialSchema = z.object({
   net_profit: z.number(),
   roi: z.number(),
   conversion_rate: z.number(),
+  volume_leads: z.number().optional().default(0),
+  volume_agendamentos: z.number().optional().default(0),
   created_at: z.string(),
   updated_at: z.string(),
 })
