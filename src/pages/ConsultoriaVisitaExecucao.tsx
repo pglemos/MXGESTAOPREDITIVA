@@ -23,7 +23,6 @@ import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { Modal } from '@/components/organisms/Modal'
 
-// Modular Components
 import { VisitHeaderBase } from '@/features/consultoria/components/VisitHeaderBase'
 import { VisitOneHighFidelity } from '@/features/consultoria/components/VisitOneHighFidelity'
 import { 
@@ -64,6 +63,8 @@ export default function ConsultoriaVisitaExecucao() {
     marketing: { investment: 0, leads: 0, origin: [ { name: 'Porta', value: 0 }, { name: 'Internet', value: 0 }, { name: 'Carteira', value: 0 }, { name: 'Indicação', value: 0 } ] },
     stock: { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
   })
+
+  const [tab, setTab] = useState<'dashboards' | 'benchmark' | 'entrevistas'>('dashboards')
 
   useEffect(() => {
     if (visit) {
@@ -181,20 +182,20 @@ Gerado via MX PERFORMANCE`
   if (clientLoading || methodologyLoading) return <div className="flex w-full items-center justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-brand-primary" /></div>
 
   return (
-    <div className="w-full pb-24 print:bg-white print:pb-0">
+    <div className="w-full pb-24 bg-slate-50 print:bg-white print:pb-0 relative z-0">
       
-      {/* Header Local Clean UI */}
-      <div className="bg-white border-b border-border-default px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shadow-sm print:hidden">
+      {/* Header Fixo da Visita - Limpo e sem conflito de Z-index */}
+      <div className="bg-white border-b border-border-default px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shadow-sm print:hidden">
         <div className="flex items-center gap-4">
           <Link to={`/consultoria/clientes/${clientId}`} className="p-2 border border-border-subtle rounded-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <Typography variant="h3" className="text-text-primary text-lg md:text-xl leading-none">COCKPIT PMR</Typography>
+              <Typography variant="h3" className="text-text-primary text-lg leading-none">COCKPIT PMR</Typography>
               <Badge variant="outline" className="bg-brand-primary/10 text-brand-primary border-none px-2 py-0.5 text-[10px]">VISITA {visitNum}</Badge>
             </div>
-            <Typography variant="tiny" tone="muted" className="text-xs">{step?.objective}</Typography>
+            <Typography variant="tiny" tone="muted" className="text-xs font-medium">{step?.objective}</Typography>
           </div>
         </div>
         
@@ -204,20 +205,43 @@ Gerado via MX PERFORMANCE`
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 print:block print:p-0">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-3 gap-6 print:block print:p-0">
         
-        {/* Coluna Principal - 8 colunas de largura */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* Coluna Principal - 2 colunas */}
+        <div className="lg:col-span-2 space-y-6">
           
           <VisitHeaderBase clientName={client?.name || ''} data={headerBase} onChange={setHeaderBase} />
           
           <div className="animate-in fade-in duration-300">
             {visitNum === 1 && (
-              <VisitOneHighFidelity 
-                visitId={visit?.id} templates={templates} responsesByTemplate={responsesByTemplate} 
-                onSaveResponse={saveResponse} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)}
-                quantData={quantData} onQuantChange={setQuantData}
-              />
+              <div className="space-y-6">
+                <div className="flex bg-white p-1.5 rounded-xl border border-border-default shadow-sm overflow-x-auto print:hidden">
+                  {[
+                    { id: 'dashboards', label: 'Dashboards', icon: BarChart3 },
+                    { id: 'benchmark', label: 'Mercado', icon: TrendingUp },
+                    { id: 'entrevistas', label: 'Entrevistas', icon: MessageSquare }
+                  ].map((t: any) => (
+                    <button 
+                      key={t.id} 
+                      onClick={() => setTab(t.id as any)} 
+                      className={cn(
+                          "flex-1 py-2.5 px-4 text-xs font-bold uppercase rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[120px]", 
+                          tab === t.id 
+                            ? "bg-brand-primary text-white shadow-sm" 
+                            : "text-text-tertiary hover:bg-surface-alt/30 hover:text-text-secondary"
+                      )}
+                    >
+                      <t.icon size={14} /> {t.label}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="min-w-0">
+                  {tab === 'dashboards' && <VisitOneHighFidelity quantData={quantData} onQuantChange={setQuantData} />}
+                  {tab === 'benchmark' && <VisitOneBenchmark />}
+                  {tab === 'entrevistas' && <VisitOneInterviews templates={templates} visitId={visit?.id} onSave={saveResponse} />}
+                </div>
+              </div>
             )}
             {visitNum === 2 && <VisitTwoExecution clientId={clientId!} />}
             {visitNum === 3 && <VisitThreeExecution />}
@@ -235,15 +259,14 @@ Gerado via MX PERFORMANCE`
                 <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><ClipboardCheck size={20} /></div>
                 <Typography variant="h3" className="text-lg">Checklist Operacional</Typography>
               </div>
-              <Badge variant="secondary" className="font-bold w-fit">Mandatório</Badge>
             </div>
             <div className="space-y-2">
               {checklist.map((item, idx) => (
                 <div key={idx} className={cn("flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer", item.completed ? "bg-brand-primary/5 border-brand-primary/20" : "bg-white border-border-default hover:border-border-hover")} onClick={() => handleToggleCheck(idx)}>
                   <div className="mt-0.5">
-                    {item.completed ? <CheckCircle2 className="w-5 h-5 text-brand-primary" /> : <Circle className="w-5 h-5 text-text-tertiary opacity-30" />}
+                    {item.completed ? <CheckCircle2 className="w-5 h-5 text-brand-primary" /> : <Circle className="w-5 h-5 text-text-tertiary opacity-30 hover:opacity-50" />}
                   </div>
-                  <Typography variant="p" className={cn("flex-1 text-sm font-bold", item.completed ? "text-text-tertiary line-through" : "text-text-primary")}>{item.task}</Typography>
+                  <Typography variant="p" className={cn("flex-1 text-sm font-bold transition-colors", item.completed ? "text-text-tertiary line-through" : "text-text-primary")}>{item.task}</Typography>
                 </div>
               ))}
             </div>
@@ -259,7 +282,7 @@ Gerado via MX PERFORMANCE`
                 value={executiveSummary} 
                 onChange={(e) => setExecutiveSummary(e.target.value)} 
                 placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
-                className="min-h-[250px] font-mono text-sm leading-relaxed bg-surface-alt/30 border border-border-default focus:border-brand-primary rounded-xl p-4 shadow-inner resize-none" 
+                className="min-h-[250px] text-sm bg-surface-alt/30 border border-border-default focus:border-brand-primary focus:bg-white rounded-xl p-4 shadow-inner resize-y transition-colors" 
               />
             </Card>
             
@@ -271,64 +294,69 @@ Gerado via MX PERFORMANCE`
               <Textarea 
                 value={feedbackClient} 
                 onChange={(e) => setFeedbackClient(e.target.value)} 
-                placeholder="Pontos de atenção emergenciais e ações principais..." 
-                className="min-h-[120px] text-sm font-bold bg-white border border-border-default focus:border-brand-primary rounded-xl p-4 shadow-sm resize-none" 
+                placeholder="Pontos de atenção emergenciais..." 
+                className="min-h-[100px] text-sm font-medium bg-white border border-border-default focus:border-brand-primary shadow-sm resize-y rounded-xl p-4" 
               />
             </Card>
           </div>
         </div>
 
-        {/* Coluna Lateral - 4 colunas de largura */}
-        <div className="lg:col-span-4 space-y-6 print:hidden">
+        {/* Coluna Lateral - 1 coluna lg */}
+        <div className="lg:col-span-1 space-y-6 print:hidden">
           
-          <Card className="p-6 bg-surface-alt/50 border border-border-default shadow-sm rounded-2xl text-center relative overflow-hidden group">
-             <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform"><Presentation size={140} /></div>
-             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-border-subtle mx-auto mb-4 relative z-10">
+          <Card className="p-6 bg-white border border-border-default shadow-sm rounded-2xl text-center">
+             <div className="w-12 h-12 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                <Presentation className="w-6 h-6 text-brand-primary" />
              </div>
-             <Typography variant="h3" className="text-lg mb-2 relative z-10">Reporte Oficial MX</Typography>
-             <Typography variant="p" className="text-xs text-text-tertiary mb-6 relative z-10">O relatório compila automaticamente todos os dados de BI e o diagnóstico qualitativo da visita.</Typography>
-             <Button className="w-full shadow-sm font-bold h-11 relative z-10" variant="primary" icon={<Share2 size={16} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
+             <Typography variant="h3" className="text-lg mb-2">Reporte Oficial MX</Typography>
+             <Typography variant="p" className="text-xs text-text-tertiary mb-6">O relatório compila os dados e o diagnóstico da visita.</Typography>
+             <Button className="w-full shadow-sm font-bold h-11" variant="primary" icon={<Share2 size={14} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
           </Card>
 
-          <Card className="p-6 border border-border-default shadow-sm rounded-2xl">
-            <Typography variant="tiny" tone="muted" className="mb-4 block">INFORMAÇÕES DA ETAPA</Typography>
+          <Card className="p-5 border border-border-default shadow-sm rounded-2xl bg-white">
+            <Typography variant="tiny" tone="muted" className="mb-4 block tracking-widest text-[10px]">INFORMAÇÕES DA ETAPA</Typography>
             <div className="space-y-4">
-              <div>
-                <Typography variant="tiny" tone="muted" className="text-[10px]">Participantes</Typography>
-                <Typography variant="p" className="text-sm font-bold">{step?.target}</Typography>
+              <div className="flex items-center gap-3">
+                <Users className="w-4 h-4 text-text-tertiary shrink-0" />
+                <div>
+                  <Typography variant="tiny" tone="muted" className="text-[10px]">Participantes</Typography>
+                  <Typography variant="p" className="text-sm font-bold">{step?.target}</Typography>
+                </div>
               </div>
-              <div>
-                <Typography variant="tiny" tone="muted" className="text-[10px]">Duração Estimada</Typography>
-                <Typography variant="p" className="text-sm font-bold">{step?.duration}</Typography>
+              <div className="flex items-center gap-3">
+                <Timer className="w-4 h-4 text-text-tertiary shrink-0" />
+                <div>
+                  <Typography variant="tiny" tone="muted" className="text-[10px]">Duração</Typography>
+                  <Typography variant="p" className="text-sm font-bold">{step?.duration}</Typography>
+                </div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 border border-border-default shadow-sm rounded-2xl">
+          <Card className="p-5 border border-border-default shadow-sm rounded-2xl bg-white">
             <div className="flex items-center justify-between mb-4">
-              <Typography variant="tiny" tone="muted" className="text-[10px]">EVIDÊNCIAS ({attachments.length})</Typography>
-              <Button variant="ghost" size="xs" className="h-8 border border-border-subtle hover:bg-surface-alt/50" icon={isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} onClick={() => fileInputRef.current?.click()}>ADICIONAR</Button>
+              <Typography variant="tiny" tone="muted" className="text-[10px] tracking-widest">EVIDÊNCIAS ({attachments.length})</Typography>
+              <Button variant="ghost" size="xs" className="h-7 text-xs border border-border-subtle" icon={isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} onClick={() => fileInputRef.current?.click()}>ADD</Button>
               <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {attachments.length === 0 ? (
-                <div className="py-8 text-center border-2 border-dashed border-border-subtle rounded-xl bg-surface-alt/10">
-                  <Typography variant="tiny" tone="muted">Nenhuma evidência anexada.</Typography>
+                <div className="py-6 text-center border border-dashed border-border-subtle rounded-lg bg-surface-alt/30">
+                  <Typography variant="tiny" tone="muted">Nenhuma evidência.</Typography>
                 </div>
               ) : (
                 attachments.map(file => (
-                  <div key={file.id} className="flex items-center justify-between p-3 bg-surface-alt/30 rounded-xl border border-border-subtle group hover:border-border-hover transition-colors">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="p-2 bg-white rounded-lg border border-border-subtle shrink-0"><FileText className="w-4 h-4 text-text-secondary" /></div>
+                  <div key={file.id} className="flex items-center justify-between p-2.5 bg-surface-alt/30 rounded-lg border border-border-subtle group hover:border-border-hover transition-colors">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <FileText className="w-4 h-4 text-text-tertiary shrink-0" />
                       <div className="truncate">
-                        <Typography variant="tiny" className="font-bold text-text-primary truncate block">{file.filename}</Typography>
-                        <Typography variant="tiny" tone="muted" className="text-[10px]">{formatFileSize(file.size_bytes)}</Typography>
+                        <Typography variant="tiny" className="font-bold text-text-secondary truncate block">{file.filename}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-[9px]">{formatFileSize(file.size_bytes)}</Typography>
                       </div>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      <button className="p-1.5 hover:bg-white rounded-md text-text-secondary transition-colors shadow-sm border border-transparent hover:border-border-subtle" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-3.5 h-3.5" /></button>
-                      <button className="p-1.5 hover:bg-mx-error/10 hover:text-mx-error rounded-md text-text-tertiary transition-colors shadow-sm border border-transparent hover:border-border-subtle" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-3.5 h-3.5" /></button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 shrink-0">
+                      <button className="p-1 hover:bg-white rounded text-text-secondary" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-3 h-3" /></button>
+                      <button className="p-1 hover:bg-mx-error/10 hover:text-mx-error rounded text-text-tertiary" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-3 h-3" /></button>
                     </div>
                   </div>
                 ))
@@ -338,15 +366,14 @@ Gerado via MX PERFORMANCE`
         </div>
       </div>
 
-      {/* Modal de Relatório */}
-      <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Documento de Auditoria - MX Performance" size="xl">
-         <div className="p-6 md:p-8 space-y-6">
-            <Card className="p-6 md:p-8 bg-white font-mono text-sm leading-relaxed whitespace-pre-wrap select-all border border-border-default shadow-inner overflow-y-auto max-h-[60vh] relative rounded-xl print:max-h-none print:shadow-none print:border-none">
+      <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Documento de Auditoria" size="lg">
+         <div className="p-6 space-y-4 bg-surface-alt/20">
+            <Card className="p-6 bg-white font-mono text-xs md:text-sm leading-relaxed whitespace-pre-wrap select-all border border-border-default shadow-inner overflow-y-auto max-h-[60vh] relative rounded-xl print:max-h-none print:shadow-none print:border-none print:bg-white">
               <div className="relative z-10 text-text-primary">{generateReportText()}</div>
             </Card>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 print:hidden">
-               <Button variant="outline" className="h-12 font-bold w-full bg-white shadow-sm" onClick={() => window.print()} icon={<Printer className="w-4 h-4" />}>IMPRIMIR / PDF</Button>
-               <Button className="h-12 font-bold w-full bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-md" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-4 h-4" />}>ENVIAR VIA WHATSAPP</Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 print:hidden">
+               <Button variant="outline" className="h-11 text-sm font-bold bg-white" onClick={() => window.print()} icon={<Printer className="w-4 h-4" />}>Imprimir PDF</Button>
+               <Button className="h-11 text-sm font-bold bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-sm" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-4 h-4" />}>Enviar WhatsApp</Button>
             </div>
          </div>
       </Modal>
