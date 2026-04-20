@@ -368,7 +368,7 @@ export default function ConsultoriaClienteDetalhe() {
                     </div>
                     <div className="pt-mx-lg space-y-mx-xs">
                       <Button asChild className="w-full font-black" variant={visit?.status === 'concluída' ? 'outline' : 'secondary'}>
-                        <Link to={`/consultoria/clientes/${clientId}/visitas/${step.visit_number}`}>
+                        <Link to={`/consultoria/clientes/${clientSlug}/visitas/${step.visit_number}`}>
                           {visit?.status === 'concluída' ? 'VER RELATÓRIO' : 'EXECUTAR AGORA'}
                           <ChevronRight size={16} className="ml-2" />
                         </Link>
