@@ -39,3 +39,13 @@ export function getAvatarUrl(name: string, options?: { size?: number; background
     if (options?.color) params.set('color', options.color)
     return `https://ui-avatars.com/api/?${params.toString()}`
 }
+
+export function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     
+    .replace(/[^\w\-]+/g, '') 
+    .replace(/\-\-+/g, '-')   
+}

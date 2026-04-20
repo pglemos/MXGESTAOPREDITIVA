@@ -39,19 +39,15 @@ const tabLabels: Record<Tab, string> = {
 }
 
 export default function ConsultoriaClienteDetalhe() {
-  const { clientId } = useParams<{ clientId: string }>()
+  const { clientSlug } = useParams<{ clientSlug: string }>()
   const {
     client,
-    assignableUsers,
     loading,
     error,
-    canManage,
-    createUnit,
-    createContact,
-    upsertAssignment,
-    toggleAssignment,
     refetch,
-  } = useConsultingClientDetail(clientId)
+  } = useConsultingClientDetailBySlug(clientSlug)
+  
+  const clientId = client?.id
   const {
     modules,
     loading: modulesLoading,
