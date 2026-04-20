@@ -370,15 +370,18 @@ export default function ConsultoriaClienteDetalhe() {
                         </div>
                       ) : <Typography variant="tiny" tone="muted">Pendente de agendamento</Typography>}
                     </div>
-                    <div className="pt-mx-lg">
-                      {visit ? (
-                        <Button asChild className="w-full font-black" variant="secondary">
-                          <Link to={`/consultoria/clientes/${clientId}/visitas/${visit.visit_number}`}>
-                            {visit.status === 'concluída' ? 'VER RELATÓRIO' : 'EXECUTAR AGORA'}
-                            <ChevronRight size={16} className="ml-2" />
-                          </Link>
+                    <div className="pt-mx-lg space-y-mx-xs">
+                      <Button asChild className="w-full font-black" variant={visit?.status === 'concluída' ? 'outline' : 'secondary'}>
+                        <Link to={`/consultoria/clientes/${clientId}/visitas/${step.visit_number}`}>
+                          {visit?.status === 'concluída' ? 'VER RELATÓRIO' : 'EXECUTAR AGORA'}
+                          <ChevronRight size={16} className="ml-2" />
+                        </Link>
+                      </Button>
+                      {!visit && (
+                        <Button className="w-full text-mx-micro" variant="ghost" onClick={handleOpenSchedule}>
+                          AGENDAR VISITA
                         </Button>
-                      ) : <Button className="w-full" variant="ghost" onClick={handleOpenSchedule}>AGENDAR</Button>}
+                      )}
                     </div>
                   </Card>
                 )
