@@ -5,6 +5,7 @@ import type { ConsultingVisit } from '@/features/consultoria/types'
 
 export type AgendaVisit = ConsultingVisit & {
   client_name: string
+  client_slug: string
   client_status: string
   client_modality: string | null
 }
@@ -49,6 +50,8 @@ export function useAgendaAdmin() {
     return { year: now.getFullYear(), month: now.getMonth() }
   })
 
+  // Na função renderizadora da AgendaAdmin.tsx, precisa buscar o slug.
+  // Como aqui no hook só temos o ID, vamos precisar buscar o slug correspondente.
   const fetchVisits = useCallback(async () => {
     if (!supabaseUser || role !== 'admin') {
       setVisits([])
@@ -66,12 +69,12 @@ export function useAgendaAdmin() {
           *,
           consultant:users!consulting_visits_consultant_id_fkey(name, email),
           auxiliary_consultant:users!consulting_visits_auxiliary_consultant_id_fkey(name, email),
-          client:consulting_clients!client_id(name, status, modality)
+          client:consulting_clients!client_id(name, slug, status, modality)
         `)
         .order('scheduled_at', { ascending: true }),
       supabase
         .from('consulting_clients')
-        .select('id, name, status, current_visit_step')
+        .select('id, name, slug, status, current_visit_step')
         .order('name', { ascending: true }),
       supabase
         .from('users')
@@ -88,6 +91,7 @@ export function useAgendaAdmin() {
       const mapped = (visitsRes.data || []).map((v: any) => ({
         ...v,
         client_name: v.client?.name || 'Desconhecido',
+        client_slug: v.client?.slug || 'cliente',
         client_status: v.client?.status || 'ativo',
         client_modality: v.client?.modality || null,
       }))

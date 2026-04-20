@@ -371,7 +371,7 @@ export default function AgendaAdmin() {
                         onStart={handleStartVisit}
                         onCancel={handleCancelVisit}
                         onDelete={handleDeleteVisit}
-                        linkTo={`/consultoria/clientes/${visit.client_id}/visitas/${visit.visit_number}`}
+                        linkTo={`/consultoria/clientes/${visit.client_slug}/visitas/${visit.visit_number}`}
                       />
                     ))}
                   </div>
@@ -417,7 +417,7 @@ export default function AgendaAdmin() {
                     return (
                       <Link
                         key={visit.id}
-                        to={`/consultoria/clientes/${visit.client_id}/visitas/${visit.visit_number}`}
+                        to={`/consultoria/clientes/${visit.client_slug}/visitas/${visit.visit_number}`}
                         className="block"
                       >
                         <div className="p-mx-sm rounded-mx-lg border border-border-default hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group">
