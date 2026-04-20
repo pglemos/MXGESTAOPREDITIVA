@@ -187,7 +187,7 @@ Gerado via MX PERFORMANCE`
       {/* Header Fixo da Visita - Limpo e sem conflito de Z-index */}
       <div className="bg-transparent px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden">
         <div className="flex items-center gap-4">
-          <Link to={`/consultoria/clientes/${clientId}`} className="p-2 border border-border-subtle rounded-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
+          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-2 border border-border-subtle rounded-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex flex-col">
