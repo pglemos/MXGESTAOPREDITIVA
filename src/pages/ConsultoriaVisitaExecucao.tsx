@@ -214,33 +214,8 @@ Gerado via MX PERFORMANCE`
           
           <div className="animate-in fade-in duration-300">
             {visitNum === 1 && (
-              <div className="space-y-6">
-                <div className="flex bg-white p-1.5 rounded-xl border border-border-default shadow-sm overflow-x-auto print:hidden">
-                  {[
-                    { id: 'dashboards', label: 'Dashboards', icon: BarChart3 },
-                    { id: 'benchmark', label: 'Mercado', icon: TrendingUp },
-                    { id: 'entrevistas', label: 'Entrevistas', icon: MessageSquare }
-                  ].map((t: any) => (
-                    <button 
-                      key={t.id} 
-                      onClick={() => setTab(t.id as any)} 
-                      className={cn(
-                          "flex-1 py-2.5 px-4 text-xs font-bold uppercase rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[120px]", 
-                          tab === t.id 
-                            ? "bg-brand-primary text-white shadow-sm" 
-                            : "text-text-tertiary hover:bg-surface-alt/30 hover:text-text-secondary"
-                      )}
-                    >
-                      <t.icon size={14} /> {t.label}
-                    </button>
-                  ))}
-                </div>
-                
-                <div className="min-w-0">
-                  {tab === 'dashboards' && <VisitOneHighFidelity quantData={quantData} onQuantChange={setQuantData} />}
-                  {tab === 'benchmark' && <VisitOneBenchmark />}
-                  {tab === 'entrevistas' && <VisitOneInterviews templates={templates} visitId={visit?.id} onSave={saveResponse} />}
-                </div>
+              <div className="space-y-6 min-w-0">
+                <VisitOneHighFidelity quantData={quantData} onQuantChange={setQuantData} templates={templates} visitId={visit?.id} onSaveResponse={saveResponse} />
               </div>
             )}
             {visitNum === 2 && <VisitTwoExecution clientId={clientId!} />}

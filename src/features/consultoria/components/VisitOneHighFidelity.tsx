@@ -66,8 +66,8 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 min-w-0">
-        <Card className="p-6 md:p-8 bg-[#0f172a] border-2 border-[#1e293b] rounded-3xl shadow-lg min-w-0">
-          <Typography variant="h4" className="text-white mb-6 flex items-center gap-3"><BarChart3 className="w-5 h-5 text-brand-primary" /> Vendas Trimestre</Typography>
+        <Card className="p-6 md:p-8 bg-white border border-border-default rounded-3xl shadow-sm min-w-0">
+          <Typography variant="h4" className="text-text-primary mb-6 flex items-center gap-3"><BarChart3 className="w-5 h-5 text-brand-primary" /> Vendas Trimestre</Typography>
           <div className="h-[220px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <ReBarChart data={sSales} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
@@ -79,35 +79,35 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
               </ReBarChart>
             </ResponsiveContainer>
           </div>
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[#1e293b]">
+          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border-subtle">
             {sSales.map((s:any, i:number) => (
               <div key={i}>
-                <Typography variant="tiny" className="text-slate-400 mb-2 block font-bold text-[11px] uppercase tracking-wider">{s.month}</Typography>
-                <Input type="number" value={s.value} onChange={e => { const n = [...sSales]; n[i].value = parseInt(e.target.value) || 0; onChange({...data, sales: n}) }} className="h-12 bg-slate-800/50 border-[#334155] text-white text-lg font-black focus:border-brand-primary text-center rounded-xl" />
+                <Typography variant="tiny" className="text-text-tertiary mb-2 block font-bold text-[11px] uppercase tracking-wider">{s.month}</Typography>
+                <Input type="number" value={s.value} onChange={e => { const n = [...sSales]; n[i].value = parseInt(e.target.value) || 0; onChange({...data, sales: n}) }} className="h-12 bg-white border border-border-default text-text-primary text-lg font-black focus:border-brand-primary text-center rounded-xl shadow-sm transition-all" />
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-[#1e293b]">
-            <div className="text-center"><Typography variant="tiny" className="text-slate-400 text-[10px] font-bold tracking-widest uppercase">TOTAL</Typography><Typography variant="h3" className="font-black text-brand-primary mt-1">{totalSales}</Typography></div>
-            <div className="text-center"><Typography variant="tiny" className="text-slate-400 text-[10px] font-bold tracking-widest uppercase">MÉDIA</Typography><Typography variant="h3" className="font-black text-brand-primary mt-1">{avgSales}</Typography></div>
-            <div className="text-center"><Typography variant="tiny" className="text-slate-400 text-[10px] font-bold tracking-widest uppercase">MELHOR</Typography><Typography variant="h3" className="font-black text-brand-primary mt-1">{bestMonth.value}</Typography></div>
-            <div className="text-center"><Typography variant="tiny" className="text-slate-400 text-[10px] font-bold tracking-widest uppercase">PIOR</Typography><Typography variant="h3" className="font-black text-status-error mt-1">{worstMonth.value}</Typography></div>
+          <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-border-subtle">
+            <div className="text-center"><Typography variant="tiny" className="text-text-tertiary text-[10px] font-bold tracking-widest uppercase">TOTAL</Typography><Typography variant="h3" className="font-black text-brand-primary mt-1">{totalSales}</Typography></div>
+            <div className="text-center"><Typography variant="tiny" className="text-text-tertiary text-[10px] font-bold tracking-widest uppercase">MÉDIA</Typography><Typography variant="h3" className="font-black text-brand-primary mt-1">{avgSales}</Typography></div>
+            <div className="text-center"><Typography variant="tiny" className="text-text-tertiary text-[10px] font-bold tracking-widest uppercase">MELHOR</Typography><Typography variant="h3" className="font-black text-brand-primary mt-1">{bestMonth.value}</Typography></div>
+            <div className="text-center"><Typography variant="tiny" className="text-text-tertiary text-[10px] font-bold tracking-widest uppercase">PIOR</Typography><Typography variant="h3" className="font-black text-status-error mt-1">{worstMonth.value}</Typography></div>
           </div>
         </Card>
 
-        <Card className="p-6 md:p-8 bg-[#0f172a] border-2 border-[#1e293b] rounded-3xl shadow-lg min-w-0">
-          <Typography variant="h4" className="text-white mb-6 flex items-center gap-3"><PieChart className="w-5 h-5 text-brand-primary" /> Performance MKT</Typography>
+        <Card className="p-6 md:p-8 bg-white border border-border-default rounded-3xl shadow-sm min-w-0">
+          <Typography variant="h4" className="text-text-primary mb-6 flex items-center gap-3"><PieChart className="w-5 h-5 text-brand-primary" /> Performance MKT</Typography>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div>
-                <Typography variant="tiny" className="text-slate-400 mb-2 block font-bold text-[11px] uppercase tracking-wider pl-1">INVESTIMENTO (R$)</Typography>
-                <Input type="number" value={sMkt.investment} onChange={e => onChange({...data, marketing: {...sMkt, investment: parseInt(e.target.value) || 0}})} className="h-12 bg-slate-800/50 border-[#334155] text-white text-lg font-black focus:border-brand-primary rounded-xl" />
+                <Typography variant="tiny" className="text-text-tertiary mb-2 block font-bold text-[11px] uppercase tracking-wider pl-1">INVESTIMENTO (R$)</Typography>
+                <Input type="number" value={sMkt.investment} onChange={e => onChange({...data, marketing: {...sMkt, investment: parseInt(e.target.value) || 0}})} className="h-12 bg-white border border-border-default text-text-primary text-lg font-black focus:border-brand-primary rounded-xl shadow-sm transition-all" />
               </div>
               <div>
-                <Typography variant="tiny" className="text-slate-400 mb-2 block font-bold text-[11px] uppercase tracking-wider pl-1">LEADS</Typography>
-                <Input type="number" value={sMkt.leads} onChange={e => onChange({...data, marketing: {...sMkt, leads: parseInt(e.target.value) || 0}})} className="h-12 bg-slate-800/50 border-[#334155] text-white text-lg font-black focus:border-brand-primary rounded-xl" />
+                <Typography variant="tiny" className="text-text-tertiary mb-2 block font-bold text-[11px] uppercase tracking-wider pl-1">LEADS</Typography>
+                <Input type="number" value={sMkt.leads} onChange={e => onChange({...data, marketing: {...sMkt, leads: parseInt(e.target.value) || 0}})} className="h-12 bg-white border border-border-default text-text-primary text-lg font-black focus:border-brand-primary rounded-xl shadow-sm transition-all" />
               </div>
-              <div className="pt-4 border-t border-slate-800 mt-2">
+              <div className="pt-4 border-t border-border-subtle mt-2">
                 <Typography variant="tiny" className="text-brand-primary mb-1 block font-black text-xs tracking-widest uppercase">CPL REAL</Typography>
                 <Typography variant="h2" className="text-brand-primary font-black">R$ {((sMkt.investment || 0)/(sMkt.leads || 1)).toFixed(2)}</Typography>
               </div>
@@ -126,8 +126,8 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
               <div className="grid grid-cols-2 gap-3 w-full mt-6">
                 {(sMkt.origin || []).map((o:any, i:number) => (
                   <div key={i}>
-                    <Typography variant="tiny" className="text-slate-300 text-[10px] font-bold mb-1.5 flex items-center gap-1.5 truncate"><div className="w-2 h-2 rounded-full shrink-0" style={{background: COLORS[i%COLORS.length]}}/> {o.name}</Typography>
-                    <Input type="number" value={o.value} onChange={e => { const arr = [...sMkt.origin]; arr[i].value = parseInt(e.target.value) || 0; onChange({...data, marketing: {...sMkt, origin: arr}}) }} className="h-10 bg-slate-800/50 border-[#334155] text-white text-sm font-black px-2 text-center focus:border-brand-primary rounded-lg" />
+                    <Typography variant="tiny" className="text-text-secondary text-[10px] font-bold mb-1.5 flex items-center gap-1.5 truncate"><div className="w-2 h-2 rounded-full shrink-0" style={{background: COLORS[i%COLORS.length]}}/> {o.name}</Typography>
+                    <Input type="number" value={o.value} onChange={e => { const arr = [...sMkt.origin]; arr[i].value = parseInt(e.target.value) || 0; onChange({...data, marketing: {...sMkt, origin: arr}}) }} className="h-10 bg-white border border-border-default text-text-primary text-sm font-black px-2 text-center focus:border-brand-primary rounded-lg shadow-sm transition-all" />
                   </div>
                 ))}
               </div>
@@ -136,16 +136,16 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
         </Card>
       </div>
 
-      <Card className="p-8 bg-[#0f172a] border-2 border-[#1e293b] rounded-3xl shadow-lg min-w-0">
-        <Typography variant="h4" className="text-white mb-8 flex items-center gap-3"><Layers className="w-5 h-5 text-brand-primary" /> Raio-X do Estoque</Typography>
+      <Card className="p-8 bg-white border border-border-default rounded-3xl shadow-sm min-w-0">
+        <Typography variant="h4" className="text-text-primary mb-8 flex items-center gap-3"><Layers className="w-5 h-5 text-brand-primary" /> Raio-X do Estoque</Typography>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
           {[
             { l: 'QTD (UN)', k: 'qty' }, { l: 'TICKET (R$)', k: 'avg_price' }, 
             { l: 'FIPE (+/-)', k: 'fipe_delta' }, { l: 'KM', k: 'mileage' }, { l: 'TOTAL (R$)', k: 'total_inv' }
           ].map(it => (
             <div key={it.k}>
-              <Typography variant="tiny" className="text-slate-400 mb-2 block font-bold text-[10px] text-center tracking-widest uppercase">{it.l}</Typography>
-              <Input type="number" value={sStk[it.k]} onChange={e => onChange({...data, stock: {...sStk, [it.k]: parseFloat(e.target.value) || 0}})} className="h-14 bg-slate-800/50 border-[#334155] text-white text-xl font-black text-center focus:border-brand-primary rounded-2xl" />
+              <Typography variant="tiny" className="text-text-tertiary mb-2 block font-bold text-[10px] text-center tracking-widest uppercase">{it.l}</Typography>
+              <Input type="number" value={sStk[it.k]} onChange={e => onChange({...data, stock: {...sStk, [it.k]: parseFloat(e.target.value) || 0}})} className="h-14 bg-white border border-border-default text-text-primary text-xl font-black text-center focus:border-brand-primary rounded-2xl shadow-sm transition-all" />
             </div>
           ))}
         </div>
