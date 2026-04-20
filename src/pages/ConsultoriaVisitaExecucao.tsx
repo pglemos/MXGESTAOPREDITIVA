@@ -179,13 +179,13 @@ ${feedbackClient || '(Nenhum)'}
 Gerado via MX PERFORMANCE`
   }
 
-  if (clientLoading || methodologyLoading) return <div className="flex w-full items-center justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-brand-primary" /></div>
+  if (clientLoading || methodologyLoading) return <div className="flex w-full items-center justify-center p-mx-20"><Loader2 className="w-8 h-8 animate-spin text-brand-primary" /></div>
 
   return (
-    <div className="w-full pb-24 bg-slate-50 print:bg-white print:pb-0 relative z-0">
+    <div className="w-full pb-mx-xl relative z-0">
       
       {/* Header Fixo da Visita - Limpo e sem conflito de Z-index */}
-      <div className="bg-white border-b border-border-default px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shadow-sm print:hidden">
+      <div className="bg-transparent px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden">
         <div className="flex items-center gap-4">
           <Link to={`/consultoria/clientes/${clientId}`} className="p-2 border border-border-subtle rounded-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
             <ArrowLeft className="w-4 h-4" />
@@ -205,7 +205,7 @@ Gerado via MX PERFORMANCE`
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-3 gap-6 print:block print:p-0">
+      <div className="w-full px-mx-md lg:px-mx-xl grid grid-cols-1 lg:grid-cols-3 gap-mx-lg print:block print:p-0">
         
         {/* Coluna Principal - 2 colunas */}
         <div className="lg:col-span-2 space-y-6">
