@@ -1,21 +1,26 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { 
   BarChart3, TrendingUp, MessageSquare, Sparkles, 
-  PieChart, Layers
+  PieChart, Layers, ChevronRight, ChevronLeft, 
+  Paperclip, Trash2, Camera, Loader2, CheckCircle2,
+  FileText, Plus, Info
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/molecules/Card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
+import { Badge } from '@/components/atoms/Badge'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
+import { PMR_FULL_QUESTIONS } from '../data/pmr-questions'
 import { 
   BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart as RePieChart, Pie, Cell
 } from 'recharts'
 
-export function VisitOneHighFidelity({ quantData, onQuantChange, templates, visitId, onSaveResponse }: { quantData: any, onQuantChange: (d: any) => void, templates: any[], visitId?: string, onSaveResponse: (d: any) => Promise<void> }) {
+export function VisitOneHighFidelity({ quantData, onQuantChange, templates, visitId, clientId, onSaveResponse }: { quantData: any, onQuantChange: (d: any) => void, templates: any[], visitId?: string, clientId?: string, onSaveResponse: (d: any) => Promise<any> }) {
   const [tab, setTab] = useState<'dashboards' | 'benchmark' | 'entrevistas'>('dashboards')
 
   return (
@@ -41,53 +46,64 @@ export function VisitOneHighFidelity({ quantData, onQuantChange, templates, visi
           ))}
        </div>
        
-       <div className="transition-opacity duration-300">
+       <div className="transition-all duration-300">
           {tab === 'dashboards' && <VisitOneDashboards data={quantData} onChange={onQuantChange} />}
           {tab === 'benchmark' && <VisitOneBenchmark />}
-          {tab === 'entrevistas' && <VisitOneInterviews templates={templates} visitId={visitId} onSave={onSaveResponse} />}
+          {tab === 'entrevistas' && <VisitOneInterviews templates={templates} visitId={visitId} clientId={clientId} onSave={onSaveResponse} />}
        </div>
     </div>
   )
 }
 
 function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) => void }) {
-  const sSales = data?.sales || []; const sMkt = data?.marketing || { investment: 0, leads: 0, origin: [] }; const sStk = data?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
+  const sSales = data?.sales || [
+    { month: 'Mês 1', value: 0 },
+    { month: 'Mês 2', value: 0 },
+    { month: 'Mês 3', value: 0 }
+  ]; 
+  const sMkt = data?.marketing || { investment: 0, leads: 0, origin: [{name: 'Instagram', value: 0}, {name: 'Facebook', value: 0}, {name: 'Indicação', value: 0}, {name: 'Site', value: 0}, {name: 'OLX/Mktplace', value: 0}] }; 
+  const sStk = data?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
+  
   const totalSales = sSales.reduce((a: number, c: any) => a + (c.value || 0), 0)
   const avgSales = sSales.length > 0 ? (totalSales / sSales.length).toFixed(1) : '0'
   const bestMonth = [...sSales].sort((a,b) => (b.value || 0) - (a.value || 0))[0] || { value: 0 }
   const worstMonth = [...sSales].sort((a,b) => (a.value || 0) - (b.value || 0))[0] || { value: 0 }
   
-  const COLORS = ['#00C49F', '#009B7D', '#00725C', '#004A3C', '#00221B'];
-  const displayOrigin = sMkt.origin?.some((o:any)=>o.value>0) ? sMkt.origin : [{name: 'Sem Dados', value: 1, color: '#e2e8f0'}];
+  const COLORS = ['#22C55E', '#16A34A', '#15803D', '#166534', '#14532D'];
+  const hasOriginData = sMkt.origin?.some((o:any) => o.value > 0);
+  const displayOrigin = hasOriginData ? sMkt.origin : [{name: 'Sem Dados', value: 1, color: '#e2e8f0'}];
   
-  const cpl = sMkt.investment > 0 && sMkt.leads > 0 ? (sMkt.investment / sMkt.leads).toFixed(2) : '0.00'
+  const cpl = sMkt.investment > 0 && sMkt.leads > 0 ? (sMkt.investment / sMkt.leads).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'
 
   return (
-    <div className="space-y-mx-md">
+    <div className="space-y-mx-md animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-md min-w-0">
-        <Card>
+        <Card className="border-none shadow-mx-md">
           <CardHeader className="flex flex-row items-center gap-mx-sm bg-transparent border-b border-border-subtle p-mx-lg">
             <div className="p-mx-xs bg-brand-primary/10 rounded-mx-md">
               <BarChart3 className="w-5 h-5 text-brand-primary" />
             </div>
-            <CardTitle>Vendas Trimestre</CardTitle>
+            <div>
+              <CardTitle>Vendas Trimestre</CardTitle>
+              <CardDescription>Volume de emplacamentos/entregas</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[240px] w-full min-w-0 mb-mx-md bg-surface-alt/30 rounded-mx-lg p-mx-sm border border-border-subtle flex items-center justify-center">
-              {sSales.length > 0 ? (
+            <div className="h-[240px] w-full min-w-0 mb-mx-md bg-surface-alt/30 rounded-mx-lg p-mx-sm border border-border-subtle flex items-center justify-center relative group">
+              {totalSales > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <ReBarChart data={sSales} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                     <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                     <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#0f172a', fontWeight: 'bold', boxShadow: 'var(--shadow-mx-md)' }} />
-                    <Bar dataKey="value" fill="#00C49F" radius={[6, 6, 0, 0]} barSize={40} />
+                    <Bar dataKey="value" fill="#22C55E" radius={[6, 6, 0, 0]} barSize={40} />
                   </ReBarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex flex-col items-center text-text-tertiary">
-                  <BarChart3 className="w-10 h-10 mb-2 opacity-50" />
-                  <Typography variant="tiny" tone="muted">Insira dados abaixo para visualizar</Typography>
+                  <BarChart3 className="w-10 h-10 mb-2 opacity-20" />
+                  <Typography variant="tiny" tone="muted">Lance os números abaixo</Typography>
                 </div>
               )}
             </div>
@@ -95,8 +111,8 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
             <div className="grid grid-cols-3 gap-mx-sm mb-mx-md">
               {sSales.map((s:any, i:number) => (
                 <div key={i} className="space-y-1">
-                  <Typography variant="tiny" tone="muted" as="label" className="text-center w-full block">{s.month}</Typography>
-                  <Input type="number" value={s.value} onChange={e => { const n = [...sSales]; n[i].value = parseInt(e.target.value) || 0; onChange({...data, sales: n}) }} className="text-center" />
+                  <Typography variant="tiny" tone="muted" as="label" className="text-center w-full block uppercase">{s.month}</Typography>
+                  <Input type="number" value={s.value || ''} onChange={e => { const n = [...sSales]; n[i].value = parseInt(e.target.value) || 0; onChange({...data, sales: n}) }} className="text-center font-black text-lg h-mx-12" placeholder="0" />
                 </div>
               ))}
             </div>
@@ -110,48 +126,51 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-mx-md">
           <CardHeader className="flex flex-row items-center gap-mx-sm bg-transparent border-b border-border-subtle p-mx-lg">
             <div className="p-mx-xs bg-brand-primary/10 rounded-mx-md">
               <PieChart className="w-5 h-5 text-brand-primary" />
             </div>
-            <CardTitle>Performance MKT</CardTitle>
+            <div>
+              <CardTitle>Performance MKT</CardTitle>
+              <CardDescription>CPL e Origem de Leads</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
               <div className="space-y-mx-sm">
                 <div className="space-y-1">
-                  <Typography variant="tiny" tone="muted" as="label">INVESTIMENTO (R$)</Typography>
-                  <Input type="number" value={sMkt.investment || ''} onChange={e => onChange({...data, marketing: {...sMkt, investment: parseInt(e.target.value) || 0}})} />
+                  <Typography variant="tiny" tone="muted" as="label">INVESTIMENTO TOTAL (R$)</Typography>
+                  <Input type="number" value={sMkt.investment || ''} onChange={e => onChange({...data, marketing: {...sMkt, investment: parseInt(e.target.value) || 0}})} className="h-mx-12 font-black" placeholder="Ex: 5000" />
                 </div>
                 <div className="space-y-1">
-                  <Typography variant="tiny" tone="muted" as="label">LEADS</Typography>
-                  <Input type="number" value={sMkt.leads || ''} onChange={e => onChange({...data, marketing: {...sMkt, leads: parseInt(e.target.value) || 0}})} />
+                  <Typography variant="tiny" tone="muted" as="label">LEADS TOTAIS (UN)</Typography>
+                  <Input type="number" value={sMkt.leads || ''} onChange={e => onChange({...data, marketing: {...sMkt, leads: parseInt(e.target.value) || 0}})} className="h-mx-12 font-black" placeholder="Ex: 250" />
                 </div>
-                <div className="pt-mx-sm border-t border-border-subtle mt-mx-sm">
-                  <Typography variant="tiny" tone="brand">CPL REAL</Typography>
-                  <Typography variant="h2" tone="brand" className="mt-1">R$ {cpl}</Typography>
+                <div className="pt-mx-sm border-t border-border-subtle mt-mx-sm bg-brand-primary/5 p-mx-sm rounded-mx-lg border border-brand-primary/10">
+                  <Typography variant="tiny" tone="brand" className="font-black">CUSTO POR LEAD (CPL)</Typography>
+                  <Typography variant="h2" tone="brand" className="mt-1">{cpl}</Typography>
                 </div>
               </div>
               <div className="flex flex-col items-center justify-between">
-                <div className="h-[160px] w-full min-w-0 bg-surface-alt/30 rounded-mx-lg border border-border-subtle flex items-center justify-center">
+                <div className="h-[160px] w-full min-w-0 bg-surface-alt/30 rounded-mx-lg border border-border-subtle flex items-center justify-center relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <RePieChart>
                       <Pie data={displayOrigin} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value" stroke="none">
-                        {displayOrigin.map((entry: any, i: number) => <Cell key={i} fill={entry.color || COLORS[i % COLORS.length]} />)}
+                        {displayOrigin.map((entry: any, i: number) => <Cell key={i} fill={hasOriginData ? (entry.color || COLORS[i % COLORS.length]) : '#e2e8f0'} />)}
                       </Pie>
                       <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#0f172a', fontWeight: 'bold', boxShadow: 'var(--shadow-mx-md)' }} />
                     </RePieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="grid grid-cols-2 gap-mx-sm w-full mt-mx-md">
+                <div className="grid grid-cols-2 gap-x-mx-sm gap-y-2 w-full mt-mx-md">
                   {(sMkt.origin || []).map((o:any, i:number) => (
                     <div key={i} className="space-y-1">
-                      <Typography variant="tiny" tone="muted" as="label" className="flex items-center gap-1.5 truncate" title={o.name}>
-                        <div className="w-2 h-2 rounded-mx-full shrink-0" style={{background: COLORS[i%COLORS.length]}}/> 
-                        <span className="truncate">{o.name}</span>
+                      <Typography variant="tiny" tone="muted" as="label" className="flex items-center gap-1.5 truncate text-[9px]" title={o.name}>
+                        <div className="w-1.5 h-1.5 rounded-mx-full shrink-0" style={{background: COLORS[i%COLORS.length]}}/> 
+                        <span className="truncate">{o.name.toUpperCase()}</span>
                       </Typography>
-                      <Input type="number" value={o.value || ''} onChange={e => { const arr = [...sMkt.origin]; arr[i].value = parseInt(e.target.value) || 0; onChange({...data, marketing: {...sMkt, origin: arr}}) }} className="text-center px-2" />
+                      <Input type="number" value={o.value || ''} onChange={e => { const arr = [...sMkt.origin]; arr[i].value = parseInt(e.target.value) || 0; onChange({...data, marketing: {...sMkt, origin: arr}}) }} className="text-center px-1 h-mx-9 text-xs font-bold" placeholder="0" />
                     </div>
                   ))}
                 </div>
@@ -161,22 +180,25 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-mx-md">
         <CardHeader className="flex flex-row items-center gap-mx-sm bg-transparent border-b border-border-subtle p-mx-lg">
           <div className="p-mx-xs bg-brand-primary/10 rounded-mx-md">
             <Layers className="w-5 h-5 text-brand-primary" />
           </div>
-          <CardTitle>Raio-X do Estoque</CardTitle>
+          <div>
+            <CardTitle>Raio-X do Estoque</CardTitle>
+            <CardDescription>Saúde financeira do pátio</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-mx-md">
             {[
-              { l: 'QTD (UN)', k: 'qty' }, { l: 'TICKET (R$)', k: 'avg_price' }, 
-              { l: 'FIPE (+/-)', k: 'fipe_delta' }, { l: 'KM', k: 'mileage' }, { l: 'TOTAL (R$)', k: 'total_inv' }
+              { l: 'QTD (UN)', k: 'qty', p: 'Ex: 45' }, { l: 'TICKET (R$)', k: 'avg_price', p: 'Ex: 65000' }, 
+              { l: 'FIPE (+/-)', k: 'fipe_delta', p: 'Ex: -2000' }, { l: 'KM MÉDIA', k: 'mileage', p: 'Ex: 65000' }, { l: 'INVESTIMENTO (R$)', k: 'total_inv', p: 'Ex: 2.5M' }
             ].map(it => (
               <div key={it.k} className="space-y-1">
-                <Typography variant="tiny" tone="muted" as="label" className="text-center w-full block">{it.l}</Typography>
-                <Input type="number" value={sStk[it.k] || ''} onChange={e => onChange({...data, stock: {...sStk, [it.k]: parseFloat(e.target.value) || 0}})} className="text-center text-lg font-black h-mx-14" />
+                <Typography variant="tiny" tone="muted" as="label" className="text-center w-full block uppercase font-bold">{it.l}</Typography>
+                <Input type="number" value={sStk[it.k] || ''} onChange={e => onChange({...data, stock: {...sStk, [it.k]: parseFloat(e.target.value) || 0}})} className="text-center text-lg font-black h-mx-14 border-brand-primary/5 focus:border-brand-primary/30" placeholder={it.p} />
               </div>
             ))}
           </div>
@@ -197,10 +219,10 @@ function VisitOneBenchmark() {
     { label: '% Veículos +90 dias', avg: '26%', best: '15%', p: 'Ex: 35%' }
   ]
   return (
-    <Card className="overflow-hidden">
+    <Card className="border-none shadow-mx-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
       <CardHeader className="bg-transparent border-b border-border-subtle p-mx-lg">
         <CardTitle>Comparativo de Mercado</CardTitle>
-        <Typography variant="p" tone="muted" className="mt-2">Auditoria baseada nas métricas do Slide 7 MX.</Typography>
+        <Typography variant="p" tone="muted" className="mt-2">Benchmarks oficiais da metodologia PMR.</Typography>
       </CardHeader>
       <div className="overflow-x-auto p-mx-lg pt-0">
         <div className="border border-border-subtle rounded-mx-xl overflow-hidden mt-mx-md">
@@ -217,11 +239,11 @@ function VisitOneBenchmark() {
               <tbody>
                 {rows.map((it) => (
                   <tr key={it.label} className="border-b border-border-subtle last:border-0 hover:bg-surface-alt/50 transition-colors">
-                      <td className="p-mx-sm"><Typography variant="p" className="text-xs">{it.label}</Typography></td>
-                      <td className="p-mx-xs border-l border-border-subtle"><Input className="text-center font-black" placeholder={it.p} /></td>
-                      <td className="p-mx-sm text-center border-l border-border-subtle bg-status-warning-surface"><Typography variant="h3" tone="warning">{it.avg}</Typography></td>
-                      <td className="p-mx-sm text-center border-l border-border-subtle bg-brand-primary/5"><Typography variant="h3" tone="brand">{it.best}</Typography></td>
-                      <td className="p-mx-xs border-l border-border-subtle"><Textarea className="min-h-[48px] h-mx-12 resize-none" placeholder="Onde está o gargalo?" /></td>
+                      <td className="p-mx-sm"><Typography variant="p" className="text-xs font-bold">{it.label}</Typography></td>
+                      <td className="p-mx-xs border-l border-border-subtle"><Input className="text-center font-black h-mx-10" placeholder={it.p} /></td>
+                      <td className="p-mx-sm text-center border-l border-border-subtle bg-status-warning-surface"><Typography variant="h3" tone="warning" className="text-lg">{it.avg}</Typography></td>
+                      <td className="p-mx-sm text-center border-l border-border-subtle bg-brand-primary/5"><Typography variant="h3" tone="brand" className="text-lg">{it.best}</Typography></td>
+                      <td className="p-mx-xs border-l border-border-subtle"><Textarea className="min-h-[42px] h-mx-10 resize-none text-xs" placeholder="Diagnóstico do consultor..." /></td>
                   </tr>
                 ))}
               </tbody>
@@ -232,53 +254,178 @@ function VisitOneBenchmark() {
   )
 }
 
-function VisitOneInterviews({ templates, visitId, onSave }: { templates: any[], visitId?: string, onSave: (d: any) => Promise<void> }) {
-  const [active, setActive] = useState('gerente')
-  const [form, setForm] = useState<Record<string, string>>({})
-  const [name, setName] = useState('')
-  const [load, setLoad] = useState(false)
+function EvidenceUploader({ onUpload, isUploading, label = "Evidência" }: { onUpload: (file: File) => Promise<void>, isUploading: boolean, label?: string }) {
+  const fileInput = useRef<HTMLInputElement>(null)
+  return (
+    <div className="flex items-center gap-2">
+      <input type="file" ref={fileInput} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if(f) onUpload(f) }} />
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="h-mx-9 px-3 gap-1.5 text-brand-primary bg-brand-primary/5 border border-brand-primary/10 hover:bg-brand-primary/10" 
+        loading={isUploading}
+        onClick={() => fileInput.current?.click()}
+      >
+        <Paperclip size={14} /> {label}
+      </Button>
+    </div>
+  )
+}
 
-  const maps: any = {
-    vendedor: [{k:'crm', l:'Uso CRM e Funil'}, {k:'online', l:'Qualidade Online'}, {k:'clima', l:'Clima e Motivação'}, {k:'limite', l:'Maior Limitador'}],
-    gerente: [{k:'lider', l:'Perfil de Liderança'}, {k:'sgap', l:'Rigor no SGAP'}, {k:'feedback', l:'Rotina de Feedback'}, {k:'gargalo', l:'Gargalo Operacional'}],
-    dono: [{k:'meta', l:'Meta Mensal Desejada'}, {k:'estagio', l:'Estágio do Negócio'}, {k:'dependencia', l:'Dependência do Sócio'}, {k:'trava', l:'Travas de Investimento'}],
-    processo: [{k:'usado', l:'Avaliação de Usado (SLA)'}, {k:'prep', l:'Preparação (Checklist)'}, {k:'pos', l:'Pós-Venda'}, {k:'estoque', l:'Veículos +90 dias'}]
+function VisitOneInterviews({ templates, visitId, clientId, onSave }: { templates: any[], visitId?: string, clientId?: string, onSave: (d: any) => Promise<any> }) {
+  const [active, setActive] = useState<'gerente' | 'dono' | 'vendedor' | 'processo'>('gerente')
+  const [page, setPage] = useState(0)
+  const [form, setForm] = useState<Record<string, any>>({})
+  const [evidences, setEvidences] = useState<Record<string, string[]>>({})
+  const [name, setName] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploading, setIsUploading] = useState<string | null>(null)
+
+  const questions = PMR_FULL_QUESTIONS[active] || []
+  const questionsPerPage = 6
+  const totalPages = Math.ceil(questions.length / questionsPerPage)
+  const currentQuestions = questions.slice(page * questionsPerPage, (page + 1) * questionsPerPage)
+  
+  const currentTemplate = templates?.find((t: any) => t.form_key === active)
+
+  const handleUpload = async (fieldKey: string, file: File) => {
+    if (!clientId || !visitId) {
+       toast.error('Salve a visita antes de anexar evidências por campo.'); return;
+    }
+    setIsUploading(fieldKey)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const filePath = `${clientId}/visita-1/interviews/${fieldKey}-${Math.random().toString(36).substring(2)}.${fileExt}`
+      const { error: uploadError } = await supabase.storage.from('consulting-attachments').upload(filePath, file)
+      if (uploadError) throw uploadError
+      
+      const { data: publicUrl } = supabase.storage.from('consulting-attachments').getPublicUrl(filePath)
+      
+      setEvidences(prev => ({ ...prev, [fieldKey]: [...(prev[fieldKey] || []), publicUrl.publicUrl] }))
+      toast.success('Evidência anexada ao campo!')
+    } catch (err: any) { toast.error(err.message) } finally { setIsUploading(null) }
   }
-  const current = templates?.find((t: any) => t.form_key === active)
-  const fields = maps[active] || []
 
   return (
-    <Card>
+    <Card className="border-none shadow-mx-md animate-in fade-in slide-in-from-bottom-4 duration-500">
       <CardHeader className="bg-transparent border-b border-border-subtle p-mx-lg">
-        <div className="flex flex-wrap gap-mx-xs">
-          {['gerente', 'dono', 'vendedor', 'processo'].map((t) => (
-            <Button key={t} size="sm" variant={active === t ? 'primary' : 'outline'} onClick={() => setActive(t)} className={cn(active !== t && "border-transparent bg-surface-alt/50")}>{t}</Button>
-          ))}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">
+          <div className="flex flex-wrap gap-mx-xs">
+            {(['gerente', 'dono', 'vendedor', 'processo'] as const).map((t) => (
+              <button 
+                key={t} 
+                onClick={() => { setActive(t); setPage(0); setForm({}); setEvidences({}); setName('') }} 
+                className={cn(
+                  "px-6 py-2 rounded-mx-md text-xs font-black uppercase tracking-widest transition-all border-2",
+                  active === t ? "bg-brand-secondary text-white border-brand-secondary" : "bg-white text-text-tertiary border-border-subtle hover:border-brand-primary/40"
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-mx-sm bg-surface-alt px-mx-md py-mx-xs rounded-mx-full border border-border-subtle">
+            <Typography variant="tiny" className="font-black text-brand-secondary">{page + 1} / {totalPages}</Typography>
+            <div className="flex gap-1">
+              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-mx-full" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}><ChevronLeft size={14} /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-mx-full" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}><ChevronRight size={14} /></Button>
+            </div>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-mx-md">
-        <div className="max-w-3xl space-y-mx-md">
-          <div className="p-mx-md bg-surface-alt rounded-mx-lg border border-border-subtle space-y-1">
-            <Typography variant="tiny" tone="muted" as="label">Nome do Respondente</Typography>
-            <Input value={name} onChange={e => setName(e.target.value)} className="h-mx-14 text-lg" placeholder="Qual o nome do entrevistado?" />
-          </div>
-          <div className="space-y-mx-md">
-            {fields.map((f: any) => (
-              <div key={f.k} className="p-mx-md border border-border-subtle rounded-mx-lg hover:border-brand-primary/30 transition-all bg-white shadow-sm hover:shadow-mx-md space-y-2">
-                <Typography variant="caption" className="flex items-center gap-mx-xs text-text-secondary"><div className="p-1 bg-brand-primary/10 rounded-mx-sm text-brand-primary"><Sparkles className="w-3.5 h-3.5" /></div> {f.l}</Typography>
-                <Textarea value={form[f.k] || ''} onChange={e => setForm({...form, [f.k]: e.target.value})} className="min-h-[120px] bg-surface-alt/30" placeholder="Descreva as observações técnicas..." />
+      <CardContent className="p-mx-lg">
+        <div className="max-w-4xl mx-auto space-y-mx-lg">
+          
+          {page === 0 && (
+            <div className="p-mx-lg bg-surface-alt/50 rounded-mx-2xl border border-border-subtle border-dashed space-y-2">
+              <Typography variant="tiny" tone="muted" as="label" className="font-black uppercase tracking-widest">Nome do Respondente / Entrevistado *</Typography>
+              <Input value={name} onChange={e => setName(e.target.value)} className="h-mx-14 text-xl font-black placeholder:opacity-30 border-none shadow-none bg-transparent focus:ring-0" placeholder="Digite o nome completo aqui..." />
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
+            {currentQuestions.map((f: any) => (
+              <div key={f.key} className={cn("p-mx-lg border border-border-subtle rounded-mx-2xl transition-all bg-white hover:border-brand-primary/30 group", (f.type === 'textarea' || f.type === 'file') && "md:col-span-2")}>
+                <div className="flex items-start justify-between gap-mx-md mb-mx-sm">
+                  <Typography variant="p" className="text-xs font-black uppercase tracking-tight text-text-primary leading-tight flex-1">
+                    {f.label} {f.required && <span className="text-status-error">*</span>}
+                  </Typography>
+                  <EvidenceUploader isUploading={isUploading === f.key} onUpload={(file) => handleUpload(f.key, file)} />
+                </div>
+
+                {f.type === 'textarea' ? (
+                  <Textarea value={form[f.key] || ''} onChange={e => setForm({...form, [f.key]: e.target.value})} className="min-h-[140px] bg-surface-alt/20 border-none focus:bg-white transition-all text-sm font-medium" placeholder="Descreva as observações técnicas detalhadas..." />
+                ) : f.type === 'select' ? (
+                  <div className="grid grid-cols-1 gap-2">
+                    {f.options?.map((opt: string) => (
+                      <button 
+                        key={opt}
+                        onClick={() => setForm({...form, [f.key]: opt})}
+                        className={cn(
+                          "w-full text-left px-mx-md py-3 rounded-mx-lg text-xs font-bold transition-all border",
+                          form[f.key] === opt ? "bg-brand-primary/10 border-brand-primary text-brand-primary shadow-sm" : "bg-surface-alt/40 border-transparent text-text-secondary hover:bg-surface-alt"
+                        )}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                ) : f.type === 'number' ? (
+                  <Input type="number" value={form[f.key] || ''} onChange={e => setForm({...form, [f.key]: e.target.value})} className="h-mx-14 text-lg font-black bg-surface-alt/20 border-none focus:bg-white transition-all" placeholder="0" />
+                ) : f.type === 'file' ? (
+                   <div className="p-mx-md border-2 border-dashed border-border-subtle rounded-mx-xl bg-surface-alt/10 flex flex-col items-center justify-center gap-2">
+                      <Typography variant="tiny" tone="muted">Este campo exige uma evidência visual (Foto/Doc)</Typography>
+                      <EvidenceUploader label="Anexar Documento" isUploading={isUploading === f.key} onUpload={(file) => handleUpload(f.key, file)} />
+                   </div>
+                ) : (
+                  <Input value={form[f.key] || ''} onChange={e => setForm({...form, [f.key]: e.target.value})} className="h-mx-12 font-bold bg-surface-alt/20 border-none focus:bg-white transition-all" placeholder="..." />
+                )}
+
+                {evidences[f.key] && evidences[f.key].length > 0 && (
+                  <div className="mt-mx-md flex flex-wrap gap-2">
+                    {evidences[f.key].map((url, idx) => (
+                      <a key={idx} href={url} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-mx-md border border-border-default overflow-hidden hover:ring-2 hover:ring-brand-primary transition-all relative group/img">
+                        <img src={url} alt="Evidence" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                          <Plus className="text-white w-4 h-4" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
-          <div className="pt-mx-md border-t border-border-subtle">
-            <Button className="w-full sm:w-auto" size="lg" loading={load} onClick={async () => {
-              if(!name) return toast.error('O nome do respondente é obrigatório para salvar.');
-              setLoad(true);
-              try {
-                await onSave({ template_id: current?.id, respondent_name: name, respondent_role: current?.target_role, answers: form, visit_id: visitId });
-                toast.success('Entrevista salva com sucesso!'); setForm({}); setName('')
-              } finally { setLoad(false) }
-            }}>SALVAR DIAGNÓSTICO NO CRM</Button>
+
+          <div className="pt-mx-xl border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-mx-lg">
+             <div className="flex gap-2">
+               <Button variant="outline" size="lg" disabled={page === 0} onClick={() => setPage(p => p - 1)} className="font-black uppercase tracking-widest px-8 border-2">Anterior</Button>
+               <Button variant="outline" size="lg" disabled={page === totalPages - 1} onClick={() => setPage(p => p + 1)} className="font-black uppercase tracking-widest px-8 border-2">Próximo</Button>
+             </div>
+             
+             <Button 
+               className={cn("w-full sm:w-auto h-mx-14 px-mx-2xl font-black uppercase tracking-widest shadow-mx-elite transition-all active:scale-95", page < totalPages - 1 ? "bg-surface-alt text-text-tertiary cursor-not-allowed opacity-50" : "bg-brand-primary text-white hover:bg-brand-primary/90")}
+               size="lg" 
+               loading={isSubmitting}
+               onClick={async () => {
+                if (page < totalPages - 1) return toast.info('Vá até a última página para salvar o diagnóstico.');
+                if(!name) return toast.error('O nome do respondente é obrigatório.');
+                setIsSubmitting(true);
+                try {
+                  await onSave({ 
+                    template_id: currentTemplate?.id || active, 
+                    respondent_name: name, 
+                    respondent_role: currentTemplate?.target_role || active, 
+                    answers: { ...form, _evidences: evidences },
+                    visit_id: visitId 
+                  });
+                  toast.success('Diagnóstico salvo com sucesso!'); 
+                  setForm({}); setName(''); setPage(0); setEvidences({});
+                } finally { setIsSubmitting(false) }
+              }}
+            >
+              FINALIZAR E SALVAR NO CRM
+            </Button>
           </div>
         </div>
       </CardContent>

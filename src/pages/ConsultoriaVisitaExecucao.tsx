@@ -215,8 +215,7 @@ Gerado via MX PERFORMANCE`
           <div className="animate-in fade-in duration-300">
             {visitNum === 1 && (
               <div className="space-y-6 min-w-0">
-                <VisitOneHighFidelity quantData={quantData} onQuantChange={setQuantData} templates={templates} visitId={visit?.id} onSaveResponse={saveResponse} />
-              </div>
+                <VisitOneHighFidelity quantData={quantData} onQuantChange={setQuantData} templates={templates} visitId={visit?.id} clientId={clientId} onSaveResponse={saveResponse} />              </div>
             )}
             {visitNum === 2 && <VisitTwoExecution clientId={clientId!} />}
             {visitNum === 3 && <VisitThreeExecution />}
