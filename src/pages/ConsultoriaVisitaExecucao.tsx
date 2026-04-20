@@ -333,30 +333,31 @@ Gerado via MX PERFORMANCE`
             </div>
           </Card>
 
-          <Card className="p-5 border border-border-default shadow-sm rounded-2xl bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <Typography variant="tiny" tone="muted" className="text-[10px] tracking-widest">EVIDÊNCIAS ({attachments.length})</Typography>
-              <Button variant="ghost" size="xs" className="h-7 text-xs border border-border-subtle" icon={isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} onClick={() => fileInputRef.current?.click()}>ADD</Button>
+          <Card className="p-6 border border-border-default shadow-sm rounded-3xl bg-white">
+            <div className="flex items-center justify-between mb-6 border-b border-border-subtle pb-4">
+              <Typography variant="tiny" tone="muted" className="text-[10px] tracking-widest font-bold uppercase">EVIDÊNCIAS ({attachments.length})</Typography>
+              <Button variant="ghost" size="xs" className="h-8 border border-border-subtle hover:bg-brand-primary/10 text-brand-primary font-bold px-3 rounded-lg" icon={isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} onClick={() => fileInputRef.current?.click()}>ADD</Button>
               <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {attachments.length === 0 ? (
-                <div className="py-6 text-center border border-dashed border-border-subtle rounded-lg bg-surface-alt/30">
-                  <Typography variant="tiny" tone="muted">Nenhuma evidência.</Typography>
+                <div className="py-10 text-center border border-border-default rounded-2xl bg-surface-alt/30 flex flex-col items-center justify-center gap-2">
+                  <Image className="w-6 h-6 text-text-tertiary opacity-50" />
+                  <Typography variant="tiny" tone="muted" className="font-bold">Nenhuma evidência.</Typography>
                 </div>
               ) : (
                 attachments.map(file => (
-                  <div key={file.id} className="flex items-center justify-between p-2.5 bg-surface-alt/30 rounded-lg border border-border-subtle group hover:border-border-hover transition-colors">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <FileText className="w-4 h-4 text-text-tertiary shrink-0" />
+                  <div key={file.id} className="flex items-center justify-between p-3 bg-surface-alt/30 rounded-xl border border-border-subtle group hover:border-border-hover transition-colors">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="p-2 bg-white rounded-lg shadow-sm border border-border-subtle shrink-0"><FileText className="w-4 h-4 text-text-tertiary" /></div>
                       <div className="truncate">
                         <Typography variant="tiny" className="font-bold text-text-secondary truncate block">{file.filename}</Typography>
                         <Typography variant="tiny" tone="muted" className="text-[9px]">{formatFileSize(file.size_bytes)}</Typography>
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 shrink-0">
-                      <button className="p-1 hover:bg-white rounded text-text-secondary" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-3 h-3" /></button>
-                      <button className="p-1 hover:bg-mx-error/10 hover:text-mx-error rounded text-text-tertiary" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-3 h-3" /></button>
+                      <button className="p-1.5 hover:bg-white rounded-md text-text-secondary shadow-sm border border-transparent hover:border-border-subtle transition-all" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-3.5 h-3.5" /></button>
+                      <button className="p-1.5 hover:bg-mx-error/10 hover:text-mx-error rounded-md text-text-tertiary shadow-sm border border-transparent hover:border-status-error/30 transition-all" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 ))
