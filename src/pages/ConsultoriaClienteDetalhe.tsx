@@ -66,7 +66,7 @@ export default function ConsultoriaClienteDetalhe() {
     }
     if (searchParams.get('google_connected') === '1') {
       toast.success('Google Calendar conectado com sucesso!')
-      window.history.replaceState({}, '', `/consultoria/clientes/${clientId}`)
+      window.history.replaceState({}, '', `/consultoria/clientes/${clientSlug}`)
     }
   }, [searchParams, clientId])
 

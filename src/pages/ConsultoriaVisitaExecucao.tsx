@@ -145,7 +145,7 @@ export default function ConsultoriaVisitaExecucao() {
       const { error } = await supabase.from('consulting_visits').upsert(payload, { onConflict: 'client_id,visit_number' })
       if (error) throw error
       toast.success(complete ? 'Etapa Concluída com Sucesso!' : 'Progresso salvo'); refetch()
-      if (complete) navigate(`/consultoria/clientes/${clientId}`)
+      if (complete) navigate(`/consultoria/clientes/${client?.slug}`)
     } catch (err: any) { toast.error(err.message) } finally { setIsSaving(false) }
   }
 
