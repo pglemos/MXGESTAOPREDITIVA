@@ -36,35 +36,35 @@ export function VisitHeaderBase({ clientName, data, onChange }: VisitHeaderBaseP
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Consultor Responsável</Typography>
-          <Input value={data.consultant_name} onChange={e => onChange({ ...data, consultant_name: e.target.value })} className="h-12 font-bold border-2 focus:border-brand-primary bg-mx-bg-secondary/10" />
+          <Input value={data.consultant_name} onChange={e => onChange({ ...data, consultant_name: e.target.value })} className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Data da Visita</Typography>
-          <Input type="date" value={data.visit_date} onChange={e => onChange({ ...data, visit_date: e.target.value })} className="h-12 font-bold border-2 focus:border-brand-primary bg-mx-bg-secondary/10" />
+          <Input type="date" value={data.visit_date} onChange={e => onChange({ ...data, visit_date: e.target.value })} className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Tempo da Visita</Typography>
-          <Input value={data.tempo} onChange={e => onChange({ ...data, tempo: e.target.value })} className="h-12 font-bold border-2 bg-mx-bg-secondary/10" />
+          <Input value={data.tempo} onChange={e => onChange({ ...data, tempo: e.target.value })} className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Participantes (Alvo)</Typography>
-          <Input value={data.alvo} onChange={e => onChange({ ...data, alvo: e.target.value })} className="h-12 font-bold border-2 bg-mx-bg-secondary/10" />
+          <Input value={data.alvo} onChange={e => onChange({ ...data, alvo: e.target.value })} className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Meta Mensal</Typography>
-          <Input value={data.meta_mensal} onChange={e => onChange({ ...data, meta_mensal: e.target.value })} placeholder="Ex: 25" className="h-12 font-bold border-2" />
+          <Input value={data.meta_mensal} onChange={e => onChange({ ...data, meta_mensal: e.target.value })} placeholder="Ex: 25" className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Projeção Atual</Typography>
-          <Input value={data.projecao} onChange={e => onChange({ ...data, projecao: e.target.value })} className="h-12 font-bold border-2" />
+          <Input value={data.projecao} onChange={e => onChange({ ...data, projecao: e.target.value })} className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Leads no Mês</Typography>
-          <Input value={data.leads_mes} onChange={e => onChange({ ...data, leads_mes: e.target.value })} className="h-12 font-bold border-2" />
+          <Input value={data.leads_mes} onChange={e => onChange({ ...data, leads_mes: e.target.value })} className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
         <div className="space-y-1">
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-[9px]">Estoque Disponível</Typography>
-          <Input value={data.estoque_disponivel} onChange={e => onChange({ ...data, estoque_disponivel: e.target.value })} className="h-12 font-bold border-2" />
+          <Input value={data.estoque_disponivel} onChange={e => onChange({ ...data, estoque_disponivel: e.target.value })} className="h-12 font-black text-lg border-2 border-mx-border focus:border-brand-primary bg-white rounded-xl px-4 shadow-sm hover:border-brand-primary/50 transition-colors" />
         </div>
       </div>
     </Card>

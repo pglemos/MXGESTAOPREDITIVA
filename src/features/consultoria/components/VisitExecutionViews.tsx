@@ -27,7 +27,7 @@ export function VisitTwoExecution({ clientId }: { clientId: string }) {
             <ShieldAlert className="w-10 h-10" />
             <Typography variant="h2" tone="white" className="font-black uppercase italic leading-none">🚨 TRAVA METODOLÓGICA</Typography>
           </div>
-          <Typography variant="body" tone="white" className="font-black text-xl leading-relaxed">
+          <Typography variant="p" tone="white" className="font-black text-xl leading-relaxed">
             Sem o formulário de ACOMPANHAMENTO DIÁRIO (SGAP) instalado no celular dos vendedores e a rotina validada, o trabalho não avança.
           </Typography>
         </div>
@@ -57,10 +57,10 @@ export function VisitTwoExecution({ clientId }: { clientId: string }) {
                 <CheckCircle2 className="w-10 h-10 text-brand-primary" />
               </div>
               <Typography variant="h2" tone="white" className="font-black uppercase tracking-widest leading-none">P.E. VALIDADO</Typography>
-              <Typography variant="body" tone="white" className="opacity-60 font-black uppercase italic text-xs">{latestPlan.title}</Typography>
+              <Typography variant="p" tone="white" className="opacity-60 font-black uppercase italic text-xs">{latestPlan.title}</Typography>
             </div>
           ) : (
-            <Typography variant="body" tone="white" className="font-black opacity-40 uppercase tracking-widest">Aguardando registro do P.E. no sistema</Typography>
+            <Typography variant="p" tone="white" className="font-black opacity-40 uppercase tracking-widest">Aguardando registro do P.E. no sistema</Typography>
           )}
         </Card>
       </div>
@@ -76,7 +76,7 @@ export function VisitThreeExecution() {
         <div className="p-5 bg-brand-primary/10 rounded-3xl text-brand-primary shadow-inner"><Clock size={40} /></div>
         <div>
           <Typography variant="h1" className="font-black italic uppercase leading-none tracking-tighter">Ritual de Rotinas</Typography>
-          <Typography variant="body" className="font-black opacity-30 uppercase tracking-[6px] text-xs">Disciplina de Alta Performance</Typography>
+          <Typography variant="p" className="font-black opacity-30 uppercase tracking-[6px] text-xs">Disciplina de Alta Performance</Typography>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -128,7 +128,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
         <div className="p-5 bg-brand-primary/10 rounded-3xl text-brand-primary shadow-inner"><TrendingUp size={40} /></div>
         <div>
           <Typography variant="h1" className="font-black italic uppercase leading-none tracking-tighter">Feedback Estruturado</Typography>
-          <Typography variant="body" className="font-black opacity-30 uppercase tracking-[6px] text-xs text-brand-secondary">Gargalos e Planos Individuais</Typography>
+          <Typography variant="p" className="font-black opacity-30 uppercase tracking-[6px] text-xs text-brand-secondary">Gargalos e Planos Individuais</Typography>
         </div>
       </div>
       <div className="space-y-10">
@@ -187,7 +187,7 @@ export function VisitSevenExecution({ storeId, onGenerateSummary }: { storeId: s
         <div className="p-5 bg-brand-secondary/10 rounded-3xl text-brand-secondary shadow-inner"><Award size={40} /></div>
         <div>
           <Typography variant="h1" className="font-black italic uppercase leading-none tracking-tighter text-brand-secondary">Sessão PDI Digital</Typography>
-          <Typography variant="body" className="font-black opacity-30 uppercase tracking-[6px] text-xs">Desenvolvimento de Carreira e Vida</Typography>
+          <Typography variant="p" className="font-black opacity-30 uppercase tracking-[6px] text-xs">Desenvolvimento de Carreira e Vida</Typography>
         </div>
       </div>
       <div className="space-y-10">
@@ -267,7 +267,7 @@ export function VisitSixExecution({ clientId, onGenerateSummary }: { clientId: s
       </div>
       <div className="p-12 bg-amber-50 rounded-[56px] border-4 border-amber-200 mb-16 shadow-inner relative">
         <div className="absolute -top-6 left-12"><Badge className="bg-amber-600 px-8 py-2 text-white font-black border-none shadow-lg">ALERTA VERMELHO</Badge></div>
-        <Typography variant="body" className="text-amber-900 font-black text-2xl leading-relaxed italic uppercase">Foco absoluto na Oficina (SLA), Financiamento (Margem) e queima de veículos +90 dias. O Plano Estratégico deve ser atualizado agora.</Typography>
+        <Typography variant="p" className="text-amber-900 font-black text-2xl leading-relaxed italic uppercase">Foco absoluto na Oficina (SLA), Financiamento (Margem) e queima de veículos +90 dias. O Plano Estratégico deve ser atualizado agora.</Typography>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <Button className="h-28 font-black shadow-2xl text-2xl uppercase rounded-[40px] border-4 border-mx-muted text-mx-muted hover:border-brand-primary hover:text-brand-primary transition-all" variant="outline" onClick={() => window.open(`/consultoria/clientes/${clientId}?tab=action_plan`, '_blank')}>ABRIR PLANO DE AÇÃO</Button>

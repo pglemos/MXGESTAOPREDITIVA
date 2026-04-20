@@ -39,16 +39,19 @@ export function VisitOneHighFidelity({
   const COLORS = ['#00C49F', '#FFBB28', '#FF8042', '#0088FE', '#8884d8'];
 
   const renderDashboards = () => {
-    const totalSales = quantData.sales.reduce((acc: number, cur: any) => acc + cur.value, 0)
-    const avgSales = (totalSales / quantData.sales.length).toFixed(1)
-    const bestMonth = [...quantData.sales].sort((a,b) => b.value - a.value)[0]
-    const worstMonth = [...quantData.sales].sort((a,b) => a.value - b.value)[0]
+    const safeSales = quantData?.sales || []
+    const safeMarketing = quantData?.marketing || { investment: 0, leads: 0, origin: [] }
+    const safeStock = quantData?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
+
+    const totalSales = safeSales.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0)
+    const avgSales = safeSales.length > 0 ? (totalSales / safeSales.length).toFixed(1) : '0'
+    const bestMonth = [...safeSales].sort((a,b) => (b.value || 0) - (a.value || 0))[0] || { value: 0 }
+    const worstMonth = [...safeSales].sort((a,b) => (a.value || 0) - (b.value || 0))[0] || { value: 0 }
 
     return (
       <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="p-8 bg-[#111827] text-white border-none shadow-2xl overflow-hidden relative group hover:ring-2 hover:ring-brand-primary/50 transition-all">
-               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><BarChart size={140} /></div>
+            <Card className="p-8 bg-[#111827] text-white border-none shadow-2xl relative">
                <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
                  <Typography variant="h3" tone="white" className="font-black uppercase italic flex items-center gap-3">
                     <Activity className="text-brand-primary" /> Diagnóstico de Vendas
@@ -56,38 +59,37 @@ export function VisitOneHighFidelity({
                  <Badge variant="outline" className="border-brand-primary text-brand-primary font-black uppercase text-[10px]">Trimestre</Badge>
                </div>
                
-               <div className="h-[300px] w-full mt-4">
+               <div className="h-[250px] w-full mt-4">
                   <ResponsiveContainer>
-                    <ReBarChart data={quantData.sales}>
+                    <ReBarChart data={safeSales}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                       <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} fontWeight="bold" tickLine={false} axisLine={false} />
                       <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip 
-                        contentStyle={{ background: '#1f2937', border: 'none', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
-                        itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                      />
-                      <Bar dataKey="value" fill="#00C49F" radius={[12, 12, 0, 0]} barSize={50} label={{ position: 'top', fill: '#00C49F', fontSize: 16, fontWeight: '900', offset: 10 }} />
+                      <Tooltip contentStyle={{ background: '#1f2937', border: 'none', borderRadius: '16px' }} itemStyle={{ color: '#fff', fontWeight: 'bold' }} />
+                      <Bar dataKey="value" fill="#00C49F" radius={[8, 8, 0, 0]} barSize={40} />
                     </ReBarChart>
                   </ResponsiveContainer>
                </div>
 
-               <div className="grid grid-cols-4 gap-4 mt-10">
-                  {[
-                    { label: 'TOTAL', val: totalSales, color: 'text-brand-primary' },
-                    { label: 'MÉDIA', val: avgSales, color: 'text-brand-primary' },
-                    { label: 'MELHOR', val: bestMonth.value, color: 'text-brand-primary' },
-                    { label: 'PIOR', val: worstMonth.value, color: 'text-mx-error' }
-                  ].map(stat => (
-                    <div key={stat.label} className="p-4 bg-white/5 rounded-3xl border border-white/10 text-center shadow-inner group-hover:bg-white/10 transition-all">
-                       <Typography variant="tiny" className="font-black text-[9px] opacity-40 uppercase tracking-[2px]">{stat.label}</Typography>
-                       <Typography variant="h3" className={cn("font-black mt-1", stat.color)}>{stat.val}</Typography>
+               {/* INPUTS DE VENDAS */}
+               <div className="grid grid-cols-3 gap-3 mt-6 border-t border-white/10 pt-6">
+                  {safeSales.map((s:any, i:number) => (
+                    <div key={i} className="flex flex-col gap-1">
+                      <Typography variant="tiny" className="font-black text-[9px] opacity-40 uppercase pl-2">{s.month}</Typography>
+                      <Input type="number" value={s.value} onChange={e => { const n = [...safeSales]; n[i].value = parseInt(e.target.value) || 0; onQuantChange({...quantData, sales: n}) }} className="h-10 bg-white/5 border-white/10 text-white font-black text-center focus:border-brand-primary rounded-xl" />
                     </div>
                   ))}
                </div>
+               
+               <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-white/10">
+                  <div className="text-center"><Typography variant="tiny" className="font-black text-[9px] opacity-40">TOTAL</Typography><Typography variant="h4" className="font-black text-brand-primary">{totalSales}</Typography></div>
+                  <div className="text-center"><Typography variant="tiny" className="font-black text-[9px] opacity-40">MÉDIA</Typography><Typography variant="h4" className="font-black text-brand-primary">{avgSales}</Typography></div>
+                  <div className="text-center"><Typography variant="tiny" className="font-black text-[9px] opacity-40">MELHOR</Typography><Typography variant="h4" className="font-black text-brand-primary">{bestMonth.value}</Typography></div>
+                  <div className="text-center"><Typography variant="tiny" className="font-black text-[9px] opacity-40">PIOR</Typography><Typography variant="h4" className="font-black text-mx-error">{worstMonth.value}</Typography></div>
+               </div>
             </Card>
 
-            <Card className="p-8 bg-[#111827] text-white border-none shadow-2xl relative overflow-hidden group hover:ring-2 hover:ring-brand-primary/50 transition-all">
-               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><PieChart size={140} /></div>
+            <Card className="p-8 bg-[#111827] text-white border-none shadow-2xl relative">
                <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
                  <Typography variant="h3" tone="white" className="font-black uppercase italic flex items-center gap-3">
                     <Zap className="text-brand-primary" /> Performance de MKT
@@ -95,57 +97,64 @@ export function VisitOneHighFidelity({
                  <Badge variant="outline" className="border-brand-primary text-brand-primary font-black uppercase text-[10px]">Origem</Badge>
                </div>
 
-               <div className="grid grid-cols-2 gap-8 h-[300px]">
-                  <div className="flex flex-col justify-center gap-6">
-                     <div className="p-6 bg-white/5 rounded-[40px] border border-white/10 shadow-inner group-hover:bg-white/10 transition-all">
-                        <Typography variant="tiny" className="font-black opacity-30 uppercase text-[9px] tracking-widest mb-1 block">INVESTIMENTO</Typography>
-                        <Typography variant="h2" className="font-black text-2xl">R$ {quantData.marketing.investment.toLocaleString()}</Typography>
+               <div className="grid grid-cols-2 gap-4">
+                  {/* INPUTS DE MKT: INVESTIMENTO E LEADS */}
+                  <div className="flex flex-col gap-4">
+                     <div>
+                        <Typography variant="tiny" className="font-black text-[9px] opacity-40 uppercase pl-2 mb-1 block">Investimento (R$)</Typography>
+                        <Input type="number" value={safeMarketing.investment} onChange={e => onQuantChange({...quantData, marketing: {...safeMarketing, investment: parseInt(e.target.value) || 0}})} className="h-12 bg-white/5 border-white/10 text-white font-black text-xl rounded-xl focus:border-brand-primary" />
                      </div>
-                     <div className="p-6 bg-brand-primary/10 rounded-[40px] border border-brand-primary/20 shadow-inner group-hover:bg-brand-primary/20 transition-all">
-                        <Typography variant="tiny" className="font-black text-brand-primary opacity-60 uppercase text-[9px] tracking-widest mb-1 block">CPL REAL</Typography>
-                        <Typography variant="h1" className="font-black text-brand-primary text-3xl">R$ {(quantData.marketing.investment / (quantData.marketing.leads || 1)).toFixed(2)}</Typography>
+                     <div>
+                        <Typography variant="tiny" className="font-black text-[9px] opacity-40 uppercase pl-2 mb-1 block">Leads Recebidos</Typography>
+                        <Input type="number" value={safeMarketing.leads} onChange={e => onQuantChange({...quantData, marketing: {...safeMarketing, leads: parseInt(e.target.value) || 0}})} className="h-12 bg-white/5 border-white/10 text-white font-black text-xl rounded-xl focus:border-brand-primary" />
+                     </div>
+                     <div className="p-4 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 text-center mt-2">
+                        <Typography variant="tiny" className="font-black text-brand-primary opacity-60 uppercase text-[9px] mb-1 block">CPL REAL</Typography>
+                        <Typography variant="h3" className="font-black text-brand-primary">R$ {((safeMarketing.investment || 0) / (safeMarketing.leads || 1)).toFixed(2)}</Typography>
                      </div>
                   </div>
-                  <ResponsiveContainer>
-                    <RePieChart>
-                      <Pie data={quantData.marketing.origin} innerRadius={80} outerRadius={110} paddingAngle={10} dataKey="value" stroke="none">
-                        {quantData.marketing.origin.map((_e: any, i: number) => (<Cell key={i} fill={COLORS[i % COLORS.length]} />))}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '16px', border: 'none' }} />
-                    </RePieChart>
-                  </ResponsiveContainer>
-               </div>
 
-               <div className="flex flex-wrap gap-2 mt-6">
-                  {quantData.marketing.origin.map((o:any, i:number) => (
-                    <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest">
-                      <div className="w-2.5 h-2.5 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{background: COLORS[i%COLORS.length]}}/> {o.name}: {o.value}
-                    </div>
-                  ))}
+                  <div className="flex flex-col items-center">
+                     <div className="h-[180px] w-full">
+                       <ResponsiveContainer>
+                         <RePieChart>
+                           <Pie data={safeMarketing.origin || []} innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
+                             {(safeMarketing.origin || []).map((_e: any, i: number) => (<Cell key={i} fill={COLORS[i % COLORS.length]} />))}
+                           </Pie>
+                           <Tooltip contentStyle={{ borderRadius: '16px', border: 'none' }} />
+                         </RePieChart>
+                       </ResponsiveContainer>
+                     </div>
+                     {/* INPUTS DE ORIGEM (PIZZA) */}
+                     <div className="grid grid-cols-2 gap-2 w-full mt-2">
+                        {(safeMarketing.origin || []).map((o:any, i:number) => (
+                          <div key={i} className="flex flex-col">
+                            <Typography variant="tiny" className="font-black text-[8px] uppercase flex items-center gap-1 mb-1"><div className="w-2 h-2 rounded-full" style={{background: COLORS[i%COLORS.length]}}/> {o.name}</Typography>
+                            <Input type="number" value={o.value} onChange={e => { const oArr = [...safeMarketing.origin]; oArr[i].value = parseInt(e.target.value) || 0; onQuantChange({...quantData, marketing: {...safeMarketing, origin: oArr}}) }} className="h-8 bg-white/5 border-white/10 text-white font-bold text-center text-xs focus:border-brand-primary px-1" />
+                          </div>
+                        ))}
+                     </div>
+                  </div>
                </div>
             </Card>
          </div>
 
-         <Card className="p-12 bg-[#111827] text-white border-none shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Layers size={200} /></div>
-            <Typography variant="h3" tone="white" className="mb-12 font-black uppercase italic border-b border-white/10 pb-8 flex items-center gap-4">
-               <Search className="text-brand-primary" size={32} /> Raio-X do Estoque & Auditoria
+         <Card className="p-10 bg-[#111827] text-white border-none shadow-2xl relative">
+            <Typography variant="h3" tone="white" className="mb-8 font-black uppercase italic border-b border-white/10 pb-6 flex items-center gap-4">
+               <Search className="text-brand-primary" size={24} /> Raio-X do Estoque & Auditoria
             </Typography>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+            {/* INPUTS DE ESTOQUE */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                {[
-                 { label: 'ESTOQUE TOTAL', val: quantData.stock.qty, sub: 'Peças em Pátio', icon: MousePointer2, color: 'text-white' },
-                 { label: 'PREÇO MÉDIO', val: `R$ ${(quantData.stock.avg_price / 1000).toFixed(1)}k`, sub: 'Posicionamento', icon: TrendingUp, color: 'text-brand-primary' },
-                 { label: 'RELAÇÃO FIPE', val: `+R$ ${quantData.stock.fipe_delta}`, sub: 'Margem de Compra', icon: ShieldCheck, color: 'text-white' },
-                 { label: 'KM MÉDIA', val: '72.500', sub: 'Perfil de Giro', icon: Gauge, color: 'text-white' },
-                 { label: 'INV. TOTAL', val: 'R$ 3.7M', sub: 'Capital Alocado', icon: Calculator, color: 'text-brand-primary' }
+                 { label: 'QTD TOTAL (UN)', val: safeStock.qty, key: 'qty', sub: 'Peças' },
+                 { label: 'PREÇO MÉDIO (R$)', val: safeStock.avg_price, key: 'avg_price', sub: 'Ticket' },
+                 { label: 'RELAÇÃO FIPE', val: safeStock.fipe_delta, key: 'fipe_delta', sub: 'Spread' },
+                 { label: 'KM MÉDIA', val: safeStock.mileage, key: 'mileage', sub: 'Perfil' },
+                 { label: 'INV. TOTAL (R$)', val: safeStock.total_inv, key: 'total_inv', sub: 'Capital' }
                ].map(it => (
-                 <div key={it.label} className="p-10 bg-white/5 rounded-[60px] border border-white/10 text-center shadow-inner group hover:bg-brand-primary/10 transition-all cursor-default">
-                    <div className="bg-white/5 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/10 group-hover:scale-110 transition-transform">
-                       <it.icon size={20} className="text-brand-primary" />
-                    </div>
-                    <Typography variant="tiny" className="font-black opacity-30 block mb-3 uppercase tracking-[4px] text-[8px]">{it.label}</Typography>
-                    <Typography variant="h1" className={cn("font-black mb-2 tracking-tighter leading-none text-3xl", it.color)}>{it.val}</Typography>
-                    <Typography variant="tiny" className="font-bold opacity-20 uppercase text-[9px] tracking-widest">{it.sub}</Typography>
+                 <div key={it.label} className="p-4 bg-white/5 rounded-[24px] border border-white/10 flex flex-col gap-2">
+                    <Typography variant="tiny" className="font-black opacity-40 uppercase text-[9px] text-center">{it.label}</Typography>
+                    <Input type="number" value={it.val} onChange={e => onQuantChange({...quantData, stock: {...safeStock, [it.key]: parseFloat(e.target.value) || 0}})} className="h-14 bg-black/40 border-white/10 text-white font-black text-center text-xl focus:border-brand-primary rounded-xl" />
                  </div>
                ))}
             </div>
@@ -161,7 +170,7 @@ export function VisitOneHighFidelity({
              <Typography variant="tiny" className="text-brand-primary font-black uppercase italic tracking-[4px]">PMR Methodology - Slide 7</Typography>
           </div>
           <Typography variant="h1" className="font-black uppercase italic text-brand-secondary text-5xl tracking-tighter leading-none mb-4">Comparativo de Mercado</Typography>
-          <Typography variant="body" className="max-w-2xl text-mx-muted font-bold">Confronte os dados da loja com a média nacional e as metas de elite estabelecidas pela metodologia MX.</Typography>
+          <Typography variant="p" className="max-w-2xl text-mx-muted font-bold">Confronte os dados da loja com a média nacional e as metas de elite estabelecidas pela metodologia MX.</Typography>
        </div>
 
        <div className="overflow-x-auto rounded-[48px] border-4 border-mx-border shadow-inner">
@@ -260,7 +269,7 @@ export function VisitOneHighFidelity({
                 className={cn(
                   "flex-1 py-5 text-xs font-black uppercase rounded-[28px] transition-all flex items-center justify-center gap-3", 
                   interviewTab === t 
-                    ? "bg-brand-primary text-white shadow-2xl scale-105" 
+                    ? "bg-brand-secondary text-white shadow-xl scale-[1.02] border-4 border-brand-secondary" 
                     : "opacity-30 hover:opacity-100 hover:bg-white hover:shadow-md"
                 )}
              >
@@ -344,7 +353,7 @@ export function VisitOneHighFidelity({
                className={cn(
                   "flex-1 py-6 text-sm font-black uppercase rounded-[40px] transition-all flex items-center justify-center gap-5", 
                   tab === t.id 
-                    ? "bg-brand-primary text-white shadow-[0_15px_40px_rgba(0,196,159,0.4)] scale-105" 
+                    ? "bg-brand-secondary text-white shadow-xl scale-[1.02] border-4 border-brand-secondary" 
                     : "opacity-40 hover:opacity-100 hover:bg-mx-bg-secondary"
                )}
             >
