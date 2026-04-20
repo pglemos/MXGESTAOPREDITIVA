@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, CheckCircle2, Circle, Save, FileText, Send,
@@ -149,68 +149,69 @@ export default function ConsultoriaVisitaExecucao() {
   }
 
   const generateReportText = () => {
-    const totalSales = quantData.sales.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0)
-    const cpl = (quantData.marketing.investment / (quantData.marketing.leads || 1)).toFixed(2)
-    return `📍 *RELATÓRIO DE VISITA ${visitNum}: ${step?.objective.toUpperCase()}*
+    const safeSales = quantData?.sales || []
+    const safeMarketing = quantData?.marketing || { investment: 0, leads: 0, origin: [] }
+    const safeStock = quantData?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
+    
+    const totalSales = safeSales.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0)
+    const cpl = (safeMarketing.investment / (safeMarketing.leads || 1)).toFixed(2)
+    return `📍 RELATÓRIO DE VISITA ${visitNum}: ${step?.objective?.toUpperCase()}
 
---- *CABEÇALHO BASE* ---
-*Consultor:* ${headerBase.consultant_name}
-*Data:* ${new Date(headerBase.visit_date).toLocaleDateString('pt-BR')}
-*Loja:* ${client?.name}
-*Meta:* ${headerBase.meta_mensal} | *Projeção:* ${headerBase.projecao}
-*Leads:* ${headerBase.leads_mes} | *Estoque:* ${headerBase.estoque_disponivel}
+--- CABEÇALHO BASE ---
+Consultor: ${headerBase.consultant_name}
+Data: ${new Date(headerBase.visit_date).toLocaleDateString('pt-BR')}
+Loja: ${client?.name}
+Meta: ${headerBase.meta_mensal} | Projeção: ${headerBase.projecao}
+Leads: ${headerBase.leads_mes} | Estoque: ${headerBase.estoque_disponivel}
 
-${visitNum === 1 ? `--- *INDICADORES QUANTITATIVOS* ---
-*Vendas Trimestre:* ${totalSales} carros
-*Marketing (CPL):* R$ ${cpl}
-*Volume Leads:* ${quantData.marketing.leads}/mês
-*Estoque:* ${quantData.stock.qty} carros` : ''}
-
---- *RELATO DA VISITA* ---
+${visitNum === 1 ? `--- INDICADORES QUANTITATIVOS ---
+Vendas Trimestre: ${totalSales} carros
+Marketing (CPL): R$ ${cpl}
+Volume Leads: ${safeMarketing.leads}/mês
+Estoque: ${safeStock.qty} carros\n` : ''}
+--- RELATO DA VISITA ---
 ${executiveSummary || '(Pendente)'}
 
---- *FEEDBACK E PRÓXIMOS PASSOS* ---
-${feedbackClient || '(Nenhum feedback adicional)'}
+--- FEEDBACK E PRÓXIMOS PASSOS ---
+${feedbackClient || '(Nenhum)'}
 
-_Gerado via MX PERFORMANCE_`
+Gerado via MX PERFORMANCE`
   }
 
-  if (clientLoading || methodologyLoading) return <div className="min-h-screen flex items-center justify-center bg-mx-bg"><Loader2 className="w-10 h-10 animate-spin text-brand-primary" /></div>
+  if (clientLoading || methodologyLoading) return <div className="flex w-full items-center justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-brand-primary" /></div>
 
   return (
-    <main className="min-h-screen bg-mx-bg pb-20 print:bg-white print:pb-0">
-      {/* Header Fixo e Elegante */}
-      <header className="bg-white border-b border-border-default sticky top-0 z-40 shadow-sm print:hidden">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to={`/consultoria/clientes/${clientId}`} className="p-2 hover:bg-mx-bg-secondary rounded-full transition-colors text-text-secondary hover:text-text-primary">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="h-6 w-[1px] bg-border-default" />
-            <div className="flex items-center gap-3">
-              <Typography variant="h3" className="text-text-primary font-black uppercase tracking-tight">Cockpit PMR</Typography>
-              <Badge variant="outline" className="border-brand-primary text-brand-primary font-bold text-[10px] px-2 hidden sm:inline-flex">VISITA {visitNum}</Badge>
-              <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-wider hidden md:block">{step?.objective}</Typography>
+    <div className="w-full pb-24 print:bg-white print:pb-0">
+      
+      {/* Header Local Clean UI */}
+      <div className="bg-white border-b border-border-default px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shadow-sm print:hidden">
+        <div className="flex items-center gap-4">
+          <Link to={`/consultoria/clientes/${clientId}`} className="p-2 border border-border-subtle rounded-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <Typography variant="h3" className="text-text-primary text-lg md:text-xl leading-none">COCKPIT PMR</Typography>
+              <Badge variant="outline" className="bg-brand-primary/10 text-brand-primary border-none px-2 py-0.5 text-[10px]">VISITA {visitNum}</Badge>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => handleSave(false)} loading={isSaving} className="hidden sm:flex text-text-secondary">Salvar rascunho</Button>
-            <Button variant="primary" size="sm" onClick={() => handleSave(true)} loading={isSaving} className="font-bold shadow-md shadow-brand-primary/20">CONCLUIR E REPORTE</Button>
+            <Typography variant="tiny" tone="muted" className="text-xs">{step?.objective}</Typography>
           </div>
         </div>
-        {/* Barra de progresso discreta */}
-        <div className="h-1 w-full bg-mx-bg-secondary overflow-hidden">
-          <div className="h-full bg-brand-primary transition-all duration-1000" style={{ width: `${(visitNum/9)*100}%` }} />
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 print:block print:p-0">
         
-        {/* Coluna Principal (Formulários e Gráficos) */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <Button variant="outline" className="flex-1 md:flex-none h-10 text-sm font-bold bg-white" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
+          <Button variant="primary" className="flex-1 md:flex-none h-10 text-sm font-bold shadow-sm" onClick={() => handleSave(true)} loading={isSaving}>CONCLUIR</Button>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 print:block print:p-0">
+        
+        {/* Coluna Principal - 8 colunas de largura */}
+        <div className="lg:col-span-8 space-y-6">
+          
           <VisitHeaderBase clientName={client?.name || ''} data={headerBase} onChange={setHeaderBase} />
           
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="animate-in fade-in duration-300">
             {visitNum === 1 && (
               <VisitOneHighFidelity 
                 visitId={visit?.id} templates={templates} responsesByTemplate={responsesByTemplate} 
@@ -228,17 +229,17 @@ _Gerado via MX PERFORMANCE_`
             {visitNum === 9 && <VisitNineExecution financials={client?.financials || []} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
           </div>
 
-          <Card className="p-6 md:p-8">
+          <Card className="p-6 border border-border-default shadow-sm rounded-2xl bg-white">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 border-b border-border-subtle pb-4 gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><ClipboardCheck size={20} /></div>
-                <Typography variant="h3">Checklist da Etapa</Typography>
+                <Typography variant="h3" className="text-lg">Checklist Operacional</Typography>
               </div>
               <Badge variant="secondary" className="font-bold w-fit">Mandatório</Badge>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {checklist.map((item, idx) => (
-                <div key={idx} className={cn("flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer", item.completed ? "bg-brand-primary/5 border-brand-primary/20" : "bg-white border-border-default hover:border-border-hover")} onClick={() => handleToggleCheck(idx)}>
+                <div key={idx} className={cn("flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer", item.completed ? "bg-brand-primary/5 border-brand-primary/20" : "bg-white border-border-default hover:border-border-hover")} onClick={() => handleToggleCheck(idx)}>
                   <div className="mt-0.5">
                     {item.completed ? <CheckCircle2 className="w-5 h-5 text-brand-primary" /> : <Circle className="w-5 h-5 text-text-tertiary opacity-30" />}
                   </div>
@@ -248,64 +249,71 @@ _Gerado via MX PERFORMANCE_`
             </div>
           </Card>
 
-          <Card className="p-6 md:p-8">
-            <div className="flex items-center justify-between mb-6 border-b border-border-subtle pb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><FileText size={20} /></div>
-                <Typography variant="h3">Relato Executivo (CRM)</Typography>
+          <div className="grid grid-cols-1 gap-6">
+            <Card className="p-6 border border-border-default shadow-sm rounded-2xl bg-white">
+              <div className="flex items-center gap-3 mb-4">
+                <FileText className="w-5 h-5 text-text-secondary" />
+                <Typography variant="h3" className="text-lg">Relato Executivo (CRM)</Typography>
               </div>
-            </div>
-            <Textarea 
-              value={executiveSummary} 
-              onChange={(e) => setExecutiveSummary(e.target.value)} 
-              placeholder="Descreva aqui o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
-              className="min-h-[300px] font-mono text-sm leading-relaxed bg-surface-alt/30 border border-border-default focus:border-brand-primary rounded-xl p-6 shadow-inner resize-none" 
-            />
-          </Card>
-
-          <Card className="p-6 md:p-8">
-            <Typography variant="h3" className="mb-4">Feedback Direto ao Cliente</Typography>
-            <Textarea 
-              value={feedbackClient} 
-              onChange={(e) => setFeedbackClient(e.target.value)} 
-              placeholder="Descreva aqui as 3 ações principais que o cliente precisa atuar..." 
-              className="min-h-[120px] text-sm font-bold bg-white border border-border-default focus:border-brand-primary rounded-xl p-4 shadow-sm" 
-            />
-          </Card>
+              <Textarea 
+                value={executiveSummary} 
+                onChange={(e) => setExecutiveSummary(e.target.value)} 
+                placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
+                className="min-h-[250px] font-mono text-sm leading-relaxed bg-surface-alt/30 border border-border-default focus:border-brand-primary rounded-xl p-4 shadow-inner resize-none" 
+              />
+            </Card>
+            
+            <Card className="p-6 border border-border-default shadow-sm rounded-2xl bg-white">
+              <div className="flex items-center gap-3 mb-4">
+                <MessageSquare className="w-5 h-5 text-text-secondary" />
+                <Typography variant="h3" className="text-lg">Feedback Direto ao Cliente</Typography>
+              </div>
+              <Textarea 
+                value={feedbackClient} 
+                onChange={(e) => setFeedbackClient(e.target.value)} 
+                placeholder="Pontos de atenção emergenciais e ações principais..." 
+                className="min-h-[120px] text-sm font-bold bg-white border border-border-default focus:border-brand-primary rounded-xl p-4 shadow-sm resize-none" 
+              />
+            </Card>
+          </div>
         </div>
 
-        {/* Coluna Lateral (Informações e Ações) */}
-        <div className="space-y-6 print:hidden">
-          <Card className="p-6 md:p-8 bg-surface-alt/50 border-t-4 border-t-brand-primary shadow-sm relative overflow-hidden group">
+        {/* Coluna Lateral - 4 colunas de largura */}
+        <div className="lg:col-span-4 space-y-6 print:hidden">
+          
+          <Card className="p-6 bg-surface-alt/50 border border-border-default shadow-sm rounded-2xl text-center relative overflow-hidden group">
              <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform"><Presentation size={140} /></div>
-             <Typography variant="h3" className="mb-2">Reporte Oficial MX</Typography>
-             <Typography variant="p" className="text-xs mb-6 text-text-tertiary">O relatório compila automaticamente todos os dados de BI e o diagnóstico qualitativo da visita.</Typography>
-             <Button className="w-full shadow-md shadow-brand-primary/20 font-bold h-12" variant="primary" icon={<Share2 size={16} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
+             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-border-subtle mx-auto mb-4 relative z-10">
+               <Presentation className="w-6 h-6 text-brand-primary" />
+             </div>
+             <Typography variant="h3" className="text-lg mb-2 relative z-10">Reporte Oficial MX</Typography>
+             <Typography variant="p" className="text-xs text-text-tertiary mb-6 relative z-10">O relatório compila automaticamente todos os dados de BI e o diagnóstico qualitativo da visita.</Typography>
+             <Button className="w-full shadow-sm font-bold h-11 relative z-10" variant="primary" icon={<Share2 size={16} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
           </Card>
 
-          <Card className="p-6">
-            <Typography variant="h4" className="mb-4 text-xs tracking-widest text-text-tertiary">ALVO DA ETAPA</Typography>
+          <Card className="p-6 border border-border-default shadow-sm rounded-2xl">
+            <Typography variant="tiny" tone="muted" className="mb-4 block">INFORMAÇÕES DA ETAPA</Typography>
             <div className="space-y-4">
               <div>
-                <Typography variant="tiny" tone="muted" className="mb-1 block">Participantes Requeridos</Typography>
-                <Typography variant="p" className="font-bold text-text-primary">{step?.target}</Typography>
+                <Typography variant="tiny" tone="muted" className="text-[10px]">Participantes</Typography>
+                <Typography variant="p" className="text-sm font-bold">{step?.target}</Typography>
               </div>
               <div>
-                <Typography variant="tiny" tone="muted" className="mb-1 block">Duração Estimada</Typography>
-                <Typography variant="p" className="font-bold text-text-primary">{step?.duration}</Typography>
+                <Typography variant="tiny" tone="muted" className="text-[10px]">Duração Estimada</Typography>
+                <Typography variant="p" className="text-sm font-bold">{step?.duration}</Typography>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-6 border border-border-default shadow-sm rounded-2xl">
             <div className="flex items-center justify-between mb-4">
-              <Typography variant="h4" className="text-xs tracking-widest text-text-tertiary">EVIDÊNCIAS ({attachments.length})</Typography>
-              <Button variant="ghost" size="xs" className="h-8" icon={isUploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />} onClick={() => fileInputRef.current?.click()}>ADICIONAR</Button>
+              <Typography variant="tiny" tone="muted" className="text-[10px]">EVIDÊNCIAS ({attachments.length})</Typography>
+              <Button variant="ghost" size="xs" className="h-8 border border-border-subtle hover:bg-surface-alt/50" icon={isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} onClick={() => fileInputRef.current?.click()}>ADICIONAR</Button>
               <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
             </div>
             <div className="space-y-3">
               {attachments.length === 0 ? (
-                <div className="py-8 text-center border-2 border-dashed border-border-subtle rounded-xl">
+                <div className="py-8 text-center border-2 border-dashed border-border-subtle rounded-xl bg-surface-alt/10">
                   <Typography variant="tiny" tone="muted">Nenhuma evidência anexada.</Typography>
                 </div>
               ) : (
@@ -319,8 +327,8 @@ _Gerado via MX PERFORMANCE_`
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      <button className="p-1.5 hover:bg-white rounded-md text-text-secondary transition-colors" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-3.5 h-3.5" /></button>
-                      <button className="p-1.5 hover:bg-mx-error/10 hover:text-mx-error rounded-md text-text-tertiary transition-colors" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button className="p-1.5 hover:bg-white rounded-md text-text-secondary transition-colors shadow-sm border border-transparent hover:border-border-subtle" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-3.5 h-3.5" /></button>
+                      <button className="p-1.5 hover:bg-mx-error/10 hover:text-mx-error rounded-md text-text-tertiary transition-colors shadow-sm border border-transparent hover:border-border-subtle" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 ))
@@ -330,17 +338,18 @@ _Gerado via MX PERFORMANCE_`
         </div>
       </div>
 
+      {/* Modal de Relatório */}
       <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Documento de Auditoria - MX Performance" size="xl">
          <div className="p-6 md:p-8 space-y-6">
-            <Card className="p-6 md:p-10 bg-white font-mono text-sm md:text-base leading-relaxed whitespace-pre-wrap select-all border border-border-default shadow-inner overflow-y-auto max-h-[60vh] relative rounded-2xl print:max-h-none print:shadow-none print:border-none">
+            <Card className="p-6 md:p-8 bg-white font-mono text-sm leading-relaxed whitespace-pre-wrap select-all border border-border-default shadow-inner overflow-y-auto max-h-[60vh] relative rounded-xl print:max-h-none print:shadow-none print:border-none">
               <div className="relative z-10 text-text-primary">{generateReportText()}</div>
             </Card>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 print:hidden">
-               <Button variant="outline" className="h-12 font-bold w-full" onClick={() => window.print()} icon={<Printer className="w-4 h-4" />}>IMPRIMIR / PDF</Button>
+               <Button variant="outline" className="h-12 font-bold w-full bg-white shadow-sm" onClick={() => window.print()} icon={<Printer className="w-4 h-4" />}>IMPRIMIR / PDF</Button>
                <Button className="h-12 font-bold w-full bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-md" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-4 h-4" />}>ENVIAR VIA WHATSAPP</Button>
             </div>
          </div>
       </Modal>
-    </main>
+    </div>
   )
 }
