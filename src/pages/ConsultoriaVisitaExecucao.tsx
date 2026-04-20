@@ -65,7 +65,6 @@ export default function ConsultoriaVisitaExecucao() {
     stock: { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
   })
 
-  // Sincroniza dados da visita apenas UMA VEZ no carregamento
   useEffect(() => {
     if (visit) {
       setChecklist(visit.checklist_data || [])
@@ -90,7 +89,7 @@ export default function ConsultoriaVisitaExecucao() {
       })))
       setHeaderBase(prev => ({ ...prev, consultant_name: user?.name || '', tempo: step.duration || '1 DIA', alvo: step.target || 'Todos' }))
     }
-  }, [visit?.id, step?.id]) // Dependência apenas nos IDs para evitar loop
+  }, [visit?.id, step?.id])
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
@@ -111,7 +110,7 @@ export default function ConsultoriaVisitaExecucao() {
         if (uploadError) throw uploadError
         await supabase.from('consulting_visit_attachments').insert({ visit_id: visit.id, filename: file.name, storage_path: filePath, content_type: file.type, size_bytes: file.size })
       }
-      toast.success('Evidências enviadas!'); refetch()
+      toast.success('Evidências anexadas!'); refetch()
     } catch (err: any) { toast.error(err.message) } finally { setIsUploading(false) }
   }
 
@@ -120,7 +119,7 @@ export default function ConsultoriaVisitaExecucao() {
     try {
       await supabase.storage.from('consulting-attachments').remove([file.storage_path])
       await supabase.from('consulting_visit_attachments').delete().eq('id', file.id)
-      toast.success('Excluído!'); refetch()
+      toast.success('Evidência removida!'); refetch()
     } catch (err: any) { toast.error(err.message) }
   }
 
@@ -144,7 +143,7 @@ export default function ConsultoriaVisitaExecucao() {
       }
       const { error } = await supabase.from('consulting_visits').upsert(payload, { onConflict: 'client_id,visit_number' })
       if (error) throw error
-      toast.success(complete ? 'Etapa Concluída!' : 'Progresso Salvo!'); refetch()
+      toast.success(complete ? 'Etapa Concluída com Sucesso!' : 'Progresso salvo'); refetch()
       if (complete) navigate(`/consultoria/clientes/${clientId}`)
     } catch (err: any) { toast.error(err.message) } finally { setIsSaving(false) }
   }
@@ -168,41 +167,47 @@ ${visitNum === 1 ? `--- *INDICADORES QUANTITATIVOS* ---
 *Estoque:* ${quantData.stock.qty} carros` : ''}
 
 --- *RELATO DA VISITA* ---
-${executiveSummary || '(Pendente de preenchimento no sistema)'}
+${executiveSummary || '(Pendente)'}
 
 --- *FEEDBACK E PRÓXIMOS PASSOS* ---
-${feedbackClient || '(Nenhum feedback adicional registrado)'}
+${feedbackClient || '(Nenhum feedback adicional)'}
 
-_Gerado via MX PERFORMANCE CRM_`
+_Gerado via MX PERFORMANCE_`
   }
 
   if (clientLoading || methodologyLoading) return <div className="min-h-screen flex items-center justify-center bg-mx-bg"><Loader2 className="w-10 h-10 animate-spin text-brand-primary" /></div>
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] pb-20 print:bg-white print:pb-0">
-      <header className="bg-white border-b-2 border-mx-border sticky top-0 z-40 shadow-sm print:hidden">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to={`/consultoria/clientes/${clientId}`} className="p-3 hover:bg-mx-bg-secondary rounded-2xl transition-all border-2 border-transparent hover:border-mx-border active:scale-90"><ArrowLeft className="w-6 h-6 text-brand-secondary" /></Link>
-            <div className="h-10 w-[2px] bg-mx-border" />
-            <div>
-              <Typography variant="h3" className="text-brand-secondary font-black italic tracking-tighter uppercase leading-none mb-1">Cockpit PMR</Typography>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-brand-primary/10 text-brand-primary border-none font-black text-[10px] px-3">VISITA {visitNum}</Badge>
-                <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest text-[9px]">{step?.objective}</Typography>
-              </div>
+    <main className="min-h-screen bg-mx-bg pb-20 print:bg-white print:pb-0">
+      {/* Header Fixo e Elegante */}
+      <header className="bg-white border-b border-border-default sticky top-0 z-40 shadow-sm print:hidden">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to={`/consultoria/clientes/${clientId}`} className="p-2 hover:bg-mx-bg-secondary rounded-full transition-colors text-text-secondary hover:text-text-primary">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="h-6 w-[1px] bg-border-default" />
+            <div className="flex items-center gap-3">
+              <Typography variant="h3" className="text-text-primary font-black uppercase tracking-tight">Cockpit PMR</Typography>
+              <Badge variant="outline" className="border-brand-primary text-brand-primary font-bold text-[10px] px-2 hidden sm:inline-flex">VISITA {visitNum}</Badge>
+              <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-wider hidden md:block">{step?.objective}</Typography>
             </div>
           </div>
-          <div className="flex gap-4">
-            <Button variant="outline" className="h-12 px-6 font-black border-2 active:scale-95 transition-all" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
-            <Button variant="primary" className="h-12 px-8 font-black shadow-xl shadow-brand-primary/20 active:scale-95 transition-all" onClick={() => handleSave(true)} loading={isSaving}>CONCLUIR E REPORTE</Button>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => handleSave(false)} loading={isSaving} className="hidden sm:flex text-text-secondary">Salvar rascunho</Button>
+            <Button variant="primary" size="sm" onClick={() => handleSave(true)} loading={isSaving} className="font-bold shadow-md shadow-brand-primary/20">CONCLUIR E REPORTE</Button>
           </div>
         </div>
-        <div className="h-1.5 w-full bg-mx-bg-secondary"><div className="h-full bg-brand-primary transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,159,0.5)]" style={{ width: `${(visitNum/9)*100}%` }} /></div>
+        {/* Barra de progresso discreta */}
+        <div className="h-1 w-full bg-mx-bg-secondary overflow-hidden">
+          <div className="h-full bg-brand-primary transition-all duration-1000" style={{ width: `${(visitNum/9)*100}%` }} />
+        </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10 print:block print:p-0">
-        <div className="lg:col-span-2 space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 print:block print:p-0">
+        
+        {/* Coluna Principal (Formulários e Gráficos) */}
+        <div className="lg:col-span-2 space-y-8">
           <VisitHeaderBase clientName={client?.name || ''} data={headerBase} onChange={setHeaderBase} />
           
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -223,60 +228,116 @@ _Gerado via MX PERFORMANCE CRM_`
             {visitNum === 9 && <VisitNineExecution financials={client?.financials || []} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
           </div>
 
-          <Card className="p-10 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
-            <div className="flex items-center justify-between mb-10 border-b-2 border-mx-bg-secondary pb-6">
-              <div className="flex items-center gap-4 uppercase font-black tracking-[4px] text-mx-muted print:hidden">
-                <div className="p-3 bg-mx-bg-secondary rounded-2xl"><ClipboardCheck size={24} /></div> Checklist
+          <Card className="p-6 md:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 border-b border-border-subtle pb-4 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><ClipboardCheck size={20} /></div>
+                <Typography variant="h3">Checklist da Etapa</Typography>
               </div>
-              <Badge className="font-black px-6 py-2 bg-mx-bg-secondary text-mx-muted border-none">MANDATÓRIO</Badge>
+              <Badge variant="secondary" className="font-bold w-fit">Mandatório</Badge>
             </div>
-            <div className="space-y-4">{checklist.map((item, idx) => (<div key={idx} className={cn("flex items-start gap-5 p-6 rounded-[32px] border-4 transition-all cursor-pointer shadow-sm", item.completed ? "bg-brand-primary/5 border-brand-primary/30" : "bg-white border-mx-border hover:border-brand-primary/20 shadow-sm")} onClick={() => handleToggleCheck(idx)}>{item.completed ? <div className="p-1 bg-brand-primary rounded-full shadow-lg"><CheckCircle2 className="w-6 h-6 text-white" /></div> : <Circle className="w-8 h-8 text-mx-muted opacity-20" />}<Typography variant="p" className={cn("flex-1 font-black text-lg", item.completed && "line-through text-mx-muted opacity-50")}>{item.task}</Typography></div>))}</div>
+            <div className="space-y-3">
+              {checklist.map((item, idx) => (
+                <div key={idx} className={cn("flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer", item.completed ? "bg-brand-primary/5 border-brand-primary/20" : "bg-white border-border-default hover:border-border-hover")} onClick={() => handleToggleCheck(idx)}>
+                  <div className="mt-0.5">
+                    {item.completed ? <CheckCircle2 className="w-5 h-5 text-brand-primary" /> : <Circle className="w-5 h-5 text-text-tertiary opacity-30" />}
+                  </div>
+                  <Typography variant="p" className={cn("flex-1 text-sm font-bold", item.completed ? "text-text-tertiary line-through" : "text-text-primary")}>{item.task}</Typography>
+                </div>
+              ))}
+            </div>
           </Card>
 
-          <Card className="p-10 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px] relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><FileText size={150} /></div>
-            <div className="flex items-center justify-between mb-10 border-b-2 border-mx-bg-secondary pb-6 relative z-10"><Typography variant="h2" className="font-black italic uppercase leading-none tracking-tighter">Relato Executivo</Typography><Sparkles className="text-brand-primary animate-pulse" /></div>
-            <div className="relative z-10"><Textarea value={executiveSummary} onChange={(e) => setExecutiveSummary(e.target.value)} placeholder="Diagnóstico profundo..." className="min-h-[400px] font-mono text-base leading-relaxed bg-mx-bg-secondary/20 border-4 focus:border-brand-primary rounded-[32px] p-10 shadow-inner" /></div>
+          <Card className="p-6 md:p-8">
+            <div className="flex items-center justify-between mb-6 border-b border-border-subtle pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><FileText size={20} /></div>
+                <Typography variant="h3">Relato Executivo (CRM)</Typography>
+              </div>
+            </div>
+            <Textarea 
+              value={executiveSummary} 
+              onChange={(e) => setExecutiveSummary(e.target.value)} 
+              placeholder="Descreva aqui o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
+              className="min-h-[300px] font-mono text-sm leading-relaxed bg-surface-alt/30 border border-border-default focus:border-brand-primary rounded-xl p-6 shadow-inner resize-none" 
+            />
           </Card>
 
-          <Card className="p-10 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
-            <Typography variant="h3" className="mb-6 font-black italic uppercase text-brand-primary">Feedback para o Cliente</Typography>
-            <Textarea value={feedbackClient} onChange={(e) => setFeedbackClient(e.target.value)} placeholder="Próximos passos..." className="min-h-[150px] border-4 border-brand-primary/10 rounded-[32px] p-8 text-lg font-bold bg-mx-bg-secondary/5" />
+          <Card className="p-6 md:p-8">
+            <Typography variant="h3" className="mb-4">Feedback Direto ao Cliente</Typography>
+            <Textarea 
+              value={feedbackClient} 
+              onChange={(e) => setFeedbackClient(e.target.value)} 
+              placeholder="Descreva aqui as 3 ações principais que o cliente precisa atuar..." 
+              className="min-h-[120px] text-sm font-bold bg-white border border-border-default focus:border-brand-primary rounded-xl p-4 shadow-sm" 
+            />
           </Card>
         </div>
 
-        <div className="space-y-8 print:hidden">
-          <Card className="p-8 border-t-[16px] border-brand-secondary bg-[#1e293b] text-white shadow-2xl overflow-hidden relative rounded-[40px] group hover:scale-[1.02] transition-all">
-             <div className="absolute -right-12 -bottom-12 opacity-10 group-hover:rotate-12 transition-transform"><Presentation size={200} /></div>
-             <Typography variant="h2" tone="white" className="mb-6 font-black italic uppercase leading-none tracking-tighter">Reporte MX</Typography>
-             <Button className="w-full bg-white text-brand-secondary font-black h-16 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all rounded-3xl text-lg uppercase italic tracking-tighter" icon={<Share2 className="mr-2" />} onClick={() => setShowReportModal(true)}>GERAR RELATÓRIO FINAL</Button>
+        {/* Coluna Lateral (Informações e Ações) */}
+        <div className="space-y-6 print:hidden">
+          <Card className="p-6 md:p-8 bg-surface-alt/50 border-t-4 border-t-brand-primary shadow-sm relative overflow-hidden group">
+             <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform"><Presentation size={140} /></div>
+             <Typography variant="h3" className="mb-2">Reporte Oficial MX</Typography>
+             <Typography variant="p" className="text-xs mb-6 text-text-tertiary">O relatório compila automaticamente todos os dados de BI e o diagnóstico qualitativo da visita.</Typography>
+             <Button className="w-full shadow-md shadow-brand-primary/20 font-bold h-12" variant="primary" icon={<Share2 size={16} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
           </Card>
-          <Card className="p-8 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
-            <div className="flex items-center gap-4 mb-8 font-black uppercase text-xs tracking-[4px] text-mx-muted border-b-2 border-mx-bg-secondary pb-4">Alvo da Etapa</div>
-            <div className="space-y-6">
-              <div><Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px] mb-1 block">Participantes</Typography><Typography variant="p" className="font-black text-brand-secondary text-xl">{step?.target}</Typography></div>
-              <div><Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px] mb-1 block">Duração</Typography><Typography variant="p" className="font-black text-brand-secondary text-xl">{step?.duration}</Typography></div>
+
+          <Card className="p-6">
+            <Typography variant="h4" className="mb-4 text-xs tracking-widest text-text-tertiary">ALVO DA ETAPA</Typography>
+            <div className="space-y-4">
+              <div>
+                <Typography variant="tiny" tone="muted" className="mb-1 block">Participantes Requeridos</Typography>
+                <Typography variant="p" className="font-bold text-text-primary">{step?.target}</Typography>
+              </div>
+              <div>
+                <Typography variant="tiny" tone="muted" className="mb-1 block">Duração Estimada</Typography>
+                <Typography variant="p" className="font-bold text-text-primary">{step?.duration}</Typography>
+              </div>
             </div>
           </Card>
-          <Card className="p-8 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
-            <div className="flex items-center justify-between mb-8 border-b-2 border-mx-bg-secondary pb-4 font-black uppercase text-xs tracking-[4px] text-mx-muted">
-              <div className="flex items-center gap-3">Evidências ({attachments.length})</div>
-              <Button variant="ghost" size="xs" className="text-brand-primary" icon={isUploading ? <Loader2 className="animate-spin" /> : <Plus />} onClick={() => fileInputRef.current?.click()}>ADD</Button>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Typography variant="h4" className="text-xs tracking-widest text-text-tertiary">EVIDÊNCIAS ({attachments.length})</Typography>
+              <Button variant="ghost" size="xs" className="h-8" icon={isUploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />} onClick={() => fileInputRef.current?.click()}>ADICIONAR</Button>
               <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
             </div>
-            <div className="space-y-4">{attachments.map(file => (<div key={file.id} className="flex items-center justify-between p-5 bg-mx-bg-secondary rounded-3xl border-2 border-mx-border group hover:border-brand-primary/30 transition-all"><div className="flex items-center gap-4"><div className="p-2 bg-white rounded-xl shadow-sm"><FileText className="w-5 h-5 text-brand-secondary" /></div><Typography variant="tiny" className="font-black truncate max-w-[120px]">{file.filename}</Typography></div><div className="flex gap-2 opacity-0 group-hover:opacity-100"><button className="p-2 bg-white hover:bg-brand-primary hover:text-white rounded-xl shadow-sm" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-4 h-4" /></button><button className="p-2 bg-white hover:bg-mx-error hover:text-white rounded-xl shadow-sm" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-4 h-4" /></button></div></div>))}</div>
+            <div className="space-y-3">
+              {attachments.length === 0 ? (
+                <div className="py-8 text-center border-2 border-dashed border-border-subtle rounded-xl">
+                  <Typography variant="tiny" tone="muted">Nenhuma evidência anexada.</Typography>
+                </div>
+              ) : (
+                attachments.map(file => (
+                  <div key={file.id} className="flex items-center justify-between p-3 bg-surface-alt/30 rounded-xl border border-border-subtle group hover:border-border-hover transition-colors">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="p-2 bg-white rounded-lg border border-border-subtle shrink-0"><FileText className="w-4 h-4 text-text-secondary" /></div>
+                      <div className="truncate">
+                        <Typography variant="tiny" className="font-bold text-text-primary truncate block">{file.filename}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-[10px]">{formatFileSize(file.size_bytes)}</Typography>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button className="p-1.5 hover:bg-white rounded-md text-text-secondary transition-colors" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-3.5 h-3.5" /></button>
+                      <button className="p-1.5 hover:bg-mx-error/10 hover:text-mx-error rounded-md text-text-tertiary transition-colors" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </Card>
         </div>
       </div>
 
-      <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Auditoria MX Performance" size="xl">
-         <div className="p-10 space-y-8">
-            <Card className="p-16 bg-white font-mono text-base whitespace-pre-wrap select-all border-4 border-mx-border shadow-inner overflow-y-auto max-h-[700px] relative rounded-[40px] print:max-h-none print:shadow-none">
-              {generateReportText()}
+      <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Documento de Auditoria - MX Performance" size="xl">
+         <div className="p-6 md:p-8 space-y-6">
+            <Card className="p-6 md:p-10 bg-white font-mono text-sm md:text-base leading-relaxed whitespace-pre-wrap select-all border border-border-default shadow-inner overflow-y-auto max-h-[60vh] relative rounded-2xl print:max-h-none print:shadow-none print:border-none">
+              <div className="relative z-10 text-text-primary">{generateReportText()}</div>
             </Card>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
-               <Button className="h-16 font-black bg-mx-bg-secondary text-brand-secondary border-4 border-brand-secondary rounded-[24px] text-lg uppercase italic transition-all" onClick={() => window.print()} icon={<Printer className="mr-2" />}>IMPRIMIR / PDF</Button>
-               <Button className="h-16 font-black bg-mx-green-600 hover:bg-mx-green-700 text-white rounded-[24px] text-lg uppercase italic shadow-xl active:scale-95 transition-all" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="mr-2" />}>ENVIAR WHATSAPP</Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 print:hidden">
+               <Button variant="outline" className="h-12 font-bold w-full" onClick={() => window.print()} icon={<Printer className="w-4 h-4" />}>IMPRIMIR / PDF</Button>
+               <Button className="h-12 font-bold w-full bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-md" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-4 h-4" />}>ENVIAR VIA WHATSAPP</Button>
             </div>
          </div>
       </Modal>
