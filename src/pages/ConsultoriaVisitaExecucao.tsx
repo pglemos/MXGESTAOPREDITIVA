@@ -65,10 +65,10 @@ export default function ConsultoriaVisitaExecucao() {
   })
 
   const [quantData, setQuantData] = useState<any>({
-    sales: [ { month: 'Jan', value: 26 }, { month: 'Fev', value: 18 }, { month: 'Mar', value: 16 } ],
-    marketing: { investment: 15000, leads: 695, origin: [ { name: 'Porta', value: 25 }, { name: 'Internet', value: 3 }, { name: 'Carteira Vnd', value: 25 }, { name: 'Indicação', value: 8 }, { name: 'Carteira Empresa', value: 4 } ] },
-    stock: { qty: 73, avg_price: 62000, fipe_delta: 0, mileage: 0, total_inv: 3700000 },
-    sellerPerformance: [ { name: 'Leônidas', value: 8 }, { name: 'Phillip', value: 22 }, { name: 'Igor', value: 2 }, { name: 'Henrique', value: 16 }, { name: 'Junior', value: 12 } ]
+    sales: [ { month: 'Jan', value: 0 }, { month: 'Fev', value: 0 }, { month: 'Mar', value: 0 } ],
+    marketing: { investment: 0, leads: 0, origin: [ { name: 'Porta', value: 0 }, { name: 'Internet', value: 0 }, { name: 'Carteira', value: 0 }, { name: 'Indicação', value: 0 } ] },
+    stock: { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 },
+    sellerPerformance: []
   })
 
   useEffect(() => {
@@ -96,6 +96,39 @@ export default function ConsultoriaVisitaExecucao() {
       setHeaderBase(prev => ({ ...prev, consultant_name: user?.name || '', tempo: step.duration || '1 DIA', alvo: step.target || 'Todos' }))
     }
   }, [visit, step, user])
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files; if (!files || files.length === 0 || !visit) return
+    setIsUploading(true)
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const fileExt = file.name.split('.').pop()
+        const filePath = `${clientId}/visita-${visitNum}/${Math.random().toString(36).substring(2)}.${fileExt}`
+        const { error: uploadError } = await supabase.storage.from('consulting-attachments').upload(filePath, file)
+        if (uploadError) throw uploadError
+        await supabase.from('consulting_visit_attachments').insert({ visit_id: visit.id, filename: file.name, storage_path: filePath, content_type: file.type, size_bytes: file.size })
+      }
+      toast.success('Evidências enviadas!'); refetch()
+    } catch (err: any) { toast.error(err.message) } finally { setIsUploading(false) }
+  }
+
+  const handleDeleteAttachment = async (file: any) => {
+    if(!confirm('Excluir evidência?')) return
+    try {
+      await supabase.storage.from('consulting-attachments').remove([file.storage_path])
+      await supabase.from('consulting_visit_attachments').delete().eq('id', file.id)
+      toast.success('Excluído!'); refetch()
+    } catch (err: any) { toast.error(err.message) }
+  }
 
   const handleToggleCheck = (index: number) => {
     const newList = [...checklist]
@@ -130,6 +163,8 @@ export default function ConsultoriaVisitaExecucao() {
   }
 
   const generateReportText = () => {
+    const totalSales = quantData.sales.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0)
+    const cpl = (quantData.marketing.investment / (quantData.marketing.leads || 1)).toFixed(2)
     return `📍 *RELATÓRIO DE VISITA ${visitNum}: ${step?.objective.toUpperCase()}*
 
 --- *CABEÇALHO BASE* ---
@@ -139,91 +174,175 @@ export default function ConsultoriaVisitaExecucao() {
 *Meta:* ${headerBase.meta_mensal} | *Projeção:* ${headerBase.projecao}
 *Leads:* ${headerBase.leads_mes} | *Estoque:* ${headerBase.estoque_disponivel}
 
+${visitNum === 1 ? `--- *INDICADORES QUANTITATIVOS* ---
+*Vendas Trimestre:* ${totalSales} carros
+*Marketing (CPL):* R$ ${cpl}
+*Volume Leads:* ${quantData.marketing.leads}/mês
+*Estoque:* ${quantData.stock.qty} carros` : ''}
+
 --- *RELATO DA VISITA* ---
-${executiveSummary || '(Pendente)'}
+${executiveSummary || '(Pendente de preenchimento no sistema)'}
 
 --- *FEEDBACK E PRÓXIMOS PASSOS* ---
 ${feedbackClient || '(Nenhum feedback adicional registrado)'}
 
-_Gerado via MX PERFORMANCE CRM_`
+_Gerado via MX PERFORMANCE CRM - Metodologia PMR_`
   }
 
   if (clientLoading || methodologyLoading) return <div className="min-h-screen flex items-center justify-center bg-mx-bg"><Loader2 className="w-10 h-10 animate-spin text-brand-primary" /></div>
 
   return (
-    <main className="min-h-screen bg-mx-bg pb-20 print:bg-white print:pb-0">
-      <header className="bg-white border-b border-mx-border sticky top-0 z-30 shadow-md print:hidden">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to={`/consultoria/clientes/${clientId}`} className="p-2 hover:bg-mx-bg-secondary rounded-full transition-all"><ArrowLeft className="w-5 h-5" /></Link>
+    <main className="min-h-screen bg-[#f8fafc] pb-20 print:bg-white print:pb-0">
+      <header className="bg-white border-b-2 border-mx-border sticky top-0 z-40 shadow-sm print:hidden">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link to={`/consultoria/clientes/${clientId}`} className="p-3 hover:bg-mx-bg-secondary rounded-2xl transition-all border-2 border-transparent hover:border-mx-border active:scale-90"><ArrowLeft className="w-6 h-6 text-brand-secondary" /></Link>
+            <div className="h-10 w-[2px] bg-mx-border" />
             <div>
-              <Typography variant="h3" className="text-brand-secondary font-black italic tracking-tighter uppercase leading-none">Cockpit Consultoria</Typography>
-              <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">Etapa {visitNum} • {step?.objective}</Typography>
+              <Typography variant="h3" className="text-brand-secondary font-black italic tracking-tighter uppercase leading-none mb-1">Cockpit PMR</Typography>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-brand-primary/10 text-brand-primary border-none font-black text-[10px] px-3">VISITA {visitNum}</Badge>
+                <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest text-[9px]">{step?.objective}</Typography>
+              </div>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" size="sm" onClick={() => handleSave(false)} loading={isSaving}>SALVAR PROVISÓRIO</Button>
-            <Button variant="primary" size="sm" onClick={() => handleSave(true)} loading={isSaving} className="shadow-lg shadow-brand-primary/20">CONCLUIR E REPORTE</Button>
+          <div className="flex gap-4">
+            <Button variant="outline" className="h-12 px-6 font-black border-2 hover:bg-mx-bg-secondary active:scale-95 transition-all" onClick={() => handleSave(false)} loading={isSaving}>SALVAR RASCUNHO</Button>
+            <Button variant="primary" className="h-12 px-8 font-black shadow-xl shadow-brand-primary/20 active:scale-95 transition-all" onClick={() => handleSave(true)} loading={isSaving}>CONCLUIR E GERAR REPORTE</Button>
           </div>
+        </div>
+        <div className="h-1.5 w-full bg-mx-bg-secondary">
+          <div className="h-full bg-brand-primary transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,159,0.5)]" style={{ width: `${(visitNum/9)*100}%` }} />
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 print:block print:p-0">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10 print:block print:p-0">
+        <div className="lg:col-span-2 space-y-10">
           <VisitHeaderBase clientName={client?.name || ''} data={headerBase} onChange={setHeaderBase} />
           
-          {visitNum === 1 && (
-            <VisitOneHighFidelity 
-               visitId={visit?.id} templates={templates} responsesByTemplate={responsesByTemplate} 
-               onSaveResponse={saveResponse} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)}
-               quantData={quantData} onQuantChange={setQuantData}
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {visitNum === 1 && (
+              <VisitOneHighFidelity 
+                visitId={visit?.id} templates={templates} responsesByTemplate={responsesByTemplate} 
+                onSaveResponse={saveResponse} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)}
+                quantData={quantData} onQuantChange={setQuantData}
+              />
+            )}
+            {visitNum === 2 && <VisitTwoExecution clientId={clientId!} />}
+            {visitNum === 3 && <VisitThreeExecution />}
+            {visitNum === 4 && <VisitFourExecution storeId={client?.store_id || ''} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
+            {visitNum === 5 && <VisitFiveExecution onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
+            {visitNum === 6 && <VisitSixExecution clientId={clientId!} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
+            {visitNum === 7 && <VisitSevenExecution storeId={client?.store_id || ''} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
+            {visitNum === 8 && <VisitEightExecution clientId={clientId!} />}
+            {visitNum === 9 && <VisitNineExecution financials={client?.financials || []} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
+          </div>
+
+          <Card className="p-10 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
+            <div className="flex items-center justify-between mb-10 border-b-2 border-mx-bg-secondary pb-6">
+              <div className="flex items-center gap-4 uppercase font-black tracking-[4px] text-mx-muted print:hidden">
+                <div className="p-3 bg-mx-bg-secondary rounded-2xl"><ClipboardCheck size={24} /></div> Checklist da Etapa
+              </div>
+              <Badge className="font-black px-6 py-2 bg-mx-bg-secondary text-mx-muted border-none">MANDATÓRIO</Badge>
+            </div>
+            <div className="space-y-4">{checklist.map((item, idx) => (<div key={idx} className={cn("flex items-start gap-5 p-6 rounded-[32px] border-4 transition-all cursor-pointer shadow-sm", item.completed ? "bg-brand-primary/5 border-brand-primary/30" : "bg-white border-mx-border hover:border-brand-primary/20 shadow-sm")} onClick={() => handleToggleCheck(idx)}>{item.completed ? <div className="p-1 bg-brand-primary rounded-full shadow-lg shadow-brand-primary/30"><CheckCircle2 className="w-6 h-6 text-white" /></div> : <Circle className="w-8 h-8 text-mx-muted opacity-20" />}<Typography variant="body" className={cn("flex-1 font-black text-lg", item.completed && "line-through text-mx-muted opacity-50")}>{item.task}</Typography></div>))}</div>
+          </Card>
+
+          <Card className="p-10 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px] relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><FileText size={150} /></div>
+            <div className="flex items-center justify-between mb-10 border-b-2 border-mx-bg-secondary pb-6 relative z-10">
+              <Typography variant="h2" className="font-black italic uppercase leading-none tracking-tighter">Relato Executivo (CRM)</Typography>
+              <Sparkles className="text-brand-primary animate-pulse" />
+            </div>
+            <div className="relative z-10">
+              <Textarea 
+                value={executiveSummary} 
+                onChange={(e) => setExecutiveSummary(e.target.value)} 
+                placeholder="Descreva aqui o diagnóstico profundo, decisões tomadas e planos de ação acordados..." 
+                className="min-h-[400px] font-mono text-base leading-relaxed bg-mx-bg-secondary/20 border-4 focus:border-brand-primary rounded-[32px] p-10 shadow-inner resize-none" 
+              />
+            </div>
+          </Card>
+
+          <Card className="p-10 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
+            <Typography variant="h3" className="mb-6 font-black italic uppercase leading-none text-brand-primary tracking-tighter">Direcionamento para o Cliente</Typography>
+            <Textarea 
+              value={feedbackClient} 
+              onChange={(e) => setFeedbackClient(e.target.value)} 
+              placeholder="Quais as 3 ações que o cliente deve focar imediatamente?" 
+              className="min-h-[150px] border-4 border-brand-primary/10 focus:border-brand-primary rounded-[32px] p-8 text-lg font-bold bg-mx-bg-secondary/5" 
             />
-          )}
-
-          {visitNum === 2 && <VisitTwoExecution clientId={clientId!} />}
-          {visitNum === 3 && <VisitThreeExecution />}
-          {visitNum === 4 && <VisitFourExecution storeId={client?.store_id || ''} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
-          {visitNum === 5 && <VisitFiveExecution onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
-          {visitNum === 6 && <VisitSixExecution clientId={clientId!} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
-          {visitNum === 7 && <VisitSevenExecution storeId={client?.store_id || ''} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
-          {visitNum === 8 && <VisitEightExecution clientId={clientId!} />}
-          {visitNum === 9 && <VisitNineExecution financials={client?.financials || []} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
-
-          <Card className="p-8 shadow-mx-md border-2 border-mx-border bg-white print:shadow-none print:border-mx-border">
-            <div className="flex items-center gap-2 mb-8 uppercase font-black tracking-widest text-mx-muted print:hidden"><ClipboardCheck size={18} /> Checklist Operacional</div>
-            <Typography variant="h3" className="mb-6 font-black hidden print:block uppercase">Checklist Executado</Typography>
-            <div className="space-y-3">{checklist.map((item, idx) => (<div key={idx} className={cn("flex items-start gap-4 p-5 rounded-3xl border-2 transition-all cursor-pointer shadow-sm", item.completed ? "bg-brand-primary/5 border-brand-primary/30" : "bg-white border-mx-border hover:border-brand-primary/20 shadow-sm print:border-none print:p-2")} onClick={() => handleToggleCheck(idx)}>{item.completed ? <CheckCircle2 className="w-6 h-6 text-brand-primary" /> : <Circle className="w-6 h-6 text-mx-muted opacity-20" />}<Typography variant="body" className={cn("flex-1 font-black", item.completed && "line-through text-mx-muted")}>{item.task}</Typography></div>))}</div>
-          </Card>
-
-          <Card className="p-8 shadow-mx-md border-2 border-mx-border bg-white print:shadow-none print:border-mx-border">
-            <div className="flex items-center justify-between mb-6"><Typography variant="h3" className="font-black italic uppercase leading-none">Relato Executivo (CRM)</Typography><FileText className="opacity-10 print:hidden" /></div>
-            <Textarea value={executiveSummary} onChange={(e) => setExecutiveSummary(e.target.value)} placeholder="Sintetize aqui o diagnóstico e os próximos passos..." className="min-h-[350px] font-mono text-sm leading-relaxed bg-mx-bg-secondary/20 border-2 focus:border-brand-primary print:bg-white print:border-none print:p-0" />
-          </Card>
-
-          <Card className="p-8 shadow-mx-md border-2 border-mx-border bg-white print:shadow-none print:border-mx-border">
-            <Typography variant="h3" className="mb-4 font-black italic uppercase leading-none text-brand-primary">Feedback para o Cliente</Typography>
-            <Textarea value={feedbackClient} onChange={(e) => setFeedbackClient(e.target.value)} placeholder="Pontos cruciais para o cliente atuar..." className="min-h-[120px] border-2 focus:border-brand-primary shadow-sm" />
           </Card>
         </div>
 
-        <div className="space-y-6 print:hidden">
-          <Card className="p-6 border-t-8 border-brand-secondary bg-brand-secondary text-white shadow-mx-xl overflow-hidden relative">
-             <div className="absolute -right-8 -bottom-8 opacity-10"><Presentation size={120} /></div>
-             <Typography variant="h4" tone="white" className="mb-4 uppercase font-black tracking-widest">Documento de Reporte</Typography>
-             <Button className="w-full bg-white text-brand-secondary font-black h-14 shadow-lg hover:scale-[1.02] transition-all" icon={<Share2 />} onClick={() => setShowReportModal(true)}>GERAR RELATÓRIO FINAL</Button>
+        <div className="space-y-8 print:hidden">
+          <Card className="p-8 border-t-[16px] border-brand-secondary bg-[#1e293b] text-white shadow-2xl overflow-hidden relative rounded-[40px] group hover:scale-[1.02] transition-all">
+             <div className="absolute -right-12 -bottom-12 opacity-10 group-hover:rotate-12 transition-transform"><Presentation size={200} /></div>
+             <Typography variant="h4" tone="white" className="mb-4 uppercase font-black tracking-[40px] text-[8px] opacity-40">OUTPUT</Typography>
+             <Typography variant="h2" tone="white" className="mb-6 font-black italic uppercase leading-none tracking-tighter">Reporte<br/>Oficial MX</Typography>
+             <Typography variant="body" tone="white" className="text-sm mb-10 opacity-70 leading-relaxed font-medium">O relatório compila automaticamente todos os dados de BI e o diagnóstico qualitativo da visita.</Typography>
+             <Button className="w-full bg-white text-brand-secondary font-black h-16 shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:shadow-white/10 transition-all rounded-3xl text-lg uppercase italic tracking-tighter" icon={<Share2 className="mr-2" />} onClick={() => setShowReportModal(true)}>GERAR RELATÓRIO FINAL</Button>
           </Card>
-          <Card className="p-6 shadow-mx-md border-t-4 border-brand-primary"><Typography variant="h4" className="mb-4 uppercase font-black">Informações Alvo</Typography><div className="space-y-4"><div><Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px]">Participantes</Typography><Typography variant="body" className="font-black text-brand-secondary">{step?.target}</Typography></div><div><Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px]">Duração Estimada</Typography><Typography variant="body" className="font-black text-brand-secondary">{step?.duration}</Typography></div></div></Card>
+
+          <Card className="p-8 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
+            <div className="flex items-center gap-4 mb-8 font-black uppercase text-xs tracking-[4px] text-mx-muted border-b-2 border-mx-bg-secondary pb-4">
+              <div className="p-2 bg-mx-bg-secondary rounded-lg"><Target size={16} className="text-brand-primary" /></div> Alvo da Etapa
+            </div>
+            <div className="space-y-6">
+              <div className="group">
+                <Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px] tracking-widest mb-1 block group-hover:text-brand-primary transition-colors">Participantes</Typography>
+                <Typography variant="body" className="font-black text-brand-secondary text-xl tracking-tight leading-tight">{step?.target}</Typography>
+              </div>
+              <div className="group">
+                <Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px] tracking-widest mb-1 block group-hover:text-brand-primary transition-colors">Duração Estimada</Typography>
+                <Typography variant="body" className="font-black text-brand-secondary text-xl tracking-tight leading-tight">{step?.duration}</Typography>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-8 shadow-mx-xl border-4 border-mx-border bg-white rounded-[40px]">
+            <div className="flex items-center justify-between mb-8 border-b-2 border-mx-bg-secondary pb-4 font-black uppercase text-xs tracking-[4px] text-mx-muted">
+              <div className="flex items-center gap-3"><Paperclip size={16} className="text-brand-primary" /> Evidências ({attachments.length})</div>
+              <Button variant="ghost" size="xs" className="hover:bg-brand-primary/10 text-brand-primary" icon={isUploading ? <Loader2 className="animate-spin" /> : <Plus />} onClick={() => fileInputRef.current?.click()}>ADD</Button>
+              <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
+            </div>
+            <div className="space-y-4">
+              {attachments.length === 0 ? (
+                <div className="py-10 text-center border-4 border-dashed border-mx-border rounded-[32px] opacity-30">
+                  <Image size={40} className="mx-auto mb-4" />
+                  <Typography variant="tiny" className="font-black uppercase tracking-widest">Nenhuma evidência</Typography>
+                </div>
+              ) : (
+                attachments.map(file => (
+                  <div key={file.id} className="flex items-center justify-between p-5 bg-mx-bg-secondary rounded-3xl border-2 border-mx-border group hover:border-brand-primary/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-white rounded-xl shadow-sm"><FileText className="w-5 h-5 text-brand-secondary" /></div>
+                      <div>
+                        <Typography variant="tiny" className="font-black truncate max-w-[120px] block">{file.filename}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-[8px] font-bold">{formatFileSize(file.size_bytes)}</Typography>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="p-2 bg-white hover:bg-brand-primary hover:text-white rounded-xl shadow-sm transition-all" onClick={() => window.open(supabase.storage.from('consulting-attachments').getPublicUrl(file.storage_path).data.publicUrl)}><Download className="w-4 h-4" /></button>
+                      <button className="p-2 bg-white hover:bg-mx-error hover:text-white rounded-xl shadow-sm transition-all" onClick={() => handleDeleteAttachment(file)}><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
         </div>
       </div>
 
-      <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Relatório MX Performance" size="xl">
-         <div className="p-8 space-y-6">
-            <Card className="p-10 bg-mx-bg-secondary font-mono text-sm leading-relaxed whitespace-pre-wrap select-all border-4 border-double border-mx-muted/20 shadow-inner overflow-y-auto max-h-[600px] print:max-h-none print:bg-white print:border-none print:shadow-none">
-{generateReportText()}
+      <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Documento de Auditoria - MX Performance" size="xl">
+         <div className="p-10 space-y-8">
+            <Card className="p-16 bg-white font-mono text-base leading-relaxed whitespace-pre-wrap select-all border-4 border-mx-border shadow-inner overflow-y-auto max-h-[700px] relative rounded-[40px] print:max-h-none print:shadow-none">
+              <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none"><Presentation size={400} /></div>
+              <div className="relative z-10">{generateReportText()}</div>
             </Card>
-            <div className="flex gap-4 print:hidden">
-               <Button className="flex-1 h-14 font-black bg-mx-bg-secondary text-brand-secondary border-2 border-brand-secondary hover:bg-brand-secondary hover:text-white" onClick={() => window.print()} icon={<Printer />}>IMPRIMIR / PDF</Button>
-               <Button className="flex-1 h-14 font-black bg-mx-green-600 hover:bg-mx-green-700 text-white" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 />}>WHATSAPP</Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
+               <Button className="h-16 font-black bg-mx-bg-secondary text-brand-secondary border-4 border-brand-secondary hover:bg-brand-secondary hover:text-white rounded-[24px] text-lg uppercase italic tracking-tighter transition-all" onClick={() => window.print()} icon={<Printer className="mr-2" />}>IMPRIMIR / GERAR PDF</Button>
+               <Button className="h-16 font-black bg-mx-green-600 hover:bg-mx-green-700 text-white rounded-[24px] text-lg uppercase italic tracking-tighter shadow-xl shadow-mx-green-600/20 active:scale-95 transition-all" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="mr-2" />}>ENVIAR VIA WHATSAPP</Button>
             </div>
          </div>
       </Modal>
