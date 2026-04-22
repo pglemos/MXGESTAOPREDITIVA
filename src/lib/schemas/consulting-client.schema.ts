@@ -15,6 +15,7 @@ export const ConsultingClientSchema = z.object({
   store_id: z.string().uuid().nullable().optional(),
   primary_store_id: z.string().nullable(),
   created_by: z.string().nullable(),
+  last_visit_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 })
@@ -238,6 +239,7 @@ export const ConsultingParameterSetSchema = z.object({
   active: z.boolean(),
   source_reference: z.string().nullable(),
   created_by: z.string().nullable(),
+  last_visit_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 })

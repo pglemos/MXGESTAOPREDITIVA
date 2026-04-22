@@ -95,6 +95,7 @@ export interface ConsultingVisit {
   acknowledged_at?: string | null
   acknowledged_by?: string | null
   next_cycle_goal?: string | null
+  quant_data?: any
   attachments?: ConsultingVisitAttachment[]
   created_at: string
   updated_at: string
@@ -114,6 +115,9 @@ export interface ConsultingFinancial {
   net_profit: number
   roi: number
   conversion_rate: number
+  volume_vendas?: number
+  volume_leads?: number
+  volume_agendamentos?: number
   created_at: string
   updated_at: string
 }

@@ -10,6 +10,11 @@ import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { 
+  ConsultingClientDetail, 
+  ConsultingVisit, 
+  ConsultingAssignableUser 
+} from '@/features/consultoria/types'
 import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySlug'
 import { useConsultingModules } from '@/hooks/useConsultingModules'
 import { useConsultingMethodology } from '@/hooks/useConsultingClients'
@@ -45,7 +50,7 @@ const tabLabels: Record<Tab, string> = {
   pdis: 'Plano de Carreira (PDI)',
 }
 
-function ConsultingROIView({ client }: { client: any }) {
+function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
   const initialData = client.visits?.find((v: any) => v.visit_number === 1)?.quant_data as any
   const financials = [...(client.financials || [])].sort((a, b) => new Date(a.reference_date).getTime() - new Date(b.reference_date).getTime())
   const currentData = financials.length > 0 ? financials[financials.length - 1] : null
@@ -73,7 +78,7 @@ function ConsultingROIView({ client }: { client: any }) {
     return {
       mes: format(new Date(f.reference_date), 'MMM', { locale: ptBR }).toUpperCase(),
       vendas: f.volume_vendas || 0,
-      conversao: f.volume_leads > 0 ? (f.volume_vendas / f.volume_leads) * 100 : 0,
+      conversao: (f.volume_leads || 0) > 0 ? ((f.volume_vendas || 0) / (f.volume_leads || 1)) * 100 : 0,
       margem: f.revenue > 0 ? (f.net_profit / f.revenue) * 100 : 0,
       estoque: inv?.percent_over_90_days || 0
     }
@@ -82,13 +87,13 @@ function ConsultingROIView({ client }: { client: any }) {
   const before = {
     sales: (initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) || 0,
     leads: initialData?.marketing?.leads || 0,
-    conversion: initialData?.marketing?.leads > 0 ? ((initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) / initialData?.marketing?.leads) * 100 : 0
+    conversion: (initialData?.marketing?.leads || 0) > 0 ? ((initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) / (initialData?.marketing?.leads || 1)) * 100 : 0
   }
 
   const after = {
     sales: currentData?.volume_vendas || 0,
     leads: currentData?.volume_leads || 0,
-    conversion: currentData?.volume_leads && currentData.volume_leads > 0 ? (currentData.volume_vendas / currentData.volume_leads) * 100 : 0
+    conversion: (currentData?.volume_leads || 0) > 0 ? ((currentData?.volume_vendas || 0) / (currentData?.volume_leads || 1)) * 100 : 0
   }
 
   const roi = before.sales > 0 ? ((after.sales - before.sales) / before.sales) * 100 : 0
@@ -189,7 +194,7 @@ function ConsultingROIView({ client }: { client: any }) {
 }
 
 function ConsultingPDIsView({ storeId }: { storeId: string }) {
-  const { profile } = useAuth()
+  const { profile, role } = useAuth()
   const { pdis, loading, acknowledge } = usePDIs(storeId)
 
   if (loading) return <div className="p-mx-lg opacity-50">Carregando planos de carreira...</div>
@@ -198,7 +203,8 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
       {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
       {pdis.map((pdi) => {
-        const canSellerSign = profile?.id === pdi.seller_id && !pdi.acknowledged
+        const canSellerSign = profile?.id === pdi.seller_id && !(pdi as any).seller_acknowledged_at
+        const canManagerSign = (role === 'admin' || role === 'gerente') && !(pdi as any).manager_acknowledged_at
         
         return (
           <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-xl">
@@ -227,20 +233,32 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
               </div>
             </div>
 
-            <div className="pt-mx-md border-t border-border-subtle flex flex-col gap-mx-sm">
-               {pdi.acknowledged ? (
-                 <div className="flex items-center gap-mx-xs text-status-success">
-                   <ShieldCheck className="w-mx-4 h-mx-4" />
-                   <Typography variant="tiny" className="font-black uppercase tracking-widest">Plano Assinado pelo Vendedor</Typography>
-                 </div>
-               ) : canSellerSign ? (
-                 <Button variant="primary" className="w-full font-black h-mx-10" onClick={() => acknowledge(pdi.id)}>ASSINAR MEU PLANO (PDI)</Button>
-               ) : (
-                 <div className="flex items-center gap-mx-xs text-text-tertiary opacity-50 italic">
-                   <Clock className="w-mx-4 h-mx-4" />
-                   <Typography variant="tiny" className="uppercase font-bold tracking-tighter">Aguardando assinatura do vendedor</Typography>
-                 </div>
-               )}
+            <div className="pt-mx-md border-t border-border-subtle grid grid-cols-2 gap-mx-md">
+               <div className="space-y-2">
+                 {(pdi as any).seller_acknowledged_at ? (
+                   <div className="flex items-center gap-mx-xs text-status-success">
+                     <ShieldCheck className="w-mx-4 h-mx-4" />
+                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-[8px]">Vendedor OK</Typography>
+                   </div>
+                 ) : canSellerSign ? (
+                   <Button variant="primary" size="sm" className="w-full font-black text-[9px]" onClick={() => acknowledge(pdi.id, 'seller')}>ASSINAR VENDEDOR</Button>
+                 ) : (
+                   <Typography variant="tiny" className="uppercase font-bold text-[8px] opacity-30">Pendente Vendedor</Typography>
+                 )}
+               </div>
+
+               <div className="space-y-2">
+                 {(pdi as any).manager_acknowledged_at ? (
+                   <div className="flex items-center gap-mx-xs text-status-success">
+                     <ShieldCheck className="w-mx-4 h-mx-4" />
+                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-[8px]">Gestor OK</Typography>
+                   </div>
+                 ) : canManagerSign ? (
+                   <Button variant="outline" size="sm" className="w-full font-black text-[9px] border-brand-primary text-brand-primary" onClick={() => acknowledge(pdi.id, 'manager')}>ASSINAR GESTOR</Button>
+                 ) : (
+                   <Typography variant="tiny" className="uppercase font-bold text-[8px] opacity-30">Pendente Gestor</Typography>
+                 )}
+               </div>
             </div>
           </Card>
         )

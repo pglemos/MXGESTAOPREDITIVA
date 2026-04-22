@@ -293,7 +293,7 @@ Gerado via MX PERFORMANCE`
          <div id="report-template-render">
             <VisitReportTemplate 
               client={client} 
-              visit={visit ? { ...visit, next_cycle_goal: nextCycleGoal } as any : { visit_number: visitNum, next_cycle_goal: nextCycleGoal } as any} 
+              visit={visit ? { ...visit, next_cycle_goal: nextCycleGoal, attachments } as any : { visit_number: visitNum, next_cycle_goal: nextCycleGoal, attachments } as any} 
               headerBase={headerBase} 
               quantData={quantData} 
             />

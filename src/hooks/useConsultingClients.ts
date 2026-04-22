@@ -59,7 +59,7 @@ export function useConsultingClients() {
 
     const { data, error: fetchError } = await supabase
       .from('consulting_clients')
-      .select('*')
+      .select('*, consulting_visits(visit_number, status, created_at, effective_visit_date)')
       .order('name', { ascending: true })
 
     if (fetchError) {
@@ -67,7 +67,18 @@ export function useConsultingClients() {
       setClients([])
     } else {
       try {
-        setClients(parseConsultingClientArray(data || []))
+        const clientsWithLastVisit = (data || []).map(client => {
+          const finishedVisits = (client.consulting_visits || [])
+            .filter((v: any) => v.status === 'concluída')
+            .sort((a: any, b: any) => new Date(b.effective_visit_date || b.created_at).getTime() - new Date(a.effective_visit_date || a.created_at).getTime())
+          
+          const lastVisit = finishedVisits[0]
+          return {
+            ...client,
+            last_visit_at: lastVisit ? (lastVisit.effective_visit_date || lastVisit.created_at) : null
+          }
+        })
+        setClients(parseConsultingClientArray(clientsWithLastVisit))
       } catch (parseErr) {
         console.error('[useConsultingClients] Zod parse failed:', parseErr)
         setClients((data || []) as ConsultingClient[])

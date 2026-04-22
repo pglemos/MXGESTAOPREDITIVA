@@ -23,103 +23,114 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
     ? format(visitDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
     : 'Data não informada'
 
+  // Estilos inline para máxima compatibilidade com html2canvas (evitando oklab)
+  const colors = {
+    primary: '#0D3B2E',
+    secondary: '#22C55E',
+    warning: '#FACC15',
+    danger: '#EF4444',
+    textMuted: '#6B7280',
+    bgLight: '#F9FAFB',
+    border: '#E5E7EB'
+  }
+
   return (
-    <div className="bg-white p-mx-xl w-[210mm] min-h-[297mm] mx-auto text-black font-sans print:p-0">
+    <div style={{ backgroundColor: '#FFFFFF', padding: '40px', width: '210mm', minHeight: '297mm', margin: '0 auto', color: '#000000', fontFamily: 'sans-serif' }}>
       {/* Header com Logo */}
-      <header className="flex justify-between items-start border-b-2 border-[#0D3B2E] pb-mx-sm mb-mx-md">
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `2px solid ${colors.primary}`, paddingBottom: '20px', marginBottom: '30px' }}>
         <div>
-          <img src="/mx-logo.png" alt="MX Performance" className="h-mx-12 mb-mx-xs" />
-          <Typography variant="tiny" className="text-[#0D3B2E] font-black tracking-widest uppercase">
+          <img src="/mx-logo.png" alt="MX Performance" style={{ height: '48px', marginBottom: '8px' }} />
+          <div style={{ fontSize: '10px', color: colors.primary, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Sistema de Gestão de Alta Performance
-          </Typography>
+          </div>
         </div>
-        <div className="text-right">
-          <Typography variant="h3" className="text-[#0D3B2E]">RELATÓRIO DE AUDITORIA</Typography>
-          <Badge className="bg-[#0D3B2E] text-white border-none px-mx-sm py-1 rounded-mx-full font-bold">
+        <div style={{ textAlign: 'right' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 900, color: colors.primary, margin: 0 }}>RELATÓRIO DE AUDITORIA</h3>
+          <div style={{ display: 'inline-block', backgroundColor: colors.primary, color: '#FFFFFF', padding: '4px 16px', borderRadius: '999px', fontSize: '12px', fontWeight: 'bold', marginTop: '8px' }}>
             VISITA {visit.visit_number}
-          </Badge>
+          </div>
         </div>
       </header>
 
       {/* Dados do Cliente */}
-      <section className="grid grid-cols-2 gap-mx-lg mb-mx-md bg-[#f9fafb] p-mx-md rounded-mx-xl border border-border-default text-black">
+      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px', backgroundColor: colors.bgLight, padding: '24px', borderRadius: '16px', border: `1px solid ${colors.border}` }}>
         <div>
-          <Typography variant="tiny" className="text-text-tertiary font-bold uppercase mb-1">Cliente / Loja</Typography>
-          <Typography variant="h2" className="text-xl font-black text-black">{client.name.toUpperCase()}</Typography>
-          <Typography variant="p" className="text-sm text-black">{client.legal_name || 'Razão Social não informada'}</Typography>
+          <div style={{ fontSize: '10px', color: colors.textMuted, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>Cliente / Loja</div>
+          <div style={{ fontSize: '20px', fontWeight: 900, color: '#000000' }}>{client.name.toUpperCase()}</div>
+          <div style={{ fontSize: '14px', color: '#333333' }}>{client.legal_name || 'Razão Social não informada'}</div>
         </div>
-        <div className="text-right">
-          <Typography variant="tiny" className="text-text-tertiary font-bold uppercase mb-1">Data da Auditoria</Typography>
-          <Typography variant="h3" className="text-black">{formattedDate}</Typography>
-          <Typography variant="p" className="text-sm text-black">Consultor: {headerBase.consultant_name || 'Consultor MX'}</Typography>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '10px', color: colors.textMuted, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>Data da Auditoria</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000000' }}>{formattedDate}</div>
+          <div style={{ fontSize: '14px', color: '#333333' }}>Consultor: {headerBase.consultant_name || 'Consultor MX'}</div>
         </div>
       </section>
 
       {/* Indicadores de Meta */}
-      <div className="grid grid-cols-4 gap-mx-sm mb-mx-md">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '30px' }}>
         {[
           { l: 'Meta Mensal', v: headerBase.meta_mensal },
           { l: 'Projeção', v: headerBase.projecao },
           { l: 'Leads no Mês', v: headerBase.leads_mes },
           { l: 'Estoque', v: headerBase.estoque_disponivel }
         ].map(i => (
-          <div key={i.l} className="border border-border-default p-mx-sm rounded-mx-lg text-center text-black bg-white shadow-sm">
-            <Typography variant="tiny" className="font-bold text-text-tertiary block mb-1 uppercase">{i.l}</Typography>
-            <Typography variant="h3" className="text-[#0D3B2E] font-black">{i.v || '0'}</Typography>
+          <div key={i.l} style={{ border: `1px solid ${colors.border}`, padding: '16px', borderRadius: '12px', textAlign: 'center', backgroundColor: '#FFFFFF' }}>
+            <div style={{ fontSize: '10px', fontWeight: 'bold', color: colors.textMuted, textTransform: 'uppercase', marginBottom: '4px' }}>{i.l}</div>
+            <div style={{ fontSize: '24px', fontWeight: 900, color: colors.primary }}>{i.v || '0'}</div>
           </div>
         ))}
       </div>
 
       {/* Resumo Executivo */}
-      <section className="mb-mx-md">
-        <div className="flex items-center gap-mx-xs mb-mx-sm">
-          <div className="w-mx-2 h-mx-6 bg-[#0D3B2E] rounded-mx-full" />
-          <Typography variant="h3" className="text-black">Diagnóstico e Relato Executivo</Typography>
+      <section style={{ marginBottom: '30px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <div style={{ width: '6px', height: '24px', backgroundColor: colors.primary, borderRadius: '999px' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Diagnóstico e Relato Executivo</h3>
         </div>
-        <div className="p-mx-md border border-border-default rounded-mx-xl bg-white min-h-[150px] whitespace-pre-wrap text-sm leading-relaxed text-black italic border-dashed">
+        <div style={{ padding: '24px', border: `1px solid ${colors.border}`, borderRadius: '16px', backgroundColor: '#FFFFFF', minHeight: '150px', whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', color: '#000000', fontStyle: 'italic', borderStyle: 'dashed' }}>
           {visit.executive_summary || 'Nenhum relato registrado para esta visita.'}
         </div>
       </section>
 
       {/* Feedback Direto */}
-      <section className="mb-mx-md">
-        <div className="flex items-center gap-mx-xs mb-mx-sm">
-          <div className="w-mx-2 h-mx-6 bg-[#FACC15] rounded-mx-full" />
-          <Typography variant="h3" className="text-black">Pontos de Atenção e Feedback</Typography>
+      <section style={{ marginBottom: '30px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <div style={{ width: '6px', height: '24px', backgroundColor: colors.warning, borderRadius: '999px' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Pontos de Atenção e Feedback</h3>
         </div>
-        <div className="p-mx-md border border-[#FACC15]/30 rounded-mx-xl bg-[#FEFCE8] text-sm leading-relaxed text-black">
+        <div style={{ padding: '24px', border: `1px solid #FEF08A`, borderRadius: '16px', backgroundColor: '#FEFCE8', fontSize: '14px', lineHeight: '1.6', color: '#000000' }}>
           {visit.feedback_client || 'Nenhum feedback direto registrado.'}
         </div>
       </section>
 
       {/* Objetivo do Próximo Ciclo */}
-      <section className="mb-mx-md" style={{ breakInside: 'avoid' }}>
-        <div className="flex items-center gap-mx-xs mb-mx-sm">
-          <div className="w-mx-2 h-mx-6 bg-[#F59E0B] rounded-mx-full" />
-          <Typography variant="h3" className="text-black">Objetivo do Próximo Ciclo (30 dias)</Typography>
+      <section style={{ marginBottom: '30px', pageBreakInside: 'avoid' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <div style={{ width: '6px', height: '24px', backgroundColor: '#F59E0B', borderRadius: '999px' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Objetivo do Próximo Ciclo (30 dias)</h3>
         </div>
-        <div className="p-mx-md border border-[#F59E0B]/30 rounded-mx-xl bg-[#FFF7ED] text-sm font-bold leading-relaxed text-black">
+        <div style={{ padding: '24px', border: `1px solid #FED7AA`, borderRadius: '16px', backgroundColor: '#FFF7ED', fontSize: '14px', fontWeight: 'bold', lineHeight: '1.6', color: '#000000' }}>
           {(visit as any).next_cycle_goal || 'A ser definido na próxima auditoria.'}
         </div>
       </section>
 
       {/* Evidências Fotográficas */}
       {attachments.length > 0 && (
-        <section className="mb-mx-md" style={{ breakInside: 'avoid' }}>
-          <div className="flex items-center gap-mx-xs mb-mx-sm">
-            <div className="w-mx-2 h-mx-6 bg-text-tertiary rounded-mx-full" />
-            <Typography variant="h3" className="text-black">Evidências da Visita</Typography>
+        <section style={{ marginBottom: '30px', pageBreakInside: 'avoid' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ width: '6px', height: '24px', backgroundColor: colors.textMuted, borderRadius: '999px' }} />
+            <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Evidências da Visita</h3>
           </div>
-          <div className="grid grid-cols-2 gap-mx-sm">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {attachments.map((att: any) => (
-              <div key={att.id} className="border border-border-default rounded-mx-lg overflow-hidden bg-surface-alt">
+              <div key={att.id} style={{ border: `1px solid ${colors.border}`, borderRadius: '12px', overflow: 'hidden', backgroundColor: '#F3F4F6' }}>
                 <img 
                   src={`${STORAGE_URL}${att.storage_path}`} 
                   alt={att.filename}
-                  className="w-full h-mx-48 object-cover"
+                  style={{ width: '100%', height: '180px', objectFit: 'cover' }}
                   crossOrigin="anonymous"
                 />
-                <div className="p-mx-xs text-mx-micro text-text-tertiary truncate bg-white">
+                <div style={{ padding: '8px', fontSize: '10px', color: colors.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', backgroundColor: '#FFFFFF' }}>
                   {att.filename}
                 </div>
               </div>
@@ -129,25 +140,25 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
       )}
 
       {/* Assinaturas */}
-      <footer className="mt-mx-20 pt-mx-md border-t border-border-subtle grid grid-cols-2 gap-mx-20">
-        <div className="text-center text-black">
-          <div className="h-px bg-black mb-mx-xs mx-auto w-mx-48" />
-          <Typography variant="tiny" className="font-bold">ASSINATURA CONSULTOR</Typography>
-          <Typography variant="p" className="text-mx-micro">{headerBase.consultant_name}</Typography>
+      <footer style={{ marginTop: '80px', paddingTop: '24px', borderTop: `1px solid ${colors.border}`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px' }}>
+        <div style={{ textAlign: 'center', color: '#000000' }}>
+          <div style={{ height: '1px', backgroundColor: '#000000', marginBottom: '8px', margin: '0 auto', width: '180px' }} />
+          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>ASSINATURA CONSULTOR</div>
+          <div style={{ fontSize: '10px' }}>{headerBase.consultant_name}</div>
         </div>
-        <div className="text-center text-black">
-          <div className="h-px bg-black mb-mx-xs mx-auto w-mx-48" />
-          <Typography variant="tiny" className="font-bold">ASSINATURA GESTOR DA LOJA</Typography>
-          <Typography variant="p" className="text-mx-micro">
+        <div style={{ textAlign: 'center', color: '#000000' }}>
+          <div style={{ height: '1px', backgroundColor: '#000000', marginBottom: '8px', margin: '0 auto', width: '180px' }} />
+          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>ASSINATURA GESTOR DA LOJA</div>
+          <div style={{ fontSize: '10px' }}>
             {visit.acknowledged_at ? `Assinado em ${format(new Date(visit.acknowledged_at), 'dd/MM/yyyy HH:mm')}` : '(Pendente de Assinatura)'}
-          </Typography>
+          </div>
         </div>
       </footer>
       
-      <div className="mt-mx-md text-center">
-        <Typography variant="tiny" className="text-mx-micro text-text-tertiary">
+      <div style={{ marginTop: '30px', textAlign: 'center' }}>
+        <div style={{ fontSize: '10px', color: colors.textMuted }}>
           Documento gerado eletronicamente via MX PERFORMANCE — A plataforma oficial de gestão preditiva.
-        </Typography>
+        </div>
       </div>
     </div>
   )

@@ -82,8 +82,12 @@ export function usePDIs(storeIdOverride?: string) {
   })
 
   const acknowledgeMut = useMutation({
-    mutationFn: async (id: string) => {
-      await supabase.from('pdis').update({ acknowledged: true }).eq('id', id)
+    mutationFn: async ({ id, type }: { id: string; type: 'seller' | 'manager' }) => {
+      const field = type === 'seller' ? 'seller_acknowledged_at' : 'manager_acknowledged_at'
+      await supabase.from('pdis').update({ 
+        [field]: new Date().toISOString(),
+        acknowledged: type === 'seller' ? true : undefined
+      }).eq('id', id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pdis'] })
@@ -131,7 +135,7 @@ export function usePDIs(storeIdOverride?: string) {
     loading,
     createPDI: (data: PDIFormData) => createPDIMut.mutateAsync(data),
     updateStatus: (id: string, status: string) => updateStatusMut.mutateAsync({ id, status }),
-    acknowledge: (id: string) => acknowledgeMut.mutateAsync(id),
+    acknowledge: (id: string, type: 'seller' | 'manager') => acknowledgeMut.mutateAsync({ id, type }),
     createReview: (pdiId: string, data: Record<string, unknown>) => createReviewMut.mutateAsync({ pdiId, data }),
     fetchReviews,
     refetch,
