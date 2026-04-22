@@ -313,6 +313,7 @@ export interface ConsultingClientDetail extends ConsultingClient {
   visits?: ConsultingVisit[]
   financials?: ConsultingFinancial[]
   modules?: ConsultingClientModule[]
+  inventory_snapshots?: ConsultingInventorySnapshot[]
 }
 
 export interface DREFinancial {

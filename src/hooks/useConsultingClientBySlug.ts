@@ -51,7 +51,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     const clientId = clientData.id
 
     // Fetch related data
-    const [unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, modulesRes, usersRes] = await Promise.all([
+    const [unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, modulesRes, usersRes, inventoryRes] = await Promise.all([
       supabase.from('consulting_client_units').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_client_contacts').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_assignments').select('*, user:users(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
@@ -59,6 +59,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       supabase.from('consulting_financials').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
       supabase.from('consulting_client_modules').select('*').eq('client_id', clientId).order('module_key', { ascending: true }),
       supabase.from('users').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
+      supabase.from('consulting_inventory_snapshots').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
     ])
 
     const detail: ConsultingClientDetail = {
@@ -70,6 +71,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       visits: (visitsRes.data || []) as any[],
       financials: parseConsultingFinancialArray(financialsRes.data || []),
       modules: parseConsultingClientModuleArray(modulesRes.data || []),
+      inventory_snapshots: (inventoryRes.data || []) as any[],
     }
 
     setClient(detail)

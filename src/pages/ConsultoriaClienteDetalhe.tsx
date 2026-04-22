@@ -68,13 +68,16 @@ function ConsultingROIView({ client }: { client: any }) {
     toast.success('Relatório de ROI gerado!')
   }
 
-  const chartData = financials.map(f => ({
-    mes: format(new Date(f.reference_date), 'MMM', { locale: ptBR }).toUpperCase(),
-    vendas: f.volume_vendas || 0,
-    conversao: f.volume_leads > 0 ? (f.volume_vendas / f.volume_leads) * 100 : 0,
-    margem: f.net_profit > 0 && f.revenue > 0 ? (f.net_profit / f.revenue) * 100 : 0,
-    estoque: f.fixed_expenses > 0 ? 30 : 0 // Placeholder
-  }))
+  const chartData = financials.map(f => {
+    const inv = (client.inventory_snapshots || []).find((s: any) => s.reference_month === f.reference_date.substring(0, 7))
+    return {
+      mes: format(new Date(f.reference_date), 'MMM', { locale: ptBR }).toUpperCase(),
+      vendas: f.volume_vendas || 0,
+      conversao: f.volume_leads > 0 ? (f.volume_vendas / f.volume_leads) * 100 : 0,
+      margem: f.revenue > 0 ? (f.net_profit / f.revenue) * 100 : 0,
+      estoque: inv?.percent_over_90_days || 0
+    }
+  })
 
   const before = {
     sales: (initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) || 0,
@@ -126,8 +129,8 @@ function ConsultingROIView({ client }: { client: any }) {
                     <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke="#0D3B2E" strokeWidth={4} dot={{r: 6, fill: '#0D3B2E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
                     <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
                     <Line yAxisId="right" type="monotone" dataKey="margem" name="Margem %" stroke="#FACC15" strokeWidth={3} strokeDasharray="5 5" dot={{r: 4, fill: '#FACC15'}} />
-                  </LineChart>
-                </ResponsiveContainer>
+                    <Line yAxisId="right" type="monotone" dataKey="estoque" name="Estoque +90d %" stroke="#EF4444" strokeWidth={2} dot={{r: 4, fill: '#EF4444'}} />
+                    </LineChart>                </ResponsiveContainer>
               </div>
             </Card>
           </div>
@@ -186,41 +189,62 @@ function ConsultingROIView({ client }: { client: any }) {
 }
 
 function ConsultingPDIsView({ storeId }: { storeId: string }) {
-  const { pdis, loading } = usePDIs(storeId)
+  const { profile } = useAuth()
+  const { pdis, loading, acknowledge } = usePDIs(storeId)
 
   if (loading) return <div className="p-mx-lg opacity-50">Carregando planos de carreira...</div>
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
       {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
-      {pdis.map((pdi) => (
-        <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-xl">
-          <div className="flex justify-between items-start mb-mx-md">
-            <div>
-              <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{(pdi as any).seller_name || 'Vendedor'}</Typography>
-              <Typography variant="tiny" tone="muted">Plano criado em {format(new Date(pdi.created_at), 'dd/MM/yyyy')}</Typography>
+      {pdis.map((pdi) => {
+        const canSellerSign = profile?.id === pdi.seller_id && !pdi.acknowledged
+        
+        return (
+          <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-xl">
+            <div className="flex justify-between items-start mb-mx-md">
+              <div>
+                <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{(pdi as any).seller_name || 'Vendedor'}</Typography>
+                <Typography variant="tiny" tone="muted">Plano criado em {format(new Date(pdi.created_at), 'dd/MM/yyyy')}</Typography>
+              </div>
+              <Badge variant={pdi.status === 'ativo' ? 'success' : 'outline'}>{pdi.status.toUpperCase()}</Badge>
             </div>
-            <Badge variant={pdi.status === 'ativo' ? 'success' : 'outline'}>{pdi.status.toUpperCase()}</Badge>
-          </div>
-          
-          <div className="space-y-mx-md">
-            <div className="p-mx-md bg-surface-alt/30 rounded-mx-xl">
-               <Typography variant="tiny" className="font-bold text-text-tertiary uppercase mb-1 block">Objetivo 6 Meses</Typography>
-               <Typography variant="p" className="text-sm font-bold italic">"{pdi.meta_6m}"</Typography>
+            
+            <div className="space-y-mx-md mb-mx-md">
+              <div className="p-mx-md bg-surface-alt/30 rounded-mx-xl">
+                 <Typography variant="tiny" className="font-bold text-text-tertiary uppercase mb-1 block">Objetivo 6 Meses</Typography>
+                 <Typography variant="p" className="text-sm font-bold italic">"{pdi.meta_6m}"</Typography>
+              </div>
+              <div className="grid grid-cols-2 gap-mx-md">
+                 <div>
+                    <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Meta 1 Ano</Typography>
+                    <Typography variant="p" className="text-xs">{pdi.meta_12m || '-'}</Typography>
+                 </div>
+                 <div>
+                    <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Meta 2 Anos</Typography>
+                    <Typography variant="p" className="text-xs">{pdi.meta_24m || '-'}</Typography>
+                 </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-mx-md">
-               <div>
-                  <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Meta 1 Ano</Typography>
-                  <Typography variant="p" className="text-xs">{pdi.meta_12m || '-'}</Typography>
-               </div>
-               <div>
-                  <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Meta 2 Anos</Typography>
-                  <Typography variant="p" className="text-xs">{pdi.meta_24m || '-'}</Typography>
-               </div>
+
+            <div className="pt-mx-md border-t border-border-subtle flex flex-col gap-mx-sm">
+               {pdi.acknowledged ? (
+                 <div className="flex items-center gap-mx-xs text-status-success">
+                   <ShieldCheck className="w-mx-4 h-mx-4" />
+                   <Typography variant="tiny" className="font-black uppercase tracking-widest">Plano Assinado pelo Vendedor</Typography>
+                 </div>
+               ) : canSellerSign ? (
+                 <Button variant="primary" className="w-full font-black h-mx-10" onClick={() => acknowledge(pdi.id)}>ASSINAR MEU PLANO (PDI)</Button>
+               ) : (
+                 <div className="flex items-center gap-mx-xs text-text-tertiary opacity-50 italic">
+                   <Clock className="w-mx-4 h-mx-4" />
+                   <Typography variant="tiny" className="uppercase font-bold tracking-tighter">Aguardando assinatura do vendedor</Typography>
+                 </div>
+               )}
             </div>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        )
+      })}
     </div>
   )
 }

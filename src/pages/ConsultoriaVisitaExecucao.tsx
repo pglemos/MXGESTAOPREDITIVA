@@ -236,7 +236,7 @@ export default function ConsultoriaVisitaExecucao() {
 
 --- CABEÇALHO BASE ---
 Consultor: ${headerBase.consultant_name}
-Data: ${new Date(headerBase.visit_date).toLocaleDateString('pt-BR')}
+Data: ${headerBase.visit_date ? new Date(headerBase.visit_date).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')}
 Loja: ${client?.name}
 Meta: ${headerBase.meta_mensal} | Projeção: ${headerBase.projecao}
 Leads: ${headerBase.leads_mes} | Estoque: ${headerBase.estoque_disponivel}
