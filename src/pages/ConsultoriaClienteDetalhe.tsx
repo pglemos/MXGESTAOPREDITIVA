@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { 
   ArrowLeft, BriefcaseBusiness, Building2, Mail, Phone, User2, 
   Calendar, CheckCircle2, Clock, ChevronRight,
-  Plus, FileText, CalendarDays
+  Plus, FileText, CalendarDays, TrendingUp
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/atoms/Input'
@@ -27,7 +27,7 @@ import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
 import { DatePicker } from '@/components/atoms/DatePicker'
 
-type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly'
+type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi'
 
 const tabLabels: Record<Tab, string> = {
   overview: 'Visão Geral',
@@ -35,8 +35,93 @@ const tabLabels: Record<Tab, string> = {
   strategic: 'Estratégico',
   action: 'Plano de Ação',
   financial: 'DRE/Financeiro',
-  daily: 'Acompanhamento Diário',
-  monthly: 'Fechamento Mensal',
+  daily: 'Acomp. Diário',
+  monthly: 'Fechamento',
+  roi: 'ROI/Choque',
+}
+
+function ConsultingROIView({ client }: { client: any }) {
+  const initialData = client.visits?.find((v: any) => v.visit_number === 1)?.quant_data as any
+  const currentData = client.financials && client.financials.length > 0 ? client.financials[0] : null
+  
+  const before = {
+    sales: (initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) || 0,
+    leads: initialData?.marketing?.leads || 0,
+    conversion: initialData?.marketing?.leads > 0 ? ((initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) / initialData?.marketing?.leads) * 100 : 0
+  }
+
+  const after = {
+    sales: currentData?.volume_vendas || 0,
+    leads: currentData?.volume_leads || 0,
+    conversion: currentData?.volume_leads && currentData.volume_leads > 0 ? (currentData.volume_vendas / currentData.volume_leads) * 100 : 0
+  }
+
+  const roi = before.sales > 0 ? ((after.sales - before.sales) / before.sales) * 100 : 0
+
+  return (
+    <div className="space-y-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
+      <Card className="p-mx-xl bg-brand-primary text-white border-none shadow-mx-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-mx-lg opacity-10"><TrendingUp size={200} strokeWidth={1} /></div>
+        <div className="relative z-10">
+          <Typography variant="h3" className="text-white/70 mb-2 uppercase tracking-widest">Relatório de Choque: ROI da Consultoria</Typography>
+          <div className="flex items-baseline gap-mx-md">
+            <Typography variant="h1" className="text-6xl font-black">{roi > 0 ? '+' : ''}{roi.toFixed(1)}%</Typography>
+            <Typography variant="h3" className="text-white/80">DE CRESCIMENTO EM VENDAS</Typography>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+          <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
+             <div className="w-mx-xs h-mx-xs bg-status-error rounded-full" /> 
+             MÉDIA ANTES (D0)
+          </Typography>
+          <div className="space-y-mx-md">
+            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+              <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
+              <Typography variant="h3">{before.sales.toFixed(1)}</Typography>
+            </div>
+            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+              <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
+              <Typography variant="h3">{before.leads}</Typography>
+            </div>
+            <div className="flex justify-between items-center">
+              <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
+              <Typography variant="h3">{before.conversion.toFixed(1)}%</Typography>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+          <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
+             <div className="w-mx-xs h-mx-xs bg-status-success rounded-full" /> 
+             RESULTADO ATUAL
+          </Typography>
+          <div className="space-y-mx-md">
+            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+              <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
+              <div className="flex items-center gap-mx-sm">
+                <Typography variant="h3" className="text-status-success">{after.sales}</Typography>
+                {after.sales > before.sales && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.sales-before.sales)).toFixed(0)}</Badge>}
+              </div>
+            </div>
+            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+              <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
+              <Typography variant="h3">{after.leads}</Typography>
+            </div>
+            <div className="flex justify-between items-center">
+              <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
+              <div className="flex items-center gap-mx-sm">
+                <Typography variant="h3" className={after.conversion > before.conversion ? 'text-status-success' : ''}>{after.conversion.toFixed(1)}%</Typography>
+                {after.conversion > before.conversion && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.conversion-before.conversion)).toFixed(1)}pp</Badge>}
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
 }
 
 export default function ConsultoriaClienteDetalhe() {
@@ -150,6 +235,7 @@ export default function ConsultoriaClienteDetalhe() {
     if (isModuleEnabled('daily_tracking')) tabs.push('daily')
     if (isModuleEnabled('monthly_close')) tabs.push('monthly')
     if (isModuleEnabled('dre')) tabs.push('financial')
+    tabs.push('roi')
     return tabs
   }, [isModuleEnabled])
 
@@ -409,6 +495,8 @@ export default function ConsultoriaClienteDetalhe() {
       case 'action': return <ConsultingActionPlanView clientId={clientId!} />
       case 'financial': return <DREView clientId={clientId!} />
       case 'daily': return <ConsultingDailyTrackingView clientId={clientId!} />
+      case 'monthly': return <div className="p-mx-lg text-center opacity-50 py-mx-20"><Typography variant="h3">Módulo de Fechamento Mensal em Breve</Typography></div>
+      case 'roi': return <ConsultingROIView client={client} />
 
       default: return null
     }

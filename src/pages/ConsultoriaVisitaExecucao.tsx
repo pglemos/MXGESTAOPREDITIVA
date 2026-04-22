@@ -157,6 +157,18 @@ export default function ConsultoriaVisitaExecucao() {
     } catch (err: any) { toast.error(err.message) } finally { setIsSaving(false) }
   }
 
+  const handleAcknowledge = async () => {
+    if (!visit?.id) return
+    try {
+      const { error } = await supabase.from('consulting_visits').update({ 
+        acknowledged_at: new Date().toISOString(),
+        acknowledged_by: profile?.id 
+      }).eq('id', visit.id)
+      if (error) throw error
+      toast.success('Visita assinada/confirmada pelo gestor!'); refetch()
+    } catch (err: any) { toast.error(err.message) }
+  }
+
   const generateReportText = () => {
     const safeSales = quantData?.sales || []
     const safeMarketing = quantData?.marketing || { investment: 0, leads: 0, origin: [] }
@@ -292,7 +304,21 @@ Gerado via MX PERFORMANCE`
              </div>
              <Typography variant="h3" className="text-lg mb-2">Reporte Oficial MX</Typography>
              <Typography variant="p" className="text-xs text-text-tertiary mb-6">O relatório compila os dados e o diagnóstico da visita.</Typography>
-             <Button className="w-full shadow-sm font-bold h-11" variant="primary" icon={<Share2 size={14} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
+             <div className="space-y-3">
+               <Button className="w-full shadow-sm font-bold h-11" variant="primary" icon={<Share2 size={14} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
+               
+               {visit?.status === 'concluída' && (
+                 <Button 
+                   className={cn("w-full shadow-sm font-bold h-11", (visit as any).acknowledged_at ? "bg-status-success/10 text-status-success border-status-success/20 hover:bg-status-success/20" : "")} 
+                   variant="outline" 
+                   icon={(visit as any).acknowledged_at ? <ShieldCheck size={14} /> : <Award size={14} />} 
+                   onClick={handleAcknowledge}
+                   disabled={!!(visit as any).acknowledged_at}
+                 >
+                   {(visit as any).acknowledged_at ? 'VISITA ASSINADA' : 'ASSINAR VISITA'}
+                 </Button>
+               )}
+             </div>
           </Card>
 
           <Card className="p-mx-md border border-border-default shadow-sm rounded-2xl bg-white">

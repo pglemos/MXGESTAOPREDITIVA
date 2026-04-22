@@ -91,6 +91,8 @@ export interface ConsultingVisit {
   projecao: string | null
   leads_mes: string | null
   estoque_disponivel: string | null
+  acknowledged_at?: string | null
+  acknowledged_by?: string | null
   attachments?: ConsultingVisitAttachment[]
   created_at: string
   updated_at: string
