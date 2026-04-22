@@ -1,5 +1,40 @@
 import { z } from 'zod'
 
+export const ConsultingVisitSchema = z.object({
+  id: z.string().uuid(),
+  client_id: z.string(),
+  visit_number: z.number(),
+  scheduled_at: z.string(),
+  duration_hours: z.number(),
+  modality: z.string(),
+  status: z.enum(['agendada', 'concluída', 'cancelada', 'em_andamento']),
+  consultant_id: z.string().nullable(),
+  auxiliary_consultant_id: z.string().nullable(),
+  objective: z.string().nullable(),
+  checklist_data: z.array(z.object({ task: z.string(), completed: z.boolean() })).optional().default([]),
+  feedback_client: z.string().nullable(),
+  executive_summary: z.string().nullable(),
+  google_event_id: z.string().nullable(),
+  meta_mensal: z.string().nullable(),
+  projecao: z.string().nullable(),
+  leads_mes: z.string().nullable(),
+  estoque_disponivel: z.string().nullable(),
+  consultant_name_manual: z.string().nullable().optional(),
+  effective_visit_date: z.string().nullable().optional(),
+  acknowledged_at: z.string().nullable().optional(),
+  acknowledged_by: z.string().uuid().nullable().optional(),
+  next_cycle_goal: z.string().nullable().optional(),
+  quant_data: z.any().optional(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+export type ConsultingVisit = z.infer<typeof ConsultingVisitSchema>
+
+export function parseConsultingVisitArray(data: unknown): ConsultingVisit[] {
+  return z.array(ConsultingVisitSchema).parse(data)
+}
+
 export const ConsultingClientSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -13,7 +48,7 @@ export const ConsultingClientSchema = z.object({
   current_visit_step: z.number().optional(),
   program_template_key: z.string().optional(),
   store_id: z.string().uuid().nullable().optional(),
-  primary_store_id: z.string().nullable(),
+  primary_store_id: z.string().uuid().nullable().optional(),
   created_by: z.string().nullable(),
   last_visit_at: z.string().nullable().optional(),
   created_at: z.string(),
@@ -115,6 +150,7 @@ export const ConsultingFinancialSchema = z.object({
   net_profit: z.number(),
   roi: z.number(),
   conversion_rate: z.number(),
+  volume_vendas: z.number().optional().default(0),
   volume_leads: z.number().optional().default(0),
   volume_agendamentos: z.number().optional().default(0),
   created_at: z.string(),
@@ -239,7 +275,6 @@ export const ConsultingParameterSetSchema = z.object({
   active: z.boolean(),
   source_reference: z.string().nullable(),
   created_by: z.string().nullable(),
-  last_visit_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 })

@@ -26,6 +26,8 @@ export const PDISchema = z.object({
   due_date: z.string().nullable(),
   status: z.string(),
   acknowledged: z.boolean(),
+  seller_acknowledged_at: z.string().nullable().optional(),
+  manager_acknowledged_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 })

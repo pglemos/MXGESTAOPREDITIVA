@@ -120,8 +120,8 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
           <div className="xl:col-span-2">
-            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md h-full">
-              <Typography variant="h3" className="mb-mx-md">EVOLUÇÃO HISTÓRICA (PMR)</Typography>
+            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md h-full rounded-mx-2xl">
+              <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest">Evolução Histórica (PMR)</Typography>
               <div className="h-mx-chart w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
@@ -135,13 +135,14 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
                     <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
                     <Line yAxisId="right" type="monotone" dataKey="margem" name="Margem %" stroke="#FACC15" strokeWidth={3} strokeDasharray="5 5" dot={{r: 4, fill: '#FACC15'}} />
                     <Line yAxisId="right" type="monotone" dataKey="estoque" name="Estoque +90d %" stroke="#EF4444" strokeWidth={2} dot={{r: 4, fill: '#EF4444'}} />
-                    </LineChart>                </ResponsiveContainer>
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </Card>
           </div>
 
           <div className="space-y-mx-lg">
-            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
               <Typography variant="h3" className="mb-mx-md flex items-center gap-mx-xs">
                  <div className="w-mx-xs h-mx-xs bg-status-error rounded-mx-full" /> MÉDIA ANTES (D0)
               </Typography>
@@ -161,7 +162,7 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
               </div>
             </Card>
 
-            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
               <Typography variant="h3" className="mb-mx-md flex items-center gap-mx-xs">
                  <div className="w-mx-xs h-mx-xs bg-status-success rounded-mx-full" /> RESULTADO ATUAL
               </Typography>
@@ -201,13 +202,13 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
-      {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
+      {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2 rounded-mx-2xl"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
       {pdis.map((pdi) => {
         const canSellerSign = profile?.id === pdi.seller_id && !(pdi as any).seller_acknowledged_at
         const canManagerSign = (role === 'admin' || role === 'gerente') && !(pdi as any).manager_acknowledged_at
         
         return (
-          <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-xl">
+          <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-2xl">
             <div className="flex justify-between items-start mb-mx-md">
               <div>
                 <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{(pdi as any).seller_name || 'Vendedor'}</Typography>
@@ -234,7 +235,7 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
             </div>
 
             <div className="pt-mx-md border-t border-border-subtle grid grid-cols-2 gap-mx-md">
-               <div className="space-y-2">
+               <div className="space-y-mx-xs">
                  {(pdi as any).seller_acknowledged_at ? (
                    <div className="flex items-center gap-mx-xs text-status-success">
                      <ShieldCheck className="w-mx-4 h-mx-4" />
@@ -247,7 +248,7 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
                  )}
                </div>
 
-               <div className="space-y-2">
+               <div className="space-y-mx-xs">
                  {(pdi as any).manager_acknowledged_at ? (
                    <div className="flex items-center gap-mx-xs text-status-success">
                      <ShieldCheck className="w-mx-4 h-mx-4" />
@@ -276,9 +277,18 @@ export default function ConsultoriaClienteDetalhe() {
     client,
     loading,
     error,
+    refetch,
+    createUnit,
+    createContact,
+    upsertAssignment,
+    toggleAssignment,
+    upsertFinancial,
+    deleteFinancial,
   } = useConsultingClientDetailBySlug(clientSlug)
   
   const clientId = client?.id
+  const resolvedStoreId = client?.primary_store_id || client?.store_id || ''
+  
   const {
     loading: modulesLoading,
     isEnabled: isModuleEnabled,
@@ -305,21 +315,30 @@ export default function ConsultoriaClienteDetalhe() {
       case 'overview': return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
              <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
-                <Typography variant="h3" className="mb-mx-md">DADOS DO CLIENTE</Typography>
+                <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest">Dados do Cliente</Typography>
                 <div className="space-y-mx-md">
                    <div>
-                      <Typography variant="tiny" tone="muted">PRODUTO</Typography>
-                      <Typography variant="p" className="font-bold">{client.product_name || '-'}</Typography>
+                      <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-tighter">Produto Comercial</Typography>
+                      <Typography variant="p" className="font-black text-brand-primary">{client.product_name || '-'}</Typography>
                    </div>
                    <div>
-                      <Typography variant="tiny" tone="muted">RAZÃO SOCIAL</Typography>
-                      <Typography variant="p" className="font-bold">{client.legal_name || '-'}</Typography>
+                      <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-tighter">Razão Social</Typography>
+                      <Typography variant="p" className="font-bold text-black">{client.legal_name || '-'}</Typography>
                    </div>
                 </div>
              </Card>
              <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
-                <Typography variant="h3" className="mb-mx-md">RESUMO FINANCEIRO</Typography>
-                <Typography variant="p">Carregando métricas...</Typography>
+                <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest">Resumo Operacional</Typography>
+                <div className="space-y-mx-md">
+                   <div className="flex justify-between">
+                      <Typography variant="p" className="font-bold">Total de Visitas</Typography>
+                      <Typography variant="h3" className="text-brand-primary">{client.visits?.filter(v => v.status === 'concluída').length || 0} / 7</Typography>
+                   </div>
+                   <div className="flex justify-between">
+                      <Typography variant="p" className="font-bold">Ações Pendentes</Typography>
+                      <Typography variant="h3" className="text-status-warning">Auditando...</Typography>
+                   </div>
+                </div>
              </Card>
           </div>
       )
@@ -333,8 +352,8 @@ export default function ConsultoriaClienteDetalhe() {
                     <div className="flex items-center gap-mx-md">
                        <div className="w-mx-12 h-mx-12 rounded-mx-full bg-surface-alt flex items-center justify-center font-black">V{step.visit_number}</div>
                        <div>
-                          <Typography variant="h3" className="text-sm">{step.objective}</Typography>
-                          <Typography variant="tiny" tone="muted">{step.target} • {step.duration}</Typography>
+                          <Typography variant="h3" className="text-sm font-black uppercase">{step.objective}</Typography>
+                          <Typography variant="tiny" tone="muted" className="font-bold">{step.target} • {step.duration}</Typography>
                        </div>
                     </div>
                     <Badge variant={v?.status === 'concluída' ? 'success' : 'outline'}>{v?.status?.toUpperCase() || 'PENDENTE'}</Badge>
@@ -350,7 +369,7 @@ export default function ConsultoriaClienteDetalhe() {
       case 'daily': return <ConsultingDailyTrackingView clientId={clientId!} />
       case 'monthly': return <div className="p-mx-lg text-center opacity-50 py-mx-20"><Typography variant="h3">Módulo de Fechamento Mensal em Breve</Typography></div>
       case 'roi': return <ConsultingROIView client={client} />
-      case 'pdis': return <ConsultingPDIsView storeId={client.store_id || ''} />
+      case 'pdis': return <ConsultingPDIsView storeId={resolvedStoreId} />
       default: return null
     }
   }
@@ -362,15 +381,15 @@ export default function ConsultoriaClienteDetalhe() {
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       <header className="flex justify-between items-center mb-mx-md">
          <div className="flex items-center gap-mx-md">
-            <Link to="/consultoria/clientes" className="p-mx-xs bg-white rounded-mx-lg border border-border-default hover:bg-surface-alt transition-colors">
+            <Link to="/consultoria/clientes" className="p-mx-xs bg-white rounded-mx-lg border border-border-default hover:bg-surface-alt transition-colors shadow-sm">
                <ArrowLeft className="w-mx-5 h-mx-5" />
             </Link>
             <div>
                <div className="flex items-center gap-mx-xs">
-                  <Typography variant="h1" className="text-2xl">{client.name}</Typography>
-                  <Badge variant={client.status === 'ativo' ? 'success' : 'outline'}>{client.status.toUpperCase()}</Badge>
+                  <Typography variant="h1" className="text-2xl text-black">{client.name}</Typography>
+                  <Badge variant={client.status === 'ativo' ? 'success' : 'outline'} className="font-black h-mx-5 uppercase text-mx-micro">{client.status}</Badge>
                </div>
-               <Typography variant="tiny" tone="muted" className="font-bold tracking-mx-widest uppercase">Módulo de Gestão Preditiva MX</Typography>
+               <Typography variant="tiny" tone="muted" className="font-black tracking-mx-widest uppercase">Módulo de Gestão Preditiva MX</Typography>
             </div>
          </div>
       </header>

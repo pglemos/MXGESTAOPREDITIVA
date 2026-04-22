@@ -8,11 +8,12 @@ import {
   parseConsultingAssignmentArray,
   parseConsultingFinancialArray,
   parseConsultingClientModuleArray,
+  parseConsultingVisitArray,
   type ConsultingClient,
 } from '@/lib/schemas/consulting-client.schema'
 
 export function useConsultingClientDetailBySlug(slug?: string) {
-  const { supabaseUser, role } = useAuth()
+  const { supabaseUser, role, profile } = useAuth()
   const [client, setClient] = useState<ConsultingClientDetail | null>(null)
   const [assignableUsers, setAssignableUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,7 +30,6 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     setLoading(true)
     setError(null)
 
-    // First, resolve the slug to ID
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug)
     
     let query = supabase.from('consulting_clients').select('*')
@@ -50,7 +50,6 @@ export function useConsultingClientDetailBySlug(slug?: string) {
 
     const clientId = clientData.id
 
-    // Fetch related data
     const [unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, modulesRes, usersRes, inventoryRes] = await Promise.all([
       supabase.from('consulting_client_units').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_client_contacts').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
@@ -64,11 +63,13 @@ export function useConsultingClientDetailBySlug(slug?: string) {
 
     const detail: ConsultingClientDetail = {
       ...(clientData as ConsultingClient),
+      id: clientData.id,
       store_id: clientData.store_id || null,
+      primary_store_id: clientData.primary_store_id || null,
       units: parseConsultingClientUnitArray(unitsRes.data || []),
       contacts: parseConsultingClientContactArray(contactsRes.data || []),
       assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
-      visits: (visitsRes.data || []) as any[],
+      visits: parseConsultingVisitArray(visitsRes.data || []),
       financials: parseConsultingFinancialArray(financialsRes.data || []),
       modules: parseConsultingClientModuleArray(modulesRes.data || []),
       inventory_snapshots: (inventoryRes.data || []) as any[],

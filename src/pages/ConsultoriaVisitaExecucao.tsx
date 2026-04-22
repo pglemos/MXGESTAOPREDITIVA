@@ -42,6 +42,8 @@ export default function ConsultoriaVisitaExecucao() {
   const { client, loading: clientLoading, refetch } = useConsultingClientDetailBySlug(clientSlug)
   
   const clientId = client?.id
+  const resolvedStoreId = client?.primary_store_id || client?.store_id || ''
+  
   const { steps, loading: methodologyLoading } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const { templates, responsesByTemplate, saveResponse } = usePmrDiagnostics(clientId)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -171,7 +173,6 @@ export default function ConsultoriaVisitaExecucao() {
       
       const { error } = await supabase.from('consulting_visits').upsert(payload, { onConflict: 'client_id,visit_number' })
       
-      // Fallback if schema is outdated (common in rapid migration cycles)
       if (error && (error.code === 'PGRST204' || error.message.includes('consultant_name_manual'))) {
         console.warn('Schema mismatch detected, retrying without extended fields...')
         const legacyPayload = { ...payload }
@@ -211,7 +212,6 @@ export default function ConsultoriaVisitaExecucao() {
       if (error) throw error
       toast.success('Visita assinada/confirmada pelo gestor!')
       
-      // Trigger automatic email via Edge Function
       try {
         supabase.functions.invoke('send-visit-report', {
           body: { visitId: visit.id }
@@ -288,7 +288,6 @@ Gerado via MX PERFORMANCE`
 
   return (
     <div className="w-full pb-mx-xl relative z-0">
-      {/* Elemento oculto para renderização do PDF */}
       <div className="fixed -left-[2000px] top-0 overflow-hidden pointer-events-none">
          <div id="report-template-render">
             <VisitReportTemplate 
@@ -300,10 +299,9 @@ Gerado via MX PERFORMANCE`
          </div>
       </div>
       
-      {/* Header Fixo da Visita - Limpo e sem conflito de Z-index */}
-      <div className="bg-transparent px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden">
+      <div className="sticky top-0 z-40 bg-surface-alt/80 backdrop-blur-md px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden border-b border-border-subtle shadow-mx-sm">
         <div className="flex items-center gap-mx-md">
-          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-mx-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
+          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-mx-lg hover:bg-surface-alt/50 transition-colors text-text-secondary bg-white shadow-mx-sm">
             <ArrowLeft className="w-mx-5 h-mx-5" />
           </Link>
           <div>
@@ -338,7 +336,6 @@ Gerado via MX PERFORMANCE`
 
       <div className="w-full px-mx-md lg:px-mx-xl grid grid-cols-1 lg:grid-cols-3 gap-mx-lg print:block print:p-0">
         
-        {/* Coluna Principal - 2 colunas lg */}
         <div className="lg:col-span-2 space-y-mx-lg">
           
           <VisitHeaderBase 
@@ -353,14 +350,13 @@ Gerado via MX PERFORMANCE`
                 <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Execução Metodológica</Typography>
              </div>
              
-             {/* Renderizador de Visita de Alta Fidelidade */}
              {visitNum === 1 && <VisitOneHighFidelity clientId={clientId!} clientSlug={clientSlug!} data={quantData} onChange={setQuantData} />}
              {visitNum === 2 && <VisitTwoExecution clientId={clientId!} clientSlug={clientSlug!} />}
              {visitNum === 3 && <VisitThreeExecution />}
-             {visitNum === 4 && <VisitFourExecution storeId={client.store_id || ''} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
+             {visitNum === 4 && <VisitFourExecution storeId={resolvedStoreId} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 5 && <VisitFiveExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 6 && <VisitSixExecution clientId={clientId!} clientSlug={clientSlug!} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
-             {visitNum === 7 && <VisitSevenExecution storeId={client.store_id || ''} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
+             {visitNum === 7 && <VisitSevenExecution storeId={resolvedStoreId} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 8 && <VisitEightExecution clientId={clientId!} clientSlug={clientSlug!} />}
              {visitNum === 9 && <VisitNineExecution financials={client.financials || []} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
 
@@ -415,7 +411,6 @@ Gerado via MX PERFORMANCE`
           </div>
         </div>
 
-        {/* Coluna Lateral - 1 coluna lg */}
         <div className="lg:col-span-1 space-y-mx-lg print:hidden">
           <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden relative">
             <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><Info size={80} /></div>
