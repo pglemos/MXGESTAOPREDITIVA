@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { 
   CheckCircle2, Circle, Zap, Target, ExternalLink, BarChart3, 
   Clock, TrendingUp, Award, Rocket, ShieldCheck, AlertCircle,
-  ShieldAlert, Calculator, MousePointer2
+  ShieldAlert, Calculator, MousePointer2, Presentation, BarChart
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card } from '@/components/molecules/Card'
@@ -15,14 +15,15 @@ import { Select } from '@/components/atoms/Select'
 import { useConsultingStrategicPlan } from '@/hooks/useConsultingStrategicPlan'
 import { useFeedbacks, usePDIs } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
+import { cn } from '@/lib/utils'
 
-export function VisitTwoExecution({ clientId }: { clientId: string }) {
+export function VisitTwoExecution({ clientId, clientSlug }: { clientId: string, clientSlug: string }) {
   const { latestPlan } = useConsultingStrategicPlan(clientId)
   return (
-    <div className="space-y-6">
-      <Card className="p-6 border border-status-error/30 bg-status-error/5 shadow-sm rounded-2xl">
-        <div className="flex items-center gap-3 mb-2">
-          <ShieldAlert className="w-6 h-6 text-status-error" />
+    <div className="space-y-mx-lg">
+      <Card className="p-mx-lg border border-status-error/30 bg-status-error/5 shadow-sm rounded-2xl">
+        <div className="flex items-center gap-mx-sm mb-2">
+          <ShieldAlert className="w-mx-6 h-mx-6 text-status-error" />
           <Typography variant="h3" className="text-status-error">Trava Metodológica</Typography>
         </div>
         <Typography variant="p" className="text-status-error text-sm">
@@ -30,35 +31,35 @@ export function VisitTwoExecution({ clientId }: { clientId: string }) {
         </Typography>
       </Card>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6 bg-white border border-border-default shadow-sm rounded-2xl flex flex-col justify-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><Zap className="w-5 h-5" /></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+        <Card className="p-mx-lg bg-white border border-border-default shadow-sm rounded-2xl flex flex-col justify-center gap-mx-md">
+          <div className="flex items-center gap-mx-sm">
+            <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><Zap className="w-mx-5 h-mx-5" /></div>
             <Typography variant="h3">Ferramentas de Gestão</Typography>
           </div>
-          <Button className="w-full justify-between h-12 shadow-sm font-bold bg-white" variant="outline" onClick={() => window.open(`/consultoria/clientes/${clientId}?tab=strategic`, '_blank')}>
-            <div className="flex items-center gap-3"><Target className="w-4 h-4 text-text-tertiary" />Planejamento Estratégico</div>
-            <ExternalLink className="w-4 h-4 text-text-tertiary" />
+          <Button className="w-full justify-between h-mx-12 shadow-sm font-bold bg-white" variant="outline" onClick={() => window.open(`/consultoria/clientes/${clientSlug}?tab=strategic`, '_blank')}>
+            <div className="flex items-center gap-mx-sm"><Target className="w-mx-4 h-mx-4 text-text-tertiary" />Planejamento Estratégico</div>
+            <ExternalLink className="w-mx-4 h-mx-4 text-text-tertiary" />
           </Button>
-          <Button className="w-full justify-between h-12 shadow-sm font-bold border-brand-primary text-brand-primary bg-white" variant="outline" onClick={() => window.open(`/consultoria/clientes/${clientId}?tab=daily`, '_blank')}>
-            <div className="flex items-center gap-3"><BarChart3 className="w-4 h-4" />Validar SGAP Diário</div>
-            <ExternalLink className="w-4 h-4 opacity-50" />
+          <Button className="w-full justify-between h-mx-12 shadow-sm font-bold border-brand-primary text-brand-primary bg-white" variant="outline" onClick={() => window.open(`/consultoria/clientes/${clientSlug}?tab=daily`, '_blank')}>
+            <div className="flex items-center gap-mx-sm"><BarChart3 className="w-mx-4 h-mx-4" />Validar SGAP Diário</div>
+            <ExternalLink className="w-mx-4 h-mx-4 opacity-50" />
           </Button>
         </Card>
 
-        <Card className="p-6 bg-surface-alt/30 border border-border-default shadow-sm rounded-2xl flex flex-col items-center justify-center text-center">
+        <Card className="p-mx-lg bg-surface-alt/30 border border-border-default shadow-sm rounded-2xl flex flex-col items-center justify-center text-center">
           {latestPlan ? (
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-border-default">
-                <CheckCircle2 className="w-6 h-6 text-status-success" />
+            <div className="space-y-mx-xs">
+              <div className="w-mx-12 h-mx-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-border-default">
+                <CheckCircle2 className="w-mx-6 h-mx-6 text-status-success" />
               </div>
               <Typography variant="h3" className="text-text-primary">P.E. Validado</Typography>
               <Typography variant="p" className="text-xs text-text-tertiary">{latestPlan.title}</Typography>
             </div>
           ) : (
-            <div className="space-y-2 opacity-50">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto border border-border-default">
-                <Rocket className="w-6 h-6 text-text-tertiary" />
+            <div className="space-y-mx-xs opacity-50">
+              <div className="w-mx-12 h-mx-12 bg-white rounded-full flex items-center justify-center mx-auto border border-border-default">
+                <Rocket className="w-mx-6 h-mx-6 text-text-tertiary" />
               </div>
               <Typography variant="p" className="text-sm font-bold">Aguardando registro do P.E. no sistema</Typography>
             </div>
@@ -71,22 +72,22 @@ export function VisitTwoExecution({ clientId }: { clientId: string }) {
 
 export function VisitThreeExecution() {
   return (
-    <Card className="p-6 shadow-sm border border-border-default bg-white rounded-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><Clock size={20} /></div>
+    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-2xl">
+      <div className="flex items-center gap-mx-sm mb-6">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><Clock size={20} /></div>
         <Typography variant="h3" className="text-lg">Ritual de Rotinas (Disciplina)</Typography>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-5 bg-surface-alt/30 rounded-xl border border-border-default relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+        <div className="p-mx-md bg-surface-alt/30 rounded-xl border border-border-default relative">
           <Badge className="absolute -top-3 left-4 font-bold text-[9px] bg-brand-secondary text-white border-none px-3 py-0.5 shadow-sm">GERENTE</Badge>
           <ul className="space-y-3 text-sm font-medium text-text-secondary mt-2">
-            {[ '09:30 - Cobrar preenchimento SGAP', '10:30 - Reunião Matinal / Ranking', '14:00 - Auditoria de CRM / Funil', '17:00 - Feedback Imediato' ].map(li => (<li key={li} className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-secondary shrink-0" /> {li}</li>))}
+            {[ '09:30 - Cobrar preenchimento SGAP', '10:30 - Reunião Matinal / Ranking', '14:00 - Auditoria de CRM / Funil', '17:00 - Feedback Imediato' ].map(li => (<li key={li} className="flex items-center gap-mx-xs"><div className="w-1.5 h-1.5 rounded-full bg-brand-secondary shrink-0" /> {li}</li>))}
           </ul>
         </div>
-        <div className="p-5 bg-surface-alt/30 rounded-xl border border-border-default relative">
+        <div className="p-mx-md bg-surface-alt/30 rounded-xl border border-border-default relative">
           <Badge className="absolute -top-3 left-4 font-bold text-[9px] bg-brand-primary text-white border-none px-3 py-0.5 shadow-sm">VENDEDOR</Badge>
           <ul className="space-y-3 text-sm font-medium text-text-secondary mt-2">
-            {[ 'Registro Leads Porta/Online', 'Agendamentos Carteira', 'Atendimento e Prospecção', 'Lançamento Vendas Ontem' ].map(li => (<li key={li} className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0" /> {li}</li>))}
+            {[ 'Registro Leads Porta/Online', 'Agendamentos Carteira', 'Atendimento e Prospecção', 'Lançamento Vendas Ontem' ].map(li => (<li key={li} className="flex items-center gap-mx-xs"><div className="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0" /> {li}</li>))}
           </ul>
         </div>
       </div>
@@ -96,15 +97,29 @@ export function VisitThreeExecution() {
 
 export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: string, onGenerateSummary: (t: string) => void }) { 
   const { sellers } = useTeam(storeId)
-  const { createFeedback } = useFeedbacks(storeId)
+  const { createFeedback } = useFeedbacks({ storeId })
   const [s, setS] = useState(false); const [v, setV] = useState(''); const [p, setP] = useState(''); const [a, setA] = useState(''); const [m, setM] = useState(0)
 
   const save = async () => {
     if (!v) return toast.error('Vendedor obrigatório')
     setS(true)
     try {
-      await createFeedback({ seller_id: v, positives: p, attention_points: '...', action: a, meta_compromisso: m, store_id: storeId, week_reference: new Date().toISOString() })
-      const sn = sellers.find(s => s.user_id === v)?.users?.name || 'Vnd'
+      await createFeedback({ 
+        seller_id: v, 
+        positives: p, 
+        attention_points: '...', 
+        action: a, 
+        meta_compromisso: m, 
+        week_reference: new Date().toISOString(),
+        leads_week: 0,
+        agd_week: 0,
+        visit_week: 0,
+        vnd_week: 0,
+        tx_lead_agd: 0,
+        tx_agd_visita: 0,
+        tx_visita_vnd: 0
+      })
+      const sn = sellers.find(s => s.id === v)?.name || 'Vnd'
       onGenerateSummary(`--- FEEDBACK: ${sn} ---\nPositivos: ${p}\nAção: ${a}\nMeta: ${m}`)
       toast.success('Feedback salvo no sistema')
       setP(''); setA('')
@@ -112,20 +127,20 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
   }
 
   return (
-    <Card className="p-6 shadow-sm border border-border-default bg-white rounded-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><TrendingUp size={20} /></div>
+    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-2xl">
+      <div className="flex items-center gap-mx-sm mb-6">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><TrendingUp size={20} /></div>
         <Typography variant="h3" className="text-lg">Feedback Estruturado</Typography>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-mx-md">
         <div>
           <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Vendedor</label>
-          <Select value={v} onChange={e => setV(e.target.value)} className="h-10 bg-white border-border-default shadow-sm text-sm">
+          <select value={v} onChange={e => setV(e.target.value)} className="w-full h-mx-10 px-3 rounded-lg border border-border-default bg-white text-sm">
             <option value="">Selecione o vendedor...</option>
-            {sellers.map(s => <option key={s.user_id} value={s.user_id}>{s.users?.name}</option>)}
-          </Select>
+            {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
           <div>
             <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Pontos Positivos</label>
             <Textarea value={p} onChange={e => setP(e.target.value)} className="bg-white min-h-[100px] border-border-default rounded-xl font-medium text-sm shadow-sm resize-none" placeholder="O que está funcionando bem?" />
@@ -135,12 +150,12 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
             <Textarea value={a} onChange={e => setA(e.target.value)} className="bg-white min-h-[100px] border-border-default rounded-xl font-medium text-sm shadow-sm resize-none" placeholder="O que o vendedor prometeu mudar?" />
           </div>
         </div>
-        <div className="flex gap-4 items-end pt-2">
+        <div className="flex gap-mx-md items-end pt-2">
           <div className="w-1/3 md:w-1/4">
             <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Meta Acordada</label>
-            <Input type="number" value={m} onChange={e => setM(parseInt(e.target.value))} className="h-10 font-bold text-brand-primary text-center border-border-default rounded-lg shadow-sm" />
+            <Input type="number" value={m} onChange={e => setM(parseInt(e.target.value))} className="h-mx-10 font-bold text-brand-primary text-center border-border-default rounded-lg shadow-sm" />
           </div>
-          <Button className="flex-1 h-10 shadow-sm text-sm" variant="primary" onClick={save} loading={s}>Salvar Feedback</Button>
+          <Button className="flex-1 h-mx-10 shadow-sm text-sm" variant="primary" onClick={save} loading={s}>Salvar Feedback</Button>
         </div>
       </div>
     </Card>
@@ -153,131 +168,111 @@ export function VisitSevenExecution({ storeId, onGenerateSummary }: { storeId: s
   const [s, setS] = useState(false); const [v, setV] = useState(''); const [o, setO] = useState('')
 
   const save = async () => {
-    if (!v) return toast.error('Vendedor obrigatório')
+    if (!v || !o) return toast.error('Preencha os campos')
     setS(true)
     try {
-      await createPDI({ seller_id: v, objective: o, store_id: storeId, status: 'aberto' })
-      const sn = sellers.find(s => s.user_id === v)?.users?.name || 'Vnd'
-      onGenerateSummary(`--- PDI IMPLEMENTADO ---\nVendedor: ${sn}\nObjetivo: ${o}`)
-      toast.success('PDI Salvo no sistema')
+      await createPDI({ 
+        seller_id: v, 
+        meta_6m: o, 
+        meta_12m: '...', 
+        meta_24m: '...',
+        action_1: '...',
+        comp_prospeccao: 3, comp_abordagem: 3, comp_demonstracao: 3, comp_fechamento: 3,
+        comp_crm: 3, comp_digital: 3, comp_disciplina: 3, comp_organizacao: 3,
+        comp_negociacao: 3, comp_produto: 3
+      })
+      const sn = sellers.find(s => s.id === v)?.name || 'Vnd'
+      onGenerateSummary(`--- PDI: ${sn} ---\nObjetivo: ${o}`)
+      toast.success('PDI Criado com sucesso')
       setO('')
     } finally { setS(false) }
   }
 
   return (
-    <Card className="p-6 shadow-sm border border-border-default bg-white rounded-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-brand-secondary/10 rounded-lg text-brand-secondary"><Award size={20} /></div>
-        <Typography variant="h3" className="text-lg text-brand-secondary">Sessão PDI Digital</Typography>
+    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-2xl">
+      <div className="flex items-center gap-mx-sm mb-6">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><Award size={20} /></div>
+        <Typography variant="h3" className="text-lg">SGAP: Plano de Carreira (PDI)</Typography>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-mx-md">
         <div>
-          <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Participante da Sessão</label>
-          <Select value={v} onChange={e => setV(e.target.value)} className="h-10 bg-white border-border-default shadow-sm text-sm">
+          <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Vendedor</label>
+          <select value={v} onChange={e => setV(e.target.value)} className="w-full h-mx-10 px-3 rounded-lg border border-border-default bg-white text-sm">
             <option value="">Selecione o vendedor...</option>
-            {sellers.map(s => <option key={s.user_id} value={s.user_id}>{s.users?.name}</option>)}
-          </Select>
+            {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
         </div>
         <div>
-          <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Objetivo de Vida / Carreira (Dream List)</label>
-          <Textarea value={o} onChange={e => setO(e.target.value)} className="min-h-[120px] bg-white text-sm font-medium border-border-default rounded-xl shadow-sm resize-none" placeholder="Onde o vendedor quer chegar nos próximos 6 meses?" />
+          <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Objetivo de Carreira</label>
+          <Textarea value={o} onChange={e => setO(e.target.value)} className="bg-white min-h-[100px] border-border-default rounded-xl font-medium text-sm shadow-sm resize-none" placeholder="Onde este vendedor quer estar em 6 meses?" />
         </div>
-        <Button className="w-full sm:w-auto h-10 shadow-sm" variant="primary" onClick={save} loading={s}>Salvar e Assinar PDI</Button>
+        <Button className="w-full sm:w-auto h-mx-10 shadow-sm" variant="primary" onClick={save} loading={s}>Salvar e Assinar PDI</Button>
       </div>
     </Card>
-  ) 
+  )
 }
 
-export function VisitNineExecution({ financials, onGenerateSummary }: { financials: any[], onGenerateSummary: (t: string) => void }) { 
-  const latest = financials[0] || {}; const roi = latest.roi || 0; 
+export function VisitChecklist({ items, onToggle }: { items: Array<{ task: string, completed: boolean }>, onToggle: (i: number) => void }) {
+  const toggle = (i: number) => onToggle(i)
   return (
-    <Card className="p-8 bg-surface-alt/30 border border-border-default shadow-sm rounded-2xl text-center flex flex-col items-center justify-center">
-      <div className="p-3 bg-brand-primary/10 rounded-xl mb-4"><TrendingUp className="w-6 h-6 text-brand-primary" /></div>
-      <Typography variant="h3" className="mb-6 text-text-primary">Fechamento Trimestral (ROI)</Typography>
-      <Typography variant="h1" className="text-6xl font-black text-brand-primary mb-2 leading-none">{roi}x</Typography>
-      <Badge variant="outline" className="mb-8 border-border-subtle bg-white text-[10px]">ROI VERIFICADO NO SISTEMA</Badge>
-      
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm mx-auto">
-        <Button className="flex-1 shadow-sm h-11 text-sm font-bold" variant="primary" onClick={() => onGenerateSummary(`--- FECHAMENTO TRIMESTRAL ---\nROI COMPROVADO: ${roi}x\nResultado: Apresentação para escala.`)}>ANEXAR REPORTE</Button>
-        <Button className="flex-1 shadow-sm h-11 text-sm font-bold bg-white" variant="outline"><Rocket size={14} className="mr-2" /> Pitch Renovação</Button>
-      </div>
-    </Card>
-  ) 
-}
-
-export function VisitFiveExecution({ onGenerateSummary }: { onGenerateSummary: (t: string) => void }) { 
-  const [l, setL] = useState(''); const [a, setA] = useState(''); const conv = l && a ? ((parseInt(a)/parseInt(l))*100).toFixed(1) : '0'; 
-  const [checks, setCheck] = useState([ { label: 'Instagram Frequência Diária', done: false }, { label: 'Qualidade de Fotos no Pátio', done: false }, { label: 'Investimento em Branding Mensal', done: false }, { label: 'Distribuição Inteligente de Leads', done: false } ])
-  const toggle = (i:number) => { const n = [...checks]; n[i].done = !n[i].done; setCheck(n) }
-  return (
-    <Card className="p-6 shadow-sm border border-border-default bg-white rounded-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><Calculator size={20} /></div>
-        <Typography variant="h3" className="text-lg">Motor de Conversão (Auditoria MKT)</Typography>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-               <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Leads (Mês)</label>
-               <Input type="number" value={l} onChange={e => setL(e.target.value)} className="h-10 bg-white shadow-sm" />
-            </div>
-            <div className="flex-1">
-               <label className="text-[10px] font-bold text-text-tertiary uppercase mb-1 block ml-1">Agendamentos</label>
-               <Input type="number" value={a} onChange={e => setA(e.target.value)} className="h-10 bg-white shadow-sm" />
-            </div>
-          </div>
-          <div className="bg-surface-alt/30 rounded-xl py-4 flex flex-col items-center justify-center border border-border-subtle">
-            <Typography variant="tiny" tone="muted" className="text-[9px] mb-1">TAXA DE CONVERSÃO REAL</Typography>
-            <Typography variant="h2" className="text-brand-primary">{conv}%</Typography>
-          </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-mx-sm">
+      {items.map((it, i) => (
+        <div key={i} onClick={() => toggle(i)} className={cn("p-mx-xs rounded-lg border cursor-pointer transition-colors flex items-center gap-mx-xs text-xs font-bold", it.completed ? "bg-brand-primary/5 text-brand-primary border-brand-primary/20" : "bg-white border-border-default text-text-secondary hover:bg-surface-alt/30")}>
+          {it.completed ? <CheckCircle2 className="w-mx-4 h-mx-4 shrink-0" /> : <Circle className="w-mx-4 h-mx-4 shrink-0 opacity-20" />}
+          <span className="truncate">{it.task}</span>
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-text-tertiary uppercase mb-2 block ml-1">Checklist Ativos MKT</label>
-          {checks.map((it, i) => (
-            <div key={i} onClick={() => toggle(i)} className={cn("p-2 rounded-lg border cursor-pointer transition-colors flex items-center gap-2 text-xs font-bold", it.done ? "bg-brand-primary/5 text-brand-primary border-brand-primary/20" : "bg-white border-border-default text-text-secondary hover:bg-surface-alt/30")}>
-               {it.done ? <CheckCircle2 size={14} className="shrink-0" /> : <Circle size={14} className="opacity-30 shrink-0" />} {it.label}
-            </div>
-          ))}
-        </div>
-      </div>
-      <Button className="w-full mt-6 h-10 text-sm shadow-sm" variant="outline" onClick={() => onGenerateSummary(`--- AUDITORIA MKT ---\nConversão: ${conv}%\nStatus: ${checks.filter(c => c.done).length}/${checks.length} Ativos validados.`)}>Anexar ao Reporte</Button>
-    </Card>
-  ) 
+      ))}
+    </div>
+  )
 }
 
-export function VisitSixExecution({ clientId, onGenerateSummary }: { clientId: string, onGenerateSummary: (t: string) => void }) { 
+export function VisitFiveExecution({ onGenerateSummary }: { onGenerateSummary: (t: string) => void }) {
   return (
-    <Card className="p-6 shadow-sm border border-border-default bg-white rounded-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-brand-secondary/10 rounded-lg text-brand-secondary"><ShieldCheck size={20} /></div>
-        <Typography variant="h3" className="text-lg">Processos Críticos</Typography>
+    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-2xl">
+      <div className="flex items-center gap-mx-sm mb-4">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><Presentation size={20} /></div>
+        <Typography variant="h3" className="text-lg">Treinamento de Técnicas de Vendas</Typography>
       </div>
-      <div className="p-4 bg-status-warning/10 rounded-xl border border-status-warning/20 mb-6">
-        <Typography variant="tiny" tone="warning" className="font-bold flex items-center gap-2 mb-1"><AlertCircle size={12} /> FOCO DE INTERVENÇÃO</Typography>
-        <Typography variant="p" className="text-status-warning text-xs">Mapeie gargalos da Oficina (SLA), Financiamento (Margem) e escoamento urgente de veículos +90 dias.</Typography>
-      </div>
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button className="flex-1 h-10 shadow-sm bg-white text-sm" variant="outline" onClick={() => window.open(`/consultoria/clientes/${clientId}?tab=action_plan`, '_blank')}>Plano de Ação</Button>
-        <Button className="flex-1 h-10 shadow-sm text-sm" variant="primary" onClick={() => onGenerateSummary(`--- AUDITORIA DE PROCESSOS ---\nIntervenção validada em: Oficina, F&I e Estoque Antigo.\nO Plano de Ação foi atualizado.`)}>Registrar Intervenção</Button>
-      </div>
+      <Typography variant="p" className="mb-4">Realize o treinamento prático com a equipe focado em contorno de objeções e fechamento.</Typography>
+      <Button variant="outline" onClick={() => onGenerateSummary("Treinamento de vendas realizado com foco em fechamento.")}>Registrar Realização</Button>
     </Card>
-  ) 
+  )
 }
 
-export function VisitEightExecution({ clientId }: { clientId: string }) { 
+export function VisitSixExecution({ clientId, clientSlug, onGenerateSummary }: { clientId: string, clientSlug: string, onGenerateSummary: (t: string) => void }) {
   return (
-    <Card className="p-6 shadow-sm border border-border-default bg-white rounded-2xl">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><BarChart3 size={20} /></div>
-        <Typography variant="h3" className="text-lg">Ranking de Performance</Typography>
+    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-2xl">
+      <div className="flex items-center gap-mx-sm mb-4">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><BarChart size={20} /></div>
+        <Typography variant="h3" className="text-lg">Revisão de Metas e Funil</Typography>
       </div>
-      <Typography variant="p" className="mb-6 text-sm text-text-secondary">
-        Confronte o relatório de uso da plataforma educacional com os dados de fechamento no salão de vendas.
-      </Typography>
-      <Button className="w-full h-10 shadow-sm text-sm bg-white" variant="outline" onClick={() => window.open(`/consultoria/clientes/${clientId}?tab=daily`, '_blank')}>
-        Acessar Ranking e Auditoria
-      </Button>
+      <Typography variant="p" className="mb-4">Analise o funil de vendas atual e ajuste as metas se necessário.</Typography>
+      <Button variant="outline" onClick={() => onGenerateSummary("Revisão de funil e metas concluída.")}>Registrar Revisão</Button>
     </Card>
-  ) 
+  )
+}
+
+export function VisitEightExecution({ clientId, clientSlug }: { clientId: string, clientSlug: string }) {
+  return (
+    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-2xl">
+      <div className="flex items-center gap-mx-sm mb-4">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><ShieldCheck size={20} /></div>
+        <Typography variant="h3" className="text-lg">Auditoria de Processos</Typography>
+      </div>
+      <Typography variant="p">Auditoria completa dos processos de CRM, Preparação e Pós-Venda.</Typography>
+    </Card>
+  )
+}
+
+export function VisitNineExecution({ financials, onGenerateSummary }: { financials: any[], onGenerateSummary: (t: string) => void }) {
+  return (
+    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-2xl">
+      <div className="flex items-center gap-mx-sm mb-4">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><Calculator size={20} /></div>
+        <Typography variant="h3" className="text-lg">Análise de DRE e Lucratividade</Typography>
+      </div>
+      <Typography variant="p" className="mb-4">Revisão final dos indicadores financeiros e lucratividade do período.</Typography>
+      <Button variant="outline" onClick={() => onGenerateSummary("Análise de DRE e lucratividade concluída.")}>Registrar Análise</Button>
+    </Card>
+  )
 }

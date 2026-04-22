@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const ConsultingClientSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  slug: z.string().optional(),
   legal_name: z.string().nullable(),
   cnpj: z.string().nullable(),
   product_name: z.string().nullable(),
@@ -165,7 +166,7 @@ export function parseConsultingClientModuleArray(data: unknown): ConsultingClien
 export const PmrFormFieldSchema = z.object({
   key: z.string(),
   label: z.string(),
-  type: z.enum(['text', 'textarea', 'number', 'scale', 'boolean', 'select']),
+  type: z.enum(['text', 'textarea', 'number', 'scale', 'boolean', 'select', 'file']),
   required: z.boolean().optional(),
   options: z.array(z.string()).optional(),
 })

@@ -43,9 +43,16 @@ export default function ConsultoriaClienteDetalhe() {
   const { clientSlug } = useParams<{ clientSlug: string }>()
   const {
     client,
+    assignableUsers,
     loading,
     error,
     refetch,
+    createUnit,
+    createContact,
+    upsertAssignment,
+    toggleAssignment,
+    upsertFinancial,
+    deleteFinancial,
   } = useConsultingClientDetailBySlug(clientSlug)
   
   const clientId = client?.id
@@ -59,6 +66,12 @@ export default function ConsultoriaClienteDetalhe() {
   const { steps: methodologySteps, program } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [searchParams, setSearchParams] = useSearchParams()
+
+  useEffect(() => {
+    if (client && client.slug && clientSlug && client.slug !== clientSlug) {
+      window.history.replaceState({}, '', `/consultoria/clientes/${client.slug}${window.location.search}`)
+    }
+  }, [client, clientSlug])
 
   useEffect(() => {
     const tab = searchParams.get('tab')

@@ -185,13 +185,14 @@ export function useConsultingClientDetail(clientId?: string) {
     const detail = clientRes.data
       ? {
           ...(clientRes.data as ConsultingClient),
+          store_id: clientRes.data.store_id || null,
           units: parseConsultingClientUnitArray(unitsRes.data || []),
           contacts: parseConsultingClientContactArray(contactsRes.data || []),
           assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
-          visits: (visitsRes.data || []) as ConsultingVisit[],
+          visits: (visitsRes.data || []) as any[],
           financials: parseConsultingFinancialArray(financialsRes.data || []),
           modules: parseConsultingClientModuleArray(modulesRes.data || []),
-        }
+        } as ConsultingClientDetail
       : null
 
     setClient(detail)

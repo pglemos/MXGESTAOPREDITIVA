@@ -19,13 +19,11 @@ import { useStoreMetaRules } from '@/hooks/useGoals'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
-import { useSearchParams } from 'react-router-dom'
-
 export default function OperationalSettings() {
     const { role } = useAuth()
     const { stores, loading: storesLoading } = useStores()
-    const [searchParams, setSearchParams] = useSearchParams()
-    const urlStoreId = searchParams.get('id')
+    
+    const urlStoreId = new URLSearchParams(window.location.search).get('id')
     const [selectedStoreId, setSelectedStoreId] = useState(urlStoreId || '')
 
     // Sync state with URL param if it changes
@@ -37,11 +35,6 @@ export default function OperationalSettings() {
 
     const handleStoreChange = (newId: string) => {
         setSelectedStoreId(newId)
-        if (newId) {
-            setSearchParams({ id: newId })
-        } else {
-            setSearchParams({})
-        }
     }
 
     const [settings, setSettings] = useState({ 

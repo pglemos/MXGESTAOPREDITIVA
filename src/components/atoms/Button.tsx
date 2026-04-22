@@ -21,6 +21,7 @@ const buttonVariants = cva(
       size: {
         default: "h-mx-11 px-6 sm:h-10 sm:px-4",
         sm: "h-mx-9 rounded-mx-sm px-3",
+        xs: "h-mx-8 rounded-mx-sm px-2 text-[10px]",
         lg: "h-mx-14 rounded-mx-lg px-8",
         icon: "h-mx-11 w-mx-11 sm:h-10 sm:w-10",
       },
@@ -36,10 +37,12 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  loading?: boolean
+  icon?: React.ReactNode
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, children, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, children, asChild = false, loading = false, icon, ...props }, ref) => {
     const decoratedChildren = React.Children.map(children, (child) => {
       if (!React.isValidElement(child)) return child
       if (typeof child.type === 'string' && child.type === 'svg') {
@@ -63,14 +66,32 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={props.disabled || loading}
         {...props}
       >
-        {!asChild && typeof children === 'string' ? (
-          <Typography variant="caption" className="text-inherit tracking-inherit">
-            {children}
-          </Typography>
+        {loading ? (
+          <div className="flex items-center gap-mx-sm">
+            <svg className="animate-spin h-mx-4 w-mx-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {typeof children === 'string' ? (
+              <Typography variant="caption" className="text-inherit tracking-inherit">
+                Carregando...
+              </Typography>
+            ) : children}
+          </div>
         ) : (
-          decoratedChildren
+          <>
+            {icon && <span className="mr-mx-xs">{icon}</span>}
+            {!asChild && typeof children === 'string' ? (
+              <Typography variant="caption" className="text-inherit tracking-inherit">
+                {children}
+              </Typography>
+            ) : (
+              decoratedChildren
+            )}
+          </>
         )}
       </button>
     )

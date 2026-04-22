@@ -17,12 +17,11 @@ import { Badge } from '@/components/atoms/Badge'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
-import { useSearchParams, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function Equipe() {
-  const [searchParams] = useSearchParams()
-  const urlStoreId = searchParams.get('id')
+  const urlStoreId = new URLSearchParams(window.location.search).get('id')
   const { role } = useAuth()
   const isAdmin = role === 'admin'
   const { stores } = useStores()
@@ -241,7 +240,7 @@ export default function Equipe() {
                     <Phone size={18} />
                   </Button>
                   <Button asChild variant="secondary" size="sm" className="w-full h-mx-xl rounded-mx-lg shadow-mx-md font-black uppercase text-xs">
-                    <Link to={`/performance?id=${member.id}`}>VER PERFORMANCE</Link>
+                    <Link to="/relatorios/performance-vendedores">VER PERFORMANCE</Link>
                   </Button>
                 </footer>
               </motion.article>

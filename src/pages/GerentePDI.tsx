@@ -149,7 +149,7 @@ export default function GerentePDI() {
                                                             {p.due_date ? format(parseISO(p.due_date), 'dd/MM/yy') : '--/--'}
                                                         </Typography>
                                                     </div>
-                                                    <Link to={`/pdi/print/${p.id}`}>
+                                                    <Link to={`/pdi/${p.id}/print`}>
                                                         <Button variant="ghost" size="icon" className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default" aria-label="Ação">
                                                             <Printer size={18} />
                                                         </Button>

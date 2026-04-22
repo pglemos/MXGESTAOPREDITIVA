@@ -16,7 +16,8 @@ import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Textarea } from '@/components/atoms/Textarea'
-import { useConsultingClientDetail, useConsultingMethodology } from '@/hooks/useConsultingClients'
+import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySlug'
+import { useConsultingMethodology } from '@/hooks/useConsultingClients'
 import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
@@ -32,17 +33,24 @@ import {
 } from '@/features/consultoria/components/VisitExecutionViews'
 
 export default function ConsultoriaVisitaExecucao() {
-  const { clientId, visitNumber } = useParams<{ clientId: string, visitNumber: string }>()
+  const { clientSlug, visitNumber } = useParams<{ clientSlug: string, visitNumber: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const { client, loading: clientLoading, refetch } = useConsultingClientDetail(clientId)
+  const { profile } = useAuth()
+  const { client, loading: clientLoading, refetch } = useConsultingClientDetailBySlug(clientSlug)
+  
+  const clientId = client?.id
   const { steps, loading: methodologyLoading } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const { templates, responsesByTemplate, saveResponse } = usePmrDiagnostics(clientId)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
   const visitNum = parseInt(visitNumber || '1')
   const step = useMemo(() => steps.find(s => s.visit_number === visitNum), [steps, visitNum])
   const visit = useMemo(() => client?.visits?.find(v => v.visit_number === visitNum), [client, visitNum])
+
+  useEffect(() => {
+    if (client && client.slug && clientSlug && client.slug !== clientSlug) {
+      window.history.replaceState({}, '', `/consultoria/clientes/${client.slug}/visitas/${visitNumber}${window.location.search}`)
+    }
+  }, [client, clientSlug, visitNumber])
 
   const [checklist, setChecklist] = useState<Array<{ task: string, completed: boolean }>>([])
   const [executiveSummary, setExecutiveSummary] = useState('')
@@ -77,7 +85,7 @@ export default function ConsultoriaVisitaExecucao() {
         projecao: (visit as any).projecao || '',
         leads_mes: (visit as any).leads_mes || '',
         estoque_disponivel: (visit as any).estoque_disponivel || '',
-        consultant_name: (visit as any).consultant_name_manual || user?.name || '',
+        consultant_name: (visit as any).consultant_name_manual || profile?.name || '',
         visit_date: (visit as any).effective_visit_date || new Date().toISOString().split('T')[0],
         tempo: step?.duration || '1 DIA',
         alvo: step?.target || 'Todos'
@@ -88,7 +96,7 @@ export default function ConsultoriaVisitaExecucao() {
         task: typeof item === 'string' ? item : (item as any).task, 
         completed: (item as any).completed || false 
       })))
-      setHeaderBase(prev => ({ ...prev, consultant_name: user?.name || '', tempo: step.duration || '1 DIA', alvo: step.target || 'Todos' }))
+      setHeaderBase(prev => ({ ...prev, consultant_name: profile?.name || '', tempo: step.duration || '1 DIA', alvo: step.target || 'Todos' }))
     }
   }, [visit?.id, step?.id])
 
@@ -186,12 +194,12 @@ Gerado via MX PERFORMANCE`
       
       {/* Header Fixo da Visita - Limpo e sem conflito de Z-index */}
       <div className="bg-transparent px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden">
-        <div className="flex items-center gap-4">
-          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-2 border border-border-subtle rounded-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
-            <ArrowLeft className="w-4 h-4" />
+        <div className="flex items-center gap-mx-md">
+          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-lg hover:bg-surface-alt/50 transition-colors text-text-secondary">
+            <ArrowLeft className="w-mx-4 h-mx-4" />
           </Link>
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-mx-xs">
               <Typography variant="h3" className="text-text-primary text-lg leading-none">COCKPIT PMR</Typography>
               <Badge variant="outline" className="bg-brand-primary/10 text-brand-primary border-none px-2 py-0.5 text-[10px]">VISITA {visitNum}</Badge>
             </div>
@@ -199,46 +207,46 @@ Gerado via MX PERFORMANCE`
           </div>
         </div>
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <Button variant="outline" className="flex-1 md:flex-none h-10 text-sm font-bold bg-white" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
-          <Button variant="primary" className="flex-1 md:flex-none h-10 text-sm font-bold shadow-sm" onClick={() => handleSave(true)} loading={isSaving}>CONCLUIR</Button>
+        <div className="flex items-center gap-mx-sm w-full md:w-auto">
+          <Button variant="outline" className="flex-1 md:flex-none h-mx-10 text-sm font-bold bg-white" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
+          <Button variant="primary" className="flex-1 md:flex-none h-mx-10 text-sm font-bold shadow-sm" onClick={() => handleSave(true)} loading={isSaving}>CONCLUIR</Button>
         </div>
       </div>
 
       <div className="w-full px-mx-md lg:px-mx-xl grid grid-cols-1 lg:grid-cols-3 gap-mx-lg print:block print:p-0">
         
         {/* Coluna Principal - 2 colunas */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-mx-lg">
           
           <VisitHeaderBase clientName={client?.name || ''} data={headerBase} onChange={setHeaderBase} />
           
           <div className="animate-in fade-in duration-300">
             {visitNum === 1 && (
-              <div className="space-y-6 min-w-0">
+              <div className="space-y-mx-lg min-w-0">
                 <VisitOneHighFidelity quantData={quantData} onQuantChange={setQuantData} templates={templates} visitId={visit?.id} clientId={clientId} onSaveResponse={saveResponse} />              </div>
             )}
-            {visitNum === 2 && <VisitTwoExecution clientId={clientId!} />}
+            {visitNum === 2 && <VisitTwoExecution clientId={clientId!} clientSlug={clientSlug!} />}
             {visitNum === 3 && <VisitThreeExecution />}
             {visitNum === 4 && <VisitFourExecution storeId={client?.store_id || ''} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
             {visitNum === 5 && <VisitFiveExecution onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
-            {visitNum === 6 && <VisitSixExecution clientId={clientId!} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
+            {visitNum === 6 && <VisitSixExecution clientId={clientId!} clientSlug={clientSlug!} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
             {visitNum === 7 && <VisitSevenExecution storeId={client?.store_id || ''} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
-            {visitNum === 8 && <VisitEightExecution clientId={clientId!} />}
+            {visitNum === 8 && <VisitEightExecution clientId={clientId!} clientSlug={clientSlug!} />}
             {visitNum === 9 && <VisitNineExecution financials={client?.financials || []} onGenerateSummary={(text: string) => setExecutiveSummary(prev => prev ? `${prev}\n\n${text}` : text)} />}
           </div>
 
-          <Card className="p-6 border border-border-default shadow-sm rounded-2xl bg-white">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 border-b border-border-subtle pb-4 gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-brand-primary/10 rounded-lg text-brand-primary"><ClipboardCheck size={20} /></div>
+          <Card className="p-mx-lg border border-border-default shadow-sm rounded-2xl bg-white">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 border-b border-border-subtle pb-4 gap-mx-md">
+              <div className="flex items-center gap-mx-sm">
+                <div className="p-mx-xs bg-brand-primary/10 rounded-lg text-brand-primary"><ClipboardCheck size={20} /></div>
                 <Typography variant="h3" className="text-lg">Checklist Operacional</Typography>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-mx-xs">
               {checklist.map((item, idx) => (
-                <div key={idx} className={cn("flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer", item.completed ? "bg-brand-primary/5 border-brand-primary/20" : "bg-white border-border-default hover:border-border-hover")} onClick={() => handleToggleCheck(idx)}>
+                <div key={idx} className={cn("flex items-start gap-mx-md p-mx-md rounded-xl border transition-all cursor-pointer", item.completed ? "bg-brand-primary/5 border-brand-primary/20" : "bg-white border-border-default hover:border-border-hover")} onClick={() => handleToggleCheck(idx)}>
                   <div className="mt-0.5">
-                    {item.completed ? <CheckCircle2 className="w-5 h-5 text-brand-primary" /> : <Circle className="w-5 h-5 text-text-tertiary opacity-30 hover:opacity-50" />}
+                    {item.completed ? <CheckCircle2 className="w-mx-5 h-mx-5 text-brand-primary" /> : <Circle className="w-mx-5 h-mx-5 text-text-tertiary opacity-30 hover:opacity-50" />}
                   </div>
                   <Typography variant="p" className={cn("flex-1 text-sm font-bold transition-colors", item.completed ? "text-text-tertiary line-through" : "text-text-primary")}>{item.task}</Typography>
                 </div>
@@ -246,59 +254,59 @@ Gerado via MX PERFORMANCE`
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 gap-6">
-            <Card className="p-6 border border-border-default shadow-sm rounded-2xl bg-white">
-              <div className="flex items-center gap-3 mb-4">
-                <FileText className="w-5 h-5 text-text-secondary" />
+          <div className="grid grid-cols-1 gap-mx-lg">
+            <Card className="p-mx-lg border border-border-default shadow-sm rounded-2xl bg-white">
+              <div className="flex items-center gap-mx-sm mb-4">
+                <FileText className="w-mx-5 h-mx-5 text-text-secondary" />
                 <Typography variant="h3" className="text-lg">Relato Executivo (CRM)</Typography>
               </div>
               <Textarea 
                 value={executiveSummary} 
                 onChange={(e) => setExecutiveSummary(e.target.value)} 
                 placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
-                className="min-h-[250px] text-sm bg-surface-alt/30 border border-border-default focus:border-brand-primary focus:bg-white rounded-xl p-4 shadow-inner resize-y transition-colors" 
+                className="min-h-[250px] text-sm bg-surface-alt/30 border border-border-default focus:border-brand-primary focus:bg-white rounded-xl p-mx-md shadow-inner resize-y transition-colors" 
               />
             </Card>
             
-            <Card className="p-6 border border-border-default shadow-sm rounded-2xl bg-white">
-              <div className="flex items-center gap-3 mb-4">
-                <MessageSquare className="w-5 h-5 text-text-secondary" />
+            <Card className="p-mx-lg border border-border-default shadow-sm rounded-2xl bg-white">
+              <div className="flex items-center gap-mx-sm mb-4">
+                <MessageSquare className="w-mx-5 h-mx-5 text-text-secondary" />
                 <Typography variant="h3" className="text-lg">Feedback Direto ao Cliente</Typography>
               </div>
               <Textarea 
                 value={feedbackClient} 
                 onChange={(e) => setFeedbackClient(e.target.value)} 
                 placeholder="Pontos de atenção emergenciais..." 
-                className="min-h-[100px] text-sm font-medium bg-white border border-border-default focus:border-brand-primary shadow-sm resize-y rounded-xl p-4" 
+                className="min-h-[100px] text-sm font-medium bg-white border border-border-default focus:border-brand-primary shadow-sm resize-y rounded-xl p-mx-md" 
               />
             </Card>
           </div>
         </div>
 
         {/* Coluna Lateral - 1 coluna lg */}
-        <div className="lg:col-span-1 space-y-6 print:hidden">
+        <div className="lg:col-span-1 space-y-mx-lg print:hidden">
           
-          <Card className="p-6 bg-white border border-border-default shadow-sm rounded-2xl text-center">
-             <div className="w-12 h-12 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-               <Presentation className="w-6 h-6 text-brand-primary" />
+          <Card className="p-mx-lg bg-white border border-border-default shadow-sm rounded-2xl text-center">
+             <div className="w-mx-12 h-mx-12 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+               <Presentation className="w-mx-6 h-mx-6 text-brand-primary" />
              </div>
              <Typography variant="h3" className="text-lg mb-2">Reporte Oficial MX</Typography>
              <Typography variant="p" className="text-xs text-text-tertiary mb-6">O relatório compila os dados e o diagnóstico da visita.</Typography>
              <Button className="w-full shadow-sm font-bold h-11" variant="primary" icon={<Share2 size={14} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
           </Card>
 
-          <Card className="p-5 border border-border-default shadow-sm rounded-2xl bg-white">
+          <Card className="p-mx-md border border-border-default shadow-sm rounded-2xl bg-white">
             <Typography variant="tiny" tone="muted" className="mb-4 block tracking-widest text-[10px]">INFORMAÇÕES DA ETAPA</Typography>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Users className="w-4 h-4 text-text-tertiary shrink-0" />
+            <div className="space-y-mx-md">
+              <div className="flex items-center gap-mx-sm">
+                <Users className="w-mx-4 h-mx-4 text-text-tertiary shrink-0" />
                 <div>
                   <Typography variant="tiny" tone="muted" className="text-[10px]">Participantes</Typography>
                   <Typography variant="p" className="text-sm font-bold">{step?.target}</Typography>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Timer className="w-4 h-4 text-text-tertiary shrink-0" />
+              <div className="flex items-center gap-mx-sm">
+                <Timer className="w-mx-4 h-mx-4 text-text-tertiary shrink-0" />
                 <div>
                   <Typography variant="tiny" tone="muted" className="text-[10px]">Duração</Typography>
                   <Typography variant="p" className="text-sm font-bold">{step?.duration}</Typography>
@@ -307,7 +315,7 @@ Gerado via MX PERFORMANCE`
             </div>
           </Card>
 
-          <Card className="p-6 border border-border-default shadow-sm rounded-3xl bg-white">
+          <Card className="p-mx-lg border border-border-default shadow-sm rounded-3xl bg-white">
             <div className="flex items-center justify-between mb-6 border-b border-border-subtle pb-4">
               <Typography variant="tiny" tone="muted" className="text-[10px] tracking-widest font-bold uppercase">EVIDÊNCIAS ({attachments.length})</Typography>
               <Button variant="ghost" size="xs" className="h-8 border border-border-subtle hover:bg-brand-primary/10 text-brand-primary font-bold px-3 rounded-lg" icon={isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} onClick={() => fileInputRef.current?.click()}>ADD</Button>
@@ -315,15 +323,15 @@ Gerado via MX PERFORMANCE`
             </div>
             <div className="space-y-3">
               {attachments.length === 0 ? (
-                <div className="py-10 text-center border border-border-default rounded-2xl bg-surface-alt/30 flex flex-col items-center justify-center gap-2">
-                  <Image className="w-6 h-6 text-text-tertiary opacity-50" />
+                <div className="py-10 text-center border border-border-default rounded-2xl bg-surface-alt/30 flex flex-col items-center justify-center gap-mx-xs">
+                  <Image className="w-mx-6 h-mx-6 text-text-tertiary opacity-50" />
                   <Typography variant="tiny" tone="muted" className="font-bold">Nenhuma evidência.</Typography>
                 </div>
               ) : (
                 attachments.map(file => (
                   <div key={file.id} className="flex items-center justify-between p-3 bg-surface-alt/30 rounded-xl border border-border-subtle group hover:border-border-hover transition-colors">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="p-2 bg-white rounded-lg shadow-sm border border-border-subtle shrink-0"><FileText className="w-4 h-4 text-text-tertiary" /></div>
+                    <div className="flex items-center gap-mx-sm overflow-hidden">
+                      <div className="p-mx-xs bg-white rounded-lg shadow-sm border border-border-subtle shrink-0"><FileText className="w-mx-4 h-mx-4 text-text-tertiary" /></div>
                       <div className="truncate">
                         <Typography variant="tiny" className="font-bold text-text-secondary truncate block">{file.filename}</Typography>
                         <Typography variant="tiny" tone="muted" className="text-[9px]">{formatFileSize(file.size_bytes)}</Typography>
@@ -342,13 +350,13 @@ Gerado via MX PERFORMANCE`
       </div>
 
       <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="Documento de Auditoria" size="lg">
-         <div className="p-6 space-y-4 bg-surface-alt/20">
-            <Card className="p-6 bg-white font-mono text-xs md:text-sm leading-relaxed whitespace-pre-wrap select-all border border-border-default shadow-inner overflow-y-auto max-h-[60vh] relative rounded-xl print:max-h-none print:shadow-none print:border-none print:bg-white">
+         <div className="p-mx-lg space-y-mx-md bg-surface-alt/20">
+            <Card className="p-mx-lg bg-white font-mono text-xs md:text-sm leading-relaxed whitespace-pre-wrap select-all border border-border-default shadow-inner overflow-y-auto max-h-[60vh] relative rounded-xl print:max-h-none print:shadow-none print:border-none print:bg-white">
               <div className="relative z-10 text-text-primary">{generateReportText()}</div>
             </Card>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 print:hidden">
-               <Button variant="outline" className="h-11 text-sm font-bold bg-white" onClick={() => window.print()} icon={<Printer className="w-4 h-4" />}>Imprimir PDF</Button>
-               <Button className="h-11 text-sm font-bold bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-sm" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-4 h-4" />}>Enviar WhatsApp</Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm print:hidden">
+               <Button variant="outline" className="h-11 text-sm font-bold bg-white" onClick={() => window.print()} icon={<Printer className="w-mx-4 h-mx-4" />}>Imprimir PDF</Button>
+               <Button className="h-11 text-sm font-bold bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-sm" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-mx-4 h-mx-4" />}>Enviar WhatsApp</Button>
             </div>
          </div>
       </Modal>

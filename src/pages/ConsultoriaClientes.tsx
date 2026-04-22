@@ -143,7 +143,7 @@ export default function ConsultoriaClientes() {
       align: 'right',
       render: (client) => (
         <Button asChild variant="secondary" size="sm" className="rounded-mx-lg">
-          <Link to={`/consultoria/clientes/${client.slug}`}>ABRIR</Link>
+          <Link to={`/consultoria/clientes/${client.slug || client.id}`}>ABRIR</Link>
         </Button>
       ),
     },
@@ -310,7 +310,7 @@ export default function ConsultoriaClientes() {
           data={filteredClients}
           loading={loading}
           emptyMessage="Nenhum cliente da consultoria localizado."
-          onRowClick={(client) => navigate(`/consultoria/clientes/${client.slug}`)}
+          onRowClick={(client) => navigate(`/consultoria/clientes/${client.slug || client.id}`)}
         />
       </Card>
     </main>

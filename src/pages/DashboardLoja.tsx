@@ -19,15 +19,14 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { AdminNetworkView } from '@/components/admin/AdminNetworkView'
-import { useSearchParams, useParams, Link, Navigate } from 'react-router-dom'
+import { useParams, Link, Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 
 export default function DashboardLoja() {
     const { role, storeId: authStoreId, setActiveStoreId, memberships } = useAuth()
     const { storeSlug } = useParams()
-    const [searchParams] = useSearchParams()
-    
+
     const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(null)
     const [resolving, setResolving] = useState(!!storeSlug)
 
@@ -36,8 +35,7 @@ export default function DashboardLoja() {
             if (!storeSlug) {
                 setResolving(false)
                 return
-            }
-            
+            }            
             setResolving(true)
             
             // 1. Tentar resolver pelas associações do usuário (mais rápido)
@@ -78,7 +76,7 @@ export default function DashboardLoja() {
         resolve()
     }, [storeSlug, memberships, role])
 
-    const urlStoreId = resolvedStoreId || searchParams.get('id')
+    const urlStoreId = resolvedStoreId || new URLSearchParams(window.location.search).get('id')
     const storeId = urlStoreId || authStoreId
 
     // Redirecionar apenas se NÃO estiver resolvendo e NÃO houver storeId válido

@@ -16,16 +16,17 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 
 export default function GoalManagement() {
     const { role } = useAuth()
     const { stores, loading: storesLoading } = useStores()
-    const [searchParams, setSearchParams] = useSearchParams()
-    const initialId = searchParams.get('id')
-    
-    const [selectedStoreId, setSelectedStoreId] = useState(initialId || '')
-    
+
+    // Suportar seleção via URL params legados ou slug via route (se tivéssemos)
+    // Atualmente só usamos state pra loja e select pra admins.
+    const initialId = new URLSearchParams(window.location.search).get('id')
+
+    const [selectedStoreId, setSelectedStoreId] = useState(initialId || '')    
     // Update selectedStoreId if URL changes
     useEffect(() => {
         if (initialId && initialId !== selectedStoreId) {
@@ -35,11 +36,6 @@ export default function GoalManagement() {
 
     const handleStoreChange = (newId: string) => {
         setSelectedStoreId(newId)
-        if (newId) {
-            setSearchParams({ id: newId })
-        } else {
-            setSearchParams({})
-        }
     }
     
     const { goal, updateGoal, loading: goalLoading } = useStoreGoal(selectedStoreId)

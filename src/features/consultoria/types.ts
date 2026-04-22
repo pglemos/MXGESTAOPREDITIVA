@@ -1,6 +1,7 @@
 export interface ConsultingClient {
   id: string
   name: string
+  slug?: string
   legal_name: string | null
   cnpj: string | null
   product_name: string | null
@@ -147,7 +148,7 @@ export interface ConsultingClientModule {
 export interface PmrFormField {
   key: string
   label: string
-  type: 'text' | 'textarea' | 'number' | 'scale' | 'boolean'
+  type: 'text' | 'textarea' | 'number' | 'scale' | 'boolean' | 'select' | 'file'
 }
 
 export interface PmrFormTemplate {
@@ -360,6 +361,8 @@ export interface DREFinancial {
   exp_treinamentos: number
   exp_outras: number
   volume_vendas: number
+  volume_leads?: number
+  volume_agendamentos?: number
   capital_proprio: number
   revenue: number
   fixed_expenses: number
@@ -392,4 +395,6 @@ export interface DREComputed {
   profit_per_car: number
   rentability: number
   cac: number
+  lead_to_agd_rate?: number
+  agd_to_sale_rate?: number
 }

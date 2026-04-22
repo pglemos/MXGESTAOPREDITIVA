@@ -199,8 +199,8 @@ export default function App() {
             <Route path="consultoria">
               <Route index element={<Suspense fallback={<Spinner />}><Consultoria /></Suspense>} />
               <Route path="clientes" element={<Suspense fallback={<Spinner />}><ConsultoriaClientes /></Suspense>} />
-              <Route path="clientes/:clientId" element={<Suspense fallback={<Spinner />}><ConsultoriaClienteDetalhe /></Suspense>} />
-              <Route path="clientes/:clientId/visitas/:visitNumber" element={<Suspense fallback={<Spinner />}><ConsultoriaVisitaExecucao /></Suspense>} />
+              <Route path="clientes/:clientSlug" element={<Suspense fallback={<Spinner />}><ConsultoriaClienteDetalhe /></Suspense>} />
+              <Route path="clientes/:clientSlug/visitas/:visitNumber" element={<Suspense fallback={<Spinner />}><ConsultoriaVisitaExecucao /></Suspense>} />
             </Route>
 
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />

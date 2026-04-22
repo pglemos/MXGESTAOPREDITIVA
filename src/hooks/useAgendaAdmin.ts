@@ -91,7 +91,7 @@ export function useAgendaAdmin() {
       const mapped = (visitsRes.data || []).map((v: any) => ({
         ...v,
         client_name: v.client?.name || 'Desconhecido',
-        client_slug: v.client?.slug || 'cliente',
+        client_slug: v.client?.slug || v.client_id || 'cliente',
         client_status: v.client?.status || 'ativo',
         client_modality: v.client?.modality || null,
       }))
