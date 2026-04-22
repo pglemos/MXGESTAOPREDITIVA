@@ -5,6 +5,8 @@ import {
   Calendar, CheckCircle2, Clock, ChevronRight,
   Plus, FileText, CalendarDays, TrendingUp
 } from 'lucide-react'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
@@ -40,10 +42,22 @@ const tabLabels: Record<Tab, string> = {
   roi: 'ROI/Choque',
 }
 
+import { 
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, 
+  CartesianGrid, Tooltip, Legend
+} from 'recharts'
+
 function ConsultingROIView({ client }: { client: any }) {
   const initialData = client.visits?.find((v: any) => v.visit_number === 1)?.quant_data as any
-  const currentData = client.financials && client.financials.length > 0 ? client.financials[0] : null
+  const financials = [...(client.financials || [])].sort((a, b) => new Date(a.reference_date).getTime() - new Date(b.reference_date).getTime())
+  const currentData = financials.length > 0 ? financials[financials.length - 1] : null
   
+  const chartData = financials.map(f => ({
+    mes: format(new Date(f.reference_date), 'MMM', { locale: ptBR }).toUpperCase(),
+    vendas: f.volume_vendas || 0,
+    conversao: f.volume_leads > 0 ? (f.volume_vendas / f.volume_leads) * 100 : 0
+  }))
+
   const before = {
     sales: (initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) || 0,
     leads: initialData?.marketing?.leads || 0,
@@ -71,54 +85,76 @@ function ConsultingROIView({ client }: { client: any }) {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
-        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-          <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
-             <div className="w-mx-xs h-mx-xs bg-status-error rounded-full" /> 
-             MÉDIA ANTES (D0)
-          </Typography>
-          <div className="space-y-mx-md">
-            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-              <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
-              <Typography variant="h3">{before.sales.toFixed(1)}</Typography>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
+        <div className="xl:col-span-2 space-y-mx-lg">
+          <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md h-full">
+            <Typography variant="h3" className="mb-8">EVOLUÇÃO HISTÓRICA (PMR)</Typography>
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} dy={10} />
+                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} />
+                  <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#22C55E'}} />
+                  <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                  <Legend iconType="circle" />
+                  <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke="#0D3B2E" strokeWidth={4} dot={{r: 6, fill: '#0D3B2E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
+                  <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-              <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
-              <Typography variant="h3">{before.leads}</Typography>
-            </div>
-            <div className="flex justify-between items-center">
-              <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
-              <Typography variant="h3">{before.conversion.toFixed(1)}%</Typography>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
-        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-          <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
-             <div className="w-mx-xs h-mx-xs bg-status-success rounded-full" /> 
-             RESULTADO ATUAL
-          </Typography>
-          <div className="space-y-mx-md">
-            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-              <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
-              <div className="flex items-center gap-mx-sm">
-                <Typography variant="h3" className="text-status-success">{after.sales}</Typography>
-                {after.sales > before.sales && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.sales-before.sales)).toFixed(0)}</Badge>}
+        <div className="space-y-mx-lg">
+          <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+            <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
+               <div className="w-mx-xs h-mx-xs bg-status-error rounded-full" /> 
+               MÉDIA ANTES (D0)
+            </Typography>
+            <div className="space-y-mx-md">
+              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
+                <Typography variant="h3">{before.sales.toFixed(1)}</Typography>
+              </div>
+              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
+                <Typography variant="h3">{before.leads}</Typography>
+              </div>
+              <div className="flex justify-between items-center">
+                <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
+                <Typography variant="h3">{before.conversion.toFixed(1)}%</Typography>
               </div>
             </div>
-            <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-              <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
-              <Typography variant="h3">{after.leads}</Typography>
-            </div>
-            <div className="flex justify-between items-center">
-              <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
-              <div className="flex items-center gap-mx-sm">
-                <Typography variant="h3" className={after.conversion > before.conversion ? 'text-status-success' : ''}>{after.conversion.toFixed(1)}%</Typography>
-                {after.conversion > before.conversion && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.conversion-before.conversion)).toFixed(1)}pp</Badge>}
+          </Card>
+
+          <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+            <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
+               <div className="w-mx-xs h-mx-xs bg-status-success rounded-full" /> 
+               RESULTADO ATUAL
+            </Typography>
+            <div className="space-y-mx-md">
+              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
+                <div className="flex items-center gap-mx-sm">
+                  <Typography variant="h3" className="text-status-success">{after.sales}</Typography>
+                  {after.sales > before.sales && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.sales-before.sales)).toFixed(0)}</Badge>}
+                </div>
+              </div>
+              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
+                <Typography variant="h3">{after.leads}</Typography>
+              </div>
+              <div className="flex justify-between items-center">
+                <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
+                <div className="flex items-center gap-mx-sm">
+                  <Typography variant="h3" className={after.conversion > before.conversion ? 'text-status-success' : ''}>{after.conversion.toFixed(1)}%</Typography>
+                  {after.conversion > before.conversion && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.conversion-before.conversion)).toFixed(1)}pp</Badge>}
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   )

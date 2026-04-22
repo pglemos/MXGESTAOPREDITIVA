@@ -33,6 +33,8 @@ import {
 } from '@/features/consultoria/components/VisitExecutionViews'
 import { VisitReportTemplate } from '@/features/consultoria/components/VisitReportTemplate'
 
+import { VisitActionQuickAdd } from '@/features/consultoria/components/VisitActionQuickAdd'
+
 export default function ConsultoriaVisitaExecucao() {
   const { clientSlug, visitNumber } = useParams<{ clientSlug: string, visitNumber: string }>()
   const navigate = useNavigate()
@@ -138,8 +140,22 @@ export default function ConsultoriaVisitaExecucao() {
     setChecklist(newList)
   }
 
+  const hasRequiredEvidence = useMemo(() => {
+    if (!step?.evidence_required) return true
+    return (attachments || []).length > 0
+  }, [step?.evidence_required, attachments])
+
   const handleSave = async (complete: boolean = false) => {
     if (!clientId || !visitNum) return
+    
+    if (complete && !hasRequiredEvidence) {
+      toast.error(`Evidência Obrigatória: Esta etapa exige o upload de: ${step?.evidence_required}`, {
+        duration: 5000,
+        description: 'Por favor, adicione um anexo antes de concluir.'
+      })
+      return
+    }
+
     setIsSaving(true)
     try {
       const payload: any = {
@@ -280,7 +296,23 @@ Gerado via MX PERFORMANCE`
         
         <div className="flex items-center gap-mx-sm w-full md:w-auto">
           <Button variant="outline" className="flex-1 md:flex-none h-mx-10 text-sm font-bold bg-white" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
-          <Button variant="primary" className="flex-1 md:flex-none h-mx-10 text-sm font-bold shadow-sm" onClick={() => handleSave(true)} loading={isSaving}>CONCLUIR</Button>
+          <div className="relative flex-1 md:flex-none">
+            <Button 
+              variant="primary" 
+              className={cn("w-full md:w-auto h-mx-10 text-sm font-bold shadow-sm transition-all", !hasRequiredEvidence ? "opacity-70 grayscale" : "")} 
+              onClick={() => handleSave(true)} 
+              loading={isSaving}
+              icon={!hasRequiredEvidence ? <AlertCircle className="w-mx-4 h-mx-4" /> : <CheckCircle2 className="w-mx-4 h-mx-4" />}
+            >
+              CONCLUIR
+            </Button>
+            {!hasRequiredEvidence && step?.evidence_required && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-error opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-status-error items-center justify-center text-[8px] text-white font-black">!</span>
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -335,8 +367,9 @@ Gerado via MX PERFORMANCE`
                 value={executiveSummary} 
                 onChange={(e) => setExecutiveSummary(e.target.value)} 
                 placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
-                className="min-h-[250px] text-sm bg-surface-alt/30 border border-border-default focus:border-brand-primary focus:bg-white rounded-xl p-mx-md shadow-inner resize-y transition-colors" 
+                className="min-h-[250px] text-sm bg-surface-alt/30 border border-border-default focus:border-brand-primary focus:bg-white rounded-xl p-mx-md shadow-inner resize-y transition-colors mb-mx-md" 
               />
+              <VisitActionQuickAdd clientId={clientId!} visitNumber={visitNum} />
             </Card>
             
             <Card className="p-mx-lg border border-border-default shadow-sm rounded-2xl bg-white">
