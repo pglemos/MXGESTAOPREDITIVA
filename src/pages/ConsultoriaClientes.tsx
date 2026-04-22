@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, RefreshCw, Search, BriefcaseBusiness, Building2, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
+import { format, differenceInDays } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Input } from '@/components/atoms/Input'
@@ -136,6 +138,32 @@ export default function ConsultoriaClientes() {
           {String(client.status || 'ativo').toUpperCase()}
         </Badge>
       ),
+    },
+    {
+      key: 'health',
+      header: 'SAÚDE RITUAL',
+      align: 'center',
+      render: (client) => {
+        if (!client.last_visit_at) return <Badge variant="outline" className="opacity-50">SEM VISITA</Badge>
+        
+        const daysSince = differenceInDays(new Date(), new Date(client.last_visit_at))
+        let variant: 'success' | 'warning' | 'danger' = 'success'
+        let label = 'EM DIA'
+        
+        if (daysSince > 21) {
+          variant = 'danger'
+          label = `ATRASO CRÍTICO (${daysSince}D)`
+        } else if (daysSince > 10) {
+          variant = 'warning'
+          label = `ALERTA (${daysSince}D)`
+        }
+
+        return (
+          <Badge variant={variant} className="px-3 py-1 rounded-mx-full border-none font-black text-[9px]">
+            {label}
+          </Badge>
+        )
+      }
     },
     {
       key: 'actions',

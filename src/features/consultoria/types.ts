@@ -13,6 +13,7 @@ export interface ConsultingClient {
   store_id: string | null
   primary_store_id: string | null
   created_by: string | null
+  last_visit_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -200,6 +201,7 @@ export interface ConsultingParameterSet {
   active: boolean
   source_reference: string | null
   created_by: string | null
+  last_visit_at?: string | null
   created_at: string
   updated_at: string
 }

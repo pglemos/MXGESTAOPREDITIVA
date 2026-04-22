@@ -1,35 +1,37 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, BriefcaseBusiness, Building2, Mail, Phone, User2, 
   Calendar, CheckCircle2, Clock, ChevronRight,
-  Plus, FileText, CalendarDays, TrendingUp
+  Plus, FileText, CalendarDays, TrendingUp, Download, ShieldCheck
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
+import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySlug'
+import { useConsultingModules } from '@/hooks/useConsultingModules'
+import { useConsultingMethodology } from '@/hooks/useConsultingClients'
+import { usePDIs } from '@/hooks/useData'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
-import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
-import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySlug'
-import { useConsultingMethodology } from '@/hooks/useConsultingClients'
-import { useConsultingModules } from '@/hooks/useConsultingModules'
-import { supabase } from '@/lib/supabase'
-import { cn } from '@/lib/utils'
-import { GoogleCalendarView } from '@/features/consultoria/components/GoogleCalendarView'
-import { DREView } from '@/features/consultoria/components/DREView'
-import { ConsultingActionPlanView } from '@/features/consultoria/components/ConsultingActionPlanView'
-import { ConsultingModulesPanel } from '@/features/consultoria/components/ConsultingModulesPanel'
+import { Typography } from '@/components/atoms/Typography'
+import { 
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, 
+  CartesianGrid, Tooltip, Legend
+} from 'recharts'
 import { ConsultingStrategicView } from '@/features/consultoria/components/ConsultingStrategicView'
+import { ConsultingActionPlanView } from '@/features/consultoria/components/ConsultingActionPlanView'
+import { DREView } from '@/features/consultoria/components/DREView'
 import { ConsultingDailyTrackingView } from '@/features/consultoria/components/ConsultingDailyTrackingView'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
-import { DatePicker } from '@/components/atoms/DatePicker'
 
-type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi'
+type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis'
 
 const tabLabels: Record<Tab, string> = {
   overview: 'Visão Geral',
@@ -40,18 +42,32 @@ const tabLabels: Record<Tab, string> = {
   daily: 'Acomp. Diário',
   monthly: 'Fechamento',
   roi: 'ROI/Choque',
+  pdis: 'Plano de Carreira (PDI)',
 }
-
-import { 
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, 
-  CartesianGrid, Tooltip, Legend
-} from 'recharts'
 
 function ConsultingROIView({ client }: { client: any }) {
   const initialData = client.visits?.find((v: any) => v.visit_number === 1)?.quant_data as any
   const financials = [...(client.financials || [])].sort((a, b) => new Date(a.reference_date).getTime() - new Date(b.reference_date).getTime())
   const currentData = financials.length > 0 ? financials[financials.length - 1] : null
   
+  const handleDownloadROI = async () => {
+    const html2pdf = (await import('html2pdf.js')).default
+    const element = document.getElementById('roi-report-content')
+    if (!element) return
+
+    const opt = {
+      margin: 10,
+      filename: `Relatorio-ROI-${client.slug || 'cliente'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    } as const
+
+    toast.loading('Gerando Relatório de Choque...')
+    await html2pdf().set(opt).from(element).save()
+    toast.success('Relatório de ROI gerado!')
+  }
+
   const chartData = financials.map(f => ({
     mes: format(new Date(f.reference_date), 'MMM', { locale: ptBR }).toUpperCase(),
     vendas: f.volume_vendas || 0,
@@ -74,94 +90,143 @@ function ConsultingROIView({ client }: { client: any }) {
 
   return (
     <div className="space-y-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
-      <Card className="p-mx-xl bg-brand-primary text-white border-none shadow-mx-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-mx-lg opacity-10"><TrendingUp size={200} strokeWidth={1} /></div>
-        <div className="relative z-10">
-          <Typography variant="h3" className="text-white/70 mb-2 uppercase tracking-widest">Relatório de Choque: ROI da Consultoria</Typography>
-          <div className="flex items-baseline gap-mx-md">
-            <Typography variant="h1" className="text-6xl font-black">{roi > 0 ? '+' : ''}{roi.toFixed(1)}%</Typography>
-            <Typography variant="h3" className="text-white/80">DE CRESCIMENTO EM VENDAS</Typography>
+      <div className="flex justify-end">
+        <Button variant="secondary" className="font-black bg-brand-primary text-white" onClick={handleDownloadROI} icon={<Download className="w-mx-4 h-mx-4" />}>
+           EXPORTAR RELATÓRIO DE CHOQUE (PDF)
+        </Button>
+      </div>
+
+      <div id="roi-report-content" className="space-y-mx-lg bg-surface-alt p-mx-md rounded-2xl print:p-0 print:bg-white">
+        <Card className="p-mx-xl bg-brand-primary text-white border-none shadow-mx-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-mx-lg opacity-10"><TrendingUp size={200} strokeWidth={1} /></div>
+          <div className="relative z-10">
+            <Typography variant="h3" className="text-white/70 mb-2 uppercase tracking-widest">Relatório de Choque: ROI da Consultoria</Typography>
+            <div className="flex items-baseline gap-mx-md">
+              <Typography variant="h1" className="text-6xl font-black">{roi > 0 ? '+' : ''}{roi.toFixed(1)}%</Typography>
+              <Typography variant="h3" className="text-white/80">DE CRESCIMENTO EM VENDAS</Typography>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
-        <div className="xl:col-span-2 space-y-mx-lg">
-          <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md h-full">
-            <Typography variant="h3" className="mb-8">EVOLUÇÃO HISTÓRICA (PMR)</Typography>
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} dy={10} />
-                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} />
-                  <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#22C55E'}} />
-                  <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
-                  <Legend iconType="circle" />
-                  <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke="#0D3B2E" strokeWidth={4} dot={{r: 6, fill: '#0D3B2E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
-                  <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
+          <div className="xl:col-span-2">
+            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md h-full">
+              <Typography variant="h3" className="mb-8">EVOLUÇÃO HISTÓRICA (PMR)</Typography>
+              <div className="h-[350px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                    <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} dy={10} />
+                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} />
+                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#22C55E'}} />
+                    <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                    <Legend iconType="circle" />
+                    <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke="#0D3B2E" strokeWidth={4} dot={{r: 6, fill: '#0D3B2E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
+                    <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
 
-        <div className="space-y-mx-lg">
-          <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-            <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
-               <div className="w-mx-xs h-mx-xs bg-status-error rounded-full" /> 
-               MÉDIA ANTES (D0)
-            </Typography>
-            <div className="space-y-mx-md">
-              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-                <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
-                <Typography variant="h3">{before.sales.toFixed(1)}</Typography>
-              </div>
-              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-                <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
-                <Typography variant="h3">{before.leads}</Typography>
-              </div>
-              <div className="flex justify-between items-center">
-                <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
-                <Typography variant="h3">{before.conversion.toFixed(1)}%</Typography>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-            <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
-               <div className="w-mx-xs h-mx-xs bg-status-success rounded-full" /> 
-               RESULTADO ATUAL
-            </Typography>
-            <div className="space-y-mx-md">
-              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-                <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
-                <div className="flex items-center gap-mx-sm">
-                  <Typography variant="h3" className="text-status-success">{after.sales}</Typography>
-                  {after.sales > before.sales && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.sales-before.sales)).toFixed(0)}</Badge>}
+          <div className="space-y-mx-lg">
+            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+              <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
+                 <div className="w-mx-xs h-mx-xs bg-status-error rounded-full" /> MÉDIA ANTES (D0)
+              </Typography>
+              <div className="space-y-mx-md">
+                <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                  <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
+                  <Typography variant="h3">{before.sales.toFixed(1)}</Typography>
+                </div>
+                <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                  <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
+                  <Typography variant="h3">{before.leads}</Typography>
+                </div>
+                <div className="flex justify-between items-center">
+                  <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
+                  <Typography variant="h3">{before.conversion.toFixed(1)}%</Typography>
                 </div>
               </div>
-              <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
-                <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
-                <Typography variant="h3">{after.leads}</Typography>
-              </div>
-              <div className="flex justify-between items-center">
-                <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
-                <div className="flex items-center gap-mx-sm">
-                  <Typography variant="h3" className={after.conversion > before.conversion ? 'text-status-success' : ''}>{after.conversion.toFixed(1)}%</Typography>
-                  {after.conversion > before.conversion && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.conversion-before.conversion)).toFixed(1)}pp</Badge>}
+            </Card>
+
+            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+              <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
+                 <div className="w-mx-xs h-mx-xs bg-status-success rounded-full" /> RESULTADO ATUAL
+              </Typography>
+              <div className="space-y-mx-md">
+                <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                  <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
+                  <div className="flex items-center gap-mx-sm">
+                    <Typography variant="h3" className="text-status-success">{after.sales}</Typography>
+                    {after.sales > before.sales && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.sales-before.sales)).toFixed(0)}</Badge>}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                  <Typography variant="p" className="font-bold text-text-tertiary">LEADS/MÊS</Typography>
+                  <Typography variant="h3">{after.leads}</Typography>
+                </div>
+                <div className="flex justify-between items-center">
+                  <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
+                  <div className="flex items-center gap-mx-sm">
+                    <Typography variant="h3" className={after.conversion > before.conversion ? 'text-status-success' : ''}>{after.conversion.toFixed(1)}%</Typography>
+                    {after.conversion > before.conversion && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.conversion-before.conversion)).toFixed(1)}pp</Badge>}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
+function ConsultingPDIsView({ storeId }: { storeId: string }) {
+  const { pdis, loading } = usePDIs(storeId)
+
+  if (loading) return <div className="p-mx-lg opacity-50">Carregando planos de carreira...</div>
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
+      {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
+      {pdis.map((pdi) => (
+        <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group">
+          <div className="flex justify-between items-start mb-mx-md">
+            <div>
+              <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{(pdi as any).seller_name || 'Vendedor'}</Typography>
+              <Typography variant="tiny" tone="muted">Plano criado em {format(new Date(pdi.created_at), 'dd/MM/yyyy')}</Typography>
+            </div>
+            <Badge variant={pdi.status === 'ativo' ? 'success' : 'outline'}>{pdi.status.toUpperCase()}</Badge>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-surface-alt/30 rounded-xl">
+               <Typography variant="tiny" className="font-bold text-text-tertiary uppercase mb-1 block">Objetivo 6 Meses</Typography>
+               <Typography variant="p" className="text-sm font-bold italic">"{pdi.meta_6m}"</Typography>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <div>
+                  <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Meta 1 Ano</Typography>
+                  <Typography variant="p" className="text-xs">{pdi.meta_12m || '-'}</Typography>
+               </div>
+               <div>
+                  <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Meta 2 Anos</Typography>
+                  <Typography variant="p" className="text-xs">{pdi.meta_24m || '-'}</Typography>
+               </div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
 export default function ConsultoriaClienteDetalhe() {
   const { clientSlug } = useParams<{ clientSlug: string }>()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  
   const {
     client,
     assignableUsers,
@@ -178,413 +243,114 @@ export default function ConsultoriaClienteDetalhe() {
   
   const clientId = client?.id
   const {
-    modules,
     loading: modulesLoading,
-    canManage: canManageModules,
     isEnabled: isModuleEnabled,
-    upsertModule,
   } = useConsultingModules(clientId)
-  const { steps: methodologySteps, program } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
+
+  const { steps: methodologySteps } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const [activeTab, setActiveTab] = useState<Tab>('overview')
-  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
-    if (client && client.slug && clientSlug && client.slug !== clientSlug) {
-      window.history.replaceState({}, '', `/consultoria/clientes/${client.slug}${window.location.search}`)
+    const tab = searchParams.get('tab') as Tab
+    if (tab && tabLabels[tab]) {
+      setActiveTab(tab)
     }
-  }, [client, clientSlug])
-
-  useEffect(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'visits' || tab === 'financial' || tab === 'overview' || tab === 'strategic' || tab === 'action' || tab === 'daily' || tab === 'monthly') {
-      setActiveTab(tab as Tab)
-    }
-    if (searchParams.get('google_connected') === '1') {
-      toast.success('Google Calendar conectado com sucesso!')
-      window.history.replaceState({}, '', `/consultoria/clientes/${clientSlug}`)
-    }
-  }, [searchParams, clientId])
-
-  useEffect(() => {
-    if (modulesLoading) return
-    if (activeTab === 'strategic' && !isModuleEnabled('strategic_plan')) setActiveTab('overview')
-    if (activeTab === 'action' && !isModuleEnabled('action_plan')) setActiveTab('overview')
-    if (activeTab === 'financial' && !isModuleEnabled('dre')) setActiveTab('overview')
-    if (activeTab === 'daily' && !isModuleEnabled('daily_tracking')) setActiveTab('overview')
-    if (activeTab === 'monthly' && !isModuleEnabled('monthly_close')) setActiveTab('overview')
-  }, [activeTab, isModuleEnabled, modulesLoading])
+  }, [searchParams])
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab)
     setSearchParams({ tab }, { replace: true })
   }
-  const [savingUnit, setSavingUnit] = useState(false)
-  const [savingContact, setSavingContact] = useState(false)
-  const [savingAssignment, setSavingAssignment] = useState(false)
-  const [unitForm, setUnitForm] = useState({ name: '', city: '', state: '', is_primary: false })
-  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', role: '', is_primary: false })
-  const [assignmentForm, setAssignmentForm] = useState<{ user_id: string; assignment_role: 'responsavel' | 'auxiliar' | 'viewer' }>({
-    user_id: '',
-    assignment_role: 'responsavel',
-  })
-  const [showScheduleModal, setShowScheduleModal] = useState(false)
-  const [submittingVisit, setSubmittingVisit] = useState(false)
-  const [scheduleForm, setScheduleForm] = useState({
-    scheduled_at: '',
-    scheduled_time: '09:00',
-    duration_hours: '3',
-    modality: 'Presencial',
-    consultant_id: '',
-    objective: '',
-  })
-
-  const activeAssignments = useMemo(() => {
-    return (client?.assignments || []).filter((assignment) => assignment.active)
-  }, [client?.assignments])
-
-  const availableUsers = useMemo(() => {
-    const assignedIds = new Set((client?.assignments || []).map((assignment) => assignment.user_id))
-    return assignableUsers.filter((user) => !assignedIds.has(user.id))
-  }, [assignableUsers, client?.assignments])
-
-  const visitSteps = useMemo(() => {
-    if (methodologySteps.length > 0) return methodologySteps
-    return [1, 2, 3, 4, 5, 6, 7].map((visitNumber) => ({
-      id: `fallback-${visitNumber}`,
-      visit_number: visitNumber,
-      title: `Visita ${visitNumber}`,
-      objective: `Aguardando agendamento da etapa ${visitNumber}...`,
-      target: null,
-      duration: null,
-      evidence_required: null,
-      checklist_template: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }))
-  }, [methodologySteps])
-
-  const maxVisits = program?.total_visits || visitSteps.length || 7
-  const visibleTabs = useMemo(() => {
-    const tabs: Tab[] = ['overview', 'visits']
-    if (isModuleEnabled('strategic_plan')) tabs.push('strategic')
-    if (isModuleEnabled('action_plan')) tabs.push('action')
-    if (isModuleEnabled('daily_tracking')) tabs.push('daily')
-    if (isModuleEnabled('monthly_close')) tabs.push('monthly')
-    if (isModuleEnabled('dre')) tabs.push('financial')
-    tabs.push('roi')
-    return tabs
-  }, [isModuleEnabled])
-
-  const handleCreateUnit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!unitForm.name.trim()) {
-      toast.error('Nome da unidade é obrigatório.')
-      return
-    }
-
-    setSavingUnit(true)
-    const { error: createError } = await createUnit(unitForm)
-    setSavingUnit(false)
-
-    if (createError) {
-      toast.error(createError)
-      return
-    }
-
-    toast.success('Unidade cadastrada.')
-    setUnitForm({ name: '', city: '', state: '', is_primary: false })
-  }
-
-  const handleCreateContact = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!contactForm.name.trim()) {
-      toast.error('Nome do contato é obrigatório.')
-      return
-    }
-
-    setSavingContact(true)
-    const { error: createError } = await createContact(contactForm)
-    setSavingContact(false)
-
-    if (createError) {
-      toast.error(createError)
-      return
-    }
-
-    toast.success('Contato cadastrado.')
-    setContactForm({ name: '', email: '', phone: '', role: '', is_primary: false })
-  }
-
-  const handleCreateAssignment = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!assignmentForm.user_id) {
-      toast.error('Selecione um usuário.')
-      return
-    }
-
-    setSavingAssignment(true)
-    const { error: createError } = await upsertAssignment(assignmentForm)
-    setSavingAssignment(false)
-
-    if (createError) {
-      toast.error(createError)
-      return
-    }
-
-    toast.success('Consultor vinculado ao cliente.')
-    setAssignmentForm({ user_id: '', assignment_role: 'responsavel' })
-  }
-
-  const handleOpenSchedule = () => {
-    const nextNum = (client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1
-    if (nextNum > maxVisits) {
-      toast.error(`Todas as ${maxVisits} visitas já foram criadas para este cliente.`)
-      return
-    }
-    const nextStep = visitSteps.find((step) => step.visit_number === nextNum)
-    setScheduleForm({
-      scheduled_at: '',
-      scheduled_time: '09:00',
-      duration_hours: '3',
-      modality: 'Presencial',
-      consultant_id: '',
-      objective: nextStep?.objective || '',
-    })
-    setShowScheduleModal(true)
-  }
-
-  const handleSubmitSchedule = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!clientId) return
-    if (!scheduleForm.scheduled_at || !scheduleForm.scheduled_time) {
-      toast.error('Informe data e horário.')
-      return
-    }
-
-    const scheduledAt = `${scheduleForm.scheduled_at}T${scheduleForm.scheduled_time}:00`
-
-    setSubmittingVisit(true)
-    const { error: insertError } = await supabase
-      .from('consulting_visits')
-      .insert({
-        client_id: clientId,
-        visit_number: (client?.visits || []).reduce((max, v) => Math.max(max, v.visit_number), 0) + 1,
-        scheduled_at: scheduledAt,
-        duration_hours: Number(scheduleForm.duration_hours) || 3,
-        modality: scheduleForm.modality,
-        consultant_id: scheduleForm.consultant_id || null,
-        objective: scheduleForm.objective || null,
-        status: 'agendada',
-      })
-
-    setSubmittingVisit(false)
-
-    if (insertError) {
-      toast.error('Erro ao agendar: ' + insertError.message)
-      return
-    }
-
-    toast.success(`Visita agendada com sucesso!`)
-    setShowScheduleModal(false)
-    await refetch()
-  }
-
-  const handleToggleAssignment = async (assignmentId: string, nextActive: boolean) => {
-    const { error: updateError } = await toggleAssignment(assignmentId, nextActive)
-    if (updateError) {
-      toast.error(updateError)
-      return
-    }
-    toast.success(nextActive ? 'Vínculo reativado.' : 'Vínculo desativado.')
-  }
-
-  if (loading) {
-    return (
-      <main className="w-full h-full p-mx-lg bg-surface-alt">
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-          <Typography variant="p">Carregando...</Typography>
-        </Card>
-      </main>
-    )
-  }
-
-  if (error || !client) {
-    return (
-      <main className="w-full h-full p-mx-lg bg-surface-alt">
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-          <Typography variant="h2" tone="error">Cliente não disponível</Typography>
-          <Button asChild variant="secondary" size="sm" className="mt-4">
-            <Link to="/consultoria/clientes">VOLTAR</Link>
-          </Button>
-        </Card>
-      </main>
-    )
-  }
 
   const renderTabContent = () => {
+    if (!client) return null
     switch (activeTab) {
-      case 'overview':
-        return (
-          <>
-            <ConsultingModulesPanel
-              modules={modules}
-              loading={modulesLoading}
-              canManage={canManageModules}
-              onToggle={upsertModule}
-            />
-
-            <section className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
-              <Card className="p-mx-lg border-none shadow-mx-md bg-white xl:col-span-2">
-                <Typography variant="h3" className="mb-mx-md uppercase">Dados Cadastrais</Typography>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
-                  <div className="space-y-mx-xs">
-                    <Typography variant="tiny" tone="muted">RAZÃO SOCIAL</Typography>
-                    <Typography variant="p" className="font-bold">{client.legal_name || 'Não informada'}</Typography>
-                  </div>
-                  <div className="space-y-mx-xs">
-                    <Typography variant="tiny" tone="muted">CNPJ</Typography>
-                    <Typography variant="p" className="font-bold">{client.cnpj || 'Não informado'}</Typography>
-                  </div>
-                  <div className="space-y-mx-xs">
-                    <Typography variant="tiny" tone="muted">PRODUTO</Typography>
-                    <Typography variant="p" className="font-bold">{client.product_name || 'Não definido'}</Typography>
-                  </div>
-                  <div className="space-y-mx-xs">
-                    <Typography variant="tiny" tone="muted">STATUS</Typography>
-                    <Badge variant={client.status === 'ativo' ? 'success' : 'warning'}>{client.status.toUpperCase()}</Badge>
-                  </div>
+      case 'overview': return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+                <Typography variant="h3" className="mb-4">DADOS DO CLIENTE</Typography>
+                <div className="space-y-4">
+                   <div>
+                      <Typography variant="tiny" tone="muted">PRODUTO</Typography>
+                      <Typography variant="p" className="font-bold">{client.product_name || '-'}</Typography>
+                   </div>
+                   <div>
+                      <Typography variant="tiny" tone="muted">RAZÃO SOCIAL</Typography>
+                      <Typography variant="p" className="font-bold">{client.legal_name || '-'}</Typography>
+                   </div>
                 </div>
-              </Card>
-
-              <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-                <Typography variant="h3" className="mb-mx-md uppercase">Equipe MX</Typography>
-                <div className="space-y-mx-sm">
-                  {activeAssignments.map((assignment) => (
-                    <div key={assignment.id} className="p-mx-md rounded-mx-lg bg-surface-alt border border-border-default">
-                      <div className="flex items-center justify-between">
-                        <Typography variant="p" className="font-bold">{assignment.user?.name}</Typography>
-                        <Badge variant="outline">{assignment.assignment_role.toUpperCase()}</Badge>
-                      </div>
+             </Card>
+             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
+                <Typography variant="h3" className="mb-4">RESUMO FINANCEIRO</Typography>
+                <Typography variant="p">Carregando métricas...</Typography>
+             </Card>
+          </div>
+      )
+      case 'visits': return (
+        <div className="space-y-mx-lg">
+          {methodologySteps.map((step) => {
+             const v = client.visits?.find(v => v.visit_number === step.visit_number)
+             return (
+               <Link key={step.id} to={`/consultoria/clientes/${clientSlug}/visitas/${step.visit_number}`} className="block">
+                 <Card className="p-mx-lg bg-white border border-border-default shadow-mx-sm hover:border-brand-primary transition-all flex justify-between items-center">
+                    <div className="flex items-center gap-mx-md">
+                       <div className="w-mx-12 h-mx-12 rounded-full bg-surface-alt flex items-center justify-center font-black">V{step.visit_number}</div>
+                       <div>
+                          <Typography variant="h3" className="text-sm">{step.objective}</Typography>
+                          <Typography variant="tiny" tone="muted">{step.target} • {step.duration}</Typography>
+                       </div>
                     </div>
-                  ))}
-                </div>
-              </Card>
-            </section>
-          </>
-        )
-
-      case 'visits':
-        return (
-          <section className="space-y-mx-lg">
-            <div className="flex items-center justify-between">
-              <Typography variant="h3" className="font-black italic uppercase">Agenda e Cronograma</Typography>
-              <Button onClick={handleOpenSchedule} className="bg-brand-secondary h-12 px-8 font-black">
-                <Plus size={18} className="mr-2" />
-                AGENDAR VISITA
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg">
-              {visitSteps.map((step) => {
-                const visit = client.visits?.find((v) => v.visit_number === step.visit_number)
-                return (
-                  <Card key={step.visit_number} className={cn("p-mx-lg border-none shadow-mx-md bg-white flex flex-col justify-between transition-all", visit?.status === 'concluída' ? "opacity-80" : "hover:shadow-mx-lg hover:-translate-y-1")}>
-                    <div className="space-y-mx-sm">
-                      <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="font-black">ETAPA {step.visit_number}</Badge>
-                        {visit && <Badge variant={visit.status === 'concluída' ? 'success' : 'warning'}>{visit.status.toUpperCase()}</Badge>}
-                      </div>
-                      <Typography variant="h4" className="font-bold min-h-mx-12">{step.objective}</Typography>
-                      {visit ? (
-                        <div className="pt-2 text-text-tertiary">
-                          <Typography variant="tiny" className="flex items-center gap-1 font-bold"><Calendar size={12} /> {new Date(visit.scheduled_at).toLocaleDateString('pt-BR')}</Typography>
-                          <Typography variant="tiny" className="flex items-center gap-1 font-bold"><Clock size={12} /> {visit.duration_hours}H • {visit.modality}</Typography>
-                        </div>
-                      ) : <Typography variant="tiny" tone="muted">Pendente de agendamento</Typography>}
-                    </div>
-                    <div className="pt-mx-lg space-y-mx-xs">
-                      <Button asChild className="w-full font-black" variant={visit?.status === 'concluída' ? 'outline' : 'secondary'}>
-                        <Link to={`/consultoria/clientes/${clientSlug}/visitas/${step.visit_number}`}>
-                          {visit?.status === 'concluída' ? 'VER RELATÓRIO' : 'EXECUTAR AGORA'}
-                          <ChevronRight size={16} className="ml-2" />
-                        </Link>
-                      </Button>
-                      {!visit && (
-                        <Button className="w-full text-mx-micro" variant="ghost" onClick={handleOpenSchedule}>
-                          AGENDAR VISITA
-                        </Button>
-                      )}
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
-            
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-              <Typography variant="h3" className="mb-4 font-black">CALENDÁRIO GOOGLE</Typography>
-              <GoogleCalendarView clientId={clientId!} />
-            </Card>
-          </section>
-        )
-
+                    <Badge variant={v?.status === 'concluída' ? 'success' : 'outline'}>{v?.status?.toUpperCase() || 'PENDENTE'}</Badge>
+                 </Card>
+               </Link>
+             )
+          })}
+        </div>
+      )
       case 'strategic': return <ConsultingStrategicView clientId={clientId!} />
       case 'action': return <ConsultingActionPlanView clientId={clientId!} />
       case 'financial': return <DREView clientId={clientId!} />
       case 'daily': return <ConsultingDailyTrackingView clientId={clientId!} />
       case 'monthly': return <div className="p-mx-lg text-center opacity-50 py-mx-20"><Typography variant="h3">Módulo de Fechamento Mensal em Breve</Typography></div>
       case 'roi': return <ConsultingROIView client={client} />
-
+      case 'pdis': return <ConsultingPDIsView storeId={client.store_id || ''} />
       default: return null
     }
   }
 
+  if (loading || modulesLoading) return <div className="p-mx-20 text-center opacity-50">Carregando cockpit...</div>
+  if (error || !client) return <div className="p-mx-20 text-center text-status-error">{error || 'Cliente não encontrado'}</div>
+
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-        <div className="space-y-mx-sm">
-          <Button asChild variant="ghost" size="sm" className="pl-0 text-brand-secondary hover:text-brand-primary">
-            <Link to="/consultoria/clientes"><ArrowLeft size={16} className="mr-2" />VOLTAR</Link>
-          </Button>
-          <div className="flex items-center gap-mx-sm">
-            <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-            <Typography variant="h1" className="font-black italic">{client.name.toUpperCase()}</Typography>
-          </div>
-          <Typography variant="caption" className="pl-mx-md uppercase font-bold tracking-widest text-text-tertiary">
-            {client.product_name || 'PMR'} • {client.status.toUpperCase()}
-          </Typography>
-        </div>
-
-        <nav className="flex items-center gap-mx-tiny bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm overflow-x-auto no-scrollbar">
-          {visibleTabs.map((tab) => (
-            <Button
-              key={tab}
-              variant={activeTab === tab ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => handleTabChange(tab)}
-              className="rounded-mx-full px-6 h-mx-lg uppercase font-black whitespace-nowrap text-xs"
-            >
-              {tabLabels[tab]}
-            </Button>
-          ))}
-        </nav>
+      <header className="flex justify-between items-center mb-mx-md">
+         <div className="flex items-center gap-mx-md">
+            <Link to="/consultoria/clientes" className="p-mx-xs bg-white rounded-lg border border-border-default hover:bg-surface-alt transition-colors">
+               <ArrowLeft className="w-mx-5 h-mx-5" />
+            </Link>
+            <div>
+               <div className="flex items-center gap-mx-sm">
+                  <Typography variant="h1" className="text-2xl">{client.name}</Typography>
+                  <Badge variant={client.status === 'ativo' ? 'success' : 'outline'}>{client.status.toUpperCase()}</Badge>
+               </div>
+               <Typography variant="tiny" tone="muted" className="font-bold tracking-widest uppercase">Módulo de Gestão Preditiva MX</Typography>
+            </div>
+         </div>
       </header>
 
-      {renderTabContent()}
+      <nav className="flex gap-2 border-b border-border-subtle mb-mx-md overflow-x-auto no-scrollbar">
+         {(['overview', 'visits', 'strategic', 'action', 'financial', 'daily', 'roi', 'pdis'] as Tab[]).map(tab => (
+            <button key={tab} onClick={() => handleTabChange(tab)} className={cn("px-mx-md py-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap", activeTab === tab ? "border-brand-primary text-brand-primary bg-brand-primary/5" : "border-transparent text-text-tertiary hover:text-text-primary hover:bg-surface-alt")}>
+               {tabLabels[tab]}
+            </button>
+         ))}
+      </nav>
 
-      <Modal open={showScheduleModal} onClose={() => setShowScheduleModal(false)} title="Agendar Nova Visita" size="xl">
-        <form onSubmit={handleSubmitSchedule} className="p-8 space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1"><Typography variant="tiny" className="font-black">DATA</Typography><DatePicker value={scheduleForm.scheduled_at} onChange={e => setScheduleForm(p => ({ ...p, scheduled_at: e.target.value }))} /></div>
-            <div className="space-y-1"><Typography variant="tiny" className="font-black">HORA</Typography><Input type="time" value={scheduleForm.scheduled_time} onChange={e => setScheduleForm(p => ({ ...p, scheduled_time: e.target.value }))} /></div>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1"><Typography variant="tiny" className="font-black">DURAÇÃO (H)</Typography><Input type="number" value={scheduleForm.duration_hours} onChange={e => setScheduleForm(p => ({ ...p, duration_hours: e.target.value }))} /></div>
-            <div className="space-y-1"><Typography variant="tiny" className="font-black">MODALIDADE</Typography><Select value={scheduleForm.modality} onChange={e => setScheduleForm(p => ({ ...p, modality: e.target.value }))}><option value="Presencial">Presencial</option><option value="Online">Online</option></Select></div>
-          </div>
-          <div className="space-y-1"><Typography variant="tiny" className="font-black">OBJETIVO</Typography><Textarea value={scheduleForm.objective} onChange={e => setScheduleForm(p => ({ ...p, objective: e.target.value }))} className="min-h-mx-24" /></div>
-          <div className="flex justify-end pt-4"><Button type="submit" disabled={submittingVisit} className="bg-brand-secondary h-14 px-12 font-black">CONFIRMAR AGENDAMENTO</Button></div>
-        </form>
-      </Modal>
+      {renderTabContent()}
     </main>
   )
+}
+
+function cn(...classes: any[]) {
+  return classes.filter(Boolean).join(' ')
 }
