@@ -207,7 +207,18 @@ export default function ConsultoriaVisitaExecucao() {
       }
       
       if (error) throw error
-      toast.success('Visita assinada/confirmada pelo gestor!'); refetch()
+      toast.success('Visita assinada/confirmada pelo gestor!')
+      
+      // Trigger automatic email via Edge Function
+      try {
+        supabase.functions.invoke('send-visit-report', {
+          body: { visitId: visit.id }
+        })
+      } catch (e) {
+        console.warn('Silent fail on email trigger:', e)
+      }
+
+      refetch()
     } catch (err: any) { toast.error(err.message) }
   }
 

@@ -233,3 +233,52 @@
     print-color-adjust: exact;
   }
 }
+
+/* ============================================================
+   MX PERFORMANCE - PROFESSIONAL PRINT STYLES (A4)
+   ============================================================ */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Esconder UI do sistema durante a impressão */
+  .print\:hidden,
+  nav,
+  header,
+  aside,
+  button,
+  .no-print,
+  [role="dialog"] > button {
+    display: none !important;
+  }
+
+  /* Forçar renderização de background colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Container do relatório ocupando largura total */
+  .print\:w-full {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Quebra de página controlada */
+  .page-break {
+    page-break-before: always;
+  }
+}
