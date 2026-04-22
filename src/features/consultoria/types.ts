@@ -94,6 +94,7 @@ export interface ConsultingVisit {
   estoque_disponivel: string | null
   acknowledged_at?: string | null
   acknowledged_by?: string | null
+  next_cycle_goal?: string | null
   attachments?: ConsultingVisitAttachment[]
   created_at: string
   updated_at: string

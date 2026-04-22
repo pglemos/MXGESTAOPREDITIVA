@@ -5,6 +5,8 @@ import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+const STORAGE_URL = 'https://fbhcmzzgwjdgkctlfvbo.supabase.co/storage/v1/object/public/consulting-attachments/'
+
 interface Props {
   client: ConsultingClientDetail
   visit: ConsultingVisit
@@ -14,6 +16,7 @@ interface Props {
 
 export function VisitReportTemplate({ client, visit, headerBase, quantData }: Props) {
   const visitDate = new Date(headerBase.visit_date || visit.scheduled_at)
+  const attachments = (visit as any).attachments || []
 
   return (
     <div className="bg-white p-12 w-[210mm] min-h-[297mm] mx-auto text-black font-sans print:p-0">
@@ -55,7 +58,7 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
           { l: 'Leads no Mês', v: headerBase.leads_mes },
           { l: 'Estoque', v: headerBase.estoque_disponivel }
         ].map(i => (
-          <div key={i.l} className="border border-border-default p-4 rounded-xl text-center">
+          <div key={i.l} className="border border-border-default p-4 rounded-xl text-center text-black">
             <Typography variant="tiny" className="font-bold text-text-tertiary block mb-1 uppercase">{i.l}</Typography>
             <Typography variant="h3" className="text-brand-primary font-black">{i.v || '0'}</Typography>
           </div>
@@ -79,19 +82,55 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
           <div className="w-1.5 h-6 bg-brand-secondary rounded-full" />
           <Typography variant="h3">Pontos de Atenção e Feedback</Typography>
         </div>
-        <div className="p-6 border border-brand-secondary/30 rounded-2xl bg-brand-secondary/5 text-sm leading-relaxed">
+        <div className="p-6 border border-brand-secondary/30 rounded-2xl bg-brand-secondary/5 text-sm leading-relaxed text-black">
           {visit.feedback_client || 'Nenhum feedback direto registrado.'}
         </div>
       </section>
 
+      {/* Objetivo do Próximo Ciclo */}
+      <section className="mb-8" style={{ breakInside: 'avoid' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-1.5 h-6 bg-status-warning rounded-full" />
+          <Typography variant="h3">Objetivo do Próximo Ciclo (30 dias)</Typography>
+        </div>
+        <div className="p-6 border border-status-warning/30 rounded-2xl bg-status-warning/5 text-sm font-bold leading-relaxed text-black">
+          {(visit as any).next_cycle_goal || 'A ser definido na próxima auditoria.'}
+        </div>
+      </section>
+
+      {/* Evidências Fotográficas */}
+      {attachments.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-1.5 h-6 bg-text-tertiary rounded-full" />
+            <Typography variant="h3">Evidências da Visita</Typography>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {attachments.map((att: any) => (
+              <div key={att.id} className="border border-border-default rounded-xl overflow-hidden bg-surface-alt">
+                <img 
+                  src={`${STORAGE_URL}${att.storage_path}`} 
+                  alt={att.filename}
+                  className="w-full h-48 object-cover"
+                  crossOrigin="anonymous"
+                />
+                <div className="p-2 text-[10px] text-text-tertiary truncate bg-white">
+                  {att.filename}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Assinaturas */}
       <footer className="mt-20 pt-8 border-t border-border-subtle grid grid-cols-2 gap-20">
-        <div className="text-center">
+        <div className="text-center text-black">
           <div className="h-px bg-black mb-2 mx-auto w-48" />
           <Typography variant="tiny" className="font-bold">ASSINATURA CONSULTOR</Typography>
           <Typography variant="p" className="text-[10px]">{headerBase.consultant_name}</Typography>
         </div>
-        <div className="text-center">
+        <div className="text-center text-black">
           <div className="h-px bg-black mb-2 mx-auto w-48" />
           <Typography variant="tiny" className="font-bold">ASSINATURA GESTOR DA LOJA</Typography>
           <Typography variant="p" className="text-[10px]">

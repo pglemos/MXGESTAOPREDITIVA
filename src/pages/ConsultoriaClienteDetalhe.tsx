@@ -71,7 +71,9 @@ function ConsultingROIView({ client }: { client: any }) {
   const chartData = financials.map(f => ({
     mes: format(new Date(f.reference_date), 'MMM', { locale: ptBR }).toUpperCase(),
     vendas: f.volume_vendas || 0,
-    conversao: f.volume_leads > 0 ? (f.volume_vendas / f.volume_leads) * 100 : 0
+    conversao: f.volume_leads > 0 ? (f.volume_vendas / f.volume_leads) * 100 : 0,
+    margem: f.net_profit > 0 && f.revenue > 0 ? (f.net_profit / f.revenue) * 100 : 0,
+    estoque: f.fixed_expenses > 0 ? 30 : 0 // Placeholder para idade de estoque (precisaria de campo real)
   }))
 
   const before = {
@@ -123,8 +125,8 @@ function ConsultingROIView({ client }: { client: any }) {
                     <Legend iconType="circle" />
                     <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke="#0D3B2E" strokeWidth={4} dot={{r: 6, fill: '#0D3B2E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
                     <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
-                  </LineChart>
-                </ResponsiveContainer>
+                    <Line yAxisId="right" type="monotone" dataKey="margem" name="Margem %" stroke="#FACC15" strokeWidth={3} strokeDasharray="5 5" dot={{r: 4, fill: '#FACC15'}} />
+                    </LineChart>                </ResponsiveContainer>
               </div>
             </Card>
           </div>

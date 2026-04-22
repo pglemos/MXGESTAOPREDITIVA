@@ -58,6 +58,7 @@ export default function ConsultoriaVisitaExecucao() {
   const [checklist, setChecklist] = useState<Array<{ task: string, completed: boolean }>>([])
   const [executiveSummary, setExecutiveSummary] = useState('')
   const [feedbackClient, setFeedbackClient] = useState('')
+  const [nextCycleGoal, setNextCycleGoal] = useState('')
   const [attachments, setAttachments] = useState<any[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -82,6 +83,7 @@ export default function ConsultoriaVisitaExecucao() {
       setChecklist(visit.checklist_data || [])
       setExecutiveSummary(visit.executive_summary || '')
       setFeedbackClient(visit.feedback_client || '')
+      setNextCycleGoal((visit as any).next_cycle_goal || '')
       setAttachments(visit.attachments || [])
       setHeaderBase({
         meta_mensal: (visit as any).meta_mensal || '',
@@ -165,7 +167,8 @@ export default function ConsultoriaVisitaExecucao() {
         meta_mensal: headerBase.meta_mensal, projecao: headerBase.projecao,
         leads_mes: headerBase.leads_mes, estoque_disponivel: headerBase.estoque_disponivel,
         consultant_name_manual: headerBase.consultant_name,
-        effective_visit_date: headerBase.visit_date, quant_data: quantData
+        effective_visit_date: headerBase.visit_date, quant_data: quantData,
+        next_cycle_goal: nextCycleGoal
       }
       
       const { error } = await supabase.from('consulting_visits').upsert(payload, { onConflict: 'client_id,visit_number' })
@@ -286,7 +289,12 @@ Gerado via MX PERFORMANCE`
       {/* Elemento oculto para renderização do PDF */}
       <div className="fixed -left-[9999px] top-0 overflow-hidden pointer-events-none">
          <div id="report-template-render">
-            <VisitReportTemplate client={client} visit={visit || { visit_number: visitNum } as any} headerBase={headerBase} quantData={quantData} />
+            <VisitReportTemplate 
+              client={client} 
+              visit={visit ? { ...visit, next_cycle_goal: nextCycleGoal } as any : { visit_number: visitNum, next_cycle_goal: nextCycleGoal } as any} 
+              headerBase={headerBase} 
+              quantData={quantData} 
+            />
          </div>
       </div>
       
@@ -393,6 +401,19 @@ Gerado via MX PERFORMANCE`
                 onChange={(e) => setFeedbackClient(e.target.value)} 
                 placeholder="Pontos de atenção emergenciais..." 
                 className="min-h-[100px] text-sm font-medium bg-white border border-border-default focus:border-brand-primary shadow-sm resize-y rounded-xl p-mx-md" 
+              />
+            </Card>
+
+            <Card className="p-mx-lg border border-border-default shadow-sm rounded-2xl bg-white">
+              <div className="flex items-center gap-mx-sm mb-4">
+                <Target className="w-mx-5 h-mx-5 text-status-warning" />
+                <Typography variant="h3" className="text-lg">Objetivo Próximo Ciclo (30 dias)</Typography>
+              </div>
+              <Textarea 
+                value={nextCycleGoal} 
+                onChange={(e) => setNextCycleGoal(e.target.value)} 
+                placeholder="O que deve ser o foco da loja até a próxima visita da consultoria?" 
+                className="min-h-[80px] text-sm font-bold bg-status-warning/5 border-status-warning/20 focus:border-status-warning shadow-inner resize-y rounded-xl p-mx-md" 
               />
             </Card>
           </div>
