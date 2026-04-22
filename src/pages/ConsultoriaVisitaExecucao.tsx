@@ -31,6 +31,7 @@ import {
   VisitFiveExecution, VisitSixExecution, VisitSevenExecution, 
   VisitEightExecution, VisitNineExecution 
 } from '@/features/consultoria/components/VisitExecutionViews'
+import { VisitReportTemplate } from '@/features/consultoria/components/VisitReportTemplate'
 
 export default function ConsultoriaVisitaExecucao() {
   const { clientSlug, visitNumber } = useParams<{ clientSlug: string, visitNumber: string }>()
@@ -199,10 +200,43 @@ ${feedbackClient || '(Nenhum)'}
 Gerado via MX PERFORMANCE`
   }
 
+  const handleDownloadPDF = async () => {
+    // Import dynamically to keep bundle small
+    const html2pdf = (await import('html2pdf.js')).default
+    
+    const element = document.getElementById('report-template-render')
+    if (!element) return
+
+    const opt = {
+      margin: 0,
+      filename: `Relatorio-Visita-${visitNum}-${client?.slug || 'cliente'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    } as const
+
+    try {
+      toast.loading('Gerando PDF Oficial...')
+      await html2pdf().set(opt).from(element).save()
+      toast.success('Relatório gerado com sucesso!')
+    } catch (err) {
+      toast.error('Erro ao gerar PDF')
+      console.error(err)
+    }
+  }
+
   if (clientLoading || methodologyLoading) return <div className="flex w-full items-center justify-center p-mx-20"><Loader2 className="w-8 h-8 animate-spin text-brand-primary" /></div>
+
+  if (!client) return <div>Cliente não localizado.</div>
 
   return (
     <div className="w-full pb-mx-xl relative z-0">
+      {/* Elemento oculto para renderização do PDF */}
+      <div className="fixed -left-[9999px] top-0 overflow-hidden pointer-events-none">
+         <div id="report-template-render">
+            <VisitReportTemplate client={client} visit={visit || { visit_number: visitNum } as any} headerBase={headerBase} quantData={quantData} />
+         </div>
+      </div>
       
       {/* Header Fixo da Visita - Limpo e sem conflito de Z-index */}
       <div className="bg-transparent px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden">
@@ -383,6 +417,7 @@ Gerado via MX PERFORMANCE`
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm print:hidden">
                <Button variant="outline" className="h-11 text-sm font-bold bg-white" onClick={() => window.print()} icon={<Printer className="w-mx-4 h-mx-4" />}>Imprimir PDF</Button>
                <Button className="h-11 text-sm font-bold bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-sm" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-mx-4 h-mx-4" />}>Enviar WhatsApp</Button>
+               <Button variant="secondary" className="h-11 text-sm font-bold bg-brand-primary text-white border-none shadow-mx-sm col-span-1 sm:col-span-2" onClick={handleDownloadPDF} icon={<Download className="w-mx-4 h-mx-4" />}>BAIXAR PDF OFICIAL (A4)</Button>
             </div>
          </div>
       </Modal>
