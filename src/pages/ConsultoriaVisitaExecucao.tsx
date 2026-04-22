@@ -142,7 +142,7 @@ export default function ConsultoriaVisitaExecucao() {
     if (!clientId || !visitNum) return
     setIsSaving(true)
     try {
-      const payload = {
+      const payload: any = {
         client_id: clientId, visit_number: visitNum, checklist_data: checklist,
         executive_summary: executiveSummary, feedback_client: feedbackClient,
         status: complete ? 'concluída' : 'em_andamento',
@@ -151,11 +151,30 @@ export default function ConsultoriaVisitaExecucao() {
         consultant_name_manual: headerBase.consultant_name,
         effective_visit_date: headerBase.visit_date, quant_data: quantData
       }
+      
       const { error } = await supabase.from('consulting_visits').upsert(payload, { onConflict: 'client_id,visit_number' })
-      if (error) throw error
+      
+      // Fallback if schema is outdated (common in rapid migration cycles)
+      if (error && (error.code === 'PGRST204' || error.message.includes('consultant_name_manual'))) {
+        console.warn('Schema mismatch detected, retrying without extended fields...')
+        const legacyPayload = { ...payload }
+        delete legacyPayload.consultant_name_manual
+        delete legacyPayload.effective_visit_date
+        delete legacyPayload.acknowledged_at
+        delete legacyPayload.acknowledged_by
+        
+        const { error: retryError } = await supabase.from('consulting_visits').upsert(legacyPayload, { onConflict: 'client_id,visit_number' })
+        if (retryError) throw retryError
+      } else if (error) {
+        throw error
+      }
+
       toast.success(complete ? 'Etapa Concluída com Sucesso!' : 'Progresso salvo'); refetch()
       if (complete) navigate(`/consultoria/clientes/${client?.slug}`)
-    } catch (err: any) { toast.error(err.message) } finally { setIsSaving(false) }
+    } catch (err: any) { 
+      console.error(err)
+      toast.error('Erro ao salvar: ' + err.message) 
+    } finally { setIsSaving(false) }
   }
 
   const handleAcknowledge = async () => {
@@ -165,6 +184,12 @@ export default function ConsultoriaVisitaExecucao() {
         acknowledged_at: new Date().toISOString(),
         acknowledged_by: profile?.id 
       }).eq('id', visit.id)
+      
+      if (error && (error.code === 'PGRST204' || error.message.includes('acknowledged_at'))) {
+         toast.error('Sistema em atualização: Coluna de assinatura ainda não disponível no banco de dados.')
+         return
+      }
+      
       if (error) throw error
       toast.success('Visita assinada/confirmada pelo gestor!'); refetch()
     } catch (err: any) { toast.error(err.message) }
