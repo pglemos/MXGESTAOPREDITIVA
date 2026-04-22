@@ -73,7 +73,7 @@ function ConsultingROIView({ client }: { client: any }) {
     vendas: f.volume_vendas || 0,
     conversao: f.volume_leads > 0 ? (f.volume_vendas / f.volume_leads) * 100 : 0,
     margem: f.net_profit > 0 && f.revenue > 0 ? (f.net_profit / f.revenue) * 100 : 0,
-    estoque: f.fixed_expenses > 0 ? 30 : 0 // Placeholder para idade de estoque (precisaria de campo real)
+    estoque: f.fixed_expenses > 0 ? 30 : 0 // Placeholder
   }))
 
   const before = {
@@ -98,11 +98,11 @@ function ConsultingROIView({ client }: { client: any }) {
         </Button>
       </div>
 
-      <div id="roi-report-content" className="space-y-mx-lg bg-surface-alt p-mx-md rounded-2xl print:p-0 print:bg-white">
+      <div id="roi-report-content" className="space-y-mx-lg bg-surface-alt p-mx-md rounded-mx-2xl print:p-0 print:bg-white">
         <Card className="p-mx-xl bg-brand-primary text-white border-none shadow-mx-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-mx-lg opacity-10"><TrendingUp size={200} strokeWidth={1} /></div>
           <div className="relative z-10">
-            <Typography variant="h3" className="text-white/70 mb-2 uppercase tracking-widest">Relatório de Choque: ROI da Consultoria</Typography>
+            <Typography variant="h3" className="text-white/70 mb-mx-xs uppercase tracking-mx-widest">Relatório de Choque: ROI da Consultoria</Typography>
             <div className="flex items-baseline gap-mx-md">
               <Typography variant="h1" className="text-6xl font-black">{roi > 0 ? '+' : ''}{roi.toFixed(1)}%</Typography>
               <Typography variant="h3" className="text-white/80">DE CRESCIMENTO EM VENDAS</Typography>
@@ -113,8 +113,8 @@ function ConsultingROIView({ client }: { client: any }) {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
           <div className="xl:col-span-2">
             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md h-full">
-              <Typography variant="h3" className="mb-8">EVOLUÇÃO HISTÓRICA (PMR)</Typography>
-              <div className="h-[350px] w-full">
+              <Typography variant="h3" className="mb-mx-md">EVOLUÇÃO HISTÓRICA (PMR)</Typography>
+              <div className="h-mx-chart w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -126,15 +126,16 @@ function ConsultingROIView({ client }: { client: any }) {
                     <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke="#0D3B2E" strokeWidth={4} dot={{r: 6, fill: '#0D3B2E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
                     <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
                     <Line yAxisId="right" type="monotone" dataKey="margem" name="Margem %" stroke="#FACC15" strokeWidth={3} strokeDasharray="5 5" dot={{r: 4, fill: '#FACC15'}} />
-                    </LineChart>                </ResponsiveContainer>
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </Card>
           </div>
 
           <div className="space-y-mx-lg">
             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-              <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
-                 <div className="w-mx-xs h-mx-xs bg-status-error rounded-full" /> MÉDIA ANTES (D0)
+              <Typography variant="h3" className="mb-mx-md flex items-center gap-mx-xs">
+                 <div className="w-mx-xs h-mx-xs bg-status-error rounded-mx-full" /> MÉDIA ANTES (D0)
               </Typography>
               <div className="space-y-mx-md">
                 <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
@@ -153,15 +154,15 @@ function ConsultingROIView({ client }: { client: any }) {
             </Card>
 
             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-              <Typography variant="h3" className="mb-6 flex items-center gap-mx-sm">
-                 <div className="w-mx-xs h-mx-xs bg-status-success rounded-full" /> RESULTADO ATUAL
+              <Typography variant="h3" className="mb-mx-md flex items-center gap-mx-xs">
+                 <div className="w-mx-xs h-mx-xs bg-status-success rounded-mx-full" /> RESULTADO ATUAL
               </Typography>
               <div className="space-y-mx-md">
                 <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
                   <Typography variant="p" className="font-bold text-text-tertiary">VENDAS/MÊS</Typography>
-                  <div className="flex items-center gap-mx-sm">
+                  <div className="flex items-center gap-mx-xs">
                     <Typography variant="h3" className="text-status-success">{after.sales}</Typography>
-                    {after.sales > before.sales && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.sales-before.sales)).toFixed(0)}</Badge>}
+                    {after.sales > before.sales && <Badge className="bg-status-success/10 text-status-success border-none text-mx-micro">+{((after.sales-before.sales)).toFixed(0)}</Badge>}
                   </div>
                 </div>
                 <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
@@ -170,9 +171,9 @@ function ConsultingROIView({ client }: { client: any }) {
                 </div>
                 <div className="flex justify-between items-center">
                   <Typography variant="p" className="font-bold text-text-tertiary">CONVERSÃO GERAL</Typography>
-                  <div className="flex items-center gap-mx-sm">
+                  <div className="flex items-center gap-mx-xs">
                     <Typography variant="h3" className={after.conversion > before.conversion ? 'text-status-success' : ''}>{after.conversion.toFixed(1)}%</Typography>
-                    {after.conversion > before.conversion && <Badge className="bg-status-success/10 text-status-success border-none text-[10px]">+{((after.conversion-before.conversion)).toFixed(1)}pp</Badge>}
+                    {after.conversion > before.conversion && <Badge className="bg-status-success/10 text-status-success border-none text-mx-micro">+{((after.conversion-before.conversion)).toFixed(1)}pp</Badge>}
                   </div>
                 </div>
               </div>
@@ -193,7 +194,7 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
       {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
       {pdis.map((pdi) => (
-        <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group">
+        <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-xl">
           <div className="flex justify-between items-start mb-mx-md">
             <div>
               <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{(pdi as any).seller_name || 'Vendedor'}</Typography>
@@ -202,12 +203,12 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
             <Badge variant={pdi.status === 'ativo' ? 'success' : 'outline'}>{pdi.status.toUpperCase()}</Badge>
           </div>
           
-          <div className="space-y-4">
-            <div className="p-4 bg-surface-alt/30 rounded-xl">
+          <div className="space-y-mx-md">
+            <div className="p-mx-md bg-surface-alt/30 rounded-mx-xl">
                <Typography variant="tiny" className="font-bold text-text-tertiary uppercase mb-1 block">Objetivo 6 Meses</Typography>
                <Typography variant="p" className="text-sm font-bold italic">"{pdi.meta_6m}"</Typography>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-mx-md">
                <div>
                   <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Meta 1 Ano</Typography>
                   <Typography variant="p" className="text-xs">{pdi.meta_12m || '-'}</Typography>
@@ -231,16 +232,8 @@ export default function ConsultoriaClienteDetalhe() {
   
   const {
     client,
-    assignableUsers,
     loading,
     error,
-    refetch,
-    createUnit,
-    createContact,
-    upsertAssignment,
-    toggleAssignment,
-    upsertFinancial,
-    deleteFinancial,
   } = useConsultingClientDetailBySlug(clientSlug)
   
   const clientId = client?.id
@@ -269,9 +262,9 @@ export default function ConsultoriaClienteDetalhe() {
     switch (activeTab) {
       case 'overview': return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
-             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-                <Typography variant="h3" className="mb-4">DADOS DO CLIENTE</Typography>
-                <div className="space-y-4">
+             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
+                <Typography variant="h3" className="mb-mx-md">DADOS DO CLIENTE</Typography>
+                <div className="space-y-mx-md">
                    <div>
                       <Typography variant="tiny" tone="muted">PRODUTO</Typography>
                       <Typography variant="p" className="font-bold">{client.product_name || '-'}</Typography>
@@ -282,8 +275,8 @@ export default function ConsultoriaClienteDetalhe() {
                    </div>
                 </div>
              </Card>
-             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md">
-                <Typography variant="h3" className="mb-4">RESUMO FINANCEIRO</Typography>
+             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
+                <Typography variant="h3" className="mb-mx-md">RESUMO FINANCEIRO</Typography>
                 <Typography variant="p">Carregando métricas...</Typography>
              </Card>
           </div>
@@ -294,9 +287,9 @@ export default function ConsultoriaClienteDetalhe() {
              const v = client.visits?.find(v => v.visit_number === step.visit_number)
              return (
                <Link key={step.id} to={`/consultoria/clientes/${clientSlug}/visitas/${step.visit_number}`} className="block">
-                 <Card className="p-mx-lg bg-white border border-border-default shadow-mx-sm hover:border-brand-primary transition-all flex justify-between items-center">
+                 <Card className="p-mx-lg bg-white border border-border-default shadow-mx-sm hover:border-brand-primary transition-all flex justify-between items-center rounded-mx-2xl">
                     <div className="flex items-center gap-mx-md">
-                       <div className="w-mx-12 h-mx-12 rounded-full bg-surface-alt flex items-center justify-center font-black">V{step.visit_number}</div>
+                       <div className="w-mx-12 h-mx-12 rounded-mx-full bg-surface-alt flex items-center justify-center font-black">V{step.visit_number}</div>
                        <div>
                           <Typography variant="h3" className="text-sm">{step.objective}</Typography>
                           <Typography variant="tiny" tone="muted">{step.target} • {step.duration}</Typography>
@@ -327,22 +320,22 @@ export default function ConsultoriaClienteDetalhe() {
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
       <header className="flex justify-between items-center mb-mx-md">
          <div className="flex items-center gap-mx-md">
-            <Link to="/consultoria/clientes" className="p-mx-xs bg-white rounded-lg border border-border-default hover:bg-surface-alt transition-colors">
+            <Link to="/consultoria/clientes" className="p-mx-xs bg-white rounded-mx-lg border border-border-default hover:bg-surface-alt transition-colors">
                <ArrowLeft className="w-mx-5 h-mx-5" />
             </Link>
             <div>
-               <div className="flex items-center gap-mx-sm">
+               <div className="flex items-center gap-mx-xs">
                   <Typography variant="h1" className="text-2xl">{client.name}</Typography>
                   <Badge variant={client.status === 'ativo' ? 'success' : 'outline'}>{client.status.toUpperCase()}</Badge>
                </div>
-               <Typography variant="tiny" tone="muted" className="font-bold tracking-widest uppercase">Módulo de Gestão Preditiva MX</Typography>
+               <Typography variant="tiny" tone="muted" className="font-bold tracking-mx-widest uppercase">Módulo de Gestão Preditiva MX</Typography>
             </div>
          </div>
       </header>
 
-      <nav className="flex gap-2 border-b border-border-subtle mb-mx-md overflow-x-auto no-scrollbar">
+      <nav className="flex gap-mx-xs border-b border-border-subtle mb-mx-md overflow-x-auto no-scrollbar">
          {(['overview', 'visits', 'strategic', 'action', 'financial', 'daily', 'roi', 'pdis'] as Tab[]).map(tab => (
-            <button key={tab} onClick={() => handleTabChange(tab)} className={cn("px-mx-md py-3 text-xs font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap", activeTab === tab ? "border-brand-primary text-brand-primary bg-brand-primary/5" : "border-transparent text-text-tertiary hover:text-text-primary hover:bg-surface-alt")}>
+            <button key={tab} onClick={() => handleTabChange(tab)} className={cn("px-mx-md py-mx-sm text-xs font-black uppercase tracking-mx-widest transition-all border-b-2 whitespace-nowrap", activeTab === tab ? "border-brand-primary text-brand-primary bg-brand-primary/5" : "border-transparent text-text-tertiary hover:text-text-primary hover:bg-surface-alt")}>
                {tabLabels[tab]}
             </button>
          ))}

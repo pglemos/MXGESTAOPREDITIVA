@@ -19,7 +19,7 @@ export function ConsultingDailyTrackingView({ clientId, storeId }: Props) {
       key: 'reference_date',
       header: 'DATA',
       render: (row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-mx-xs">
           <Calendar size={14} className="text-text-tertiary" />
           <Typography variant="p" className="font-bold">
             {new Date(row.reference_date + 'T12:00:00').toLocaleDateString('pt-BR')}
@@ -31,7 +31,7 @@ export function ConsultingDailyTrackingView({ clientId, storeId }: Props) {
       key: 'leads_prev_day',
       header: 'LEADS',
       render: (row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-mx-xs">
           <Phone size={14} className="text-status-info" />
           <Typography variant="p">{row.leads_prev_day || 0}</Typography>
         </div>
@@ -51,7 +51,7 @@ export function ConsultingDailyTrackingView({ clientId, storeId }: Props) {
       key: 'visit_prev_day',
       header: 'VISITAS',
       render: (row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-mx-xs">
           <Users size={14} className="text-status-success" />
           <Typography variant="p">{row.visit_prev_day || 0}</Typography>
         </div>
@@ -63,7 +63,7 @@ export function ConsultingDailyTrackingView({ clientId, storeId }: Props) {
       render: (row) => {
         const total = (row.vnd_porta_prev_day || 0) + (row.vnd_cart_prev_day || 0) + (row.vnd_net_prev_day || 0)
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-mx-xs">
             <CheckCircle2 size={14} className="text-brand-primary" />
             <Typography variant="p" className="font-black">{total}</Typography>
           </div>

@@ -279,12 +279,12 @@ export function ConsultingStrategicView({ clientId }: Props) {
                 <Typography variant="tiny" tone="muted">Nenhum arquivo gerado via CLI ainda.</Typography>
             )}
             {strategic.artifacts.map(art => (
-                <div key={art.id} className="flex items-center justify-between p-2 rounded-lg border border-border-subtle bg-surface-alt/50">
+                <div key={art.id} className="flex items-center justify-between p-mx-xs rounded-lg border border-border-subtle bg-surface-alt/50">
                     <div className="min-w-0">
                         <Typography variant="p" className="text-xs font-bold truncate">{art.title}</Typography>
                         <Typography variant="tiny" tone="muted" className="block capitalize">{art.artifact_type.replace('_', ' ')}</Typography>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                    <Button variant="ghost" size="icon" className="h-mx-8 w-mx-8" asChild>
                         <a href={`#artifact-${art.id}`} title="Ver Markdown">
                             <FileText size={14} />
                         </a>

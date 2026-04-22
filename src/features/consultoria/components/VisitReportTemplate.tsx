@@ -15,106 +15,111 @@ interface Props {
 }
 
 export function VisitReportTemplate({ client, visit, headerBase, quantData }: Props) {
-  const visitDate = new Date(headerBase.visit_date || visit.scheduled_at)
+  const visitDateRaw = headerBase.visit_date || visit.scheduled_at || new Date().toISOString()
+  const visitDate = new Date(visitDateRaw)
   const attachments = (visit as any).attachments || []
+  
+  const formattedDate = !isNaN(visitDate.getTime()) 
+    ? format(visitDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+    : 'Data não informada'
 
   return (
-    <div className="bg-white p-12 w-[210mm] min-h-[297mm] mx-auto text-black font-sans print:p-0">
+    <div className="bg-white p-mx-xl w-[210mm] min-h-[297mm] mx-auto text-black font-sans print:p-0">
       {/* Header com Logo */}
-      <header className="flex justify-between items-start border-b-2 border-brand-primary pb-6 mb-8">
+      <header className="flex justify-between items-start border-b-2 border-[#0D3B2E] pb-mx-sm mb-mx-md">
         <div>
-          <img src="/mx-logo.png" alt="MX Performance" className="h-12 mb-2" />
-          <Typography variant="tiny" className="text-brand-primary font-black tracking-widest uppercase">
+          <img src="/mx-logo.png" alt="MX Performance" className="h-mx-12 mb-mx-xs" />
+          <Typography variant="tiny" className="text-[#0D3B2E] font-black tracking-widest uppercase">
             Sistema de Gestão de Alta Performance
           </Typography>
         </div>
         <div className="text-right">
-          <Typography variant="h3" className="text-brand-primary">RELATÓRIO DE AUDITORIA</Typography>
-          <Badge className="bg-brand-primary text-white border-none px-4 py-1 rounded-full font-bold">
+          <Typography variant="h3" className="text-[#0D3B2E]">RELATÓRIO DE AUDITORIA</Typography>
+          <Badge className="bg-[#0D3B2E] text-white border-none px-mx-sm py-1 rounded-mx-full font-bold">
             VISITA {visit.visit_number}
           </Badge>
         </div>
       </header>
 
       {/* Dados do Cliente */}
-      <section className="grid grid-cols-2 gap-8 mb-8 bg-surface-alt/20 p-6 rounded-2xl border border-border-default">
+      <section className="grid grid-cols-2 gap-mx-lg mb-mx-md bg-[#f9fafb] p-mx-md rounded-mx-xl border border-border-default text-black">
         <div>
           <Typography variant="tiny" className="text-text-tertiary font-bold uppercase mb-1">Cliente / Loja</Typography>
-          <Typography variant="h2" className="text-xl font-black">{client.name.toUpperCase()}</Typography>
-          <Typography variant="p" className="text-sm">{client.legal_name || 'Razão Social não informada'}</Typography>
+          <Typography variant="h2" className="text-xl font-black text-black">{client.name.toUpperCase()}</Typography>
+          <Typography variant="p" className="text-sm text-black">{client.legal_name || 'Razão Social não informada'}</Typography>
         </div>
         <div className="text-right">
           <Typography variant="tiny" className="text-text-tertiary font-bold uppercase mb-1">Data da Auditoria</Typography>
-          <Typography variant="h3">{format(visitDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</Typography>
-          <Typography variant="p" className="text-sm">Consultor: {headerBase.consultant_name || 'Consultor MX'}</Typography>
+          <Typography variant="h3" className="text-black">{formattedDate}</Typography>
+          <Typography variant="p" className="text-sm text-black">Consultor: {headerBase.consultant_name || 'Consultor MX'}</Typography>
         </div>
       </section>
 
       {/* Indicadores de Meta */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-4 gap-mx-sm mb-mx-md">
         {[
           { l: 'Meta Mensal', v: headerBase.meta_mensal },
           { l: 'Projeção', v: headerBase.projecao },
           { l: 'Leads no Mês', v: headerBase.leads_mes },
           { l: 'Estoque', v: headerBase.estoque_disponivel }
         ].map(i => (
-          <div key={i.l} className="border border-border-default p-4 rounded-xl text-center text-black">
+          <div key={i.l} className="border border-border-default p-mx-sm rounded-mx-lg text-center text-black bg-white shadow-sm">
             <Typography variant="tiny" className="font-bold text-text-tertiary block mb-1 uppercase">{i.l}</Typography>
-            <Typography variant="h3" className="text-brand-primary font-black">{i.v || '0'}</Typography>
+            <Typography variant="h3" className="text-[#0D3B2E] font-black">{i.v || '0'}</Typography>
           </div>
         ))}
       </div>
 
       {/* Resumo Executivo */}
-      <section className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-1.5 h-6 bg-brand-primary rounded-full" />
-          <Typography variant="h3">Diagnóstico e Relato Executivo</Typography>
+      <section className="mb-mx-md">
+        <div className="flex items-center gap-mx-xs mb-mx-sm">
+          <div className="w-mx-2 h-mx-6 bg-[#0D3B2E] rounded-mx-full" />
+          <Typography variant="h3" className="text-black">Diagnóstico e Relato Executivo</Typography>
         </div>
-        <div className="p-6 border border-border-default rounded-2xl bg-white min-h-[200px] whitespace-pre-wrap text-sm leading-relaxed text-text-primary italic border-dashed">
+        <div className="p-mx-md border border-border-default rounded-mx-xl bg-white min-h-[150px] whitespace-pre-wrap text-sm leading-relaxed text-black italic border-dashed">
           {visit.executive_summary || 'Nenhum relato registrado para esta visita.'}
         </div>
       </section>
 
       {/* Feedback Direto */}
-      <section className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-1.5 h-6 bg-brand-secondary rounded-full" />
-          <Typography variant="h3">Pontos de Atenção e Feedback</Typography>
+      <section className="mb-mx-md">
+        <div className="flex items-center gap-mx-xs mb-mx-sm">
+          <div className="w-mx-2 h-mx-6 bg-[#FACC15] rounded-mx-full" />
+          <Typography variant="h3" className="text-black">Pontos de Atenção e Feedback</Typography>
         </div>
-        <div className="p-6 border border-brand-secondary/30 rounded-2xl bg-brand-secondary/5 text-sm leading-relaxed text-black">
+        <div className="p-mx-md border border-[#FACC15]/30 rounded-mx-xl bg-[#FEFCE8] text-sm leading-relaxed text-black">
           {visit.feedback_client || 'Nenhum feedback direto registrado.'}
         </div>
       </section>
 
       {/* Objetivo do Próximo Ciclo */}
-      <section className="mb-8" style={{ breakInside: 'avoid' }}>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-1.5 h-6 bg-status-warning rounded-full" />
-          <Typography variant="h3">Objetivo do Próximo Ciclo (30 dias)</Typography>
+      <section className="mb-mx-md" style={{ breakInside: 'avoid' }}>
+        <div className="flex items-center gap-mx-xs mb-mx-sm">
+          <div className="w-mx-2 h-mx-6 bg-[#F59E0B] rounded-mx-full" />
+          <Typography variant="h3" className="text-black">Objetivo do Próximo Ciclo (30 dias)</Typography>
         </div>
-        <div className="p-6 border border-status-warning/30 rounded-2xl bg-status-warning/5 text-sm font-bold leading-relaxed text-black">
+        <div className="p-mx-md border border-[#F59E0B]/30 rounded-mx-xl bg-[#FFF7ED] text-sm font-bold leading-relaxed text-black">
           {(visit as any).next_cycle_goal || 'A ser definido na próxima auditoria.'}
         </div>
       </section>
 
       {/* Evidências Fotográficas */}
       {attachments.length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1.5 h-6 bg-text-tertiary rounded-full" />
-            <Typography variant="h3">Evidências da Visita</Typography>
+        <section className="mb-mx-md" style={{ breakInside: 'avoid' }}>
+          <div className="flex items-center gap-mx-xs mb-mx-sm">
+            <div className="w-mx-2 h-mx-6 bg-text-tertiary rounded-mx-full" />
+            <Typography variant="h3" className="text-black">Evidências da Visita</Typography>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-mx-sm">
             {attachments.map((att: any) => (
-              <div key={att.id} className="border border-border-default rounded-xl overflow-hidden bg-surface-alt">
+              <div key={att.id} className="border border-border-default rounded-mx-lg overflow-hidden bg-surface-alt">
                 <img 
                   src={`${STORAGE_URL}${att.storage_path}`} 
                   alt={att.filename}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-mx-48 object-cover"
                   crossOrigin="anonymous"
                 />
-                <div className="p-2 text-[10px] text-text-tertiary truncate bg-white">
+                <div className="p-mx-xs text-mx-micro text-text-tertiary truncate bg-white">
                   {att.filename}
                 </div>
               </div>
@@ -124,23 +129,23 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
       )}
 
       {/* Assinaturas */}
-      <footer className="mt-20 pt-8 border-t border-border-subtle grid grid-cols-2 gap-20">
+      <footer className="mt-mx-20 pt-mx-md border-t border-border-subtle grid grid-cols-2 gap-mx-20">
         <div className="text-center text-black">
-          <div className="h-px bg-black mb-2 mx-auto w-48" />
+          <div className="h-px bg-black mb-mx-xs mx-auto w-mx-48" />
           <Typography variant="tiny" className="font-bold">ASSINATURA CONSULTOR</Typography>
-          <Typography variant="p" className="text-[10px]">{headerBase.consultant_name}</Typography>
+          <Typography variant="p" className="text-mx-micro">{headerBase.consultant_name}</Typography>
         </div>
         <div className="text-center text-black">
-          <div className="h-px bg-black mb-2 mx-auto w-48" />
+          <div className="h-px bg-black mb-mx-xs mx-auto w-mx-48" />
           <Typography variant="tiny" className="font-bold">ASSINATURA GESTOR DA LOJA</Typography>
-          <Typography variant="p" className="text-[10px]">
+          <Typography variant="p" className="text-mx-micro">
             {visit.acknowledged_at ? `Assinado em ${format(new Date(visit.acknowledged_at), 'dd/MM/yyyy HH:mm')}` : '(Pendente de Assinatura)'}
           </Typography>
         </div>
       </footer>
       
-      <div className="mt-8 text-center">
-        <Typography variant="tiny" className="text-[9px] text-text-tertiary">
+      <div className="mt-mx-md text-center">
+        <Typography variant="tiny" className="text-mx-micro text-text-tertiary">
           Documento gerado eletronicamente via MX PERFORMANCE — A plataforma oficial de gestão preditiva.
         </Typography>
       </div>

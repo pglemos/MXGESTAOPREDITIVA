@@ -3,432 +3,293 @@ import {
   BarChart3, TrendingUp, MessageSquare, Sparkles, 
   PieChart, Layers, ChevronRight, ChevronLeft, 
   Paperclip, Trash2, Camera, Loader2, CheckCircle2,
-  FileText, Plus, Info
+  FileText, Plus, Info, Globe, Smartphone,
+  Users, Target, Award, Zap, ShieldAlert,
+  ArrowRight, MousePointer2, LayoutDashboard
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/molecules/Card'
+import { Card, CardContent } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
+import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
-import { Badge } from '@/components/atoms/Badge'
-import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
-import { PMR_FULL_QUESTIONS } from '../data/pmr-questions'
 import { 
-  BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart as RePieChart, Pie, Cell
+  ResponsiveContainer, PieChart as RePie, Pie, Cell, 
+  BarChart as ReBar, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, LineChart, Line
 } from 'recharts'
+import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
+import { cn } from '@/lib/utils'
 
-export function VisitOneHighFidelity({ quantData, onQuantChange, templates, visitId, clientId, onSaveResponse }: { quantData: any, onQuantChange: (d: any) => void, templates: any[], visitId?: string, clientId?: string, onSaveResponse: (d: any) => Promise<any> }) {
+export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: { clientId: string, clientSlug: string, data: any, onChange: (d: any) => void }) {
   const [tab, setTab] = useState<'dashboards' | 'benchmark' | 'entrevistas'>('dashboards')
 
   return (
-    <div className="space-y-mx-md pb-mx-xl">
-       <div className="flex flex-wrap gap-mx-xs bg-white p-mx-xs rounded-mx-lg border border-border-default shadow-mx-sm print:hidden">
-          {[
-            { id: 'dashboards', label: 'Dashboards BI', icon: BarChart3 },
-            { id: 'benchmark', label: 'Comparativo Mercado', icon: TrendingUp },
-            { id: 'entrevistas', label: 'Entrevistas PMR', icon: MessageSquare }
-          ].map((t: any) => (
-            <button 
-               key={t.id} 
-               onClick={() => setTab(t.id as any)} 
-               className={cn(
-                  "flex-1 py-mx-xs px-mx-sm text-mx-tiny md:text-sm font-bold uppercase rounded-mx-sm transition-all flex items-center justify-center gap-mx-xs min-w-[140px] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20", 
-                  tab === t.id 
-                    ? "bg-brand-primary text-white shadow-mx-md" 
-                    : "text-text-tertiary hover:text-text-secondary hover:bg-surface-alt/50"
-               )}
-            >
-               <t.icon size={16} /> {t.label}
-            </button>
-          ))}
-       </div>
-       
-       <div className="transition-all duration-300">
-          {tab === 'dashboards' && <VisitOneDashboards data={quantData} onChange={onQuantChange} />}
-          {tab === 'benchmark' && <VisitOneBenchmark />}
-          {tab === 'entrevistas' && <VisitOneInterviews templates={templates} visitId={visitId} clientId={clientId} onSave={onSaveResponse} />}
-       </div>
+    <div className="space-y-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Navegação de Contexto */}
+      <div className="flex bg-white/50 backdrop-blur-sm p-mx-xs rounded-mx-xl border border-border-default shadow-mx-inner">
+        {[
+          { id: 'dashboards', label: 'DASHBOARDS BI', icon: LayoutDashboard },
+          { id: 'benchmark', label: 'COMPARATIVO MERCADO', icon: Globe },
+          { id: 'entrevistas', label: 'ENTREVISTAS PMR', icon: Users }
+        ].map((t: any) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-mx-xs py-mx-sm px-mx-md rounded-mx-lg text-xs font-black uppercase tracking-mx-wider transition-all",
+              tab === t.id ? "bg-brand-primary text-white shadow-mx-md" : "text-text-tertiary hover:text-text-primary hover:bg-white"
+            )}
+          >
+            <t.icon size={14} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'dashboards' && <VisitOneDashboards data={data} onChange={onChange} />}
+      {tab === 'benchmark' && <VisitOneBenchmark data={data} />}
+      {tab === 'entrevistas' && <VisitOneInterviews clientId={clientId} />}
     </div>
   )
 }
 
 function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) => void }) {
-  const sSales = data?.sales || [
-    { month: 'Mês 1', value: 0 },
-    { month: 'Mês 2', value: 0 },
-    { month: 'Mês 3', value: 0 }
-  ]; 
-  const sMkt = data?.marketing || { investment: 0, leads: 0, origin: [{name: 'Instagram', value: 0}, {name: 'Facebook', value: 0}, {name: 'Indicação', value: 0}, {name: 'Site', value: 0}, {name: 'OLX/Mktplace', value: 0}] }; 
-  const sStk = data?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
+  const COLORS = ['#0D3B2E', '#22C55E', '#FACC15', '#6B7280']
   
-  const totalSales = sSales.reduce((a: number, c: any) => a + (c.value || 0), 0)
-  const avgSales = sSales.length > 0 ? (totalSales / sSales.length).toFixed(1) : '0'
-  const bestMonth = [...sSales].sort((a,b) => (b.value || 0) - (a.value || 0))[0] || { value: 0 }
-  const worstMonth = [...sSales].sort((a,b) => (a.value || 0) - (b.value || 0))[0] || { value: 0 }
-  
-  const COLORS = ['#22C55E', '#16A34A', '#15803D', '#166534', '#14532D'];
-  const hasOriginData = sMkt.origin?.some((o:any) => o.value > 0);
-  const displayOrigin = hasOriginData ? sMkt.origin : [{name: 'Sem Dados', value: 1, color: '#e2e8f0'}];
-  
-  const cpl = sMkt.investment > 0 && sMkt.leads > 0 ? (sMkt.investment / sMkt.leads).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'
+  const handleSalesChange = (index: number, value: number) => {
+    const newSales = [...(data.sales || [])]
+    newSales[index] = { ...newSales[index], value }
+    onChange({ ...data, sales: newSales })
+  }
+
+  const totalSales = (data.sales || []).reduce((acc: number, s: any) => acc + (s.value || 0), 0)
+  const cpl = data.marketing?.leads > 0 ? (data.marketing.investment / data.marketing.leads).toFixed(2) : '0,00'
 
   return (
-    <div className="space-y-mx-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-md min-w-0">
-        <Card className="border-none shadow-mx-md">
-          <CardHeader className="flex flex-row items-center gap-mx-sm bg-transparent border-b border-border-subtle p-mx-lg">
-            <div className="p-mx-xs bg-brand-primary/10 rounded-mx-md">
-              <BarChart3 className="w-5 h-5 text-brand-primary" />
-            </div>
+    <div className="space-y-mx-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg">
+        {/* Vendas Trimestre */}
+        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl">
+          <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><BarChart3 size={120} /></div>
+          <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
+            <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><TrendingUp size={20} /></div>
             <div>
-              <CardTitle>Vendas Trimestre</CardTitle>
-              <CardDescription>Volume de emplacamentos/entregas</CardDescription>
+              <Typography variant="h3" className="text-lg">Vendas Trimestre</Typography>
+              <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-tighter">Volume de emplacamentos/entregas</Typography>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[240px] w-full min-w-0 mb-mx-md bg-surface-alt/30 rounded-mx-lg p-mx-sm border border-border-subtle flex items-center justify-center relative group">
-              {totalSales > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <ReBarChart data={sSales} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#0f172a', fontWeight: 'bold', boxShadow: 'var(--shadow-mx-md)' }} />
-                    <Bar dataKey="value" fill="#22C55E" radius={[6, 6, 0, 0]} barSize={40} />
-                  </ReBarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex flex-col items-center text-text-tertiary">
-                  <BarChart3 className="w-10 h-10 mb-2 opacity-20" />
-                  <Typography variant="tiny" tone="muted">Lance os números abaixo</Typography>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md mb-mx-lg">
+             {(data.sales || []).map((s: any, i: number) => (
+                <div key={s.month} className="space-y-mx-xs">
+                   <Typography variant="tiny" className="font-black text-text-tertiary">{s.month.toUpperCase()}</Typography>
+                   <Input 
+                      type="number" 
+                      value={s.value} 
+                      onChange={e => handleSalesChange(i, parseInt(e.target.value) || 0)}
+                      className="h-mx-12 font-black text-xl text-center border-border-subtle focus:border-brand-primary"
+                   />
                 </div>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-3 gap-mx-sm mb-mx-md">
-              {sSales.map((s:any, i:number) => (
-                <div key={i} className="space-y-1">
-                  <Typography variant="tiny" tone="muted" as="label" className="text-center w-full block uppercase">{s.month}</Typography>
-                  <Input type="number" value={s.value || ''} onChange={e => { const n = [...sSales]; n[i].value = parseInt(e.target.value) || 0; onChange({...data, sales: n}) }} className="text-center font-black text-lg h-mx-12" placeholder="0" />
-                </div>
-              ))}
-            </div>
+             ))}
+          </div>
 
-            <div className="grid grid-cols-4 gap-mx-xs pt-mx-md border-t border-border-subtle">
-              <div className="text-center"><Typography variant="tiny" tone="muted">TOTAL</Typography><Typography variant="h3" tone="brand" className="mt-1">{totalSales}</Typography></div>
-              <div className="text-center"><Typography variant="tiny" tone="muted">MÉDIA</Typography><Typography variant="h3" tone="brand" className="mt-1">{avgSales}</Typography></div>
-              <div className="text-center"><Typography variant="tiny" tone="muted">MELHOR</Typography><Typography variant="h3" tone="brand" className="mt-1">{bestMonth.value}</Typography></div>
-              <div className="text-center"><Typography variant="tiny" tone="muted">PIOR</Typography><Typography variant="h3" tone="error" className="mt-1">{worstMonth.value}</Typography></div>
-            </div>
-          </CardContent>
+          <div className="flex items-center justify-between p-mx-md bg-surface-alt rounded-mx-xl border border-border-default">
+             <div>
+                <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Total Trimestre</Typography>
+                <Typography variant="h2" className="text-3xl text-brand-primary">{totalSales} <span className="text-sm font-bold text-text-tertiary">CARROS</span></Typography>
+             </div>
+             <div className="text-right">
+                <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Média Mensal</Typography>
+                <Typography variant="h2" className="text-3xl">{(totalSales / 3).toFixed(1)}</Typography>
+             </div>
+          </div>
         </Card>
 
-        <Card className="border-none shadow-mx-md">
-          <CardHeader className="flex flex-row items-center gap-mx-sm bg-transparent border-b border-border-subtle p-mx-lg">
-            <div className="p-mx-xs bg-brand-primary/10 rounded-mx-md">
-              <PieChart className="w-5 h-5 text-brand-primary" />
-            </div>
+        {/* Marketing ROI */}
+        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl">
+          <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><PieChart size={120} /></div>
+          <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
+            <div className="p-mx-xs bg-brand-secondary/10 rounded-mx-lg text-brand-secondary"><Zap size={20} /></div>
             <div>
-              <CardTitle>Performance MKT</CardTitle>
-              <CardDescription>CPL e Origem de Leads</CardDescription>
+              <Typography variant="h3" className="text-lg">Performance MKT</Typography>
+              <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-tighter">CPL e Origem de Leads</Typography>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
-              <div className="space-y-mx-sm">
-                <div className="space-y-1">
-                  <Typography variant="tiny" tone="muted" as="label">INVESTIMENTO TOTAL (R$)</Typography>
-                  <Input type="number" value={sMkt.investment || ''} onChange={e => onChange({...data, marketing: {...sMkt, investment: parseInt(e.target.value) || 0}})} className="h-mx-12 font-black" placeholder="Ex: 5000" />
-                </div>
-                <div className="space-y-1">
-                  <Typography variant="tiny" tone="muted" as="label">LEADS TOTAIS (UN)</Typography>
-                  <Input type="number" value={sMkt.leads || ''} onChange={e => onChange({...data, marketing: {...sMkt, leads: parseInt(e.target.value) || 0}})} className="h-mx-12 font-black" placeholder="Ex: 250" />
-                </div>
-                <div className="pt-mx-sm border-t border-border-subtle mt-mx-sm bg-brand-primary/5 p-mx-sm rounded-mx-lg border border-brand-primary/10">
-                  <Typography variant="tiny" tone="brand" className="font-black">CUSTO POR LEAD (CPL)</Typography>
-                  <Typography variant="h2" tone="brand" className="mt-1">{cpl}</Typography>
-                </div>
-              </div>
-              <div className="flex flex-col items-center justify-between">
-                <div className="h-[160px] w-full min-w-0 bg-surface-alt/30 rounded-mx-lg border border-border-subtle flex items-center justify-center relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RePieChart>
-                      <Pie data={displayOrigin} innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value" stroke="none">
-                        {displayOrigin.map((entry: any, i: number) => <Cell key={i} fill={hasOriginData ? (entry.color || COLORS[i % COLORS.length]) : '#e2e8f0'} />)}
+          </div>
+
+          <div className="grid grid-cols-2 gap-mx-md mb-mx-lg">
+             <div className="space-y-mx-xs">
+                <Typography variant="tiny" className="font-black text-text-tertiary uppercase">Investimento Total (R$)</Typography>
+                <Input 
+                  type="number" 
+                  value={data.marketing?.investment} 
+                  onChange={e => onChange({ ...data, marketing: { ...data.marketing, investment: parseFloat(e.target.value) || 0 } })}
+                  className="h-mx-12 font-black text-xl border-border-subtle"
+                  placeholder="Ex: 5000"
+                />
+             </div>
+             <div className="space-y-mx-xs">
+                <Typography variant="tiny" className="font-black text-text-tertiary uppercase">Leads Totais (UN)</Typography>
+                <Input 
+                  type="number" 
+                  value={data.marketing?.leads} 
+                  onChange={e => onChange({ ...data, marketing: { ...data.marketing, leads: parseInt(e.target.value) || 0 } })}
+                  className="h-mx-12 font-black text-xl border-border-subtle"
+                  placeholder="Ex: 250"
+                />
+             </div>
+          </div>
+
+          <div className="flex items-center justify-between p-mx-md bg-brand-secondary/5 rounded-mx-xl border border-brand-secondary/10">
+             <div>
+                <Typography variant="tiny" className="font-bold text-brand-secondary uppercase">Custo por Lead (CPL)</Typography>
+                <Typography variant="h1" className="text-3xl text-brand-secondary">R$ {cpl}</Typography>
+             </div>
+             <div className="h-mx-14 w-mx-14">
+                <ResponsiveContainer width="100%" height="100%">
+                   <RePie>
+                      <Pie data={data.marketing?.origin} innerRadius={20} outerRadius={28} paddingAngle={5} dataKey="value">
+                         {data.marketing?.origin?.map((_: any, index: number) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#0f172a', fontWeight: 'bold', boxShadow: 'var(--shadow-mx-md)' }} />
-                    </RePieChart>
-                  </ResponsiveContainer>
+                   </RePie>
+                </ResponsiveContainer>
+             </div>
+          </div>
+          <div className="mt-mx-md grid grid-cols-4 gap-mx-xs">
+             {data.marketing?.origin?.map((o: any, i: number) => (
+                <div key={o.name} className="text-center">
+                   <div className="w-2 h-2 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                   <Typography variant="tiny" className="text-mx-micro font-black uppercase opacity-60">{o.name}</Typography>
+                   <Typography variant="p" className="text-xs font-black">{o.value}</Typography>
                 </div>
-                <div className="grid grid-cols-2 gap-x-mx-sm gap-y-2 w-full mt-mx-md">
-                  {(sMkt.origin || []).map((o:any, i:number) => (
-                    <div key={i} className="space-y-1">
-                      <Typography variant="tiny" tone="muted" as="label" className="flex items-center gap-1.5 truncate text-[9px]" title={o.name}>
-                        <div className="w-1.5 h-1.5 rounded-mx-full shrink-0" style={{background: COLORS[i%COLORS.length]}}/> 
-                        <span className="truncate">{o.name.toUpperCase()}</span>
-                      </Typography>
-                      <Input type="number" value={o.value || ''} onChange={e => { const arr = [...sMkt.origin]; arr[i].value = parseInt(e.target.value) || 0; onChange({...data, marketing: {...sMkt, origin: arr}}) }} className="text-center px-1 h-mx-9 text-xs font-bold" placeholder="0" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
+             ))}
+          </div>
         </Card>
       </div>
 
-      <Card className="border-none shadow-mx-md">
-        <CardHeader className="flex flex-row items-center gap-mx-sm bg-transparent border-b border-border-subtle p-mx-lg">
-          <div className="p-mx-xs bg-brand-primary/10 rounded-mx-md">
-            <Layers className="w-5 h-5 text-brand-primary" />
+      {/* Raio-X do Estoque */}
+      <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl">
+          <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><Layers size={120} /></div>
+          <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
+            <div className="p-mx-xs bg-status-warning/10 rounded-mx-lg text-status-warning"><Layers size={20} /></div>
+            <div>
+              <Typography variant="h3" className="text-lg">Raio-X do Estoque</Typography>
+              <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-tighter">Saúde financeira do pátio</Typography>
+            </div>
           </div>
-          <div>
-            <CardTitle>Raio-X do Estoque</CardTitle>
-            <CardDescription>Saúde financeira do pátio</CardDescription>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-mx-md">
+             {[
+               { k: 'qty', l: 'QTD (UN)', p: 'Ex: 45' },
+               { k: 'avg_price', l: 'TICKET (R$)', p: 'Ex: 65000' },
+               { k: 'fipe_delta', l: 'FIPE (+/-)', p: 'Ex: -2000' },
+               { k: 'mileage', l: 'KM MÉDIA', p: 'Ex: 65000' },
+               { k: 'total_inv', l: 'INVESTIMENTO (R$)', p: 'Ex: 2.5M' }
+             ].map(f => (
+                <div key={f.k} className="space-y-mx-xs">
+                   <Typography variant="tiny" className="font-black text-text-tertiary uppercase whitespace-nowrap">{f.l}</Typography>
+                   <Input 
+                      type="number" 
+                      value={data.stock?.[f.k]} 
+                      onChange={e => onChange({ ...data, stock: { ...data.stock, [f.k]: parseFloat(e.target.value) || 0 } })}
+                      className="h-mx-10 font-bold border-border-subtle"
+                      placeholder={f.p}
+                   />
+                </div>
+             ))}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-mx-md">
-            {[
-              { l: 'QTD (UN)', k: 'qty', p: 'Ex: 45' }, { l: 'TICKET (R$)', k: 'avg_price', p: 'Ex: 65000' }, 
-              { l: 'FIPE (+/-)', k: 'fipe_delta', p: 'Ex: -2000' }, { l: 'KM MÉDIA', k: 'mileage', p: 'Ex: 65000' }, { l: 'INVESTIMENTO (R$)', k: 'total_inv', p: 'Ex: 2.5M' }
-            ].map(it => (
-              <div key={it.k} className="space-y-1">
-                <Typography variant="tiny" tone="muted" as="label" className="text-center w-full block uppercase font-bold">{it.l}</Typography>
-                <Input type="number" value={sStk[it.k] || ''} onChange={e => onChange({...data, stock: {...sStk, [it.k]: parseFloat(e.target.value) || 0}})} className="text-center text-lg font-black h-mx-14 border-brand-primary/5 focus:border-brand-primary/30" placeholder={it.p} />
-              </div>
-            ))}
-          </div>
-        </CardContent>
       </Card>
     </div>
   )
 }
 
-function VisitOneBenchmark() {
-  const rows = [ 
-    { label: 'Vendas Totais em relação ao Estoque', avg: '28%', best: '48%', p: 'Ex: 32%' },
-    { label: 'Venda média por vendedor', avg: '6,7', best: '8,0', p: 'Ex: 5,5' },
-    { label: '% Vendas Origem Internet', avg: '52%', best: '65%', p: 'Ex: 48%' },
-    { label: 'Leads recebidos / mês', avg: '480', best: '820', p: 'Ex: 520' },
-    { label: 'Leads por vendedor', avg: '90', best: '180', p: 'Ex: 120' },
-    { label: 'Giro de Estoque', avg: '0,45', best: '0,65', p: 'Ex: 0,38' },
-    { label: '% Veículos +90 dias', avg: '26%', best: '15%', p: 'Ex: 35%' }
-  ]
+function VisitOneBenchmark({ data }: { data: any }) {
   return (
-    <Card className="border-none shadow-mx-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <CardHeader className="bg-transparent border-b border-border-subtle p-mx-lg">
-        <CardTitle>Comparativo de Mercado</CardTitle>
-        <Typography variant="p" tone="muted" className="mt-2">Benchmarks oficiais da metodologia PMR.</Typography>
-      </CardHeader>
-      <div className="overflow-x-auto p-mx-lg pt-0">
-        <div className="border border-border-subtle rounded-mx-xl overflow-hidden mt-mx-md">
-          <table className="w-full text-left min-w-[900px]">
-              <thead>
-                <tr className="bg-surface-alt border-b border-border-subtle">
-                  <th className="p-mx-sm text-mx-tiny font-black text-text-secondary uppercase tracking-widest">Indicador Estratégico</th>
-                  <th className="p-mx-sm text-mx-tiny font-black text-center border-l border-border-subtle w-40 text-text-primary uppercase tracking-widest">Sua Loja</th>
-                  <th className="p-mx-sm text-mx-tiny font-black text-center border-l border-border-subtle text-status-warning w-32 bg-status-warning-surface uppercase tracking-widest">Mercado</th>
-                  <th className="p-mx-sm text-mx-tiny font-black text-center border-l border-border-subtle text-brand-primary w-32 bg-brand-primary/5 uppercase tracking-widest">MX Elite</th>
-                  <th className="p-mx-sm text-mx-tiny font-black border-l border-border-subtle text-text-tertiary uppercase tracking-widest">Parecer Técnico</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((it) => (
-                  <tr key={it.label} className="border-b border-border-subtle last:border-0 hover:bg-surface-alt/50 transition-colors">
-                      <td className="p-mx-sm"><Typography variant="p" className="text-xs font-bold">{it.label}</Typography></td>
-                      <td className="p-mx-xs border-l border-border-subtle"><Input className="text-center font-black h-mx-10" placeholder={it.p} /></td>
-                      <td className="p-mx-sm text-center border-l border-border-subtle bg-status-warning-surface"><Typography variant="h3" tone="warning" className="text-lg">{it.avg}</Typography></td>
-                      <td className="p-mx-sm text-center border-l border-border-subtle bg-brand-primary/5"><Typography variant="h3" tone="brand" className="text-lg">{it.best}</Typography></td>
-                      <td className="p-mx-xs border-l border-border-subtle"><Textarea className="min-h-[42px] h-mx-10 resize-none text-xs" placeholder="Diagnóstico do consultor..." /></td>
-                  </tr>
-                ))}
-              </tbody>
-          </table>
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-function EvidenceUploader({ onUpload, isUploading, label = "Evidência" }: { onUpload: (file: File) => Promise<void>, isUploading: boolean, label?: string }) {
-  const fileInput = useRef<HTMLInputElement>(null)
-  return (
-    <div className="flex items-center gap-2">
-      <input type="file" ref={fileInput} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if(f) onUpload(f) }} />
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-mx-9 px-3 gap-1.5 text-brand-primary bg-brand-primary/5 border border-brand-primary/10 hover:bg-brand-primary/10" 
-        loading={isUploading}
-        onClick={() => fileInput.current?.click()}
-      >
-        <Paperclip size={14} /> {label}
-      </Button>
+    <div className="p-mx-20 text-center opacity-50 bg-white border border-border-default rounded-mx-2xl border-dashed">
+       <Globe size={48} className="mx-auto mb-mx-md text-text-tertiary" />
+       <Typography variant="h3">Comparativo de Mercado</Typography>
+       <Typography variant="p">Dados de benchmarking serão liberados após o primeiro fechamento mensal.</Typography>
     </div>
   )
 }
 
-function VisitOneInterviews({ templates, visitId, clientId, onSave }: { templates: any[], visitId?: string, clientId?: string, onSave: (d: any) => Promise<any> }) {
-  const [active, setActive] = useState<'gerente' | 'dono' | 'vendedor' | 'processo'>('gerente')
-  const [page, setPage] = useState(0)
-  const [form, setForm] = useState<Record<string, any>>({})
-  const [evidences, setEvidences] = useState<Record<string, string[]>>({})
-  const [name, setName] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isUploading, setIsUploading] = useState<string | null>(null)
-
-  const questions = PMR_FULL_QUESTIONS[active] || []
-  const questionsPerPage = 6
-  const totalPages = Math.ceil(questions.length / questionsPerPage)
-  const currentQuestions = questions.slice(page * questionsPerPage, (page + 1) * questionsPerPage)
+function VisitOneInterviews({ clientId }: { clientId: string }) {
+  const { templates, responsesByTemplate, saveResponse } = usePmrDiagnostics(clientId)
+  const [activeTmpl, setActiveTmpl] = useState<string | null>(null)
   
-  const currentTemplate = templates?.find((t: any) => t.form_key === active)
+  if (!templates.length) return <div className="p-mx-lg text-center opacity-50">Carregando formulários de entrevista...</div>
 
-  const handleUpload = async (fieldKey: string, file: File) => {
-    if (!clientId || !visitId) {
-       toast.error('Salve a visita antes de anexar evidências por campo.'); return;
-    }
-    setIsUploading(fieldKey)
-    try {
-      const fileExt = file.name.split('.').pop()
-      const filePath = `${clientId}/visita-1/interviews/${fieldKey}-${Math.random().toString(36).substring(2)}.${fileExt}`
-      const { error: uploadError } = await supabase.storage.from('consulting-attachments').upload(filePath, file)
-      if (uploadError) throw uploadError
-      
-      const { data: publicUrl } = supabase.storage.from('consulting-attachments').getPublicUrl(filePath)
-      
-      setEvidences(prev => ({ ...prev, [fieldKey]: [...(prev[fieldKey] || []), publicUrl.publicUrl] }))
-      toast.success('Evidência anexada ao campo!')
-    } catch (err: any) { toast.error(err.message) } finally { setIsUploading(null) }
-  }
+  const currentTmpl = templates.find(t => t.id === activeTmpl) || templates[0]
 
   return (
-    <Card className="border-none shadow-mx-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <CardHeader className="bg-transparent border-b border-border-subtle p-mx-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">
-          <div className="flex flex-wrap gap-mx-xs">
-            {(['gerente', 'dono', 'vendedor', 'processo'] as const).map((t) => (
-              <button 
-                key={t} 
-                onClick={() => { setActive(t); setPage(0); setForm({}); setEvidences({}); setName('') }} 
-                className={cn(
-                  "px-6 py-2 rounded-mx-md text-xs font-black uppercase tracking-widest transition-all border-2",
-                  active === t ? "bg-brand-secondary text-white border-brand-secondary" : "bg-white text-text-tertiary border-border-subtle hover:border-brand-primary/40"
-                )}
-              >
-                {t}
-              </button>
-            ))}
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-mx-lg">
+       <div className="lg:col-span-1 space-y-mx-md">
+          {templates.map(t => {
+             const hasResp = responsesByTemplate.has(t.id) && responsesByTemplate.get(t.id)!.length > 0
+             return (
+                <button 
+                  key={t.id} 
+                  onClick={() => setActiveTmpl(t.id)}
+                  className={cn(
+                    "w-full text-left p-mx-md rounded-mx-xl border transition-all relative overflow-hidden group",
+                    currentTmpl.id === t.id ? "bg-brand-primary border-brand-primary text-white shadow-mx-md" : "bg-white border-border-default hover:bg-surface-alt"
+                  )}
+                >
+                   {hasResp && <CheckCircle2 size={16} className={cn("absolute top-mx-sm right-mx-sm", currentTmpl.id === t.id ? "text-white" : "text-status-success")} />}
+                   <Typography variant="tiny" className={cn("uppercase font-black tracking-widest", currentTmpl.id === t.id ? "text-white/70" : "text-text-tertiary")}>{t.target_role}</Typography>
+                   <Typography variant="h3" className="text-sm">{t.title}</Typography>
+                </button>
+             )
+          })}
+       </div>
+
+       <Card className="lg:col-span-3 p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
+          <div className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-subtle pb-mx-md">
+             <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Users size={20} /></div>
+             <Typography variant="h3" className="text-xl">Entrevista: {currentTmpl.title}</Typography>
           </div>
-          <div className="flex items-center gap-mx-sm bg-surface-alt px-mx-md py-mx-xs rounded-mx-full border border-border-subtle">
-            <Typography variant="tiny" className="font-black text-brand-secondary">{page + 1} / {totalPages}</Typography>
-            <div className="flex gap-1">
-              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-mx-full" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}><ChevronLeft size={14} /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7 rounded-mx-full" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}><ChevronRight size={14} /></Button>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-mx-lg">
-        <div className="max-w-4xl mx-auto space-y-mx-lg">
-          
-          {page === 0 && (
-            <div className="p-mx-lg bg-surface-alt/50 rounded-mx-2xl border border-border-subtle border-dashed space-y-2">
-              <Typography variant="tiny" tone="muted" as="label" className="font-black uppercase tracking-widest">Nome do Respondente / Entrevistado *</Typography>
-              <Input value={name} onChange={e => setName(e.target.value)} className="h-mx-14 text-xl font-black placeholder:opacity-30 border-none shadow-none bg-transparent focus:ring-0" placeholder="Digite o nome completo aqui..." />
-            </div>
-          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
-            {currentQuestions.map((f: any) => (
-              <div key={f.key} className={cn("p-mx-lg border border-border-subtle rounded-mx-2xl transition-all bg-white hover:border-brand-primary/30 group", (f.type === 'textarea' || f.type === 'file') && "md:col-span-2")}>
-                <div className="flex items-start justify-between gap-mx-md mb-mx-sm">
-                  <Typography variant="p" className="text-xs font-black uppercase tracking-tight text-text-primary leading-tight flex-1">
-                    {f.label} {f.required && <span className="text-status-error">*</span>}
-                  </Typography>
-                  <EvidenceUploader isUploading={isUploading === f.key} onUpload={(file) => handleUpload(f.key, file)} />
-                </div>
-
-                {f.type === 'textarea' ? (
-                  <Textarea value={form[f.key] || ''} onChange={e => setForm({...form, [f.key]: e.target.value})} className="min-h-[140px] bg-surface-alt/20 border-none focus:bg-white transition-all text-sm font-medium" placeholder="Descreva as observações técnicas detalhadas..." />
-                ) : f.type === 'select' ? (
-                  <div className="grid grid-cols-1 gap-2">
-                    {f.options?.map((opt: string) => (
-                      <button 
-                        key={opt}
-                        onClick={() => setForm({...form, [f.key]: opt})}
-                        className={cn(
-                          "w-full text-left px-mx-md py-3 rounded-mx-lg text-xs font-bold transition-all border",
-                          form[f.key] === opt ? "bg-brand-primary/10 border-brand-primary text-brand-primary shadow-sm" : "bg-surface-alt/40 border-transparent text-text-secondary hover:bg-surface-alt"
-                        )}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                ) : f.type === 'number' ? (
-                  <Input type="number" value={form[f.key] || ''} onChange={e => setForm({...form, [f.key]: e.target.value})} className="h-mx-14 text-lg font-black bg-surface-alt/20 border-none focus:bg-white transition-all" placeholder="0" />
-                ) : f.type === 'file' ? (
-                   <div className="p-mx-md border-2 border-dashed border-border-subtle rounded-mx-xl bg-surface-alt/10 flex flex-col items-center justify-center gap-2">
-                      <Typography variant="tiny" tone="muted">Este campo exige uma evidência visual (Foto/Doc)</Typography>
-                      <EvidenceUploader label="Anexar Documento" isUploading={isUploading === f.key} onUpload={(file) => handleUpload(f.key, file)} />
-                   </div>
-                ) : (
-                  <Input value={form[f.key] || ''} onChange={e => setForm({...form, [f.key]: e.target.value})} className="h-mx-12 font-bold bg-surface-alt/20 border-none focus:bg-white transition-all" placeholder="..." />
-                )}
-
-                {evidences[f.key] && evidences[f.key].length > 0 && (
-                  <div className="mt-mx-md flex flex-wrap gap-2">
-                    {evidences[f.key].map((url, idx) => (
-                      <a key={idx} href={url} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-mx-md border border-border-default overflow-hidden hover:ring-2 hover:ring-brand-primary transition-all relative group/img">
-                        <img src={url} alt="Evidence" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
-                          <Plus className="text-white w-4 h-4" />
+          <div className="space-y-mx-md">
+             {currentTmpl.fields.map(f => {
+                const currentResp = responsesByTemplate.get(currentTmpl.id)?.[0]
+                return (
+                  <div key={f.key} className="space-y-mx-xs p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default hover:border-brand-primary/20 transition-colors">
+                    <Typography variant="p" className="font-black text-xs text-text-secondary uppercase">{f.label}</Typography>
+                    {f.type === 'textarea' ? (
+                        <Textarea 
+                          className="bg-white border-none shadow-mx-inner min-h-mx-20" 
+                          placeholder="Resposta do entrevistado..." 
+                          value={(currentResp?.answers?.[f.key] as string) || ''}
+                          onChange={e => saveResponse({ template_id: currentTmpl.id, answers: { ...(currentResp?.answers || {}), [f.key]: e.target.value } })}
+                        />
+                    ) : f.type === 'scale' ? (
+                        <div className="flex gap-mx-xs pt-mx-xs">
+                          {[1,2,3,4,5].map(v => (
+                              <button 
+                                key={v} 
+                                onClick={() => saveResponse({ template_id: currentTmpl.id, answers: { ...(currentResp?.answers || {}), [f.key]: v } })}
+                                className={cn(
+                                  "w-mx-10 h-mx-10 rounded-mx-lg font-black transition-all",
+                                  currentResp?.answers?.[f.key] === v ? "bg-brand-primary text-white shadow-mx-md scale-110" : "bg-white border border-border-default text-text-tertiary hover:bg-white"
+                                )}
+                              >
+                                {v}
+                              </button>
+                          ))}
                         </div>
-                      </a>
-                    ))}
+                    ) : (
+                        <Input 
+                          className="bg-white border-none shadow-mx-inner" 
+                          value={(currentResp?.answers?.[f.key] as string) || ''}
+                          onChange={e => saveResponse({ template_id: currentTmpl.id, answers: { ...(currentResp?.answers || {}), [f.key]: e.target.value } })}
+                        />
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                )
+             })}
           </div>
-
-          <div className="pt-mx-xl border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-mx-lg">
-             <div className="flex gap-2">
-               <Button variant="outline" size="lg" disabled={page === 0} onClick={() => setPage(p => p - 1)} className="font-black uppercase tracking-widest px-8 border-2">Anterior</Button>
-               <Button variant="outline" size="lg" disabled={page === totalPages - 1} onClick={() => setPage(p => p + 1)} className="font-black uppercase tracking-widest px-8 border-2">Próximo</Button>
-             </div>
-             
-             <Button 
-               className={cn("w-full sm:w-auto h-mx-14 px-mx-2xl font-black uppercase tracking-widest shadow-mx-elite transition-all active:scale-95", page < totalPages - 1 ? "bg-surface-alt text-text-tertiary cursor-not-allowed opacity-50" : "bg-brand-primary text-white hover:bg-brand-primary/90")}
-               size="lg" 
-               loading={isSubmitting}
-               onClick={async () => {
-                if (page < totalPages - 1) return toast.info('Vá até a última página para salvar o diagnóstico.');
-                if(!name) return toast.error('O nome do respondente é obrigatório.');
-                setIsSubmitting(true);
-                try {
-                  await onSave({ 
-                    template_id: currentTemplate?.id || active, 
-                    respondent_name: name, 
-                    respondent_role: currentTemplate?.target_role || active, 
-                    answers: { ...form, _evidences: evidences },
-                    visit_id: visitId 
-                  });
-                  toast.success('Diagnóstico salvo com sucesso!'); 
-                  setForm({}); setName(''); setPage(0); setEvidences({});
-                } finally { setIsSubmitting(false) }
-              }}
-            >
-              FINALIZAR E SALVAR NO CRM
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+       </Card>
+    </div>
   )
 }

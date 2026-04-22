@@ -102,7 +102,7 @@ export default function ConsultoriaClientes() {
       header: 'PRODUTO',
       align: 'center',
       render: (client) => (
-        <Badge variant="outline" className="px-3 py-1 rounded-mx-full border-border-default">
+        <Badge variant="outline" className="px-mx-md py-1 rounded-mx-full border-border-default">
           {client.product_name || 'Não definido'}
         </Badge>
       ),
@@ -116,7 +116,7 @@ export default function ConsultoriaClientes() {
         return (
           <div className="flex flex-col items-center gap-mx-xs">
             <Typography variant="tiny" className="font-black">{step} / 7</Typography>
-            <div className="h-1.5 bg-surface-alt rounded-full overflow-hidden" style={{ width: '6rem' }}>
+            <div className="h-mx-1.5 bg-surface-alt rounded-mx-full overflow-hidden" style={{ width: '6rem' }}>
               <div 
                 className="h-full bg-brand-primary transition-all" 
                 style={{ width: `${(step / 7) * 100}%` }}
@@ -133,7 +133,7 @@ export default function ConsultoriaClientes() {
       render: (client) => (
         <Badge
           variant={client.status === 'ativo' ? 'success' : 'outline'}
-          className="px-3 py-1 rounded-mx-full border-none"
+          className="px-mx-md py-1 rounded-mx-full border-none"
         >
           {String(client.status || 'ativo').toUpperCase()}
         </Badge>
@@ -159,7 +159,7 @@ export default function ConsultoriaClientes() {
         }
 
         return (
-          <Badge variant={variant} className="px-3 py-1 rounded-mx-full border-none font-black text-[9px]">
+          <Badge variant={variant} className="px-mx-md py-1 rounded-mx-full border-none font-black text-mx-micro">
             {label}
           </Badge>
         )
@@ -179,7 +179,7 @@ export default function ConsultoriaClientes() {
 
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-xl shrink-0">
         <div className="flex flex-col gap-mx-tiny">
           <div className="flex items-center gap-mx-sm">
             <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
@@ -210,13 +210,13 @@ export default function ConsultoriaClientes() {
 
           <Button asChild variant="outline" size="default" className="rounded-mx-xl bg-white">
             <Link to="/agenda">
-              <CalendarDays size={18} className="mr-2" /> AGENDA MX
+              <CalendarDays size={18} className="mr-mx-md" /> AGENDA MX
             </Link>
           </Button>
 
           {canCreate && (
             <Button onClick={() => setShowCreate((value) => !value)} className="bg-brand-secondary">
-              <Plus size={18} className="mr-2" />
+              <Plus size={18} className="mr-mx-md" />
               NOVO CLIENTE
             </Button>
           )}
@@ -236,7 +236,7 @@ export default function ConsultoriaClientes() {
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Buscar cliente, produto ou CNPJ..."
-            className="!pl-11"
+            className="!pl-mx-11"
           />
         </div>
       </Card>
@@ -294,26 +294,26 @@ export default function ConsultoriaClientes() {
               />
             </div>
 
-            <div className="md:col-span-2 pt-4 border-t border-border-default">
-              <Typography variant="h3" className="mb-2">MÓDULOS & RECURSOS DA CONSULTORIA</Typography>
-              <Typography variant="caption" tone="muted" className="block mb-4">
+            <div className="md:col-span-2 pt-mx-lg border-t border-border-default">
+              <Typography variant="h3" className="mb-mx-xs">MÓDULOS & RECURSOS DA CONSULTORIA</Typography>
+              <Typography variant="caption" tone="muted" className="block mb-mx-md">
                 Selecione os módulos internos que este cliente terá acesso (DRE, Planos, etc). 
                 Diferente do 'Produto Comercial', esses são os recursos habilitados no painel.
               </Typography>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-mx-xs">
                 {DEFAULT_CONSULTING_MODULES.map((mod: any) => {
                   const isEnabled = form.enabled_modules.includes(mod.module_key)
                   return (
-                    <label key={mod.module_key} className={`flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${isEnabled ? 'bg-mx-indigo-50 border-brand-primary' : 'bg-surface-alt border-border-default hover:bg-white'}`}>
+                    <label key={mod.module_key} className={`flex items-start gap-mx-xs p-mx-sm rounded-mx-xl border transition-colors cursor-pointer ${isEnabled ? 'bg-mx-indigo-50 border-brand-primary' : 'bg-surface-alt border-border-default hover:bg-white'}`}>
                       <input 
                         type="checkbox" 
                         checked={isEnabled} 
                         onChange={() => toggleModule(mod.module_key)} 
-                        className="mt-1"
+                        className="mt-mx-xs"
                       />
                       <div>
                         <Typography variant="p" className="font-bold leading-none">{mod.label}</Typography>
-                        {mod.premium && <Badge variant="warning" className="mt-1 px-2 py-0.5 text-[9px]">PREMIUM</Badge>}
+                        {mod.premium && <Badge variant="warning" className="mt-mx-xs px-mx-md py-0.5 text-mx-micro">PREMIUM</Badge>}
                       </div>
                     </label>
                   )
@@ -321,10 +321,10 @@ export default function ConsultoriaClientes() {
               </div>
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-mx-sm mt-4">
+            <div className="md:col-span-2 flex justify-end gap-mx-sm mt-mx-md">
               <Button type="button" variant="ghost" onClick={() => setShowCreate(false)}>CANCELAR</Button>
               <Button type="submit" disabled={submitting}>
-                <BriefcaseBusiness size={16} className="mr-2" />
+                <BriefcaseBusiness size={16} className="mr-mx-md" />
                 {submitting ? 'SALVANDO...' : 'CRIAR CLIENTE'}
               </Button>
             </div>
@@ -332,7 +332,7 @@ export default function ConsultoriaClientes() {
         </Card>
       )}
 
-      <Card className="border-none shadow-mx-xl bg-white overflow-hidden p-mx-0">
+      <Card className="border-none shadow-mx-xl bg-white overflow-hidden p-mx-0 rounded-mx-2xl">
         <DataGrid
           columns={columns}
           data={filteredClients}
