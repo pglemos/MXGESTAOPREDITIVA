@@ -108,7 +108,7 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
 
       <div id="roi-report-content" className="space-y-mx-lg bg-surface-alt p-mx-md rounded-mx-2xl print:p-0 print:bg-white">
         <Card className="p-mx-xl bg-brand-primary text-white border-none shadow-mx-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-mx-lg opacity-10"><TrendingUp size={200} strokeWidth={1} /></div>
+          <div className="absolute top-mx-0 right-mx-0 p-mx-lg opacity-10"><TrendingUp size={200} strokeWidth={1} /></div>
           <div className="relative z-10">
             <Typography variant="h3" className="text-white/70 mb-mx-xs uppercase tracking-mx-widest">Relatório de Choque: ROI da Consultoria</Typography>
             <div className="flex items-baseline gap-mx-md">
@@ -122,7 +122,7 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
           <div className="xl:col-span-2">
             <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md h-full rounded-mx-2xl">
               <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest">Evolução Histórica (PMR)</Typography>
-              <div className="h-mx-chart w-full">
+              <div className="h-mx-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -259,12 +259,12 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
                  {(pdi as any).seller_acknowledged_at ? (
                    <div className="flex items-center gap-mx-xs text-status-success">
                      <ShieldCheck className="w-mx-4 h-mx-4" />
-                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-[8px]">Vendedor OK</Typography>
+                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-mx-micro">Vendedor OK</Typography>
                    </div>
                  ) : canSellerSign ? (
-                   <Button variant="primary" size="sm" className="w-full font-black text-[9px]" onClick={() => acknowledge(pdi.id, 'seller')}>ASSINAR VENDEDOR</Button>
+                   <Button variant="primary" size="sm" className="w-full font-black text-mx-micro" onClick={() => acknowledge(pdi.id, 'seller')}>ASSINAR VENDEDOR</Button>
                  ) : (
-                   <Typography variant="tiny" className="uppercase font-bold text-[8px] opacity-30">Pendente Vendedor</Typography>
+                   <Typography variant="tiny" className="uppercase font-bold text-mx-micro opacity-30">Pendente Vendedor</Typography>
                  )}
                </div>
 
@@ -272,12 +272,12 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
                  {(pdi as any).manager_acknowledged_at ? (
                    <div className="flex items-center gap-mx-xs text-status-success">
                      <ShieldCheck className="w-mx-4 h-mx-4" />
-                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-[8px]">Gestor OK</Typography>
+                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-mx-micro">Gestor OK</Typography>
                    </div>
                  ) : canManagerSign ? (
-                   <Button variant="outline" size="sm" className="w-full font-black text-[9px] border-brand-primary text-brand-primary" onClick={() => acknowledge(pdi.id, 'manager')}>ASSINAR GESTOR</Button>
+                   <Button variant="outline" size="sm" className="w-full font-black text-mx-micro border-brand-primary text-brand-primary" onClick={() => acknowledge(pdi.id, 'manager')}>ASSINAR GESTOR</Button>
                  ) : (
-                   <Typography variant="tiny" className="uppercase font-bold text-[8px] opacity-30">Pendente Gestor</Typography>
+                   <Typography variant="tiny" className="uppercase font-bold text-mx-micro opacity-30">Pendente Gestor</Typography>
                  )}
                </div>
             </div>

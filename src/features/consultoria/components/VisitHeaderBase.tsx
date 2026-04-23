@@ -22,7 +22,7 @@ interface Props {
 export function VisitHeaderBase({ data, onChange, clientName }: Props) {
   return (
     <Card className="p-mx-lg bg-white border border-border-default shadow-mx-xl rounded-mx-2xl relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-mx-lg opacity-5 group-hover:opacity-10 transition-opacity">
+      <div className="absolute top-mx-0 right-mx-0 p-mx-lg opacity-5 group-hover:opacity-10 transition-opacity">
         <Users className="w-mx-20 h-mx-20 text-brand-primary" />
       </div>
       
@@ -55,19 +55,19 @@ export function VisitHeaderBase({ data, onChange, clientName }: Props) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-md">
           <div className="space-y-mx-xs p-mx-md bg-brand-primary/5 rounded-mx-xl border border-brand-primary/10">
             <Typography variant="tiny" className="text-brand-primary font-black uppercase">Meta Mensal</Typography>
-            <Input value={data.meta_mensal} onChange={e => onChange({ meta_mensal: e.target.value })} placeholder="Ex: 25" className="bg-transparent border-none p-0 text-xl font-black text-brand-primary focus-visible:ring-0" />
+            <Input value={data.meta_mensal} onChange={e => onChange({ meta_mensal: e.target.value })} placeholder="Ex: 25" className="bg-transparent border-none p-mx-0 text-xl font-black text-brand-primary focus-visible:ring-0" />
           </div>
           <div className="space-y-mx-xs p-mx-md bg-brand-secondary/5 rounded-mx-xl border border-brand-secondary/10">
             <Typography variant="tiny" className="text-brand-secondary font-black uppercase">Projeção</Typography>
-            <Input value={data.projecao} onChange={e => onChange({ projecao: e.target.value })} className="bg-transparent border-none p-0 text-xl font-black text-brand-secondary focus-visible:ring-0" />
+            <Input value={data.projecao} onChange={e => onChange({ projecao: e.target.value })} className="bg-transparent border-none p-mx-0 text-xl font-black text-brand-secondary focus-visible:ring-0" />
           </div>
           <div className="space-y-mx-xs p-mx-md bg-surface-alt rounded-mx-xl border border-border-default">
             <Typography variant="tiny" className="text-text-tertiary font-black uppercase">Leads (Mês)</Typography>
-            <Input value={data.leads_mes} onChange={e => onChange({ leads_mes: e.target.value })} className="bg-transparent border-none p-0 text-xl font-black text-text-primary focus-visible:ring-0" />
+            <Input value={data.leads_mes} onChange={e => onChange({ leads_mes: e.target.value })} className="bg-transparent border-none p-mx-0 text-xl font-black text-text-primary focus-visible:ring-0" />
           </div>
           <div className="space-y-mx-xs p-mx-md bg-surface-alt rounded-mx-xl border border-border-default">
             <Typography variant="tiny" className="text-text-tertiary font-black uppercase">Estoque</Typography>
-            <Input value={data.estoque_disponivel} onChange={e => onChange({ estoque_disponivel: e.target.value })} className="bg-transparent border-none p-0 text-xl font-black text-text-primary focus-visible:ring-0" />
+            <Input value={data.estoque_disponivel} onChange={e => onChange({ estoque_disponivel: e.target.value })} className="bg-transparent border-none p-mx-0 text-xl font-black text-text-primary focus-visible:ring-0" />
           </div>
         </div>
       </div>

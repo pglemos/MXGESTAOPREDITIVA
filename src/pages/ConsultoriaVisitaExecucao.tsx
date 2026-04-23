@@ -312,7 +312,7 @@ Gerado via MX PERFORMANCE`
 
   return (
     <div className="w-full pb-mx-xl relative z-0">
-      <div className="fixed -left-[2000px] top-0 overflow-hidden pointer-events-none">
+      <div className="fixed -left-mx-96 top-mx-0 overflow-hidden pointer-events-none">
          <div id="report-template-render">
             <VisitReportTemplate 
               client={client} 
@@ -323,7 +323,7 @@ Gerado via MX PERFORMANCE`
          </div>
       </div>
       
-      <div className="sticky top-0 z-40 bg-surface-alt/80 backdrop-blur-md px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden border-b border-border-subtle shadow-mx-sm">
+      <div className="sticky top-mx-0 z-40 bg-surface-alt/80 backdrop-blur-md px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden border-b border-border-subtle shadow-mx-sm">
         <div className="flex items-center gap-mx-md">
           <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-mx-lg hover:bg-surface-alt/50 transition-colors text-text-secondary bg-white shadow-mx-sm">
             <ArrowLeft className="w-mx-5 h-mx-5" />
@@ -440,7 +440,7 @@ Gerado via MX PERFORMANCE`
 
         <div className="lg:col-span-1 space-y-mx-lg print:hidden">
           <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><Info size={80} /></div>
+            <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-mx-5"><Info size={80} /></div>
             <Typography variant="tiny" tone="muted" className="mb-mx-md block tracking-mx-widest text-mx-micro uppercase font-black">Informações da Etapa</Typography>
             <div className="space-y-mx-md">
               <div className="p-mx-md bg-surface-alt rounded-mx-xl border border-border-subtle">
@@ -478,7 +478,7 @@ Gerado via MX PERFORMANCE`
                               {att.content_type?.includes('image') ? <Image className="w-mx-5 h-mx-5 text-brand-primary" /> : <FileText className="w-mx-5 h-mx-5 text-text-tertiary" />}
                            </div>
                            <div className="min-w-0">
-                              <Typography variant="p" className="text-xs font-bold truncate max-w-[120px] text-black">{att.filename}</Typography>
+                              <Typography variant="p" className="text-xs font-bold truncate max-w-mx-40 text-black">{att.filename}</Typography>
                               <Typography variant="tiny" className="opacity-50 text-mx-micro">{formatFileSize(att.size_bytes)}</Typography>
                            </div>
                         </div>
@@ -528,7 +528,7 @@ Gerado via MX PERFORMANCE`
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                <Button className="h-mx-11 text-sm font-black border-border-default shadow-mx-sm bg-white uppercase tracking-widest" variant="outline" onClick={() => window.print()} icon={<Printer className="w-mx-4 h-mx-4" />}>IMPRIMIR PDF</Button>
-               <Button className="h-mx-11 text-sm font-black bg-[#25D366] hover:bg-[#20bd5a] text-white border-none shadow-mx-md uppercase tracking-widest" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-mx-4 h-mx-4" />}>Enviar WhatsApp</Button>
+               <Button className="h-mx-11 text-sm font-black bg-mx-green-500 hover:bg-mx-green-600 text-white border-none shadow-mx-md uppercase tracking-widest" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-mx-4 h-mx-4" />}>Enviar WhatsApp</Button>
                <Button variant="secondary" className="h-mx-11 text-sm font-black bg-brand-primary text-white border-none shadow-mx-lg col-span-1 sm:col-span-2 uppercase tracking-widest" onClick={handleDownloadPDF} icon={<Download className="w-mx-4 h-mx-4" />}>BAIXAR PDF OFICIAL (A4)</Button>
             </div>
          </div>

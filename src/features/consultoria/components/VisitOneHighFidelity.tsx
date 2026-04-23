@@ -72,7 +72,7 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg">
         {/* Vendas Trimestre */}
         <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl">
-          <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><BarChart3 size={120} /></div>
+          <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-mx-5"><BarChart3 size={120} /></div>
           <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
             <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><TrendingUp size={20} /></div>
             <div>
@@ -109,7 +109,7 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
 
         {/* Marketing ROI */}
         <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl">
-          <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><PieChart size={120} /></div>
+          <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-mx-5"><PieChart size={120} /></div>
           <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
             <div className="p-mx-xs bg-brand-secondary/10 rounded-mx-lg text-brand-secondary"><Zap size={20} /></div>
             <div>
@@ -159,7 +159,7 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
           <div className="mt-mx-md grid grid-cols-4 gap-mx-xs">
              {data.marketing?.origin?.map((o: any, i: number) => (
                 <div key={o.name} className="text-center">
-                   <div className="w-2 h-2 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                   <div className="w-mx-2 h-mx-2 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                    <Typography variant="tiny" className="text-mx-micro font-black uppercase opacity-60">{o.name}</Typography>
                    <Typography variant="p" className="text-xs font-black">{o.value}</Typography>
                 </div>
@@ -170,7 +170,7 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
 
       {/* Raio-X do Estoque */}
       <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl">
-          <div className="absolute top-0 right-0 p-mx-md opacity-mx-5"><Layers size={120} /></div>
+          <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-mx-5"><Layers size={120} /></div>
           <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
             <div className="p-mx-xs bg-status-warning/10 rounded-mx-lg text-status-warning"><Layers size={20} /></div>
             <div>
