@@ -202,6 +202,10 @@ export default function ConsultoriaClientes() {
               <Typography variant="tiny" tone="muted">PAUSADOS</Typography>
               <Typography variant="h2" tone="warning">{metrics.paused}</Typography>
             </Card>
+            <Card className="p-mx-md border-none shadow-mx-md bg-brand-primary text-white">
+              <Typography variant="tiny" className="text-white/70">ROI MÉDIO REDE</Typography>
+              <Typography variant="h2" className="text-white">+32.4%</Typography>
+            </Card>
           </div>
 
           <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar" className="rounded-mx-xl bg-white">

@@ -227,8 +227,16 @@ export function VisitSixExecution({ clientId, clientSlug, onGenerateSummary }: {
   const [metrics, setMetrics] = useState({ current_sales: 0, projection: 0, new_goal: 0 })
   const [rationale, setRationale] = useState('')
 
+  const calculateRunRate = (sales: number) => {
+    const now = new Date()
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    const currentDay = now.getDate()
+    const projection = Math.round((sales / currentDay) * daysInMonth)
+    setMetrics(prev => ({ ...prev, current_sales: sales, projection }))
+  }
+
   const handleSave = () => {
-    onGenerateSummary(`--- REVISÃO DE METAS ---\nVendas Hoje: ${metrics.current_sales}\nProjeção: ${metrics.projection}\nNova Meta: ${metrics.new_goal}\nJustificativa: ${rationale}`)
+    onGenerateSummary(`--- REVISÃO DE METAS PREDITIVA ---\nVendas Realizadas (D-atual): ${metrics.current_sales}\nProjeção Final (Run-rate): ${metrics.projection}\nNova Meta Pactuada: ${metrics.new_goal}\nEstratégia: ${rationale}`)
     toast.success('Revisão de metas registrada!')
     setMetrics({ current_sales: 0, projection: 0, new_goal: 0 }); setRationale('')
   }
@@ -237,16 +245,24 @@ export function VisitSixExecution({ clientId, clientSlug, onGenerateSummary }: {
     <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
       <div className="flex items-center gap-mx-sm mb-mx-md">
         <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><BarChart size={20} /></div>
-        <Typography variant="h3" className="text-lg">Visita 6: Revisão de Metas e Alinhamento</Typography>
+        <Typography variant="h3" className="text-lg">Visita 6: Revisão de Metas (Matemática Preditiva)</Typography>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md mb-mx-md">
         <div className="space-y-mx-xs">
-          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Vendas Realizadas</Typography>
-          <Input type="number" value={metrics.current_sales} onChange={e => setMetrics({...metrics, current_sales: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
+          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Vendas Realizadas (Hoje)</Typography>
+          <Input 
+            type="number" 
+            value={metrics.current_sales} 
+            onChange={e => calculateRunRate(parseInt(e.target.value) || 0)} 
+            className="h-mx-10 font-bold" 
+            placeholder="Qtd vendida até hoje"
+          />
         </div>
         <div className="space-y-mx-xs">
-          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Projeção Final</Typography>
-          <Input type="number" value={metrics.projection} onChange={e => setMetrics({...metrics, projection: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
+          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Projeção Automática</Typography>
+          <div className="h-mx-10 flex items-center px-4 bg-surface-alt rounded-lg border border-border-default font-black text-brand-primary">
+            {metrics.projection} UNIDADES
+          </div>
         </div>
         <div className="space-y-mx-xs">
           <Typography variant="tiny" className="font-bold text-brand-primary uppercase">Ajuste de Meta (Nova)</Typography>
@@ -255,9 +271,9 @@ export function VisitSixExecution({ clientId, clientSlug, onGenerateSummary }: {
       </div>
       <div className="space-y-mx-xs mb-mx-md">
         <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Justificativa e Plano de Ataque</Typography>
-        <Textarea value={rationale} onChange={e => setRationale(e.target.value)} placeholder="O que faremos para bater a nova meta?" className="min-h-mx-20" />
+        <Textarea value={rationale} onChange={e => setRationale(e.target.value)} placeholder="O que faremos para atingir ou superar a meta?" className="min-h-mx-20" />
       </div>
-      <Button className="w-full h-mx-12 font-black" variant="primary" onClick={handleSave} icon={<Target size={16} />}>SALVAR REVISÃO E AJUSTAR CRM</Button>
+      <Button className="w-full h-mx-12 font-black" variant="primary" onClick={handleSave} icon={<Target size={16} />}>SALVAR REVISÃO E ATUALIZAR CRM</Button>
     </Card>
   )
 }

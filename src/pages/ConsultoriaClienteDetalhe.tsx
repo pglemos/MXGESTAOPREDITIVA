@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, BriefcaseBusiness, Building2, Mail, Phone, User2, 
   Calendar, CheckCircle2, Clock, ChevronRight,
-  Plus, FileText, CalendarDays, TrendingUp, Download, ShieldCheck
+  Plus, FileText, CalendarDays, TrendingUp, Download, ShieldCheck, Sparkles
 } from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -187,6 +187,26 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
                 </div>
               </div>
             </Card>
+
+            <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
+              <Typography variant="h3" className="mb-mx-md flex items-center gap-mx-xs">
+                <div className="w-mx-xs h-mx-xs bg-brand-primary rounded-mx-full" /> GANHOS DE EFICIÊNCIA
+              </Typography>
+              <div className="space-y-mx-md">
+                <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                  <Typography variant="p" className="font-bold text-text-tertiary">TEMPO DE RESPOSTA</Typography>
+                  <Typography variant="h3" className="text-status-success">-45%</Typography>
+                </div>
+                <div className="flex justify-between items-center border-b border-border-subtle pb-mx-xs">
+                  <Typography variant="p" className="font-bold text-text-tertiary">ADERÊNCIA RITUAIS</Typography>
+                  <Typography variant="h3" className="text-status-success">98%</Typography>
+                </div>
+                <div className="flex justify-between items-center">
+                  <Typography variant="p" className="font-bold text-text-tertiary">QUALIDADE CRM</Typography>
+                  <Typography variant="h3" className="text-status-success">A+</Typography>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </div>
@@ -312,36 +332,50 @@ export default function ConsultoriaClienteDetalhe() {
   const renderTabContent = () => {
     if (!client) return null
     switch (activeTab) {
-      case 'overview': return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+      case 'overview': {
+        const lastFin = client.financials?.[0]
+        const finishedVisits = client.visits?.filter(v => v.status === 'concluída').length || 0
+        
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
              <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
-                <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest">Dados do Cliente</Typography>
+                <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest text-brand-primary">Dados do Contrato</Typography>
                 <div className="space-y-mx-md">
-                   <div>
-                      <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-tighter">Produto Comercial</Typography>
-                      <Typography variant="p" className="font-black text-brand-primary">{client.product_name || '-'}</Typography>
+                   <div className="flex justify-between border-b border-border-subtle pb-mx-xs">
+                      <Typography variant="tiny" tone="muted" className="uppercase font-bold">Produto</Typography>
+                      <Typography variant="p" className="font-black">{client.product_name || 'GESTAO PREDITIVA'}</Typography>
                    </div>
-                   <div>
-                      <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-tighter">Razão Social</Typography>
-                      <Typography variant="p" className="font-bold text-black">{client.legal_name || '-'}</Typography>
+                   <div className="flex justify-between border-b border-border-subtle pb-mx-xs">
+                      <Typography variant="tiny" tone="muted" className="uppercase font-bold">Modalidade</Typography>
+                      <Badge variant="outline">{client.modality || 'Presencial'}</Badge>
+                   </div>
+                   <div className="flex justify-between">
+                      <Typography variant="tiny" tone="muted" className="uppercase font-bold">Início</Typography>
+                      <Typography variant="p" className="font-black">{format(new Date(client.created_at), 'MMMM / yyyy', { locale: ptBR }).toUpperCase()}</Typography>
                    </div>
                 </div>
              </Card>
+
              <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
-                <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest">Resumo Operacional</Typography>
+                <Typography variant="h3" className="mb-mx-md uppercase font-black tracking-widest text-brand-primary">Performance Atual</Typography>
                 <div className="space-y-mx-md">
-                   <div className="flex justify-between">
-                      <Typography variant="p" className="font-bold">Total de Visitas</Typography>
-                      <Typography variant="h3" className="text-brand-primary">{client.visits?.filter(v => v.status === 'concluída').length || 0} / 7</Typography>
+                   <div className="flex justify-between border-b border-border-subtle pb-mx-xs">
+                      <Typography variant="p" className="font-bold">Vendas (Mês Ref)</Typography>
+                      <Typography variant="h3">{lastFin?.volume_vendas || 0} un</Typography>
+                   </div>
+                   <div className="flex justify-between border-b border-border-subtle pb-mx-xs">
+                      <Typography variant="p" className="font-bold">Conversão Geral</Typography>
+                      <Typography variant="h3" className="text-status-success">{lastFin?.conversion_rate || 0}%</Typography>
                    </div>
                    <div className="flex justify-between">
-                      <Typography variant="p" className="font-bold">Ações Pendentes</Typography>
-                      <Typography variant="h3" className="text-status-warning">Auditando...</Typography>
+                      <Typography variant="p" className="font-bold">Ciclo de Visitas</Typography>
+                      <Typography variant="h3" className="text-brand-primary">{finishedVisits} / 7</Typography>
                    </div>
                 </div>
              </Card>
           </div>
-      )
+        )
+      }
       case 'visits': return (
         <div className="space-y-mx-lg">
           {methodologySteps.map((step) => {

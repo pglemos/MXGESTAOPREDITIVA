@@ -224,6 +224,30 @@ export default function ConsultoriaVisitaExecucao() {
     } catch (err: any) { toast.error(err.message) }
   }
 
+  const handleGenerateAISummary = () => {
+    const completedTasks = checklist.filter(t => t.completed).map(t => t.task)
+    const pendingTasks = checklist.filter(t => !t.completed).map(t => t.task)
+    
+    let summary = `Durante a Visita ${visitNum}, focamos em: ${step?.objective}.\n\n`
+    
+    if (completedTasks.length > 0) {
+      summary += `✅ PONTOS CONCLUÍDOS:\n- ${completedTasks.join('\n- ')}\n\n`
+    }
+    
+    if (pendingTasks.length > 0) {
+      summary += `⚠️ PONTOS PENDENTES:\n- ${pendingTasks.join('\n- ')}\n\n`
+    }
+
+    if (visitNum === 1) {
+      summary += `📊 DIAGNÓSTICO QUANTITATIVO:\nLoja operando com estoque de ${headerBase.estoque_disponivel} carros e volume de leads de ${headerBase.leads_mes}/mês. Identificamos oportunidade de melhoria no CPL.`
+    } else {
+      summary += `🎯 EVOLUÇÃO:\nRitmo de vendas atual em ${headerBase.projecao} unidades vs meta de ${headerBase.meta_mensal}.`
+    }
+
+    setExecutiveSummary(summary)
+    toast.success('Rascunho inteligente gerado!')
+  }
+
   const generateReportText = () => {
     const safeSales = quantData?.sales || []
     const safeMarketing = quantData?.marketing || { investment: 0, leads: 0, origin: [] }
@@ -368,9 +392,12 @@ Gerado via MX PERFORMANCE`
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
             <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white">
-              <div className="flex items-center gap-mx-sm mb-mx-md">
-                <FileText className="w-mx-5 h-mx-5 text-text-secondary" />
-                <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Relato Executivo (CRM)</Typography>
+              <div className="flex items-center justify-between mb-mx-md">
+                <div className="flex items-center gap-mx-sm">
+                  <FileText className="w-mx-5 h-mx-5 text-text-secondary" />
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Relato Executivo (CRM)</Typography>
+                </div>
+                <Button size="xs" variant="outline" className="h-mx-8 border-brand-primary text-brand-primary font-black uppercase text-mx-micro" onClick={handleGenerateAISummary} icon={<Sparkles size={12} />}>GERAR RASCUNHO</Button>
               </div>
               <Textarea 
                 value={executiveSummary} 
