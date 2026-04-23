@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import crypto from 'crypto';
 dotenv.config();
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
@@ -238,6 +239,18 @@ async function run() {
     inserted += chunk.length;
     console.log(`Processado ${inserted}/${finalUniqueRecords.length} registros...`);
   }
+
+  // Update source_mode for affected stores to ensure ecosystem sync
+  const uniqueStoreIds = Array.from(new Set(finalUniqueRecords.map(r => r.store_id)));
+  if (uniqueStoreIds.length > 0) {
+      console.log(`\nAtualizando source_mode para 'hybrid' em ${uniqueStoreIds.length} lojas afetadas...`);
+      for (const sid of uniqueStoreIds) {
+          const { error: storeErr } = await supabase.from('stores').update({ source_mode: 'hybrid' }).eq('id', sid);
+          if (storeErr) console.error(`Erro ao atualizar source_mode da loja ${sid}:`, storeErr.message);
+      }
+      console.log('Atualização de source_mode concluída.');
+  }
+
   console.log('\nMigração Concluída com Sucesso!');
 }
 

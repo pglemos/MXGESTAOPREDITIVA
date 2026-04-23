@@ -341,23 +341,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storeId = activeStoreId || membership?.store_id || fallbackStoreId || null
 
     return (
-        <AuthContext.Provider value={{ 
-            supabaseUser, 
-            profile, 
-            membership, 
+        <AuthContext.Provider value={{
+            supabaseUser,
+            profile,
+            membership,
             memberships,
-            role, 
-            storeId, 
+            role,
+            storeId,
             activeStoreId,
             setActiveStoreId,
-            initialized, 
-            loading, 
-            signIn, 
+            initialized,
+            loading,
+            signIn,
             signOut,
             updateProfile,
             changePassword
-        }}>
-            {children}
+        }}>            {children}
         </AuthContext.Provider>
     )
 }

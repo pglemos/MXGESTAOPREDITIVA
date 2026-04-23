@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { 
     History, Calendar, Car, Users, Globe, Eye, 
     MessageSquare, Search, ArrowUpDown, RefreshCw, X,
-    CalendarDays, Phone
+    CalendarDays, Phone, AlertCircle, Send
 } from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { format, parseISO } from 'date-fns'
@@ -14,19 +14,77 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Input } from '@/components/atoms/Input'
+import { Textarea } from '@/components/atoms/Textarea'
 import { Card } from '@/components/molecules/Card'
+import { Modal } from '@/components/organisms/Modal'
 import { toast } from 'sonner'
+import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
+import type { CheckinWithTotals } from '@/types/database'
 
 export default function Historico() {
     const { checkins, loading, refetch } = useMyCheckins()
+    const { requestCorrection, loading: submittingCorrection } = useCheckinAuditor()
     const [searchTerm, setSearchTerm] = useState('')
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const [isRefetching, setIsRefetching] = useState(false)
+
+    // Estado para correção
+    const [selectedCheckin, setSelectedCheckin] = useState<CheckinWithTotals | null>(null)
+    const [correctionReason, setCorrectionReason] = useState('')
+    const [formData, setFormData] = useState({
+        leads: 0,
+        agd_cart: 0,
+        agd_net: 0,
+        vnd_porta: 0,
+        vnd_cart: 0,
+        vnd_net: 0,
+        visitas: 0
+    })
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch(); setIsRefetching(false)
         toast.success('Histórico sincronizado!')
     }, [refetch])
+
+    const openCorrectionModal = (c: CheckinWithTotals) => {
+        setSelectedCheckin(c)
+        setCorrectionReason('')
+        setFormData({
+            leads: c.leads_prev_day || 0,
+            agd_cart: c.agd_cart_today || 0,
+            agd_net: c.agd_net_today || 0,
+            vnd_porta: c.vnd_porta_prev_day || 0,
+            vnd_cart: c.vnd_cart_prev_day || 0,
+            vnd_net: c.vnd_net_prev_day || 0,
+            visitas: c.visit_prev_day || 0
+        })
+    }
+
+    const handleRequestCorrection = async () => {
+        if (!selectedCheckin) return
+        if (!correctionReason.trim()) return toast.error('Descreva o motivo da correção')
+
+        // Mapear campos para as colunas reais do banco para a aprovação ser atômica
+        // Usamos os nomes canônicos que a RPC agora suporta e que a trigger respeita
+        const updatePayload = {
+            leads_prev_day: formData.leads,
+            agd_cart_today: formData.agd_cart,
+            agd_net_today: formData.agd_net,
+            vnd_porta_prev_day: formData.vnd_porta,
+            vnd_cart_prev_day: formData.vnd_cart,
+            vnd_net_prev_day: formData.vnd_net,
+            visit_prev_day: formData.visitas
+        }
+
+        const { error } = await requestCorrection(selectedCheckin.id, updatePayload as any, correctionReason)
+        
+        if (error) {
+            toast.error(error)
+        } else {
+            toast.success('Solicitação de correção enviada ao Gerente!')
+            setSelectedCheckin(null)
+        }
+    }
 
     const processedCheckins = useMemo(() => {
         return checkins
@@ -145,12 +203,82 @@ export default function Historico() {
                                             </Typography>
                                         </footer>
                                     )}
+
+                                    <div className="mt-8 flex justify-end relative z-10 border-t border-border-default pt-8 border-dashed">
+                                        <Button variant="ghost" size="sm" onClick={() => openCorrectionModal(c)} className="text-mx-nano font-black uppercase tracking-widest text-text-tertiary hover:text-brand-primary hover:bg-brand-primary/5 gap-2 group/btn">
+                                            <AlertCircle size={14} className="group-hover/btn:animate-pulse" /> SOLICITAR CORREÇÃO
+                                        </Button>
+                                    </div>
                                 </Card>
                             </motion.div>
                         ))}
                     </AnimatePresence>
                 </div>
             )}
+
+            {/* Modal de Correção */}
+            <Modal
+                open={!!selectedCheckin}
+                onClose={() => setSelectedCheckin(null)}
+                title="Solicitar Correção de Registro"
+                description={`Ajuste de produção para o dia ${selectedCheckin ? format(parseISO(selectedCheckin.reference_date), 'dd/MM/yyyy') : ''}`}
+                size="lg"
+                footer={
+                    <>
+                        <Button variant="ghost" onClick={() => setSelectedCheckin(null)} disabled={submittingCorrection}>CANCELAR</Button>
+                        <Button onClick={handleRequestCorrection} disabled={submittingCorrection} className="gap-2">
+                            {submittingCorrection ? <RefreshCw size={16} className="animate-spin" /> : <Send size={16} />}
+                            ENVIAR SOLICITAÇÃO
+                        </Button>
+                    </>
+                }
+            >
+                <div className="space-y-mx-lg py-4">
+                    <div className="grid grid-cols-2 gap-mx-md">
+                        <div className="space-y-2">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase">Leads Recebidos</Typography>
+                            <Input type="number" value={formData.leads} onChange={(e) => setFormData(p => ({ ...p, leads: Number(e.target.value) }))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase">Visitas Realizadas</Typography>
+                            <Input type="number" value={formData.visitas} onChange={(e) => setFormData(p => ({ ...p, visitas: Number(e.target.value) }))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Porta</Typography>
+                            <Input type="number" value={formData.vnd_porta} onChange={(e) => setFormData(p => ({ ...p, vnd_porta: Number(e.target.value) }))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Carteira</Typography>
+                            <Input type="number" value={formData.vnd_cart} onChange={(e) => setFormData(p => ({ ...p, vnd_cart: Number(e.target.value) }))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Internet</Typography>
+                            <Input type="number" value={formData.vnd_net} onChange={(e) => setFormData(p => ({ ...p, vnd_net: Number(e.target.value) }))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Carteira</Typography>
+                            <Input type="number" value={formData.agd_cart} onChange={(e) => setFormData(p => ({ ...p, agd_cart: Number(e.target.value) }))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Internet</Typography>
+                            <Input type="number" value={formData.agd_net} onChange={(e) => setFormData(p => ({ ...p, agd_net: Number(e.target.value) }))} />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 pt-4 border-t border-border-default">
+                        <Typography variant="tiny" tone="muted" className="font-black uppercase">Motivo da Alteração (Obrigatório)</Typography>
+                        <Textarea 
+                            placeholder="Descreva por que este registro precisa ser corrigido..."
+                            value={correctionReason}
+                            onChange={(e) => setCorrectionReason(e.target.value)}
+                            className="min-h-[100px]"
+                        />
+                        <Typography variant="caption" tone="muted" className="italic text-mx-nano">
+                            *Sua solicitação será enviada para auditoria do Gerente da Unidade.
+                        </Typography>
+                    </div>
+                </div>
+            </Modal>
         </main>
     )
 }

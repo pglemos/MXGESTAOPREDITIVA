@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { useStoreGoal } from '@/hooks/useGoals'
 import { useStoreSales } from '@/hooks/useStoreSales'
+import { useDRE } from '@/hooks/useDRE'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { 
     Target, RefreshCw, Search, Globe, ChevronDown, Calendar, History, Settings, Users,
@@ -22,6 +23,7 @@ import { AdminNetworkView } from '@/components/admin/AdminNetworkView'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
+import { supabase } from '@/lib/supabase'
 
 export default function DashboardLoja() {
     const { role, storeId: authStoreId, setActiveStoreId, memberships } = useAuth()
@@ -77,7 +79,16 @@ export default function DashboardLoja() {
     }, [storeSlug, memberships, role])
 
     const urlStoreId = resolvedStoreId || new URLSearchParams(window.location.search).get('id')
-    const storeId = urlStoreId || authStoreId
+    let storeId = urlStoreId || authStoreId
+
+    // Bloqueio de Segurança: Gerente só vê as lojas que ele faz parte.
+    if (role === 'gerente' && storeId) {
+        const isMember = memberships.some(m => m.store_id === storeId)
+        if (!isMember) {
+            // Se tentar acessar loja que não é dele, força para a loja primária
+            storeId = authStoreId
+        }
+    }
 
     // Redirecionar apenas se NÃO estiver resolvendo e NÃO houver storeId válido
     if (!resolving && !storeId && (role === 'admin' || role === 'dono')) {
@@ -93,19 +104,45 @@ export default function DashboardLoja() {
     const { sellers } = useSellersByStore(storeId)
     const { goal: storeGoal } = useStoreGoal(storeId)
 
-    const [viewMode, setViewMode] = useState<'month' | 'day'>('month')
-    const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'))
-    const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+    const [viewMode, setViewMode] = useState<'day' | 'month'>('day')
+    const [startDate, setStartDate] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'))
+    const [endDate, setEndDate] = useState(() => format(new Date(), 'yyyy-MM-dd'))
     const [sellerSearch, setSellerSearch] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
 
-    const referenceDate = useMemo(() => format(subDays(new Date(), 1), 'yyyy-MM-dd'), [])
+    // Fix Hydration Error: stabilize date generation using state to match SSR/CSR
+    const [referenceDate] = useState(() => format(subDays(new Date(), 1), 'yyyy-MM-dd'))
     
     const { checkins, loading, refetch } = useCheckinsByDateRange(
         storeId, 
         viewMode === 'day' ? referenceDate : startDate, 
         viewMode === 'day' ? referenceDate : endDate
     )
+
+    // Realtime Sync: Escutar alterações na tabela de checkins para esta loja
+    useEffect(() => {
+        if (!storeId) return
+
+        const channel = supabase
+            .channel(`dashboard-sync-${storeId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'daily_checkins',
+                    filter: `store_id=eq.${storeId}`
+                },
+                () => {
+                    refetch() // Recarregar dados quando houver mudança real no banco
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [storeId, refetch])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -152,6 +189,12 @@ export default function DashboardLoja() {
     }, [checkins, sellers, storeGoal])
 
     const storeSales = useStoreSales(storeSalesParams)
+    const { financials, computeDRE: computeDREFn } = useDRE(undefined, storeId || undefined)
+
+    const latestDRE = useMemo(() => {
+        if (!financials || financials.length === 0) return null
+        return computeDREFn(financials[0])
+    }, [financials, computeDREFn])
 
     const metrics = useMemo(() => {
         const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
@@ -207,6 +250,7 @@ export default function DashboardLoja() {
             )
         },
         { key: 'leads', header: 'LEADS', align: 'center', desktopOnly: true, render: (r) => <span className="opacity-60 tabular-nums">{r.leads}</span> },
+        { key: 'agd_total', header: 'AGEND.', align: 'center', desktopOnly: true, render: (r) => <span className="opacity-60 tabular-nums text-status-info">{r.agd_total}</span> },
         { key: 'visitas', header: 'VISITAS', align: 'center', desktopOnly: true, render: (r) => <span className="opacity-60 tabular-nums">{r.visitas}</span> },
         {
             key: 'vnd_total',
@@ -351,8 +395,21 @@ export default function DashboardLoja() {
                     </Typography>
                     <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">REGISTROS SINCRONIZADOS</Typography>
                 </Card>
-            </div>
 
+                {/* DRE Summary for Owner/Admin */}
+                {(role === 'admin' || role === 'dono') && latestDRE && (
+                   <Card className="p-mx-lg bg-white shadow-mx-lg border-none animate-in slide-in-from-right duration-500 delay-300">
+                       <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny text-brand-primary">Lucratividade Preditiva (DRE)</Typography>
+                       <div className="flex items-baseline gap-1 mb-1">
+                           <Typography variant="tiny" tone="muted" className="font-black text-mx-nano">R$</Typography>
+                           <Typography variant="h1" tone={latestDRE.net_profit >= 0 ? 'success' : 'error'} className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">
+                               {Math.round(latestDRE.net_profit).toLocaleString('pt-BR')}
+                           </Typography>
+                       </div>
+                       <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">RESULTADO LÍQUIDO MÊS</Typography>
+                   </Card>
+                )}
+                </div>
             <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
                 <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
                     <div className="flex items-center justify-between">

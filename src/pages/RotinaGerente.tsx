@@ -53,6 +53,42 @@ export default function RotinaGerente() {
     const { sendNotification } = useNotifications()
     const { fetchPendingRequests, approveRequest, rejectRequest, loading: auditorLoading } = useCheckinAuditor(effectiveStoreId)
     
+    // Event Bus: Realtime Notifications for Manager
+    useEffect(() => {
+        const storeIdToListen = effectiveStoreId || membership?.store_id
+        if (!storeIdToListen) return
+
+        const channel = supabase
+            .channel('manager_routine_events')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'daily_checkins', filter: `store_id=eq.${storeIdToListen}` },
+                (payload) => {
+                    toast.info(`Novo Check-in recebido!`, {
+                        description: 'A performance da unidade foi atualizada em tempo real.',
+                        icon: <Zap className="text-brand-primary" size={18} />
+                    })
+                    handleRefresh()
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'checkin_correction_requests', filter: `store_id=eq.${storeIdToListen}` },
+                () => {
+                    toast.warning('Nova solicitação de correção!', {
+                        description: 'Um vendedor solicitou ajuste em registro passado.',
+                        icon: <ShieldAlert className="text-status-warning" size={18} />
+                    })
+                    handleRefresh()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [effectiveStoreId, membership?.store_id, handleRefresh])
+
     const [pendingRequests, setPendingRequests] = useState<any[]>([])
     const [executing, setExecuting] = useState(false)
     const [reuniaoDone, setReuniaoDone] = useState(false)
@@ -377,9 +413,23 @@ export default function RotinaGerente() {
                                                         <Typography variant="tiny" tone="muted" className="ml-2 font-black uppercase tracking-widest">Valores Solicitados</Typography>
                                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-xs">
                                                             {[
-                                                                { l: 'L', v: req.requested_values.leads, t: 'brand' },
-                                                                { l: 'V', v: req.requested_values.visitas, t: 'warning' },
-                                                                { l: 'VND', v: (req.requested_values.vnd_porta || 0) + (req.requested_values.vnd_cart || 0) + (req.requested_values.vnd_net || 0), t: 'success' }
+                                                                { 
+                                                                    l: 'L', 
+                                                                    v: req.requested_values.leads_prev_day ?? req.requested_values.leads, 
+                                                                    t: 'brand' 
+                                                                },
+                                                                { 
+                                                                    l: 'V', 
+                                                                    v: req.requested_values.visit_prev_day ?? req.requested_values.visitas, 
+                                                                    t: 'warning' 
+                                                                },
+                                                                { 
+                                                                    l: 'VND', 
+                                                                    v: (req.requested_values.vnd_porta_prev_day ?? req.requested_values.vnd_porta ?? 0) + 
+                                                                       (req.requested_values.vnd_cart_prev_day ?? req.requested_values.vnd_cart ?? 0) + 
+                                                                       (req.requested_values.vnd_net_prev_day ?? req.requested_values.vnd_net ?? 0), 
+                                                                    t: 'success' 
+                                                                }
                                                             ].map(val => (
                                                                 <div key={val.l} className="bg-white p-mx-sm rounded-mx-xl border border-border-default shadow-sm text-center">
                                                                     <Typography variant="tiny" tone="muted" className="font-black block">{val.l}</Typography>

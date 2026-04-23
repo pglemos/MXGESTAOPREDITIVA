@@ -46,15 +46,41 @@ function computeDRE(f: Partial<DREFinancial>): DREComputed {
   }
 }
 
-export function useDRE(clientId?: string) {
+export function useDRE(clientId?: string, storeId?: string) {
   const { supabaseUser } = useAuth()
   const [financials, setFinancials] = useState<DREFinancial[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeClientId, setActiveClientId] = useState<string | undefined>(clientId)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Bridge storeId to clientId if provided
+  useEffect(() => {
+    if (clientId) {
+      setActiveClientId(clientId)
+      return
+    }
+    
+    if (storeId) {
+      setLoading(true)
+      supabase
+        .from('consulting_clients')
+        .select('id')
+        .eq('primary_store_id', storeId)
+        .maybeSingle()
+        .then(({ data, error: bridgeError }) => {
+          if (data) {
+            setActiveClientId(data.id)
+          } else {
+            setActiveClientId(undefined)
+            if (!bridgeError) setLoading(false) // No client linked
+          }
+        })
+    }
+  }, [clientId, storeId])
+
   const fetchFinancials = useCallback(async () => {
-    if (!clientId || !supabaseUser?.id) {
+    if (!activeClientId || !supabaseUser?.id) {
       setFinancials([])
       setLoading(false)
       return
@@ -64,7 +90,7 @@ export function useDRE(clientId?: string) {
     const { data, error: fetchError } = await supabase
       .from('consulting_financials')
       .select('*')
-      .eq('client_id', clientId)
+      .eq('client_id', activeClientId)
       .order('reference_date', { ascending: false })
     if (fetchError) {
       setError(fetchError.message)
@@ -73,14 +99,14 @@ export function useDRE(clientId?: string) {
       setFinancials(parseDREFinancialArray(data || []))
     }
     setLoading(false)
-  }, [clientId, supabaseUser?.id])
+  }, [activeClientId, supabaseUser?.id])
 
   const upsertFinancial = useCallback(async (row: Partial<DREFinancial>) => {
-    if (!clientId) return false
+    if (!activeClientId) return false
     setSaving(true)
     setError(null)
     try {
-      const payload = { ...row, client_id: clientId }
+      const payload = { ...row, client_id: activeClientId }
       const { error: upsertError } = await supabase
         .from('consulting_financials')
         .upsert(payload, { onConflict: 'id' })
@@ -93,7 +119,7 @@ export function useDRE(clientId?: string) {
     } finally {
       setSaving(false)
     }
-  }, [clientId, fetchFinancials])
+  }, [activeClientId, fetchFinancials])
 
   const deleteFinancial = useCallback(async (id: string) => {
     const { error: delError } = await supabase

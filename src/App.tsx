@@ -173,8 +173,12 @@ export default function App() {
             <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
 
             {/* Gerente */}
-            <Route path="loja" element={<Suspense fallback={<Spinner />}><DashboardLoja /></Suspense>} />
-            <Route path="loja/:storeSlug" element={<Suspense fallback={<Spinner />}><DashboardLoja /></Suspense>} />
+            <Route path="loja" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
+            </Suspense>} />
+            <Route path="loja/:storeSlug" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
+            </Suspense>} />
             <Route path="equipe" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Equipe />} dono={<Equipe />} admin={<Equipe />} />
             </Suspense>} />

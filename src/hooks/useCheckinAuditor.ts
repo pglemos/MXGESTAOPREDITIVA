@@ -37,76 +37,42 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         return data || []
     }, [storeId])
 
-    /** Gerente aprova e aplica a correção */
+    /** Gerente aprova e aplica a correção via RPC Segura */
     const approveRequest = async (request: CheckinCorrectionRequest) => {
         if (!profile?.id) return { error: 'Não autorizado' }
         setLoading(true)
 
         try {
-            // 1. Buscar valores antigos
-            const { data: oldCheckin } = await supabase
-                .from('daily_checkins')
-                .select('*')
-                .eq('id', request.checkin_id)
-                .single()
-
-            if (!oldCheckin) throw new Error('Check-in original não localizado')
-
-            // 2. Preparar novos valores canônicos
-            const newValues = {
-                leads_prev_day: request.requested_values.leads ?? oldCheckin.leads_prev_day,
-                visit_prev_day: request.requested_values.visitas ?? oldCheckin.visit_prev_day,
-                vnd_porta_prev_day: request.requested_values.vnd_porta ?? oldCheckin.vnd_porta_prev_day,
-                vnd_cart_prev_day: request.requested_values.vnd_cart ?? oldCheckin.vnd_cart_prev_day,
-                vnd_net_prev_day: request.requested_values.vnd_net ?? oldCheckin.vnd_net_prev_day,
-                agd_cart_today: request.requested_values.agd_cart ?? oldCheckin.agd_cart_today,
-                agd_net_today: request.requested_values.agd_net ?? oldCheckin.agd_net_today,
-                note: request.requested_values.note ?? oldCheckin.note,
-                updated_at: new Date().toISOString()
-            }
-
-            // 3. Executar Transação Atômica (Update + Log + Close Request)
-            // Nota: No Supabase Client direto não temos transação multi-tabela simples, 
-            // mas usaremos uma sequência controlada (ou poderíamos usar uma RPC).
-            // Para v1.1 usaremos sequência direta.
-
-            const { error: updateError } = await supabase
-                .from('daily_checkins')
-                .update(newValues)
-                .eq('id', request.checkin_id)
-
-            if (updateError) throw updateError
-
-            await supabase.from('checkin_audit_logs').insert({
-                checkin_id: request.checkin_id,
-                correction_request_id: request.id,
-                changed_by: profile.id,
-                old_values: oldCheckin,
-                new_values: newValues,
-                change_type: 'manual_correction'
+            const { error } = await supabase.rpc('approve_correction_request', { 
+                request_id: request.id 
             })
 
-            await supabase
-                .from('checkin_correction_requests')
-                .update({ status: 'approved', auditor_id: profile.id, reviewed_at: new Date().toISOString() })
-                .eq('id', request.id)
-
+            if (error) throw error
             return { error: null }
         } catch (err: unknown) {
+            console.error('Audit Error [useCheckinAuditor]: approveRequest fail ->', err)
             return { error: err instanceof Error ? err.message : String(err) }
         } finally {
             setLoading(false)
         }
     }
 
-    /** Gerente rejeita a solicitação */
+    /** Gerente rejeita a solicitação via RPC Segura */
     const rejectRequest = async (requestId: string) => {
         if (!profile?.id) return { error: 'Não autorizado' }
-        const { error } = await supabase
-            .from('checkin_correction_requests')
-            .update({ status: 'rejected', auditor_id: profile.id, reviewed_at: new Date().toISOString() })
-            .eq('id', requestId)
-        return { error: error?.message || null }
+        setLoading(true)
+        try {
+            const { error } = await supabase.rpc('reject_correction_request', { 
+                request_id: requestId 
+            })
+            if (error) throw error
+            return { error: null }
+        } catch (err: unknown) {
+            console.error('Audit Error [useCheckinAuditor]: rejectRequest fail ->', err)
+            return { error: err instanceof Error ? err.message : String(err) }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return { loading, requestCorrection, fetchPendingRequests, approveRequest, rejectRequest }

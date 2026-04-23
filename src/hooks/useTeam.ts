@@ -95,7 +95,8 @@ export function useStores() {
     const fetchStores = useCallback(async () => {
         setLoading(true)
         let query = supabase.from('stores').select('*').eq('active', true).order('name')
-        if (role === 'dono') {
+        
+        if (role === 'dono' || role === 'gerente') {
             const storeIds = memberships.map(m => m.store_id)
             if (!storeIds.length) {
                 setStores([])
@@ -103,9 +104,10 @@ export function useStores() {
                 return
             }
             query = query.in('id', storeIds)
-        } else if ((role === 'gerente' || role === 'vendedor') && storeId) {
+        } else if (role === 'vendedor' && storeId) {
             query = query.eq('id', storeId)
         }
+
         const { data } = await query
         if (data) {
             setStores(data)

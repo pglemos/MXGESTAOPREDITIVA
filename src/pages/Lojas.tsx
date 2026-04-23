@@ -33,6 +33,33 @@ export default function Lojas() {
             .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
     }, [stores, searchTerm, filterActive])
 
+    // Corporate Consolidated View Calculation
+    const corporateMetrics = useMemo(() => {
+        if (!stores || !stats) return { totalSellers: 0, totalStores: 0, activeStores: 0, avgDiscipline: 0 }
+        
+        let totalSellers = 0
+        let totalDiscipline = 0
+        let activeStoresCount = 0
+
+        filteredStores.forEach(s => {
+            const sStat = stats[s.id]
+            if (sStat) {
+                totalSellers += sStat.sellers
+                if (sStat.sellers > 0) {
+                    totalDiscipline += sStat.disciplinePct
+                    activeStoresCount++
+                }
+            }
+        })
+
+        return {
+            totalSellers,
+            totalStores: filteredStores.length,
+            activeStores: activeStoresCount,
+            avgDiscipline: activeStoresCount > 0 ? Math.round(totalDiscipline / activeStoresCount) : 0
+        }
+    }, [filteredStores, stats])
+
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
         await Promise.all([refetchStores(), refetchStats()])
@@ -192,6 +219,31 @@ export default function Lojas() {
                     )}
                 </div>
             </header>
+
+            {/* Painel Corporativo / Visão Cruzada */}
+            <section className="mb-mx-md">
+                <Card className="bg-white shadow-mx-md border border-border-default overflow-hidden rounded-mx-2xl">
+                    <CardContent className="p-mx-md sm:p-mx-lg flex flex-wrap gap-mx-md items-center justify-between sm:justify-start">
+                        <div className="flex flex-col min-w-[120px]">
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-widest mb-1">Rede / Corporativo</Typography>
+                            <Typography variant="h2" className="text-brand-primary">{corporateMetrics.totalStores}</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px]">Unidades Totais</Typography>
+                        </div>
+                        <div className="w-px h-12 bg-border-default hidden sm:block" />
+                        <div className="flex flex-col min-w-[120px]">
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-widest mb-1">Força de Vendas</Typography>
+                            <Typography variant="h2" className="text-status-success">{corporateMetrics.totalSellers}</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px]">Especialistas Ativos</Typography>
+                        </div>
+                        <div className="w-px h-12 bg-border-default hidden sm:block" />
+                        <div className="flex flex-col min-w-[120px]">
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-widest mb-1">Aderência</Typography>
+                            <Typography variant="h2" tone={corporateMetrics.avgDiscipline < 80 ? 'error' : 'success'}>{corporateMetrics.avgDiscipline}%</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px]">Sincronia Média</Typography>
+                        </div>
+                    </CardContent>
+                </Card>
+            </section>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 <Card className="border-none shadow-mx-xl bg-white overflow-hidden p-mx-0">
