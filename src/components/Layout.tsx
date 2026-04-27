@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
 import MxLogo from '@/assets/mx-logo.svg'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
@@ -29,6 +30,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
         { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
+        { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
       ]
     },
@@ -59,6 +61,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Minhas Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Performance', path: '/loja', icon: <LayoutDashboard size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
+        { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
       ]
     },
     {
@@ -147,6 +150,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
+      {profile?.must_change_password && <ForcePasswordChange />}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-mx-xl focus:shadow-mx-xl">
         Pular para conteúdo principal
       </a>

@@ -13,57 +13,102 @@ export function useTeam(storeIdOverride?: string) {
     const referenceDate = calculateReferenceDate()
 
     const fetchTeam = useCallback(async () => {
-        if (!storeId) {
-            setSellers([])
-            setLoading(false)
-            return
-        }
         setLoading(true)
 
-        const { data: tenures } = await supabase
-            .from('store_sellers')
-            .select('seller_user_id, started_at, ended_at, is_active, closing_month_grace, users:seller_user_id(*)')
-            .eq('store_id', storeId)
+        try {
+            let teamData: any[] = []
+            let tenureMap = new Map()
+            let checkedIn = new Set()
 
-        const { data: fallbackMembers } = (!tenures || tenures.length === 0)
-            ? await supabase
-                .from('memberships')
-                .select('user_id, role, users(*)')
-                .eq('store_id', storeId)
-                .eq('role', 'vendedor')
-            : { data: null }
+            // 1. Fetch Users & Memberships
+            if (storeId && storeId !== 'all') {
+                const { data: members } = await supabase
+                    .from('memberships')
+                    .select('user_id, role, users:user_id(*), store:store_id(name)')
+                    .eq('store_id', storeId)
+                teamData = members || []
+            } else {
+                // Global view for Admins
+                const { data: members } = await supabase
+                    .from('memberships')
+                    .select('user_id, role, users:user_id(*), store:store_id(name)')
+                
+                // Also get users WITHOUT memberships (like some Donos or Admins)
+                const { data: allUsers } = await supabase
+                    .from('users')
+                    .select('*')
+                
+                // Map to handle users with multiple stores or no stores
+                const userMap = new Map()
+                
+                // Process memberships first
+                ;(members || []).forEach((m: any) => {
+                    if (!userMap.has(m.user_id)) {
+                        userMap.set(m.user_id, {
+                            ...m.users,
+                            role: m.role,
+                            store_name: m.store?.name || 'MULTI-LOJA'
+                        })
+                    } else {
+                        // Concatenate store names for global view
+                        const existing = userMap.get(m.user_id)
+                        if (!existing.store_name.includes(m.store?.name)) {
+                            existing.store_name += `, ${m.store?.name}`
+                        }
+                    }
+                })
 
-        const { data: todayCheckins } = await supabase
-            .from('daily_checkins')
-            .select('seller_user_id')
-            .eq('store_id', storeId)
-            .eq('reference_date', referenceDate)
+                // Add users who have no membership record
+                ;(allUsers || []).forEach((u: any) => {
+                    if (!userMap.has(u.id)) {
+                        userMap.set(u.id, {
+                            ...u,
+                            role: u.role,
+                            store_name: 'SEM LOJA'
+                        })
+                    }
+                })
 
-        const checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
-        const sourceRows = (tenures && tenures.length > 0)
-            ? (tenures as unknown as { seller_user_id: string; users?: User; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean }[]).map((item) => ({ 
-                user_id: item.seller_user_id, 
-                users: item.users,
-                tenure: {
-                    started_at: item.started_at,
-                    ended_at: item.ended_at,
-                    is_active: item.is_active,
-                    closing_month_grace: item.closing_month_grace
+                teamData = Array.from(userMap.values()).map(u => ({ users: u, role: u.role, store: { name: u.store_name } }))
+            }
+
+            // 2. Fetch Tenures (Vigência)
+            let tenuresQuery = supabase.from('store_sellers').select('seller_user_id, started_at, ended_at, is_active, closing_month_grace')
+            if (storeId && storeId !== 'all') {
+                tenuresQuery = tenuresQuery.eq('store_id', storeId)
+            }
+            const { data: tenures } = await tenuresQuery
+            tenureMap = new Map((tenures || []).map(t => [t.seller_user_id, t]))
+
+            // 3. Fetch Checkins
+            let checkinsQuery = supabase.from('daily_checkins').select('seller_user_id').eq('reference_date', referenceDate)
+            if (storeId && storeId !== 'all') {
+                checkinsQuery = checkinsQuery.eq('store_id', storeId)
+            }
+            const { data: todayCheckins } = await checkinsQuery
+            checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
+
+            // 4. Assemble Final Team
+            setSellers(teamData.map((m: any) => {
+                const u = m.users
+                const tenure = tenureMap.get(u.id)
+                return {
+                    ...u,
+                    role: m.role || u.role, 
+                    store_name: m.store?.name,
+                    checkin_today: checkedIn.has(u.id),
+                    started_at: tenure?.started_at,
+                    ended_at: tenure?.ended_at,
+                    is_active: tenure?.is_active ?? u?.active ?? true,
+                    closing_month_grace: tenure?.closing_month_grace ?? false,
                 }
             }))
-            : (fallbackMembers || [])
 
-        if (sourceRows) {
-            setSellers((sourceRows as unknown as { user_id: string; users?: User; tenure?: { started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean } }[]).map((m) => ({
-                ...m.users,
-                checkin_today: checkedIn.has(m.user_id),
-                started_at: m.tenure?.started_at,
-                ended_at: m.tenure?.ended_at,
-                is_active: m.tenure?.is_active ?? m.users?.active ?? true,
-                closing_month_grace: m.tenure?.closing_month_grace ?? false,
-            } as User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean })))
+        } catch (err) {
+            console.error('Audit Error [useTeam]: fetchTeam fail ->', err)
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }, [storeId, referenceDate])
 
     const updateVigencia = async (userId: string, data: Record<string, unknown>) => {
@@ -77,13 +122,35 @@ export function useTeam(storeIdOverride?: string) {
         return { error: error?.message || null }
     }
 
+    const registerUser = async (userData: { 
+        email: string; 
+        password?: string; 
+        name: string; 
+        role: string; 
+        store_id: string;
+        phone?: string;
+    }) => {
+        const { data, error } = await supabase.functions.invoke('register-user', {
+            body: { 
+                ...userData, 
+                password: userData.password || 'Mx#2026!' // Default password
+            }
+        })
+        if (!error && data?.success) {
+            await fetchTeam()
+            return { success: true }
+        }
+        return { error: error?.message || data?.error || 'Erro desconhecido' }
+    }
+
     useEffect(() => { fetchTeam() }, [fetchTeam])
     return { 
         sellers, 
         team: sellers, // Alias para consistência MX
         loading, 
         refetch: fetchTeam,
-        updateVigencia 
+        updateVigencia,
+        registerUser
     }
 }
 

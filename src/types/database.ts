@@ -30,6 +30,7 @@ export interface User {
     created_at: string
     phone?: string
     store_id?: string
+    must_change_password?: boolean
 }
 
 /** Interface de Unidade/Loja */

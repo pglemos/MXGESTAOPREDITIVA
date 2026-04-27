@@ -318,9 +318,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const changePassword = async (newPassword: string): Promise<{ error: string | null }> => {
-        const { error } = await supabase.auth.updateUser({ password: newPassword })
-        if (error) return { error: error.message }
-        return { error: null }
+        if (!supabaseUser) return { error: 'Usuário não autenticado' }
+        
+        const { error: authError } = await supabase.auth.updateUser({ password: newPassword })
+        if (authError) return { error: authError.message }
+        
+        const { error: dbError } = await supabase
+            .from('users')
+            .update({ must_change_password: false })
+            .eq('id', supabaseUser.id)
+            
+        if (!dbError) {
+            setProfile(prev => prev ? { ...prev, must_change_password: false } : null)
+        }
+        
+        return { error: dbError?.message || null }
     }
 
     const signOut = async () => {
