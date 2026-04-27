@@ -282,3 +282,34 @@
     page-break-before: always;
   }
 }
+
+/* Patch de emergência para as classes customizadas da Consultoria */
+.p-mx-lg { padding: 24px; }
+.p-mx-md { padding: 16px; }
+.p-mx-xs { padding: 8px; }
+.mb-mx-lg { margin-bottom: 24px; }
+.mb-mx-md { margin-bottom: 16px; }
+.mb-mx-xs { margin-bottom: 8px; }
+.mt-mx-lg { margin-top: 24px; }
+.mt-mx-md { margin-top: 16px; }
+.rounded-mx-2xl { border-radius: 16px; }
+.rounded-mx-xl { border-radius: 12px; }
+.rounded-mx-lg { border-radius: 8px; }
+.h-mx-11 { height: 44px; }
+.h-mx-10 { height: 40px; }
+.w-mx-5 { width: 20px; }
+.h-mx-5 { height: 20px; }
+.w-mx-4 { width: 16px; }
+.h-mx-4 { height: 16px; }
+.h-mx-8 { height: 32px; }
+.w-mx-8 { width: 32px; }
+.h-mx-64 { height: 256px; }
+.text-mx-micro { font-size: 0.6rem; }
+.text-mx-tiny { font-size: 0.75rem; }
+
+/* CSS FORÇADO - Sobrescrevendo tokens quebrados */
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.gap-6 { gap: 1.5rem !important; }
+.p-6 { padding: 1.5rem !important; }
+.rounded-2xl { border-radius: 1rem !important; }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }

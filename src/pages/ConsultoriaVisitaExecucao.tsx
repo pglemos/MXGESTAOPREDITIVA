@@ -312,7 +312,7 @@ Gerado via MX PERFORMANCE`
 
   return (
     <div className="w-full pb-mx-xl relative z-0">
-      <div className="fixed -left-mx-96 top-mx-0 overflow-hidden pointer-events-none">
+      <div className="fixed -left-[10000px] top-mx-0 overflow-hidden pointer-events-none" aria-hidden="true">
          <div id="report-template-render">
             <VisitReportTemplate 
               client={client} 
@@ -323,31 +323,39 @@ Gerado via MX PERFORMANCE`
          </div>
       </div>
       
-      <div className="sticky top-mx-0 z-40 bg-surface-alt/80 backdrop-blur-md px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden border-b border-border-subtle shadow-mx-sm">
+      <div className="sticky top-mx-0 z-40 bg-surface-alt/80 backdrop-blur-xl px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden border-b border-border-subtle shadow-mx-md transition-all">
         <div className="flex items-center gap-mx-md">
-          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-mx-lg hover:bg-surface-alt/50 transition-colors text-text-secondary bg-white shadow-mx-sm">
-            <ArrowLeft className="w-mx-5 h-mx-5" />
+          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-mx-xl hover:bg-white hover:shadow-mx-md transition-all text-text-secondary bg-white/50 backdrop-blur-sm shadow-mx-sm group">
+            <ArrowLeft className="w-mx-5 h-mx-5 group-hover:-translate-x-1 transition-transform" />
           </Link>
           <div>
-            <div className="flex items-center gap-mx-xs">
-               <Typography variant="h1" className="text-xl text-black">Visita {visitNum}</Typography>
-               <Badge variant={visit?.status === 'concluída' ? 'success' : 'warning'} className="text-mx-micro h-mx-5 uppercase font-black tracking-widest">{visit?.status || 'EM ABERTO'}</Badge>
+            <div className="flex items-center gap-mx-sm">
+               <Typography variant="h1" className="text-2xl font-black text-black tracking-tighter uppercase">VISITA <span className="text-brand-primary">{visitNum}</span></Typography>
+               <div className={cn(
+                 "px-mx-sm py-0.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase shadow-sm border",
+                 visit?.status === 'concluída' ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-mx-orange-500/10 text-mx-orange-600 border-mx-orange-200 animate-pulse"
+               )}>
+                 {visit?.status || 'EM ABERTO'}
+               </div>
             </div>
-            <Typography variant="tiny" tone="muted" className="font-black tracking-mx-widest uppercase">{step?.objective}</Typography>
+            <Typography variant="tiny" tone="muted" className="font-black tracking-mx-widest uppercase opacity-70 flex items-center gap-mx-xs mt-0.5">
+              <Target size={12} className="text-brand-primary" />
+              {step?.objective}
+            </Typography>
           </div>
         </div>
 
         <div className="flex items-center gap-mx-sm w-full md:w-auto">
-          <Button variant="outline" className="flex-1 md:flex-none h-mx-10 text-sm font-bold bg-white" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
+          <Button variant="outline" className="flex-1 md:flex-none h-mx-11 text-xs font-black bg-white shadow-mx-sm uppercase tracking-mx-widest px-mx-md border-border-default hover:bg-surface-alt transition-all" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
           <div className="relative flex-1 md:flex-none">
             <Button 
               variant="primary" 
-              className={cn("w-full md:w-auto h-mx-10 text-sm font-bold shadow-sm transition-all", !hasRequiredEvidence ? "opacity-70 grayscale" : "")} 
+              className={cn("w-full md:w-auto h-mx-11 text-xs font-black shadow-mx-lg transition-all uppercase tracking-mx-widest px-mx-lg hover:translate-y-[-2px] active:translate-y-0", !hasRequiredEvidence ? "bg-status-error/20 text-status-error border-status-error/30" : "bg-gradient-to-r from-brand-primary to-brand-primary/80 border-none")} 
               onClick={() => handleSave(true)} 
               loading={isSaving}
               icon={!hasRequiredEvidence ? <AlertCircle className="w-mx-4 h-mx-4" /> : <CheckCircle2 className="w-mx-4 h-mx-4" />}
             >
-              CONCLUIR
+              CONCLUIR VISITA
             </Button>
             {!hasRequiredEvidence && step?.evidence_required && (
               <span className="absolute -top-1 -right-1 flex h-mx-4 w-mx-4 animate-pulse">
@@ -391,47 +399,58 @@ Gerado via MX PERFORMANCE`
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
-            <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white">
-              <div className="flex items-center justify-between mb-mx-md">
+            <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-white relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-primary">
+                <FileText size={120} />
+              </div>
+              <div className="flex items-center justify-between mb-mx-md relative z-10">
                 <div className="flex items-center gap-mx-sm">
-                  <FileText className="w-mx-5 h-mx-5 text-text-secondary" />
-                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Relato Executivo (CRM)</Typography>
+                  <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><FileText size={20} /></div>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Relato Executivo (CRM)</Typography>
                 </div>
-                <Button size="xs" variant="outline" className="h-mx-8 border-brand-primary text-brand-primary font-black uppercase text-mx-micro" onClick={handleGenerateAISummary} icon={<Sparkles size={12} />}>GERAR RASCUNHO</Button>
+                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-[10px] tracking-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} icon={<Sparkles size={14} />}>GERAR RASCUNHO AI</Button>
               </div>
               <Textarea 
                 value={executiveSummary} 
                 onChange={(e) => setExecutiveSummary(e.target.value)} 
                 placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
-                className="min-h-mx-64 text-sm bg-surface-alt/30 border border-border-default focus:border-brand-primary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-y transition-colors mb-mx-md font-medium" 
+                className="min-h-mx-64 text-sm bg-surface-alt/20 border-border-default focus:border-brand-primary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all mb-mx-md font-medium leading-relaxed relative z-10" 
               />
-              <VisitActionQuickAdd clientId={clientId!} visitNumber={visitNum} />
+              <div className="relative z-10">
+                <VisitActionQuickAdd clientId={clientId!} visitNumber={visitNum} />
+              </div>
             </Card>
 
             <div className="space-y-mx-lg">
-              <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white">
-                <div className="flex items-center gap-mx-sm mb-mx-md">
-                  <MessageSquare className="w-mx-5 h-mx-5 text-text-secondary" />
-                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Feedback ao Cliente</Typography>
+              <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-secondary">
+                  <MessageSquare size={100} />
+                </div>
+                <div className="flex items-center gap-mx-sm mb-mx-md relative z-10">
+                  <div className="p-mx-xs bg-brand-secondary/10 rounded-mx-lg text-brand-secondary"><MessageSquare size={20} /></div>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Feedback ao Cliente</Typography>
                 </div>
                 <Textarea 
                   value={feedbackClient} 
                   onChange={(e) => setFeedbackClient(e.target.value)} 
                   placeholder="Pontos de atenção emergenciais..." 
-                  className="min-h-mx-20 text-sm font-medium bg-white border border-border-default focus:border-brand-primary shadow-sm resize-y rounded-mx-xl p-mx-md" 
+                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-brand-secondary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-medium leading-relaxed relative z-10" 
                 />
               </Card>
 
-              <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white">
-                <div className="flex items-center gap-mx-sm mb-mx-md">
-                  <Target className="w-mx-5 h-mx-5 text-status-warning" />
-                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest text-status-warning">Objetivo Próximo Ciclo</Typography>
+              <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-gradient-to-br from-white to-surface-alt relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-mx-md opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none text-mx-orange-500">
+                  <Target size={100} />
+                </div>
+                <div className="flex items-center gap-mx-sm mb-mx-md relative z-10">
+                  <div className="p-mx-xs bg-mx-orange-500/10 rounded-mx-lg text-mx-orange-500"><Target size={20} /></div>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest text-mx-orange-600">Objetivo Próximo Ciclo</Typography>
                 </div>
                 <Textarea 
                   value={nextCycleGoal} 
                   onChange={(e) => setNextCycleGoal(e.target.value)} 
                   placeholder="O que deve ser o foco da loja até a próxima visita da consultoria?" 
-                  className="min-h-mx-20 text-sm font-bold bg-status-warning/5 border-status-warning/20 focus:border-status-warning shadow-mx-inner resize-y rounded-mx-xl p-mx-md" 
+                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-mx-orange-500 focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-bold leading-relaxed relative z-10 text-mx-orange-700" 
                 />
               </Card>
             </div>
@@ -461,7 +480,7 @@ Gerado via MX PERFORMANCE`
             <div className="flex items-center justify-between mb-mx-md">
                <Typography variant="tiny" tone="muted" className="tracking-mx-widest text-mx-micro uppercase font-black">Evidências ({attachments.length})</Typography>
                <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*,application/pdf" />
-               <Button size="xs" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={isUploading} className="h-mx-8 font-black uppercase text-mx-micro tracking-widest" icon={<Plus size={12} />}>ADICIONAR</Button>
+               <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={isUploading} className="h-mx-10 font-black uppercase text-xs tracking-widest px-mx-md shadow-mx-sm" icon={<Plus size={14} />}>ADICIONAR</Button>
             </div>
             
             {attachments.length === 0 ? (
@@ -489,9 +508,12 @@ Gerado via MX PERFORMANCE`
             )}
             
             {step?.evidence_required && (
-               <div className="mt-mx-md p-mx-md bg-status-error/5 border border-status-error/20 rounded-mx-xl flex gap-mx-sm">
+               <div className="mt-mx-md p-mx-md bg-status-error/10 border border-status-error/30 rounded-mx-xl flex gap-mx-sm animate-pulse shadow-sm">
                   <ShieldAlert className="w-mx-5 h-mx-5 text-status-error shrink-0" />
-                  <Typography variant="tiny" className="text-status-error font-black leading-tight uppercase tracking-tighter">OBRIGATÓRIO: {step.evidence_required}</Typography>
+                  <div>
+                    <Typography variant="tiny" className="text-status-error font-black leading-none uppercase tracking-tighter block mb-0.5">Evidência Obrigatória</Typography>
+                    <Typography variant="p" className="text-mx-micro text-status-error font-bold leading-tight uppercase">{step.evidence_required}</Typography>
+                  </div>
                </div>
             )}
           </Card>
@@ -503,7 +525,10 @@ Gerado via MX PERFORMANCE`
              <Typography variant="h3" className="text-lg mb-mx-xs uppercase font-black">Reporte Oficial MX</Typography>
              <Typography variant="p" className="text-mx-micro text-text-tertiary mb-mx-lg leading-tight uppercase font-bold tracking-tighter">O relatório compila os dados e o diagnóstico da visita.</Typography>
              <div className="space-y-mx-md">
-               <Button className="w-full shadow-mx-md font-black h-mx-11 uppercase tracking-widest text-xs" variant="primary" icon={<Eye size={14} />} onClick={() => setShowReportModal(true)}>VER RELATÓRIO</Button>
+               <Button className="w-full shadow-mx-lg font-black h-mx-12 uppercase tracking-mx-widest text-xs bg-gradient-to-r from-brand-primary to-brand-primary/90 border-none group relative overflow-hidden" variant="primary" icon={<Eye size={16} className="group-hover:scale-125 transition-transform" />} onClick={() => setShowReportModal(true)}>
+                   <span className="relative z-10">VER RELATÓRIO</span>
+                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Button>
                
                {visit?.status === 'concluída' && (
                  <Button 

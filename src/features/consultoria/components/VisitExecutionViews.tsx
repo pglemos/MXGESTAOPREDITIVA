@@ -349,9 +349,23 @@ export function VisitChecklist({ items, onToggle }: { items: Array<{ task: strin
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-mx-sm">
       {items.map((it, i) => (
-        <div key={i} onClick={() => toggle(i)} className={cn("p-mx-xs rounded-mx-lg border cursor-pointer transition-colors flex items-center gap-mx-xs text-mx-micro font-bold", it.completed ? "bg-brand-primary/5 text-brand-primary border-brand-primary/20" : "bg-white border-border-default text-text-secondary hover:bg-surface-alt/30")}>
-          {it.completed ? <CheckCircle2 className="w-mx-4 h-mx-4 shrink-0" /> : <Circle className="w-mx-4 h-mx-4 shrink-0 opacity-20" />}
-          <span className="truncate">{it.task}</span>
+        <div 
+          key={i} 
+          onClick={() => toggle(i)} 
+          className={cn(
+            "p-mx-md rounded-mx-xl border cursor-pointer transition-all flex items-center gap-mx-sm text-xs font-bold shadow-sm hover:shadow-mx-md active:scale-95", 
+            it.completed 
+              ? "bg-brand-primary/10 text-brand-primary border-brand-primary/30" 
+              : "bg-white border-border-default text-text-secondary hover:border-brand-primary/40 hover:bg-surface-alt/20"
+          )}
+        >
+          <div className={cn(
+            "w-mx-6 h-mx-6 rounded-mx-full flex items-center justify-center border transition-all",
+            it.completed ? "bg-brand-primary border-brand-primary text-white" : "bg-white border-border-default text-transparent"
+          )}>
+            <CheckCircle2 className="w-mx-4 h-mx-4" />
+          </div>
+          <span className={cn("truncate transition-all", it.completed && "opacity-70")}>{it.task}</span>
         </div>
       ))}
     </div>
