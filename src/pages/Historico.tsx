@@ -130,7 +130,7 @@ export default function Historico() {
                         <Input 
                             placeholder="BUSCAR REGISTRO..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest"
+                            className="!pl-mx-11 !h-mx-12 !text-mx-tiny uppercase tracking-mx-wide"
                         />
                     </div>
                     <Button variant="outline" size="icon" onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')} aria-label="Alternar ordenação" className="rounded-mx-xl h-mx-xl w-mx-xl shadow-mx-sm">
@@ -204,8 +204,8 @@ export default function Historico() {
                                         </footer>
                                     )}
 
-                                    <div className="mt-8 flex justify-end relative z-10 border-t border-border-default pt-8 border-dashed">
-                                        <Button variant="ghost" size="sm" onClick={() => openCorrectionModal(c)} className="text-mx-nano font-black uppercase tracking-widest text-text-tertiary hover:text-brand-primary hover:bg-brand-primary/5 gap-2 group/btn">
+                                    <div className="mt-mx-lg flex justify-end relative z-10 border-t border-border-default pt-mx-lg border-dashed">
+                                        <Button variant="ghost" size="sm" onClick={() => openCorrectionModal(c)} className="text-mx-nano font-black uppercase tracking-mx-widest text-text-tertiary hover:text-brand-primary hover:bg-brand-primary/5 gap-mx-xs group/btn">
                                             <AlertCircle size={14} className="group-hover/btn:animate-pulse" /> SOLICITAR CORREÇÃO
                                         </Button>
                                     </div>
@@ -226,7 +226,7 @@ export default function Historico() {
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setSelectedCheckin(null)} disabled={submittingCorrection}>CANCELAR</Button>
-                        <Button onClick={handleRequestCorrection} disabled={submittingCorrection} className="gap-2">
+                        <Button onClick={handleRequestCorrection} disabled={submittingCorrection} className="gap-mx-xs">
                             {submittingCorrection ? <RefreshCw size={16} className="animate-spin" /> : <Send size={16} />}
                             ENVIAR SOLICITAÇÃO
                         </Button>
@@ -235,43 +235,43 @@ export default function Historico() {
             >
                 <div className="space-y-mx-lg py-4">
                     <div className="grid grid-cols-2 gap-mx-md">
-                        <div className="space-y-2">
+                        <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Leads Recebidos</Typography>
                             <Input type="number" value={formData.leads} onChange={(e) => setFormData(p => ({ ...p, leads: Number(e.target.value) }))} />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Visitas Realizadas</Typography>
                             <Input type="number" value={formData.visitas} onChange={(e) => setFormData(p => ({ ...p, visitas: Number(e.target.value) }))} />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Porta</Typography>
                             <Input type="number" value={formData.vnd_porta} onChange={(e) => setFormData(p => ({ ...p, vnd_porta: Number(e.target.value) }))} />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Carteira</Typography>
                             <Input type="number" value={formData.vnd_cart} onChange={(e) => setFormData(p => ({ ...p, vnd_cart: Number(e.target.value) }))} />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Internet</Typography>
                             <Input type="number" value={formData.vnd_net} onChange={(e) => setFormData(p => ({ ...p, vnd_net: Number(e.target.value) }))} />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Carteira</Typography>
                             <Input type="number" value={formData.agd_cart} onChange={(e) => setFormData(p => ({ ...p, agd_cart: Number(e.target.value) }))} />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Internet</Typography>
                             <Input type="number" value={formData.agd_net} onChange={(e) => setFormData(p => ({ ...p, agd_net: Number(e.target.value) }))} />
                         </div>
                     </div>
 
-                    <div className="space-y-2 pt-4 border-t border-border-default">
+                    <div className="space-y-mx-xs pt-mx-md border-t border-border-default">
                         <Typography variant="tiny" tone="muted" className="font-black uppercase">Motivo da Alteração (Obrigatório)</Typography>
                         <Textarea 
                             placeholder="Descreva por que este registro precisa ser corrigido..."
                             value={correctionReason}
                             onChange={(e) => setCorrectionReason(e.target.value)}
-                            className="min-h-[100px]"
+                            className="min-h-mx-32"
                         />
                         <Typography variant="caption" tone="muted" className="italic text-mx-nano">
                             *Sua solicitação será enviada para auditoria do Gerente da Unidade.

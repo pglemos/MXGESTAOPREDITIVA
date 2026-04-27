@@ -67,82 +67,83 @@ export function ForcePasswordChange() {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-mx-md overflow-hidden" role="dialog" aria-modal="true">
-      {/* Premium Background with Animated Orbs */}
-      <div className="absolute inset-0 bg-[#050A09]" />
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/20 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-mx-indigo-500/10 rounded-full blur-[120px]" />
+      {/* Premium Glassmorphism Background */}
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        className="absolute inset-0 bg-surface-alt/80 backdrop-blur-md" 
+      />
       
       <motion.div 
         initial={{ opacity: 0, y: 20, scale: 0.95 }} 
         animate={{ opacity: 1, y: 0, scale: 1 }} 
-        className="w-full max-w-[480px] relative z-10"
+        className="w-full max-w-lg relative z-10"
       >
         <div className="relative group">
-          {/* Border Glow Effect */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary/50 to-mx-blue-500/50 rounded-[40px] blur-xl opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
+          {/* Subtle Border Glow */}
+          <div className="absolute -inset-mx-xs bg-gradient-to-r from-brand-primary/20 to-brand-primary/10 rounded-mx-4xl blur-mx-xl opacity-50 transition duration-1000" />
           
-          <div className="relative bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-mx-3xl overflow-hidden">
+          <div className="relative bg-white/90 backdrop-blur-2xl border border-border-default rounded-mx-4xl shadow-mx-elite overflow-hidden">
             {/* Header Accent */}
-            <div className="h-2 w-full bg-gradient-to-r from-brand-primary via-mx-emerald-400 to-mx-blue-500" />
+            <div className="h-mx-tiny w-full bg-gradient-to-r from-brand-primary via-brand-primary to-brand-primary/50" />
             
-            <form onSubmit={handleSubmit} className="p-8 sm:p-12 space-y-8">
-              <header className="text-center space-y-4">
+            <form onSubmit={handleSubmit} className="p-mx-xl sm:p-mx-2xl space-y-mx-lg">
+              <header className="text-center space-y-mx-md">
                 <div className="relative inline-block">
-                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-brand-primary to-mx-emerald-700 flex items-center justify-center text-white shadow-[0_0_40px_rgba(34,197,94,0.3)] mx-auto relative z-10">
-                    <ShieldCheck size={48} strokeWidth={1.5} />
+                  <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shadow-mx-md mx-auto relative z-10">
+                    <ShieldCheck size={40} strokeWidth={1.5} />
                   </div>
                   <motion.div 
                     animate={{ rotate: 360 }}
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-[-10px] border border-dashed border-brand-primary/20 rounded-full"
+                    className="absolute -inset-mx-xs border border-dashed border-brand-primary/20 rounded-mx-full"
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Typography variant="h2" className="text-3xl font-black uppercase tracking-tighter text-white">
+                <div className="space-y-mx-tiny">
+                  <Typography variant="h2" className="text-3xl font-black uppercase tracking-tighter">
                     Segurança <span className="text-brand-primary">MX</span>
                   </Typography>
-                  <Typography variant="body" className="text-white/60 font-medium leading-relaxed">
-                    Olá, <span className="text-white font-bold">{profile?.name?.split(' ')[0]}</span>. <br/>
+                  <Typography variant="p" tone="muted" className="font-bold uppercase tracking-tight leading-relaxed">
+                    Olá, <span className="text-mx-black font-black">{profile?.name?.split(' ')[0]}</span>. <br/>
                     Proteja sua conta com uma nova senha de acesso.
                   </Typography>
                 </div>
               </header>
 
-              <div className="space-y-6">
+              <div className="space-y-mx-md">
                 {/* Password Input */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between px-2">
-                    <Typography variant="caption" className="font-black uppercase tracking-widest text-white/40 text-[10px]">Nova Credencial</Typography>
+                <div className="space-y-mx-xs">
+                  <div className="flex items-center justify-between px-mx-xs">
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest">Nova Credencial</Typography>
                     {formData.password && (
-                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2">
-                        <div className={cn("h-1.5 w-12 rounded-full overflow-hidden bg-white/5")}>
+                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-mx-xs">
+                        <div className={cn("h-mx-tiny w-12 rounded-mx-full overflow-hidden bg-surface-alt")}>
                           <motion.div 
                             className={cn("h-full transition-all duration-500", strengthColor)} 
                             style={{ width: `${(passwordStrength / 4) * 100}%` }}
                           />
                         </div>
-                        <span className={cn("text-[9px] font-black tracking-tighter", strengthColor.replace('bg-', 'text-'))}>
+                        <Typography variant="tiny" className={cn("font-black tracking-mx-tight", strengthColor.replace('bg-', 'text-'))}>
                           {strengthLabel}
-                        </span>
+                        </Typography>
                       </motion.div>
                     )}
                   </div>
                   <div className="relative group/input">
-                    <div className="absolute inset-0 bg-brand-primary/5 rounded-2xl blur opacity-0 group-focus-within/input:opacity-100 transition-opacity" />
-                    <KeyRound size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-brand-primary transition-colors z-10" />
+                    <KeyRound size={20} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within/input:text-brand-primary transition-colors z-10" />
                     <Input 
                       required 
                       type={showPassword ? 'text' : 'password'} 
                       placeholder="NOVA SENHA" 
                       value={formData.password} 
                       onChange={e => setFormData({...formData, password: e.target.value})}
-                      className="!h-16 !pl-14 !pr-14 !bg-white/5 !border-white/10 !rounded-2xl !text-white !font-bold !tracking-[0.2em] focus:!border-brand-primary/50 focus:!ring-brand-primary/20 transition-all placeholder:text-white/10"
+                      className="!h-mx-16 !pl-mx-14 !pr-mx-14 bg-surface-alt border-border-default rounded-mx-2xl font-black tracking-mx-wide focus:border-brand-primary transition-all placeholder:text-text-tertiary/30"
                     />
                     <button 
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors z-10"
+                      className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary hover:text-mx-black transition-colors z-10"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -150,44 +151,44 @@ export function ForcePasswordChange() {
                 </div>
 
                 {/* Confirm Password Input */}
-                <div className="space-y-2">
-                  <Typography variant="caption" className="px-2 font-black uppercase tracking-widest text-white/40 text-[10px]">Confirmação</Typography>
+                <div className="space-y-mx-xs">
+                  <Typography variant="tiny" tone="muted" className="px-mx-xs font-black uppercase tracking-mx-widest">Confirmação</Typography>
                   <div className="relative group/input">
-                    <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-brand-primary transition-colors z-10" />
+                    <Lock size={20} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within/input:text-brand-primary transition-colors z-10" />
                     <Input 
                       required 
                       type={showPassword ? 'text' : 'password'} 
                       placeholder="REPETIR SENHA" 
                       value={formData.confirmPassword} 
                       onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                      className="!h-16 !pl-14 !bg-white/5 !border-white/10 !rounded-2xl !text-white !font-bold !tracking-[0.2em] focus:!border-brand-primary/50 focus:!ring-brand-primary/20 transition-all placeholder:text-white/10"
+                      className="!h-mx-16 !pl-mx-14 bg-surface-alt border-border-default rounded-mx-2xl font-black tracking-mx-wide focus:border-brand-primary transition-all placeholder:text-text-tertiary/30"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Security Hint */}
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-4 items-start">
-                <div className="p-2 rounded-lg bg-brand-primary/10 text-brand-primary">
+              <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default flex gap-mx-md items-start">
+                <div className="p-mx-xs rounded-mx-md bg-brand-primary/10 text-brand-primary">
                   <Sparkles size={16} />
                 </div>
-                <p className="text-[10px] text-white/40 uppercase font-black leading-relaxed tracking-tight">
-                  Sua nova senha será validada pela malha de segurança <span className="text-white">MX PERFORMANCE</span>. 
+                <Typography variant="tiny" tone="muted" className="uppercase font-black leading-relaxed tracking-tight">
+                  Sua nova senha será validada pela malha de segurança <span className="text-mx-black">MX PERFORMANCE</span>. 
                   Use símbolos e números para maior proteção.
-                </p>
+                </Typography>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-mx-md">
                 <Button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full h-16 rounded-2xl shadow-[0_20px_40px_rgba(34,197,94,0.2)] bg-brand-primary hover:bg-brand-primary-hover font-black uppercase tracking-[0.2em] text-white flex items-center justify-center transition-all active:scale-[0.98]"
+                  className="w-full h-mx-16 rounded-mx-2xl shadow-mx-lg bg-brand-primary hover:bg-brand-primary-hover font-black uppercase tracking-mx-wide text-white flex items-center justify-center transition-all active:scale-[0.98]"
                 >
                   {loading ? (
                     <RefreshCw className="animate-spin" />
                   ) : (
                     <>
-                      SALVAR E ACESSAR <Zap size={18} className="ml-3 fill-white" />
+                      SALVAR E ACESSAR <Zap size={18} className="ml-mx-xs fill-white" />
                     </>
                   )}
                 </Button>
@@ -195,7 +196,7 @@ export function ForcePasswordChange() {
                 <button 
                   type="button"
                   onClick={() => signOut()}
-                  className="w-full flex items-center justify-center gap-2 text-white/20 hover:text-status-error font-black uppercase tracking-[0.15em] text-[10px] py-2 transition-colors"
+                  className="w-full flex items-center justify-center gap-mx-xs text-text-tertiary hover:text-status-error font-black uppercase tracking-mx-widest text-mx-nano py-mx-xs transition-colors"
                 >
                   <LogOut size={14} /> SAIR DA CONTA
                 </button>

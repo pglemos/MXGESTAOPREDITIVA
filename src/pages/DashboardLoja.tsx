@@ -400,12 +400,12 @@ export default function DashboardLoja() {
                 {(role === 'admin' || role === 'dono') && latestDRE && (
                    <Card className="p-mx-lg bg-white shadow-mx-lg border-none animate-in slide-in-from-right duration-500 delay-300">
                        <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny text-brand-primary">Lucratividade Preditiva (DRE)</Typography>
-                       <div className="flex items-baseline gap-1 mb-1">
-                           <Typography variant="tiny" tone="muted" className="font-black text-mx-nano">R$</Typography>
-                           <Typography variant="h1" tone={latestDRE.net_profit >= 0 ? 'success' : 'error'} className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">
-                               {Math.round(latestDRE.net_profit).toLocaleString('pt-BR')}
-                           </Typography>
-                       </div>
+                        <div className="flex items-baseline gap-mx-xs mb-mx-xs">
+                            <Typography variant="tiny" tone="muted" className="font-black text-mx-nano">R$</Typography>
+                            <Typography variant="h1" tone={latestDRE.net_profit >= 0 ? 'success' : 'error'} className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">
+                                {Math.round(latestDRE.net_profit).toLocaleString('pt-BR')}
+                            </Typography>
+                        </div>
                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">RESULTADO LÍQUIDO MÊS</Typography>
                    </Card>
                 )}

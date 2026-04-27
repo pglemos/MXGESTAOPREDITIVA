@@ -56,19 +56,19 @@ export function VisitHeaderBase({ data, onChange, clientName }: Props) {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-md">
           <div className="space-y-mx-xs p-mx-md bg-brand-primary/5 rounded-mx-xl border border-brand-primary/10 shadow-mx-sm">
-            <Typography variant="tiny" className="text-brand-primary font-black uppercase tracking-mx-widest text-[10px]">Meta Mensal</Typography>
+            <Typography variant="tiny" className="text-brand-primary font-black uppercase tracking-mx-widest text-mx-tiny">Meta Mensal</Typography>
             <Input id="header-meta" name="header-meta" value={data.meta_mensal} onChange={e => onChange({ meta_mensal: e.target.value })} placeholder="Ex: 25" className="bg-transparent border-none p-mx-0 text-2xl font-black text-brand-primary focus-visible:ring-0 placeholder:text-brand-primary/10" />
           </div>
           <div className="space-y-mx-xs p-mx-md bg-brand-secondary/5 rounded-mx-xl border border-brand-secondary/10 shadow-mx-sm">
-            <Typography variant="tiny" className="text-brand-secondary font-black uppercase tracking-mx-widest text-[10px]">Projeção</Typography>
+            <Typography variant="tiny" className="text-brand-secondary font-black uppercase tracking-mx-widest text-mx-tiny">Projeção</Typography>
             <Input id="header-projection" name="header-projection" value={data.projecao} onChange={e => onChange({ projecao: e.target.value })} className="bg-transparent border-none p-mx-0 text-2xl font-black text-brand-secondary focus-visible:ring-0" />
           </div>
           <div className="space-y-mx-xs p-mx-md bg-surface-alt rounded-mx-xl border border-border-default shadow-mx-sm">
-            <Typography variant="tiny" className="text-text-tertiary font-black uppercase tracking-mx-widest text-[10px]">Leads (Mês)</Typography>
+            <Typography variant="tiny" className="text-text-tertiary font-black uppercase tracking-mx-widest text-mx-tiny">Leads (Mês)</Typography>
             <Input id="header-leads" name="header-leads" value={data.leads_mes} onChange={e => onChange({ leads_mes: e.target.value })} className="bg-transparent border-none p-mx-0 text-2xl font-black text-text-primary focus-visible:ring-0" />
           </div>
           <div className="space-y-mx-xs p-mx-md bg-surface-alt rounded-mx-xl border border-border-default shadow-mx-sm">
-            <Typography variant="tiny" className="text-text-tertiary font-black uppercase tracking-mx-widest text-[10px]">Estoque</Typography>
+            <Typography variant="tiny" className="text-text-tertiary font-black uppercase tracking-mx-widest text-mx-tiny">Estoque</Typography>
             <Input id="header-stock" name="header-stock" value={data.estoque_disponivel} onChange={e => onChange({ estoque_disponivel: e.target.value })} className="bg-transparent border-none p-mx-0 text-2xl font-black text-text-primary focus-visible:ring-0" />
           </div>
         </div>

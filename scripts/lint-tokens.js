@@ -10,7 +10,7 @@ const SRC_DIR = path.join(ROOT_DIR, 'src');
 
 // Allowed MX tokens (base colors and semantic)
 const ALLOWED_COLORS = [
-  'mx-black', 'mx-white', 'mx-slate', 'mx-indigo', 'mx-emerald', 'mx-rose', 'mx-amber',
+  'mx-black', 'mx-white', 'mx-slate', 'mx-indigo', 'mx-emerald', 'mx-rose', 'mx-amber', 'mx-orange', 'mx-green',
   'brand-primary', 'brand-secondary', 'pure-black', 'off-white', 'electric-blue', 'mars-orange',
   'status-success', 'status-warning', 'status-error', 'status-info',
   'surface-main', 'surface-alt', 'surface-overlay',

@@ -144,6 +144,19 @@
 
   --color-print-highlight: #facc15;
   --color-print-gold: #fef3c7;
+
+  /* Orange Tokens (Objectives & Pending) */
+  --color-mx-orange-50: #fff7ed;
+  --color-mx-orange-100: #ffedd5;
+  --color-mx-orange-200: #fed7aa;
+  --color-mx-orange-300: #fdba74;
+  --color-mx-orange-400: #fb923c;
+  --color-mx-orange-500: #f97316;
+  --color-mx-orange-600: #ea580c;
+  --color-mx-orange-700: #c2410c;
+  --color-mx-orange-800: #9a3412;
+  --color-mx-orange-900: #7c2d12;
+  --color-mx-orange-950: #431407;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -7,7 +7,7 @@ import type { User, Store, StoreSeller } from '@/types/database'
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
-    const [sellers, setSellers] = useState<(User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean })[]>([])
+    const [sellers, setSellers] = useState<(User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean; store_name?: string })[]>([])
     const [loading, setLoading] = useState(true)
 
     const referenceDate = calculateReferenceDate()

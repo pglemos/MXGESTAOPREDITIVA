@@ -206,7 +206,7 @@ export default function Lojas() {
                             id="search-stores"
                             placeholder="LOCALIZAR LOJA..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="!pl-11 !h-12 uppercase tracking-widest text-xs font-black"
+                            className="!pl-mx-11 !h-mx-12 uppercase tracking-mx-wide text-mx-nano font-black"
                         />
                     </div>
                     {role === 'admin' && (
@@ -227,22 +227,22 @@ export default function Lojas() {
             <section className="mb-mx-md">
                 <Card className="bg-white shadow-mx-md border border-border-default overflow-hidden rounded-mx-2xl">
                     <CardContent className="p-mx-md sm:p-mx-lg flex flex-wrap gap-mx-md items-center justify-between sm:justify-start">
-                        <div className="flex flex-col min-w-[120px]">
-                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-widest mb-1">Rede / Corporativo</Typography>
+                        <div className="flex flex-col min-w-mx-20">
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-mx-widest mb-mx-tiny">Rede / Corporativo</Typography>
                             <Typography variant="h2" className="text-brand-primary">{corporateMetrics.totalStores}</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px]">Unidades Totais</Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-tiny">Unidades Totais</Typography>
                         </div>
-                        <div className="w-px h-12 bg-border-default hidden sm:block" />
-                        <div className="flex flex-col min-w-[120px]">
-                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-widest mb-1">Força de Vendas</Typography>
+                        <div className="w-px h-mx-12 bg-border-default hidden sm:block" />
+                        <div className="flex flex-col min-w-mx-20">
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-mx-widest mb-mx-tiny">Força de Vendas</Typography>
                             <Typography variant="h2" className="text-status-success">{corporateMetrics.totalSellers}</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px]">Especialistas Ativos</Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-tiny">Especialistas Ativos</Typography>
                         </div>
-                        <div className="w-px h-12 bg-border-default hidden sm:block" />
-                        <div className="flex flex-col min-w-[120px]">
-                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-widest mb-1">Aderência</Typography>
+                        <div className="w-px h-mx-12 bg-border-default hidden sm:block" />
+                        <div className="flex flex-col min-w-mx-20">
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-mx-widest mb-mx-tiny">Aderência</Typography>
                             <Typography variant="h2" tone={corporateMetrics.avgDiscipline < 80 ? 'error' : 'success'}>{corporateMetrics.avgDiscipline}%</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase font-black text-[10px]">Sincronia Média</Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-tiny">Sincronia Média</Typography>
                         </div>
                     </CardContent>
                 </Card>

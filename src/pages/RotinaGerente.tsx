@@ -53,6 +53,22 @@ export default function RotinaGerente() {
     const { sendNotification } = useNotifications()
     const { fetchPendingRequests, approveRequest, rejectRequest, loading: auditorLoading } = useCheckinAuditor(effectiveStoreId)
     
+    const handleRefresh = useCallback(async () => {
+        setIsRefetching(true)
+        const [reqs] = await Promise.all([
+            fetchPendingRequests(),
+            fetchCheckins(), 
+            fetchGoals(), 
+            refetchRanking(), 
+            refetchTeam(), 
+            refetchFeedbacks(), 
+            refetchPDIs()
+        ])
+        setPendingRequests(reqs)
+        setIsRefetching(false)
+        toast.success('Rituais sincronizados!')
+    }, [fetchCheckins, fetchGoals, refetchRanking, refetchTeam, refetchFeedbacks, refetchPDIs, fetchPendingRequests])
+
     // Event Bus: Realtime Notifications for Manager
     useEffect(() => {
         const storeIdToListen = effectiveStoreId || membership?.store_id
@@ -112,22 +128,6 @@ export default function RotinaGerente() {
     const totalAgendamentosHoje = useMemo(() => previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0), [previousDayCheckins])
     
     const canTriggerMatinal = useMemo(() => reuniaoDone && agendaValidated && pendingSellers.length === 0, [reuniaoDone, agendaValidated, pendingSellers])
-
-    const handleRefresh = useCallback(async () => {
-        setIsRefetching(true)
-        const [reqs] = await Promise.all([
-            fetchPendingRequests(),
-            fetchCheckins(), 
-            fetchGoals(), 
-            refetchRanking(), 
-            refetchTeam(), 
-            refetchFeedbacks(), 
-            refetchPDIs()
-        ])
-        setPendingRequests(reqs)
-        setIsRefetching(false)
-        toast.success('Rituais sincronizados!')
-    }, [fetchCheckins, fetchGoals, refetchRanking, refetchTeam, refetchFeedbacks, refetchPDIs, fetchPendingRequests])
 
     useEffect(() => {
         fetchPendingRequests().then(setPendingRequests)

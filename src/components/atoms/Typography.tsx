@@ -44,6 +44,7 @@ export interface TypographyProps
 }
 
 const DEFAULT_ELEMENT_MAP: Record<string, TypographyElementType> = {
+  body: 'p',
   caption: 'span',
   tiny: 'span',
   mono: 'span',

@@ -200,7 +200,7 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
                { k: 'total_inv', l: 'INVESTIMENTO (R$)', p: 'Ex: 2.5M' }
              ].map(f => (
                 <div key={f.k} className="space-y-mx-xs">
-                   <Typography variant="tiny" className="font-black text-text-tertiary uppercase tracking-mx-widest text-[10px]">{f.l}</Typography>
+                   <Typography variant="tiny" className="font-black text-text-tertiary uppercase tracking-mx-widest text-mx-tiny">{f.l}</Typography>
                    <Input 
                       id={`stock-${f.k}`}
                       name={`stock-${f.k}`}
@@ -265,7 +265,7 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
                        <CheckCircle2 size={16} />
                      </div>
                    )}
-                   <Typography variant="tiny" className={cn("uppercase font-black tracking-mx-widest text-[10px]", isActive ? "text-white/70" : "text-text-tertiary")}>
+                   <Typography variant="tiny" className={cn("uppercase font-black tracking-mx-widest text-mx-tiny", isActive ? "text-white/70" : "text-text-tertiary")}>
                      {t.target_role}
                    </Typography>
                    <Typography variant="h3" className={cn("text-sm font-black", isActive ? "text-white" : "text-text-primary")}>

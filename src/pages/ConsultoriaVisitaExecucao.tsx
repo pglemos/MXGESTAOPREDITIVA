@@ -312,7 +312,7 @@ Gerado via MX PERFORMANCE`
 
   return (
     <div className="w-full pb-mx-xl relative z-0">
-      <div className="fixed -left-[10000px] top-mx-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div className="fixed !-left-full top-mx-0 overflow-hidden pointer-events-none" aria-hidden="true">
          <div id="report-template-render">
             <VisitReportTemplate 
               client={client} 
@@ -332,7 +332,7 @@ Gerado via MX PERFORMANCE`
             <div className="flex items-center gap-mx-sm">
                <Typography variant="h1" className="text-2xl font-black text-black tracking-tighter uppercase">VISITA <span className="text-brand-primary">{visitNum}</span></Typography>
                <div className={cn(
-                 "px-mx-sm py-0.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase shadow-sm border",
+                 "px-mx-sm py-0.5 rounded-mx-full text-mx-nano font-black tracking-mx-widest uppercase shadow-mx-sm border",
                  visit?.status === 'concluída' ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-mx-orange-500/10 text-mx-orange-600 border-mx-orange-200 animate-pulse"
                )}>
                  {visit?.status || 'EM ABERTO'}
@@ -400,7 +400,7 @@ Gerado via MX PERFORMANCE`
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
             <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-white relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-primary">
+              <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-primary">
                 <FileText size={120} />
               </div>
               <div className="flex items-center justify-between mb-mx-md relative z-10">
@@ -408,7 +408,7 @@ Gerado via MX PERFORMANCE`
                   <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><FileText size={20} /></div>
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Relato Executivo (CRM)</Typography>
                 </div>
-                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-[10px] tracking-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} icon={<Sparkles size={14} />}>GERAR RASCUNHO AI</Button>
+                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-mx-tiny tracking-mx-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} icon={<Sparkles size={14} />}>GERAR RASCUNHO AI</Button>
               </div>
               <Textarea 
                 value={executiveSummary} 
@@ -423,7 +423,7 @@ Gerado via MX PERFORMANCE`
 
             <div className="space-y-mx-lg">
               <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-secondary">
+                <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-secondary">
                   <MessageSquare size={100} />
                 </div>
                 <div className="flex items-center gap-mx-sm mb-mx-md relative z-10">
@@ -439,7 +439,7 @@ Gerado via MX PERFORMANCE`
               </Card>
 
               <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-gradient-to-br from-white to-surface-alt relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-mx-md opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none text-mx-orange-500">
+                <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none text-mx-orange-500">
                   <Target size={100} />
                 </div>
                 <div className="flex items-center gap-mx-sm mb-mx-md relative z-10">
@@ -460,7 +460,7 @@ Gerado via MX PERFORMANCE`
         <div className="lg:col-span-1 space-y-mx-lg print:hidden">
           <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden relative">
             <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-mx-5"><Info size={80} /></div>
-            <Typography variant="tiny" tone="muted" className="mb-mx-md block tracking-mx-widest text-mx-micro uppercase font-black">Informações da Etapa</Typography>
+            <Typography variant="tiny" tone="muted" className="mb-mx-md block tracking-mx-widest uppercase font-black">Informações da Etapa</Typography>
             <div className="space-y-mx-md">
               <div className="p-mx-md bg-surface-alt rounded-mx-xl border border-border-subtle">
                 <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-micro mb-1">Participantes</Typography>
