@@ -91,18 +91,32 @@ export default function Equipe() {
                 <Skeleton className="h-mx-10 w-mx-64" />
                 <div className="flex gap-mx-sm">
                   <Skeleton className="h-mx-xs w-mx-48" />
-                  <Skeleton className="h-mx-xs w-mx-48" />
+                  <Skeleton className="h-mx-xs w-mx-32 opacity-50" />
                 </div>
             </div>
             <div className="flex gap-mx-sm">
+                <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
                 <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
             </div>
         </header>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
-            {[1,2,3,4].map(i => <Skeleton key={i} className="h-mx-20 rounded-mx-2xl" />)}
+            <Skeleton className="h-mx-24 rounded-mx-4xl" />
+            <Skeleton className="h-mx-24 rounded-mx-4xl" />
+            <Skeleton className="h-mx-24 rounded-mx-4xl" />
+            <Skeleton className="h-mx-24 rounded-mx-4xl" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg mt-mx-lg">
-            {[1,2,3,4,5,6,7,8].map(i => <Skeleton key={i} className="h-mx-64 rounded-mx-3xl" />)}
+
+        <div className="flex-1 mt-mx-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
+                {[1,2,3,4,5,6,7,8].map(i => (
+                    <div key={i} className="h-mx-96 rounded-mx-4xl bg-white/50 border-2 border-dashed border-border-default flex flex-col items-center justify-center p-mx-xl">
+                        <Skeleton className="w-mx-24 h-mx-24 rounded-mx-4xl mb-6" />
+                        <Skeleton className="h-mx-sm w-full mb-2" />
+                        <Skeleton className="h-mx-xs w-1/2" />
+                    </div>
+                ))}
+            </div>
         </div>
     </main>
   )
@@ -208,19 +222,19 @@ export default function Equipe() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="p-mx-lg rounded-mx-3xl bg-white border border-border-default relative overflow-hidden group shadow-mx-sm hover:shadow-mx-md transition-all"
+                className="p-mx-lg rounded-mx-4xl bg-white border border-border-default relative overflow-hidden group shadow-mx-lg hover:shadow-mx-xl transition-all h-mx-24 flex items-center"
               >
-                <div className={cn("absolute -top-mx-lg -right-mx-lg w-mx-20 h-mx-20 blur-mx-xl opacity-40 bg-gradient-to-br", item.color)} />
-                <div className="flex items-center justify-between relative z-10">
-                  <div className="space-y-mx-tiny">
-                    <Typography variant="tiny" tone="muted" className="block uppercase tracking-mx-widest font-black">{item.label}</Typography>
-                    <Typography variant="h1" className="text-4xl font-black tabular-nums leading-none font-mono-numbers">{item.value}</Typography>
+                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 group-hover:opacity-70 transition-opacity", item.color)} />
+                <div className="flex items-center justify-between relative z-10 w-full">
+                  <div className="space-y-0.5">
+                    <Typography variant="tiny" tone="muted" className="block uppercase tracking-mx-widest font-black text-mx-nano opacity-60">{item.label}</Typography>
+                    <Typography variant="h1" className="text-3xl font-black tabular-nums leading-none font-mono-numbers">{item.value}</Typography>
                   </div>
                   <div className={cn(
-                    "w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center bg-surface-alt border border-border-default text-text-tertiary transition-all group-hover:scale-110 group-hover:border-brand-primary/20 group-hover:text-brand-primary",
-                    item.tone === 'brand' && "text-brand-primary border-brand-primary/10 bg-brand-primary/5"
+                    "w-mx-12 h-mx-12 rounded-mx-2xl flex items-center justify-center bg-white shadow-mx-md border border-border-default text-text-tertiary transition-all group-hover:rotate-6 group-hover:border-brand-primary/20 group-hover:text-brand-primary",
+                    item.tone === 'brand' && "text-brand-primary"
                   )}>
-                    <item.icon size={24} strokeWidth={1.5} />
+                    <item.icon size={20} strokeWidth={2} />
                   </div>
                 </div>
               </motion.div>
@@ -239,87 +253,87 @@ export default function Equipe() {
                       initial={{ opacity: 0, scale: 0.98 }} 
                       animate={{ opacity: 1, scale: 1 }} 
                       transition={{ delay: i * 0.03 }} 
-                      className="group relative rounded-mx-4xl bg-white border border-border-default hover:border-brand-primary/30 hover:shadow-mx-xl transition-all duration-500 overflow-hidden flex flex-col h-full shadow-mx-sm"
+                      className="group relative rounded-mx-4xl bg-white border border-border-default hover:border-brand-primary/30 hover:shadow-mx-elite transition-all duration-500 overflow-hidden flex flex-col h-mx-[420px] shadow-mx-lg"
                     >
-                      <div className="absolute top-mx-0 left-mx-0 right-mx-0 h-mx-3xl bg-gradient-to-b from-brand-primary/5 to-transparent pointer-events-none group-hover:opacity-100 transition-opacity duration-700" />
+                      <div className="absolute top-mx-0 left-mx-0 right-mx-0 h-mx-48 bg-gradient-to-b from-brand-primary/10 via-brand-primary/5 to-transparent pointer-events-none group-hover:from-brand-primary/20 transition-all duration-700" />
                       
-                      <div className="p-mx-md pb-0 flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-full bg-surface-alt border border-border-default shadow-mx-inner">
-                          <div className={cn("w-1.5 h-1.5 rounded-mx-full", member.checkin_today ? "bg-status-success shadow-mx-glow-brand animate-pulse" : "bg-text-tertiary/20")} />
-                          <span className="text-mx-nano font-black uppercase tracking-mx-widest text-text-tertiary">
+                      <div className="p-mx-lg pb-0 flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-mx-xs px-4 py-1.5 rounded-mx-full bg-mx-black text-white shadow-mx-xl">
+                          <div className={cn("w-2 h-2 rounded-mx-full", member.checkin_today ? "bg-status-success shadow-mx-glow-brand animate-pulse" : "bg-white/20")} />
+                          <span className="text-mx-nano font-black uppercase tracking-mx-widest">
                             {member.checkin_today ? 'Operacional' : 'Offline'}
                           </span>
                         </div>
-                        <Badge variant={vigencia.variant} className="font-black uppercase tracking-mx-widest text-mx-nano">
+                        <Badge variant={vigencia.variant} className="font-black uppercase tracking-mx-widest text-mx-nano px-4 py-1 h-mx-lg shadow-mx-sm border-none">
                           {vigencia.label}
                         </Badge>
                       </div>
 
-                      <div className="p-mx-lg flex flex-col items-center text-center space-y-mx-md relative z-10 flex-1">
-                        <div className="relative">
-                          <div className="w-mx-24 h-mx-24 rounded-mx-4xl bg-surface-alt border-2 border-border-default overflow-hidden group-hover:scale-105 group-hover:border-brand-primary/30 transition-all duration-500 shadow-mx-lg">
+                      <div className="px-mx-lg flex flex-col items-center text-center space-y-mx-md relative z-10 flex-1 justify-center pt-mx-md">
+                        <div className="relative group/avatar">
+                          <div className="w-mx-28 h-mx-28 rounded-mx-[40px] bg-white p-mx-xs border-2 border-border-default overflow-hidden group-hover/avatar:rotate-3 group-hover:scale-110 group-hover:border-brand-primary transition-all duration-500 shadow-mx-xl">
                             <img 
-                              src={getAvatarUrl(member.name || '', { background: 'f8fafc', color: '22C55E' })} 
-                              alt="" className="w-full h-full object-cover" 
+                              src={getAvatarUrl(member.name || '', { background: 'ffffff', color: '22C55E' })} 
+                              alt="" className="w-full h-full object-cover rounded-mx-[32px]" 
                             />
                           </div>
                           {member.role === 'admin' && (
-                            <div className="absolute -top-mx-xs -right-mx-xs w-mx-10 h-mx-10 rounded-mx-full bg-mx-black text-white flex items-center justify-center border-4 border-white shadow-mx-md">
-                                <Shield size={16} className="text-brand-primary" />
+                            <div className="absolute -top-mx-xs -right-mx-xs w-mx-12 h-mx-12 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center border-4 border-white shadow-mx-xl animate-bounce">
+                                <Shield size={18} className="text-brand-primary fill-brand-primary/20" />
                             </div>
                           )}
                         </div>
                         
-                        <div className="space-y-mx-tiny w-full">
-                          <Typography variant="h3" className="text-xl font-black uppercase tracking-tight truncate px-mx-sm">{member.name}</Typography>
+                        <div className="space-y-mx-tiny w-full pt-mx-sm">
+                          <Typography variant="h2" className="text-2xl font-black uppercase tracking-tighter truncate px-mx-sm leading-none">{member.name}</Typography>
                           <div className="flex flex-col items-center gap-mx-nano">
-                            <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-mx-wide text-mx-tiny opacity-80">
-                                {member.role || 'ESPECIALISTA'}
-                            </Typography>
+                            <div className="flex items-center gap-mx-xs bg-brand-primary/5 px-4 py-1 rounded-mx-full border border-brand-primary/10">
+                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-mx-widest text-mx-nano">
+                                    {member.role || 'ESPECIALISTA'}
+                                </Typography>
+                            </div>
                             {selectedStoreId === 'all' && member.store_name && (
-                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-nano">
-                                    • {member.store_name} •
+                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-nano opacity-40 mt-1">
+                                    {member.store_name}
                                 </Typography>
                             )}
                           </div>
                         </div>
 
-                        <div className="w-full grid grid-cols-2 gap-mx-xs pt-mx-sm border-t border-border-subtle">
-                          <div className="p-mx-xs rounded-mx-2xl bg-surface-alt/50 border border-border-default/50">
-                            <span className="block text-mx-nano text-text-tertiary font-black uppercase tracking-mx-widest mb-1">Entrada</span>
-                            <span className="text-mx-tiny text-text-primary font-black uppercase">{member.started_at ? format(parseISO(member.started_at), 'dd/MM/yy') : '---'}</span>
+                        <div className="w-full grid grid-cols-2 gap-mx-md pt-mx-lg border-t border-border-subtle mt-mx-lg">
+                          <div className="text-left">
+                            <span className="block text-mx-nano text-text-tertiary font-black uppercase tracking-mx-widest mb-1 opacity-50">Efetivo</span>
+                            <span className="text-mx-tiny text-text-primary font-black uppercase tracking-tighter">{member.started_at ? format(parseISO(member.started_at), 'dd/MM/yyyy') : '---'}</span>
                           </div>
-                          <div className="p-mx-xs rounded-mx-2xl bg-surface-alt/50 border border-border-default/50">
-                            <span className="block text-mx-nano text-text-tertiary font-black uppercase tracking-mx-widest mb-1">Status</span>
-                            <span className="text-mx-tiny text-text-primary font-black uppercase">{member.ended_at ? 'CICLO FIM' : 'EFETIVO'}</span>
+                          <div className="text-right">
+                            <span className="block text-mx-nano text-text-tertiary font-black uppercase tracking-mx-widest mb-1 opacity-50">Ciclo</span>
+                            <span className="text-mx-tiny text-text-primary font-black uppercase tracking-tighter">{member.ended_at ? 'PROGRAMADO' : 'INDEFINIDO'}</span>
                           </div>
                         </div>
                       </div>
 
-                      <footer className="p-mx-md pt-0 mt-auto relative z-10 grid grid-cols-3 gap-mx-xs">
+                      <footer className="p-mx-lg pt-0 mt-auto relative z-10 grid grid-cols-3 gap-mx-sm">
                         <Button 
                           variant="outline"
                           onClick={() => setEditingMember(member)}
-                          className="h-mx-12 rounded-mx-2xl bg-surface-alt border-border-default text-text-tertiary hover:text-brand-primary hover:bg-white transition-all shadow-mx-sm"
-                          aria-label="Configurações"
+                          className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-mx-md"
                         >
-                          <Settings2 size={18} />
+                          <Settings2 size={20} />
                         </Button>
                         <Button 
                           variant="outline"
                           onClick={() => window.open(`tel:${member.phone}`)}
-                          className="h-mx-12 rounded-mx-2xl bg-brand-primary/5 border-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm"
-                          aria-label="Contato"
+                          className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-status-success hover:border-status-success/30 transition-all shadow-mx-md"
                         >
-                          <Phone size={18} />
+                          <Phone size={20} />
                         </Button>
                         <Button 
                           variant="outline"
                           asChild
-                          className="h-mx-12 rounded-mx-2xl bg-surface-alt border-border-default text-text-tertiary hover:text-status-info hover:bg-white transition-all shadow-mx-sm"
+                          className="h-mx-14 rounded-mx-2xl bg-mx-black text-white border-none hover:bg-brand-primary transition-all shadow-mx-xl"
                         >
-                          <Link to="/relatorios/performance-vendedores" aria-label="Performance">
-                            <TrendingUp size={18} />
+                          <Link to="/relatorios/performance-vendedores">
+                            <TrendingUp size={20} />
                           </Link>
                         </Button>
                       </footer>
@@ -328,14 +342,26 @@ export default function Equipe() {
                 })}
               </div>
             ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center min-h-[40vh] space-y-mx-lg text-center border-2 border-dashed border-border-default rounded-mx-4xl bg-white/50">
-                <div className="w-mx-20 h-mx-20 rounded-mx-full bg-surface-alt flex items-center justify-center text-text-tertiary opacity-20">
-                  <Users size={40} />
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[50vh] space-y-mx-xl text-center border-2 border-dashed border-border-default rounded-mx-[60px] bg-white/30 backdrop-blur-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                <div className="relative">
+                    <div className="w-mx-32 h-mx-32 rounded-mx-[48px] bg-white flex items-center justify-center text-text-tertiary shadow-mx-xl border border-border-default group-hover:rotate-12 transition-transform duration-700">
+                      <Users size={64} strokeWidth={1} className="opacity-20" />
+                    </div>
+                    <div className="absolute -top-mx-xs -right-mx-xs w-mx-12 h-mx-12 rounded-mx-full bg-brand-primary flex items-center justify-center text-white shadow-mx-glow-brand animate-pulse">
+                        <UserPlus size={18} />
+                    </div>
                 </div>
-                <div className="space-y-mx-tiny">
-                  <Typography variant="h3" className="font-black uppercase tracking-tight">Vácuo de Tropa</Typography>
-                  <Typography variant="p" tone="muted" className="uppercase tracking-mx-widest font-black text-mx-tiny">Nenhum especialista localizado nesta unidade operacional</Typography>
+                <div className="space-y-mx-sm max-w-md relative z-10">
+                  <Typography variant="h1" className="text-4xl font-black uppercase tracking-tighter leading-none">Vácuo de <span className="text-brand-primary">Tropa</span></Typography>
+                  <Typography variant="p" tone="muted" className="uppercase tracking-mx-widest font-black text-mx-tiny leading-relaxed opacity-60">A unidade operacional selecionada ainda não possui especialistas integrados ao terminal de performance MX.</Typography>
                 </div>
+                <Button 
+                    onClick={() => setIsUserModalOpen(true)}
+                    className="h-mx-16 px-10 rounded-mx-full font-black uppercase tracking-widest text-mx-tiny shadow-mx-xl relative z-10"
+                >
+                    <UserPlus size={18} className="mr-2" /> RECRUTAR AGORA
+                </Button>
               </motion.div>
             )}
           </div>

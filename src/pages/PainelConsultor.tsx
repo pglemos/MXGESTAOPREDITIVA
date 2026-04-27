@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import {
-    Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar, X, Check
+    Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar, X, Check, Shield, Store
 } from 'lucide-react'
 import { supabase as originalSupabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -16,9 +16,10 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { toast } from 'sonner'
-import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns'
+import { format, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, parseISO, startOfWeek, endOfWeek } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { getOperationalStatus, getDiasInfo, calcularProjecao } from '@/lib/calculations'
+import { PageHeader } from '@/components/molecules/PageHeader'
 
 type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; ritmo: number; efficiency: number; sellers: number; checkedInToday: number; disciplinePct: number }
 
@@ -228,307 +229,268 @@ export default function PainelConsultor() {
     }, [diagnostics])
 
     if (goalsLoading || networkLoading) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500 overflow-hidden">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-mx-64" />
                     <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
                 <div className="flex gap-mx-sm">
-                    <Skeleton className="h-mx-14 w-mx-64 rounded-mx-full" />
-                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-full" />
+                    <Skeleton className="h-mx-14 w-mx-64 rounded-mx-xl" />
+                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
                 </div>
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
-                <Skeleton className="h-mx-xl rounded-mx-2xl" />
-                <Skeleton className="h-mx-xl rounded-mx-2xl" />
-                <Skeleton className="h-mx-xl rounded-mx-2xl" />
-                <Skeleton className="h-mx-xl rounded-mx-2xl" />
+                <Skeleton className="h-mx-48 rounded-mx-4xl" />
+                <Skeleton className="h-mx-48 rounded-mx-4xl" />
+                <Skeleton className="h-mx-48 rounded-mx-4xl" />
+                <Skeleton className="h-mx-48 rounded-mx-4xl" />
             </div>
 
-            <Card className="p-mx-10 bg-white/50 border-dashed border-2">
-                <div className="flex justify-between mb-8">
-                    <Skeleton className="h-mx-sm w-mx-48" />
-                    <Skeleton className="h-mx-sm w-mx-32" />
-                </div>
-                <div className="space-y-mx-sm">
-                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
-                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
-                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
-                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
-                    <Skeleton className="h-mx-md w-full rounded-mx-md" />
-                </div>
-            </Card>
+            <div className="flex-1 mt-mx-lg">
+                <Skeleton className="h-full w-full rounded-mx-4xl" />
+            </div>
         </main>
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative" id="main-content">
             
-            {/* Header Toolbar */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-mx-xs">
+            <PageHeader 
+                title={<span>Rede <span className="text-brand-primary">Operacional</span></span>}
+                description={
                     <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Rede <Typography as="span" className="text-brand-primary">Operacional</Typography></Typography>
-                    </div>
-                    <div className="flex items-center gap-mx-sm pl-6">
-                        <Badge variant="danger" className="px-4 py-1 font-black">
-                            <Typography variant="tiny" as="span" className="font-black">Gap Global: {globalStats.totalGap} UNIDADES</Typography>
+                        <Badge variant="danger" className="px-4 py-1 font-black shadow-mx-sm border-none">
+                            GAP GLOBAL: {globalStats.totalGap} UNIDADES
                         </Badge>
-                        <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</Typography>
+                        <span className="opacity-40 font-black uppercase tracking-mx-widest text-mx-nano">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</span>
                     </div>
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-mx-xs shrink-0">
-                    <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm relative" aria-label="Filtro de Período">
-                        <Calendar size={14} className="text-text-tertiary ml-3 mr-1" aria-hidden="true" />
-                        {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
-                            <Button 
-                                key={t}
-                                variant={timeframe === t ? 'secondary' : 'ghost'}
+                }
+                actions={
+                    <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                        <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm relative h-mx-14 px-3">
+                            <Calendar size={14} className="text-text-tertiary ml-2 mr-1" />
+                            {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
+                                <Button 
+                                    key={t}
+                                    variant={timeframe === t ? 'secondary' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setTimeframe(t)}
+                                    className="rounded-mx-full px-4 h-mx-10 uppercase font-black text-mx-nano tracking-widest"
+                                >
+                                    {t}
+                                </Button>
+                            ))}
+                            <Button
+                                variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
                                 size="sm"
-                                onClick={() => setTimeframe(t)}
-                                className="rounded-mx-full px-4 h-mx-lg uppercase font-black"
-                                aria-pressed={timeframe === t}
+                                onClick={() => setShowCustomPicker(!showCustomPicker)}
+                                className="rounded-mx-full px-4 h-mx-10 uppercase font-black text-mx-nano tracking-widest"
                             >
-                                <Typography variant="tiny" as="span" className="font-black">{t}</Typography>
+                                Custom
                             </Button>
-                        ))}
-                        <Button
-                            variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setShowCustomPicker(!showCustomPicker)}
-                            className="rounded-mx-full px-4 h-mx-lg uppercase font-black"
-                            aria-expanded={showCustomPicker}
-                        >
-                            <Typography variant="tiny" as="span" className="font-black">Custom</Typography>
-                        </Button>
 
-                        <AnimatePresence>
-                            {showCustomPicker && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-mx-0 z-50">
-                                    <Card className="p-mx-md min-w-mx-card-sm shadow-mx-xl border-none">
-                                        <header className="flex items-center justify-between mb-6">
-                                            <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Período Customizado</Typography>
-                                            <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-lg h-mx-lg p-mx-0 rounded-mx-full" aria-label="Fechar seletor"><X size={16} /></Button>
-                                        </header>
-                                        <div className="space-y-mx-sm">
-                                            <div className="space-y-mx-xs">
-                                                <Typography variant="tiny" tone="muted" as="label" htmlFor="start-date" className="font-black uppercase tracking-widest ml-1">Início</Typography>
-                                                <Input id="start-date" type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-10 !px-4 !text-xs font-black" />
+                            <AnimatePresence>
+                                {showCustomPicker && (
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-mx-0 z-50">
+                                        <Card className="p-mx-lg min-w-mx-card-sm shadow-mx-elite border-none bg-white/95 backdrop-blur-xl rounded-mx-3xl">
+                                            <header className="flex items-center justify-between mb-8">
+                                                <Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-widest">Período Customizado</Typography>
+                                                <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-10 h-mx-10 p-0 rounded-mx-full"><X size={16} /></Button>
+                                            </header>
+                                            <div className="space-y-mx-md">
+                                                <div className="space-y-mx-xs">
+                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Início</Typography>
+                                                    <Input type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
+                                                </div>
+                                                <div className="space-y-mx-xs">
+                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Fim</Typography>
+                                                    <Input type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
+                                                </div>
+                                                <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-14 shadow-mx-lg font-black uppercase text-xs tracking-widest rounded-mx-xl">
+                                                    APLICAR PERÍODO
+                                                </Button>
                                             </div>
-                                            <div className="space-y-mx-xs">
-                                                <Typography variant="tiny" tone="muted" as="label" htmlFor="end-date" className="font-black uppercase tracking-widest ml-1">Fim</Typography>
-                                                <Input id="end-date" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-10 !px-4 !text-xs font-black" />
-                                            </div>
-                                            <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-xl shadow-mx-lg font-black uppercase text-xs">
-                                                <Typography variant="tiny" as="span" className="font-black">APLICAR PERÍODO</Typography>
-                                            </Button>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </nav>
+                                        </Card>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </nav>
 
-                    <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm" aria-label="Disparos de Relatórios">
-                        {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
-                            <Button 
-                                key={r} variant="ghost" size="sm" 
-                                onClick={() => triggerReport(r)} 
-                                disabled={isTriggering !== null} 
-                                className="rounded-mx-full px-4 h-mx-lg text-brand-primary uppercase font-black"
-                                aria-label={`Disparar relatório ${r}`}
-                            >
-                                {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : <Typography variant="tiny" as="span" className="font-black">{r}</Typography>}
+                        <div className="flex items-center gap-mx-sm">
+                            <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-mx-xl shadow-mx-sm h-mx-14 w-mx-14 bg-white border-border-default">
+                                <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                             </Button>
-                        ))}
-                    </nav>
+                            <nav className="flex items-center gap-mx-tiny bg-mx-black p-mx-tiny rounded-mx-full shadow-mx-xl border border-white/10 h-mx-14 px-3">
+                                {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
+                                    <Button 
+                                        key={r} variant="ghost" size="sm" 
+                                        onClick={() => triggerReport(r)} 
+                                        disabled={isTriggering !== null} 
+                                        className="rounded-mx-full px-5 h-mx-10 text-white hover:bg-white/10 uppercase font-black text-mx-nano tracking-widest"
+                                    >
+                                        {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : r}
+                                    </Button>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+                }
+            />
 
-                    <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-mx-xl shadow-mx-sm h-mx-10 w-mx-10 bg-white" aria-label="Sincronizar dados">
-                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
-                    </Button>
-                </div>
-            </header>
-
-            {/* Global KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
-                <Card className="bg-brand-secondary border-none p-mx-lg shadow-mx-xl text-white">
-                    <Typography variant="caption" tone="white" className="opacity-50 mb-4 block font-black uppercase tracking-widest">Venda {timeframe.toUpperCase()}</Typography>
-                    <div className="flex items-baseline gap-mx-xs">
-                        <Typography variant="h1" tone="white" className="text-5xl font-mono-numbers tracking-tighter">{globalStats.totalSales}</Typography>
-                        {timeframe === 'mensal' && <Typography variant="mono" tone="success" className="text-lg font-black">+{globalStats.globalRitmo}%</Typography>}
-                    </div>
-                    {timeframe === 'mensal' && <Typography variant="caption" tone="white" className="opacity-30 mt-4 tracking-widest block font-black uppercase">META REDE: {globalStats.totalGoal}</Typography>}
-                </Card>
-
-                <Card className="p-mx-lg border-none shadow-mx-sm bg-white">
-                    <Typography variant="caption" tone="muted" className="mb-6 text-center block font-black uppercase tracking-widest">Escoamento Rede</Typography>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalLeads}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Leads</Typography></div>
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalAgd}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Agd</Typography></div>
-                        <div className="text-center"><Typography variant="h3" className="text-2xl font-mono-numbers mb-1 tracking-tighter">{globalStats.totalVis}</Typography><Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Vis</Typography></div>
+                <Card className="bg-mx-black border-none p-mx-xl shadow-mx-elite text-white rounded-mx-4xl relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 via-transparent to-transparent opacity-50" />
+                    <div className="relative z-10">
+                        <Typography variant="tiny" tone="brand" className="mb-4 block font-black uppercase tracking-mx-widest opacity-60">Venda {timeframe.toUpperCase()}</Typography>
+                        <div className="flex items-baseline gap-mx-xs">
+                            <Typography variant="h1" tone="white" className="text-6xl font-mono-numbers tracking-tighter font-black">{globalStats.totalSales}</Typography>
+                            {timeframe === 'mensal' && <Typography variant="h3" tone="success" className="text-2xl font-black">+{globalStats.globalRitmo}%</Typography>}
+                        </div>
+                        <div className="mt-8 pt-6 border-t border-white/10">
+                            <Typography variant="tiny" tone="white" className="opacity-30 tracking-mx-widest block font-black uppercase text-mx-nano">META REDE: {globalStats.totalGoal}</Typography>
+                        </div>
                     </div>
                 </Card>
 
-                <Card className="p-mx-lg flex flex-col justify-between border-none shadow-mx-sm bg-white">
-                    <Typography variant="caption" tone="muted" className="mb-4 font-black uppercase tracking-widest">Unidades Críticas</Typography>
-                    <Typography variant="h1" tone="error" className="text-5xl font-mono-numbers tracking-tighter">
-                        {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
-                    </Typography>
-                    <Typography variant="caption" tone="error" className="mt-4 opacity-60 font-black uppercase tracking-widest">Ação Imediata Necessária</Typography>
+                <Card className="p-mx-xl border-none shadow-mx-lg bg-white/50 backdrop-blur-2xl rounded-mx-4xl flex flex-col justify-between group">
+                    <Typography variant="tiny" tone="muted" className="mb-6 block font-black uppercase tracking-mx-widest opacity-40">Escoamento Rede</Typography>
+                    <div className="grid grid-cols-3 gap-mx-md">
+                        <div className="text-center group-hover:scale-110 transition-transform">
+                            <Typography variant="h1" className="text-3xl font-mono-numbers mb-1 tracking-tighter font-black">{globalStats.totalLeads}</Typography>
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-micro opacity-60">Leads</Typography>
+                        </div>
+                        <div className="text-center group-hover:scale-110 transition-transform delay-75">
+                            <Typography variant="h1" className="text-3xl font-mono-numbers mb-1 tracking-tighter font-black text-status-info">{globalStats.totalAgd}</Typography>
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-micro opacity-60">Agd</Typography>
+                        </div>
+                        <div className="text-center group-hover:scale-110 transition-transform delay-150">
+                            <Typography variant="h1" className="text-3xl font-mono-numbers mb-1 tracking-tighter font-black">{globalStats.totalVis}</Typography>
+                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-micro opacity-60">Vis</Typography>
+                        </div>
+                    </div>
+                    <div className="mt-8 h-mx-px bg-border-default opacity-50" />
                 </Card>
 
-                <Card className="p-mx-lg flex flex-col justify-between border-none shadow-mx-sm bg-white">
-                    <Typography variant="caption" tone="muted" className="mb-4 font-black uppercase tracking-widest">Saúde Disciplinar</Typography>
-                    <Typography variant="h1" tone="success" className="text-5xl font-mono-numbers tracking-tighter">
-                        {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
-                    </Typography>
-                    <Typography variant="caption" tone="success" className="mt-4 opacity-60 font-black uppercase tracking-widest">Aderência aos Check-ins</Typography>
+                <Card className="p-mx-xl flex flex-col justify-between border-none shadow-mx-lg bg-white/50 backdrop-blur-2xl rounded-mx-4xl relative overflow-hidden group">
+                    <div className="absolute -right-mx-lg -top-mx-lg w-mx-32 h-mx-32 bg-status-error-surface rounded-mx-full blur-mx-4xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Typography variant="tiny" tone="error" className="mb-4 font-black uppercase tracking-mx-widest opacity-60">Unidades Críticas</Typography>
+                    <div className="flex items-baseline gap-mx-sm">
+                        <Typography variant="h1" tone="error" className="text-6xl font-mono-numbers tracking-tighter font-black">
+                            {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
+                        </Typography>
+                        <AlertTriangle className="text-status-error opacity-20" size={32} />
+                    </div>
+                    <Typography variant="tiny" tone="error" className="mt-6 font-black uppercase tracking-mx-widest text-mx-nano italic">Ação Imediata Necessária</Typography>
+                </Card>
+
+                <Card className="p-mx-xl flex flex-col justify-between border-none shadow-mx-lg bg-white/50 backdrop-blur-2xl rounded-mx-4xl relative overflow-hidden group">
+                    <div className="absolute -right-mx-lg -top-mx-lg w-mx-32 h-mx-32 bg-status-success-surface rounded-mx-full blur-mx-4xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Typography variant="tiny" tone="success" className="mb-4 font-black uppercase tracking-mx-widest opacity-60">Saúde Disciplinar</Typography>
+                    <div className="flex items-baseline gap-mx-sm">
+                        <Typography variant="h1" tone="success" className="text-6xl font-mono-numbers tracking-tighter font-black">
+                            {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
+                        </Typography>
+                        <Shield className="text-status-success opacity-20" size={32} />
+                    </div>
+                    <Typography variant="tiny" tone="success" className="mt-6 font-black uppercase tracking-mx-widest text-mx-nano italic">Aderência aos Check-ins</Typography>
                 </Card>
             </div>
 
-            {/* Strategic Map Table */}
-            <Card className="w-full mb-20 shadow-mx-lg border-none bg-white">
-                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md pb-10">
-                    <div>
-                        <CardTitle className="text-3xl uppercase tracking-tighter">Malha de Performance</CardTitle>
-                        <CardDescription className="font-black uppercase tracking-widest mt-1">Auditoria em Tempo Real de Unidades MX.</CardDescription>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-mx-xs">
-                        <div className="relative group w-full sm:w-mx-sidebar-expanded">
-                            <Search size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" aria-hidden="true" />
-                            <Typography variant="tiny" as="label" htmlFor="search-store" className="sr-only">Buscar Unidade</Typography>
-                            <Input id="search-store" placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10 !h-12 uppercase font-black tracking-widest !text-xs" />
+            <Card className="w-full mb-32 shadow-mx-elite border-none bg-white/50 backdrop-blur-2xl rounded-mx-[40px] overflow-hidden">
+                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-lg p-mx-xl border-b border-white/20">
+                    <div className="flex items-center gap-mx-md">
+                        <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl"><Activity size={28} /></div>
+                        <div>
+                            <CardTitle className="text-3xl uppercase tracking-tighter font-black">Malha de Performance</CardTitle>
+                            <CardDescription className="font-black uppercase tracking-mx-widest mt-1 text-mx-tiny opacity-40">Monitoramento Predictivo de Unidades.</CardDescription>
                         </div>
-                        <div className="flex items-center gap-mx-tiny bg-surface-alt border border-border-default p-mx-tiny rounded-mx-md h-mx-xl shadow-inner" role="group" aria-label="Filtro de Status">
+                    </div>
+                    <div className="flex flex-wrap items-center gap-mx-sm">
+                        <div className="relative group w-full sm:w-mx-sidebar-expanded">
+                            <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" />
+                            <Input placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-12 !h-14 uppercase font-black tracking-mx-widest !text-xs rounded-mx-xl bg-white border-border-default shadow-mx-sm" />
+                        </div>
+                        <div className="flex items-center gap-mx-tiny bg-mx-black/5 p-mx-tiny rounded-mx-xl h-mx-14 shadow-inner px-2">
                             {(['all', 'alert', 'critical'] as const).map(f => (
-                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-full rounded-mx-sm px-4 uppercase font-black">
-                                    <Typography variant="tiny" as="span" className="font-black">{f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}</Typography>
+                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-mx-10 rounded-mx-lg px-6 uppercase font-black text-mx-nano tracking-widest">
+                                    {f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}
                                 </Button>
                             ))}
                         </div>
-                        <Button asChild variant="secondary" className="h-mx-xl px-6 shadow-mx-md uppercase">
-                            <Link to="/lojas"><Typography variant="tiny" as="span" className="font-black">GESTÃO LOJAS</Typography></Link>
+                        <Button asChild variant="mx-elite" className="h-mx-14 px-8 shadow-mx-xl uppercase font-black text-mx-tiny tracking-mx-widest rounded-mx-xl">
+                            <Link to="/lojas"><Store size={18} className="mr-2" /> GESTÃO LOJAS</Link>
                         </Button>
                     </div>
                 </CardHeader>
                 <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left min-w-mx-elite-wide">
-                        <caption className="sr-only">Consolidado operacional de todas as unidades da rede</caption>
-                        <thead className="bg-surface-alt/50 border-y border-border-default">
-                            <tr className="uppercase tracking-mx-wide">
-                                <th 
-                                    scope="col" 
-                                    className="pl-10 py-6 cursor-pointer hover:text-brand-primary transition-colors" 
-                                    onClick={() => handleSort('name')}
-                                    aria-sort={sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <Typography variant="caption" className="font-black">Unidade</Typography>
+                    <table className="w-full text-left min-w-[1200px]">
+                        <thead>
+                            <tr className="uppercase tracking-mx-widest border-b border-border-default bg-mx-black/5">
+                                <th className="pl-12 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}>
+                                    <Typography variant="tiny" className="font-black">Unidade</Typography>
                                 </th>
-                                <th 
-                                    scope="col" 
-                                    className="px-4 py-6 text-center cursor-pointer" 
-                                    onClick={() => handleSort('leads')}
-                                    aria-sort={sortConfig.key === 'leads' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <Typography variant="caption" className="font-black">Leads</Typography>
-                                </th>
-                                <th 
-                                    scope="col" 
-                                    className="px-4 py-6 text-center cursor-pointer" 
-                                    onClick={() => handleSort('agd')}
-                                    aria-sort={sortConfig.key === 'agd' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <Typography variant="caption" className="font-black">Agend.</Typography>
-                                </th>
-                                <th 
-                                    scope="col" 
-                                    className="px-4 py-6 text-center cursor-pointer" 
-                                    onClick={() => handleSort('vis')}
-                                    aria-sort={sortConfig.key === 'vis' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <Typography variant="caption" className="font-black">Visitas</Typography>
-                                </th>
-                                <th 
-                                    scope="col" 
-                                    className="px-4 py-6 text-center cursor-pointer" 
-                                    onClick={() => handleSort('sales')}
-                                    aria-sort={sortConfig.key === 'sales' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <Typography variant="caption" tone="brand" className="font-black">Vendas</Typography>
-                                </th>
-                                <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Meta</Typography></th>
-                                <th 
-                                    scope="col" 
-                                    className="px-4 py-6 text-center cursor-pointer" 
-                                    onClick={() => handleSort('gap')}
-                                    aria-sort={sortConfig.key === 'gap' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <Typography variant="caption" tone="error" className="font-black">Gap</Typography>
-                                </th>
-                                <th 
-                                    scope="col" 
-                                    className="px-4 py-6 text-center cursor-pointer" 
-                                    onClick={() => handleSort('proj')}
-                                    aria-sort={sortConfig.key === 'proj' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <Typography variant="caption" tone="brand" className="font-black">Projeção</Typography>
-                                </th>
-                                <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Ritmo</Typography></th>
-                                <th scope="col" className="px-4 py-6 text-center"><Typography variant="caption" className="font-black">Status</Typography></th>
-                                <th scope="col" className="pr-10 py-6 text-center"><Typography variant="caption" className="font-black">Disciplina</Typography></th>
+                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('leads')}><Typography variant="tiny" className="font-black">Leads</Typography></th>
+                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('agd')}><Typography variant="tiny" className="font-black">Agend.</Typography></th>
+                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('vis')}><Typography variant="tiny" className="font-black">Visitas</Typography></th>
+                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('sales')}><Typography variant="tiny" tone="brand" className="font-black">Vendas</Typography></th>
+                                <th className="px-6 py-6 text-center"><Typography variant="tiny" className="font-black opacity-40">Meta</Typography></th>
+                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('gap')}><Typography variant="tiny" tone="error" className="font-black">Gap</Typography></th>
+                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('proj')}><Typography variant="tiny" tone="brand" className="font-black">Projeção</Typography></th>
+                                <th className="px-6 py-6 text-center"><Typography variant="tiny" className="font-black">Ritmo</Typography></th>
+                                <th className="px-6 py-6 text-center"><Typography variant="tiny" className="font-black">Status</Typography></th>
+                                <th className="pr-12 py-6 text-center"><Typography variant="tiny" className="font-black">Disciplina</Typography></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-border-default">
-                            {filteredAndSortedStores.map(store => {
+                        <tbody className="divide-y divide-border-subtle">
+                            {filteredAndSortedStores.map((store, i) => {
                                 const status = getOperationalStatus(store.ritmo, store.disciplinePct)
                                 return (
-                                    <tr 
+                                    <motion.tr 
                                         key={store.id} 
-                                        className="hover:bg-brand-primary-surface/10 transition-colors group h-mx-3xl cursor-pointer"
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.02 }}
+                                        className="hover:bg-white/40 transition-all group h-mx-28 cursor-pointer"
                                         onClick={() => handleStoreClick(store.id, store.name)}
-                                        tabIndex={0}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleStoreClick(store.id, store.name)}
-                                        role="button"
-                                        aria-label={`Ver detalhes da unidade ${store.name}`}
                                     >
-                                        <td className="pl-10">
-                                            <div className="flex items-center gap-mx-sm">
-                                                <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-lg group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
-                                                <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{store.name}</Typography>
+                                        <td className="pl-12">
+                                            <div className="flex items-center gap-mx-md">
+                                                <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-white border border-border-default flex items-center justify-center font-black text-text-primary text-xl group-hover:bg-mx-black group-hover:text-white group-hover:border-mx-black transition-all shadow-mx-sm uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
+                                                <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{store.name}</Typography>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.leads}</td>
-                                        <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.agd}</td>
-                                        <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-primary">{store.vis}</td>
-                                        <td className="px-4 py-2 text-center font-black text-2xl font-mono-numbers text-brand-primary">{store.sales}</td>
-                                        <td className="px-4 py-2 text-center font-black text-base font-mono-numbers text-text-tertiary">{store.goal}</td>
-                                        <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-status-error">{store.gap}</td>
-                                        <td className="px-4 py-2 text-center font-black text-lg font-mono-numbers text-brand-primary">{store.proj}</td>
-                                        <td className="px-4 py-2 text-center">
+                                        <td className="px-6 text-center font-black text-lg font-mono-numbers text-text-primary opacity-60">{store.leads}</td>
+                                        <td className="px-6 text-center font-black text-lg font-mono-numbers text-status-info">{store.agd}</td>
+                                        <td className="px-6 text-center font-black text-lg font-mono-numbers text-text-primary opacity-60">{store.vis}</td>
+                                        <td className="px-6 text-center">
+                                            <Typography variant="h1" className="text-3xl font-mono-numbers text-brand-primary font-black tracking-tighter">{store.sales}</Typography>
+                                        </td>
+                                        <td className="px-6 text-center font-black text-sm font-mono-numbers text-text-tertiary opacity-40">{store.goal}</td>
+                                        <td className="px-6 text-center font-black text-xl font-mono-numbers text-status-error">{store.gap}</td>
+                                        <td className="px-6 text-center font-black text-xl font-mono-numbers text-brand-primary shadow-mx-glow-brand-sm">{store.proj}</td>
+                                        <td className="px-6 text-center">
                                             <div className="flex flex-col items-center">
-                                                <Typography variant="mono" className="text-lg font-black">{store.ritmo}</Typography>
-                                                <Typography variant="tiny" tone="muted" className="font-black uppercase">VND/DIA</Typography>
+                                                <Typography variant="mono" className="text-xl font-black text-mx-black leading-none">{store.ritmo}</Typography>
+                                                <Typography variant="tiny" tone="muted" className="font-black uppercase text-mx-micro mt-1 opacity-40">VND/DIA</Typography>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 text-center">
-                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1 mb-1 font-black shadow-sm uppercase border-none">
-                                                <Typography variant="tiny" as="span" className="font-black">{status.label}</Typography>
+                                        <td className="px-6 text-center">
+                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1.5 font-black shadow-sm uppercase border-none text-mx-nano tracking-widest">
+                                                {status.label}
                                             </Badge>
-                                            <Typography variant="tiny" tone="muted" className="font-black block uppercase">{store.efficiency}% EFIC.</Typography>
+                                            <Typography variant="tiny" tone="muted" className="font-black block uppercase text-mx-micro mt-1 opacity-40">{store.efficiency}% EFIC.</Typography>
                                         </td>
-                                        <td className="pr-10 py-2 text-center">
+                                        <td className="pr-12 text-center">
                                             <div className="flex flex-col items-center">
-                                                <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'} className="text-base font-black">
+                                                <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'} className="text-lg font-black leading-none">
                                                     {store.checkedInToday}/{store.sellers}
                                                 </Typography>
-                                                <Typography variant="tiny" tone="muted" className="font-black tracking-tighter uppercase">{Math.round(store.disciplinePct)}% OK</Typography>
+                                                <Typography variant="tiny" tone="muted" className="font-black tracking-mx-widest uppercase text-mx-micro mt-1 opacity-40">{Math.round(store.disciplinePct)}% OK</Typography>
                                             </div>
                                         </td>
-                                    </tr>
+                                    </motion.tr>
                                 )
                             })}
                         </tbody>
@@ -536,5 +498,5 @@ export default function PainelConsultor() {
                 </div>
             </Card>
         </main>
-    )
+    );
 }
