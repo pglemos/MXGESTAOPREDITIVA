@@ -73,14 +73,14 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
             initial={{ opacity: 0, scale: 0.9, y: 40 }} 
             animate={{ opacity: 1, scale: 1, y: 0 }} 
             exit={{ opacity: 0, scale: 0.9, y: 40 }} 
-            className="w-full max-w-4xl relative z-10"
+            className="w-full max-w-6xl relative z-10"
           >
-            <div className="relative bg-white/90 backdrop-blur-2xl border border-border-default rounded-mx-4xl shadow-mx-elite overflow-hidden">
+            <div className="relative w-full bg-white/90 backdrop-blur-2xl border border-border-default rounded-mx-4xl shadow-mx-elite overflow-hidden">
               <div className="absolute top-mx-0 left-mx-0 w-full h-mx-xs bg-gradient-to-r from-brand-primary/50 via-brand-primary to-brand-primary/50" />
             
-              <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row h-full overflow-hidden">
+              <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row max-h-[85vh] w-full overflow-hidden">
                 {/* Sidebar Context */}
-                <div className="w-full md:w-mx-80 bg-surface-alt/50 border-r border-border-default p-mx-xl flex flex-col justify-between relative overflow-hidden">
+                <div className="w-full lg:w-[320px] shrink-0 bg-surface-alt/50 border-b lg:border-b-0 lg:border-r border-border-default p-mx-lg flex flex-col justify-between relative overflow-y-auto lg:overflow-hidden">
                     <div className="space-y-mx-lg relative z-10">
                         <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shadow-mx-md">
                             <UserPlus size={40} strokeWidth={1.5} />
@@ -115,17 +115,17 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                 </div>
 
                 {/* Main Form Fields */}
-                <div className="flex-1 p-mx-xl space-y-mx-xl bg-white">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
+                <div className="flex-1 p-mx-lg lg:p-mx-xl space-y-mx-xl bg-white overflow-y-auto max-h-[85vh]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                         {/* Nome */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Identidade do Especialista</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest truncate">Identidade do Especialista</Typography>
                           <div className="relative group">
                             <User size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
                               required placeholder="NOME COMPLETO" 
                               value={formData.name} onChange={e => setFormData({...formData, name: e.target.value.toUpperCase()})}
-                              className="w-full h-mx-14 pl-mx-14 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-xs focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
+                              className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-xs focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
                             />
                           </div>
                         </div>
@@ -138,7 +138,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                             <input 
                               required placeholder="(00) 00000-0000" 
                               value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
-                              className="w-full h-mx-14 pl-mx-14 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
+                              className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
                             />
                           </div>
                         </div>
@@ -151,20 +151,20 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                             <input 
                               required type="email" placeholder="USUARIO@MX PERFORMANCE.COM" 
                               value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
-                              className="w-full h-mx-14 pl-mx-14 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
+                              className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
                             />
                           </div>
                         </div>
 
                         {/* Senha */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Credencial Provisória</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest truncate">Credencial Provisória</Typography>
                           <div className="relative group">
                             <Lock size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
                               type="password" placeholder="MIN. 6 CARACTERES" 
                               value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})}
-                              className="w-full h-mx-14 pl-mx-14 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
+                              className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
                             />
                           </div>
                         </div>
@@ -177,7 +177,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                             <select 
                               value={formData.role} 
                               onChange={e => setFormData({...formData, role: e.target.value})}
-                              className="w-full h-mx-14 pl-mx-14 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer"
+                              className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer"
                             >
                               {allowedRoles.map(role => (
                                 <option key={role} value={role} className="bg-white text-text-primary">{role.toUpperCase()}</option>
@@ -195,7 +195,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                               value={formData.store_id} 
                               onChange={e => setFormData({...formData, store_id: e.target.value})}
                               disabled={(!!initialStoreId && initialStoreId !== 'all') && currentUserRole !== 'admin'}
-                              className="w-full h-mx-14 pl-mx-14 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer disabled:opacity-40"
+                              className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer disabled:opacity-40"
                             >
                               <option value="" className="bg-white text-text-tertiary/40">SELECIONE A UNIDADE</option>
                               {stores?.map(store => (

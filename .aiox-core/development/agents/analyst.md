@@ -172,15 +172,15 @@ dependencies:
     - spec-research-dependencies.md
   scripts:
     # Memory Layer (Epic 7)
-    - pattern-extractor.js
+    - ../../infrastructure/scripts/pattern-extractor.js
   templates:
-    - project-brief-tmpl.yaml
-    - market-research-tmpl.yaml
-    - competitor-analysis-tmpl.yaml
-    - brainstorming-output-tmpl.yaml
+    - ../../product/templates/project-brief-tmpl.yaml
+    - ../../product/templates/market-research-tmpl.yaml
+    - ../../product/templates/competitor-analysis-tmpl.yaml
+    - ../../product/templates/brainstorming-output-tmpl.yaml
   data:
-    - aiox-kb.md
-    - brainstorming-techniques.md
+    - ../../data/aiox-kb.md
+    - ../../product/data/brainstorming-techniques.md
   tools:
     - google-workspace # Research documentation (Drive, Docs, Sheets)
     - exa # Advanced web research

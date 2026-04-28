@@ -205,10 +205,10 @@ dependencies:
     - po-sync-story-to-clickup.md
     - po-pull-story-from-clickup.md
   templates:
-    - story-tmpl.yaml
+    - ../../product/templates/story-tmpl.yaml
   checklists:
-    - po-master-checklist.md
-    - change-checklist.md
+    - ../../product/checklists/po-master-checklist.md
+    - ../../product/checklists/change-checklist.md
   tools:
     - github-cli # Create issues, view PRs, manage repositories
     - context7 # Look up documentation for libraries and frameworks

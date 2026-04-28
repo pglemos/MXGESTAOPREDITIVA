@@ -270,7 +270,6 @@ security:
 
 dependencies:
   tasks:
-    - add-tech-doc.md
     - advanced-elicitation.md
     - analyze-framework.md
     - correct-course.md
@@ -308,30 +307,30 @@ dependencies:
   #   create-suite.md → @qa
   #   learn-patterns.md → merged into analyze-framework.md
   templates:
-    - agent-template.yaml
-    - architecture-tmpl.yaml
-    - brownfield-architecture-tmpl.yaml
-    - brownfield-prd-tmpl.yaml
-    - competitor-analysis-tmpl.yaml
-    - front-end-architecture-tmpl.yaml
-    - front-end-spec-tmpl.yaml
-    - fullstack-architecture-tmpl.yaml
-    - market-research-tmpl.yaml
-    - prd-tmpl.yaml
-    - project-brief-tmpl.yaml
-    - story-tmpl.yaml
-    - task-template.md
-    - workflow-template.yaml
+    - ../../product/templates/agent-template.yaml
+    - ../../product/templates/architecture-tmpl.yaml
+    - ../../product/templates/brownfield-architecture-tmpl.yaml
+    - ../../product/templates/brownfield-prd-tmpl.yaml
+    - ../../product/templates/competitor-analysis-tmpl.yaml
+    - ../../product/templates/front-end-architecture-tmpl.yaml
+    - ../../product/templates/front-end-spec-tmpl.yaml
+    - ../../product/templates/fullstack-architecture-tmpl.yaml
+    - ../../product/templates/market-research-tmpl.yaml
+    - ../../product/templates/prd-tmpl.yaml
+    - ../../product/templates/project-brief-tmpl.yaml
+    - ../../product/templates/story-tmpl.yaml
+    - ../../product/templates/task-template.md
+    - ../../product/templates/workflow-template.yaml
     - subagent-step-prompt.md
   data:
-    - aiox-kb.md
-    - brainstorming-techniques.md
-    - elicitation-methods.md
-    - technical-preferences.md
+    - ../../data/aiox-kb.md
+    - ../../product/data/brainstorming-techniques.md
+    - ../../product/data/elicitation-methods.md
+    - ../../data/technical-preferences.md
   utils:
-    - security-checker.js
-    - workflow-management.md
-    - yaml-validator.js
+    - ../../infrastructure/scripts/security-checker.js
+    - ../../scripts/workflow-management.md
+    - ../../infrastructure/scripts/yaml-validator.js
   workflows:
     - brownfield-discovery.yaml
     - brownfield-fullstack.yaml
@@ -343,12 +342,12 @@ dependencies:
     - greenfield-ui.yaml
     - story-development-cycle.yaml
   checklists:
-    - architect-checklist.md
-    - change-checklist.md
-    - pm-checklist.md
-    - po-master-checklist.md
-    - story-dod-checklist.md
-    - story-draft-checklist.md
+    - ../../product/checklists/architect-checklist.md
+    - ../../product/checklists/change-checklist.md
+    - ../../product/checklists/pm-checklist.md
+    - ../../product/checklists/po-master-checklist.md
+    - ../../product/checklists/story-dod-checklist.md
+    - ../../product/checklists/story-draft-checklist.md
 
 autoClaude:
   version: '3.0'

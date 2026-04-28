@@ -47,7 +47,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         // Get checkins for the month using canonical EPIC-01 columns
         const { data: checkins } = await supabase
             .from('daily_checkins')
-            .select('seller_user_id, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+            .select('seller_user_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
             .eq('metric_scope', 'daily') 
             .gte('reference_date', startDate)
@@ -109,7 +109,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
                 current.visitas += c.visit_prev_day || 0
                 const dayVnd = (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
                 current.vnd += dayVnd
-                if ((c as any).reference_date === daysInfo.referencia) {
+                if (c.reference_date === daysInfo.referencia) {
                     current.vnd_yesterday += dayVnd
                 }
             }
@@ -193,7 +193,7 @@ export function useGlobalRanking() {
         const dias = getDiasInfo()
         setLoading(true)
 
-        const [{ data: checkins }, { data: tenures }, { data: rules }, { data: yesterdayCheckins }] = await Promise.all([
+        const [{ data: checkins }, { data: tenures }, { data: rules }, { data: todayCheckins }] = await Promise.all([
             supabase.from('daily_checkins')
                 .select('seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                 .eq('metric_scope', 'daily')
@@ -204,7 +204,7 @@ export function useGlobalRanking() {
             supabase.from('store_meta_rules')
                 .select('store_id, monthly_goal, include_venda_loja_in_individual_goal'),
             supabase.from('daily_checkins')
-                .select('seller_user_id')
+                .select('seller_user_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
                 .eq('metric_scope', 'daily')
                 .eq('reference_date', dias.referencia),
         ])
@@ -221,21 +221,26 @@ export function useGlobalRanking() {
             storeSellerCounts.set(t.store_id, (storeSellerCounts.get(t.store_id) || 0) + 1)
         }
 
-        const checkedInYesterday = new Set<string>()
-        for (const c of yesterdayCheckins || []) {
-            checkedInYesterday.add(c.seller_user_id)
+        const checkedInToday = new Set<string>()
+        const salesTodayMap = new Map<string, number>()
+        for (const c of todayCheckins || []) {
+            checkedInToday.add(c.seller_user_id)
+            const v = (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
+            salesTodayMap.set(c.seller_user_id, v)
         }
 
-        const agg = new Map<string, { vnd: number; leads: number; agd: number; vis: number; name: string; store: string; storeId: string; isVendaLoja: boolean; checkedIn: boolean }>()
+        const agg = new Map<string, { vnd: number; vnd_yesterday: number; leads: number; agd: number; vis: number; name: string; store: string; storeId: string; isVendaLoja: boolean; checkedIn: boolean }>()
         for (const m of tenures) {
             const mu = m as unknown as { users?: User; stores?: { name: string } }
             agg.set(m.seller_user_id, {
-                vnd: 0, leads: 0, agd: 0, vis: 0,
+                vnd: 0, 
+                vnd_yesterday: salesTodayMap.get(m.seller_user_id) || 0,
+                leads: 0, agd: 0, vis: 0,
                 name: mu.users?.name || '',
                 store: mu.stores?.name || '',
                 storeId: m.store_id,
                 isVendaLoja: mu.users?.is_venda_loja || false,
-                checkedIn: checkedInYesterday.has(m.seller_user_id),
+                checkedIn: checkedInToday.has(m.seller_user_id),
             })
         }
         for (const c of checkins) {
@@ -264,6 +269,7 @@ export function useGlobalRanking() {
                     store_name: d.store,
                     is_venda_loja: d.isVendaLoja,
                     vnd_total: d.vnd,
+                    vnd_yesterday: d.vnd_yesterday,
                     leads: d.leads,
                     agd_total: d.agd,
                     visitas: d.vis,
@@ -315,7 +321,7 @@ export function useStorePerformance() {
             supabase.from('daily_checkins')
                 .select('store_id, seller_user_id')
                 .eq('metric_scope', 'daily')
-                .eq('reference_date', dias.referencia) // Yesterday
+                .eq('reference_date', dias.referencia) // Today
         ])
 
         if (!stores) { setLoading(false); return }
@@ -330,8 +336,8 @@ export function useStorePerformance() {
         const sellersCountMap = new Map<string, number>()
         sellers?.forEach(s => sellersCountMap.set(s.store_id, (sellersCountMap.get(s.store_id) || 0) + 1))
 
-        const checkinsYesterdayMap = new Map<string, number>()
-        yesterdayCheckins?.forEach(c => checkinsYesterdayMap.set(c.store_id, (checkinsYesterdayMap.get(c.store_id) || 0) + 1))
+        const checkinsTodayMap = new Map<string, number>()
+        yesterdayCheckins?.forEach(c => checkinsTodayMap.set(c.store_id, (checkinsTodayMap.get(c.store_id) || 0) + 1))
 
         const perf = stores.map(s => {
             const meta = rulesMap.get(s.id) || 0
@@ -341,7 +347,7 @@ export function useStorePerformance() {
             
             // Disciplina
             const totalSellers = sellersCountMap.get(s.id) || 0
-            const doneSellers = checkinsYesterdayMap.get(s.id) || 0
+            const doneSellers = checkinsTodayMap.get(s.id) || 0
             const isDisciplined = totalSellers > 0 ? doneSellers >= totalSellers : true
             
             // Semáforo logic

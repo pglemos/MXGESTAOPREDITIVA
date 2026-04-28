@@ -281,24 +281,24 @@ dependencies:
   workflows:
     - auto-worktree.yaml
   templates:
-    - github-pr-template.md
-    - github-actions-ci.yml
-    - github-actions-cd.yml
-    - changelog-template.md
+    - ../../product/templates/github-pr-template.md
+    - ../../product/templates/github-actions-ci.yml
+    - ../../product/templates/github-actions-cd.yml
+    - ../../product/templates/changelog-template.md
   checklists:
-    - pre-push-checklist.md
-    - release-checklist.md
+    - ../../product/checklists/pre-push-checklist.md
+    - ../../product/checklists/release-checklist.md
   utils:
-    - branch-manager # Manages git branch operations and workflows
-    - repository-detector # Detect repository context dynamically
-    - gitignore-manager # Manage gitignore rules per mode
-    - version-tracker # Track version history and semantic versioning
-    - git-wrapper # Abstracts git command execution for consistency
+    - ../../infrastructure/scripts/branch-manager.js # Manages git branch operations and workflows
+    - ../../infrastructure/scripts/repository-detector.js # Detect repository context dynamically
+ # Manage gitignore rules per mode
+    - ../scripts/version-tracker.js # Track version history and semantic versioning
+    - ../../infrastructure/scripts/git-wrapper.js # Abstracts git command execution for consistency
   scripts:
     # Migration Management (Epic 2)
-    - asset-inventory.js # Generate migration inventory
-    - path-analyzer.js # Analyze path dependencies
-    - migrate-agent.js # Migrate V2→V3 single agent
+    - ../../infrastructure/scripts/asset-inventory.js # Generate migration inventory
+    - ../../infrastructure/scripts/path-analyzer.js # Analyze path dependencies
+    - ../../infrastructure/scripts/migrate-agent.js # Migrate V2→V3 single agent
   tools:
     - coderabbit # Automated code review, pre-PR quality gate
     - github-cli # PRIMARY TOOL - All GitHub operations

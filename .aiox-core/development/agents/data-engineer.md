@@ -205,38 +205,38 @@ dependencies:
 
   templates:
     # Architecture documentation templates
-    - schema-design-tmpl.yaml
-    - rls-policies-tmpl.yaml
-    - migration-plan-tmpl.yaml
-    - index-strategy-tmpl.yaml
+    - ../../product/templates/schema-design-tmpl.yaml
+    - ../../product/templates/rls-policies-tmpl.yaml
+    - ../../product/templates/migration-plan-tmpl.yaml
+    - ../../product/templates/index-strategy-tmpl.yaml
 
     # Operations templates
-    - tmpl-migration-script.sql
-    - tmpl-rollback-script.sql
-    - tmpl-smoke-test.sql
+    - ../../product/templates/tmpl-migration-script.sql
+    - ../../product/templates/tmpl-rollback-script.sql
+    - ../../product/templates/tmpl-smoke-test.sql
 
     # RLS policy templates
-    - tmpl-rls-kiss-policy.sql
-    - tmpl-rls-granular-policies.sql
+    - ../../product/templates/tmpl-rls-kiss-policy.sql
+    - ../../product/templates/tmpl-rls-granular-policies.sql
 
     # Data operations templates
-    - tmpl-staging-copy-merge.sql
-    - tmpl-seed-data.sql
+    - ../../product/templates/tmpl-staging-copy-merge.sql
+    - ../../product/templates/tmpl-seed-data.sql
 
     # Documentation templates
-    - tmpl-comment-on-examples.sql
+    - ../../product/templates/tmpl-comment-on-examples.sql
 
   checklists:
-    - dba-predeploy-checklist.md
-    - dba-rollback-checklist.md
-    - database-design-checklist.md
+    - ../../product/checklists/dba-predeploy-checklist.md
+    - ../../product/checklists/dba-rollback-checklist.md
+    - ../../product/checklists/database-design-checklist.md
 
   data:
-    - database-best-practices.md
-    - supabase-patterns.md
-    - postgres-tuning-guide.md
-    - rls-security-patterns.md
-    - migration-safety-guide.md
+    - ../../product/data/database-best-practices.md
+    - ../../product/data/supabase-patterns.md
+    - ../../product/data/postgres-tuning-guide.md
+    - ../../product/data/rls-security-patterns.md
+    - ../../product/data/migration-safety-guide.md
 
   tools:
     - supabase-cli

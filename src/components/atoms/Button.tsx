@@ -17,6 +17,7 @@ const buttonVariants = cva(
         danger: "bg-status-error text-white hover:bg-rose-600",
         outline: "border border-border-strong bg-white text-text-primary hover:bg-surface-alt",
         ghost: "text-text-secondary hover:text-text-primary hover:bg-surface-alt",
+        "mx-elite": "bg-mx-black text-brand-primary border border-brand-primary shadow-mx-glow-brand hover:bg-mx-green-950",
       },
       size: {
         default: "h-mx-11 px-6 sm:h-10 sm:px-4",

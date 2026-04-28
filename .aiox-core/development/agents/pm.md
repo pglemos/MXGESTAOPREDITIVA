@@ -253,13 +253,13 @@ dependencies:
     # Epic Execution
     - execute-epic-plan.md
   templates:
-    - prd-tmpl.yaml
-    - brownfield-prd-tmpl.yaml
+    - ../../product/templates/prd-tmpl.yaml
+    - ../../product/templates/brownfield-prd-tmpl.yaml
   checklists:
-    - pm-checklist.md
-    - change-checklist.md
+    - ../../product/checklists/pm-checklist.md
+    - ../../product/checklists/change-checklist.md
   data:
-    - technical-preferences.md
+    - ../../data/technical-preferences.md
 
 autoClaude:
   version: '3.0'

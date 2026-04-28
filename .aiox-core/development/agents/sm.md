@@ -172,9 +172,9 @@ dependencies:
     - execute-checklist.md
     - correct-course.md
   templates:
-    - story-tmpl.yaml
+    - ../../product/templates/story-tmpl.yaml
   checklists:
-    - story-draft-checklist.md
+    - ../../product/checklists/story-draft-checklist.md
   tools:
     - git # Local branch operations only (NO PUSH - use @github-devops)
     - clickup # Track sprint progress and story status

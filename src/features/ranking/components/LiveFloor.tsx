@@ -25,11 +25,12 @@ export function LiveFloor({ ranking }: LiveFloorProps) {
         { type: 'available', label: 'Disponível', color: 'text-status-success', bg: 'bg-status-success-surface border-status-success/20', icon: Headphones },
         { type: 'paused', label: 'Pausa', color: 'text-status-warning', bg: 'bg-status-warning-surface border-status-warning/20', icon: Coffee },
         { type: 'chatting', label: 'Em Chat', color: 'text-status-info', bg: 'bg-status-info-surface border-status-info/20', icon: Inbox },
+        { type: 'offline', label: 'Ausente', color: 'text-text-tertiary', bg: 'bg-surface-alt border-border-default', icon: Activity },
     ]
 
     const liveAgents = ranking.map((seller, idx) => {
         const isOffline = !seller.checked_in
-        const statusIndex = isOffline ? 2 : (idx % 2 === 0 ? 1 : (idx % 3 === 0 ? 0 : 3))
+        const statusIndex = isOffline ? 4 : (idx % 2 === 0 ? 1 : (idx % 3 === 0 ? 0 : 3))
         const status = statuses[statusIndex]
         const durationSeconds = isOffline ? 0 : (idx * 120) + (currentTime.getSeconds() * (idx + 1)) % 600
 

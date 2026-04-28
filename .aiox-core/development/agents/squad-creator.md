@@ -175,9 +175,8 @@ dependencies:
     - squad/squad-migrator.js
     - squad/squad-analyzer.js
     - squad/squad-extender.js
-  schemas:
-    - squad-schema.json
-    - squad-design-schema.json
+    - ../../schemas/squad-schema.json
+    - ../../schemas/squad-design-schema.json
   tools:
     - git # For checking author info
     - context7 # Look up library documentation

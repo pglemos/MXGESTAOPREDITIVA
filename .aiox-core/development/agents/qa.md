@@ -202,11 +202,11 @@ commands:
     description: 'Exit QA mode'
 dependencies:
   data:
-    - technical-preferences.md
+    - ../../data/technical-preferences.md
   tasks:
     - qa-create-fix-request.md
     - qa-generate-tests.md
-    - manage-story-backlog.md
+    - po-manage-story-backlog.md
     - qa-nfr-assess.md
     - qa-gate.md
     - qa-review-build.md
@@ -227,8 +227,8 @@ dependencies:
     - qa-false-positive-detection.md
     - qa-browser-console-check.md
   templates:
-    - qa-gate-tmpl.yaml
-    - story-tmpl.yaml
+    - ../../product/templates/qa-gate-tmpl.yaml
+    - ../../product/templates/story-tmpl.yaml
   tools:
     - browser # End-to-end testing and UI validation
     - coderabbit # Automated code review, security scanning, pattern validation

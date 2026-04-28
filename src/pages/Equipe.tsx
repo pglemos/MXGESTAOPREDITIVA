@@ -177,6 +177,8 @@ export default function Equipe() {
                 <div className="relative group w-full sm:w-mx-96">
                   <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                   <Input 
+                    id="search-specialist"
+                    name="search-specialist"
                     placeholder="LOCALIZAR ESPECIALISTA..." 
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
@@ -327,16 +329,15 @@ export default function Equipe() {
                         >
                           <Phone size={20} />
                         </Button>
-                        <Button 
+                        <Button
                           variant="outline"
                           asChild
                           className="h-mx-14 rounded-mx-2xl bg-mx-black text-white border-none hover:bg-brand-primary transition-all shadow-mx-xl"
                         >
-                          <Link to="/relatorios/performance-vendedores">
+                          <Link to={`/relatorios/performance-vendedor?id=${member.id}`}>
                             <TrendingUp size={20} />
                           </Link>
-                        </Button>
-                      </footer>
+                        </Button>                      </footer>
                     </motion.article>
                   )
                 })}
@@ -397,6 +398,8 @@ export default function Equipe() {
                           <div className="space-y-mx-tiny">
                             <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Início Contrato</Typography>
                             <input 
+                              id="started-at"
+                              name="started_at"
                               type="date" required 
                               value={editingMember.started_at || ''} 
                               onChange={e => setEditingMember({...editingMember, started_at: e.target.value})} 

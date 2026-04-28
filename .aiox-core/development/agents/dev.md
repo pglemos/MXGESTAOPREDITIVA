@@ -242,7 +242,7 @@ develop-story:
 
 dependencies:
   checklists:
-    - story-dod-checklist.md
+    - ../../product/checklists/story-dod-checklist.md
     - self-critique-checklist.md # ADE: Mandatory self-review for Coder Agent steps 5.5 & 6.5
   tasks:
     - apply-qa-fixes.md
@@ -273,20 +273,20 @@ dependencies:
     - remove-worktree.md
   scripts:
     # Recovery System (Epic 5)
-    - recovery-tracker.js # Track implementation attempts
-    - stuck-detector.js # Detect stuck conditions
-    - approach-manager.js # Manage current approach documentation
-    - rollback-manager.js # Rollback to last good state
+    - ../../infrastructure/scripts/recovery-tracker.js # Track implementation attempts
+    - ../../infrastructure/scripts/stuck-detector.js # Detect stuck conditions
+    - ../../infrastructure/scripts/approach-manager.js # Manage current approach documentation
+    - ../../infrastructure/scripts/rollback-manager.js # Rollback to last good state
     # Build Recovery (Epic 8 - Story 8.4)
-    - build-state-manager.js # Autonomous build state and checkpoints
+    - ../../core/execution/build-state-manager.js # Autonomous build state and checkpoints
     # Autonomous Build (Epic 8 - Story 8.1)
-    - autonomous-build-loop.js # Coder Agent Loop with retries
+    - ../../core/execution/autonomous-build-loop.js # Coder Agent Loop with retries
     # Build Orchestrator (Epic 8 - Story 8.5)
-    - build-orchestrator.js # Complete pipeline orchestration
+    - ../../core/execution/build-orchestrator.js # Complete pipeline orchestration
     # Gotchas Memory (Epic 9 - Story 9.4)
-    - gotchas-memory.js # Enhanced gotchas with auto-capture
+    - ../../core/memory/gotchas-memory.js # Enhanced gotchas with auto-capture
     # Worktree Isolation (Epic 8 - Story 8.2)
-    - worktree-manager.js # Isolated worktree management
+    - ../../infrastructure/scripts/worktree-manager.js # Isolated worktree management
   tools:
     - coderabbit # Pre-commit code quality review, catches issues before commit
     - git # Local operations: add, commit, status, diff, log (NO PUSH)

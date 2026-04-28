@@ -255,16 +255,16 @@ dependencies:
     - plan-create-context.md
   scripts:
     # Memory Layer (Epic 7)
-    - codebase-mapper.js
+    - ../../infrastructure/scripts/codebase-mapper.js
   templates:
-    - architecture-tmpl.yaml
-    - front-end-architecture-tmpl.yaml
-    - fullstack-architecture-tmpl.yaml
-    - brownfield-architecture-tmpl.yaml
+    - ../../product/templates/architecture-tmpl.yaml
+    - ../../product/templates/front-end-architecture-tmpl.yaml
+    - ../../product/templates/fullstack-architecture-tmpl.yaml
+    - ../../product/templates/brownfield-architecture-tmpl.yaml
   checklists:
-    - architect-checklist.md
+    - ../../product/checklists/architect-checklist.md
   data:
-    - technical-preferences.md
+    - ../../data/technical-preferences.md
   tools:
     - exa # Research technologies and best practices
     - context7 # Look up library documentation and technical references

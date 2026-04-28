@@ -8,7 +8,7 @@ import {
     Trophy, Crown, TrendingUp, RefreshCw, 
     Search, Building2, Calendar, Zap, Target,
     Phone, Users, CheckCircle2, XCircle,
-    Flame, Swords, X
+    Flame, Swords, X, MessageSquare
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -67,16 +67,16 @@ function GlobalRanking() {
         }
     }
 
-    const totalVendedores = useMemo(() => ranking.filter(r => !r.is_venda_loja).length, [ranking])
-    const totalVendas = useMemo(() => ranking.reduce((acc, r) => acc + r.vnd_total, 0), [ranking])
-    const totalLeads = useMemo(() => ranking.reduce((acc, r) => acc + r.leads, 0), [ranking])
-    const totalAgd = useMemo(() => ranking.reduce((acc, r) => acc + r.agd_total, 0), [ranking])
-    const totalVis = useMemo(() => ranking.reduce((acc, r) => acc + r.visitas, 0), [ranking])
+    const totalVendedores = useMemo(() => filtered.filter(r => !r.is_venda_loja).length, [filtered])
+    const totalVendas = useMemo(() => filtered.reduce((acc, r) => acc + r.vnd_total, 0), [filtered])
+    const totalLeads = useMemo(() => filtered.reduce((acc, r) => acc + r.leads, 0), [filtered])
+    const totalAgd = useMemo(() => filtered.reduce((acc, r) => acc + r.agd_total, 0), [filtered])
+    const totalVis = useMemo(() => filtered.reduce((acc, r) => acc + r.visitas, 0), [filtered])
     const checkinRate = useMemo(() => {
-        const sellers = ranking.filter(r => !r.is_venda_loja)
-        if (sellers.length === 0) return 0
-        return Math.round((sellers.filter(r => r.checked_in).length / sellers.length) * 100)
-    }, [ranking])
+        const actualSellers = filtered.filter(r => !r.is_venda_loja)
+        if (actualSellers.length === 0) return 0
+        return Math.round((actualSellers.filter(r => r.checked_in).length / actualSellers.length) * 100)
+    }, [filtered])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -352,7 +352,7 @@ function GlobalRanking() {
 
             {selectedSeller && (
                 <SellerProfileModal 
-                    seller={filtered.find(s => s.user_id === selectedSeller)!} 
+                    seller={ranking.find(s => s.user_id === selectedSeller)!} 
                     onClose={() => setSelectedSeller(null)} 
                 />
             )}
@@ -444,6 +444,29 @@ function StoreRankingView() {
                     </div>
                 </div>
             </header>
+
+            {/* STATS CARDS */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-mx-sm shrink-0">
+                {[
+                    { label: 'Vendas Loja', value: storeSales.storeTotalVendas, icon: Zap, tone: 'brand' as const },
+                    { label: 'Atingimento', value: `${storeSales.storeAttainment}%`, icon: Target, tone: 'warning' as const },
+                    { label: 'Leads', value: storeSales.storeTotalLeads, icon: MessageSquare, tone: 'info' as const },
+                    { label: 'Agendamentos', value: storeSales.storeTotalAgd, icon: Calendar, tone: 'info' as const },
+                    { label: 'Visitas', value: storeSales.storeTotalVis, icon: Users, tone: 'info' as const },
+                ].map((stat, i) => (
+                    <Card key={i} className="p-mx-md flex flex-col justify-between bg-white border-none shadow-mx-sm relative overflow-hidden group hover:shadow-mx-md transition-all">
+                        <div className="flex justify-between items-start mb-2">
+                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black text-mx-nano">{stat.label}</Typography>
+                            <stat.icon size={16} className={cn(
+                                stat.tone === 'brand' ? 'text-brand-primary' :
+                                stat.tone === 'warning' ? 'text-status-warning' :
+                                'text-status-info'
+                            )} />
+                        </div>
+                        <Typography variant="h2" className="text-2xl font-mono-numbers">{stat.value}</Typography>
+                    </Card>
+                ))}
+            </div>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 {viewMode === 'live' && <LiveFloor ranking={sortedRanking} />}
@@ -607,7 +630,7 @@ function StoreRankingView() {
 
             {selectedSeller && (
                 <SellerProfileModal 
-                    seller={sortedRanking.find(s => s.user_id === selectedSeller)!} 
+                    seller={sortedRanking.find(s => s.user_id === selectedSeller) || (storeSales.processedRanking || []).find(s => s.user_id === selectedSeller)!} 
                     onClose={() => setSelectedSeller(null)} 
                 />
             )}

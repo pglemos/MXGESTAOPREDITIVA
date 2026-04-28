@@ -2,9 +2,9 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 
-export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  title: string
-  description?: string
+export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title' | 'description'> {
+  title: React.ReactNode
+  description?: React.ReactNode
   breadcrumb?: React.ReactNode
   actions?: React.ReactNode
 }
