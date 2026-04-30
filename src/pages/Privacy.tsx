@@ -1,7 +1,6 @@
-import { Shield, Lock, FileText, ChevronRight, ShieldCheck, ArrowLeft, Zap } from 'lucide-react'
+import { Shield, Lock, FileText, ShieldCheck, ArrowLeft, CalendarDays } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
-import { Badge } from '@/components/atoms/Badge'
+import { Link, useNavigate } from 'react-router-dom'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Card, CardContent } from '@/components/molecules/Card'
@@ -29,13 +28,13 @@ export default function Privacy() {
                             <Lock size={32} strokeWidth={2} />
                         </div>
                         <Typography variant="h1" tone="white" className="text-4xl md:text-5xl mb-4 relative z-10 uppercase tracking-tighter">Política de <span className="text-brand-primary">Privacidade</span></Typography>
-                        <Typography variant="tiny" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 block font-black">DIRETRIZES DE PROTEÇÃO & TRATAMENTO DE DADOS MX</Typography>
+                        <Typography variant="tiny" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 block font-black">MX PERFORMANCE CALENDAR - PROTECAO & TRATAMENTO DE DADOS</Typography>
                     </header>
 
                     <CardContent className="p-mx-10 md:p-20 space-y-mx-14">
                         <div className="space-y-mx-10">
-                            <Typography variant="p" className="text-xl font-bold text-text-secondary leading-relaxed border-l-4 border-brand-primary pl-8 italic uppercase tracking-tight">
-                                "A MX PERFORMANCE assegura a integridade absoluta dos dados operacionais, utilizando protocolos de criptografia militar e governança baseada em privilégios mínimos."
+                            <Typography variant="p" className="text-xl font-bold text-text-secondary leading-relaxed border-l-4 border-brand-primary pl-8 uppercase tracking-tight">
+                                O MX Performance Calendar e uma plataforma da MX Consultoria para gestao de visitas, rotinas comerciais e sincronizacao autorizada com o Google Calendar.
                             </Typography>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
@@ -45,7 +44,7 @@ export default function Privacy() {
                                     </div>
                                     <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Coleta de Métricas</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
-                                        Registramos volumes transacionais e KPIs operacionais alimentados voluntariamente para gerar a malha de inteligência preditiva da rede.
+                                        Registramos dados operacionais informados pelos usuarios, como visitas, lojas, equipe, metas, indicadores e historico de acompanhamento.
                                     </Typography>
                                 </Card>
 
@@ -55,9 +54,22 @@ export default function Privacy() {
                                     </div>
                                     <Typography variant="h2" className="text-2xl mb-4 uppercase tracking-tight">Privilégios RLS</Typography>
                                     <Typography variant="caption" tone="muted" className="leading-relaxed uppercase font-black opacity-60">
-                                        O acesso é isolado por Row-Level Security, garantindo que cada membro visualize rigorosamente apenas o que compete à sua hierarquia.
+                                        O acesso e controlado por autenticacao, papeis internos e Row-Level Security para limitar a visualizacao conforme a hierarquia do usuario.
                                     </Typography>
                                 </Card>
+                            </div>
+
+                            <div className="space-y-mx-md pt-10 border-t border-border-default">
+                                <header className="flex items-center gap-mx-sm">
+                                    <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg"><CalendarDays size={20} /></div>
+                                    <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Uso de Dados do Google Calendar</Typography>
+                                </header>
+                                <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70">
+                                    Quando um usuario autoriza a integracao, o MX Performance Calendar acessa eventos do Google Calendar somente para exibir, criar, atualizar e sincronizar visitas relacionadas ao trabalho da MX Consultoria. O sistema nao vende dados do Google, nao usa dados do Google Calendar para publicidade e nao compartilha essas informacoes com terceiros fora da operacao autorizada.
+                                </Typography>
+                                <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70 block">
+                                    O usuario pode revogar o acesso a qualquer momento pela conta Google em Seguranca &gt; Apps e servicos de terceiros, ou solicitar remocao de dados pelo canal administrativo da MX Consultoria.
+                                </Typography>
                             </div>
 
                             <div className="space-y-mx-md pt-10 border-t border-border-default">
@@ -66,7 +78,7 @@ export default function Privacy() {
                                     <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Arquitetura de Blindagem</Typography>
                                 </header>
                                 <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70">
-                                    Implementamos protocolos imutáveis de log para cada alteração no sistema. Os dados são processados em conformidade com as melhores práticas de cibersegurança global, mantendo a soberania da informação dentro do ecossistema corporativo.
+                                    Mantemos registros de auditoria para alteracoes relevantes no sistema e aplicamos controles de acesso para proteger informacoes operacionais, comerciais e de agenda.
                                 </Typography>
                             </div>
                         </div>
@@ -76,8 +88,9 @@ export default function Privacy() {
                                 <ArrowLeft size={16} className="mr-2" /> VOLTAR AO SISTEMA
                             </Button>
                             <div className="text-center sm:text-right space-y-mx-tiny">
+                                <Link to="/" className="text-xs font-black text-brand-primary uppercase tracking-widest hover:text-brand-primary-hover">MX Performance Calendar</Link>
                                 <Typography variant="tiny" tone="muted" className="font-black">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
-                                <Typography variant="tiny" tone="muted" className="font-black opacity-20 block tracking-widest">PROTOCOLO AIOX SECURITY</Typography>
+                                <Typography variant="tiny" tone="muted" className="font-black opacity-20 block tracking-widest">POLITICA PUBLICA DE PRIVACIDADE</Typography>
                             </div>
                         </footer>
                     </CardContent>

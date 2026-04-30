@@ -7,6 +7,7 @@ import Layout from '@/components/Layout'
 import LegacyModuleShell from '@/components/LegacyModuleShell'
 
 // Pages — Lazy loaded
+const OAuthHome = lazy(() => import('@/pages/OAuthHome'))
 const Login = lazy(() => import('@/pages/Login'))
 const Privacy = lazy(() => import('@/pages/Privacy'))
 const Terms = lazy(() => import('@/pages/Terms'))
@@ -128,6 +129,22 @@ function RoleRedirect() {
   return <Navigate to="/home" replace />
 }
 
+function PublicHome() {
+  const { profile, loading, initialized } = useAuth()
+
+  if (loading || !initialized) {
+    return <div className="h-screen flex items-center justify-center bg-white"><Spinner /></div>
+  }
+
+  if (profile) return <RoleRedirect />
+
+  return (
+    <Suspense fallback={<Spinner />}>
+      <OAuthHome />
+    </Suspense>
+  )
+}
+
 const GoalManagementRedirect = () => {
   const location = useLocation()
   return <Navigate to={`/metas${location.search}`} replace />
@@ -140,11 +157,11 @@ export default function App() {
         <MotionConfig reducedMotion="user">
         <Router>
           <Routes>
+            <Route path="/" element={<PublicHome />} />
             <Route path="/login" element={<Suspense fallback={<Spinner />}><Login /></Suspense>} />
             <Route path="/privacy" element={<Suspense fallback={<Spinner />}><Privacy /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<RoleRedirect />} />
             <Route path="dashboard" element={<RoleRedirect />} />
             <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
             <Route path="team" element={<Navigate to="/equipe" replace />} />

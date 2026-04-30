@@ -45,6 +45,8 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Google Calendar API ativada no projeto OAuth da conta central.
 - [x] Função `google-oauth-handler` redeployada sem verificação JWT externa para permitir callback OAuth público com validação interna por `state`.
 - [x] Validação funcional: `google-calendar-merged` retornou `centralConnected: true` e `centralError: null`.
+- [x] Correções para verificação OAuth: home pública, nome exato do app, link de privacidade visível e política separada em `/privacy`.
+- [x] Playwright local: `/` exibe `MX Performance Calendar` e link para `/privacy`; `/privacy` descreve uso dos dados do Google Calendar.
 
 ### Google Calendar Central
 
@@ -66,6 +68,7 @@ Resultado operacional:
 - Google Calendar API ativada.
 - App OAuth publicado em produção. O Google passou a indicar que o app precisa de verificação formal antes de remover limites/avisos de app não verificado.
 - OAuth central concluído com `gestao@mxconsultoria.com.br`; token criptografado salvo em `consulting_oauth_tokens` como `provider = google_central`.
+- Para atender a revisão do Google, a home pública `https://mxperformance.vercel.app/` agora exibe o nome exato `MX Performance Calendar` e link visível para a política em `https://mxperformance.vercel.app/privacy`.
 
 ### Produção Mobile Audit
 
@@ -86,6 +89,7 @@ Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 - `package.json`
 - `package-lock.json`
 - `vite.config.ts`
+- `src/App.tsx`
 - `src/main.tsx`
 - `src/vite-env.d.ts`
 - `src/index.css`
@@ -102,7 +106,9 @@ Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 - `src/pages/Checkin.tsx`
 - `src/pages/Equipe.tsx`
 - `src/pages/Login.tsx`
+- `src/pages/OAuthHome.tsx`
 - `src/pages/PainelConsultor.tsx`
+- `src/pages/Privacy.tsx`
 - `src/pages/Ranking.tsx`
 - `src/pages/SellerPerformance.tsx`
 - `src/test/schemas/schemas.test.ts`
