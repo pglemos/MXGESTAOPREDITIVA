@@ -8,10 +8,11 @@ export interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputEleme
   error?: string
   id?: string
   icon?: React.ReactNode
+  rightAdornment?: React.ReactNode
 }
 
 const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
-  ({ label, error, id, icon, className, ...props }, ref) => {
+  ({ label, error, id, icon, rightAdornment, className, ...props }, ref) => {
     const fieldId = id || React.useId()
     return (
       <div className={cn("space-y-mx-xs w-full", className)}>
@@ -24,15 +25,21 @@ const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
               {icon}
             </div>
           )}
-          <Input 
-            id={fieldId} 
-            ref={ref} 
-            {...props} 
+          <Input
+            id={fieldId}
+            ref={ref}
+            {...props}
             className={cn(
               icon && "pl-12",
+              rightAdornment && "pr-12",
               error && "border-status-error focus:border-status-error focus:ring-status-error/5"
-            )} 
+            )}
           />
+          {rightAdornment && (
+            <div className="absolute right-mx-sm top-1/2 -translate-y-1/2 flex items-center">
+              {rightAdornment}
+            </div>
+          )}
         </div>
         {error && (
           <p className="text-status-error text-mx-tiny font-black uppercase ml-2 animate-in fade-in slide-in-from-top-1" role="alert">

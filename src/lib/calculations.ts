@@ -139,7 +139,7 @@ export function gerarDiagnosticoMX(funil: FunnelData, isVendaLoja = false, rules
         return {
             gargalo: 'SEM_DADOS',
             diagnostico: 'Sem dados suficientes para diagnóstico.',
-            sugestao: 'Realizar check-in regularmente para gerar dados de funil.'
+            sugestao: 'Realizar lançamento diário regularmente para gerar dados de funil.'
         }
     }
 

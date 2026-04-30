@@ -67,7 +67,7 @@ export default function Terms() {
                                     <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Desempenho e Disponibilidade</Typography>
                                 </header>
                                 <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70">
-                                    As informações transacionadas via interface (Check-ins, Metas, Feedbacks) são estritamente para fins de consultoria operacional. A MX assegura as melhores tecnologias para processamento dos índices preditivos com alta disponibilidade.
+                                    As informações transacionadas via interface (Lançamentos Diários, Metas, Feedbacks) são estritamente para fins de consultoria operacional. A MX assegura as melhores tecnologias para processamento dos índices preditivos com alta disponibilidade.
                                 </Typography>
                             </div>
                         </div>

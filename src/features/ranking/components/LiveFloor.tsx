@@ -56,7 +56,7 @@ export function LiveFloor({ ranking }: LiveFloorProps) {
     const events = [
         { id: 1, text: 'Novo lead atendido', type: 'call', time: 'Agora' },
         { id: 2, text: 'Venda confirmada', type: 'sale', time: '2 min' },
-        { id: 3, text: 'Check-in realizado', type: 'info', time: '5 min' },
+        { id: 3, text: 'Lançamento diário realizado', type: 'info', time: '5 min' },
     ]
 
     const handleBroadcast = () => {

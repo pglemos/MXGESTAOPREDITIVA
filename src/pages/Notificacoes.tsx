@@ -182,7 +182,7 @@ export default function Notificacoes() {
 
             <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-mx-xs" role="navigation" aria-label="Filtros de notificação">
               {[
-                { label: 'Check-ins', type: 'discipline', icon: Smartphone, tone: 'error' },
+                { label: 'Lançamentos', type: 'discipline', icon: Smartphone, tone: 'error' },
                 { label: 'Feedbacks', type: 'performance', icon: TrendingUp, tone: 'success' },
                 { label: 'PDI', type: 'alert', icon: History, tone: 'warning' },
                 { label: 'Geral', type: 'system', icon: Megaphone, tone: 'brand' }

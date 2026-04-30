@@ -174,7 +174,7 @@ export default function OperationalSettings() {
                         <div className="space-y-mx-10" role="group" aria-label="Lista de políticas operacionais">
                             {[
                                 { label: 'Modo de Auditoria Forense', desc: 'Habilitar logs profundos de cada transação operacional', field: 'audit_mode' },
-                                { label: 'Check-in Estrito', desc: 'Bloquear acesso ao cockpit sem o registro matinal obrigatório', field: 'strict_checkin' },
+                                { label: 'Lançamento Diário Estrito', desc: 'Bloquear acesso ao cockpit sem o registro matinal obrigatório', field: 'strict_checkin' },
                                 { label: 'Lançamento Manual', desc: 'Autorizar gerência a retroagir dados em caso de falha sistêmica', field: 'allow_manual_retro' }
                             ].map((s) => (
                                 <div key={s.field} className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">

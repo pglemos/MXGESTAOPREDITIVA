@@ -80,7 +80,7 @@ export default function RotinaGerente() {
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'daily_checkins', filter: `store_id=eq.${storeIdToListen}` },
                 (payload) => {
-                    toast.info(`Novo Check-in recebido!`, {
+                    toast.info(`Novo Lançamento Diário recebido!`, {
                         description: 'A performance da unidade foi atualizada em tempo real.',
                         icon: <Zap className="text-brand-primary" size={18} />
                     })

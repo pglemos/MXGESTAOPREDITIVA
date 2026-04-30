@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { motion } from 'motion/react'
-import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap } from 'lucide-react'
+import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap, Eye, EyeOff } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
 import { FormField } from '@/components/molecules/FormField'
 import MxLogo from '@/assets/mx-logo.svg'
@@ -19,6 +19,7 @@ export default function Login() {
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const passwordRef = React.useRef<HTMLInputElement>(null)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -195,7 +196,7 @@ export default function Login() {
                         <FormField
                             id="login-password"
                             label="Senha"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             ref={passwordRef}
                             value={password}
                             onChange={e => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' })) }}
@@ -204,6 +205,18 @@ export default function Login() {
                             autoComplete="current-password"
                             icon={<Lock size={18} />}
                             error={fieldErrors.password}
+                            rightAdornment={
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(v => !v)}
+                                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                                    aria-pressed={showPassword}
+                                    className="p-1 rounded-md text-text-tertiary hover:text-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 transition-colors"
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            }
                         />
 
                         {error && (

@@ -108,7 +108,7 @@ export function useCheckins(storeIdOverride?: string) {
         const isDaily = scope === 'daily' && finalDate === referenceDate
 
         if (isDaily && todayCheckin && !canEditCurrentCheckin()) {
-            return { error: `Correções do check-in diário ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
+            return { error: `Correções do lançamento diário ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
         }
 
         const sanitize = (str?: string | null) => str ? str.replace(/[&<>"']/g, (m) => ({

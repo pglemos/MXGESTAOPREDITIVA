@@ -192,7 +192,7 @@ export default function VendedorHome() {
                                     <Zap size={40} className="text-white fill-white/20" />
                                 </div>
                                 <div className="max-w-2xl space-y-mx-xs text-center lg:text-left">
-                                    <Typography variant="h1" tone="white" className="text-3xl sm:text-5xl tracking-tighter uppercase leading-none font-black">Check-in Pendente</Typography>
+                                    <Typography variant="h1" tone="white" className="text-3xl sm:text-5xl tracking-tighter uppercase leading-none font-black">Lançamento Diário Pendente</Typography>
                                     <Typography variant="p" tone="white" className="text-sm sm:text-lg opacity-80 font-bold uppercase tracking-tight">Sua produção ainda não foi indexada no terminal.</Typography>
                                 </div>
                             </div>

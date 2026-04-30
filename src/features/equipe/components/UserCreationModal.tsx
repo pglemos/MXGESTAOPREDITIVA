@@ -97,7 +97,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                             </div>
                             <div className="flex items-center gap-mx-sm">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm"><Sparkles size={20} /></div>
-                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Check-in Habilitado</Typography>
+                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Lançamento Diário Habilitado</Typography>
                             </div>
                             <div className="flex items-center gap-mx-sm">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-warning shadow-mx-sm"><Zap size={20} /></div>

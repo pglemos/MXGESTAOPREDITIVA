@@ -184,7 +184,7 @@ export default function Checkin() {
         <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-xl bg-white">
             <ShieldCheck size={64} className="text-text-tertiary/20 mb-8" aria-hidden="true" />
             <Typography variant="h2" className="mb-4">Acesso Reservado</Typography>
-            <Typography variant="p" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest leading-relaxed opacity-60">O check-in operacional é restrito ao corpo de vendas. Gestores e admin auditam via malha de rede.</Typography>
+            <Typography variant="p" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest leading-relaxed opacity-60">O lançamento diário operacional é restrito ao corpo de vendas. Gestores e admin auditam via malha de rede.</Typography>
         </main>
     )
 

@@ -103,7 +103,7 @@ export function ConsultingDailyTrackingView({ clientId, storeId }: Props) {
         <div>
           <Typography variant="h3">ACOMPANHAMENTO DIÁRIO (REAL-TIME)</Typography>
           <Typography variant="caption" tone="muted">
-            Dados extraídos diretamente do check-in diário da equipe comercial.
+            Dados extraídos diretamente do lançamento diário da equipe comercial.
           </Typography>
         </div>
         <Badge variant="brand" className="rounded-mx-full px-4 py-1">
@@ -116,7 +116,7 @@ export function ConsultingDailyTrackingView({ clientId, storeId }: Props) {
           columns={columns}
           data={checkins}
           loading={loading}
-          emptyMessage="Nenhum check-in realizado no período."
+          emptyMessage="Nenhum lançamento diário realizado no período."
         />
       </Card>
     </section>

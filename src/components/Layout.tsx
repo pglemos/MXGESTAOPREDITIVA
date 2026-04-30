@@ -380,7 +380,7 @@ export default function Layout() {
           {role === 'vendedor' && (
             <NavLink 
               to="/checkin" 
-              aria-label="Fazer Checkin" 
+              aria-label="Fazer Lançamento Diário"
               aria-current={location.pathname === '/checkin' ? 'page' : undefined}
               className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >

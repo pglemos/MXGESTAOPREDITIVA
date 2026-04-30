@@ -135,7 +135,7 @@ function GlobalRanking() {
                     { label: 'Leads', value: totalLeads, icon: Phone, tone: 'info' as const },
                     { label: 'Agendamentos', value: totalAgd, icon: Calendar, tone: 'warning' as const },
                     { label: 'Visitas', value: totalVis, icon: Users, tone: 'success' as const },
-                    { label: 'Check-in Hoje', value: `${checkinRate}%`, icon: checkinRate >= 80 ? CheckCircle2 : XCircle, tone: checkinRate >= 80 ? 'success' : 'danger' },
+                    { label: 'Lançamento Hoje', value: `${checkinRate}%`, icon: checkinRate >= 80 ? CheckCircle2 : XCircle, tone: checkinRate >= 80 ? 'success' : 'danger' },
                     { label: 'Vendedores', value: totalVendedores, icon: Target, tone: 'info' as const },
                 ].map((stat) => (
                     <Card key={stat.label} className="p-mx-md border-none shadow-mx-sm bg-white flex items-center gap-mx-sm">

@@ -198,7 +198,7 @@ function AdminMorningReport() {
             'Gap': s.gap,
             'Leads': s.totalLeads,
             'Visitas': s.totalVisits,
-            'Checkins': `${s.checkedInCount}/${s.totalSellers}`,
+            'Lançamentos': `${s.checkedInCount}/${s.totalSellers}`,
         }))
         const { exportToExcel } = await import('@/lib/export')
         const success = exportToExcel(exportData, 'Matinal_Rede_MX')
@@ -323,7 +323,7 @@ function AdminMorningReport() {
                                 <th scope="col" className="py-6 text-center"><Typography variant="caption" tone="brand" className="font-black uppercase tracking-mx-wide">ATING.</Typography></th>
                                 <th scope="col" className="py-6 text-center"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">PROJEÇÃO</Typography></th>
                                 <th scope="col" className="py-6 text-center"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">LEADS</Typography></th>
-                                <th scope="col" className="py-6 text-center"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">CHECKINS</Typography></th>
+                                <th scope="col" className="py-6 text-center"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">LANÇAMENTOS</Typography></th>
                                 <th scope="col" className="pr-10 py-6 text-right"><Typography variant="caption" className="font-black uppercase tracking-mx-wide">STATUS</Typography></th>
                             </tr>
                         </thead>
