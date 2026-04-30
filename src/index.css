@@ -159,6 +159,46 @@
   --color-mx-orange-950: #431407;
 }
 
+/* Mobile / PWA hardening — safe-area, tap highlight, scroll behavior */
+html, body {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+@supports (padding: max(0px)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+@utility safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+
+@media (max-width: 767px) {
+  /* Bottom-bar reservation: garante que conteúdo principal não fica escondido */
+  main#main-content {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* Tap targets mínimos 44x44 (Apple HIG) */
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Inputs: 16px evita zoom involuntário no iOS Safari */
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

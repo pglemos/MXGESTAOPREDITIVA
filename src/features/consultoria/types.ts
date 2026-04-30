@@ -88,6 +88,8 @@ export interface ConsultingVisit {
   feedback_client: string | null
   executive_summary: string | null
   google_event_id: string | null
+  google_event_id_central?: string | null
+  google_synced_at?: string | null
   meta_mensal: string | null
   projecao: string | null
   leads_mes: string | null

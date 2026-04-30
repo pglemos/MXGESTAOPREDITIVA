@@ -21,7 +21,9 @@ import { Card } from '@/components/molecules/Card'
 // New components
 import { LiveFloor } from '@/features/ranking/components/LiveFloor'
 import { BattleView } from '@/features/ranking/components/BattleView'
+import { StoreBattleView } from '@/features/ranking/components/StoreBattleView'
 import { SellerProfileModal } from '@/features/ranking/components/SellerProfileModal'
+import { useNetworkPerformance } from '@/hooks/useNetworkPerformance'
 
 export default function Ranking() {
     const { role } = useAuth()
@@ -36,8 +38,18 @@ function GlobalRanking() {
     const [isRefetching, setIsRefetching] = useState(false)
     const [filterStore, setFilterStore] = useState<string>('all')
     const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
-    const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'live'>('leaderboard')
+    const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'live' | 'store-arena'>('leaderboard')
     const [battleOpponents, setBattleOpponents] = useState<string[]>([])
+    const [storeOpponents, setStoreOpponents] = useState<string[]>([])
+    const { metrics: networkMetrics, loading: networkLoading } = useNetworkPerformance()
+
+    const toggleStoreOpponent = useCallback((id: string) => {
+        setStoreOpponents(prev => {
+            if (prev.includes(id)) return prev.filter(s => s !== id)
+            if (prev.length < 2) return [...prev, id]
+            return [prev[0], id]
+        })
+    }, [])
 
     const stores = useMemo(() => {
         const set = new Set(ranking.map(r => r.store_name).filter(Boolean))
@@ -114,6 +126,9 @@ function GlobalRanking() {
                         </button>
                         <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
+                        </button>
+                        <button onClick={() => setViewMode('store-arena')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'store-arena' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                            <Building2 size={14} /> Arena Lojas
                         </button>
                     </div>
 
@@ -231,6 +246,79 @@ function GlobalRanking() {
                                 )
                             })}
                         </div>
+                    </div>
+                )}
+
+                {viewMode === 'store-arena' && (
+                    <div className="animate-slide-up">
+                        {networkLoading ? (
+                            <div className="flex flex-col items-center justify-center py-16">
+                                <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-4" />
+                                <Typography variant="caption" tone="muted">Consolidando indicadores das lojas...</Typography>
+                            </div>
+                        ) : (
+                            <>
+                                {storeOpponents.length < 2 && (
+                                    <div className="mb-8 text-center animate-pulse">
+                                        <p className="text-sm font-bold text-text-tertiary bg-white/50 inline-block px-4 py-2 rounded-full border border-white/60 shadow-sm">
+                                            Selecione {2 - storeOpponents.length} {2 - storeOpponents.length === 1 ? 'loja' : 'lojas'} abaixo para iniciar a Arena de Lojas
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="relative mb-10">
+                                    {storeOpponents.length > 0 && (
+                                        <button onClick={() => setStoreOpponents([])} aria-label="Limpar seleção de lojas" className="absolute top-mx-0 right-mx-0 z-50 p-mx-xs bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
+                                            <X className="w-mx-sm h-mx-sm" />
+                                        </button>
+                                    )}
+                                    <StoreBattleView opponents={storeOpponents} stores={networkMetrics.byStore} />
+                                </div>
+
+                                <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2 flex items-center gap-mx-sm">
+                                    <Building2 size={20} className="text-brand-primary" /> Selecione as lojas para o duelo
+                                </h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-mx-md">
+                                    {networkMetrics.byStore.map(store => {
+                                        const selected = storeOpponents.includes(store.storeId)
+                                        const reachingTone = store.reaching >= 100 ? 'text-status-success' : store.reaching >= 80 ? 'text-status-warning' : 'text-status-error'
+                                        return (
+                                            <motion.button
+                                                key={store.storeId}
+                                                onClick={() => toggleStoreOpponent(store.storeId)}
+                                                whileHover={{ scale: 1.04 }}
+                                                whileTap={{ scale: 0.96 }}
+                                                aria-pressed={selected}
+                                                className={cn(
+                                                    'p-mx-md rounded-mx-2xl border-2 transition-all flex flex-col items-center gap-mx-sm relative overflow-hidden text-center',
+                                                    selected ? 'bg-mx-black border-brand-primary shadow-mx-xl scale-105' : 'bg-white/60 border-border-default hover:bg-white hover:border-brand-primary/40'
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    'w-mx-14 h-mx-14 rounded-mx-2xl flex items-center justify-center border-2 shrink-0',
+                                                    selected ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' : 'bg-surface-alt border-border-default text-text-secondary'
+                                                )}>
+                                                    <Building2 size={22} />
+                                                </div>
+                                                <span className={cn('font-black text-xs uppercase truncate w-full', selected ? 'text-white' : 'text-mx-black')}>
+                                                    {store.storeName}
+                                                </span>
+                                                <span className={cn('font-display font-black text-lg tabular-nums', selected ? 'text-brand-primary' : reachingTone)}>{store.reaching}%</span>
+                                                {selected && (
+                                                    <motion.div
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                        className="absolute top-mx-xs right-mx-xs w-mx-md h-mx-md rounded-full bg-brand-primary flex items-center justify-center"
+                                                    >
+                                                        <span className="text-mx-black font-black text-xs">{storeOpponents.indexOf(store.storeId) + 1}</span>
+                                                    </motion.div>
+                                                )}
+                                            </motion.button>
+                                        )
+                                    })}
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 

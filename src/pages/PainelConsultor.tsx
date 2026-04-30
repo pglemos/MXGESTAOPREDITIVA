@@ -297,7 +297,7 @@ export default function PainelConsultor() {
                                         <Card className="p-mx-lg min-w-mx-card-sm shadow-mx-elite border-none bg-white/95 backdrop-blur-xl rounded-mx-3xl">
                                             <header className="flex items-center justify-between mb-8">
                                                 <Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-widest">Período Customizado</Typography>
-                                                <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-10 h-mx-10 p-0 rounded-mx-full"><X size={16} /></Button>
+                                                <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-10 h-mx-10 p-mx-0 rounded-mx-full"><X size={16} /></Button>
                                             </header>
                                             <div className="space-y-mx-md">
                                                 <div className="space-y-mx-xs">
@@ -398,7 +398,7 @@ export default function PainelConsultor() {
                 </Card>
             </div>
 
-            <Card className="w-full mb-32 shadow-mx-elite border-none bg-white/50 backdrop-blur-2xl rounded-mx-[40px] overflow-hidden">
+            <Card className="w-full mb-32 shadow-mx-elite border-none bg-white/50 backdrop-blur-2xl rounded-mx-4xl overflow-hidden">
                 <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-lg p-mx-xl border-b border-white/20">
                     <div className="flex items-center gap-mx-md">
                         <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl"><Activity size={28} /></div>
@@ -425,7 +425,7 @@ export default function PainelConsultor() {
                     </div>
                 </CardHeader>
                 <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left min-w-[1200px]">
+                    <table className="w-full text-left min-w-mx-table-wide">
                         <thead>
                             <tr className="uppercase tracking-mx-widest border-b border-border-default bg-mx-black/5">
                                 <th className="pl-12 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}>

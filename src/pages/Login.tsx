@@ -211,7 +211,7 @@ export default function Login() {
                                     onClick={() => setShowPassword(v => !v)}
                                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                                     aria-pressed={showPassword}
-                                    className="p-1 rounded-md text-text-tertiary hover:text-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 transition-colors"
+                                    className="w-mx-lg h-mx-lg p-mx-tiny rounded-mx-md text-text-tertiary hover:text-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 transition-colors"
                                     tabIndex={-1}
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

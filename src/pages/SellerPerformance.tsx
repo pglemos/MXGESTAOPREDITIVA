@@ -196,9 +196,9 @@ export default function SellerPerformance() {
                             ))}
                         </div>
 
-                        <Card className="p-mx-xl bg-white border-none shadow-mx-xl min-h-[400px]">
+                        <Card className="p-mx-xl bg-white border-none shadow-mx-xl min-h-mx-96">
                             <header className="flex items-center justify-between mb-10">
-                                <div className="space-y-1">
+                                <div className="space-y-mx-tiny">
                                     <Typography variant="h3" className="uppercase font-black">Histórico de Performance</Typography>
                                     <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-widest">Evolução Mensal das Metas</Typography>
                                 </div>

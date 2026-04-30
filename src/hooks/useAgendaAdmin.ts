@@ -3,6 +3,49 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { ConsultingVisit } from '@/features/consultoria/types'
 
+async function syncVisitToGoogle(
+  visitId: string,
+  action: 'upsert' | 'delete' = 'upsert',
+): Promise<void> {
+  try {
+    const { data: visit } = await supabase
+      .from('consulting_visits')
+      .select(`
+        id,
+        client_id,
+        scheduled_at,
+        duration_hours,
+        modality,
+        status,
+        objective,
+        google_event_id,
+        google_event_id_central,
+        consultant:users!consulting_visits_consultant_id_fkey(email),
+        client:consulting_clients!client_id(name)
+      `)
+      .eq('id', visitId)
+      .maybeSingle() as { data: any }
+    if (!visit) return
+    const payload = {
+      id: visit.id,
+      client_id: visit.client_id,
+      client_name: visit.client?.name ?? null,
+      client_address: null,
+      scheduled_at: visit.scheduled_at,
+      duration_hours: visit.duration_hours,
+      modality: visit.modality,
+      status: visit.status,
+      objective: visit.objective,
+      consultant_email: visit.consultant?.email ?? null,
+      google_event_id: visit.google_event_id ?? null,
+      google_event_id_central: visit.google_event_id_central ?? null,
+    }
+    await supabase.functions.invoke('google-calendar-sync', { body: { action, visit: payload } })
+  } catch {
+    // Sync silencioso: não bloqueia operação principal
+  }
+}
+
 export type AgendaVisit = ConsultingVisit & {
   client_name: string
   client_slug: string
@@ -112,7 +155,7 @@ export function useAgendaAdmin() {
       return { error: 'Apenas admin pode agendar visitas.' }
     }
 
-    const { error: insertError } = await supabase
+    const { data: insertedVisit, error: insertError } = await supabase
       .from('consulting_visits')
       .insert({
         client_id: input.client_id,
@@ -125,11 +168,16 @@ export function useAgendaAdmin() {
         objective: input.objective || null,
         status: 'agendada',
       })
+      .select('id')
+      .single()
 
     if (insertError) {
       return { error: insertError.message }
     }
 
+    if (insertedVisit?.id) {
+      await syncVisitToGoogle(insertedVisit.id, 'upsert')
+    }
     await fetchVisits()
     return { error: null }
   }, [supabaseUser, role, fetchVisits])
@@ -148,6 +196,7 @@ export function useAgendaAdmin() {
       return { error: updateError.message }
     }
 
+    await syncVisitToGoogle(visitId, 'upsert')
     await fetchVisits()
     return { error: null }
   }, [supabaseUser, role, fetchVisits])
@@ -156,6 +205,8 @@ export function useAgendaAdmin() {
     if (!supabaseUser || role !== 'admin') {
       return { error: 'Apenas admin pode cancelar visitas.' }
     }
+
+    await syncVisitToGoogle(visitId, 'delete')
 
     const { error: deleteError } = await supabase
       .from('consulting_visits')

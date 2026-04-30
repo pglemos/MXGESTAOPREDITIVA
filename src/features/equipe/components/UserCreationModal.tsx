@@ -80,7 +80,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
             
               <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row max-h-[85vh] w-full overflow-hidden">
                 {/* Sidebar Context */}
-                <div className="w-full lg:w-[320px] shrink-0 bg-surface-alt/50 border-b lg:border-b-0 lg:border-r border-border-default p-mx-lg flex flex-col justify-between relative overflow-y-auto lg:overflow-hidden">
+                <div className="w-full lg:w-mx-sidebar-expanded shrink-0 bg-surface-alt/50 border-b lg:border-b-0 lg:border-r border-border-default p-mx-lg flex flex-col justify-between relative overflow-y-auto lg:overflow-hidden">
                     <div className="space-y-mx-lg relative z-10">
                         <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shadow-mx-md">
                             <UserPlus size={40} strokeWidth={1.5} />

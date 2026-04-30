@@ -536,6 +536,9 @@ describe("DRESchema", () => {
     posvenda_per_car: 3,
     profit_per_car: 278,
     rentability: 0.28,
+    cac: 120,
+    lead_to_agd_rate: 0.45,
+    agd_to_sale_rate: 0.32,
   };
 
   it("parses valid DREFinancial", () => {

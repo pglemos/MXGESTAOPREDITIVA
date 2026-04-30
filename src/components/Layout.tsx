@@ -315,7 +315,8 @@ export default function Layout() {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-xl pb-mx-32 max-h-full overflow-y-auto"
+              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-xl max-h-[90vh] overflow-y-auto"
+              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8rem)' }}
               onClick={e => e.stopPropagation()}
               ref={mobileMenuRef}
               role="dialog"
@@ -366,7 +367,7 @@ export default function Layout() {
       </AnimatePresence>
 
       {/* Mobile Bar - Semantic Nav */}
-      <nav className="md:hidden fixed bottom-mx-sm left-mx-sm right-mx-sm h-mx-2xl bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden" aria-label="Barra de Navegação Rápida">
+      <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-2xl bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
         <div className="flex w-full justify-between items-center relative z-10">
           <NavLink
             to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}

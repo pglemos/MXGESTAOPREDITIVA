@@ -14,7 +14,22 @@ export interface NetworkMetric {
   reaching: number
   storeCount: number
   byMonth: { month: string; sales: number }[]
-  byStore: { storeId: string; storeName: string; sales: number; goal: number; reaching: number }[]
+  byStore: {
+    storeId: string
+    storeName: string
+    sales: number
+    goal: number
+    reaching: number
+    leads: number
+    agd: number
+    vis: number
+    convLeadVnd: number
+    convAgdVnd: number
+    convVisVnd: number
+    ticket: number
+    checkinDays: number
+    projection: number
+  }[]
 }
 
 const EMPTY_METRIC: NetworkMetric = {
@@ -60,7 +75,7 @@ export function useNetworkPerformance() {
       const { data: stores } = await supabase.from('stores').select('id, name')
 
       const byMonth: Record<string, number> = {}
-      const byStoreMap: Record<string, { sales: number; leads: number; agd: number; vis: number }> = {}
+      const byStoreMap: Record<string, { sales: number; leads: number; agd: number; vis: number; days: Set<string> }> = {}
       let totalSales = 0, totalLeads = 0, totalAgd = 0, totalVis = 0
 
       for (const c of allCheckins) {
@@ -78,11 +93,12 @@ export function useNetworkPerformance() {
 
         if (month) byMonth[month] = (byMonth[month] || 0) + sale
 
-        if (!byStoreMap[sid]) byStoreMap[sid] = { sales: 0, leads: 0, agd: 0, vis: 0 }
+        if (!byStoreMap[sid]) byStoreMap[sid] = { sales: 0, leads: 0, agd: 0, vis: 0, days: new Set() }
         byStoreMap[sid].sales += sale
         byStoreMap[sid].leads += leads
         byStoreMap[sid].agd += agd
         byStoreMap[sid].vis += vis
+        if (c.reference_date) byStoreMap[sid].days.add(c.reference_date as string)
       }
 
       let networkGoal = 0
@@ -90,13 +106,26 @@ export function useNetworkPerformance() {
       for (const store of stores || []) {
         const goal = goals.find(g => g.store_id === store.id)?.target || 0
         networkGoal += goal
-        const s = byStoreMap[store.id] || { sales: 0 }
+        const s = byStoreMap[store.id] || { sales: 0, leads: 0, agd: 0, vis: 0, days: new Set<string>() }
+        const convLeadVnd = s.leads > 0 ? Math.round((s.sales / s.leads) * 1000) / 10 : 0
+        const convAgdVnd = s.agd > 0 ? Math.round((s.sales / s.agd) * 1000) / 10 : 0
+        const convVisVnd = s.vis > 0 ? Math.round((s.sales / s.vis) * 1000) / 10 : 0
+        const ticket = s.sales > 0 ? Math.round((goal / Math.max(s.sales, 1)) * 100) / 100 : 0
         byStore.push({
           storeId: store.id,
           storeName: store.name,
           sales: s.sales,
           goal,
           reaching: calcularAtingimento(s.sales, goal),
+          leads: s.leads,
+          agd: s.agd,
+          vis: s.vis,
+          convLeadVnd,
+          convAgdVnd,
+          convVisVnd,
+          ticket,
+          checkinDays: s.days.size,
+          projection: calcularProjecao(s.sales, dias.decorridos, dias.total),
         })
       }
 

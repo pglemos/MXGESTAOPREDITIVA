@@ -255,7 +255,7 @@ export default function Equipe() {
                       initial={{ opacity: 0, scale: 0.98 }} 
                       animate={{ opacity: 1, scale: 1 }} 
                       transition={{ delay: i * 0.03 }} 
-                      className="group relative rounded-mx-4xl bg-white border border-border-default hover:border-brand-primary/30 hover:shadow-mx-elite transition-all duration-500 overflow-hidden flex flex-col h-mx-[420px] shadow-mx-lg"
+                      className="group relative rounded-mx-4xl bg-white border border-border-default hover:border-brand-primary/30 hover:shadow-mx-elite transition-all duration-500 overflow-hidden flex flex-col h-mx-96 shadow-mx-lg"
                     >
                       <div className="absolute top-mx-0 left-mx-0 right-mx-0 h-mx-48 bg-gradient-to-b from-brand-primary/10 via-brand-primary/5 to-transparent pointer-events-none group-hover:from-brand-primary/20 transition-all duration-700" />
                       
@@ -273,10 +273,10 @@ export default function Equipe() {
 
                       <div className="px-mx-lg flex flex-col items-center text-center space-y-mx-md relative z-10 flex-1 justify-center pt-mx-md">
                         <div className="relative group/avatar">
-                          <div className="w-mx-28 h-mx-28 rounded-mx-[40px] bg-white p-mx-xs border-2 border-border-default overflow-hidden group-hover/avatar:rotate-3 group-hover:scale-110 group-hover:border-brand-primary transition-all duration-500 shadow-mx-xl">
+                          <div className="w-mx-28 h-mx-28 rounded-mx-4xl bg-white p-mx-xs border-2 border-border-default overflow-hidden group-hover/avatar:rotate-3 group-hover:scale-110 group-hover:border-brand-primary transition-all duration-500 shadow-mx-xl">
                             <img 
                               src={getAvatarUrl(member.name || '', { background: 'ffffff', color: '22C55E' })} 
-                              alt="" className="w-full h-full object-cover rounded-mx-[32px]" 
+                              alt="" className="w-full h-full object-cover rounded-mx-3xl"
                             />
                           </div>
                           {member.role === 'admin' && (
@@ -343,10 +343,10 @@ export default function Equipe() {
                 })}
               </div>
             ) : (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[50vh] space-y-mx-xl text-center border-2 border-dashed border-border-default rounded-mx-[60px] bg-white/30 backdrop-blur-sm relative overflow-hidden group">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[50vh] space-y-mx-xl text-center border-2 border-dashed border-border-default rounded-mx-4xl bg-white/30 backdrop-blur-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                 <div className="relative">
-                    <div className="w-mx-32 h-mx-32 rounded-mx-[48px] bg-white flex items-center justify-center text-text-tertiary shadow-mx-xl border border-border-default group-hover:rotate-12 transition-transform duration-700">
+                    <div className="w-mx-32 h-mx-32 rounded-mx-4xl bg-white flex items-center justify-center text-text-tertiary shadow-mx-xl border border-border-default group-hover:rotate-12 transition-transform duration-700">
                       <Users size={64} strokeWidth={1} className="opacity-20" />
                     </div>
                     <div className="absolute -top-mx-xs -right-mx-xs w-mx-12 h-mx-12 rounded-mx-full bg-brand-primary flex items-center justify-center text-white shadow-mx-glow-brand animate-pulse">
