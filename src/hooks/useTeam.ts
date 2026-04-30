@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
+import { DEFAULT_FIRST_LOGIN_PASSWORD } from '@/lib/auth/constants'
 import type { User, Store, StoreSeller } from '@/types/database'
 
 export function useTeam(storeIdOverride?: string) {
@@ -133,7 +134,7 @@ export function useTeam(storeIdOverride?: string) {
         const { data, error } = await supabase.functions.invoke('register-user', {
             body: { 
                 ...userData, 
-                password: userData.password || 'Mx#2026!' // Default password
+                password: userData.password || DEFAULT_FIRST_LOGIN_PASSWORD
             }
         })
         if (!error && data?.success) {
