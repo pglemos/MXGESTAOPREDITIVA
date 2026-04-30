@@ -39,6 +39,23 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] 35 rotas mobile autenticadas carregadas sem erro fatal e sem overflow horizontal.
 - [x] Supabase: migrações `20260430000000` e `20260430001000` aplicadas no remoto.
 - [x] Supabase: funções `google-calendar-sync`, `google-calendar-merged` e `google-oauth-handler` redeployadas.
+- [x] Admin José criado também no e-mail solicitado `joseroberto20161@gmail.com`.
+- [ ] Token OAuth da Agenda Central MX salvo no Supabase.
+
+### Google Calendar Central
+
+Data: 2026-04-30
+
+Estado técnico:
+
+- OAuth central implementado e disponível via `Agenda MX > Conectar Agenda Central`.
+- Edge Function `google-oauth-handler` aceita `central: true`, valida que o login Google é `gestao@mxconsultoria.com.br` e salva o token criptografado como `provider = google_central`.
+- Edge Functions de leitura/sync usam `google_central` como fallback quando `GOOGLE_CENTRAL_REFRESH_TOKEN` não existe.
+
+Bloqueio operacional encontrado:
+
+- Tentativa real de OAuth com `gestao@mxconsultoria.com.br` chegou no Google, mas foi bloqueada porque o OAuth app `fbhcmzzgwjdgkctlfvbo.supabase.co` está em modo de teste e a conta central não está aprovada como tester.
+- Ação necessária fora do repositório: adicionar `gestao@mxconsultoria.com.br` como test user no OAuth consent screen do Google Cloud, ou publicar/verificar o app OAuth. Depois disso, qualquer admin pode clicar em `Conectar Agenda Central` e concluir a vinculação.
 
 ### Produção Mobile Audit
 
