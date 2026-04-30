@@ -47,7 +47,8 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Validação funcional: `google-calendar-merged` retornou `centralConnected: true` e `centralError: null`.
 - [x] Correções para verificação OAuth: home pública, nome exato do app, link de privacidade visível e política separada em `/privacy`.
 - [x] Playwright local: `/` exibe `MX Performance Calendar` e link para `/privacy`; `/privacy` descreve uso dos dados do Google Calendar.
-- [x] Search Console: arquivo de verificação publicado para comprovar propriedade de `https://mxperformance.vercel.app/`.
+- [x] Search Console: arquivo de verificação publicado e propriedade `https://mxperformance.vercel.app/` verificada.
+- [ ] Verificação final de acesso aos dados Google: pendente de URL de vídeo YouTube demonstrando o uso do escopo `calendar.events`.
 
 ### Google Calendar Central
 
@@ -70,6 +71,7 @@ Resultado operacional:
 - App OAuth publicado em produção. O Google passou a indicar que o app precisa de verificação formal antes de remover limites/avisos de app não verificado.
 - OAuth central concluído com `gestao@mxconsultoria.com.br`; token criptografado salvo em `consulting_oauth_tokens` como `provider = google_central`.
 - Para atender a revisão do Google, a home pública `https://mxperformance.vercel.app/` agora exibe o nome exato `MX Performance Calendar` e link visível para a política em `https://mxperformance.vercel.app/privacy`.
+- A marca passou para a etapa de envio final. O bloqueio remanescente é externo ao código: o formulário do Google exige vídeo YouTube demonstrando o uso do escopo `calendar.events`; a conta logada retornou erro ao abrir YouTube/Studio nesta sessão.
 
 ### Produção Mobile Audit
 
