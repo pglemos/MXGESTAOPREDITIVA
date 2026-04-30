@@ -47,6 +47,7 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Validação funcional: `google-calendar-merged` retornou `centralConnected: true` e `centralError: null`.
 - [x] Correções para verificação OAuth: home pública, nome exato do app, link de privacidade visível e política separada em `/privacy`.
 - [x] Playwright local: `/` exibe `MX Performance Calendar` e link para `/privacy`; `/privacy` descreve uso dos dados do Google Calendar.
+- [x] Search Console: arquivo de verificação publicado para comprovar propriedade de `https://mxperformance.vercel.app/`.
 
 ### Google Calendar Central
 
@@ -90,6 +91,7 @@ Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 - `package-lock.json`
 - `vite.config.ts`
 - `src/App.tsx`
+- `public/google1778f7798089a3f6.html`
 - `src/main.tsx`
 - `src/vite-env.d.ts`
 - `src/index.css`
