@@ -25,7 +25,7 @@ para atualizar indicadores PMR sem depender de planilhas externas.
 
 - `docs/stories/story-CONS-07-pmr-operational-inputs.md`
 - `supabase/migrations/20260418001000_pmr_native_engine.sql`
-- `scripts/consulting_import_monthly_close.ts`
+- `scripts/consultoria_importar_fechamento_mensal.ts`
 - `src/hooks/useConsultingMetrics.ts`
 - `src/features/consultoria/components/ConsultingStrategicView.tsx`
 - `package.json`

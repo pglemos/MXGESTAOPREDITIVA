@@ -22,10 +22,10 @@ Todos os scripts operacionais do projeto. Execute com `tsx` (`.ts`) ou `node` (`
 | `check_tables.mjs` | Verificação de tabelas existentes no Supabase | `node scripts/check_tables.mjs` | util |
 | `cleanup_redundant_users.mjs` | Limpeza de usuários redundantes por ID | `node scripts/cleanup_redundant_users.mjs` | cleanup |
 | `consolidate_users.mjs` | Consolidação de registros duplicados de vendedores | `node scripts/consolidate_users.mjs` | cleanup |
-| `consulting_generate_executive_summary.ts` | Geração CLI do resumo executivo PMR | `npm run consulting:generate-executive-summary -- --client-id <uuid>` | util |
-| `consulting_generate_strategic_plan.ts` | Geração CLI do planejamento estratégico PMR | `npm run consulting:generate-strategic-plan -- --client-id <uuid>` | util |
-| `consulting_import_monthly_close.ts` | Importação do fechamento mensal PMR (`Cadmkt`, `Cadven`, `Cadest`) | `npm run consulting:import-monthly-close -- --client-id <uuid> --file <xlsx>` | seed |
-| `consulting_seed_parameters.ts` | Seed de indicadores e parâmetros PMR editáveis | `npm run consulting:seed-parameters` | seed |
+| `consultoria_gerar_resumo_executivo.ts` | Geração CLI do resumo executivo PMR | `npm run consultoria:gerar-resumo-executivo -- --client-id <uuid>` | util |
+| `consultoria_gerar_planejamento_estrategico.ts` | Geração CLI do planejamento estratégico PMR | `npm run consultoria:gerar-planejamento-estrategico -- --client-id <uuid>` | util |
+| `consultoria_importar_fechamento_mensal.ts` | Importação do fechamento mensal PMR (`Cadmkt`, `Cadven`, `Cadest`) | `npm run consultoria:importar-fechamento-mensal -- --client-id <uuid> --file <xlsx>` | carga |
+| `consultoria_carregar_parametros.ts` | Carga de indicadores e parâmetros PMR editáveis | `npm run consultoria:carregar-parametros` | carga |
 | `create_managers.mjs` | Criação de contas auth para gerentes | `node scripts/create_managers.mjs` | seed |
 | `debug_caio_browser.mjs` | Debug de login via navegador (Playwright) | `node scripts/debug_caio_browser.mjs` | util |
 | `debug-login-e2e.mjs` | Debug E2E de fluxo de login | `node scripts/debug-login-e2e.mjs` | util |

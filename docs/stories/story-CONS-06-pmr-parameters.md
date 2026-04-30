@@ -25,7 +25,7 @@ para atualizar o metodo sem depender do desenvolvedor.
 
 - `docs/stories/story-CONS-06-pmr-parameters.md`
 - `supabase/migrations/20260418001000_pmr_native_engine.sql`
-- `scripts/consulting_seed_parameters.ts`
+- `scripts/consultoria_carregar_parametros.ts`
 - `src/hooks/useConsultingParameters.ts`
 - `src/features/consultoria/components/ConsultingParametersView.tsx`
 - `src/pages/ConsultoriaParametros.tsx`

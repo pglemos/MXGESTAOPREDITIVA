@@ -1,6 +1,6 @@
 # Historia FUND-02: Limpeza tecnica residual em portugues
 
-**Status:** Backlog preparado
+**Status:** Em andamento
 **Agente:** aiox-master
 **Prioridade:** ALTA
 **Branch:** main
@@ -27,7 +27,8 @@ para manter o codigo, banco, testes e Edge Functions em portugues tecnico padron
 
 ## Acceptance Criteria
 
-- [ ] Inventario residual versionado com ocorrencias e decisao de manter/renomear.
+- [x] Inventario residual versionado com ocorrencias e decisao de manter/renomear.
+- [x] Comandos e scripts operacionais ativos de consultoria renomeados para portugues sem acento tecnico.
 - [ ] Nenhuma referencia funcional interna a `consulting_*`, `seller_*`, `store_*` ou `user_*` permanece sem justificativa.
 - [ ] UI continua usando portugues normal, com acentuacao quando apropriado.
 - [ ] Codigo e banco novos continuam em portugues sem acento tecnico.
@@ -50,10 +51,10 @@ para manter o codigo, banco, testes e Edge Functions em portugues tecnico padron
 
 ## Validacao Obrigatoria
 
-- [ ] `npm run validate:structure`
+- [x] `npm run validate:structure`
 - [ ] `npm run validate:agents`
 - [ ] `npm run lint`
-- [ ] `npm run typecheck`
+- [x] `npm run typecheck`
 - [ ] `npm test`
 - [ ] `npm run build`
 - [ ] `npm run test:e2e`
@@ -61,3 +62,14 @@ para manter o codigo, banco, testes e Edge Functions em portugues tecnico padron
 ## File List
 
 - `docs/stories/historia-FUND-02-limpeza-tecnica-residual-portugues.md`
+- `docs/architecture/inventario-nomenclatura-residual.md`
+- `package.json`
+- `scripts/README.md`
+- `scripts/consultoria_carregar_parametros.ts`
+- `scripts/consultoria_importar_fechamento_mensal.ts`
+- `scripts/consultoria_gerar_planejamento_estrategico.ts`
+- `scripts/consultoria_gerar_resumo_executivo.ts`
+- `docs/stories/story-CONS-06-pmr-parameters.md`
+- `docs/stories/story-CONS-07-pmr-operational-inputs.md`
+- `docs/stories/story-CONS-09-pmr-cli-artifacts.md`
+- `docs/stories/story-CONS-11-pmr-full-workflow-sync.md`

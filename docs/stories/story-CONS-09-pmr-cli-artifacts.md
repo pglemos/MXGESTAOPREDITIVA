@@ -24,8 +24,8 @@ para produzir entregaveis PMR a partir de dados estruturados.
 ## File List
 
 - `docs/stories/story-CONS-09-pmr-cli-artifacts.md`
-- `scripts/consulting_generate_strategic_plan.ts`
-- `scripts/consulting_generate_executive_summary.ts`
+- `scripts/consultoria_gerar_planejamento_estrategico.ts`
+- `scripts/consultoria_gerar_resumo_executivo.ts`
 - `scripts/README.md`
 - `package.json`
 - `src/hooks/useConsultingStrategicPlan.ts`

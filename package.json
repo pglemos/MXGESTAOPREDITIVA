@@ -27,10 +27,10 @@
     "fix:admin-access": "tsx scripts/fix_admin_access.ts",
     "seed:sandbox:live": "tsx scripts/seed_live_sandbox.ts",
     "validate:e2e:live": "tsx scripts/validate_live_end_to_end.ts",
-    "consulting:seed-parameters": "tsx scripts/consulting_seed_parameters.ts",
-    "consulting:import-monthly-close": "tsx scripts/consulting_import_monthly_close.ts",
-    "consulting:generate-strategic-plan": "tsx scripts/consulting_generate_strategic_plan.ts",
-    "consulting:generate-executive-summary": "tsx scripts/consulting_generate_executive_summary.ts"
+    "consultoria:carregar-parametros": "tsx scripts/consultoria_carregar_parametros.ts",
+    "consultoria:importar-fechamento-mensal": "tsx scripts/consultoria_importar_fechamento_mensal.ts",
+    "consultoria:gerar-planejamento-estrategico": "tsx scripts/consultoria_gerar_planejamento_estrategico.ts",
+    "consultoria:gerar-resumo-executivo": "tsx scripts/consultoria_gerar_resumo_executivo.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
