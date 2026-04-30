@@ -40,7 +40,11 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Supabase: migrações `20260430000000` e `20260430001000` aplicadas no remoto.
 - [x] Supabase: funções `google-calendar-sync`, `google-calendar-merged` e `google-oauth-handler` redeployadas.
 - [x] Admin José criado também no e-mail solicitado `joseroberto20161@gmail.com`.
-- [ ] Token OAuth da Agenda Central MX salvo no Supabase.
+- [x] Token OAuth da Agenda Central MX salvo no Supabase.
+- [x] Google OAuth app publicado em produção, com necessidade de verificação formal indicada pelo Google.
+- [x] Google Calendar API ativada no projeto OAuth da conta central.
+- [x] Função `google-oauth-handler` redeployada sem verificação JWT externa para permitir callback OAuth público com validação interna por `state`.
+- [x] Validação funcional: `google-calendar-merged` retornou `centralConnected: true` e `centralError: null`.
 
 ### Google Calendar Central
 
@@ -52,10 +56,16 @@ Estado técnico:
 - Edge Function `google-oauth-handler` aceita `central: true`, valida que o login Google é `gestao@mxconsultoria.com.br` e salva o token criptografado como `provider = google_central`.
 - Edge Functions de leitura/sync usam `google_central` como fallback quando `GOOGLE_CENTRAL_REFRESH_TOKEN` não existe.
 
-Bloqueio operacional encontrado:
+Resultado operacional:
 
-- Tentativa real de OAuth com `gestao@mxconsultoria.com.br` chegou no Google, mas foi bloqueada porque o OAuth app `fbhcmzzgwjdgkctlfvbo.supabase.co` está em modo de teste e a conta central não está aprovada como tester.
-- Ação necessária fora do repositório: adicionar `gestao@mxconsultoria.com.br` como test user no OAuth consent screen do Google Cloud, ou publicar/verificar o app OAuth. Depois disso, qualquer admin pode clicar em `Conectar Agenda Central` e concluir a vinculação.
+- Criado projeto Google Cloud `mx-performance-calendar-oauth` na organização `mxconsultoria.com.br`.
+- Criado client OAuth web para o redirect `https://fbhcmzzgwjdgkctlfvbo.supabase.co/functions/v1/google-oauth-handler`.
+- Secrets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `GOOGLE_REDIRECT_URI` atualizados no Supabase.
+- Usuários de teste adicionados: `gestao@mxconsultoria.com.br`, `danieljsvendas@gmail.com`, `joseroberto20161@gmail.com`, `gedson.freire.localiza@gmail.com`, `camarajoaoaugusto@gmail.com`, `marianedcs@gmail.com`.
+- Escopos configurados: `userinfo.email` e `calendar.events`.
+- Google Calendar API ativada.
+- App OAuth publicado em produção. O Google passou a indicar que o app precisa de verificação formal antes de remover limites/avisos de app não verificado.
+- OAuth central concluído com `gestao@mxconsultoria.com.br`; token criptografado salvo em `consulting_oauth_tokens` como `provider = google_central`.
 
 ### Produção Mobile Audit
 
@@ -96,6 +106,7 @@ Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 - `src/pages/Ranking.tsx`
 - `src/pages/SellerPerformance.tsx`
 - `src/test/schemas/schemas.test.ts`
+- `supabase/config.toml`
 - `supabase/functions/_shared/google.ts`
 - `supabase/functions/google-calendar-merged/index.ts`
 - `supabase/functions/google-calendar-sync/index.ts`
