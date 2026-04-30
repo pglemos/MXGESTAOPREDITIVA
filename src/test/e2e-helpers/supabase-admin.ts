@@ -31,6 +31,7 @@ export function getSupabaseAdmin() {
 
 export async function createE2EAdminUser(options?: {
   prefix?: string
+  name?: string
   password?: string
   mustChangePassword?: boolean
 }) {
@@ -39,13 +40,14 @@ export async function createE2EAdminUser(options?: {
   const email = `${options?.prefix || 'e2e-admin'}-${suffix}@mxperformance.test`
   const password = options?.password || E2E_DEFAULT_PASSWORD
   const mustChangePassword = options?.mustChangePassword ?? false
+  const name = options?.name || 'E2E Admin'
 
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
     user_metadata: {
-      name: 'E2E Admin',
+      name,
       role: 'admin',
       must_change_password: mustChangePassword,
     },
@@ -59,7 +61,7 @@ export async function createE2EAdminUser(options?: {
     {
       id: created.user.id,
       email,
-      name: 'E2E Admin',
+      name,
       role: 'admin',
       active: true,
       must_change_password: mustChangePassword,
@@ -77,6 +79,64 @@ export async function createE2EAdminUser(options?: {
     email,
     password,
   } satisfies E2EUser
+}
+
+export async function createE2EConsultingClient(options: {
+  name: string
+  createdBy: string
+}) {
+  const admin = getSupabaseAdmin()
+  const slug = options.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  const { data, error } = await admin
+    .from('consulting_clients')
+    .insert({
+      name: options.name,
+      slug,
+      status: 'ativo',
+      current_visit_step: 0,
+      modality: 'Presencial',
+      created_by: options.createdBy,
+    })
+    .select('id, slug, name')
+    .single()
+
+  if (error || !data) throw new Error(`Failed to create E2E consulting client: ${error?.message || 'missing row'}`)
+  return data as { id: string; slug: string; name: string }
+}
+
+export async function createE2EConsultingVisit(options: {
+  clientId: string
+  consultantId: string
+  scheduledAt: Date
+  visitNumber?: number
+  objective?: string
+}) {
+  const admin = getSupabaseAdmin()
+  const { data, error } = await admin
+    .from('consulting_visits')
+    .insert({
+      client_id: options.clientId,
+      visit_number: options.visitNumber || 1,
+      scheduled_at: options.scheduledAt.toISOString(),
+      duration_hours: 3,
+      modality: 'Presencial',
+      status: 'agendada',
+      consultant_id: options.consultantId,
+      auxiliary_consultant_id: null,
+      objective: options.objective || 'E2E agenda filter validation',
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) throw new Error(`Failed to create E2E consulting visit: ${error?.message || 'missing row'}`)
+  return data as { id: string }
+}
+
+export async function deleteE2EConsultingData(clientIds: string[]) {
+  if (!clientIds.length) return
+  const admin = getSupabaseAdmin()
+  await admin.from('consulting_visits').delete().in('client_id', clientIds)
+  await admin.from('consulting_clients').delete().in('id', clientIds)
 }
 
 export async function deleteE2EUser(userId: string) {

@@ -24,11 +24,12 @@ dois novos filtros que melhoram a navegação para o admin master:
 
 | Item | Localização | Estado atual |
 |------|-------------|-------------|
-| Página de Agenda | [src/pages/AgendaAdmin.tsx](../../../../src/pages/AgendaAdmin.tsx) | 576 linhas |
-| Hook de dados | [src/hooks/useAgendaAdmin.ts](../../../../src/hooks/useAgendaAdmin.ts) | Tem filtros de cliente e status, **não** tem filtro por consultor |
-| Modelo de dado | Tabela `consulting_visits` (provável) | Tem `client_id`, `status`; campo de consultor a confirmar (`consultant_id`/`owner_id`) |
+| Página de Agenda | [src/pages/AgendaAdmin.tsx](../../../../src/pages/AgendaAdmin.tsx) | Filtro por consultor, status e período implementados |
+| Hook de dados | [src/hooks/useAgendaAdmin.ts](../../../../src/hooks/useAgendaAdmin.ts) | Filtra por `consultant_id`/`auxiliary_consultant_id`, status e janelas temporais |
+| Teste E2E | [src/test/agenda-filters.playwright.ts](../../../../src/test/agenda-filters.playwright.ts) | Cobre consultor específico, Todos, Hoje, Semana, Próx. Semana, Mês e Todos |
+| Modelo de dado | Tabela `consulting_visits` | Usa `consultant_id` e `auxiliary_consultant_id` para agenda do admin/consultor MX |
 
-Necessário inspecionar a tabela `consulting_visits` para identificar a coluna que liga visita ao admin/consultor MX.
+Schema validado em `docs/data/consulting-visits-schema.md`.
 
 ---
 
@@ -85,12 +86,12 @@ Necessário inspecionar a tabela `consulting_visits` para identificar a coluna q
 
 ## Definition of Done
 
-- [ ] Todas as ACs das 5 stories marcadas
-- [ ] `npm run typecheck` + `npm run lint` + `bun test` passam
-- [ ] @ux-design-expert aprova UX
-- [ ] @qa aprova (PASS)
-- [ ] Teste manual em preview: filtros funcionam isolados e combinados
-- [ ] @devops realiza push
+- [x] Todas as ACs das 5 stories marcadas
+- [x] `npm run typecheck` + `npm run lint` + `bun test` passam
+- [x] @ux-design-expert aprova UX
+- [x] @qa aprova (PASS)
+- [x] Teste E2E dedicado cobre filtros isolados e combinados
+- [x] @devops realiza push
 
 ---
 

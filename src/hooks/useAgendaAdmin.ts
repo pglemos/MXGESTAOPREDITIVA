@@ -76,12 +76,14 @@ export type AgendaConsultant = {
   email: string
 }
 
-type DateFilter = 'hoje' | 'semana' | 'mes' | 'proxima_semana' | 'todos'
+const DATE_FILTERS = ['hoje', 'semana', 'mes', 'proxima_semana', 'todos'] as const
+type DateFilter = typeof DATE_FILTERS[number]
 type UrlFilterKey = 'range' | 'status' | 'consultant'
 
-function getInitialSearchParam(key: UrlFilterKey, fallback: string) {
+function getInitialSearchParam(key: UrlFilterKey, fallback: string, allowedValues?: readonly string[]) {
   if (typeof window === 'undefined') return fallback
-  return new URLSearchParams(window.location.search).get(key) || fallback
+  const value = new URLSearchParams(window.location.search).get(key) || fallback
+  return allowedValues && !allowedValues.includes(value) ? fallback : value
 }
 
 export type CreateVisitInput = {
@@ -102,7 +104,7 @@ export function useAgendaAdmin() {
   const [consultants, setConsultants] = useState<AgendaConsultant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dateFilter, setDateFilterState] = useState<DateFilter>(() => getInitialSearchParam('range', 'semana') as DateFilter)
+  const [dateFilter, setDateFilterState] = useState<DateFilter>(() => getInitialSearchParam('range', 'semana', DATE_FILTERS) as DateFilter)
   const [statusFilter, setStatusFilterState] = useState<string>(() => getInitialSearchParam('status', 'todos'))
   const [consultantFilter, setConsultantFilterState] = useState<string>(() => getInitialSearchParam('consultant', 'todos'))
   const [calendarMonth, setCalendarMonth] = useState(() => {

@@ -11,7 +11,7 @@
 | `@sm *draft` | Epics 1-6 existentes foram usados como stories fonte. |
 | `@po *validate` | Checklist de 10 pontos abaixo executado. |
 | `@dev *develop` | Epics 1-5 implementados/aplicados onde havia artefato executavel. |
-| `@qa *qa-gate` | PASS para Onda A; E2E dedicado adicionado para auth e ranking privacy. |
+| `@qa *qa-gate` | PASS para Onda A; E2E dedicado adicionado para auth, ranking privacy e agenda filters. |
 | `@devops *push` | Supabase migration aplicada e edge function redeployada. Push/deploy registrado no fechamento da tarefa. |
 
 ## PO 10-Point Checklist
@@ -24,7 +24,7 @@
 - [x] Epic 3 documenta schema real de `stores` e whitelist de campos editaveis.
 - [x] Epic 3 adiciona edicao de loja para `admin` e audit log por trigger.
 - [x] Epic 4 oculta nomes de lojas no ranking global, battle, modal e arena de lojas.
-- [x] Epic 5 adiciona filtro por consultor, ranges temporais e persistencia em URL.
+- [x] Epic 5 adiciona filtro por consultor, ranges temporais, persistencia em URL e regressao E2E.
 - [x] Epic 6 permanece BLOCKED por Meta WhatsApp Cloud API/Resend, conforme o proprio backlog.
 
 ## QA Gate
@@ -38,6 +38,7 @@ Evidencias:
 - [x] `npm test`
 - [x] `npm run build`
 - [x] `PLAYWRIGHT_SKIP_WEB_SERVER=1 VITE_APP_URL=http://localhost:3001 npx playwright test src/test/auth-first-login.playwright.ts src/test/ranking-privacy.playwright.ts --project=chromium`
+- [x] `PLAYWRIGHT_SKIP_WEB_SERVER=1 VITE_APP_URL=http://localhost:3001 npx playwright test src/test/agenda-filters.playwright.ts --project=chromium`
 - [x] `supabase db push` aplicou `20260430002000_mx_store_audit_log.sql`
 - [x] `supabase functions deploy register-user`
 
@@ -58,6 +59,7 @@ Concerns:
 - `scripts/provision_mx_team.ts`
 - `src/features/admin/components/StoreEditModal.tsx`
 - `src/test/auth-first-login.playwright.ts`
+- `src/test/agenda-filters.playwright.ts`
 - `src/test/e2e-helpers/supabase-admin.ts`
 - `src/test/ranking-privacy.playwright.ts`
 - `src/hooks/useAgendaAdmin.ts`
