@@ -80,7 +80,7 @@ export function useConsultingAgenda(clientId?: string) {
             if (pollIntervalRef.current === pollInterval) pollIntervalRef.current = null
             setIsLoading(true)
             supabase
-              .from('consulting_oauth_tokens')
+              .from('tokens_oauth_consultoria')
               .select('id')
               .eq('user_id', supabaseUser!.id)
               .eq('provider', 'google')
@@ -125,7 +125,7 @@ export function useConsultingAgenda(clientId?: string) {
     setError(null)
 
     const tokenQuery = supabase
-      .from('consulting_oauth_tokens')
+      .from('tokens_oauth_consultoria')
       .select('id')
       .eq('user_id', supabaseUser.id)
       .eq('provider', 'google')
@@ -133,7 +133,7 @@ export function useConsultingAgenda(clientId?: string) {
 
     const assignmentQuery = clientId
       ? supabase
-          .from('consulting_assignments')
+          .from('atribuicoes_consultoria')
           .select('assignment_role, active')
           .eq('client_id', clientId)
           .eq('user_id', supabaseUser.id)

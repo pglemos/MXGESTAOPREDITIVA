@@ -35,7 +35,7 @@ export function useConsultingActionPlan(clientId?: string) {
     setError(null)
     const { data, error: fetchError } = await supabase
       .from('itens_plano_acao')
-      .select('*, metric:consulting_metric_catalog(*)')
+      .select('*, metric:catalogo_metricas_consultoria(*)')
       .eq('client_id', clientId)
       .order('priority', { ascending: true })
       .order('due_date', { ascending: true })

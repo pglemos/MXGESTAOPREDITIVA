@@ -26,7 +26,7 @@ export function useConsultingStrategicPlan(clientId?: string) {
     setError(null)
     const [plansRes, artifactsRes] = await Promise.all([
       supabase.from('planejamentos_estrategicos').select('*').eq('client_id', clientId).order('generated_at', { ascending: false }),
-      supabase.from('consulting_generated_artifacts').select('*').eq('client_id', clientId).order('generated_at', { ascending: false }),
+      supabase.from('artefatos_gerados_consultoria').select('*').eq('client_id', clientId).order('generated_at', { ascending: false }),
     ])
     const fetchError = plansRes.error || artifactsRes.error
     if (fetchError) {

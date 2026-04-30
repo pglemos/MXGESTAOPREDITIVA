@@ -30,7 +30,7 @@ async function syncVisitToGoogle(
         objective,
         google_event_id,
         google_event_id_central,
-        consultant:usuarios!consulting_visits_consultant_id_fkey(email),
+        consultant:usuarios!visitas_consultoria_consultor_id_fkey(email),
         client:clientes_consultoria!client_id(name)
       `)
       .eq('id', visitId)
@@ -174,14 +174,14 @@ export function useAgendaAdmin() {
         .from('visitas_consultoria')
         .select(`
           *,
-          consultant:usuarios!consulting_visits_consultant_id_fkey(name, email),
-          auxiliary_consultant:usuarios!consulting_visits_auxiliary_consultant_id_fkey(name, email),
+          consultant:usuarios!visitas_consultoria_consultor_id_fkey(name, email),
+          auxiliary_consultant:usuarios!visitas_consultoria_consultor_auxiliar_id_fkey(name, email),
           client:clientes_consultoria!client_id(name, slug, status, modality)
         `)
         .order('scheduled_at', { ascending: true }),
       supabase
-        .from('consulting_schedule_events')
-        .select('*, responsible:usuarios!consulting_schedule_events_responsible_user_id_fkey(name, email)')
+        .from('eventos_agenda_consultoria')
+        .select('*, responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(name, email)')
         .order('starts_at', { ascending: true }),
       supabase
         .from('clientes_consultoria')
@@ -363,7 +363,7 @@ export function useAgendaAdmin() {
     }
 
     const { error: insertError } = await supabase
-      .from('consulting_schedule_events')
+      .from('eventos_agenda_consultoria')
       .insert({
         ...input,
         status: input.status || 'agendado',
@@ -381,7 +381,7 @@ export function useAgendaAdmin() {
     }
 
     const { error: updateError } = await supabase
-      .from('consulting_schedule_events')
+      .from('eventos_agenda_consultoria')
       .update({
         ...input,
         status: input.status || 'agendado',
@@ -399,7 +399,7 @@ export function useAgendaAdmin() {
     }
 
     const { error: deleteError } = await supabase
-      .from('consulting_schedule_events')
+      .from('eventos_agenda_consultoria')
       .delete()
       .eq('id', eventId)
 

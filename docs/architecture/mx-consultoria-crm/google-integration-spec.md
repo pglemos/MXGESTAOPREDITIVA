@@ -11,7 +11,7 @@
 2. O sistema gera uma URL de autorização da Google com os escopos `https://www.googleapis.com/auth/calendar.events.readonly`.
 3. O Google redireciona o usuário para `https://{supabase_url}/functions/v1/google-oauth-handler?code={code}`.
 4. A Edge Function troca o código por tokens (access + refresh).
-5. Os tokens são salvos em `public.consulting_oauth_tokens` vinculados ao `auth.uid()`.
+5. Os tokens são salvos em `public.tokens_oauth_consultoria` vinculados ao `auth.uid()`.
 
 ### **B. Event Synchronization**
 - Opção 1: Webhooks do Google (Push Notifications).
@@ -20,7 +20,7 @@
 
 ## 2. Data Model
 
-### **Table: public.consulting_oauth_tokens**
+### **Table: public.tokens_oauth_consultoria**
 - `id`: uuid (PK)
 - `user_id`: uuid (FK -> users.id, unique)
 - `access_token`: text (encrypted)
@@ -29,7 +29,7 @@
 - `scopes`: text[]
 - `created_at`: timestamptz
 
-### **Table: public.consulting_calendar_settings**
+### **Table: public.configuracoes_calendario_consultoria**
 - `id`: uuid (PK)
 - `client_id`: uuid (FK -> consulting_clients.id)
 - `user_id`: uuid (FK -> users.id)
@@ -46,7 +46,7 @@
 
 ## 5. Security (RLS)
 ```sql
-ALTER TABLE public.consulting_oauth_tokens ENABLE ROW LEVEL SECURITY;
-CREATE POLICY oauth_tokens_owner_only ON public.consulting_oauth_tokens
+ALTER TABLE public.tokens_oauth_consultoria ENABLE ROW LEVEL SECURITY;
+CREATE POLICY oauth_tokens_owner_only ON public.tokens_oauth_consultoria
     FOR ALL USING (auth.uid() = user_id);
 ```

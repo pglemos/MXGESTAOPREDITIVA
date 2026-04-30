@@ -112,9 +112,9 @@ return result.data
 | Schema | File | Validates | Used By |
 |--------|------|-----------|---------|
 | `TrainingSchema` | `lib/schemas/training.schema.ts` | `trainings` + `training_progress` rows | `useTrainings` |
-| `FeedbackSchema` | `lib/schemas/feedback.schema.ts` | `feedbacks` rows + join aliases | `useFeedbacks` |
+| `FeedbackSchema` | `lib/schemas/feedback.schema.ts` | `devolutivas` rows + join aliases | `useFeedbacks` |
 | `PDISchema` | `lib/schemas/pdi.schema.ts` | `pdis` + `pdi_reviews` rows | `usePDIs` |
-| `NotificationSchema` | `lib/schemas/notification.schema.ts` | `notifications` rows | `useNotifications` |
+| `NotificationSchema` | `lib/schemas/notification.schema.ts` | `notificacoes` rows | `useNotifications` |
 | `ConsultingClientSchema` | `lib/schemas/consulting-client.schema.ts` | `consulting_clients` + detail aggregates | `useConsultingClients` |
 | `DREFinancialSchema` | `lib/schemas/dre.schema.ts` | `consulting_financials` rows (~40 fields) | `useDRE` |
 

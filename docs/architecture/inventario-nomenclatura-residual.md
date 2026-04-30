@@ -20,7 +20,7 @@
 | --- | ---: | --- |
 | `consulting_` | 92 | Migrar em codigo funcional e scripts ativos. Manter em migrations historicas e stories antigas com justificativa. |
 | `seller_` | 111 | Migrar por camada, pois ainda aparece em nomes de colunas como `seller_user_id`, `seller_id` e aliases de ranking. |
-| `store_` | 174 | Migrar por camada, pois ainda aparece em colunas vivas como `store_id`, `store_meta_rules` e `store_delivery_rules`. |
+| `store_` | 174 | Migrar por camada, pois ainda aparece em colunas vivas como `store_id`, `regras_metas_loja` e `regras_entrega_loja`. |
 | `user_` | 134 | Migrar com cuidado por depender de `auth.users`, campos de auditoria e aliases de relacionamento. |
 | `daily_checkins` | 61 | Em migrations/docs historicas e pontos residuais; tabela principal live ja foi migrada para `lancamentos_diarios`. |
 | `trainings` / `training_progress` | 60 | Migrar em scripts/docs/testes e garantir que UI continue em portugues normal. |
@@ -51,7 +51,7 @@
    - Atualizar testes unitarios e E2E relacionados.
 
 3. **FUND-02C - Banco secundario**
-   - Planejar migration para tabelas secundarias ainda em ingles, como `store_meta_rules`, `store_delivery_rules`, `store_benchmarks`, `reprocess_logs` e `raw_imports`, se confirmado no live.
+   - Planejar migration para tabelas secundarias ainda em ingles, como `regras_metas_loja`, `regras_entrega_loja`, `benchmarks_loja`, `logs_reprocessamento` e `importacoes_brutas`, se confirmado no live.
    - Criar views de compatibilidade apenas se houver risco operacional.
 
 4. **FUND-02D - Documentacao historica**
@@ -61,3 +61,13 @@
 ## Risco
 
 Nao executar rename global automatico. A maior parte dos termos aparece em chaves estrangeiras, aliases de PostgREST, migrations aplicadas, testes visuais e scripts operacionais. A abordagem correta e por fatias pequenas, com teste e deploy apos cada corte.
+
+## Resultado FUND-02B
+
+- Tabelas secundarias internas renomeadas no live para portugues sem acento tecnico.
+- Codigo funcional atual em `src`, scripts ativos em `scripts` e Edge Functions em `supabase/functions` atualizados para os novos nomes.
+- Nomes antigos restantes ficam restritos a:
+  - migrations historicas ja aplicadas;
+  - documentos historicos que registram o estado antigo;
+  - contratos externos inevitaveis, como `auth.users`, APIs Supabase/PostgREST, Google Calendar e campos de fornecedor.
+- Validacao final: `validate:structure`, `validate:agents`, `lint`, `typecheck`, `npm test`, `build`, `test:e2e` e smoke live aprovados.

@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 
 export async function getManagerRoutineData(storeId: string, referenceDate: string) {
     const { data, error } = await supabase
-        .from('manager_routine_logs')
+        .from('logs_rotina_gerente')
         .select('*')
         .eq('store_id', storeId)
         .eq('reference_date', referenceDate)

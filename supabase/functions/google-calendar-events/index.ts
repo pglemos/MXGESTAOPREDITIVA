@@ -21,7 +21,7 @@ async function refreshAndPersistToken(sessionClient: any, tokenRow: any) {
   const refreshed = await refreshAccessToken(refreshToken);
   const encryptedAccessToken = await encryptToken(refreshed.access_token);
   const { error } = await sessionClient
-    .from("consulting_oauth_tokens")
+    .from("tokens_oauth_consultoria")
     .update({
       access_token: encryptedAccessToken,
       expires_at: new Date(Date.now() + refreshed.expires_in * 1000).toISOString(),
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     const isAdmin = userProfile?.role === 'administrador_geral' || userProfile?.role === 'administrador_mx' || userProfile?.role === 'consultor_mx';
 
     const { data: tokenRow, error: tokenError } = await sessionClient
-      .from("consulting_oauth_tokens")
+      .from("tokens_oauth_consultoria")
       .select("id, access_token, refresh_token, expires_at")
       .eq("user_id", authData.user.id)
       .eq("provider", "google")
@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: settingsRow, error: settingsError } = await sessionClient
-      .from("consulting_calendar_settings")
+      .from("configuracoes_calendario_consultoria")
       .select("id, client_id, google_calendar_id, sync_active, last_sync_at")
       .eq("user_id", authData.user.id)
       .maybeSingle();
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     let calendarSettings = settingsRow;
     if (!calendarSettings) {
       const { data: insertedSettings, error: insertSettingsError } = await sessionClient
-        .from("consulting_calendar_settings")
+        .from("configuracoes_calendario_consultoria")
         .insert({
           user_id: authData.user.id,
           google_calendar_id: "primary",
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Calendar settings belong to a different client" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       if (!calendarSettings.client_id) {
-        const { error: attachClientError } = await sessionClient.from("consulting_calendar_settings").update({ client_id: requestedClientId }).eq("id", calendarSettings.id);
+        const { error: attachClientError } = await sessionClient.from("configuracoes_calendario_consultoria").update({ client_id: requestedClientId }).eq("id", calendarSettings.id);
         if (attachClientError) throw attachClientError;
         calendarSettings.client_id = requestedClientId;
       }
@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
     }
 
     const { error: syncError } = await sessionClient
-      .from("consulting_calendar_settings")
+      .from("configuracoes_calendario_consultoria")
       .update({ last_sync_at: new Date().toISOString() })
       .eq("id", calendarSettings.id);
     if (syncError) throw syncError;

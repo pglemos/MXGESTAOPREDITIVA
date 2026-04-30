@@ -85,7 +85,7 @@ Integrate all new atoms, molecules, organisms, TanStack Query hooks, and Zod val
 #### Form Validation Patterns
 - Each form defines a Zod schema
 - Validation errors displayed inline below each field using `FormField` error slot
-- Toast notifications for submission errors via `sonner`
+- Toast notificacoes for submission errors via `sonner`
 
 **Error Display:**
 - Field-level: Red text below input (`text-status-error text-mx-tiny font-black uppercase`)

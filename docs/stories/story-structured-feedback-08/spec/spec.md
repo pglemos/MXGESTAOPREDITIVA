@@ -26,7 +26,7 @@ O EPIC-08 exige painel de feedback estruturado por vendedor, com numeros semanai
 
 - [x] Gerente/admin criam feedback com campos obrigatorios.
 - [x] Dono e vendedor nao criam feedback.
-- [x] Vendedor ve apenas seus feedbacks.
+- [x] Vendedor ve apenas seus devolutivas.
 - [x] Semana de referencia e a semana anterior fechada.
 - [x] Meta compromisso sugerida vem dos ultimos 15 dias e pode ser ajustada.
 - [x] Ciencia do vendedor grava `acknowledged` e `acknowledged_at`.
@@ -34,7 +34,7 @@ O EPIC-08 exige painel de feedback estruturado por vendedor, com numeros semanai
 
 ## Validacao
 
-- Migration `20260407006000_weekly_feedback_official.sql` adicionou campos estruturados em `feedbacks` no Supabase live.
+- Migration `20260407006000_weekly_feedback_official.sql` adicionou campos estruturados em `devolutivas` no Supabase live.
 - Migration `20260407006100_feedback_seller_ack_guard.sql` aplicada no Supabase live e reparada com `supabase migration repair --status applied 20260407006100`.
 - Painel do gerente ajustado para semana anterior fechada, funil automatico, comparacao com media da equipe e meta compromisso sugerida pelos ultimos 15 dias.
 - Tela do vendedor ajustada para exibir periodo, meta sugerida/final e data de ciencia.

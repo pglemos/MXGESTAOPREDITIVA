@@ -29,9 +29,9 @@ async function main() {
 
   const [clientRes, responsesRes, metricsRes, parameterSetRes, actionsRes] = await Promise.all([
     supabase.from('clientes_consultoria').select('*').eq('id', args.clientId).single(),
-    supabase.from('consulting_pmr_form_responses').select('*, template:consulting_pmr_form_templates(*)').eq('client_id', args.clientId),
-    supabase.from('consulting_client_metric_results').select('*, metric:consulting_metric_catalog(*)').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
-    supabase.from('consulting_parameter_sets').select('*, values:consulting_parameter_values(*)').eq('active', true).maybeSingle(),
+    supabase.from('respostas_formulario_pmr').select('*, template:modelos_formulario_pmr(*)').eq('client_id', args.clientId),
+    supabase.from('resultados_metricas_cliente').select('*, metric:catalogo_metricas_consultoria(*)').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
+    supabase.from('conjuntos_parametros_consultoria').select('*, values:valores_parametros_consultoria(*)').eq('active', true).maybeSingle(),
     supabase.from('itens_plano_acao').select('*').eq('client_id', args.clientId),
   ])
 
@@ -167,7 +167,7 @@ async function main() {
     .single()
   if (planError) throw planError
 
-  const { error: artifactError } = await supabase.from('consulting_generated_artifacts').insert({
+  const { error: artifactError } = await supabase.from('artefatos_gerados_consultoria').insert({
     client_id: args.clientId,
     strategic_plan_id: plan.id,
     artifact_type: 'strategic_payload',

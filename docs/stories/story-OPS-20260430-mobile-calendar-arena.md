@@ -69,7 +69,7 @@ Resultado operacional:
 - Escopos configurados: `userinfo.email` e `calendar.events`.
 - Google Calendar API ativada.
 - App OAuth publicado em produção. O Google passou a indicar que o app precisa de verificação formal antes de remover limites/avisos de app não verificado.
-- OAuth central concluído com `gestao@mxconsultoria.com.br`; token criptografado salvo em `consulting_oauth_tokens` como `provider = google_central`.
+- OAuth central concluído com `gestao@mxconsultoria.com.br`; token criptografado salvo em `tokens_oauth_consultoria` como `provider = google_central`.
 - Para atender a revisão do Google, a home pública `https://mxperformance.vercel.app/` agora exibe o nome exato `MX Performance Calendar` e link visível para a política em `https://mxperformance.vercel.app/privacy`.
 - A marca passou para a etapa de envio final. O bloqueio remanescente é externo ao código: o formulário do Google exige vídeo YouTube demonstrando o uso do escopo `calendar.events`; a conta logada retornou erro ao abrir YouTube/Studio nesta sessão.
 

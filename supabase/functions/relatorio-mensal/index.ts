@@ -38,7 +38,7 @@ Deno.serve(async (req: Request) => {
     for (const store of lojas) {
       const idempotencyKey = `mensal-${store.id}-${dates.year}-${String(dates.month).padStart(2, "0")}`;
       const { data: existingLog } = await supabase
-        .from("reprocess_logs")
+        .from("logs_reprocessamento")
         .select("id")
         .eq("source_type", idempotencyKey)
         .eq("status", "completed")
@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
         emailStatus = result.status;
         warnings = result.warnings;
 
-        await supabase.from("reprocess_logs").insert({
+        await supabase.from("logs_reprocessamento").insert({
           store_id: store.id,
           source_type: idempotencyKey,
           status: emailStatus === "sent" ? "completed" : "failed",
@@ -130,11 +130,11 @@ function getSaoPauloMonthlyWindow() {
 
 async function buildMonthlyPayload(store: any, dates: ReturnType<typeof getSaoPauloMonthlyWindow>) {
   const [deliveryRulesRes, tenuresRes, fallbackMembersRes, checkinsRes, metaRulesRes] = await Promise.all([
-    supabase.from("store_delivery_rules").select("monthly_recipients").eq("store_id", store.id).maybeSingle(),
+    supabase.from("regras_entrega_loja").select("monthly_recipients").eq("store_id", store.id).maybeSingle(),
     supabase.from("vendedores_loja").select("seller_user_id, is_active, users:usuarios(name, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
     supabase.from("vinculos_loja").select("user_id, users:usuarios(name, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
     supabase.from("lancamentos_diarios").select("*").eq("store_id", store.id).gte("reference_date", dates.start).lte("reference_date", dates.end),
-    supabase.from("store_meta_rules").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
+    supabase.from("regras_metas_loja").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
   ]);
 
   const rosterRows = tenuresRes.data && tenuresRes.data.length > 0

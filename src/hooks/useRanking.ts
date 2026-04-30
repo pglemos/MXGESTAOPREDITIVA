@@ -72,7 +72,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
 
         // Get metas for the store
         const { data: rules } = await supabase
-            .from('store_meta_rules')
+            .from('regras_metas_loja')
             .select('monthly_goal, include_venda_loja_in_individual_goal')
             .eq('store_id', storeId)
             .maybeSingle()
@@ -201,7 +201,7 @@ export function useGlobalRanking() {
             supabase.from('vendedores_loja')
                 .select('seller_user_id, store_id, users:usuarios(name, is_venda_loja), lojas:lojas(name)')
                 .eq('is_active', true),
-            supabase.from('store_meta_rules')
+            supabase.from('regras_metas_loja')
                 .select('store_id, monthly_goal, include_venda_loja_in_individual_goal'),
             supabase.from('lancamentos_diarios')
                 .select('seller_user_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
@@ -312,7 +312,7 @@ export function useStorePerformance() {
 
         const [{ data: lojas }, { data: rules }, { data: checkins }, { data: sellers }, { data: yesterdayCheckins }] = await Promise.all([
             supabase.from('lojas').select('id, name'),
-            supabase.from('store_meta_rules').select('store_id, monthly_goal'),
+            supabase.from('regras_metas_loja').select('store_id, monthly_goal'),
             supabase.from('lancamentos_diarios')
                 .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
                 .eq('metric_scope', 'daily')

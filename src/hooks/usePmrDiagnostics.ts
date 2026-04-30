@@ -27,13 +27,13 @@ export function usePmrDiagnostics(clientId?: string) {
     setError(null)
     const [templatesRes, responsesRes] = await Promise.all([
       supabase
-        .from('consulting_pmr_form_templates')
+        .from('modelos_formulario_pmr')
         .select('*')
         .eq('active', true)
         .order('form_key', { ascending: true }),
       supabase
-        .from('consulting_pmr_form_responses')
-        .select('*, template:consulting_pmr_form_templates(*)')
+        .from('respostas_formulario_pmr')
+        .select('*, template:modelos_formulario_pmr(*)')
         .eq('client_id', clientId)
         .order('submitted_at', { ascending: false }),
     ])
@@ -59,7 +59,7 @@ export function usePmrDiagnostics(clientId?: string) {
     summary?: string
   }) => {
     if (!clientId) return { error: 'Cliente nao informado.' }
-    const { error: insertError } = await supabase.from('consulting_pmr_form_responses').insert({
+    const { error: insertError } = await supabase.from('respostas_formulario_pmr').insert({
       client_id: clientId,
       visit_id: input.visit_id || null,
       template_id: input.template_id,

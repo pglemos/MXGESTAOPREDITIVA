@@ -4,7 +4,7 @@ Status: Ready for Review
 
 ## Contexto
 
-O plano operacional `v1.3` e o backlog `v1.2` congelam o EPIC-01 como base obrigatoria antes de check-in, ranking, matinal, semanal, reprocessamento e PDI. O Supabase live ainda mantem parte do schema antigo de `daily_checkins` (`user_id`, `date`, `leads`, `agd_cart`, etc.) e nao possui tabelas canonicas como `store_sellers`, `store_benchmarks`, `store_delivery_rules`, `store_meta_rules`, `reprocess_logs` e `raw_imports`.
+O plano operacional `v1.3` e o backlog `v1.2` congelam o EPIC-01 como base obrigatoria antes de check-in, ranking, matinal, semanal, reprocessamento e PDI. O Supabase live ainda mantem parte do schema antigo de `daily_checkins` (`user_id`, `date`, `leads`, `agd_cart`, etc.) e nao possui tabelas canonicas como `store_sellers`, `benchmarks_loja`, `regras_entrega_loja`, `regras_metas_loja`, `logs_reprocessamento` e `importacoes_brutas`.
 
 ## Decisao
 
@@ -14,10 +14,10 @@ Aplicar uma migration incremental e idempotente que cria a camada canonica sem r
 
 - Criar/ajustar colunas canonicas em `stores`, `users` e `daily_checkins`.
 - Criar `store_sellers` como camada de vigencia operacional.
-- Criar `store_benchmarks` com benchmark 20/60/33 por loja.
-- Criar `store_delivery_rules` com destinatarios por loja.
-- Criar `store_meta_rules` como fonte unica de meta mensal da loja.
-- Criar `reprocess_logs` e `raw_imports` para reparo administrativo.
+- Criar `benchmarks_loja` com benchmark 20/60/33 por loja.
+- Criar `regras_entrega_loja` com destinatarios por loja.
+- Criar `regras_metas_loja` como fonte unica de meta mensal da loja.
+- Criar `logs_reprocessamento` e `importacoes_brutas` para reparo administrativo.
 - Criar views operacionais de `sem registro` e producao diaria.
 - Backfill a partir de `memberships`, `benchmarks`, `goals`, `stores.manager_email` e `daily_checkins` legado.
 - Aplicar RLS usando a matriz oficial de papeis: admin global, dono/gerente por loja, vendedor proprio.
@@ -46,13 +46,13 @@ Aplicar uma migration incremental e idempotente que cria a camada canonica sem r
 - Project ref: `fbhcmzzgwjdgkctlfvbo`.
 - Migration aplicada: `20260407001000_canonical_domain_alignment.sql`.
 - Historico reparado com `supabase migration repair --status applied 20260407001000`.
-- Tabelas confirmadas: `store_sellers`, `store_benchmarks`, `store_delivery_rules`, `store_meta_rules`, `reprocess_logs`, `raw_imports`.
+- Tabelas confirmadas: `store_sellers`, `benchmarks_loja`, `regras_entrega_loja`, `regras_metas_loja`, `logs_reprocessamento`, `importacoes_brutas`.
 - Views confirmadas: `view_sem_registro`, `view_store_daily_production`.
 - Backfill confirmado:
   - `stores`: 8.
-  - `store_benchmarks`: 8.
-  - `store_delivery_rules`: 8.
-  - `store_meta_rules`: 8.
+  - `benchmarks_loja`: 8.
+  - `regras_entrega_loja`: 8.
+  - `regras_metas_loja`: 8.
   - `store_sellers`: 0, porque nao ha membership real de vendedor no banco atual.
   - `daily_checkins`: 0, porque a tabela live esta sem check-ins persistidos.
 - Trigger `sync_daily_checkins_canonical` validada em transacao com rollback: insert canonico preencheu tambem `user_id`, `date`, `leads`, `agd_cart` e `visitas`.

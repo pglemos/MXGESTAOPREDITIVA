@@ -989,7 +989,7 @@ Has Visits:  colored bars (max 3) + "+N" overflow indicator
 - Each form defines a Zod schema (e.g., `visitScheduleSchema`, `checkinFormSchema`)
 - Schemas are used in `react-hook-form` via `zodResolver` OR manually via `schema.parse()`
 - Validation errors displayed inline below each field using `FormField` error slot
-- Toast notifications for submission errors via `sonner`
+- Toast notificacoes for submission errors via `sonner`
 
 **Error Display:**
 - Field-level: Red text below input (`text-status-error text-mx-tiny font-black uppercase`)

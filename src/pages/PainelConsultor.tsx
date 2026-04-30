@@ -34,7 +34,7 @@ export default function PainelConsultor() {
     const navigate = useNavigate()
     const { setActiveStoreId } = useAuth()
     const { metas, loading: goalsLoading } = useAllStoreGoals()
-    const { notifications } = useNotifications()
+    const { notificacoes } = useNotifications()
     
     const [diagnostics, setDiagnostics] = useState<Record<string, StoreDiagnostic>>({})
     const [networkLoading, setNetworkLoading] = useState(true)

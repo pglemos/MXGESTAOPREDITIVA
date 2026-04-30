@@ -80,9 +80,9 @@ async function seed() {
   console.log('Sincronizando metodologia PMR MX...')
   
   // Limpar steps antigos do programa padrão
-  await supabase.from('consulting_visit_template_steps').delete().eq('program_key', 'pmr_7')
+  await supabase.from('etapas_modelo_visita_consultoria').delete().eq('program_key', 'pmr_7')
   
-  const { error } = await supabase.from('consulting_visit_template_steps').insert(
+  const { error } = await supabase.from('etapas_modelo_visita_consultoria').insert(
     PMR_STEPS.map(s => ({ ...s, active: true }))
   )
 

@@ -32,11 +32,11 @@ export function useConsultingMetrics(clientId?: string) {
     setLoading(true)
     setError(null)
     const [catalogRes, targetsRes, resultsRes, marketingRes, inventoryRes] = await Promise.all([
-      supabase.from('consulting_metric_catalog').select('*').eq('active', true).order('sort_order', { ascending: true }),
-      supabase.from('consulting_client_metric_targets').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
-      supabase.from('consulting_client_metric_results').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
-      supabase.from('consulting_marketing_monthly').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
-      supabase.from('consulting_inventory_snapshots').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
+      supabase.from('catalogo_metricas_consultoria').select('*').eq('active', true).order('sort_order', { ascending: true }),
+      supabase.from('metas_metricas_cliente').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
+      supabase.from('resultados_metricas_cliente').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
+      supabase.from('marketing_mensal_consultoria').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
+      supabase.from('snapshots_estoque_consultoria').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
     ])
 
     const fetchError = catalogRes.error || targetsRes.error || resultsRes.error || marketingRes.error || inventoryRes.error
@@ -54,7 +54,7 @@ export function useConsultingMetrics(clientId?: string) {
 
   const upsertTarget = useCallback(async (input: { metric_key: string; reference_month: string; target_value: number; source?: string }) => {
     if (!clientId) return { error: 'Cliente nao informado.' }
-    const { error: upsertError } = await supabase.from('consulting_client_metric_targets').upsert({
+    const { error: upsertError } = await supabase.from('metas_metricas_cliente').upsert({
       client_id: clientId,
       metric_key: input.metric_key,
       reference_month: input.reference_month,
@@ -69,7 +69,7 @@ export function useConsultingMetrics(clientId?: string) {
 
   const upsertResult = useCallback(async (input: { metric_key: string; reference_date: string; result_value: number; source?: string; source_payload?: Record<string, unknown> }) => {
     if (!clientId) return { error: 'Cliente nao informado.' }
-    const { error: upsertError } = await supabase.from('consulting_client_metric_results').upsert({
+    const { error: upsertError } = await supabase.from('resultados_metricas_cliente').upsert({
       client_id: clientId,
       metric_key: input.metric_key,
       reference_date: input.reference_date,

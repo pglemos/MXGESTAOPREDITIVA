@@ -30,7 +30,7 @@ async function main() {
   const [clientRes, plansRes, responsesRes, actionsRes] = await Promise.all([
     supabase.from('clientes_consultoria').select('*').eq('id', args.clientId).single(),
     supabase.from('planejamentos_estrategicos').select('*').eq('client_id', args.clientId).order('generated_at', { ascending: false }).limit(1),
-    supabase.from('consulting_pmr_form_responses').select('*, template:consulting_pmr_form_templates(*)').eq('client_id', args.clientId).order('submitted_at', { ascending: false }),
+    supabase.from('respostas_formulario_pmr').select('*, template:modelos_formulario_pmr(*)').eq('client_id', args.clientId).order('submitted_at', { ascending: false }),
     supabase.from('itens_plano_acao').select('*').eq('client_id', args.clientId).order('priority', { ascending: true }),
   ])
 
@@ -133,7 +133,7 @@ async function main() {
     return
   }
 
-  const { error: artifactError } = await supabase.from('consulting_generated_artifacts').insert({
+  const { error: artifactError } = await supabase.from('artefatos_gerados_consultoria').insert({
     client_id: args.clientId,
     strategic_plan_id: latestPlan?.id || null,
     artifact_type: 'executive_summary',

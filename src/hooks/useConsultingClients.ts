@@ -135,7 +135,7 @@ export function useConsultingClients() {
       })
 
       if (moduleInserts.length > 0) {
-        await supabase.from('consulting_client_modules').insert(moduleInserts)
+        await supabase.from('modulos_cliente_consultoria').insert(moduleInserts)
       }
     }
 
@@ -177,12 +177,12 @@ export function useConsultingClientDetail(clientId?: string) {
 
     const [clientRes, unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, modulesRes, usersRes] = await Promise.all([
       supabase.from('clientes_consultoria').select('*').eq('id', clientId).maybeSingle(),
-      supabase.from('consulting_client_units').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
-      supabase.from('consulting_client_contacts').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
-      supabase.from('consulting_assignments').select('*, user:usuarios(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
+      supabase.from('unidades_cliente_consultoria').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
+      supabase.from('contatos_cliente_consultoria').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
+      supabase.from('atribuicoes_consultoria').select('*, user:usuarios(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
       supabase.from('visitas_consultoria').select('*, consultant:usuarios(name,email), auxiliary_consultant:usuarios(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
       supabase.from('financeiro_consultoria').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
-      supabase.from('consulting_client_modules').select('*').eq('client_id', clientId).order('module_key', { ascending: true }),
+      supabase.from('modulos_cliente_consultoria').select('*').eq('client_id', clientId).order('module_key', { ascending: true }),
       supabase.from('usuarios').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
     ])
 
@@ -221,7 +221,7 @@ export function useConsultingClientDetail(clientId?: string) {
       return { error: 'Apenas perfis MX podem cadastrar unidade.' }
     }
 
-    const { error: insertError } = await supabase.from('consulting_client_units').insert({
+    const { error: insertError } = await supabase.from('unidades_cliente_consultoria').insert({
       client_id: clientId,
       name: input.name.trim(),
       city: input.city?.trim() || null,
@@ -245,7 +245,7 @@ export function useConsultingClientDetail(clientId?: string) {
       return { error: 'Apenas perfis MX podem cadastrar contato.' }
     }
 
-    const { error: insertError } = await supabase.from('consulting_client_contacts').insert({
+    const { error: insertError } = await supabase.from('contatos_cliente_consultoria').insert({
       client_id: clientId,
       name: input.name.trim(),
       email: input.email?.trim() || null,
@@ -268,7 +268,7 @@ export function useConsultingClientDetail(clientId?: string) {
       return { error: 'Apenas perfis MX podem vincular consultores.' }
     }
 
-    const { error: upsertError } = await supabase.from('consulting_assignments').upsert({
+    const { error: upsertError } = await supabase.from('atribuicoes_consultoria').upsert({
       client_id: clientId,
       user_id: input.user_id,
       assignment_role: input.assignment_role,
@@ -286,7 +286,7 @@ export function useConsultingClientDetail(clientId?: string) {
     }
 
     const { error: updateError } = await supabase
-      .from('consulting_assignments')
+      .from('atribuicoes_consultoria')
       .update({ active })
       .eq('id', assignmentId)
 
@@ -385,9 +385,9 @@ export function useConsultingMethodology(programKey = 'pmr_7') {
     async function fetchSteps() {
       setLoading(true)
       const [programRes, templateRes] = await Promise.all([
-        supabase.from('consulting_visit_programs').select('*').eq('program_key', programKey).maybeSingle(),
+        supabase.from('programas_visita_consultoria').select('*').eq('program_key', programKey).maybeSingle(),
         supabase
-          .from('consulting_visit_template_steps')
+          .from('etapas_modelo_visita_consultoria')
           .select('*')
           .eq('program_key', programKey)
           .eq('active', true)
@@ -404,7 +404,7 @@ export function useConsultingMethodology(programKey = 'pmr_7') {
         setSteps(parseConsultingMethodologyStepArray(templateRes.data || []))
       } else {
         const { data } = await supabase
-          .from('consulting_methodology_steps')
+          .from('etapas_metodologia_consultoria')
           .select('*')
           .order('visit_number', { ascending: true })
         setSteps(parseConsultingMethodologyStepArray(data || []))

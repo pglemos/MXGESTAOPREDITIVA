@@ -24,17 +24,17 @@ para garantir autonomia operacional e gerar entregáveis precisos em tempo real.
 ### 1. Gestão de Módulos Premium e Catálogo (JÁ IMPLEMENTADO/REVISADO)
 - [x] O formulário de criação de cliente no CRM de Consultoria agora separa o "Produto Comercial" dos "Módulos Internos" (DRE, Plano de Ação, Diagnóstico).
 - [x] Durante a criação do cliente, o consultor pode ticar quais módulos (incluindo o premium DRE) estarão ativados para aquele cliente.
-- [x] A configuração persiste no banco (`consulting_client_modules`).
+- [x] A configuração persiste no banco (`modulos_cliente_consultoria`).
 
 ### 2. Gestão de Parâmetros MX (Configurações) (JÁ IMPLEMENTADO/REVISADO)
 - [x] A tela de Parâmetros PMR está acessível no menu de Administração da página de Configurações, restrita para administradores da rede.
 - [x] Os usuários podem editar as métricas (Market Average, Best Practice, Default Target e Limites Red/Yellow/Green).
-- [x] Os dados são salvos em `consulting_parameter_values` baseados nos conjuntos ativos em `consulting_parameter_sets`.
+- [x] Os dados são salvos em `valores_parametros_consultoria` baseados nos conjuntos ativos em `conjuntos_parametros_consultoria`.
 
 ### 3. Formulários Nativos do Diagnóstico PMR
-- [x] Construir a UI de renderização do formulário nativo em `PmrDiagnosticsView.tsx` consumindo `consulting_pmr_form_templates`.
+- [x] Construir a UI de renderização do formulário nativo em `PmrDiagnosticsView.tsx` consumindo `modelos_formulario_pmr`.
 - [x] O formulário deve suportar os 4 tipos de roles: Dono, Gerente, Vendedor e Processos.
-- [x] Submissão do formulário salva os resultados estruturados em `consulting_pmr_form_responses`.
+- [x] Submissão do formulário salva os resultados estruturados em `respostas_formulario_pmr`.
 - [x] Respostas alimentam (via summary/LLM) as visões de planejamento estratégico.
 
 ### 4. Fluxo de Dados Diário e Mensal
@@ -46,9 +46,9 @@ para garantir autonomia operacional e gerar entregáveis precisos em tempo real.
 - [x] Resumo executivo (`GED - RELATÓRIO EXECUTIVO DE DIAGNÓSTICO.pdf` equivalente).
 
 ## Initial Data Model (Já contido em migrations previas)
-- `consulting_pmr_form_templates` e `consulting_pmr_form_responses`: Estrutura dos questionários nativos.
-- `consulting_client_modules`: Controle granular de módulos premium e não premium.
-- `consulting_parameter_sets` e `consulting_parameter_values`: Controle de versões de métricas e benchmarks de mercado.
+- `modelos_formulario_pmr` e `respostas_formulario_pmr`: Estrutura dos questionários nativos.
+- `modulos_cliente_consultoria`: Controle granular de módulos premium e não premium.
+- `conjuntos_parametros_consultoria` e `valores_parametros_consultoria`: Controle de versões de métricas e benchmarks de mercado.
 
 ## Probable File List
 

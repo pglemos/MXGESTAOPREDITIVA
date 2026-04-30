@@ -18,7 +18,7 @@ The UX approach emphasizes:
 - **Predictive performance culture** — gamified ranking ("Arena"), tactical prescriptions, and structured feedback loops
 - **Lazy-loaded routes** with Suspense boundaries and skeleton loading states
 - **Motion/animation** via Framer Motion (`motion/react`) for page transitions, list animations, and micro-interactions
-- **Toast notifications** via Sonner for operational feedback
+- **Toast notificacoes** via Sonner for operational feedback
 - **Supabase Auth** with multi-tenant store membership, store switching, and zero-trust validation
 
 ---
@@ -905,7 +905,7 @@ The application is **mobile-first** with a distinct mobile navigation paradigm:
 
 #### Implemented
 - **`role` attributes:** `banner` (header), `main` (workspace), `navigation` (sidebar, mobile bar, drawer, mobile menu categories), `dialog` (mobile menu), `list` (rules list in Checkin), `alert` (form errors), `tooltip` (sidebar tooltip), `presentation` (overlay)
-- **`aria-label`:** Present on all icon buttons (search, notifications, profile, nav items, logout, close)
+- **`aria-label`:** Present on all icon buttons (search, notificacoes, profile, nav items, logout, close)
 - **`aria-expanded` + `aria-controls`:** Sidebar category buttons control drawer
 - **`aria-current="page"`:** Active navigation links
 - **`aria-live="polite"`:** Live total updates in Checkin sidebar
@@ -970,7 +970,7 @@ Pages implement full skeleton layouts matching the expected content structure:
   - "Algo deu errado" message
   - Reload button
   - Dev-only error stack trace display
-- **Data loading errors:** Toast notifications via Sonner (`toast.error()`)
+- **Data loading errors:** Toast notificacoes via Sonner (`toast.error()`)
 - **Empty states:** DataGrid shows centered icon + "Nenhum registro localizado na malha."
 - **Auth errors:** Login page inline error display with lockout countdown
 

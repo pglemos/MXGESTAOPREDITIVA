@@ -313,11 +313,11 @@ Wrapping hierarchy: `QueryClientProvider` → `AuthProvider` → `ErrorBoundary`
 | Hook | Current Location | Target File | Query Key Pattern | Migration Complexity |
 |------|-----------------|-------------|-------------------|---------------------|
 | `useTrainings` | `useData.ts:9-54` | `hooks/useTrainings.ts` | `['trainings', role]` | Low |
-| `useFeedbacks` | `useData.ts:57-134` | `hooks/useFeedbacks.ts` | `['feedbacks', storeId, filters]` | Medium (role-based query builder) |
+| `useFeedbacks` | `useData.ts:57-134` | `hooks/useFeedbacks.ts` | `['devolutivas', storeId, filters]` | Medium (role-based query builder) |
 | `useMyPDIs` | `useData.ts:136-151` | Merged into `usePDIs` | `['pdis', profileId]` | Low |
 | `useWeeklyFeedbackReports` | `useData.ts:153-176` | `hooks/useFeedbackReports.ts` | `['feedback-reports', storeId]` | Low |
 | `usePDIs` | `useData.ts:179-252` | `hooks/usePDIs.ts` | `['pdis', storeId, role]` | Medium (reviews sub-query) |
-| `useNotifications` | `useData.ts:255-338` | `hooks/useNotifications.ts` | `['notifications', profileId]` | High (mutations + RPC) |
+| `useNotifications` | `useData.ts:255-338` | `hooks/useNotifications.ts` | `['notificacoes', profileId]` | High (mutations + RPC) |
 | `useSystemBroadcasts` | `useData.ts:341-373` | `hooks/useBroadcasts.ts` | `['broadcasts']` | Low |
 | `useTeamTrainings` | `useData.ts:376-425` | `hooks/useTeamTrainings.ts` | `['team-trainings', storeId]` | High (3 parallel queries + computation) |
 | `useStoreDeliveryRules` | `useData.ts:428-458` | `hooks/useDeliveryRules.ts` | `['delivery-rules', storeId]` | Low |
@@ -370,9 +370,9 @@ export function useMarkWatched() {
 | Schema | File | Validates | Used By |
 |--------|------|-----------|---------|
 | `TrainingSchema` | `lib/schemas/training.schema.ts` | `trainings` + `training_progress` rows | `useTrainings` |
-| `FeedbackSchema` | `lib/schemas/feedback.schema.ts` | `feedbacks` rows + join aliases | `useFeedbacks` |
+| `FeedbackSchema` | `lib/schemas/feedback.schema.ts` | `devolutivas` rows + join aliases | `useFeedbacks` |
 | `PDISchema` | `lib/schemas/pdi.schema.ts` | `pdis` + `pdi_reviews` rows | `usePDIs` |
-| `NotificationSchema` | `lib/schemas/notification.schema.ts` | `notifications` rows | `useNotifications` |
+| `NotificationSchema` | `lib/schemas/notification.schema.ts` | `notificacoes` rows | `useNotifications` |
 | `ConsultingClientSchema` | `lib/schemas/consulting-client.schema.ts` | `consulting_clients` + detail aggregates | `useConsultingClients` |
 | `DREFinancialSchema` | `lib/schemas/dre.schema.ts` | `consulting_financials` rows (~40 fields) | `useDRE` |
 
@@ -410,9 +410,9 @@ return result.data
 ### 7.1 Server State vs Client State
 
 **Server State** (TanStack Query — Story 1.3):
-- All Supabase query results (trainings, feedbacks, PDIs, notifications, clients, visits, DRE, etc.)
+- All Supabase query results (trainings, devolutivas, PDIs, notificacoes, clients, visits, DRE, etc.)
 - Managed via `useQuery` / `useMutation` with automatic cache, deduplication, and background refetch
-- Query keys follow domain pattern: `['trainings', role]`, `['feedbacks', storeId, filters]`
+- Query keys follow domain pattern: `['trainings', role]`, `['devolutivas', storeId, filters]`
 
 **Client State** (React `useState` — unchanged):
 - Form state (e.g., `scheduleForm` in `AgendaAdmin.tsx:95-104`)
@@ -426,9 +426,9 @@ return result.data
 graph LR
     subgraph "Server State (TanStack Query)"
         Q1[useQuery: trainings]
-        Q2[useQuery: feedbacks]
+        Q2[useQuery: devolutivas]
         Q3[useQuery: PDIs]
-        Q4[useQuery: notifications]
+        Q4[useQuery: notificacoes]
         Q5[useQuery: consulting-clients]
         Q6[useQuery: DRE]
         Q7[useQuery: agenda-visits]

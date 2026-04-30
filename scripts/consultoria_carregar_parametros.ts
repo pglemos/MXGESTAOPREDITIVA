@@ -51,18 +51,18 @@ async function main() {
   }))
 
   const { error: catalogError } = await supabase
-    .from('consulting_metric_catalog')
+    .from('catalogo_metricas_consultoria')
     .upsert(catalogRows, { onConflict: 'metric_key' })
 
   if (catalogError) throw catalogError
 
   await supabase
-    .from('consulting_parameter_sets')
+    .from('conjuntos_parametros_consultoria')
     .update({ active: false })
     .eq('active', true)
 
   const { data: setRow, error: setError } = await supabase
-    .from('consulting_parameter_sets')
+    .from('conjuntos_parametros_consultoria')
     .upsert({
       name: 'PMR Base MX',
       version: '2026.04',
@@ -88,7 +88,7 @@ async function main() {
   }))
 
   const { error: valuesError } = await supabase
-    .from('consulting_parameter_values')
+    .from('valores_parametros_consultoria')
     .upsert(valueRows, { onConflict: 'parameter_set_id,metric_key' })
 
   if (valuesError) throw valuesError

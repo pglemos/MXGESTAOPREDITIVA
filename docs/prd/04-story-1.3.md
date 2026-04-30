@@ -122,11 +122,11 @@ export function useTrainings() {
 | Hook | Current Location | Target File | Query Key Pattern | Migration Complexity |
 |------|-----------------|-------------|-------------------|---------------------|
 | `useTrainings` | `useData.ts:9-54` | `hooks/useTrainings.ts` | `['trainings', role]` | Low |
-| `useFeedbacks` | `useData.ts:57-134` | `hooks/useFeedbacks.ts` | `['feedbacks', storeId, filters]` | Medium (role-based query builder) |
+| `useFeedbacks` | `useData.ts:57-134` | `hooks/useFeedbacks.ts` | `['devolutivas', storeId, filters]` | Medium (role-based query builder) |
 | `useMyPDIs` | `useData.ts:136-151` | Merged into `usePDIs` | `['pdis', profileId]` | Low |
 | `useWeeklyFeedbackReports` | `useData.ts:153-176` | `hooks/useFeedbackReports.ts` | `['feedback-reports', storeId]` | Low |
 | `usePDIs` | `useData.ts:179-252` | `hooks/usePDIs.ts` | `['pdis', storeId, role]` | Medium (reviews sub-query) |
-| `useNotifications` | `useData.ts:255-338` | `hooks/useNotifications.ts` | `['notifications', profileId]` | High (mutations + RPC) |
+| `useNotifications` | `useData.ts:255-338` | `hooks/useNotifications.ts` | `['notificacoes', profileId]` | High (mutations + RPC) |
 | `useSystemBroadcasts` | `useData.ts:341-373` | `hooks/useBroadcasts.ts` | `['broadcasts']` | Low |
 | `useTeamTrainings` | `useData.ts:376-425` | `hooks/useTeamTrainings.ts` | `['team-trainings', storeId]` | High (3 parallel queries + computation) |
 | `useStoreDeliveryRules` | `useData.ts:428-458` | `hooks/useDeliveryRules.ts` | `['delivery-rules', storeId]` | Low |

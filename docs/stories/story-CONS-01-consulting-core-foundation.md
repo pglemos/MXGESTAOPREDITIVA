@@ -29,12 +29,12 @@ para iniciar o CRM interno da MX sem afetar lojas, check-ins e relatorios existe
 
 - [x] Criar migration Supabase isolada para as tabelas:
   - `consulting_clients`
-  - `consulting_client_units`
-  - `consulting_client_contacts`
-  - `consulting_assignments`
+  - `unidades_cliente_consultoria`
+  - `contatos_cliente_consultoria`
+  - `atribuicoes_consultoria`
 - [x] Criar RLS inicial para impedir acesso indevido aos clientes da consultoria.
 - [x] Admin deve poder listar e cadastrar clientes da consultoria.
-- [ ] Consultor vinculado em `consulting_assignments` deve poder ler o cliente vinculado.
+- [ ] Consultor vinculado em `atribuicoes_consultoria` deve poder ler o cliente vinculado.
 - [ ] Usuario sem permissao nao deve ler cliente sem assignment.
 - [x] Criar tipos TypeScript minimos para as entidades novas.
 - [x] Criar hook minimo `useConsultingClients`.
@@ -63,7 +63,7 @@ para iniciar o CRM interno da MX sem afetar lojas, check-ins e relatorios existe
 - A UI deve ficar isolada em rotas `/consultoria*`; remover as rotas deve desativar o modulo sem afetar o core.
 - A migration deve ser isolada e nao alterar tabelas existentes.
 - Caso o schema precise ser revertido antes de producao, remover apenas tabelas `consulting_*` criadas nesta story.
-- Nenhum dado de `stores`, `daily_checkins`, `feedbacks`, `pdis`, `trainings` ou relatorios deve ser alterado.
+- Nenhum dado de `stores`, `daily_checkins`, `devolutivas`, `pdis`, `trainings` ou relatorios deve ser alterado.
 
 ## 6. Regression Checks
 

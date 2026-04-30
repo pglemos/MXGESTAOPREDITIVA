@@ -23,7 +23,7 @@ Fonte completa: `../mx-consultoria-crm-prd.md`
 ## Requisitos principais
 
 - Cliente da consultoria com produto, contatos, unidades, status e consultores.
-- Historico por cliente: visitas, documentos, evidencias, feedbacks e pendencias.
+- Historico por cliente: visitas, documentos, evidencias, devolutivas e pendencias.
 - Agenda de consultoria com visitas, eventos, aulas e bloqueios.
 - Visitas PMR 1-7 com objetivo, checklist, evidencia e modelo de relatorio.
 - Financeiro/DRE, estoque, leads, PDI e treinamentos em fases posteriores.

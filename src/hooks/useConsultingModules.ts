@@ -32,7 +32,7 @@ export function useConsultingModules(clientId?: string) {
     setLoading(true)
     setError(null)
     const { data, error: fetchError } = await supabase
-      .from('consulting_client_modules')
+      .from('modulos_cliente_consultoria')
       .select('*')
       .eq('client_id', clientId)
       .order('module_key', { ascending: true })
@@ -54,7 +54,7 @@ export function useConsultingModules(clientId?: string) {
     if (!clientId || !canManage) return { error: 'Apenas perfis MX podem alterar módulos da consultoria.' }
     const defaults = DEFAULT_CONSULTING_MODULES.find((item) => item.module_key === moduleKey)
     const { error: upsertError } = await supabase
-      .from('consulting_client_modules')
+      .from('modulos_cliente_consultoria')
       .upsert({
         client_id: clientId,
         module_key: moduleKey,

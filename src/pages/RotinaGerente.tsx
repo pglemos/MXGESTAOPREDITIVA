@@ -48,7 +48,7 @@ export default function RotinaGerente() {
     const { metaRules, fetchMetaRules } = useStoreMetaRules(effectiveStoreId)
     const { ranking, refetch: refetchRanking } = useRanking(effectiveStoreId)
     const { routineLog, registerRoutine } = useManagerRoutine(effectiveStoreId)
-    const { feedbacks, refetch: refetchFeedbacks } = useFeedbacks(isAdmin ? { storeId: effectiveStoreId } : undefined)
+    const { devolutivas, refetch: refetchFeedbacks } = useFeedbacks(isAdmin ? { storeId: effectiveStoreId } : undefined)
     const { pdis, refetch: refetchPDIs } = usePDIs(effectiveStoreId)
     const { sendNotification } = useNotifications()
     const { fetchPendingRequests, approveRequest, rejectRequest, loading: auditorLoading } = useCheckinAuditor(effectiveStoreId)
@@ -89,7 +89,7 @@ export default function RotinaGerente() {
             )
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'checkin_correction_requests', filter: `store_id=eq.${storeIdToListen}` },
+                { event: 'INSERT', schema: 'public', table: 'solicitacoes_correcao_lancamento', filter: `store_id=eq.${storeIdToListen}` },
                 () => {
                     toast.warning('Nova solicitação de correção!', {
                         description: 'Um vendedor solicitou ajuste em registro passado.',

@@ -13,7 +13,7 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         if (!profile?.id || !storeId) return { error: 'Sessão inválida' }
         
         setLoading(true)
-        const { error } = await supabase.from('checkin_correction_requests').insert({
+        const { error } = await supabase.from('solicitacoes_correcao_lancamento').insert({
             checkin_id: checkinId,
             seller_id: profile.id,
             store_id: storeId,
@@ -29,7 +29,7 @@ export function useCheckinAuditor(storeIdOverride?: string) {
     const fetchPendingRequests = useCallback(async () => {
         if (!storeId) return []
         const { data } = await supabase
-            .from('checkin_correction_requests')
+            .from('solicitacoes_correcao_lancamento')
             .select('*, seller:usuarios(name)')
             .eq('store_id', storeId)
             .eq('status', 'pending')

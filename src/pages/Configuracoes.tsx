@@ -23,7 +23,7 @@ export default function Configuracoes() {
         name: profile?.name || '',
         email: profile?.email || '',
         phone: profile?.phone || '',
-        notifications: true,
+        notificacoes: true,
     })
 
     const handleSave = async (e: React.FormEvent) => {
@@ -121,14 +121,14 @@ export default function Configuracoes() {
                             <Card className="flex items-center justify-between p-mx-lg bg-surface-alt border border-border-subtle shadow-inner group hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-sm transition-all">
                                 <div className="space-y-mx-tiny">
                                     <Typography variant="h3" className="text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors">Notificações Push</Typography>
-                                    <Typography variant="p" tone="muted" className="lowercase tracking-normal italic uppercase tracking-widest font-black text-xs">Alertas de gaps, rituais pendentes e novos feedbacks</Typography>
+                                    <Typography variant="p" tone="muted" className="lowercase tracking-normal italic uppercase tracking-widest font-black text-xs">Alertas de gaps, rituais pendentes e novos devolutivas</Typography>
                                 </div>
                                 <Button 
-                                    variant={form.notifications ? 'primary' : 'outline'}
-                                    onClick={() => setForm(p => ({ ...p, notifications: !p.notifications }))}
+                                    variant={form.notificacoes ? 'primary' : 'outline'}
+                                    onClick={() => setForm(p => ({ ...p, notificacoes: !p.notificacoes }))}
                                     className="w-mx-3xl h-mx-xl rounded-mx-full font-black text-mx-tiny shadow-mx-sm"
                                 >
-                                    {form.notifications ? 'ATIVADO' : 'OFF'}
+                                    {form.notificacoes ? 'ATIVADO' : 'OFF'}
                                 </Button>
                             </Card>
                         </div>

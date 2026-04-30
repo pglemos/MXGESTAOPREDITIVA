@@ -52,12 +52,12 @@ export default function Perfil() {
       const path = `avatars/${profile.id}.${ext}`
 
       const { error: uploadError } = await supabase.storage
-        .from('profiles')
+        .from('perfis_usuario')
         .upload(path, file, { upsert: true })
 
       if (uploadError) throw uploadError
 
-      const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(path)
+      const { data: { publicUrl } } = supabase.storage.from('perfis_usuario').getPublicUrl(path)
       const avatarUrl = `${publicUrl}?t=${Date.now()}`
 
       const { error: updateError } = await updateProfile({ avatar_url: avatarUrl })

@@ -23,7 +23,7 @@ O EPIC-10 exige visão geral multi-loja da consultoria MX com KPIs executivos e 
 
 - [x] Painel dispara `matinal`, `semanal` e `mensal`.
 - [x] `relatorio-mensal` suporta `dry_run`, `force` e `store_id`.
-- [x] `relatorio-mensal` grava log coerente em `reprocess_logs`.
+- [x] `relatorio-mensal` grava log coerente em `logs_reprocessamento`.
 - [x] Helper de cron mensal existe no banco live.
 - [x] Gates locais passam.
 

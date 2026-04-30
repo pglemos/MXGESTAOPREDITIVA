@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
       const generatedState = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + OAUTH_STATE_TTL_MS).toISOString();
 
-      const { error: insertError } = await adminClient.from("consulting_google_oauth_states").insert({
+      const { error: insertError } = await adminClient.from("estados_oauth_google_consultoria").insert({
         user_id: user.id,
         client_id: clientId,
         state: generatedState,
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     const adminClient = createClient(requireEnv("SUPABASE_URL", SUPABASE_URL), requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY));
 
     const { data: stateRow, error: stateError } = await adminClient
-      .from("consulting_google_oauth_states")
+      .from("estados_oauth_google_consultoria")
       .select("id, user_id, client_id, redirect_uri, expires_at, consumed_at, purpose")
       .eq("state", state)
       .maybeSingle();
@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
     const provider = purpose === "central" ? "google_central" : "google";
 
     const { data: existingToken, error: tokenLookupError } = await adminClient
-      .from("consulting_oauth_tokens")
+      .from("tokens_oauth_consultoria")
       .select("id")
       .eq("user_id", stateRow.user_id)
       .eq("provider", provider)
@@ -185,16 +185,16 @@ Deno.serve(async (req) => {
         scopes: tokenPayload.scopes,
       };
       if (encryptedRefreshToken) updatePayload.refresh_token = encryptedRefreshToken;
-      const { error: updateError } = await adminClient.from("consulting_oauth_tokens").update(updatePayload).eq("id", existingToken.id);
+      const { error: updateError } = await adminClient.from("tokens_oauth_consultoria").update(updatePayload).eq("id", existingToken.id);
       if (updateError) throw updateError;
     } else {
-      const { error: insertTokenError } = await adminClient.from("consulting_oauth_tokens").insert({ ...tokenPayload, refresh_token: encryptedRefreshToken });
+      const { error: insertTokenError } = await adminClient.from("tokens_oauth_consultoria").insert({ ...tokenPayload, refresh_token: encryptedRefreshToken });
       if (insertTokenError) throw insertTokenError;
     }
 
     if (purpose === "personal") {
       const { data: existingSettings, error: settingsLookupError } = await adminClient
-        .from("consulting_calendar_settings")
+        .from("configuracoes_calendario_consultoria")
         .select("id, client_id")
         .eq("user_id", stateRow.user_id)
         .maybeSingle();
@@ -221,15 +221,15 @@ Deno.serve(async (req) => {
         if (!existingSettings.client_id && shouldLinkClient) updateSettings.client_id = stateRow.client_id;
         updateSettings.google_calendar_id = "primary";
         updateSettings.sync_active = true;
-        const { error: updateSettingsError } = await adminClient.from("consulting_calendar_settings").update(updateSettings).eq("id", existingSettings.id);
+        const { error: updateSettingsError } = await adminClient.from("configuracoes_calendario_consultoria").update(updateSettings).eq("id", existingSettings.id);
         if (updateSettingsError) throw updateSettingsError;
       } else {
-        const { error: insertSettingsError } = await adminClient.from("consulting_calendar_settings").insert(settingsPayload);
+        const { error: insertSettingsError } = await adminClient.from("configuracoes_calendario_consultoria").insert(settingsPayload);
         if (insertSettingsError) throw insertSettingsError;
       }
     }
 
-    const { error: consumeError } = await adminClient.from("consulting_google_oauth_states").delete().eq("id", stateRow.id);
+    const { error: consumeError } = await adminClient.from("estados_oauth_google_consultoria").delete().eq("id", stateRow.id);
     if (consumeError) throw consumeError;
 
     const APP_URL = "https://mxperformance.vercel.app";

@@ -20,7 +20,7 @@ export async function runWeeklyFeedbackWorkflow() {
     // 2. Buscar lojas e suas regras de entrega
     const { data: lojas, error: storeErr } = await supabase
         .from('lojas')
-        .select('*, store_delivery_rules(*), store_meta_rules(*)');
+        .select('*, regras_entrega_loja(*), regras_metas_loja(*)');
 
     if (storeErr || !lojas) {
         console.error('❌ Erro ao buscar lojas:', storeErr);
@@ -76,7 +76,7 @@ export async function runWeeklyFeedbackWorkflow() {
         }
 
         // 5. Enviar E-mail Consolidado para o Gerente/Dono
-        const recipients = store.store_delivery_rules?.weekly_recipients;
+        const recipients = store.regras_entrega_loja?.weekly_recipients;
         
         if (recipients && recipients.length > 0) {
             try {

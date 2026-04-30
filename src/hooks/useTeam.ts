@@ -212,7 +212,7 @@ export function useStores() {
 
         if (store?.id) {
             const recipients = managerEmail ? [managerEmail] : []
-            const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
+            const { error: deliveryError } = await supabase.from('regras_entrega_loja').upsert({
                 store_id: store.id,
                 matinal_recipients: recipients,
                 weekly_recipients: recipients,
@@ -253,7 +253,7 @@ export function useStores() {
 
         if (Object.prototype.hasOwnProperty.call(payload, 'manager_email')) {
             const recipients = payload.manager_email ? [payload.manager_email] : []
-            const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
+            const { error: deliveryError } = await supabase.from('regras_entrega_loja').upsert({
                 store_id: id,
                 matinal_recipients: recipients,
                 weekly_recipients: recipients,

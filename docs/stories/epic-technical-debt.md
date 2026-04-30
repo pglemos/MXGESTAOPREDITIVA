@@ -38,7 +38,7 @@
 - **Débito:** DB-08
 - **Prioridade:** P1
 - **Estimativa:** 5h
-- **Descrição:** As 17 tabelas core pré-existentes (`users`, `stores`, `memberships`, `daily_checkins`, `goals`, `benchmarks`, `feedbacks`, `pdis`, `notifications`, `notification_reads`, `trainings`, `training_progress`, `digital_products`, `roles`, `user_roles`, `goal_logs`, `audit_logs`) foram criadas antes do sistema de migrations versionadas. Um `supabase db reset` não recria o schema completo, impedindo disaster recovery e onboarding.
+- **Descrição:** As 17 tabelas core pré-existentes (`users`, `stores`, `memberships`, `daily_checkins`, `goals`, `benchmarks`, `devolutivas`, `pdis`, `notificacoes`, `notification_reads`, `trainings`, `training_progress`, `produtos_digitais`, `roles`, `user_roles`, `goal_logs`, `audit_logs`) foram criadas antes do sistema de migrations versionadas. Um `supabase db reset` não recria o schema completo, impedindo disaster recovery e onboarding.
 - **Critérios de Aceitação:**
   1. `supabase db dump --schema public` executado e commitado como migration `00000000000000_baseline_legacy_schema.sql`
   2. Todas as 17 tabelas + 4 views + indexes + constraints + policies + triggers capturados no dump
@@ -179,7 +179,7 @@
 - **Débito:** DB-09
 - **Prioridade:** P2
 - **Estimativa:** 4h
-- **Descrição:** `users.phone` armazena PII em plaintext. Cifrar com `pgcrypto` para proteger dados em repouso. `users.email` mantido plaintext (necessário para `process_import_data` com `WHERE email ILIKE`). `consulting_oauth_tokens` já protegido por AES-256-GCM nas Edge Functions.
+- **Descrição:** `users.phone` armazena PII em plaintext. Cifrar com `pgcrypto` para proteger dados em repouso. `users.email` mantido plaintext (necessário para `process_import_data` com `WHERE email ILIKE`). `tokens_oauth_consultoria` já protegido por AES-256-GCM nas Edge Functions.
 - **Critérios de Aceitação:**
   1. [x] `users.phone` cifrado com `pgcrypto.encrypt()` usando `current_setting('app.crypto_key')` (não hardcoded)
   2. [x] Função de decriptação `decrypt_phone()` acessível apenas via Service Role
@@ -201,15 +201,15 @@
   1. Todas as FKs legadas com `ON DELETE` explícito documentado
   2. `daily_checkins.store_id → stores(id)`: CASCADE
   3. `daily_checkins.user_id → users(id)`: SET NULL (preserva dados históricos)
-  4. `feedbacks.store_id → stores(id)`: CASCADE
-  5. `feedbacks.seller_id → users(id)`: SET NULL
-  6. `feedbacks.manager_id → users(id)`: SET NULL
+  4. `devolutivas.store_id → stores(id)`: CASCADE
+  5. `devolutivas.seller_id → users(id)`: SET NULL
+  6. `devolutivas.manager_id → users(id)`: SET NULL
   7. `pdis.store_id → stores(id)`: CASCADE
   8. `pdis.seller_id → users(id)`: SET NULL
   9. `pdis.manager_id → users(id)`: SET NULL
   10. `goals.store_id → stores(id)`: CASCADE
   11. `goals.user_id → users(id)`: CASCADE
-  12. `notifications.recipient_id → users(id)`: CASCADE
+  12. `notificacoes.recipient_id → users(id)`: CASCADE
   13. `goal_logs.goal_id → goals(id)`: CASCADE
   14. Cascade testado em staging sem órfãos
   15. Migration versionada e validada
@@ -223,7 +223,7 @@
 - **Débito:** DB-14
 - **Prioridade:** P2
 - **Estimativa:** 2h
-- **Descrição:** `consulting_google_oauth_states` acumula states consumidos e expirados sem cleanup. Agendar `pg_cron` para remover states com mais de 1h.
+- **Descrição:** `estados_oauth_google_consultoria` acumula states consumidos e expirados sem cleanup. Agendar `pg_cron` para remover states com mais de 1h.
 - **Critérios de Aceitação:**
   1. [x] Cron job `cleanup-oauth-states` agendado via `pg_cron` (execução a cada 15 minutos)
   2. [x] Remove states onde `consumed_at IS NOT NULL OR expires_at < now()` E `created_at < now() - interval '1 hour'`
@@ -335,15 +335,15 @@
 - **Débito:** DB-10
 - **Prioridade:** P3
 - **Estimativa:** 2h
-- **Descrição:** Colunas JSONB sem validação de schema em `feedbacks` (~5 colunas), `automation_configs.ai_context`, `report_history.data_snapshot`. Tabelas de audit/log são aceitáveis sem validação (schema mutável por design).
+- **Descrição:** Colunas JSONB sem validação de schema em `devolutivas` (~5 colunas), `automation_configs.ai_context`, `report_history.data_snapshot`. Tabelas de audit/log são aceitáveis sem validação (schema mutável por design).
 - **Critérios de Aceitação:**
-  1. CHECK constraints com `jsonb_typeof()` em `feedbacks` validando chaves obrigatórias
+  1. CHECK constraints com `jsonb_typeof()` em `devolutivas` validando chaves obrigatórias
   2. Schema check básico em `automation_configs.ai_context`
-  3. Tabelas de audit (`checkin_audit_logs`, `reprocess_logs`, `raw_imports`, `store_meta_rules_history`) permanecem sem validação (append-only)
+  3. Tabelas de audit (`checkin_audit_logs`, `logs_reprocessamento`, `importacoes_brutas`, `historico_regras_metas_loja`) permanecem sem validação (append-only)
   4. Migration versionada
   5. Dados existentes validados antes de aplicar constraint
 - **Dependências:** Nenhuma
-- **Notas Técnicas:** Foco em `feedbacks` primeiro (dados de negócio estruturado). Para audit/log, JSONB sem validação é aceitável por design.
+- **Notas Técnicas:** Foco em `devolutivas` primeiro (dados de negócio estruturado). Para audit/log, JSONB sem validação é aceitável por design.
 
 ---
 
@@ -351,12 +351,12 @@
 - **Débito:** DB-11
 - **Prioridade:** P3
 - **Estimativa:** 1h
-- **Descrição:** `checkin_correction_requests` e `reprocess_logs` sofrem UPDATE mas não possuem `updated_at`. Demais tabelas de audit são append-only e genuinamente não precisam.
+- **Descrição:** `solicitacoes_correcao_lancamento` e `logs_reprocessamento` sofrem UPDATE mas não possuem `updated_at`. Demais tabelas de audit são append-only e genuinamente não precisam.
 - **Critérios de Aceitação:**
-  1. Coluna `updated_at TIMESTAMPTZ` adicionada em `checkin_correction_requests` e `reprocess_logs`
+  1. Coluna `updated_at TIMESTAMPTZ` adicionada em `solicitacoes_correcao_lancamento` e `logs_reprocessamento`
   2. Trigger `update_updated_at_column_canonical()` (função canônica) associado a ambas
   3. Trigger dispara apenas em UPDATE, setando `updated_at = now()`
-  4. Tabelas append-only (`checkin_audit_logs`, `store_meta_rules_history`, `raw_imports`) não alteradas
+  4. Tabelas append-only (`checkin_audit_logs`, `historico_regras_metas_loja`, `importacoes_brutas`) não alteradas
 - **Dependências:** Nenhuma
 - **Notas Técnicas:** Escopo reduzido pelo DB Specialist — apenas 2 tabelas sofrem UPDATE. As demais têm apenas `created_at` (append-only).
 

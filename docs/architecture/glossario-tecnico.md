@@ -40,6 +40,46 @@ Este documento e a fonte obrigatoria para nomenclatura tecnica do sistema MX.
 | `goals` | `metas` |
 | `goal_logs` | `historico_metas` |
 | `audit_logs` | `logs_auditoria` |
+| `store_benchmarks` | `benchmarks_loja` |
+| `store_delivery_rules` | `regras_entrega_loja` |
+| `store_meta_rules` | `regras_metas_loja` |
+| `store_meta_rules_history` | `historico_regras_metas_loja` |
+| `store_audit_log` | `logs_auditoria_loja` |
+| `reprocess_logs` | `logs_reprocessamento` |
+| `raw_imports` | `importacoes_brutas` |
+| `weekly_feedback_reports` | `relatorios_devolutivas_semanais` |
+| `checkin_correction_requests` | `solicitacoes_correcao_lancamento` |
+| `digital_products` | `produtos_digitais` |
+| `notifications` | `notificacoes` |
+| `feedbacks` | `devolutivas` |
+| `manager_routine_logs` | `logs_rotina_gerente` |
+| `whatsapp_share_logs` | `logs_compartilhamento_whatsapp` |
+| `profiles` | `perfis_usuario` |
+| `consulting_assignments` | `atribuicoes_consultoria` |
+| `consulting_client_units` | `unidades_cliente_consultoria` |
+| `consulting_client_contacts` | `contatos_cliente_consultoria` |
+| `consulting_oauth_tokens` | `tokens_oauth_consultoria` |
+| `consulting_calendar_settings` | `configuracoes_calendario_consultoria` |
+| `consulting_google_oauth_states` | `estados_oauth_google_consultoria` |
+| `consulting_visit_programs` | `programas_visita_consultoria` |
+| `consulting_visit_template_steps` | `etapas_modelo_visita_consultoria` |
+| `consulting_client_modules` | `modulos_cliente_consultoria` |
+| `consulting_pmr_form_templates` | `modelos_formulario_pmr` |
+| `consulting_pmr_form_responses` | `respostas_formulario_pmr` |
+| `consulting_metric_catalog` | `catalogo_metricas_consultoria` |
+| `consulting_parameter_sets` | `conjuntos_parametros_consultoria` |
+| `consulting_parameter_values` | `valores_parametros_consultoria` |
+| `consulting_client_metric_targets` | `metas_metricas_cliente` |
+| `consulting_client_metric_results` | `resultados_metricas_cliente` |
+| `consulting_client_metric_snapshots` | `snapshots_metricas_cliente` |
+| `consulting_marketing_monthly` | `marketing_mensal_consultoria` |
+| `consulting_sales_entries` | `entradas_vendas_consultoria` |
+| `consulting_inventory_snapshots` | `snapshots_estoque_consultoria` |
+| `consulting_inventory_items` | `itens_estoque_consultoria` |
+| `consulting_generated_artifacts` | `artefatos_gerados_consultoria` |
+| `consulting_schedule_events` | `eventos_agenda_consultoria` |
+| `consulting_import_batches` | `lotes_importacao_consultoria` |
+| `consulting_import_rows` | `linhas_importacao_consultoria` |
 
 ## Rotas canonicas
 

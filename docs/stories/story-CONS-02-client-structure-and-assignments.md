@@ -29,7 +29,7 @@ para transformar o cliente em um registro operacional utilizavel no CRM interno.
 
 - [x] Admin deve conseguir cadastrar unidade em cliente da consultoria.
 - [x] Admin deve conseguir cadastrar contato em cliente da consultoria.
-- [x] Admin deve conseguir vincular usuario existente ao cliente em `consulting_assignments`.
+- [x] Admin deve conseguir vincular usuario existente ao cliente em `atribuicoes_consultoria`.
 - [x] Admin deve conseguir reativar/desativar assignment sem apagar historico.
 - [x] A tela `/consultoria/clientes/:clientId` deve refletir as alteracoes apos salvar.
 - [x] Usuarios continuam sem acesso a rotas fora do escopo novo.
@@ -82,14 +82,14 @@ para transformar o cliente em um registro operacional utilizavel no CRM interno.
 
 ## 9. Notes
 
-Assignments continuam usando a tabela `users` existente e o controle de acesso permanece baseado em `consulting_assignments` + RLS da `CONS-01`.
+Assignments continuam usando a tabela `users` existente e o controle de acesso permanece baseado em `atribuicoes_consultoria` + RLS da `CONS-01`.
 
 Validacao local concluida para gates e para o shell de `/consultoria/clientes` com bypass DEV.
 
 Validacao live concluida em `2026-04-13` / `2026-04-14` com o usuario admin real `jose.roberto@mxperformance.com.br`:
-- `consulting_client_units`: insert e delete validados
-- `consulting_client_contacts`: insert e delete validados
-- `consulting_assignments`: upsert, deactivate, reactivate e delete validados
+- `unidades_cliente_consultoria`: insert e delete validados
+- `contatos_cliente_consultoria`: insert e delete validados
+- `atribuicoes_consultoria`: upsert, deactivate, reactivate e delete validados
 - cleanup completo executado apos o teste, sem deixar dados de QA persistidos
 
 A validacao visual headless do detalhe `/consultoria/clientes/:clientId` segue instavel neste ambiente por `ERR_CONNECTION_RESET` do browser contra o Supabase, apesar de `curl` e RLS autenticada estarem operando normalmente.

@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
     for (const store of lojas) {
       const idempotencyKey = `matinal-${store.id}-${dates.today}`;
       const { data: existingLog } = await supabase
-        .from("reprocess_logs")
+        .from("logs_reprocessamento")
         .select("id")
         .eq("source_type", idempotencyKey)
         .eq("status", "completed")
@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
         emailStatus = result.status;
         warnings = result.warnings;
 
-        await supabase.from("reprocess_logs").insert({
+        await supabase.from("logs_reprocessamento").insert({
           store_id: store.id,
           source_type: idempotencyKey,
           status: emailStatus === "sent" ? "completed" : "failed",
@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
 
         if (managers && managers.length > 0) {
           for (const manager of managers) {
-            await supabase.from("notifications").insert({
+            await supabase.from("notificacoes").insert({
               recipient_id: manager.user_id,
               store_id: store.id,
               title: `Alerta de Disciplina: ${store.name}`,
@@ -120,7 +120,7 @@ Deno.serve(async (req: Request) => {
         }
 
         for (const seller of payload.semRegistroFull) {
-          await supabase.from("notifications").insert({
+          await supabase.from("notificacoes").insert({
             recipient_id: seller.uid,
             store_id: store.id,
             title: "Pendente: Registro de Ontem",
@@ -172,12 +172,12 @@ function getSaoPauloDates() {
 
 async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPauloDates>) {
   const [deliveryRulesRes, tenuresRes, fallbackMembersRes, checkinsRes, referenceCheckinsRes, metaRulesRes] = await Promise.all([
-    supabase.from("store_delivery_rules").select("matinal_recipients, whatsapp_group_ref").eq("store_id", store.id).maybeSingle(),
+    supabase.from("regras_entrega_loja").select("matinal_recipients, whatsapp_group_ref").eq("store_id", store.id).maybeSingle(),
     supabase.from("vendedores_loja").select("seller_user_id, is_active, users:usuarios(name, email, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
     supabase.from("vinculos_loja").select("user_id, users:usuarios(name, email, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
     supabase.from("lancamentos_diarios").select("*").eq("store_id", store.id).eq("metric_scope", "daily").gte("reference_date", dates.startOfMonth).lte("reference_date", dates.referenceDate),
     supabase.from("lancamentos_diarios").select("seller_user_id").eq("store_id", store.id).eq("metric_scope", "daily").eq("reference_date", dates.referenceDate),
-    supabase.from("store_meta_rules").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
+    supabase.from("regras_metas_loja").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
   ]);
 
   const tenureRows = tenuresRes.data && tenuresRes.data.length > 0

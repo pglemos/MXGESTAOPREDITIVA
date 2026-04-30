@@ -45,7 +45,7 @@ export default function GerenteFeedback() {
 
 function AdminFeedback() {
     const { profile, setActiveStoreId } = useAuth()
-    const { feedbacks, loading: feedbacksLoading, createFeedback, refetch: refetchFeedbacks } = useFeedbacks()
+    const { devolutivas, loading: devolutivasLoading, createFeedback, refetch: refetchFeedbacks } = useFeedbacks()
     const { reports, loading: reportsLoading, refetch: refetchReports } = useWeeklyFeedbackReports()
     const { sellers: allSellers, loading: sellersLoading } = useAllSellers()
     const { lojas } = useStores()
@@ -71,11 +71,11 @@ function AdminFeedback() {
     }, [allSellers, selectedStoreId])
 
     const filteredFeedbacks = useMemo(() => {
-        return feedbacks.filter(f =>
+        return devolutivas.filter(f =>
             (f as any).seller_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             f.week_reference.includes(searchTerm)
         )
-    }, [feedbacks, searchTerm])
+    }, [devolutivas, searchTerm])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -122,7 +122,7 @@ function AdminFeedback() {
         const seller = allSellers.find(s => s.id === formData.seller_id)
         if (!seller) { setSaving(false); toast.error('Selecione um vendedor.'); return }
         const { supabase } = await import('@/lib/supabase')
-        const { error } = await supabase.from('feedbacks').upsert({
+        const { error } = await supabase.from('devolutivas').upsert({
             store_id: seller.store_id,
             manager_id: profile?.id,
             seller_id: formData.seller_id,
@@ -161,7 +161,7 @@ function AdminFeedback() {
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     }
 
-    if (feedbacksLoading || reportsLoading || sellersLoading) return (
+    if (devolutivasLoading || reportsLoading || sellersLoading) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
@@ -389,7 +389,7 @@ function AdminFeedback() {
 
 function StoreFeedback() {
     const { profile, storeId, role } = useAuth()
-    const { feedbacks, loading: feedbacksLoading, createFeedback, refetch: refetchFeedbacks } = useFeedbacks()
+    const { devolutivas, loading: devolutivasLoading, createFeedback, refetch: refetchFeedbacks } = useFeedbacks()
     const { reports, loading: reportsLoading, refetch: refetchReports } = useWeeklyFeedbackReports()
     const { sellers } = useTeam()
     const { checkins } = useCheckins()
@@ -445,11 +445,11 @@ function StoreFeedback() {
     }
 
     const filteredFeedbacks = useMemo(() => {
-        return feedbacks.filter(f =>
+        return devolutivas.filter(f =>
             (f as any).seller_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             f.week_reference.includes(searchTerm)
         )
-    }, [feedbacks, searchTerm])
+    }, [devolutivas, searchTerm])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -461,7 +461,7 @@ function StoreFeedback() {
 
     const canCreateFeedback = role === 'gerente'
 
-    if (feedbacksLoading || reportsLoading) return (
+    if (devolutivasLoading || reportsLoading) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">

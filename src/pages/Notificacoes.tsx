@@ -17,20 +17,20 @@ import { useNotifications } from '@/hooks/useData'
 import { format } from 'date-fns'
 
 export default function Notificacoes() {
-  const { notifications, markRead, markAllAsRead, deleteNotification, unreadCount, fetchNotifications } = useNotifications()
+  const { notificacoes, markRead, markAllAsRead, deleteNotification, unreadCount, fetchNotifications } = useNotifications()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<string | null>(null)
   const [isRefetching, setIsRefetching] = useState(false)
   const navigate = useNavigate()
 
   const filtered = useMemo(() => {
-    return (notifications || []).filter(n => {
+    return (notificacoes || []).filter(n => {
       const matchesSearch = n.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            n.message.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesType = filterType ? n.type === filterType : true
       return matchesSearch && matchesType
     })
-  }, [notifications, searchTerm, filterType])
+  }, [notificacoes, searchTerm, filterType])
 
   const grouped = useMemo(() => {
     const today = new Date().toISOString().split('T')[0]

@@ -12,7 +12,7 @@ export function useStoreDeliveryRules(storeIdOverride?: string) {
     queryKey: ['delivery-rules', storeId],
     queryFn: async () => {
       if (!storeId) return null
-      const { data } = await supabase.from('store_delivery_rules').select('*').eq('store_id', storeId).maybeSingle()
+      const { data } = await supabase.from('regras_entrega_loja').select('*').eq('store_id', storeId).maybeSingle()
       return data as StoreDeliveryRules | null
     },
     enabled: !!storeId,
@@ -21,7 +21,7 @@ export function useStoreDeliveryRules(storeIdOverride?: string) {
   const updateDeliveryRulesMut = useMutation({
     mutationFn: async (data: Partial<StoreDeliveryRules>) => {
       if (!storeId) return { error: 'Loja não identificada' }
-      const { error } = await supabase.from('store_delivery_rules').upsert({
+      const { error } = await supabase.from('regras_entrega_loja').upsert({
         store_id: storeId,
         ...data,
       }, { onConflict: 'store_id' })

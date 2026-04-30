@@ -56,7 +56,7 @@ Estrategia:
 - Criar paginas novas em `src/pages` ou subpasta equivalente, mantendo padrao atual de lazy routes.
 - Reaproveitar `useAuth`, `Layout`, UI base e padroes de hooks.
 - Integrar com `pdis` e `trainings` apenas por tabelas de ponte quando necessario.
-- Nao alterar sem necessidade as tabelas `stores`, `daily_checkins`, `feedbacks`, `pdis` e `trainings`.
+- Nao alterar sem necessidade as tabelas `stores`, `daily_checkins`, `devolutivas`, `pdis` e `trainings`.
 
 Compatibilidade:
 
@@ -108,7 +108,7 @@ Relacoes:
 - Pode se relacionar com `stores` quando o cliente tambem for loja operacional do core.
 - Relaciona com unidades, contatos, visitas, documentos, financeiro, estoque e leads.
 
-### 5.2 `consulting_assignments`
+### 5.2 `atribuicoes_consultoria`
 
 Proposito: registrar consultores responsaveis/auxiliares por cliente.
 
@@ -218,8 +218,8 @@ Tabelas:
 - `consulting_financial_periods`
 - `consulting_financial_lines`
 - `consulting_financial_imports`
-- `consulting_inventory_snapshots`
-- `consulting_inventory_items`
+- `snapshots_estoque_consultoria`
+- `itens_estoque_consultoria`
 - `consulting_lead_imports`
 - `consulting_lead_channel_metrics`
 
@@ -444,4 +444,4 @@ Use este documento junto com `docs/prd/mx-consultoria-crm-prd.md`. A primeira st
 
 ## 16. Handoff para Dev
 
-Nao implemente financeiro, Google Calendar ou BI antes da fundacao de banco e RLS. Comece por tabelas isoladas `consulting_*`, testes de RLS e tela minima de clientes. Preserve `stores`, `daily_checkins`, `feedbacks`, `pdis`, `trainings` e relatorios atuais.
+Nao implemente financeiro, Google Calendar ou BI antes da fundacao de banco e RLS. Comece por tabelas isoladas `consulting_*`, testes de RLS e tela minima de clientes. Preserve `stores`, `daily_checkins`, `devolutivas`, `pdis`, `trainings` e relatorios atuais.

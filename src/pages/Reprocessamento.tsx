@@ -36,7 +36,7 @@ export default function Reprocessamento() {
     }, [])
 
     const fetchHistory = useCallback(async () => {
-        const { data } = await supabase.from('reprocess_logs').select(`*, store:lojas(name)`).order('created_at', { ascending: false })
+        const { data } = await supabase.from('logs_reprocessamento').select(`*, store:lojas(name)`).order('created_at', { ascending: false })
         if (data) setHistory(data.map(h => ({ ...h, store_name: (h as any).store?.name })))
     }, [])
 
@@ -81,7 +81,7 @@ export default function Reprocessamento() {
 
             addLog(`Validação concluída. ${result.summary.validRows} registros íntegros localizados.`, 'success')
             
-            const { data: log, error: logError } = await supabase.from('reprocess_logs').insert({
+            const { data: log, error: logError } = await supabase.from('logs_reprocessamento').insert({
                 store_id: selectedStoreId,
                 source_type: 'csv_import',
                 triggered_by: (await supabase.auth.getUser()).data.user?.id,
@@ -94,7 +94,7 @@ export default function Reprocessamento() {
             const chunkSize = 100
             for (let i = 0; i < result.records.length; i += chunkSize) {
                 const chunk = result.records.slice(i, i + chunkSize)
-                const { error: rawError } = await supabase.from('raw_imports').insert(
+                const { error: rawError } = await supabase.from('importacoes_brutas').insert(
                     chunk.map(r => ({ log_id: log.id, raw_data: r }))
                 )
                 if (rawError) throw new Error(rawError.message)
@@ -106,7 +106,7 @@ export default function Reprocessamento() {
 
             let attempts = 0
             while (attempts < 30) {
-                const { data: statusCheck } = await supabase.from('reprocess_logs').select('status, records_processed, records_failed').eq('id', log.id).single()
+                const { data: statusCheck } = await supabase.from('logs_reprocessamento').select('status, records_processed, records_failed').eq('id', log.id).single()
                 if (statusCheck?.status === 'completed') {
                     addLog(`SINCRONIZAÇÃO FINALIZADA: ${statusCheck.records_processed} linhas processadas.`, 'success')
                     break

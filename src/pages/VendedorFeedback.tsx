@@ -19,7 +19,7 @@ import { Card } from '@/components/molecules/Card'
 
 export default function VendedorFeedback() {
     const { profile } = useAuth()
-    const { feedbacks, loading, acknowledge, refetch } = useFeedbacks()
+    const { devolutivas, loading, acknowledge, refetch } = useFeedbacks()
     const [isAcknowledging, setIsAcknowledging] = useState<string | null>(null)
     const [isRefetching, setIsRefetching] = useState(false)
 
@@ -63,7 +63,7 @@ export default function VendedorFeedback() {
             </header>
 
             <div className="flex-1 min-h-0 pb-32">
-                {feedbacks.length === 0 ? (
+                {devolutivas.length === 0 ? (
                     <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
                         <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
                             <MessageSquare size={48} className="text-text-tertiary" />
@@ -74,7 +74,7 @@ export default function VendedorFeedback() {
                 ) : (
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-lg">
                         <AnimatePresence>
-                            {feedbacks.map((f) => (
+                            {devolutivas.map((f) => (
                                 <motion.article 
                                     key={f.id}
                                     initial={{ opacity: 0, y: 20 }}

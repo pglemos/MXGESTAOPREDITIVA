@@ -221,7 +221,7 @@ Se o time seguir ambas as recomendações literalmente, o Sprint 1 terá **22h**
 | DB-05 | Performance | `EXPLAIN ANALYZE` nas RPCs `get_pdi_print_bundle` e `create_pdi_session_bundle` mostra Index Scan (não Seq Scan) | SQL direto |
 | DB-09 | Segurança | `SELECT phone FROM users` retorna ciphertext; RPC `process_import_data` com email funciona normalmente | pgAdmin + teste de importação |
 | DB-12 | Integridade | DELETE em `stores` com CASCADE propaga corretamente; DELETE em `users` com SET NULL preserva dados | Script SQL de teste |
-| DB-14 | Funcional | States OAuth expirados são removidos após 15min; states consumidos após 1h | `SELECT COUNT(*) FROM consulting_google_oauth_states WHERE ...` |
+| DB-14 | Funcional | States OAuth expirados são removidos após 15min; states consumidos após 1h | `SELECT COUNT(*) FROM estados_oauth_google_consultoria WHERE ...` |
 | DB-06 | Monitoramento | `pg_stat_statements` registrando queries em `users`, `stores`, `memberships` | Dashboard Supabase |
 
 #### UX/Acessibilidade

@@ -10,9 +10,9 @@ O EPIC-01A do backlog `v1.2` pede superficie operacional para o schema canonico 
 
 - Criar tela admin de configuracao operacional por loja.
 - Permitir editar `stores.source_mode`, `stores.active` e `stores.manager_email`.
-- Permitir editar destinatarios em `store_delivery_rules`.
-- Permitir editar benchmarks em `store_benchmarks`.
-- Permitir editar regras de meta em `store_meta_rules`.
+- Permitir editar destinatarios em `regras_entrega_loja`.
+- Permitir editar benchmarks em `benchmarks_loja`.
+- Permitir editar regras de meta em `regras_metas_loja`.
 - Permitir vincular vendedor existente a `store_sellers` com vigencia e regra de fechamento do mes.
 - Permitir encerrar vigencia ativa de vendedor.
 - Expor rota e navegacao no menu de sustentacao do admin.
@@ -37,7 +37,7 @@ O EPIC-01A do backlog `v1.2` pede superficie operacional para o schema canonico 
 
 ## Validacao
 
-- Escritas admin em `stores`, `store_delivery_rules`, `store_benchmarks`, `store_meta_rules` e `store_sellers` validadas no Supabase live em transacao com rollback.
+- Escritas admin em `stores`, `regras_entrega_loja`, `benchmarks_loja`, `regras_metas_loja` e `store_sellers` validadas no Supabase live em transacao com rollback.
 - Queries do hook validadas via Supabase JS, incluindo join `store_sellers -> users`.
 - Nenhum dado persistente foi criado na validacao de escrita.
 

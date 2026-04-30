@@ -5,9 +5,9 @@ Fonte completa: `../mx-consultoria-crm-architecture.md`
 ## Tabelas do MVP inicial
 
 - `consulting_clients`
-- `consulting_client_units`
-- `consulting_client_contacts`
-- `consulting_assignments`
+- `unidades_cliente_consultoria`
+- `contatos_cliente_consultoria`
+- `atribuicoes_consultoria`
 
 ## Tabelas seguintes
 
@@ -22,8 +22,8 @@ Fonte completa: `../mx-consultoria-crm-architecture.md`
 - `consulting_financial_periods`
 - `consulting_financial_lines`
 - `consulting_financial_imports`
-- `consulting_inventory_snapshots`
-- `consulting_inventory_items`
+- `snapshots_estoque_consultoria`
+- `itens_estoque_consultoria`
 - `consulting_lead_imports`
 - `consulting_lead_channel_metrics`
 

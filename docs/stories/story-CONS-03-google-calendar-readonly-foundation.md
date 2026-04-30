@@ -35,7 +35,7 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 
 ## 3. Acceptance Criteria
 
-- [x] Criar migration isolada para `consulting_oauth_tokens` e `consulting_calendar_settings`.
+- [x] Criar migration isolada para `tokens_oauth_consultoria` e `configuracoes_calendario_consultoria`.
 - [x] Persistir `access_token`, `refresh_token`, `expires_at` e `scopes` por usuario autenticado.
 - [x] Aplicar RLS para garantir que cada usuario veja e altere apenas seus proprios tokens/configuracoes.
 - [x] Criar Edge Function para callback OAuth do Google e troca de `code` por tokens.
@@ -98,7 +98,7 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 ## 9. Notes
 
 - Esta story **nao** inclui criacao/edicao de eventos no Google.
-- Esta story **nao** inclui webhooks/push notifications.
+- Esta story **nao** inclui webhooks/push notificacoes.
 - Esta story **nao** inclui conciliacao automatica cliente <-> evento por regra de negocio avancada.
 - O fluxo seguro de OAuth agora depende de `GOOGLE_TOKEN_ENCRYPTION_SECRET`, `SUPABASE_ANON_KEY` ou `SUPABASE_PUBLISHABLE_KEY`, alem das credenciais Google ja existentes.
 - `npm test` segue bloqueado por falha preexistente em `src/hooks/use-toast.test.ts` porque o modulo `src/hooks/use-toast.ts` nao existe mais no repo atual.

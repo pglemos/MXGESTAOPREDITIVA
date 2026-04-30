@@ -30,7 +30,7 @@
 | **Severidade** | — |
 | **Status** | **RESOLVED** ✅ |
 
-**Notas técnicas:** Resolvido pela migration `20260415001000_db02_audit_composite_indexes.sql`. Foram criados 7 indexes cobrindo `checkin_audit_logs` (changed_by+created_at, checkin_id, created_at DESC, change_type+created_at DESC) e `reprocess_logs` (store_id+created_at DESC, partial por status ativo, partial por triggered_by). A migration também adicionou a coluna `created_at` faltante em `reprocess_logs` com backfill via `COALESCE(started_at, now())`. Correção de bug da migration anterior `20260411002000` que falhou silenciosamente por causa da coluna ausente (todo o bloco BEGIN...COMMIT sofreu rollback).
+**Notas técnicas:** Resolvido pela migration `20260415001000_db02_audit_composite_indexes.sql`. Foram criados 7 indexes cobrindo `checkin_audit_logs` (changed_by+created_at, checkin_id, created_at DESC, change_type+created_at DESC) e `logs_reprocessamento` (store_id+created_at DESC, partial por status ativo, partial por triggered_by). A migration também adicionou a coluna `created_at` faltante em `logs_reprocessamento` com backfill via `COALESCE(started_at, now())`. Correção de bug da migration anterior `20260411002000` que falhou silenciosamente por causa da coluna ausente (todo o bloco BEGIN...COMMIT sofreu rollback).
 
 **Ação:** Fechado. Nenhum trabalho adicional.
 
@@ -128,7 +128,7 @@ O ganho de performance é mensurável: elimina 3 subqueries `is_admin() / is_own
 | **Horas** | 6h → **revisado para 5h** |
 | **Prioridade** | P1 → **mantido** |
 
-**Notas técnicas:** As tabelas core pré-existentes (`users`, `stores`, `memberships`, `daily_checkins`, `goals`, `benchmarks`, `feedbacks`, `pdis`, `notifications`, `notification_reads`, `trainings`, `training_progress`, `digital_products`, `roles`, `user_roles`, `goal_logs`, `audit_logs`) foram criadas antes da adoção do sistema de migrations versionadas do Supabase. Isso significa que um `supabase db reset` não consegue recriar o schema completo — apenas as 40+ migrations existentes seriam aplicadas, gerando um database parcial. Este é o débito de maior criticidade porque impede disaster recovery automatizado e onboarding de novos desenvolvedores.
+**Notas técnicas:** As tabelas core pré-existentes (`users`, `stores`, `memberships`, `daily_checkins`, `goals`, `benchmarks`, `devolutivas`, `pdis`, `notificacoes`, `notification_reads`, `trainings`, `training_progress`, `produtos_digitais`, `roles`, `user_roles`, `goal_logs`, `audit_logs`) foram criadas antes da adoção do sistema de migrations versionadas do Supabase. Isso significa que um `supabase db reset` não consegue recriar o schema completo — apenas as 40+ migrations existentes seriam aplicadas, gerando um database parcial. Este é o débito de maior criticidade porque impede disaster recovery automatizado e onboarding de novos desenvolvedores.
 
 As 4 views (`view_sem_registro`, `view_store_daily_production`, `view_seller_tenure_status`, `view_daily_team_status`) também são candidatos ao baseline.
 
@@ -153,10 +153,10 @@ Ver Seção 2 para estratégia recomendada.
 | `users` | `email` | Email pessoal | Baixo (necessário para auth/login) |
 | `users` | `phone` | Telefone celular | Médio (não usado para auth) |
 | `stores` | `manager_email` | Email corporativo | Baixo |
-| `consulting_oauth_tokens` | `access_token` | Token OAuth2 Google | **Alto** |
-| `consulting_oauth_tokens` | `refresh_token` | Token OAuth2 Google | **Alto** |
+| `tokens_oauth_consultoria` | `access_token` | Token OAuth2 Google | **Alto** |
+| `tokens_oauth_consultoria` | `refresh_token` | Token OAuth2 Google | **Alto** |
 
-Os tokens OAuth em `consulting_oauth_tokens` já são cifrados via AES-256-GCM nas Edge Functions (modulo `crypto.ts`), mas a cifragem ocorre na camada de aplicação, não no banco. A coluna `access_token` e `refresh_token` armazenam ciphertext. Isso é adequado — o débito original referia-se a `users.email` e `users.phone`. O email **não pode** ser cifrado no banco porque o Supabase Auth usa `auth.users.email` (schema separado) para login. O `public.users.email` é uma espécie de cache/denormalização que poderia ser removido ou hasheado se o frontend passasse a consultar `auth.users` via admin API. O `phone` é o melhor candidato para cifragem.
+Os tokens OAuth em `tokens_oauth_consultoria` já são cifrados via AES-256-GCM nas Edge Functions (modulo `crypto.ts`), mas a cifragem ocorre na camada de aplicação, não no banco. A coluna `access_token` e `refresh_token` armazenam ciphertext. Isso é adequado — o débito original referia-se a `users.email` e `users.phone`. O email **não pode** ser cifrado no banco porque o Supabase Auth usa `auth.users.email` (schema separado) para login. O `public.users.email` é uma espécie de cache/denormalização que poderia ser removido ou hasheado se o frontend passasse a consultar `auth.users` via admin API. O `phone` é o melhor candidato para cifragem.
 
 A revisão de 3h → 4h reflete o tempo adicional para atualizar as RPCs que fazem JOIN com `users.email` (ex: `process_import_data` faz `WHERE email ILIKE`).
 
@@ -178,18 +178,18 @@ Ver Seção 2 para recomendação pgsodium vs pgcrypto.
 
 | Tabela | Coluna | Uso |
 |--------|--------|-----|
-| `checkin_correction_requests` | `requested_values` | Valores solicitados pelo vendedor |
+| `solicitacoes_correcao_lancamento` | `requested_values` | Valores solicitados pelo vendedor |
 | `checkin_audit_logs` | `old_values`, `new_values` | Snapshot antes/depois |
-| `reprocess_logs` | `warnings`, `errors`, `error_log` | Logs estruturados |
-| `raw_imports` | `raw_data` | Dados brutos de CSV |
-| `store_meta_rules_history` | `old_values`, `new_values` | Audit de config |
+| `logs_reprocessamento` | `warnings`, `errors`, `error_log` | Logs estruturados |
+| `importacoes_brutas` | `raw_data` | Dados brutos de CSV |
+| `historico_regras_metas_loja` | `old_values`, `new_values` | Audit de config |
 | `automation_configs` | `ai_context` | Contexto para IA |
 | `report_history` | `data_snapshot`, `ai_insight` | Snapshot de relatório |
-| `feedbacks` | ~5 colunas JSONB | Dados do feedback estruturado |
+| `devolutivas` | ~5 colunas JSONB | Dados do feedback estruturado |
 
-Para as tabelas de audit/log, JSONB sem validação é aceitável (schema mutável por design). Para `feedbacks`, que é dados de negócio estruturado, recomendo adicionar CHECK constraints com `jsonb_typeof()` para validar chaves obrigatórias. Para `automation_configs.ai_context`, seria útil um schema check mas não urgente.
+Para as tabelas de audit/log, JSONB sem validação é aceitável (schema mutável por design). Para `devolutivas`, que é dados de negócio estruturado, recomendo adicionar CHECK constraints com `jsonb_typeof()` para validar chaves obrigatórias. Para `automation_configs.ai_context`, seria útil um schema check mas não urgente.
 
-**Ação:** Manter OPEN. Executar em Sprint 3 com foco em `feedbacks` primeiro.
+**Ação:** Manter OPEN. Executar em Sprint 3 com foco em `devolutivas` primeiro.
 
 ---
 
@@ -206,14 +206,14 @@ Para as tabelas de audit/log, JSONB sem validação é aceitável (schema mutáv
 | Tabela | Tem updated_at? | Tem trigger? |
 |--------|----------------|-------------|
 | `checkin_audit_logs` | Não (apenas `created_at`) | N/A |
-| `checkin_correction_requests` | Não (apenas `created_at`) | N/A |
-| `store_meta_rules_history` | Não (apenas `changed_at`) | N/A |
-| `reprocess_logs` | Não (apenas `started_at`, `finished_at`, `created_at`) | N/A |
-| `raw_imports` | Não (apenas `created_at`) | N/A |
+| `solicitacoes_correcao_lancamento` | Não (apenas `created_at`) | N/A |
+| `historico_regras_metas_loja` | Não (apenas `changed_at`) | N/A |
+| `logs_reprocessamento` | Não (apenas `started_at`, `finished_at`, `created_at`) | N/A |
+| `importacoes_brutas` | Não (apenas `created_at`) | N/A |
 
-Na verdade, estas tabelas são **imutáveis por design** (audit trail). `checkin_audit_logs` e `store_meta_rules_history` são append-only — nenhum UPDATE ocorre. `checkin_correction_requests` sofre UPDATE em `status`, `auditor_id`, `reviewed_at` quando o gerente aprova/rejeita, mas já tem `reviewed_at` como timestamp do evento. `reprocess_logs` sofre UPDATE de `status` e `finished_at`, mas estes são controlados pela função `process_import_data()`.
+Na verdade, estas tabelas são **imutáveis por design** (audit trail). `checkin_audit_logs` e `historico_regras_metas_loja` são append-only — nenhum UPDATE ocorre. `solicitacoes_correcao_lancamento` sofre UPDATE em `status`, `auditor_id`, `reviewed_at` quando o gerente aprova/rejeita, mas já tem `reviewed_at` como timestamp do evento. `logs_reprocessamento` sofre UPDATE de `status` e `finished_at`, mas estes são controlados pela função `process_import_data()`.
 
-**Recomendação:** Adicionar coluna `updated_at` + trigger APENAS em `checkin_correction_requests` e `reprocess_logs`, que sofrem UPDATE. As demais são genuinamente append-only e não precisam.
+**Recomendação:** Adicionar coluna `updated_at` + trigger APENAS em `solicitacoes_correcao_lancamento` e `logs_reprocessamento`, que sofrem UPDATE. As demais são genuinamente append-only e não precisam.
 
 **Ação:** Manter OPEN com escopo reduzido. 1h está correto.
 
@@ -233,15 +233,15 @@ Na verdade, estas tabelas são **imutáveis por design** (audit trail). `checkin
 |--------|-----|--------------------|-------------|
 | `daily_checkins` | `user_id → users(id)` | NO ACTION | SET NULL ou CASCADE |
 | `daily_checkins` | `store_id → stores(id)` | NO ACTION | CASCADE |
-| `feedbacks` | `store_id → stores(id)` | NO ACTION | CASCADE |
-| `feedbacks` | `seller_id → users(id)` | NO ACTION | SET NULL |
-| `feedbacks` | `manager_id → users(id)` | NO ACTION | SET NULL |
+| `devolutivas` | `store_id → stores(id)` | NO ACTION | CASCADE |
+| `devolutivas` | `seller_id → users(id)` | NO ACTION | SET NULL |
+| `devolutivas` | `manager_id → users(id)` | NO ACTION | SET NULL |
 | `pdis` | `store_id → stores(id)` | NO ACTION | CASCADE |
 | `pdis` | `seller_id → users(id)` | NO ACTION | SET NULL |
 | `pdis` | `manager_id → users(id)` | NO ACTION | SET NULL |
 | `goals` | `store_id → stores(id)` | NO ACTION | CASCADE |
 | `goals` | `user_id → users(id)` | NO ACTION | CASCADE |
-| `notifications` | `recipient_id → users(id)` | NO ACTION | CASCADE |
+| `notificacoes` | `recipient_id → users(id)` | NO ACTION | CASCADE |
 | `goal_logs` | `goal_id → goals(id)` | NO ACTION | CASCADE |
 
 O comportamento `NO ACTION` é mais seguro que `CASCADE` implícito, mas gera erros 23503 (foreign key violation) ao tentar deletar uma loja com checkins, o que é o comportamento correto na maioria dos casos. A questão é que o sistema usa soft-delete (`active = false`) para lojas e desativação para usuários, nunca DELETE físico. Portanto o risco prático é baixo.
@@ -274,14 +274,14 @@ O comportamento `NO ACTION` é mais seguro que `CASCADE` implícito, mas gera er
 | **Horas** | 3h → **revisado para 2h** |
 | **Prioridade** | P2 → **mantido** |
 
-**Notas técnicas:** A tabela `consulting_google_oauth_states` tem TTL de 10 minutos (`expires_at NOT NULL`) mas não tem cleanup automatizado. States consumidos têm `consumed_at` preenchido, mas permanecem no disco indefinidamente. Com o uso da consultoria crescendo, isso acumulará lixo. A solução é simples:
+**Notas técnicas:** A tabela `estados_oauth_google_consultoria` tem TTL de 10 minutos (`expires_at NOT NULL`) mas não tem cleanup automatizado. States consumidos têm `consumed_at` preenchido, mas permanecem no disco indefinidamente. Com o uso da consultoria crescendo, isso acumulará lixo. A solução é simples:
 
 ```sql
 SELECT cron.schedule(
   'cleanup-oauth-states',
   '*/15 * * * *',
   $$
-  DELETE FROM public.consulting_google_oauth_states
+  DELETE FROM public.estados_oauth_google_consultoria
   WHERE (consumed_at IS NOT NULL OR expires_at < now())
     AND created_at < now() - interval '1 hour'
   $$
@@ -406,7 +406,7 @@ Comparação técnica:
 
 1. `users.phone`: Cifrar com `pgcrypto.encrypt(phone::bytea, current_setting('app.crypto_key')::bytea, 'aes')` — impacto zero no frontend pois `phone` não é usado em buscas.
 2. `users.email`: **Não cifrar.** Manter plaintext porque: (a) é necessário para `process_import_data` e busca de usuários, (b) o dado já existe em `auth.users.email` que é controlado pelo Supabase Auth. Em vez disso, adicionar policy restritiva no `SELECT` para expor email apenas em contextos necessários.
-3. `consulting_oauth_tokens`: **Já protegido** pela cifragem AES-256-GCM nas Edge Functions. Manter como está.
+3. `tokens_oauth_consultoria`: **Já protegido** pela cifragem AES-256-GCM nas Edge Functions. Manter como está.
 4. `stores.manager_email`: **Não cifrar.** Dado corporativo, sem risco LGPD individual.
 
 ---
@@ -508,7 +508,7 @@ O `DEFERRED` está absolutamente correto. Não investir tempo em particionamento
 
 ---
 
-### DB-18 (NOVO) — RLS policy checkin_correction_requests usa membership lookup ineficiente
+### DB-18 (NOVO) — RLS policy solicitacoes_correcao_lancamento usa membership lookup ineficiente
 
 | Campo | Valor |
 |-------|-------|
@@ -517,15 +517,15 @@ O `DEFERRED` está absolutamente correto. Não investir tempo em particionamento
 | **Prioridade** | P3 |
 | **Status** | OPEN |
 
-**Descrição:** A policy `manager_view_store_requests` em `checkin_correction_requests` faz um sub-SELECT em `memberships` sem usar as funções helper otimizadas (`is_manager_of()`, `is_owner_of()`). Isso replica a lógica de verificação de role em vez de usar as funções canonizadas que já fazem cache via `is_admin()` early-return.
+**Descrição:** A policy `manager_view_store_requests` em `solicitacoes_correcao_lancamento` faz um sub-SELECT em `memberships` sem usar as funções helper otimizadas (`is_manager_of()`, `is_owner_of()`). Isso replica a lógica de verificação de role em vez de usar as funções canonizadas que já fazem cache via `is_admin()` early-return.
 
 ```sql
-CREATE POLICY manager_view_store_requests ON public.checkin_correction_requests
+CREATE POLICY manager_view_store_requests ON public.solicitacoes_correcao_lancamento
     FOR SELECT USING (
         EXISTS (
             SELECT 1 FROM public.memberships
             WHERE user_id = auth.uid()
-            AND store_id = public.checkin_correction_requests.store_id
+            AND store_id = public.solicitacoes_correcao_lancamento.store_id
             AND role IN ('gerente', 'dono')
         )
     );
@@ -665,8 +665,8 @@ DB-14 (OAuth cron)
 | Ordem | Débito | Ação | Horas |
 |-------|--------|------|-------|
 | 6 | **DB-01** | Dropar shadow columns e triggers legados (após confirmação do @dev) | 2h |
-| 7 | **DB-10** | Adicionar CHECK constraints em JSONB de `feedbacks` | 2h |
-| 8 | **DB-11** | Adicionar `updated_at` em `checkin_correction_requests` e `reprocess_logs` | 1h |
+| 7 | **DB-10** | Adicionar CHECK constraints em JSONB de `devolutivas` | 2h |
+| 8 | **DB-11** | Adicionar `updated_at` em `solicitacoes_correcao_lancamento` e `logs_reprocessamento` | 1h |
 | 9 | **DB-15** | Adicionar FK formal em `pdi_sessoes.loja_id` | 1h |
 | 10 | **DB-16** | Dropar indexes redundantes | 0.5h |
 | 11 | **DB-17** | Criar indexes em `consulting_visits` e `consulting_financials` | 1h |

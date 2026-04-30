@@ -8,11 +8,11 @@ export function useNotifications() {
   const queryClient = useQueryClient()
 
   const { data, isLoading: loading, refetch } = useQuery({
-    queryKey: ['notifications', profile?.id],
+    queryKey: ['notificacoes', profile?.id],
     queryFn: async () => {
-      if (!profile) return { notifications: [] as AppNotification[], unreadCount: 0 }
+      if (!profile) return { notificacoes: [] as AppNotification[], unreadCount: 0 }
 
-      const { data, error } = await supabase.from('notifications')
+      const { data, error } = await supabase.from('notificacoes')
         .select('*')
         .eq('recipient_id', profile.id)
         .order('priority', { ascending: false })
@@ -23,8 +23,8 @@ export function useNotifications() {
         throw error
       }
 
-      const notifications = parseNotificationArray(data || [])
-      return { notifications, unreadCount: notifications.filter(n => !n.read).length }
+      const notificacoes = parseNotificationArray(data || [])
+      return { notificacoes, unreadCount: notificacoes.filter(n => !n.read).length }
     },
     enabled: !!profile,
   })
@@ -32,30 +32,30 @@ export function useNotifications() {
   const markReadMut = useMutation({
     mutationFn: async (notificationId: string) => {
       if (!profile) return
-      await supabase.from('notifications').update({ read: true }).eq('id', notificationId).eq('recipient_id', profile.id)
+      await supabase.from('notificacoes').update({ read: true }).eq('id', notificationId).eq('recipient_id', profile.id)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
     },
   })
 
   const markAllAsReadMut = useMutation({
     mutationFn: async () => {
       if (!profile) return
-      await supabase.from('notifications').update({ read: true }).eq('recipient_id', profile.id)
+      await supabase.from('notificacoes').update({ read: true }).eq('recipient_id', profile.id)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
     },
   })
 
   const deleteNotificationMut = useMutation({
     mutationFn: async (id: string) => {
       if (!profile) return
-      await supabase.from('notifications').delete().eq('id', id).eq('recipient_id', profile.id)
+      await supabase.from('notificacoes').delete().eq('id', id).eq('recipient_id', profile.id)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
     },
   })
 
@@ -77,18 +77,18 @@ export function useNotifications() {
         return { error: error?.message || null }
       }
 
-      const { error } = await supabase.from('notifications').insert({ ...input, sender_id: profile.id, read: false })
+      const { error } = await supabase.from('notificacoes').insert({ ...input, sender_id: profile.id, read: false })
       return { error: error?.message || null }
     },
     onSuccess: (result) => {
       if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: ['notifications'] })
+        queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
       }
     },
   })
 
   return {
-    notifications: data?.notifications || [],
+    notificacoes: data?.notificacoes || [],
     unreadCount: data?.unreadCount || 0,
     loading,
     markRead: (id: string) => markReadMut.mutateAsync(id),

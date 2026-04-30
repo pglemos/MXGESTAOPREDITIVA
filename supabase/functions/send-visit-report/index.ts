@@ -30,7 +30,7 @@ serve(async (req) => {
 
     // 2. Buscar contatos do cliente (para enviar o e-mail)
     const { data: contacts } = await supabase
-      .from('consulting_client_contacts')
+      .from('contatos_cliente_consultoria')
       .select('email')
       .eq('client_id', visit.client_id)
       .eq('is_primary', true)

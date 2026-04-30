@@ -4,7 +4,7 @@ Status: Ready for Review
 
 ## Contexto
 
-Com schema canonico e check-in temporal corrigidos, o painel da loja precisa usar as fontes oficiais: `store_meta_rules`, `store_sellers`, `daily_checkins.reference_date` e `users.is_venda_loja`. O ranking nao pode contaminar meta individual com `VENDA LOJA` quando a regra da loja desabilita isso.
+Com schema canonico e check-in temporal corrigidos, o painel da loja precisa usar as fontes oficiais: `regras_metas_loja`, `store_sellers`, `daily_checkins.reference_date` e `users.is_venda_loja`. O ranking nao pode contaminar meta individual com `VENDA LOJA` quando a regra da loja desabilita isso.
 
 ## Escopo
 
@@ -12,7 +12,7 @@ Com schema canonico e check-in temporal corrigidos, o painel da loja precisa usa
 - Ajustar status de check-in usando `seller_user_id` e `reference_date`.
 - Ajustar ranking oficial para usar vendedores ativos da vigencia.
 - Aplicar regra `include_venda_loja_in_individual_goal`.
-- Ajustar dashboard da loja para usar meta em `store_meta_rules`.
+- Ajustar dashboard da loja para usar meta em `regras_metas_loja`.
 - Aplicar regra `include_venda_loja_in_store_total` no total da loja.
 
 ## Fora De Escopo
@@ -26,9 +26,9 @@ Com schema canonico e check-in temporal corrigidos, o painel da loja precisa usa
 
 - [x] `useTeam` usa `store_sellers` como fonte primaria da equipe.
 - [x] Status check-in usa `reference_date` e `seller_user_id`.
-- [x] `useRanking` usa `store_sellers` e meta de `store_meta_rules`.
+- [x] `useRanking` usa `store_sellers` e meta de `regras_metas_loja`.
 - [x] `VENDA LOJA` nao contamina meta individual quando `include_venda_loja_in_individual_goal=false`.
-- [x] Dashboard usa `store_meta_rules.monthly_goal`.
+- [x] Dashboard usa `regras_metas_loja.monthly_goal`.
 - [x] Dashboard respeita `include_venda_loja_in_store_total`.
 - [x] Gates locais passam.
 
@@ -37,7 +37,7 @@ Com schema canonico e check-in temporal corrigidos, o painel da loja precisa usa
 - Queries live validadas via Supabase JS:
   - `store_sellers -> users`.
   - `store_sellers -> stores`.
-  - `store_meta_rules`.
+  - `regras_metas_loja`.
   - `daily_checkins` com campos canonicos.
 - `useTeam` mantem fallback para `memberships` quando a loja ainda nao tem vigencia configurada.
 

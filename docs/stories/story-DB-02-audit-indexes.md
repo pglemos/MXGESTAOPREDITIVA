@@ -6,7 +6,7 @@
 **Priority:** HIGH (Performance)
 
 ## 1. Context
-As tabelas de auditoria (`checkin_audit_logs`, `reprocess_logs`) estão crescendo em volume. Sem índices específicos para `created_at` e `store_id`, as consultas ao histórico gerencial sofrerão degradação de performance em breve.
+As tabelas de auditoria (`checkin_audit_logs`, `logs_reprocessamento`) estão crescendo em volume. Sem índices específicos para `created_at` e `store_id`, as consultas ao histórico gerencial sofrerão degradação de performance em breve.
 
 ## 2. Acceptance Criteria
 - [x] Criação de índices B-TREE compostos para as tabelas de log.
@@ -16,7 +16,7 @@ As tabelas de auditoria (`checkin_audit_logs`, `reprocess_logs`) estão crescend
 ## 3. Implementation Tasks
 1. ~~Criar migration `20260411002000_add_audit_indexes.sql`.~~ → Corrigido para `20260415001000_db02_audit_composite_indexes.sql`.
 2. ~~Adicionar index em `checkin_audit_logs (store_id, created_at DESC)`.~~ → `checkin_audit_logs` não tem `store_id`; usado `changed_by` + `created_at DESC`.
-3. ~~Adicionar index em `reprocess_logs (store_id, created_at DESC)`.~~ → Coluna `created_at` adicionada antes do índice.
+3. ~~Adicionar index em `logs_reprocessamento (store_id, created_at DESC)`.~~ → Coluna `created_at` adicionada antes do índice.
 4. Executar `EXPLAIN ANALYZE` para validar ganho de performance. → Pendente validação em sandbox.
 
 ## 4. Definition of Done

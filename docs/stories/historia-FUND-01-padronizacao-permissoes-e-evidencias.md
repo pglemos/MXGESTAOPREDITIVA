@@ -110,8 +110,8 @@ para evoluir os novos modulos sem bagunca tecnica, vazamento de dados ou visitas
 - `supabase/migrations/20260430190000_fundacao_portugues_permissoes_evidencias.sql`
 - `supabase/migrations/20260430213000_fund01_matriz_logs_benchmark_anonimo.sql`
 - `supabase/migrations/20260430214500_corrige_benchmark_anonimo_vendedores.sql`
-- `supabase/migrations/20260430002000_mx_store_audit_log.sql`
-- `supabase/migrations/20260430172000_consulting_schedule_events_import.sql`
+- `supabase/migrations/20260430002000_mx_logs_auditoria_loja.sql`
+- `supabase/migrations/20260430172000_eventos_agenda_consultoria_import.sql`
 - `supabase/migrations/20260430173000_consulting_import_upsert_constraints.sql`
 - `supabase/migrations/20260430174000_allow_duplicate_google_event_ids.sql`
 - `src/App.tsx`

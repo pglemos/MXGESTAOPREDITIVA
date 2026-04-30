@@ -12,7 +12,7 @@ export function useBroadcasts() {
       if (!profile || !isPerfilInternoMx(role)) return []
 
       const { data, error } = await supabase
-        .from('notifications')
+        .from('notificacoes')
         .select('*')
         .not('broadcast_id', 'is', null)
         .order('created_at', { ascending: false })

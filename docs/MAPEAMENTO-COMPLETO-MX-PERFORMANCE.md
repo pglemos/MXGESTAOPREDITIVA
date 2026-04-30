@@ -87,13 +87,13 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `daily_checkins` | 32 | Checkin diário (leads, visitas, vendas por canal) | Role matrix (seller own, manager store) |
 | `goals` | 8 | Metas por vendedor/store | Role matrix |
 | `benchmarks` | 5 | Benchmarks legados por loja | SELECT admin/owner/manager |
-| `feedbacks` | 23 | Feedback semanal estruturado | Role matrix |
+| `devolutivas` | 23 | Feedback semanal estruturado | Role matrix |
 | `pdis` | 29 | PDI legado + colunas 2.0 | Role matrix |
-| `notifications` | 16 | Notificações in-app (recipient, sender, broadcast) | recipient_id = auth.uid() |
+| `notificacoes` | 16 | Notificações in-app (recipient, sender, broadcast) | recipient_id = auth.uid() |
 | `notification_reads` | 4 | Controle de leitura | user_id = auth.uid() |
 | `trainings` | 8 | Catálogo de treinamentos | SELECT all, WRITE admin |
 | `training_progress` | 4 | Progresso do usuário em treinamentos | user_id control |
-| `digital_products` | 6 | Catálogo de produtos digitais | SELECT all, WRITE admin |
+| `produtos_digitais` | 6 | Catálogo de produtos digitais | SELECT all, WRITE admin |
 | `roles` | 4 | Lookup de roles | — |
 | `user_roles` | 5 | Atribuição de roles (user_id, role_id, assigned_by, assigned_at) | — |
 | `goal_logs` | 6 | Audit de alterações em goals (goal_id, prev_value, new_value, changed_by) | INSERT/SELECT authenticated |
@@ -116,21 +116,21 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | Tabela | Propósito | Chave | Migration |
 |--------|-----------|-------|-----------|
 | `store_sellers` | Tenure de vendedores (started_at, ended_at, is_active) | UNIQUE (store_id, seller_user_id, started_at) | `20260407001000` |
-| `store_benchmarks` | Benchmarks por loja (lead_to_agend, agend_to_visit, visit_to_sale) | PK store_id | `20260407001000` |
-| `store_delivery_rules` | Destinatários de email (matinal/weekly/monthly) + WhatsApp | PK store_id | `20260407001000` |
-| `store_meta_rules` | Configuração da loja (meta, benchmarks, projection_mode, venda_loja) | PK store_id | `20260407001000` |
-| `store_meta_rules_history` | Audit log imutável de mudanças em meta_rules | id | `20260407001000` |
-| `reprocess_logs` | Batch de reprocessamento (status, rows, warnings, errors) | id | `20260407001000` |
-| `raw_imports` | Dados brutos de importação CSV | id → reprocess_logs | `20260407001000` |
+| `benchmarks_loja` | Benchmarks por loja (lead_to_agend, agend_to_visit, visit_to_sale) | PK store_id | `20260407001000` |
+| `regras_entrega_loja` | Destinatários de email (matinal/weekly/monthly) + WhatsApp | PK store_id | `20260407001000` |
+| `regras_metas_loja` | Configuração da loja (meta, benchmarks, projection_mode, venda_loja) | PK store_id | `20260407001000` |
+| `historico_regras_metas_loja` | Audit log imutável de mudanças em meta_rules | id | `20260407001000` |
+| `logs_reprocessamento` | Batch de reprocessamento (status, rows, warnings, errors) | id | `20260407001000` |
+| `importacoes_brutas` | Dados brutos de importação CSV | id → logs_reprocessamento | `20260407001000` |
 
 ### 3.3 Tabelas Operacionais
 
 | Tabela | Propósito | Migration | Status |
 |--------|-----------|-----------|--------|
-| `manager_routine_logs` | Rotina diária do gerente (audit trail) | `20260407003000` | Em produção |
-| `whatsapp_share_logs` | Log de compartilhamento WhatsApp | `20260407005000` | Em produção |
-| `weekly_feedback_reports` | Snapshots de relatório semanal (email tracking) | `20260407006000` | Em produção |
-| `checkin_correction_requests` | Solicitação de correção de checkin (seller→manager) | `20260411001000` | Em produção |
+| `logs_rotina_gerente` | Rotina diária do gerente (audit trail) | `20260407003000` | Em produção |
+| `logs_compartilhamento_whatsapp` | Log de compartilhamento WhatsApp | `20260407005000` | Em produção |
+| `relatorios_devolutivas_semanais` | Snapshots de relatório semanal (email tracking) | `20260407006000` | Em produção |
+| `solicitacoes_correcao_lancamento` | Solicitação de correção de checkin (seller→manager) | `20260411001000` | Em produção |
 | `checkin_audit_logs` | Log imutável de alterações em checkins | `20260411001000` | Em produção |
 
 ### 3.4 Tabelas PDI 360 (Em produção — aplicadas 15/04/2026)
@@ -156,15 +156,15 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | Tabela | Propósito |
 |--------|-----------|
 | `consulting_clients` | Empresas cliente (name, cnpj, status) |
-| `consulting_client_units` | Unidades/filiais do cliente |
-| `consulting_client_contacts` | Contatos do cliente |
-| `consulting_assignments` | Atribuição consultor↔cliente (responsavel/auxiliar/viewer) |
-| `consulting_methodology_steps` | Checklist de visitas (1-7) |
+| `unidades_cliente_consultoria` | Unidades/filiais do cliente |
+| `contatos_cliente_consultoria` | Contatos do cliente |
+| `atribuicoes_consultoria` | Atribuição consultor↔cliente (responsavel/auxiliar/viewer) |
+| `etapas_metodologia_consultoria` | Checklist de visitas (1-7) |
 | `consulting_visits` | Visitas de consultoria (agendamento + execução) |
 | `consulting_financials` | DRE mensal por cliente (receita, custos, ROI) |
-| `consulting_oauth_tokens` | Tokens Google OAuth2 criptografados (AES-GCM) |
-| `consulting_calendar_settings` | Configuração sync Google Calendar |
-| `consulting_google_oauth_states` | Estados temporários OAuth (TTL 10min) |
+| `tokens_oauth_consultoria` | Tokens Google OAuth2 criptografados (AES-GCM) |
+| `configuracoes_calendario_consultoria` | Configuração sync Google Calendar |
+| `estados_oauth_google_consultoria` | Estados temporários OAuth (TTL 10min) |
 
 ### 3.6 Funções e Triggers Principais
 
@@ -186,14 +186,14 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `handle_new_user()` | Trigger: cria profile automático no auth signup |
 | `sync_daily_checkins_canonical()` | Sync colunas legadas↔canônicas |
 | `update_updated_at()` / `update_updated_at_column()` / `update_updated_at_column_canonical()` | Generic trigger: updated_at = now() (3 variantes) |
-| `log_store_meta_rules_changes()` | Audit para store_meta_rules |
-| `process_import_data(log_id)` | Processa raw_imports → daily_checkins |
+| `log_regras_metas_loja_changes()` | Audit para regras_metas_loja |
+| `process_import_data(log_id)` | Processa importacoes_brutas → daily_checkins |
 | `configure_*_cron()` | 3 funções: agenda pg_cron (matinal 08:30, semanal seg 12:30, mensal dia 1 10:30) |
 | `enforce_feedback_seller_ack_only()` | Vendedor só pode ack, não editar |
 | `send_broadcast_notification()` | Notificação em massa |
 | `sync_notification_reads()` | Trigger: escreve notification_reads |
 | `sync_pdi_legacy_shadow_columns()` | Compatibilidade PDI legada |
-| `set_manager_routine_logs_updated_at()` | Trigger updated_at em routine logs |
+| `set_logs_rotina_gerente_updated_at()` | Trigger updated_at em routine logs |
 
 ### 3.7 Triggers (29)
 
@@ -205,24 +205,24 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `update_users_updated_at` | users | BEFORE UPDATE | `update_updated_at_column_canonical()` |
 | `update_stores_updated_at` | stores | BEFORE UPDATE | `update_updated_at_column_canonical()` |
 | `update_store_sellers_updated_at` | store_sellers | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_store_benchmarks_updated_at` | store_benchmarks | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_store_delivery_rules_updated_at` | store_delivery_rules | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_store_meta_rules_updated_at` | store_meta_rules | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `tr_log_store_meta_rules_changes` | store_meta_rules | AFTER UPDATE | `log_store_meta_rules_changes()` |
-| `manager_routine_logs_set_updated_at` | manager_routine_logs | BEFORE UPDATE | `set_manager_routine_logs_updated_at()` |
-| `weekly_feedback_reports_set_updated_at` | weekly_feedback_reports | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `feedbacks_seller_ack_only` | feedbacks | BEFORE UPDATE | `enforce_feedback_seller_ack_only()` |
+| `update_benchmarks_loja_updated_at` | benchmarks_loja | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_regras_entrega_loja_updated_at` | regras_entrega_loja | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_regras_metas_loja_updated_at` | regras_metas_loja | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `tr_log_regras_metas_loja_changes` | regras_metas_loja | AFTER UPDATE | `log_regras_metas_loja_changes()` |
+| `logs_rotina_gerente_set_updated_at` | logs_rotina_gerente | BEFORE UPDATE | `set_logs_rotina_gerente_updated_at()` |
+| `relatorios_devolutivas_semanais_set_updated_at` | relatorios_devolutivas_semanais | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `devolutivas_seller_ack_only` | devolutivas | BEFORE UPDATE | `enforce_feedback_seller_ack_only()` |
 | `pdis_sync_legacy_shadow_columns` | pdis | BEFORE INSERT/UPDATE | `sync_pdi_legacy_shadow_columns()` |
 | `trg_pdis_updated` | pdis | BEFORE UPDATE | `update_updated_at()` |
 | `trg_goals_updated` | goals | BEFORE UPDATE | `update_updated_at()` |
-| `notifications_sync_notification_reads` | notifications | AFTER INSERT/UPDATE | `sync_notification_reads()` |
+| `notificacoes_sync_notification_reads` | notificacoes | AFTER INSERT/UPDATE | `sync_notification_reads()` |
 | `update_consulting_clients_updated_at` | consulting_clients | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_consulting_client_units_updated_at` | consulting_client_units | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_consulting_client_contacts_updated_at` | consulting_client_contacts | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_consulting_assignments_updated_at` | consulting_assignments | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_consulting_oauth_tokens_updated_at` | consulting_oauth_tokens | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_consulting_calendar_settings_updated_at` | consulting_calendar_settings | BEFORE UPDATE | `update_updated_at_column_canonical()` |
-| `update_consulting_google_oauth_states_updated_at` | consulting_google_oauth_states | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_unidades_cliente_consultoria_updated_at` | unidades_cliente_consultoria | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_contatos_cliente_consultoria_updated_at` | contatos_cliente_consultoria | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_atribuicoes_consultoria_updated_at` | atribuicoes_consultoria | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_tokens_oauth_consultoria_updated_at` | tokens_oauth_consultoria | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_configuracoes_calendario_consultoria_updated_at` | configuracoes_calendario_consultoria | BEFORE UPDATE | `update_updated_at_column_canonical()` |
+| `update_estados_oauth_google_consultoria_updated_at` | estados_oauth_google_consultoria | BEFORE UPDATE | `update_updated_at_column_canonical()` |
 | `update_consulting_visits_updated_at` | consulting_visits | BEFORE UPDATE | `update_updated_at_column_canonical()` |
 | `update_consulting_financials_updated_at` | consulting_financials | BEFORE UPDATE | `update_updated_at_column_canonical()` |
 
@@ -305,7 +305,7 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `/funil` | `Funil` | Análise de funil (geral + por vendedor) |
 | `/metas` | `GoalManagement` | Configuração de metas e benchmarks |
 | `/rotina` | `RotinaGerente` | Rotina diária do gerente |
-| `/feedback` | `GerenteFeedback` | Criar/gerenciar feedbacks |
+| `/feedback` | `GerenteFeedback` | Criar/gerenciar devolutivas |
 | `/pdi` | `GerentePDI` | Gerenciar PDIs da equipe |
 | `/treinamentos` | `GerenteTreinamentos` | Treinamentos da equipe |
 | `/auditoria` | `AiDiagnostics` | Diagnóstico forense de funil |
@@ -588,27 +588,27 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 | `useCheckins()` | `useCheckins.ts` | `daily_checkins` | CRUD de checkins com deadline enforcement (09:30) e sanitização |
 | `useMyCheckins()` | `useCheckins.ts` | `daily_checkins` | Checkins do usuário corrente |
 | `useCheckinsByDateRange()` | `useCheckins.ts` | `daily_checkins` | Checkins por intervalo de datas |
-| `useCheckinAuditor()` | `useCheckinAuditor.ts` | `checkin_correction_requests`, `checkin_audit_logs` | Fluxo de correção: request → approve/reject |
+| `useCheckinAuditor()` | `useCheckinAuditor.ts` | `solicitacoes_correcao_lancamento`, `checkin_audit_logs` | Fluxo de correção: request → approve/reject |
 
 ### 6.3 Equipe e Store
 
 | Hook | Arquivo | Tabelas | Propósito |
 |------|---------|---------|-----------|
 | `useTeam()` | `useTeam.ts` | `store_sellers`, `memberships`, `daily_checkins` | Sellers com status checkin + vigência |
-| `useStores()` | `useTeam.ts` | `stores`, `store_delivery_rules` | CRUD de lojas (role-filtered) |
+| `useStores()` | `useTeam.ts` | `stores`, `regras_entrega_loja` | CRUD de lojas (role-filtered) |
 | `useMemberships()` | `useTeam.ts` | `memberships` | Todas memberships com store names |
 | `useStoresStats()` | `useTeam.ts` | `store_sellers`, `daily_checkins` | Stats por loja (sellers, checked-in, disciplina) |
 | `useSellersByStore()` | `useTeam.ts` | `store_sellers`, `daily_checkins` | Sellers de uma loja específica |
 | `useNetworkHierarchy()` | `useNetworkHierarchy.ts` | `stores`, `memberships`, `daily_checkins` | Hierarquia completa da rede (admin) |
-| `useOperationalSettings()` | `useOperationalSettings.ts` | `stores`, `store_delivery_rules`, `store_benchmarks`, `store_meta_rules`, `store_sellers` | Settings operacionais completos (admin) |
+| `useOperationalSettings()` | `useOperationalSettings.ts` | `stores`, `regras_entrega_loja`, `benchmarks_loja`, `regras_metas_loja`, `store_sellers` | Settings operacionais completos (admin) |
 
 ### 6.4 Ranking e Performance
 
 | Hook | Arquivo | Tabelas | Propósito |
 |------|---------|---------|-----------|
-| `useRanking()` | `useRanking.ts` | `daily_checkins`, `store_sellers`, `store_meta_rules` | Ranking mensal com MX Score + cache 5min |
+| `useRanking()` | `useRanking.ts` | `daily_checkins`, `store_sellers`, `regras_metas_loja` | Ranking mensal com MX Score + cache 5min |
 | `useGlobalRanking()` | `useRanking.ts` | `daily_checkins`, `store_sellers` | Ranking rede toda (admin) |
-| `useStorePerformance()` | `useRanking.ts` | `stores`, `store_meta_rules`, `daily_checkins`, `store_sellers` | Performance por loja (meta, realizado, semáforo) |
+| `useStorePerformance()` | `useRanking.ts` | `stores`, `regras_metas_loja`, `daily_checkins`, `store_sellers` | Performance por loja (meta, realizado, semáforo) |
 | `useSellerMetrics()` | `useSellerMetrics.ts` | (computação pura) | Métricas do vendedor: vendas, canais, meta, projeção |
 | `useStoreSales()` | `useStoreSales.ts` | (computação pura) | Agregação de vendas da loja com regras venda_loja |
 
@@ -616,17 +616,17 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 | Hook | Arquivo | Tabelas | Propósito |
 |------|---------|---------|-----------|
-| `useGoals()` | `useGoals.ts` | `store_meta_rules` | Meta mensal da loja |
-| `useAllStoreGoals()` | `useGoals.ts` | `store_meta_rules`, `store_benchmarks` | Todas metas + benchmarks (admin) |
-| `useStoreMetaRules()` | `useGoals.ts` | `store_meta_rules` | Full meta rules da loja |
-| `useStoreGoal()` | `useGoals.ts` | `store_meta_rules` | Meta de uma loja específica |
+| `useGoals()` | `useGoals.ts` | `regras_metas_loja` | Meta mensal da loja |
+| `useAllStoreGoals()` | `useGoals.ts` | `regras_metas_loja`, `benchmarks_loja` | Todas metas + benchmarks (admin) |
+| `useStoreMetaRules()` | `useGoals.ts` | `regras_metas_loja` | Full meta rules da loja |
+| `useStoreGoal()` | `useGoals.ts` | `regras_metas_loja` | Meta de uma loja específica |
 
 ### 6.6 Feedback, PDI, Treinamentos
 
 | Hook | Arquivo | Tabelas | Propósito |
 |------|---------|---------|-----------|
-| `useFeedbacks()` | `useData.ts` | `feedbacks` | CRUD feedback semanal |
-| `useWeeklyFeedbackReports()` | `useData.ts` | `weekly_feedback_reports` | Relatórios semanais (últimos 12) |
+| `useFeedbacks()` | `useData.ts` | `devolutivas` | CRUD feedback semanal |
+| `useWeeklyFeedbackReports()` | `useData.ts` | `relatorios_devolutivas_semanais` | Relatórios semanais (últimos 12) |
 | `usePDIs()` | `useData.ts` | `pdis`, `pdi_reviews` | CRUD PDI + reviews |
 | `useMyPDIs()` | `useData.ts` | `pdis` | PDIs do usuário corrente |
 | `useTrainings()` | `useData.ts` | `trainings`, `training_progress` | Catálogo + progresso |
@@ -638,9 +638,9 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 
 | Hook | Arquivo | Tabelas | Propósito |
 |------|---------|---------|-----------|
-| `useNotifications()` | `useData.ts` | `notifications` + RPC broadcast | CRUD notificações + broadcast |
-| `useSystemBroadcasts()` | `useData.ts` | `notifications` | Broadcasts admin |
-| `useManagerRoutine()` | `useManagerRoutine.ts` | `manager_routine_logs` | Rotina diária do gerente (log + register) |
+| `useNotifications()` | `useData.ts` | `notificacoes` + RPC broadcast | CRUD notificações + broadcast |
+| `useSystemBroadcasts()` | `useData.ts` | `notificacoes` | Broadcasts admin |
+| `useManagerRoutine()` | `useManagerRoutine.ts` | `logs_rotina_gerente` | Rotina diária do gerente (log + register) |
 
 ### 6.8 Consultoria
 
@@ -648,9 +648,9 @@ O **MX PERFORMANCE** é um sistema operacional de gestão de performance comerci
 |------|---------|---------|-----------|
 | `useConsultingClients()` | `useConsultingClients.ts` | `consulting_clients` | Lista/cria clientes |
 | `useConsultingClientDetail()` | `useConsultingClients.ts` | 6 tabelas consulting_* | CRUD completo: units, contacts, assignments, visits, financials |
-| `useConsultingMethodology()` | `useConsultingClients.ts` | `consulting_methodology_steps` | Checklist de visitas |
+| `useConsultingMethodology()` | `useConsultingClients.ts` | `etapas_metodologia_consultoria` | Checklist de visitas |
 | `useConsultingClientMetrics()` | `useConsultingClients.ts` | (derivado) | Métricas agregadas |
-| `useConsultingAgenda()` | `useConsultingAgenda.ts` | `consulting_assignments`, `consulting_oauth_tokens` + Edge Functions | Google Calendar OAuth + eventos |
+| `useConsultingAgenda()` | `useConsultingAgenda.ts` | `atribuicoes_consultoria`, `tokens_oauth_consultoria` + Edge Functions | Google Calendar OAuth + eventos |
 
 ---
 
@@ -861,8 +861,8 @@ Principais índices compostos para performance:
 - `daily_checkins`: (seller_user_id, store_id, reference_date) UNIQUE, (store_id, reference_date), (seller_user_id, reference_date)
 - `memberships`: (user_id, store_id, role), (store_id, role)
 - `store_sellers`: (store_id, seller_user_id, started_at) UNIQUE, (store_id, is_active), (seller_user_id)
-- `reprocess_logs`: (store_id, started_at DESC), (source_type), (file_hash) partial, (status, created_at DESC) partial
-- `notifications`: (recipient_id, created_at DESC), (store_id, created_at DESC), (broadcast_id)
+- `logs_reprocessamento`: (store_id, started_at DESC), (source_type), (file_hash) partial, (status, created_at DESC) partial
+- `notificacoes`: (recipient_id, created_at DESC), (store_id, created_at DESC), (broadcast_id)
 - `consulting_*`: múltiplos índices em client_id, user_id, reference_date
 
 ## Anexo B: Views
@@ -887,7 +887,7 @@ Principais índices compostos para performance:
 | RPC | Status | Propósito |
 |-----|--------|-----------|
 | `send_broadcast_notification` | Em produção | Notificação em massa |
-| `process_import_data` | Em produção | Processa raw_imports → daily_checkins |
+| `process_import_data` | Em produção | Processa importacoes_brutas → daily_checkins |
 | `configure_morning_report_cron` | Em produção | Agenda cron matinal (08:30 BRT) |
 | `configure_weekly_feedback_cron` | Em produção | Agenda cron semanal (seg 12:30 BRT) |
 | `configure_monthly_report_cron` | Em produção | Agenda cron mensal (dia 1 10:30 BRT) |

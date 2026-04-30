@@ -21,7 +21,7 @@ export function useGoals(storeIdOverride?: string) {
         }
         setLoading(true)
         const { data } = await supabase
-            .from('store_meta_rules')
+            .from('regras_metas_loja')
             .select('monthly_goal, projection_mode')
             .eq('store_id', storeId)
             .maybeSingle()
@@ -35,7 +35,7 @@ export function useGoals(storeIdOverride?: string) {
     }, [storeId])
 
     const upsertGoal = async (formData: { store_id: string; target: number }): Promise<{ error: string | null }> => {
-        const { error } = await supabase.from('store_meta_rules').upsert({
+        const { error } = await supabase.from('regras_metas_loja').upsert({
             store_id: formData.store_id,
             monthly_goal: formData.target,
         }, { onConflict: 'store_id' })
@@ -56,8 +56,8 @@ export function useAllStoreGoals() {
     const fetchData = useCallback(async () => {
         setLoading(true)
         const [goalsRes, benchRes] = await Promise.all([
-            supabase.from('store_meta_rules').select('store_id, monthly_goal, stores:lojas(name)'),
-            supabase.from('store_benchmarks').select('*')
+            supabase.from('regras_metas_loja').select('store_id, monthly_goal, stores:lojas(name)'),
+            supabase.from('benchmarks_loja').select('*')
         ])
         
         if (goalsRes.data) {
@@ -72,7 +72,7 @@ export function useAllStoreGoals() {
     }, [])
 
     const updateGoal = async (storeId: string, target: number) => {
-        const { error } = await supabase.from('store_meta_rules').upsert({
+        const { error } = await supabase.from('regras_metas_loja').upsert({
             store_id: storeId,
             monthly_goal: target
         }, { onConflict: 'store_id' })
@@ -81,7 +81,7 @@ export function useAllStoreGoals() {
     }
 
     const updateBenchmark = async (storeId: string, data: Partial<StoreBenchmark>) => {
-        const { error } = await supabase.from('store_benchmarks').upsert({
+        const { error } = await supabase.from('benchmarks_loja').upsert({
             store_id: storeId,
             ...data
         }, { onConflict: 'store_id' })
@@ -108,7 +108,7 @@ export function useStoreMetaRules(storeIdOverride?: string) {
         }
         setLoading(true)
         const { data } = await supabase
-            .from('store_meta_rules')
+            .from('regras_metas_loja')
             .select('*')
             .eq('store_id', storeId)
             .maybeSingle()
@@ -119,7 +119,7 @@ export function useStoreMetaRules(storeIdOverride?: string) {
 
     const updateMetaRules = async (data: Partial<StoreMetaRules>) => {
         if (!storeId) return { error: 'Loja não selecionada' }
-        const { error } = await supabase.from('store_meta_rules').upsert({
+        const { error } = await supabase.from('regras_metas_loja').upsert({
             store_id: storeId,
             ...data
         }, { onConflict: 'store_id' })
@@ -146,7 +146,7 @@ export function useStoreGoal(storeIdOverride?: string | null) {
         }
         setLoading(true)
         const { data } = await supabase
-            .from('store_meta_rules')
+            .from('regras_metas_loja')
             .select('monthly_goal, projection_mode')
             .eq('store_id', storeId)
             .maybeSingle()
@@ -159,7 +159,7 @@ export function useStoreGoal(storeIdOverride?: string | null) {
     const updateGoal = async (target: number) => {
         const finalStoreId = storeId
         if (!finalStoreId) return { error: 'Loja não selecionada' }
-        const { error } = await supabase.from('store_meta_rules').upsert({
+        const { error } = await supabase.from('regras_metas_loja').upsert({
             store_id: finalStoreId,
             monthly_goal: target
         }, { onConflict: 'store_id' })

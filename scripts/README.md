@@ -6,7 +6,7 @@ Todos os scripts operacionais do projeto. Execute com `tsx` (`.ts`) ou `node` (`
 
 | Script | Propósito | Uso | Categoria |
 |--------|-----------|-----|-----------|
-| `audit_consulting_rls.ts` | Auditoria de RLS para CRM Consultoria | `tsx scripts/audit_consulting_rls.ts` | util |
+| `auditar_rls_consultoria.ts` | Auditoria de RLS para CRM Consultoria | `tsx scripts/auditar_rls_consultoria.ts` | util |
 | `audit_data_migration_final.ts` | Auditoria forense de dados migrados | `tsx scripts/audit_data_migration_final.ts` | util |
 | `audit_duplicates.mjs` | Auditoria de check-ins duplicados | `node scripts/audit_duplicates.mjs` | cleanup |
 | `audit_parity_routes.mjs` | Auditoria E2E de paridade de rotas (Playwright) | `node scripts/audit_parity_routes.mjs` | util |

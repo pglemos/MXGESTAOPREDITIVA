@@ -36,7 +36,7 @@ export function useManagerRoutine(storeIdOverride?: string) {
 
         setLoading(true)
         const { data } = await supabase
-            .from('manager_routine_logs')
+            .from('logs_rotina_gerente')
             .select('*')
             .eq('store_id', storeId)
             .order('routine_date', { ascending: false })
@@ -52,7 +52,7 @@ export function useManagerRoutine(storeIdOverride?: string) {
         if (!profile || !storeId) return { error: 'Usuario ou loja nao encontrados para registrar rotina.' }
 
         const { data, error } = await supabase
-            .from('manager_routine_logs')
+            .from('logs_rotina_gerente')
             .upsert({
                 store_id: storeId,
                 manager_id: profile.id,

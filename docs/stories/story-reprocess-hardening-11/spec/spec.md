@@ -9,7 +9,7 @@ O EPIC-11 exige motor de reprocessamento robusto, idempotente e auditável. O fl
 ## Escopo
 
 - Endurecer `process_import_data`.
-- Adicionar `file_hash` e `processed_at` em `reprocess_logs`.
+- Adicionar `file_hash` e `processed_at` em `logs_reprocessamento`.
 - Permitir hash de arquivo já no terminal administrativo.
 - Preservar upsert canônico em `daily_checkins`.
 

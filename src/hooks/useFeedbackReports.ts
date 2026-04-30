@@ -12,7 +12,7 @@ export function useFeedbackReports(filters?: { storeId?: string }) {
     queryFn: async () => {
       if (!profile) return []
 
-      let query = supabase.from('weekly_feedback_reports').select('*')
+      let query = supabase.from('relatorios_devolutivas_semanais').select('*')
       if (!isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
       const { data } = await query.order('week_start', { ascending: false }).limit(isPerfilInternoMx(role) ? 50 : 12)
       return (data || []) as WeeklyFeedbackReport[]

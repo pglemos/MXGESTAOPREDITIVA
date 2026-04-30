@@ -9,12 +9,12 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   const queryClient = useQueryClient()
   const storeId = filters?.storeId || authStoreId
 
-  const { data: feedbacks, isLoading: loading, refetch } = useQuery({
-    queryKey: ['feedbacks', storeId, role, profile?.id, filters?.storeId, filters?.sellerId],
+  const { data: devolutivas, isLoading: loading, refetch } = useQuery({
+    queryKey: ['devolutivas', storeId, role, profile?.id, filters?.storeId, filters?.sellerId],
     queryFn: async () => {
       if (!profile || (!storeId && !isPerfilInternoMx(role))) return []
 
-      let query = supabase.from('feedbacks').select('*, seller:usuarios!feedbacks_seller_id_fkey(name), manager:usuarios!feedbacks_manager_id_fkey(name)')
+      let query = supabase.from('devolutivas').select('*, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)')
 
       if (role === 'vendedor') {
         query = query.eq('seller_id', profile.id)
@@ -50,9 +50,9 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   const createFeedbackMut = useMutation({
     mutationFn: async (data: FeedbackFormData) => {
       if (!profile || !storeId) return { error: 'Não autenticado' }
-      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar feedbacks, mas não criar ou editar.' }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar devolutivas, mas não criar ou editar.' }
 
-      const { error } = await supabase.from('feedbacks').upsert({
+      const { error } = await supabase.from('devolutivas').upsert({
         store_id: storeId,
         manager_id: profile.id,
         seller_id: data.seller_id,
@@ -80,22 +80,22 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
     },
     onSuccess: (result) => {
       if (!result.error) {
-        queryClient.invalidateQueries({ queryKey: ['feedbacks'] })
+        queryClient.invalidateQueries({ queryKey: ['devolutivas'] })
       }
     },
   })
 
   const acknowledgeMut = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('feedbacks').update({ acknowledged: true, acknowledged_at: new Date().toISOString() }).eq('id', id)
+      await supabase.from('devolutivas').update({ acknowledged: true, acknowledged_at: new Date().toISOString() }).eq('id', id)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feedbacks'] })
+      queryClient.invalidateQueries({ queryKey: ['devolutivas'] })
     },
   })
 
   return {
-    feedbacks: feedbacks || [],
+    devolutivas: devolutivas || [],
     loading,
     createFeedback: (data: FeedbackFormData) => createFeedbackMut.mutateAsync(data),
     acknowledge: (id: string) => acknowledgeMut.mutateAsync(id),

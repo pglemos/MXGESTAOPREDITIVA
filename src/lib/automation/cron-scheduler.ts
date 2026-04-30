@@ -17,7 +17,7 @@ export async function runMatinalWorkflow() {
     // 1. Buscar lojas e suas regras
     const { data: lojas } = await supabase
         .from('lojas')
-        .select('*, store_delivery_rules(*), store_meta_rules(*)');
+        .select('*, regras_entrega_loja(*), regras_metas_loja(*)');
 
     if (!lojas) return;
 
@@ -69,7 +69,7 @@ export async function runMatinalWorkflow() {
         }
 
         const storeSales = somarVendas(monthCheckins as any);
-        const storeGoal = store.store_meta_rules?.monthly_goal || 0;
+        const storeGoal = store.regras_metas_loja?.monthly_goal || 0;
         
         const metrics = {
             currentSales: storeSales,
@@ -81,7 +81,7 @@ export async function runMatinalWorkflow() {
         };
 
         // 4. Gerar XLSX e Enviar E-mail
-        const recipients = store.store_delivery_rules?.matinal_recipients;
+        const recipients = store.regras_entrega_loja?.matinal_recipients;
 
         if (recipients && recipients.length > 0) {
             try {

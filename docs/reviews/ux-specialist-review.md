@@ -37,7 +37,7 @@ O `WizardPDI.tsx:154-432` é ainda mais crítico: é um modal fullscreen multi-s
 
 **Análise técnica:**
 
-Nenhum `SkipNavLink`/`SkipNavContent` encontrado no código. O `Layout.tsx` renderiza o `<header>` (L142) com navegação complexa, sidebar com `aside` (L217), e `<main id="main-content">` (L260). Sem skip link, usuários de teclado devem tabular por ~30+ elementos interativos (logo button, store switcher, search, notifications, profile, sidebar buttons, drawer items) antes de alcançar o conteúdo principal. Viola [WCAG 2.4.1 Bypass Blocks (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/bypass-blocks.html).
+Nenhum `SkipNavLink`/`SkipNavContent` encontrado no código. O `Layout.tsx` renderiza o `<header>` (L142) com navegação complexa, sidebar com `aside` (L217), e `<main id="main-content">` (L260). Sem skip link, usuários de teclado devem tabular por ~30+ elementos interativos (logo button, store switcher, search, notificacoes, profile, sidebar buttons, drawer items) antes de alcançar o conteúdo principal. Viola [WCAG 2.4.1 Bypass Blocks (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/bypass-blocks.html).
 
 A implementação deve ser um link `<a href="#main-content" class="sr-only focus:not-sr-only ...">` como primeiro filho do `<div className="min-h-screen">` em `Layout.tsx:139`.
 

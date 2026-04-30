@@ -82,7 +82,7 @@ function AdminMorningReport() {
         try {
             const [storesRes, goalsRes, checkinsRes, todayCheckinsRes, membershipsRes] = await Promise.all([
                 supabase.from('lojas').select('id, name').eq('active', true).order('name'),
-                supabase.from('store_meta_rules').select('store_id, monthly_goal'),
+                supabase.from('regras_metas_loja').select('store_id, monthly_goal'),
                 supabase.from('lancamentos_diarios')
                     .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                     .gte('reference_date', range.start).lte('reference_date', range.end),

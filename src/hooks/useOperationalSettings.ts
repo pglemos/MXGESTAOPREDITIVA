@@ -46,9 +46,9 @@ export function useOperationalSettings(storeId: string | null) {
         setLoading(true)
         const [storeRes, deliveryRes, benchmarkRes, metaRes, tenuresRes, usersRes] = await Promise.all([
             supabase.from('lojas').select('*').eq('id', storeId).maybeSingle(),
-            supabase.from('store_delivery_rules').select('*').eq('store_id', storeId).maybeSingle(),
-            supabase.from('store_benchmarks').select('*').eq('store_id', storeId).maybeSingle(),
-            supabase.from('store_meta_rules').select('*').eq('store_id', storeId).maybeSingle(),
+            supabase.from('regras_entrega_loja').select('*').eq('store_id', storeId).maybeSingle(),
+            supabase.from('benchmarks_loja').select('*').eq('store_id', storeId).maybeSingle(),
+            supabase.from('regras_metas_loja').select('*').eq('store_id', storeId).maybeSingle(),
             supabase
                 .from('vendedores_loja')
                 .select('*, user:usuarios!vendedores_loja_seller_user_id_fkey(id,name,email,role,active,is_venda_loja)')
@@ -96,21 +96,21 @@ export function useOperationalSettings(storeId: string | null) {
                 })
                 .eq('id', storeId),
             supabase
-                .from('store_delivery_rules')
+                .from('regras_entrega_loja')
                 .upsert({
                     ...payload.delivery,
                     store_id: storeId,
                     updated_by: profile.id,
                 }, { onConflict: 'store_id' }),
             supabase
-                .from('store_benchmarks')
+                .from('benchmarks_loja')
                 .upsert({
                     ...payload.benchmark,
                     store_id: storeId,
                     updated_by: profile.id,
                 }, { onConflict: 'store_id' }),
             supabase
-                .from('store_meta_rules')
+                .from('regras_metas_loja')
                 .upsert({
                     ...payload.meta,
                     store_id: storeId,

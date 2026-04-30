@@ -29,8 +29,8 @@ export function useConsultingParameters() {
     setLoading(true)
     setError(null)
     const [catalogRes, setRes] = await Promise.all([
-      supabase.from('consulting_metric_catalog').select('*').eq('active', true).order('sort_order', { ascending: true }),
-      supabase.from('consulting_parameter_sets').select('*').eq('active', true).maybeSingle(),
+      supabase.from('catalogo_metricas_consultoria').select('*').eq('active', true).order('sort_order', { ascending: true }),
+      supabase.from('conjuntos_parametros_consultoria').select('*').eq('active', true).maybeSingle(),
     ])
 
     if (catalogRes.error || setRes.error) {
@@ -44,8 +44,8 @@ export function useConsultingParameters() {
 
     if (setRes.data?.id) {
       const { data, error: valuesError } = await supabase
-        .from('consulting_parameter_values')
-        .select('*, metric:consulting_metric_catalog(*)')
+        .from('valores_parametros_consultoria')
+        .select('*, metric:catalogo_metricas_consultoria(*)')
         .eq('parameter_set_id', setRes.data.id)
 
       if (valuesError) {
@@ -63,7 +63,7 @@ export function useConsultingParameters() {
   const updateParameterValue = useCallback(async (input: Partial<ConsultingParameterValue> & { metric_key: string }) => {
     if (!canManage || !activeSet?.id) return { error: 'Apenas perfis MX podem alterar parâmetros PMR.' }
     const { error: upsertError } = await supabase
-      .from('consulting_parameter_values')
+      .from('valores_parametros_consultoria')
       .upsert({
         parameter_set_id: activeSet.id,
         metric_key: input.metric_key,

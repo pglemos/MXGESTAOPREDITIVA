@@ -17,8 +17,8 @@ Deno.serve(async (req) => {
     const { feedbackId } = await parseStrictBody(req, sendFeedbackSchema);
 
     const { data: f, error: fError } = await supabaseClient
-      .from("feedbacks")
-      .select("*, seller:usuarios!feedbacks_seller_id_fkey(name), manager:usuarios!feedbacks_manager_id_fkey(name), lojas(name, id)")
+      .from("devolutivas")
+      .select("*, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name), lojas(name, id)")
       .eq("id", feedbackId)
       .single();
 

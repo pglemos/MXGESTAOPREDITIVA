@@ -73,7 +73,7 @@ export async function getCentralCalendarAccessToken(): Promise<string | null> {
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
   const { data: tokenRow } = await adminClient
-    .from("consulting_oauth_tokens")
+    .from("tokens_oauth_consultoria")
     .select("id, access_token, refresh_token, expires_at")
     .eq("provider", "google_central")
     .order("updated_at", { ascending: false })
@@ -90,7 +90,7 @@ export async function getCentralCalendarAccessToken(): Promise<string | null> {
       const refreshed = await refreshAccessToken(refreshTok);
       const encrypted = await encryptToken(refreshed.access_token);
       await adminClient
-        .from("consulting_oauth_tokens")
+        .from("tokens_oauth_consultoria")
         .update({ access_token: encrypted, expires_at: new Date(Date.now() + refreshed.expires_in * 1000).toISOString() })
         .eq("id", tokenRow.id);
       accessToken = refreshed.access_token;

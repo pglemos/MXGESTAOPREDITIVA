@@ -40,7 +40,7 @@ O pedido central e transformar o sistema em um CRM de consultoria para a MX:
 - Usar a tabela de visitas 1 a 7, onde cada visita tem objetivo, checklist, evidencia e modelo de relatorio.
 - Dar continuidade entre consultores: o cliente nao e de um consultor, e da MX; qualquer consultor deve conseguir ver o historico e continuar a proxima visita.
 - Manter integracao funcional com Google Agenda/Meet, incluindo ID do evento e troca automatica quando muda data, consultor ou numero da visita.
-- Centralizar dados cadastrais, documentos, checklists, feedbacks, anexos e interacoes do cliente.
+- Centralizar dados cadastrais, documentos, checklists, devolutivas, anexos e interacoes do cliente.
 - Centralizar dados comerciais, vendas, desempenho, financeiro, administrativo, DRE, despesas e evolucao do cliente.
 - Reduzir dependencia de WhatsApp e multiplos sistemas, porque hoje as informacoes ficam espalhadas e a continuidade do atendimento quebra.
 
@@ -75,7 +75,7 @@ Cada cliente precisa ter:
 - Dono, gerente, vendedores e contatos administrativos.
 - Status do cliente no cronograma.
 - Consultor responsavel e consultor auxiliar.
-- Historico de visitas, documentos, evidencias, feedbacks e anexos.
+- Historico de visitas, documentos, evidencias, devolutivas e anexos.
 
 ### 2. Permissoes e continuidade entre consultores
 
@@ -273,7 +273,7 @@ Essa importacao deve ser validada antes de gravar no banco, porque alguns arquiv
 1. CRM interno da MX: clientes, produtos, unidades, consultores, historico e permissoes.
 2. Agenda de consultoria: visitas, eventos, aulas, Google Agenda/Meet e deduplicacao.
 3. Motor PMR de visitas: objetivos, checklists, evidencias, relatorios e continuidade entre consultores.
-4. Area do cliente e prestacao de contas: uploads, dados comerciais, feedbacks e documentos.
+4. Area do cliente e prestacao de contas: uploads, dados comerciais, devolutivas e documentos.
 5. Financeiro/DRE: lancamentos, importacao, validacao, indicadores e dashboards.
 6. Estoque e lead audit: importacao, aging, categorias, SLA, bloqueios/sinais e auditoria.
 7. PDI e treinamentos: PDI por pessoa, metas 6/12/24 meses, assinaturas/evidencias e consumo de aulas.

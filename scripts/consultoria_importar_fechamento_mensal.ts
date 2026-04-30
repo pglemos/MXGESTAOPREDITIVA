@@ -138,7 +138,7 @@ async function main() {
   }
 
   const { data: snapshotRow, error: snapshotError } = await supabase
-    .from('consulting_inventory_snapshots')
+    .from('snapshots_estoque_consultoria')
     .upsert(snapshot, { onConflict: 'client_id,reference_month' })
     .select('id')
     .single()
@@ -158,9 +158,9 @@ async function main() {
   }))
 
   const inserts = await Promise.all([
-    marketingRows.length ? supabase.from('consulting_marketing_monthly').upsert(marketingRows, { onConflict: 'client_id,reference_month,media' }) : { error: null },
-    salesRows.length ? supabase.from('consulting_sales_entries').insert(salesRows) : { error: null },
-    inventoryRows.length ? supabase.from('consulting_inventory_items').insert(inventoryRows) : { error: null },
+    marketingRows.length ? supabase.from('marketing_mensal_consultoria').upsert(marketingRows, { onConflict: 'client_id,reference_month,media' }) : { error: null },
+    salesRows.length ? supabase.from('entradas_vendas_consultoria').insert(salesRows) : { error: null },
+    inventoryRows.length ? supabase.from('itens_estoque_consultoria').insert(inventoryRows) : { error: null },
   ])
 
   const insertError = inserts.find((result) => result.error)?.error

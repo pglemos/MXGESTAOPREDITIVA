@@ -15,7 +15,7 @@ async function testRLS() {
   const scenarios = [
     { role: 'administrador_mx', expected: 'ALLOW ALL' },
     { role: 'consultor_mx_com_atribuicao', expected: 'ALLOW SELECT' },
-    { role: 'other_user', expected: 'DENY SELECT' }
+    { role: 'usuario_sem_acesso', expected: 'DENY SELECT' }
   ];
 
   console.table(scenarios);
@@ -28,7 +28,7 @@ async function testRLS() {
   if (hasConsulting) {
     console.log('✅ Tipos clientes_consultoria encontrados em src/types/database.ts');
   } else {
-    console.warn('⚠️ Tipos consulting_* não encontrados no arquivo de tipos principal.');
+    console.warn('⚠️ Tipos de consultoria não encontrados no arquivo de tipos principal.');
   }
 
   console.log('--- Fim da Auditoria ---');

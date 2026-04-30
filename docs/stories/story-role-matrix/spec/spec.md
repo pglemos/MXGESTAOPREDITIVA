@@ -18,7 +18,7 @@ O produto MX PERFORMANCE deve operar com a matriz oficial de papeis definida pel
 - FR-ROLE-001: O papel `consultor` deixa de ser papel funcional novo e passa a ser alias legado de `admin`.
 - FR-ROLE-002: O papel `dono` representa o dono da loja cliente, com escopo em lojas vinculadas.
 - FR-ROLE-003: `admin` pode ver e operar tudo, sem depender de membership.
-- FR-ROLE-004: `dono` pode ver suas lojas, performance, metas, funil, relatorios, feedbacks e PDIs da equipe, mas nao opera check-in, reprocessamento, benchmark tecnico, rotina diaria ou edicao de feedback/PDI por padrao.
+- FR-ROLE-004: `dono` pode ver suas lojas, performance, metas, funil, relatorios, devolutivas e PDIs da equipe, mas nao opera check-in, reprocessamento, benchmark tecnico, rotina diaria ou edicao de feedback/PDI por padrao.
 - FR-ROLE-005: `gerente` pode operar sua loja, equipe, check-ins, ranking, metas, funil, feedback, PDI e treinamentos.
 - FR-ROLE-006: `vendedor` pode ver e executar somente seus dados, check-ins, historico, ranking, treinamentos, feedback, PDI e notificacoes.
 - FR-ROLE-007: A navegacao autenticada deve refletir a matriz oficial por papel.

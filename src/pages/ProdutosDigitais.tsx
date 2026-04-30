@@ -33,7 +33,7 @@ export default function ProdutosDigitais() {
     const fetchProducts = useCallback(async () => {
         setLoading(true)
         try {
-            const { data } = await supabase.from('digital_products').select('*').order('created_at', { ascending: false })
+            const { data } = await supabase.from('produtos_digitais').select('*').order('created_at', { ascending: false })
             if (data) setProducts(data)
         } finally { setLoading(false) }
     }, [])
@@ -47,7 +47,7 @@ export default function ProdutosDigitais() {
         if (!result.success) { toast.error("Verifique os campos"); return }
 
         setSaving(true)
-        const { error } = await supabase.from('digital_products').insert(form)
+        const { error } = await supabase.from('produtos_digitais').insert(form)
         setSaving(false)
         if (error) { toast.error(error.message); return }
         toast.success('Ativo digital ativado!')

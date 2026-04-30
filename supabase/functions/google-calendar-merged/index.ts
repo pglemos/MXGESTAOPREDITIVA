@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     let personalConnected = false;
     let personalError: string | null = null;
     const { data: tokenRow } = await sessionClient
-      .from("consulting_oauth_tokens")
+      .from("tokens_oauth_consultoria")
       .select("id, access_token, refresh_token, expires_at")
       .eq("user_id", authData.user.id)
       .eq("provider", "google")
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
           const refreshed = await refreshAccessToken(refreshTok);
           const encrypted = await encryptToken(refreshed.access_token);
           await sessionClient
-            .from("consulting_oauth_tokens")
+            .from("tokens_oauth_consultoria")
             .update({ access_token: encrypted, expires_at: new Date(Date.now() + refreshed.expires_in * 1000).toISOString() })
             .eq("id", tokenRow.id);
           accessToken = refreshed.access_token;

@@ -22,7 +22,7 @@ Dominios ja existentes:
 
 - `stores`, `memberships`, `users`.
 - `daily_checkins`.
-- `goals` e `store_meta_rules`.
+- `goals` e `regras_metas_loja`.
 - Ranking e funil.
 - Feedback estruturado.
 - PDI e revisoes.
@@ -71,9 +71,9 @@ Nao foi identificada entidade canonica para `cliente_da_consultoria`. A tabela `
 Necessario criar:
 
 - `consulting_clients`
-- `consulting_client_units`, se um cliente tiver varias unidades
-- `consulting_assignments`
-- `consulting_client_contacts`
+- `unidades_cliente_consultoria`, se um cliente tiver varias unidades
+- `atribuicoes_consultoria`
+- `contatos_cliente_consultoria`
 - `consulting_client_documents`
 
 ### Agenda e Google Calendar
@@ -119,8 +119,8 @@ Nao ha estoque canonico do fluxo principal. O README cita `/legacy/inventory` ap
 
 Necessario criar:
 
-- `consulting_inventory_snapshots`
-- `consulting_inventory_items`
+- `snapshots_estoque_consultoria`
+- `itens_estoque_consultoria`
 - classificacao: venda, repasse, uso pessoal, preparacao, vendido
 - aging por veiculo
 - alertas para 90+ dias
@@ -152,10 +152,10 @@ Necessario definir:
 Nucleo:
 
 - `consulting_clients`
-- `consulting_client_units`
-- `consulting_client_contacts`
+- `unidades_cliente_consultoria`
+- `contatos_cliente_consultoria`
 - `consulting_products`
-- `consulting_assignments`
+- `atribuicoes_consultoria`
 
 Agenda:
 
@@ -178,8 +178,8 @@ Financeiro:
 
 Estoque:
 
-- `consulting_inventory_snapshots`
-- `consulting_inventory_items`
+- `snapshots_estoque_consultoria`
+- `itens_estoque_consultoria`
 
 Leads:
 
