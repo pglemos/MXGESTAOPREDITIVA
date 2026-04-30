@@ -23,7 +23,7 @@ da UI até que o usuário escolha uma nova senha.
 | Hook React | `useAuth.changePassword` (zera flag) | [src/hooks/useAuth.tsx:328](../../src/hooks/useAuth.tsx) |
 | UI bloqueante | `<ForcePasswordChange />` | [src/features/auth/components/ForcePasswordChange.tsx](../../src/features/auth/components/ForcePasswordChange.tsx) |
 | Renderização condicional | `{profile?.must_change_password && <ForcePasswordChange />}` | [src/components/Layout.tsx:153](../../src/components/Layout.tsx) |
-| Edge function | `register-user` (createUser + insert public.users + upsert memberships) | [supabase/functions/register-user/index.ts](../../supabase/functions/register-user/index.ts) |
+| Edge function | `register-user` (createUser + insert public.users + upsert memberships para roles de loja) | [supabase/functions/register-user/index.ts](../../supabase/functions/register-user/index.ts) |
 | Migration 1 | Adiciona coluna `must_change_password BOOLEAN DEFAULT FALSE` | [supabase/migrations/20260427175213_add_must_change_password_to_users.sql](../../supabase/migrations/20260427175213_add_must_change_password_to_users.sql) |
 | Migration 2 | Trigger `handle_new_user` define `TRUE` por padrão para novos usuários | [supabase/migrations/20260427175235_update_handle_new_user_trigger.sql](../../supabase/migrations/20260427175235_update_handle_new_user_trigger.sql) |
 
@@ -36,6 +36,7 @@ da UI até que o usuário escolha uma nova senha.
    → password = '123456' (default) ou senha custom passada explicitamente
    → user_metadata.must_change_password = true
    → public.users.must_change_password = true
+   → roles `dono`, `gerente` e `vendedor` recebem membership; role `admin` nao recebe membership porque `memberships.role` nao aceita `admin`
 
 2. Usuário recebe credenciais (manual, via WhatsApp, ou via Epic 6 quando ativo).
 

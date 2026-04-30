@@ -1,4 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  addWeeks,
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  isWithinInterval,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { ConsultingVisit } from '@/features/consultoria/types'
@@ -67,6 +77,12 @@ export type AgendaConsultant = {
 }
 
 type DateFilter = 'hoje' | 'semana' | 'mes' | 'proxima_semana' | 'todos'
+type UrlFilterKey = 'range' | 'status' | 'consultant'
+
+function getInitialSearchParam(key: UrlFilterKey, fallback: string) {
+  if (typeof window === 'undefined') return fallback
+  return new URLSearchParams(window.location.search).get(key) || fallback
+}
 
 export type CreateVisitInput = {
   client_id: string
@@ -86,8 +102,9 @@ export function useAgendaAdmin() {
   const [consultants, setConsultants] = useState<AgendaConsultant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dateFilter, setDateFilter] = useState<DateFilter>('semana')
-  const [statusFilter, setStatusFilter] = useState<string>('todos')
+  const [dateFilter, setDateFilterState] = useState<DateFilter>(() => getInitialSearchParam('range', 'semana') as DateFilter)
+  const [statusFilter, setStatusFilterState] = useState<string>(() => getInitialSearchParam('status', 'todos'))
+  const [consultantFilter, setConsultantFilterState] = useState<string>(() => getInitialSearchParam('consultant', 'todos'))
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date()
     return { year: now.getFullYear(), month: now.getMonth() }
@@ -149,6 +166,40 @@ export function useAgendaAdmin() {
   useEffect(() => {
     fetchVisits()
   }, [fetchVisits])
+
+  const syncSearchParams = useCallback((updates: Partial<Record<UrlFilterKey, string>>) => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    for (const [key, value] of Object.entries(updates)) {
+      if (!value || value === 'todos') params.delete(key)
+      else params.set(key, value)
+    }
+    const search = params.toString()
+    const nextUrl = `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`
+    window.history.replaceState(null, '', nextUrl)
+  }, [])
+
+  const setDateFilter = useCallback((value: DateFilter) => {
+    setDateFilterState(value)
+    syncSearchParams({ range: value })
+  }, [syncSearchParams])
+
+  const setStatusFilter = useCallback((value: string) => {
+    setStatusFilterState(value)
+    syncSearchParams({ status: value })
+  }, [syncSearchParams])
+
+  const setConsultantFilter = useCallback((value: string) => {
+    setConsultantFilterState(value)
+    syncSearchParams({ consultant: value })
+  }, [syncSearchParams])
+
+  const clearFilters = useCallback(() => {
+    setDateFilterState('todos')
+    setStatusFilterState('todos')
+    setConsultantFilterState('todos')
+    syncSearchParams({ range: 'todos', status: 'todos', consultant: 'todos' })
+  }, [syncSearchParams])
 
   const createVisit = useCallback(async (input: CreateVisitInput) => {
     if (!supabaseUser || role !== 'admin') {
@@ -223,29 +274,39 @@ export function useAgendaAdmin() {
 
   const filteredVisits = useMemo(() => {
     const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const weekEnd = new Date(today)
-    weekEnd.setDate(weekEnd.getDate() + (7 - weekEnd.getDay()))
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    const nextWeekStart = new Date(weekEnd)
-    nextWeekStart.setDate(nextWeekStart.getDate() + 1)
-    const nextWeekEnd = new Date(nextWeekStart)
-    nextWeekEnd.setDate(nextWeekEnd.getDate() + 7)
+    const todayInterval = { start: startOfDay(now), end: endOfDay(now) }
+    const weekInterval = {
+      start: startOfWeek(now, { weekStartsOn: 1 }),
+      end: endOfWeek(now, { weekStartsOn: 1 }),
+    }
+    const nextWeekBase = addWeeks(now, 1)
+    const nextWeekInterval = {
+      start: startOfWeek(nextWeekBase, { weekStartsOn: 1 }),
+      end: endOfWeek(nextWeekBase, { weekStartsOn: 1 }),
+    }
+    const monthInterval = { start: startOfMonth(now), end: endOfMonth(now) }
 
     let filtered = visits
+
+    if (consultantFilter !== 'todos') {
+      filtered = filtered.filter((v) => (
+        v.consultant_id === consultantFilter ||
+        v.auxiliary_consultant_id === consultantFilter
+      ))
+    }
 
     if (dateFilter !== 'todos') {
       filtered = filtered.filter((v) => {
         const d = new Date(v.scheduled_at)
         switch (dateFilter) {
           case 'hoje':
-            return d >= today && d < new Date(today.getTime() + 86400000)
+            return isWithinInterval(d, todayInterval)
           case 'semana':
-            return d >= today && d <= weekEnd
+            return isWithinInterval(d, weekInterval)
           case 'proxima_semana':
-            return d >= nextWeekStart && d <= nextWeekEnd
+            return isWithinInterval(d, nextWeekInterval)
           case 'mes':
-            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+            return isWithinInterval(d, monthInterval)
           default:
             return true
         }
@@ -257,7 +318,7 @@ export function useAgendaAdmin() {
     }
 
     return filtered
-  }, [visits, dateFilter, statusFilter])
+  }, [visits, consultantFilter, dateFilter, statusFilter])
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth
@@ -299,13 +360,13 @@ export function useAgendaAdmin() {
 
   const visitsByDate = useMemo(() => {
     const map: Record<string, AgendaVisit[]> = {}
-    for (const v of visits) {
+    for (const v of filteredVisits) {
       const key = new Date(v.scheduled_at).toISOString().slice(0, 10)
       if (!map[key]) map[key] = []
       map[key].push(v)
     }
     return map
-  }, [visits])
+  }, [filteredVisits])
 
   const metrics = useMemo(() => {
     const total = filteredVisits.length
@@ -315,6 +376,14 @@ export function useAgendaAdmin() {
     const canceladas = filteredVisits.filter((v) => v.status === 'cancelada').length
     return { total, agendadas, emAndamento, concluidas, canceladas }
   }, [filteredVisits])
+
+  const activeFilters = useMemo(() => {
+    return [
+      consultantFilter !== 'todos',
+      dateFilter !== 'todos',
+      statusFilter !== 'todos',
+    ].filter(Boolean).length
+  }, [consultantFilter, dateFilter, statusFilter])
 
   const getNextVisitNumber = useCallback((clientId: string) => {
     const clientVisits = visits.filter((v) => v.client_id === clientId)
@@ -355,6 +424,10 @@ export function useAgendaAdmin() {
     setDateFilter,
     statusFilter,
     setStatusFilter,
+    consultantFilter,
+    setConsultantFilter,
+    activeFilters,
+    clearFilters,
     refetch: fetchVisits,
     calendarMonth,
     calendarDays,

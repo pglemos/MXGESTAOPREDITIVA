@@ -1,7 +1,7 @@
 # Epic Set: MX Platform Evolution — Q2 2026
 
 **Epic Set ID:** EPIC-MX-EVOL-Q2
-**Status:** PLANNING
+**Status:** ONDA A IMPLEMENTADA / ONDA B BLOQUEADA
 **Owner:** @pm (Morgan) → orquestrado por @aiox-master (Orion)
 **Solicitado por:** synvollt@gmail.com
 **Data de criação:** 2026-04-30
@@ -38,11 +38,11 @@ A entrega está particionada em duas ondas:
 
 | # | Épico | Onda | Estimativa | Bloqueia | Status |
 |---|-------|------|-----------|----------|--------|
-| 1 | [Auth Hardening — Senha Padrão & Troca Obrigatória](./epic-1-auth-hardening.md) | A | 1d | Épico 2 | Draft |
-| 2 | [User Provisioning — 4 Colaboradores MX](./epic-2-user-provisioning.md) | A | 1d | — | Draft (depende de E1) |
-| 3 | [Admin Master — Edição de Lojas](./epic-3-store-edit-admin.md) | A | 2-3d | — | Draft |
-| 4 | [Ranking UX — Toggle Ocultar Nome da Loja](./epic-4-ranking-ux.md) | A | 0,5d | — | Draft |
-| 5 | [Agenda — Filtros & Visualizações](./epic-5-agenda-filters.md) | A | 2d | — | Draft |
+| 1 | [Auth Hardening — Senha Padrão & Troca Obrigatória](./epic-1-auth-hardening.md) | A | 1d | Épico 2 | Implementado |
+| 2 | [User Provisioning — 4 Colaboradores MX](./epic-2-user-provisioning.md) | A | 1d | — | Provisionado |
+| 3 | [Admin Master — Edição de Lojas](./epic-3-store-edit-admin.md) | A | 2-3d | — | Implementado |
+| 4 | [Ranking UX — Toggle Ocultar Nome da Loja](./epic-4-ranking-ux.md) | A | 0,5d | — | Implementado |
+| 5 | [Agenda — Filtros & Visualizações](./epic-5-agenda-filters.md) | A | 2d | — | Implementado |
 | 6 | [Cadastro Self-Service de Quadro (Email + WhatsApp)](./epic-6-staff-self-service.md) | B | 8-10d | — | Placeholder (bloqueado por Meta onboarding) |
 
 **Total Onda A:** 6,5–7,5 dias úteis
@@ -109,5 +109,9 @@ Cada épico segue o **Story Development Cycle (SDC)** padrão AIOX:
 ```
 
 ---
+
+## Execucao
+
+- [Execution Report — 2026-04-30](./execution-report-2026-04-30.md)
 
 **Última atualização:** 2026-04-30 — Orion (Master Orchestrator)

@@ -2,7 +2,7 @@ import { useStores, useStoresStats } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown } from 'lucide-react'
+import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown, Pencil } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
@@ -13,17 +13,22 @@ import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Link } from 'react-router-dom'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
+import { StoreEditModal } from '@/features/admin/components/StoreEditModal'
+import type { Store } from '@/types/database'
+import type { StoreUpdateFields } from '@/hooks/useTeam'
 
 export default function Lojas() {
-    const { stores, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus } = useStores()
+    const { stores, loading: storesLoading, refetch: refetchStores, createStore, updateStore, toggleStoreStatus } = useStores()
     const { stats, loading: statsLoading, refetch: refetchStats } = useStoresStats()
     const { role } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [filterActive, setFilterActive] = useState(true)
     const [isRefetching, setIsRefetching] = useState(false)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [editingStore, setEditingStore] = useState<Store | null>(null)
     const [newStore, setNewStore] = useState({ name: '', manager_email: '' })
     const [creating, setCreating] = useState(false)
+    const [savingStore, setSavingStore] = useState(false)
 
     const loading = storesLoading || statsLoading
 
@@ -80,6 +85,16 @@ export default function Lojas() {
             setIsCreateModalOpen(false)
             setNewStore({ name: '', manager_email: '' })
             handleRefresh()
+        }
+    }
+
+    const handleUpdateStore = async (id: string, updates: Partial<StoreUpdateFields>) => {
+        setSavingStore(true)
+        const { error } = await updateStore(id, updates)
+        setSavingStore(false)
+        if (!error) {
+            setEditingStore(null)
+            await refetchStats()
         }
     }
 
@@ -149,9 +164,14 @@ export default function Lojas() {
                                 <Link to={`/equipe?id=${store.id}`}>EQUIPE</Link>
                             </Button>
                             {role === 'admin' && (
-                                <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface">
-                                    <X size={16} />
-                                </Button>
+                                <>
+                                    <Button variant="ghost" size="icon" onClick={() => setEditingStore(store)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-brand-primary hover:bg-brand-primary/10" aria-label={`Editar ${store.name}`}>
+                                        <Pencil size={16} />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
+                                        <X size={16} />
+                                    </Button>
+                                </>
                             )}
                         </>
                     ) : (
@@ -162,7 +182,7 @@ export default function Lojas() {
                 </div>
             )
         }
-    ], [stats, role])
+    ], [stats, role, toggleStoreStatus])
 
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
@@ -321,6 +341,16 @@ export default function Lojas() {
                     </div>
                 )}
             </AnimatePresence>
+
+            {role === 'admin' && (
+                <StoreEditModal
+                    open={!!editingStore}
+                    store={editingStore}
+                    saving={savingStore}
+                    onClose={() => setEditingStore(null)}
+                    onSubmit={handleUpdateStore}
+                />
+            )}
         </main>
     )
 }

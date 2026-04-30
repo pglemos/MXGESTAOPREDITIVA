@@ -1,7 +1,7 @@
 # Epic 2: User Provisioning — 4 Colaboradores MX
 
 **Epic ID:** EPIC-MX-EVOL-02
-**Status:** Draft
+**Status:** Provisionado
 **Onda:** A (Imediata)
 **Estimativa:** 1 dia útil
 **Owner:** @pm (Morgan)
@@ -37,30 +37,30 @@ respeitando o fluxo de troca obrigatória de senha no primeiro login (garantido 
 
 **Critérios de Aceitação:**
 
-- [ ] Script `scripts/audit_mx_team_access.ts` que para cada email lista:
+- [x] Script `scripts/audit_mx_team_access.ts` que para cada email lista:
   - Existe em `auth.users`? (id, created_at, last_sign_in_at)
   - Existe em `public.users`? (role, must_change_password, store_id)
   - Tem `store_memberships`?
-- [ ] Output salvo em `docs/audit/mx-team-access-2026-04-30.md`
-- [ ] PO valida o relatório antes de prosseguir
+- [x] Output salvo em `docs/audit/mx-team-access-2026-04-30.md`
+- [x] PO valida o relatório antes de prosseguir
 
 ### Story 2.2: Provisionar usuários ausentes
 
 **Critérios de Aceitação:**
 
-- [ ] Para cada email não existente, criar via edge function `register-user` (mesma usada na Equipe):
+- [x] Para cada email não existente, criar via edge function `register-user` (mesma usada na Equipe):
   - role: `admin`
   - password: `123456`
   - `must_change_password: true`
-- [ ] Para usuários existentes mas sem role `admin`: atualizar via SQL com confirmação manual
-- [ ] Documentar comandos executados em `docs/audit/mx-team-provisioning-log.md`
-- [ ] Cada um dos 4 colaboradores deve conseguir login com `123456` e ser obrigado a trocar a senha
+- [x] Para usuários existentes mas sem role `admin`: atualizar via SQL com confirmação manual
+- [x] Documentar comandos executados em `docs/audit/mx-team-provisioning-log.md`
+- [x] Cada um dos 4 colaboradores deve conseguir login com `123456` e ser obrigado a trocar a senha
 
 ### Story 2.3: Notificar colaboradores
 
 **Critérios de Aceitação:**
 
-- [ ] Mensagem-template (texto puro, para PO copiar e enviar) em `docs/templates/welcome-message-mx-admin.md`
+- [x] Mensagem-template (texto puro, para PO copiar e enviar) em `docs/templates/welcome-message-mx-admin.md`
   - Inclui URL do app, email cadastrado, senha temporária `123456`, instrução de trocar no primeiro login
 
 ---

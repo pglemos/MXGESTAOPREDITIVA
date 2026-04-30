@@ -1,7 +1,7 @@
 # Epic 4: Ranking UX — Toggle para Ocultar Nome da Loja
 
 **Epic ID:** EPIC-MX-EVOL-04
-**Status:** Draft
+**Status:** Implementado
 **Onda:** A (Imediata)
 **Estimativa:** 0,5 dia útil
 **Owner:** @pm (Morgan)
@@ -34,16 +34,16 @@ A página [src/pages/Ranking.tsx](../../../../src/pages/Ranking.tsx) renderiza `
 
 **Critérios de Aceitação:**
 
-- [ ] Estado local `hideStoreNames: boolean` (default `false`) gerenciado em [src/pages/Ranking.tsx](../../../../src/pages/Ranking.tsx)
-- [ ] Botão `<IconButton>` no header da página com ícones `Eye` / `EyeOff` da `lucide-react`
-- [ ] Botão exibido apenas para roles `admin` e `dono` (consultar `useAuth`)
-- [ ] Quando `hideStoreNames = true`:
+- [x] Estado local `hideStoreNames: boolean` (default `false`) gerenciado em [src/pages/Ranking.tsx](../../../../src/pages/Ranking.tsx)
+- [x] Botão `<IconButton>` no header da página com ícones `Eye` / `EyeOff` da `lucide-react`
+- [x] Botão exibido na visão global `admin`; a visão `dono` nao renderiza nomes de loja no ranking local
+- [x] Quando `hideStoreNames = true`:
   - Linhas 244 e 390 (e quaisquer outras com `store_name`) devem mostrar placeholder estilizado:
     - Sugestão: blur leve + texto "LOJA #{índice anonimizado}" ou apenas "🔒 Loja oculta"
   - Filtros que dependem de `store_name` (linha 55-64) seguem funcionando — só a renderização é afetada
-- [ ] Tooltip no botão: "Ocultar lojas" / "Mostrar lojas"
-- [ ] Atalho de teclado `H` para toggle (nice-to-have)
-- [ ] Persistência em `localStorage` para que admin não precise reativar a cada sessão
+- [x] Tooltip no botão: "Ocultar lojas" / "Mostrar lojas"
+- [x] Atalho de teclado `H` para toggle (nice-to-have)
+- [x] Persistência em `localStorage` para que admin não precise reativar a cada sessão
 
 ### Story 4.2: Adicionar testes de regressão
 

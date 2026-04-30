@@ -1,7 +1,7 @@
 # Epic 3: Admin Master — Edição de Lojas
 
 **Epic ID:** EPIC-MX-EVOL-03
-**Status:** Draft
+**Status:** Implementado
 **Onda:** A (Imediata)
 **Estimativa:** 2-3 dias úteis
 **Owner:** @pm (Morgan)
@@ -35,39 +35,39 @@ A tabela `stores` deve ser inspecionada para mapear todos os campos editáveis (
 
 **Critérios de Aceitação:**
 
-- [ ] Documento `docs/data/stores-schema.md` lista todas as colunas da tabela `stores`, tipos, defaults, constraints
-- [ ] PO + Architect definem quais campos são **editáveis pelo admin** (whitelist)
+- [x] Documento `docs/data/stores-schema.md` lista todas as colunas da tabela `stores`, tipos, defaults, constraints
+- [x] PO + Architect definem quais campos são **editáveis pelo admin** (whitelist)
   - Sugestão inicial: `name`, `manager_email`, `phone`, `address`, `cnpj`, `active`
   - Campos protegidos (não editáveis via UI): `id`, `created_at`, `code` (se existir)
-- [ ] RLS policies revisadas: somente role `admin` pode `UPDATE` em `stores`
+- [x] RLS policies revisadas: somente role `admin` pode `UPDATE` em `stores`
 
 ### Story 3.2: Implementar `updateStore` no hook `useStores`
 
 **Critérios de Aceitação:**
 
-- [ ] Função `updateStore(id: string, fields: Partial<Store>): Promise<{ error?: string }>` adicionada a [src/hooks/useTeam.ts](../../../../src/hooks/useTeam.ts)
-- [ ] Validação Zod no client antes de enviar (campos obrigatórios, formatos de email/CNPJ/telefone)
-- [ ] Refetch automático após sucesso
-- [ ] Toast de feedback (sucesso/erro) via `sonner`
+- [x] Função `updateStore(id: string, fields: Partial<Store>): Promise<{ error?: string }>` adicionada a [src/hooks/useTeam.ts](../../../../src/hooks/useTeam.ts)
+- [x] Validação Zod no client antes de enviar (nome e formato de email; CNPJ/telefone nao existem no schema atual)
+- [x] Refetch automático após sucesso
+- [x] Toast de feedback (sucesso/erro) via `sonner`
 
 ### Story 3.3: Modal/Drawer de Edição de Loja
 
 **Critérios de Aceitação:**
 
-- [ ] Componente `<StoreEditModal />` em `src/features/admin/components/StoreEditModal.tsx`
-- [ ] Aberto por botão "Editar" em cada card/linha de loja em [src/pages/Lojas.tsx](../../../../src/pages/Lojas.tsx)
-- [ ] Visível **apenas para role `admin`**
-- [ ] Form com todos os campos editáveis da whitelist da Story 3.1
-- [ ] Suporta marcação de loja como inativa (`active = false`) com confirmação
-- [ ] Segue padrão visual MX (atoms/molecules existentes, design tokens, glassmorphism premium)
-- [ ] Acessibilidade: focus trap, ESC fecha, ARIA labels
+- [x] Componente `<StoreEditModal />` em `src/features/admin/components/StoreEditModal.tsx`
+- [x] Aberto por botão "Editar" em cada card/linha de loja em [src/pages/Lojas.tsx](../../../../src/pages/Lojas.tsx)
+- [x] Visível **apenas para role `admin`**
+- [x] Form com todos os campos editáveis da whitelist da Story 3.1
+- [x] Suporta marcação de loja como inativa (`active = false`) com confirmação
+- [x] Segue padrão visual MX (atoms/molecules existentes, design tokens, glassmorphism premium)
+- [x] Acessibilidade: focus trap, ESC fecha, ARIA labels
 
 ### Story 3.4: Auditoria de mudanças
 
 **Critérios de Aceitação:**
 
-- [ ] Migration cria tabela `store_audit_log` (id, store_id, changed_by, changes JSONB, created_at)
-- [ ] Trigger `AFTER UPDATE` em `stores` registra delta (ANTES vs DEPOIS) na audit log
+- [x] Migration cria tabela `store_audit_log` (id, store_id, changed_by, changes JSONB, created_at)
+- [x] Trigger `AFTER UPDATE` em `stores` registra delta (ANTES vs DEPOIS) na audit log
 - [ ] Visualização opcional do histórico no modal (nice-to-have, pode ficar para fase 2)
 
 ---

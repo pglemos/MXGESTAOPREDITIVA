@@ -8,7 +8,7 @@ interface RegisterUserPayload {
   password?: string
   name: string
   role: 'admin' | 'dono' | 'gerente' | 'vendedor'
-  store_id: string
+  store_id?: string
   phone?: string
 }
 
@@ -76,8 +76,12 @@ serve(async (req) => {
 
   const { email, password, name, role, store_id, phone } = payload
 
-  if (!email || !name || !role || !store_id) {
-    return jsonResponse({ success: false, error: 'Missing required fields (email, name, role, store_id)' }, 400)
+  if (!email || !name || !role) {
+    return jsonResponse({ success: false, error: 'Missing required fields (email, name, role)' }, 400)
+  }
+
+  if (role !== 'admin' && !store_id) {
+    return jsonResponse({ success: false, error: 'store_id is required for store-scoped roles' }, 400)
   }
 
   const allowedRolesByCaller: Record<string, string[]> = {
@@ -128,15 +132,19 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: `User created but profile insert failed: ${profileError.message}` }, 500)
   }
 
-  const { error: membershipError } = await adminClient
-    .from('memberships')
-    .upsert(
-      { user_id: newUserId, store_id, role },
-      { onConflict: 'user_id,store_id' },
-    )
+  let membershipCreated = false
+  if (role !== 'admin' && store_id) {
+    const { error: membershipError } = await adminClient
+      .from('memberships')
+      .upsert(
+        { user_id: newUserId, store_id, role },
+        { onConflict: 'user_id,store_id' },
+      )
 
-  if (membershipError) {
-    return jsonResponse({ success: false, error: `Profile created but membership insert failed: ${membershipError.message}` }, 500)
+    if (membershipError) {
+      return jsonResponse({ success: false, error: `Profile created but membership insert failed: ${membershipError.message}` }, 500)
+    }
+    membershipCreated = true
   }
 
   return jsonResponse({
@@ -144,5 +152,6 @@ serve(async (req) => {
     user_id: newUserId,
     email: email.trim().toLowerCase(),
     must_change_password: true,
+    membership_created: membershipCreated,
   })
 })

@@ -1,7 +1,7 @@
 # Epic 1: Auth Hardening — Senha Padrão & Troca Obrigatória
 
 **Epic ID:** EPIC-MX-EVOL-01
-**Status:** Draft
+**Status:** Implementado
 **Onda:** A (Imediata)
 **Estimativa:** 1 dia útil
 **Owner:** @pm (Morgan)
@@ -41,21 +41,21 @@ A edge function `register-user` (chamada via `supabase.functions.invoke`) també
 
 **Critérios de Aceitação:**
 
-- [ ] Constante `DEFAULT_FIRST_LOGIN_PASSWORD = '123456'` exportada de local centralizado (sugestão: `src/lib/auth/constants.ts`)
-- [ ] [src/hooks/useTeam.ts:136](../../../../src/hooks/useTeam.ts) usa a constante em vez do literal `'Mx#2026!'`
+- [x] Constante `DEFAULT_FIRST_LOGIN_PASSWORD = '123456'` exportada de local centralizado (sugestão: `src/lib/auth/constants.ts`)
+- [x] [src/hooks/useTeam.ts:136](../../../../src/hooks/useTeam.ts) usa a constante em vez do literal `'Mx#2026!'`
 - [ ] Edge function `supabase/functions/register-user` (verificar existência ou criar):
-  - [ ] Aceita `password` no body com fallback para `123456`
-  - [ ] Cria usuário via `supabase.auth.admin.createUser` com `user_metadata.must_change_password = true`
-- [ ] Validador frontend de força de senha em `ForcePasswordChange.tsx` mantém mínimo 6 chars (já implementado) — confirmar que não bloqueia `123456` em testes
+  - [x] Aceita `password` no body com fallback para `123456`
+  - [x] Cria usuário via `supabase.auth.admin.createUser` com `user_metadata.must_change_password = true`
+- [x] Validador frontend de força de senha em `ForcePasswordChange.tsx` mantém mínimo 6 chars (já implementado) — confirmar que não bloqueia `123456` em testes
 - [ ] Teste E2E (`e2e/`): novo usuário criado → faz login com `123456` → modal `<ForcePasswordChange />` aparece → troca para senha forte → modal desaparece → não reaparece em login subsequente
 
 ### Story 1.2: Auditoria do flow de force password change
 
 **Critérios de Aceitação:**
 
-- [ ] Documentado em `docs/auth/first-login-flow.md` o fluxo completo (provisionamento → primeiro login → troca)
-- [ ] Validar que `must_change_password` permanece `true` se o usuário fechar o modal sem trocar (sem bypass)
-- [ ] Se vendedor/gerente não trocar a senha, ele NÃO consegue acessar nenhuma rota do app (modal bloqueia 100% da UI — verificar z-index `z-[999]`)
+- [x] Documentado em `docs/auth/first-login-flow.md` o fluxo completo (provisionamento → primeiro login → troca)
+- [x] Validar que `must_change_password` permanece `true` se o usuário fechar o modal sem trocar (sem bypass)
+- [x] Se vendedor/gerente não trocar a senha, ele NÃO consegue acessar nenhuma rota do app (modal bloqueia 100% da UI — verificar z-index `z-[999]`)
 
 ---
 

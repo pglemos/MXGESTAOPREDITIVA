@@ -73,6 +73,10 @@ export default function AgendaAdmin() {
     setDateFilter,
     statusFilter,
     setStatusFilter,
+    consultantFilter,
+    setConsultantFilter,
+    activeFilters,
+    clearFilters,
     refetch,
     calendarMonth,
     calendarDays,
@@ -284,6 +288,22 @@ export default function AgendaAdmin() {
               </button>
             ))}
           </FilterBar>
+          <FilterBar label="Consultor" icon={<User size={16} className="text-brand-primary" />}>
+            <div className="w-full sm:w-mx-64">
+              <Select
+                id="agenda-consultant-filter"
+                value={consultantFilter}
+                onChange={(event) => setConsultantFilter(event.target.value)}
+                className="!h-mx-10 !py-1.5 text-xs uppercase tracking-widest"
+                aria-label="Filtrar por consultor"
+              >
+                <option value="todos">Todos</option>
+                {consultants.map((consultant) => (
+                  <option key={consultant.id} value={consultant.id}>{consultant.name}</option>
+                ))}
+              </Select>
+            </div>
+          </FilterBar>
           <FilterBar label="Status" icon={<Filter size={16} className="text-brand-primary" />}>
             {statusFilters.map((f) => (
               <button
@@ -300,6 +320,16 @@ export default function AgendaAdmin() {
                 {f.label}
               </button>
             ))}
+            {activeFilters > 0 && (
+              <>
+                <Badge variant="brand" className="ml-mx-xs text-mx-micro font-black uppercase">
+                  {activeFilters} {activeFilters === 1 ? 'filtro' : 'filtros'}
+                </Badge>
+                <Button type="button" variant="ghost" size="sm" onClick={clearFilters} className="h-mx-10 px-3 text-xs font-black uppercase">
+                  LIMPAR
+                </Button>
+              </>
+            )}
           </FilterBar>
         </div>
       </Card>

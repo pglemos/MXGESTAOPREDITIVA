@@ -1,9 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
+import { z } from 'zod'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
 import { DEFAULT_FIRST_LOGIN_PASSWORD } from '@/lib/auth/constants'
 import type { User, Store, StoreSeller } from '@/types/database'
+
+export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'active'>
+
+const storeUpdateSchema = z.object({
+    name: z.string().trim().min(2, 'Nome da loja deve ter pelo menos 2 caracteres.').max(120, 'Nome da loja muito longo.').optional(),
+    manager_email: z.union([
+        z.string().trim().email('E-mail do gestor inválido.'),
+        z.literal(''),
+        z.null(),
+    ]).optional(),
+    active: z.boolean().optional(),
+}).strict()
 
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
@@ -162,7 +176,7 @@ export function useStores() {
 
     const fetchStores = useCallback(async () => {
         setLoading(true)
-        let query = supabase.from('stores').select('*').eq('active', true).order('name')
+        let query = supabase.from('stores').select('*').order('name')
         
         if (role === 'dono' || role === 'gerente') {
             const storeIds = memberships.map(m => m.store_id)
@@ -174,6 +188,10 @@ export function useStores() {
             query = query.in('id', storeIds)
         } else if (role === 'vendedor' && storeId) {
             query = query.eq('id', storeId)
+        }
+
+        if (role !== 'admin') {
+            query = query.eq('active', true)
         }
 
         const { data } = await query
@@ -211,13 +229,31 @@ export function useStores() {
         return { error: null }
     }
 
-    const updateStore = async (id: string, updates: { name?: string; manager_email?: string; active?: boolean }) => {
+    const updateStore = async (id: string, updates: Partial<StoreUpdateFields>) => {
         if (role !== 'admin') return { error: 'Apenas admin pode editar lojas.' }
-        const { error } = await supabase.from('stores').update(updates).eq('id', id)
-        if (error) return { error: error.message }
 
-        if (typeof updates.manager_email !== 'undefined') {
-            const recipients = updates.manager_email ? [updates.manager_email] : []
+        const validation = storeUpdateSchema.safeParse(updates)
+        if (!validation.success) {
+            const message = validation.error.issues[0]?.message || 'Dados da loja inválidos.'
+            toast.error(message)
+            return { error: message }
+        }
+
+        const payload: Partial<StoreUpdateFields> = {}
+        if (typeof validation.data.name !== 'undefined') payload.name = validation.data.name
+        if (typeof validation.data.manager_email !== 'undefined') {
+            payload.manager_email = validation.data.manager_email ? validation.data.manager_email : null
+        }
+        if (typeof validation.data.active !== 'undefined') payload.active = validation.data.active
+
+        const { error } = await supabase.from('stores').update(payload).eq('id', id)
+        if (error) {
+            toast.error(error.message)
+            return { error: error.message }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(payload, 'manager_email')) {
+            const recipients = payload.manager_email ? [payload.manager_email] : []
             const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
                 store_id: id,
                 matinal_recipients: recipients,
@@ -227,10 +263,14 @@ export function useStores() {
                 active: true,
             }, { onConflict: 'store_id' })
 
-            if (deliveryError) return { error: deliveryError.message }
+            if (deliveryError) {
+                toast.error(deliveryError.message)
+                return { error: deliveryError.message }
+            }
         }
 
         await fetchStores()
+        toast.success('Loja atualizada com sucesso.')
         return { error: null }
     }
 

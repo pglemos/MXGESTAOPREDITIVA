@@ -1,7 +1,7 @@
 # Epic 5: Agenda — Filtros por Admin & Visualizações Temporais
 
 **Epic ID:** EPIC-MX-EVOL-05
-**Status:** Draft
+**Status:** Implementado
 **Onda:** A (Imediata)
 **Estimativa:** 2 dias úteis
 **Owner:** @pm (Morgan)
@@ -38,25 +38,25 @@ Necessário inspecionar a tabela `consulting_visits` para identificar a coluna q
 
 **Critérios de Aceitação:**
 
-- [ ] Query Supabase: `SELECT column_name FROM information_schema.columns WHERE table_name = 'consulting_visits'`
-- [ ] Documentado em `docs/data/consulting-visits-schema.md` qual coluna identifica o consultor responsável
-- [ ] Confirmar que `users` tem flag/role para identificar quem é "admin/consultor MX" (provavelmente `role = admin`)
+- [x] Query Supabase: `SELECT column_name FROM information_schema.columns WHERE table_name = 'consulting_visits'`
+- [x] Documentado em `docs/data/consulting-visits-schema.md` qual coluna identifica o consultor responsável
+- [x] Confirmar que `users` tem flag/role para identificar quem é "admin/consultor MX" (provavelmente `role = admin`)
 
 ### Story 5.2: Backend — Filtro por consultor no `useAgendaAdmin`
 
 **Critérios de Aceitação:**
 
-- [ ] Hook recebe parâmetro opcional `consultantId?: string | 'all'`
-- [ ] Retorna lista de consultores ativos (`consultants: Array<{id, name}>`) para popular o dropdown
-- [ ] Filtragem aplicada na memoização `filteredVisits` (atual em linha 224)
-- [ ] Mantém compatibilidade com filtros de cliente e status existentes
+- [x] Hook gerencia filtro opcional `consultantFilter?: string | 'todos'`
+- [x] Retorna lista de consultores ativos (`consultants: Array<{id, name}>`) para popular o dropdown
+- [x] Filtragem aplicada na memoização `filteredVisits` (atual em linha 224)
+- [x] Mantém compatibilidade com filtros de cliente e status existentes
 
 ### Story 5.3: Backend — Suporte a janelas temporais
 
 **Critérios de Aceitação:**
 
-- [ ] Hook aceita parâmetro `dateRange: 'today' | 'this_week' | 'next_week' | 'this_month' | 'all'`
-- [ ] Filtragem por `visit_date` usando `date-fns` (já no package.json):
+- [x] Hook aceita range temporal equivalente: `hoje | semana | proxima_semana | mes | todos`
+- [x] Filtragem por `visit_date` usando `date-fns` (já no package.json):
   - `today`: `startOfDay(now)` ↔ `endOfDay(now)`
   - `this_week`: `startOfWeek(now, { weekStartsOn: 1 })` ↔ `endOfWeek(...)`
   - `next_week`: `startOfWeek(addWeeks(now, 1))` ↔ `endOfWeek(...)`
@@ -67,19 +67,19 @@ Necessário inspecionar a tabela `consulting_visits` para identificar a coluna q
 
 **Critérios de Aceitação:**
 
-- [ ] Dropdown/Combobox "Consultor" no header da agenda com opções: "Todos" + lista de consultores
-- [ ] Tabs ou Toggle Group com 5 opções temporais (Hoje | Semana | Próx. Semana | Mês | Todos)
-- [ ] Estado dos filtros persistido em URL search params (`?consultant=xxx&range=this_week`) para deep-linking
-- [ ] Mobile responsivo (collapse em select nativo se largura < 768px)
-- [ ] Segue design tokens MX (atoms/molecules existentes)
+- [x] Dropdown/Combobox "Consultor" no header da agenda com opções: "Todos" + lista de consultores
+- [x] Tabs ou Toggle Group com 5 opções temporais (Hoje | Semana | Próx. Semana | Mês | Todos)
+- [x] Estado dos filtros persistido em URL search params (`?consultant=xxx&range=semana`) para deep-linking
+- [x] Mobile responsivo (collapse em select nativo se largura < 768px)
+- [x] Segue design tokens MX (atoms/molecules existentes)
 
 ### Story 5.5: Métricas e contadores reagem aos filtros
 
 **Critérios de Aceitação:**
 
-- [ ] Cards de métrica (total, agendadas, em andamento, etc — atual em linha 311-317) recalculam com base nos filtros aplicados
-- [ ] Indicador visual de "filtros ativos" (badge com contador)
-- [ ] Botão "Limpar filtros" que reseta para `consultant = 'all', range = 'all'`
+- [x] Cards de métrica (total, agendadas, em andamento, etc — atual em linha 311-317) recalculam com base nos filtros aplicados
+- [x] Indicador visual de "filtros ativos" (badge com contador)
+- [x] Botão "Limpar filtros" que reseta para `consultant = 'todos', range = 'todos'`
 
 ---
 
