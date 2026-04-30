@@ -61,6 +61,29 @@ export type AgendaVisit = ConsultingVisit & {
   client_slug: string
   client_status: string
   client_modality: string | null
+  source_visit_code?: string | null
+}
+
+export type AgendaScheduleEvent = {
+  id: string
+  event_type: 'aula' | 'evento_online' | 'evento_presencial' | 'bloqueio'
+  title: string
+  topic: string | null
+  starts_at: string
+  duration_hours: number
+  modality: string
+  location: string | null
+  target_audience: string | null
+  audience_goal: number | null
+  responsible_user_id: string | null
+  responsible_name: string | null
+  ticket_price_text: string | null
+  google_event_id: string | null
+  status: 'agendado' | 'cancelado' | 'concluido'
+  source_sheet: string | null
+  created_at: string
+  updated_at: string
+  responsible?: { name: string; email: string } | null
 }
 
 export type AgendaClient = {
@@ -97,9 +120,32 @@ export type CreateVisitInput = {
   objective: string | null
 }
 
+export type UpdateVisitInput = CreateVisitInput & {
+  id: string
+  status: string
+}
+
+export type ScheduleEventInput = {
+  event_type: AgendaScheduleEvent['event_type']
+  title: string
+  topic: string | null
+  starts_at: string
+  duration_hours: number
+  modality: string
+  location: string | null
+  target_audience: string | null
+  audience_goal: number | null
+  responsible_user_id: string | null
+  responsible_name: string | null
+  ticket_price_text: string | null
+  google_event_id?: string | null
+  status?: AgendaScheduleEvent['status']
+}
+
 export function useAgendaAdmin() {
   const { supabaseUser, role } = useAuth()
   const [visits, setVisits] = useState<AgendaVisit[]>([])
+  const [scheduleEvents, setScheduleEvents] = useState<AgendaScheduleEvent[]>([])
   const [clients, setClients] = useState<AgendaClient[]>([])
   const [consultants, setConsultants] = useState<AgendaConsultant[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,6 +163,7 @@ export function useAgendaAdmin() {
   const fetchVisits = useCallback(async () => {
     if (!supabaseUser || role !== 'admin') {
       setVisits([])
+      setScheduleEvents([])
       setLoading(false)
       return
     }
@@ -124,7 +171,7 @@ export function useAgendaAdmin() {
     setLoading(true)
     setError(null)
 
-    const [visitsRes, clientsRes, usersRes] = await Promise.all([
+    const [visitsRes, eventsRes, clientsRes, usersRes] = await Promise.all([
       supabase
         .from('consulting_visits')
         .select(`
@@ -134,6 +181,10 @@ export function useAgendaAdmin() {
           client:consulting_clients!client_id(name, slug, status, modality)
         `)
         .order('scheduled_at', { ascending: true }),
+      supabase
+        .from('consulting_schedule_events')
+        .select('*, responsible:users!consulting_schedule_events_responsible_user_id_fkey(name, email)')
+        .order('starts_at', { ascending: true }),
       supabase
         .from('consulting_clients')
         .select('id, name, slug, status, current_visit_step')
@@ -158,6 +209,13 @@ export function useAgendaAdmin() {
         client_modality: v.client?.modality || null,
       }))
       setVisits(mapped as AgendaVisit[])
+    }
+
+    if (eventsRes.error) {
+      setError((current) => current || eventsRes.error.message)
+      setScheduleEvents([])
+    } else {
+      setScheduleEvents((eventsRes.data || []) as AgendaScheduleEvent[])
     }
 
     setClients((clientsRes.data || []) as AgendaClient[])
@@ -254,6 +312,33 @@ export function useAgendaAdmin() {
     return { error: null }
   }, [supabaseUser, role, fetchVisits])
 
+  const updateVisit = useCallback(async (input: UpdateVisitInput) => {
+    if (!supabaseUser || role !== 'admin') {
+      return { error: 'Apenas admin pode editar visitas.' }
+    }
+
+    const { error: updateError } = await supabase
+      .from('consulting_visits')
+      .update({
+        client_id: input.client_id,
+        visit_number: input.visit_number,
+        scheduled_at: input.scheduled_at,
+        duration_hours: input.duration_hours,
+        modality: input.modality,
+        consultant_id: input.consultant_id || null,
+        auxiliary_consultant_id: input.auxiliary_consultant_id || null,
+        objective: input.objective || null,
+        status: input.status,
+      })
+      .eq('id', input.id)
+
+    if (updateError) return { error: updateError.message }
+
+    await syncVisitToGoogle(input.id, 'upsert')
+    await fetchVisits()
+    return { error: null }
+  }, [supabaseUser, role, fetchVisits])
+
   const deleteVisit = useCallback(async (visitId: string) => {
     if (!supabaseUser || role !== 'admin') {
       return { error: 'Apenas admin pode cancelar visitas.' }
@@ -273,6 +358,57 @@ export function useAgendaAdmin() {
     await fetchVisits()
     return { error: null }
   }, [supabaseUser, role, fetchVisits])
+
+  const createScheduleEvent = useCallback(async (input: ScheduleEventInput) => {
+    if (!supabaseUser || role !== 'admin') {
+      return { error: 'Apenas admin pode criar eventos e aulas.' }
+    }
+
+    const { error: insertError } = await supabase
+      .from('consulting_schedule_events')
+      .insert({
+        ...input,
+        status: input.status || 'agendado',
+        created_by: supabaseUser.id,
+      })
+
+    if (insertError) return { error: insertError.message }
+    await fetchVisits()
+    return { error: null }
+  }, [fetchVisits, role, supabaseUser])
+
+  const updateScheduleEvent = useCallback(async (eventId: string, input: ScheduleEventInput) => {
+    if (!supabaseUser || role !== 'admin') {
+      return { error: 'Apenas admin pode editar eventos e aulas.' }
+    }
+
+    const { error: updateError } = await supabase
+      .from('consulting_schedule_events')
+      .update({
+        ...input,
+        status: input.status || 'agendado',
+      })
+      .eq('id', eventId)
+
+    if (updateError) return { error: updateError.message }
+    await fetchVisits()
+    return { error: null }
+  }, [fetchVisits, role, supabaseUser])
+
+  const deleteScheduleEvent = useCallback(async (eventId: string) => {
+    if (!supabaseUser || role !== 'admin') {
+      return { error: 'Apenas admin pode excluir eventos e aulas.' }
+    }
+
+    const { error: deleteError } = await supabase
+      .from('consulting_schedule_events')
+      .delete()
+      .eq('id', eventId)
+
+    if (deleteError) return { error: deleteError.message }
+    await fetchVisits()
+    return { error: null }
+  }, [fetchVisits, role, supabaseUser])
 
   const filteredVisits = useMemo(() => {
     const now = new Date()
@@ -322,6 +458,56 @@ export function useAgendaAdmin() {
     return filtered
   }, [visits, consultantFilter, dateFilter, statusFilter])
 
+  const filteredScheduleEvents = useMemo(() => {
+    const now = new Date()
+    const todayInterval = { start: startOfDay(now), end: endOfDay(now) }
+    const weekInterval = {
+      start: startOfWeek(now, { weekStartsOn: 1 }),
+      end: endOfWeek(now, { weekStartsOn: 1 }),
+    }
+    const nextWeekBase = addWeeks(now, 1)
+    const nextWeekInterval = {
+      start: startOfWeek(nextWeekBase, { weekStartsOn: 1 }),
+      end: endOfWeek(nextWeekBase, { weekStartsOn: 1 }),
+    }
+    const monthInterval = { start: startOfMonth(now), end: endOfMonth(now) }
+
+    let filtered = scheduleEvents
+
+    if (consultantFilter !== 'todos') {
+      filtered = filtered.filter((event) => event.responsible_user_id === consultantFilter)
+    }
+
+    if (dateFilter !== 'todos') {
+      filtered = filtered.filter((event) => {
+        const d = new Date(event.starts_at)
+        switch (dateFilter) {
+          case 'hoje':
+            return isWithinInterval(d, todayInterval)
+          case 'semana':
+            return isWithinInterval(d, weekInterval)
+          case 'proxima_semana':
+            return isWithinInterval(d, nextWeekInterval)
+          case 'mes':
+            return isWithinInterval(d, monthInterval)
+          default:
+            return true
+        }
+      })
+    }
+
+    if (statusFilter !== 'todos') {
+      const eventStatus = statusFilter === 'cancelada'
+        ? 'cancelado'
+        : statusFilter === 'concluída'
+          ? 'concluido'
+          : 'agendado'
+      filtered = filtered.filter((event) => event.status === eventStatus)
+    }
+
+    return filtered
+  }, [scheduleEvents, consultantFilter, dateFilter, statusFilter])
+
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth
     const firstDay = new Date(year, month, 1)
@@ -361,23 +547,28 @@ export function useAgendaAdmin() {
   }, [calendarMonth])
 
   const visitsByDate = useMemo(() => {
-    const map: Record<string, AgendaVisit[]> = {}
+    const map: Record<string, Array<{ status: string }>> = {}
     for (const v of filteredVisits) {
       const key = new Date(v.scheduled_at).toISOString().slice(0, 10)
       if (!map[key]) map[key] = []
       map[key].push(v)
     }
+    for (const event of filteredScheduleEvents) {
+      const key = new Date(event.starts_at).toISOString().slice(0, 10)
+      if (!map[key]) map[key] = []
+      map[key].push({ status: event.status === 'cancelado' ? 'cancelada' : event.status === 'concluido' ? 'concluída' : 'agendada' })
+    }
     return map
-  }, [filteredVisits])
+  }, [filteredVisits, filteredScheduleEvents])
 
   const metrics = useMemo(() => {
-    const total = filteredVisits.length
+    const total = filteredVisits.length + filteredScheduleEvents.length
     const agendadas = filteredVisits.filter((v) => v.status === 'agendada').length
     const emAndamento = filteredVisits.filter((v) => v.status === 'em_andamento').length
     const concluidas = filteredVisits.filter((v) => v.status === 'concluída').length
     const canceladas = filteredVisits.filter((v) => v.status === 'cancelada').length
     return { total, agendadas, emAndamento, concluidas, canceladas }
-  }, [filteredVisits])
+  }, [filteredVisits, filteredScheduleEvents])
 
   const activeFilters = useMemo(() => {
     return [
@@ -417,6 +608,8 @@ export function useAgendaAdmin() {
   return {
     visits: filteredVisits,
     allVisits: visits,
+    scheduleEvents: filteredScheduleEvents,
+    allScheduleEvents: scheduleEvents,
     clients,
     consultants,
     metrics,
@@ -438,8 +631,12 @@ export function useAgendaAdmin() {
     goToNextMonth,
     goToToday,
     createVisit,
+    updateVisit,
     updateVisitStatus,
     deleteVisit,
+    createScheduleEvent,
+    updateScheduleEvent,
+    deleteScheduleEvent,
     getNextVisitNumber,
   }
 }

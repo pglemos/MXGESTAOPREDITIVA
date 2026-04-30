@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { format, parseISO, isToday, isPast } from 'date-fns'
-import { Building2, Clock, MapPin, Play, X, Trash2, ChevronRight, User } from 'lucide-react'
+import { Building2, Clock, MapPin, Play, X, Trash2, ChevronRight, User, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
@@ -18,6 +18,7 @@ export interface VisitCardData {
   objective?: string | null
   status: string
   consultant?: { name: string } | null
+  source_visit_code?: string | null
 }
 
 export interface VisitCardProps {
@@ -25,6 +26,7 @@ export interface VisitCardProps {
   onStart?: (id: string) => void
   onCancel?: (id: string) => void
   onDelete?: (id: string) => void
+  onEdit?: (id: string) => void
   linkTo: string
   className?: string
 }
@@ -44,6 +46,7 @@ export function VisitCard({
   onStart,
   onCancel,
   onDelete,
+  onEdit,
   linkTo,
   className,
 }: VisitCardProps) {
@@ -104,7 +107,7 @@ export function VisitCard({
             {getVisitStatusBadge(visit.status)}
             <div className="flex items-center gap-mx-xs">
               <Typography variant="tiny" tone="muted">
-                Visita {visit.visit_number}/7
+                Visita {visit.source_visit_code || visit.visit_number}/7
               </Typography>
             </div>
           </div>
@@ -117,6 +120,11 @@ export function VisitCard({
           )}
 
           <div className="flex items-center gap-mx-xs">
+            {onEdit && (
+              <Button variant="ghost" size="sm" className="text-text-secondary" onClick={() => onEdit(visit.id)}>
+                <Pencil size={14} />
+              </Button>
+            )}
             {visit.status === 'agendada' && onStart && (
               <Button variant="ghost" size="sm" className="text-status-info" onClick={() => onStart(visit.id)}>
                 <Play size={14} />
