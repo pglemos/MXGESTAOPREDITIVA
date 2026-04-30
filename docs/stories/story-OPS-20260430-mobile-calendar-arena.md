@@ -34,8 +34,24 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] `npm test`
 - [x] `npm run build`
 - [x] Playwright manual: login eye toggle, redirect mobile de `/checkin`, manifest PWA de produção.
+- [x] Produção Vercel Ready em `https://mxperformance.vercel.app` após push na `main`.
+- [x] Auditoria mobile em produção com login real de QA nos papéis `vendedor`, `gerente`, `dono` e `admin`.
+- [x] 35 rotas mobile autenticadas carregadas sem erro fatal e sem overflow horizontal.
 - [x] Supabase: migrações `20260430000000` e `20260430001000` aplicadas no remoto.
 - [x] Supabase: funções `google-calendar-sync`, `google-calendar-merged` e `google-oauth-handler` redeployadas.
+
+### Produção Mobile Audit
+
+Data: 2026-04-30
+
+Rotas validadas no viewport Pixel 5:
+
+- `vendedor`: `/home`, `/checkin`, `/historico`, `/ranking`, `/treinamentos`, `/feedback`, `/notificacoes`, `/perfil`
+- `gerente`: `/loja`, `/equipe`, `/metas`, `/pdi`, `/rotina`, `/ranking`, `/treinamentos`, `/feedback`, `/notificacoes`, `/perfil`
+- `dono`: `/lojas`, `/loja`, `/equipe`, `/metas`, `/pdi`, `/ranking`, `/feedback`, `/notificacoes`, `/perfil`
+- `admin`: `/painel`, `/lojas`, `/agenda`, `/ranking`, `/consultoria`, `/consultoria/clientes`, `/configuracoes`, `/perfil`
+
+Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 
 ## File List
 
