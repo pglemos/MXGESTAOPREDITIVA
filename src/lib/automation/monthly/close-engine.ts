@@ -18,22 +18,22 @@ export async function runMonthlyCloseWorkflow(): Promise<MonthlyCloseResult[]> {
     const monthStart = lastMonth.toISOString().slice(0, 10)
     const monthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().slice(0, 10)
 
-    const { data: stores, error: storesError } = await supabase
-        .from('stores')
+    const { data: lojas, error: storesError } = await supabase
+        .from('lojas')
         .select('id, name')
         .eq('active', true)
 
-    if (storesError || !stores) {
+    if (storesError || !lojas) {
         console.error('[close-engine] Falha ao buscar lojas:', storesError?.message)
         return []
     }
 
     const results: MonthlyCloseResult[] = []
 
-    for (const store of stores) {
+    for (const store of lojas) {
         try {
             const { data: checkins } = await supabase
-                .from('daily_checkins')
+                .from('lancamentos_diarios')
                 .select('*')
                 .eq('store_id', store.id)
                 .gte('reference_date', monthStart)

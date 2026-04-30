@@ -15,14 +15,14 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
 
 async function checkUsers() {
-    console.log('--- Checking public.users ---')
-    const { data: users, error: userError } = await supabase.from('users').select('*')
-    if (userError) console.error('Error fetching users:', userError)
+    console.log('--- Checking public.usuarios ---')
+    const { data: users, error: userError } = await supabase.from('usuarios').select('*')
+    if (userError) console.error('Error fetching usuarios', userError)
     else console.table(users)
 
     console.log('\n--- Checking auth.users via admin API ---')
     const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers()
-    if (authError) console.error('Error fetching auth users:', authError)
+    if (authError) console.error('Error fetching auth.users', authError)
     else {
         console.table(authUsers.users.map(u => ({ id: u.id, email: u.email, last_login: u.last_sign_in_at })))
     }

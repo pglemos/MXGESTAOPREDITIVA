@@ -17,7 +17,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 export default function ConsultorNotificacoes() {
     const { sendNotification } = useNotifications()
     const { broadcasts, loading, refetch } = useSystemBroadcasts()
-    const { stores } = useStores()
+    const { lojas } = useStores()
     const [showForm, setShowForm] = useState(false)
     const [form, setForm] = useState({ 
         title: '', 
@@ -153,7 +153,7 @@ export default function ConsultorNotificacoes() {
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Selecionar Loja</Typography>
                                                 <select value={form.target_store_id} onChange={e => setForm(p => ({ ...p, target_store_id: e.target.value }))} required className="w-full h-mx-14 bg-surface-alt border border-status-warning/20 rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-status-warning transition-all appearance-none cursor-pointer shadow-inner">
                                                     <option value="">Selecione a unidade...</option>
-                                                    {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                                                    {lojas.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                                                 </select>
                                             </div>
                                         )}

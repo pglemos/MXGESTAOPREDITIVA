@@ -28,10 +28,10 @@ async function main() {
   const supabase = envClient()
 
   const [clientRes, plansRes, responsesRes, actionsRes] = await Promise.all([
-    supabase.from('consulting_clients').select('*').eq('id', args.clientId).single(),
-    supabase.from('consulting_strategic_plans').select('*').eq('client_id', args.clientId).order('generated_at', { ascending: false }).limit(1),
+    supabase.from('clientes_consultoria').select('*').eq('id', args.clientId).single(),
+    supabase.from('planejamentos_estrategicos').select('*').eq('client_id', args.clientId).order('generated_at', { ascending: false }).limit(1),
     supabase.from('consulting_pmr_form_responses').select('*, template:consulting_pmr_form_templates(*)').eq('client_id', args.clientId).order('submitted_at', { ascending: false }),
-    supabase.from('consulting_action_items').select('*').eq('client_id', args.clientId).order('priority', { ascending: true }),
+    supabase.from('itens_plano_acao').select('*').eq('client_id', args.clientId).order('priority', { ascending: true }),
   ])
 
   const fetchError = clientRes.error || plansRes.error || responsesRes.error || actionsRes.error

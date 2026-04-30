@@ -17,7 +17,7 @@ const path = require('path');
   
   try {
     await page.waitForURL('**/painel', { timeout: 10000 });
-    await page.goto('https://mxperformance.vercel.app/ranking');
+    await page.goto('https://mxperformance.vercel.app/classificacao');
     await page.waitForTimeout(5000);
     const filePath = path.join(__dirname, 'audit_ranking_final.png');
     await page.screenshot({ path: filePath, fullPage: true });

@@ -11,10 +11,10 @@ async function recover() {
     console.log('--- 🚑 OPERAÇÃO RESGATE: RECUPERANDO CHECK-INS PERDIDOS ---');
 
     // 1. Mapear Lojas e Usuários Core
-    const { data: stores } = await supabase.from('stores').select('id, name');
-    const { data: users } = await supabase.from('users').select('id, name, email');
+    const { data: lojas } = await supabase.from('lojas').select('id, name');
+    const { data: users } = await supabase.from('usuarios').select('id, name, email');
 
-    const sMap = new Map(stores?.map(s => [s.name, s.id]));
+    const sMap = new Map(lojas?.map(s => [s.name, s.id]));
     const uMap = new Map(users?.map(u => [u.name.toUpperCase(), u.id]));
 
     // Usuário Admin/Consultor para os logs de auditoria
@@ -40,7 +40,7 @@ async function recover() {
         const storeId = sMap.get(item.store);
         if (!storeId) continue;
 
-        const { error } = await supabase.from('daily_checkins').upsert({
+        const { error } = await supabase.from('lancamentos_diarios').upsert({
             seller_user_id: adminId,
             user_id: adminId,
             store_id: storeId,

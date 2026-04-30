@@ -9,13 +9,13 @@ if (!fs.existsSync(TARGET_DIR)) {
 }
 
 const routes = [
-  '/painel', '/lojas', '/loja', '/ranking', '/leadops', '/leads', '/funil', '/agenda',
-  '/equipe', '/tarefas', '/metas', '/checkin', '/historico', '/relatorio-matinal',
+  '/painel', '/lojas', '/loja', '/classificacao', '/leadops', '/leads', '/funil', '/agenda',
+  '/equipe', '/tarefas', '/metas', '/lancamento-diario', '/historico', '/relatorio-matinal',
   '/financeiro', '/inventory', '/produtos', '/configuracoes/comissoes',
   '/relatorios/performance-vendas', '/relatorios/performance-vendedores',
   '/relatorios/vendas-cruzados', '/reports/stock', '/ia-diagnostics',
   '/gamification', '/activities', '/treinamentos', '/communication',
-  '/feedback', '/configuracoes', '/notificacoes', '/perfil'
+  '/devolutivas', '/configuracoes', '/notificacoes', '/perfil'
 ];
 
 (async () => {

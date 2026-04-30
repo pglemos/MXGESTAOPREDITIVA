@@ -30,7 +30,7 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         if (!storeId) return []
         const { data } = await supabase
             .from('checkin_correction_requests')
-            .select('*, seller:users(name)')
+            .select('*, seller:usuarios(name)')
             .eq('store_id', storeId)
             .eq('status', 'pending')
             .order('created_at', { ascending: false })

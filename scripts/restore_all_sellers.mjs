@@ -118,11 +118,11 @@ function runCurl(method, path, body = null) {
 async function run() {
   console.log('--- RESTAURANDO TODOS OS VENDEDORES ---')
   
-  const stores = runCurl('GET', '/rest/v1/stores?select=id,name')
+  const lojas = runCurl('GET', '/rest/v1/lojas?select=id,name')
   const storeMap = new Map()
-  stores.forEach(s => storeMap.set(s.name.toUpperCase().trim(), s.id))
+  lojas.forEach(s => storeMap.set(s.name.toUpperCase().trim(), s.id))
 
-  const existingUsers = runCurl('GET', '/rest/v1/users?select=id,email,name')
+  const existingUsers = runCurl('GET', '/rest/v1/usuarios?select=id,email,name')
   
   for (const s of csvSellers) {
     const isVendaLoja = s.name.includes('VENDA LOJA') || s.name.includes('VENDAS LOJA')
@@ -139,7 +139,7 @@ async function run() {
       userId = existing.id
       console.log(`User existing: ${s.name} (${userId})`)
     } else {
-      // Create a dummy ID for public.users if not official (since we don't have Auth)
+      // Create a dummy ID for public.usuarios if not official (since we don't have Auth)
       // Actually, better create an Auth user via curl to be safe
       const res = runCurl('POST', '/auth/v1/admin/users', {
         email: email,
@@ -157,7 +157,7 @@ async function run() {
     }
 
     // Upsert public user
-    runCurl('POST', '/rest/v1/users', {
+    runCurl('POST', '/rest/v1/usuarios', {
       id: userId,
       email: email,
       name: s.name,
@@ -168,7 +168,7 @@ async function run() {
 
     const storeId = storeMap.get(s.store.toUpperCase()) || storeMap.get(s.store.replace('MOTORS', 'Motors').toUpperCase())
     if (storeId) {
-      runCurl('POST', '/rest/v1/store_sellers', {
+      runCurl('POST', '/rest/v1/vendedores_loja', {
         store_id: storeId,
         seller_user_id: userId,
         is_active: true

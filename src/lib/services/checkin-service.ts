@@ -11,7 +11,7 @@ export async function storeCheckin(
 ) {
     // 1. Check for existing entry (Deduplication)
     const { data: existing } = await supabase
-        .from('daily_checkins')
+        .from('lancamentos_diarios')
         .select('id')
         .eq('store_id', checkin.store_id)
         .eq('seller_user_id', checkin.seller_user_id)
@@ -19,20 +19,20 @@ export async function storeCheckin(
         .maybeSingle();
 
     if (existing) {
-        throw new Error(`Deduplication error: Check-in already exists for ${checkin.reference_date}`);
+        throw new Error(`Deduplication error: Lançamento Diário already exists for ${checkin.reference_date}`);
     }
 
     // 2. Perform Audit Log before transaction
-    await supabase.from('audit_logs').insert({
+    await supabase.from('logs_auditoria').insert({
         user_id: userId,
         action: 'INSERT',
-        entity: 'daily_checkins',
+        entity: 'lancamentos_diarios',
         details_json: { source, checkin }
     });
 
     // 3. Insert Checkin
     const { data, error } = await supabase
-        .from('daily_checkins')
+        .from('lancamentos_diarios')
         .insert(checkin)
         .select()
         .maybeSingle();

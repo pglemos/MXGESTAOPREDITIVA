@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type { WeeklyFeedbackReport } from '@/types/database'
 
 export function useFeedbackReports(filters?: { storeId?: string }) {
@@ -13,8 +13,8 @@ export function useFeedbackReports(filters?: { storeId?: string }) {
       if (!profile) return []
 
       let query = supabase.from('weekly_feedback_reports').select('*')
-      if (role !== 'admin' && storeId) query = query.eq('store_id', storeId)
-      const { data } = await query.order('week_start', { ascending: false }).limit(role === 'admin' ? 50 : 12)
+      if (!isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
+      const { data } = await query.order('week_start', { ascending: false }).limit(isPerfilInternoMx(role) ? 50 : 12)
       return (data || []) as WeeklyFeedbackReport[]
     },
     enabled: !!profile,

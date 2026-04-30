@@ -56,7 +56,7 @@ export const PMR_FULL_QUESTIONS: Record<string, PmrFormField[]> = {
     { key: 'team_size', label: 'Quantidade de vendedores sob gestão?', type: 'number', required: true },
     { key: 'other_tasks', label: 'Acumula outras funções? Quais?', type: 'textarea' },
     
-    { key: 'manager_routine', label: 'Possui rotina clara (Matinal/SGAP/Feedback)?', type: 'select', options: ['Completa', 'Parcial', 'Não'], required: true },
+    { key: 'manager_routine', label: 'Possui rotina clara (Matinal/SGAP/Devolutiva)?', type: 'select', options: ['Completa', 'Parcial', 'Não'], required: true },
     { key: 'evidence_routine', label: 'Anexar evidência da rotina (foto/print)', type: 'file' },
     { key: 'lead_distribution', label: 'Como distribui leads?', type: 'select', options: ['CRM', 'Manual', 'Dono', 'Livre'], required: true },
     { key: 'crm_audit', label: 'Audita CRM diariamente?', type: 'select', options: ['Sim', 'Às vezes', 'Não'], required: true },

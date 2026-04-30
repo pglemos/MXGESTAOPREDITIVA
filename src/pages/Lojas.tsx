@@ -1,5 +1,5 @@
 import { useStores, useStoresStats } from '@/hooks/useTeam'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown } from 'lucide-react'
@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 
 export default function Lojas() {
-    const { stores, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus } = useStores()
+    const { lojas, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus } = useStores()
     const { stats, loading: statsLoading, refetch: refetchStats } = useStoresStats()
     const { role } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
@@ -28,14 +28,14 @@ export default function Lojas() {
     const loading = storesLoading || statsLoading
 
     const filteredStores = useMemo(() => {
-        return (stores || [])
+        return (lojas || [])
             .filter(s => s.active === filterActive)
             .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    }, [stores, searchTerm, filterActive])
+    }, [lojas, searchTerm, filterActive])
 
     // Corporate Consolidated View Calculation
     const corporateMetrics = useMemo(() => {
-        if (!stores || !stats) return { totalSellers: 0, totalStores: 0, activeStores: 0, avgDiscipline: 0 }
+        if (!lojas || !stats) return { totalSellers: 0, totalStores: 0, activeStores: 0, avgDiscipline: 0 }
         
         let totalSellers = 0
         let totalDiscipline = 0
@@ -148,8 +148,8 @@ export default function Lojas() {
                             <Button asChild variant="outline" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny border-border-strong bg-white">
                                 <Link to={`/equipe?id=${store.id}`}>EQUIPE</Link>
                             </Button>
-                            {role === 'admin' && (
-                                <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface">
+                            {isPerfilInternoMx(role) && (
+                                <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
                                     <X size={16} />
                                 </Button>
                             )}
@@ -162,7 +162,7 @@ export default function Lojas() {
                 </div>
             )
         }
-    ], [stats, role])
+    ], [stats, role, toggleStoreStatus])
 
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
@@ -201,15 +201,15 @@ export default function Lojas() {
                     </Button>
                     <div className="relative group w-full sm:w-mx-sidebar-expanded order-2 sm:order-none">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
-                        <label htmlFor="search-stores" className="sr-only">Buscar unidade por nome</label>
+                        <label htmlFor="search-lojas" className="sr-only">Buscar unidade por nome</label>
                         <Input 
-                            id="search-stores"
+                            id="search-lojas"
                             placeholder="LOCALIZAR LOJA..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="!pl-mx-11 !h-mx-12 uppercase tracking-mx-wide text-mx-nano font-black"
                         />
                     </div>
-                    {role === 'admin' && (
+                    {isPerfilInternoMx(role) && (
                         <div className="flex w-full sm:w-auto gap-mx-sm order-1 sm:order-none">
                             <nav className="hidden md:flex bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default gap-mx-tiny mr-2" role="tablist">
                                 <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ATIVAS</Button>

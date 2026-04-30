@@ -21,9 +21,9 @@ export default function GerenteTreinamentos() {
     const [isAssigning, setIsAssigning] = useState(false)
 
     // Meus Treinamentos
-    const { trainings, loading: tLoading, error: tError, markWatched, refetch: refetchMe } = useTrainings()
-    const watched = useMemo(() => trainings?.filter(t => t.watched).length || 0, [trainings])
-    const progress = useMemo(() => (trainings?.length || 0) > 0 ? (watched / trainings.length) * 100 : 0, [watched, trainings])
+    const { treinamentos, loading: tLoading, error: tError, markWatched, refetch: refetchMe } = useTrainings()
+    const watched = useMemo(() => treinamentos?.filter(t => t.watched).length || 0, [treinamentos])
+    const progress = useMemo(() => (treinamentos?.length || 0) > 0 ? (watched / treinamentos.length) * 100 : 0, [watched, treinamentos])
 
     // Progresso da Equipe
     const { teamProgress, loading: tpLoading, error: tpError, refetch: refetchTeam } = useTeamTrainings()
@@ -50,7 +50,7 @@ export default function GerenteTreinamentos() {
     }
 
     const handleRemindAll = async (trainingId: string) => {
-        const training = trainings.find(t => t.id === trainingId)
+        const training = treinamentos.find(t => t.id === trainingId)
         const pendents = teamProgress.filter(p => !p.watched.includes(trainingId))
         
         if (pendents.length === 0) return toast.info('Todos já assistiram este módulo!')
@@ -80,7 +80,7 @@ export default function GerenteTreinamentos() {
     const handleAssignTraining = async (trainingId: string) => {
         if (!assigningTo) return
         const seller = teamProgress.find(p => p.seller_id === assigningTo)
-        const training = trainings.find(t => t.id === trainingId)
+        const training = treinamentos.find(t => t.id === trainingId)
         
         setIsAssigning(true)
         const { error } = await sendNotification({
@@ -101,9 +101,9 @@ export default function GerenteTreinamentos() {
     }
 
     const filteredMe = useMemo(() => {
-        if (!trainings) return []
-        return trainings.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()) || t.type.toLowerCase().includes(searchTerm.toLowerCase()))
-    }, [trainings, searchTerm])
+        if (!treinamentos) return []
+        return treinamentos.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()) || t.type.toLowerCase().includes(searchTerm.toLowerCase()))
+    }, [treinamentos, searchTerm])
 
     const filteredTeam = useMemo(() => {
         if (!teamProgress) return []
@@ -232,7 +232,7 @@ export default function GerenteTreinamentos() {
                                         <thead>
                                             <tr className="bg-surface-alt/50 border-b border-border-default text-mx-micro font-black uppercase tracking-mx-wider text-text-tertiary">
                                                 <th scope="col" className="pl-10 py-6 sticky left-mx-0 bg-surface-alt/50 z-20">VENDEDOR</th>
-                                                {trainings.map(t => (
+                                                {treinamentos.map(t => (
                                                     <th key={t.id} scope="col" className="px-4 py-6 text-center group relative min-w-mx-32">
                                                         <span className="truncate block max-w-mx-20 mx-auto">{t.title}</span>
                                                         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg">
@@ -252,7 +252,7 @@ export default function GerenteTreinamentos() {
                                                             <Typography variant="p" className="text-sm font-black uppercase tracking-tight truncate max-w-mx-label-lg">{p.seller_name}</Typography>
                                                         </div>
                                                     </td>
-                                                    {trainings.map(t => {
+                                                    {treinamentos.map(t => {
                                                         const isWatched = p.watched.includes(t.id)
                                                         return (
                                                             <td key={t.id} className="px-4 text-center">
@@ -300,10 +300,10 @@ export default function GerenteTreinamentos() {
                                             <div className="space-y-mx-sm mb-8">
                                                 <div className="flex justify-between items-end px-2">
                                                     <Typography variant="tiny" className="font-black text-text-label uppercase">Absorção</Typography>
-                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">{Math.round((p.watched.length / trainings.length) * 100)}%</Typography>
+                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">{Math.round((p.watched.length / treinamentos.length) * 100)}%</Typography>
                                                 </div>
                                                 <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-mx-px">
-                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${(p.watched.length / trainings.length) * 100}%` }} className="h-full bg-brand-primary rounded-mx-full" />
+                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${(p.watched.length / treinamentos.length) * 100}%` }} className="h-full bg-brand-primary rounded-mx-full" />
                                                 </div>
                                             </div>
 
@@ -338,7 +338,7 @@ export default function GerenteTreinamentos() {
                                 <Button variant="ghost" size="icon" onClick={() => setAssigningTo(null)} className="rounded-mx-full w-mx-10 h-mx-10"><X size={20} /></Button>
                             </header>
                             <div className="p-mx-lg grid grid-cols-1 gap-mx-sm">
-                                {trainings.map(t => (
+                                {treinamentos.map(t => (
                                     <button 
                                         key={t.id} onClick={() => handleAssignTraining(t.id)} disabled={isAssigning}
                                         className="flex items-center justify-between p-mx-md rounded-mx-2xl border border-border-default hover:border-brand-primary hover:bg-mx-indigo-50 transition-all text-left group"

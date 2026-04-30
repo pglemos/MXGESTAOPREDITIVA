@@ -17,8 +17,8 @@ async function test() {
 
   try {
     const res2 = await supabase
-            .from('memberships')
-            .select('*, store:stores(*)')
+            .from('vinculos_loja')
+            .select('*, store:lojas(*)')
             .eq('user_id', userId)
             .limit(1)
             .maybeSingle()

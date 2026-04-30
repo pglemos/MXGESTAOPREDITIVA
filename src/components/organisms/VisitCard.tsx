@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { format, parseISO, isToday, isPast } from 'date-fns'
-import { Building2, Clock, MapPin, Play, X, Trash2, ChevronRight, User } from 'lucide-react'
+import { Building2, Clock, MapPin, Play, X, Trash2, ChevronRight, User, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
@@ -25,6 +25,7 @@ export interface VisitCardProps {
   onStart?: (id: string) => void
   onCancel?: (id: string) => void
   onDelete?: (id: string) => void
+  onEdit?: (id: string) => void
   linkTo: string
   className?: string
 }
@@ -33,7 +34,7 @@ function getVisitStatusBadge(status: string) {
   switch (status) {
     case 'agendada': return <Badge variant="outline" className="border-brand-primary/30 text-brand-primary">AGENDADA</Badge>
     case 'em_andamento': return <Badge variant="info">EM ANDAMENTO</Badge>
-    case 'concluída': return <Badge variant="success">CONCLUÍDA</Badge>
+    case 'concluida': return <Badge variant="success">CONCLUÍDA</Badge>
     case 'cancelada': return <Badge variant="danger">CANCELADA</Badge>
     default: return <Badge variant="ghost">{status.toUpperCase()}</Badge>
   }
@@ -44,6 +45,7 @@ export function VisitCard({
   onStart,
   onCancel,
   onDelete,
+  onEdit,
   linkTo,
   className,
 }: VisitCardProps) {
@@ -117,6 +119,11 @@ export function VisitCard({
           )}
 
           <div className="flex items-center gap-mx-xs">
+            {onEdit && visit.status !== 'concluida' && (
+              <Button variant="ghost" size="sm" className="text-brand-primary" onClick={() => onEdit(visit.id)}>
+                <Pencil size={14} />
+              </Button>
+            )}
             {visit.status === 'agendada' && onStart && (
               <Button variant="ghost" size="sm" className="text-status-info" onClick={() => onStart(visit.id)}>
                 <Play size={14} />

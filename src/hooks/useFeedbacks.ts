@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type { FeedbackFormData } from '@/types/database'
 import { parseFeedback, type Feedback } from '@/lib/schemas/feedback.schema'
 
@@ -12,16 +12,16 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   const { data: feedbacks, isLoading: loading, refetch } = useQuery({
     queryKey: ['feedbacks', storeId, role, profile?.id, filters?.storeId, filters?.sellerId],
     queryFn: async () => {
-      if (!profile || (!storeId && role !== 'admin')) return []
+      if (!profile || (!storeId && !isPerfilInternoMx(role))) return []
 
-      let query = supabase.from('feedbacks').select('*, seller:users!feedbacks_seller_id_fkey(name), manager:users!feedbacks_manager_id_fkey(name)')
+      let query = supabase.from('feedbacks').select('*, seller:usuarios!feedbacks_seller_id_fkey(name), manager:usuarios!feedbacks_manager_id_fkey(name)')
 
       if (role === 'vendedor') {
         query = query.eq('seller_id', profile.id)
       } else if (role === 'gerente' || role === 'dono') {
         if (storeId) query = query.eq('store_id', storeId)
         if (filters?.sellerId) query = query.eq('seller_id', filters.sellerId)
-      } else if (role === 'admin') {
+      } else if (isPerfilInternoMx(role)) {
         if (filters?.storeId) query = query.eq('store_id', filters.storeId)
         if (filters?.sellerId) query = query.eq('seller_id', filters.sellerId)
       }
@@ -50,7 +50,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   const createFeedbackMut = useMutation({
     mutationFn: async (data: FeedbackFormData) => {
       if (!profile || !storeId) return { error: 'Não autenticado' }
-      if (role !== 'admin' && role !== 'gerente') return { error: 'Seu papel permite acompanhar feedbacks, mas não criar ou editar.' }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar feedbacks, mas não criar ou editar.' }
 
       const { error } = await supabase.from('feedbacks').upsert({
         store_id: storeId,

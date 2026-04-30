@@ -28,11 +28,11 @@ export default function VendedorHome() {
     const { checkins, todayCheckin, loading: checkisLoading, fetchCheckins: refetchCheckins } = useCheckins()
     const { storeGoal, sellerGoals, loading: goalsLoading, fetchGoals: refetchGoals } = useGoals()
     const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
-    const { trainings, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
+    const { treinamentos, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
     const [isRefetching, setIsRefetching] = useState(false)
     const navigate = useNavigate()
 
-    const tacticalPrescription = useTacticalPrescription({ checkins, trainings, userId: profile?.id })
+    const tacticalPrescription = useTacticalPrescription({ checkins, treinamentos, userId: profile?.id })
     const metrics = useSellerMetrics({ 
         checkins, 
         todayCheckin, 
@@ -185,7 +185,7 @@ export default function VendedorHome() {
                         asChild
                         className="w-full h-auto p-mx-lg md:p-mx-xl bg-brand-primary border-none rounded-mx-4xl text-left shadow-mx-xl group relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg"
                     >
-                        <Link to="/checkin">
+                        <Link to="/lancamento-diario">
                             <div className="absolute top-mx-0 right-mx-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
                             <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10">
                                 <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-white/10 flex items-center justify-center border-4 border-white/10 shadow-mx-xl group-hover:rotate-12 transition-transform shrink-0 mx-auto lg:mx-0">
@@ -237,7 +237,7 @@ export default function VendedorHome() {
                         </div>
                     </div>
                     <Button variant="outline" asChild className="rounded-mx-full px-8 h-mx-12 bg-surface-alt border border-border-default shadow-mx-sm uppercase font-black tracking-widest text-mx-tiny w-full sm:w-auto hover:border-brand-primary transition-all">
-                        <Link to="/ranking">Ver Arena Completa</Link>
+                        <Link to="/classificacao">Ver Arena Completa</Link>
                     </Button>
                 </CardHeader>
 

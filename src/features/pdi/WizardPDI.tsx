@@ -146,7 +146,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
     const randomFrase = useMemo(() => template?.frases?.[Math.floor(Math.random() * template.frases.length)] || '', [template])
     const steps = [
         { id: 'setup', label: 'Especialista', icon: Target },
-        { id: 'goals', label: 'Metas (7 min)', icon: Target },
+        { id: 'metas', label: 'Metas (7 min)', icon: Target },
         { id: 'skills', label: 'Mapeamento (10 min)', icon: LayoutDashboard },
         { id: 'actions', label: 'Plano de Ação (11 min)', icon: Zap }
     ]

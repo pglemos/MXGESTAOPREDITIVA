@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import type { ConsultingClientDetail } from '@/features/consultoria/types'
 import {
   parseConsultingClientUnitArray,
@@ -18,7 +18,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
   const [assignableUsers, setAssignableUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const canManage = role === 'admin'
+  const canManage = isAdministradorMx(role)
 
   const fetchClient = useCallback(async () => {
     if (!supabaseUser || !slug || slug === 'undefined') {
@@ -32,7 +32,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug)
     
-    let query = supabase.from('consulting_clients').select('*')
+    let query = supabase.from('clientes_consultoria').select('*')
     if (isUuid) {
       query = query.or(`slug.eq.${slug},id.eq.${slug}`)
     } else {
@@ -53,13 +53,36 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     const [unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, modulesRes, usersRes, inventoryRes] = await Promise.all([
       supabase.from('consulting_client_units').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_client_contacts').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
-      supabase.from('consulting_assignments').select('*, user:users(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
-      supabase.from('consulting_visits').select('*, consultant:users(name,email), auxiliary_consultant:users(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
-      supabase.from('consulting_financials').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
+      supabase.from('consulting_assignments').select('*, user:usuarios(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
+      supabase.from('visitas_consultoria').select('*, consultant:usuarios(name,email), auxiliary_consultant:usuarios(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
+      supabase.from('financeiro_consultoria').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
       supabase.from('consulting_client_modules').select('*').eq('client_id', clientId).order('module_key', { ascending: true }),
-      supabase.from('users').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
+      supabase.from('usuarios').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
       supabase.from('consulting_inventory_snapshots').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
     ])
+
+    const visitRows = visitsRes.data || []
+    const visitIds = visitRows.map((v: any) => v.id).filter(Boolean)
+    const { data: evidenceRows } = visitIds.length
+      ? await supabase.from('evidencias_visita').select('*').in('visita_id', visitIds)
+      : { data: [] as any[] }
+    const evidenceByVisit = new Map<string, any[]>()
+    for (const evidence of evidenceRows || []) {
+      const list = evidenceByVisit.get(evidence.visita_id) || []
+      list.push({
+        id: evidence.id,
+        filename: evidence.nome_arquivo || evidence.tipo,
+        storage_path: evidence.caminho_storage,
+        content_type: evidence.content_type,
+        size_bytes: evidence.tamanho_bytes || 0,
+        uploaded_at: evidence.created_at,
+      })
+      evidenceByVisit.set(evidence.visita_id, list)
+    }
+    const visitsWithEvidence = parseConsultingVisitArray(visitRows).map((visit) => ({
+      ...visit,
+      attachments: evidenceByVisit.get(visit.id) || [],
+    }))
 
     const detail: ConsultingClientDetail = {
       ...(clientData as ConsultingClient),
@@ -69,7 +92,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       units: parseConsultingClientUnitArray(unitsRes.data || []),
       contacts: parseConsultingClientContactArray(contactsRes.data || []),
       assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
-      visits: parseConsultingVisitArray(visitsRes.data || []),
+      visits: visitsWithEvidence,
       financials: parseConsultingFinancialArray(financialsRes.data || []),
       modules: parseConsultingClientModuleArray(modulesRes.data || []),
       inventory_snapshots: (inventoryRes.data || []) as any[],
@@ -89,7 +112,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     is_primary?: boolean
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode cadastrar unidade.' }
+      return { error: 'Apenas perfis MX podem cadastrar unidade.' }
     }
 
     const { error: insertError } = await supabase.from('consulting_client_units').insert({
@@ -113,7 +136,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     is_primary?: boolean
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode cadastrar contato.' }
+      return { error: 'Apenas perfis MX podem cadastrar contato.' }
     }
 
     const { error: insertError } = await supabase.from('consulting_client_contacts').insert({
@@ -136,7 +159,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     active?: boolean
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode vincular consultores.' }
+      return { error: 'Apenas perfis MX podem vincular consultores.' }
     }
 
     const { error: upsertError } = await supabase.from('consulting_assignments').upsert({
@@ -153,7 +176,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
 
   const toggleAssignment = useCallback(async (assignmentId: string, active: boolean) => {
     if (!supabaseUser || !canManage) {
-      return { error: 'Apenas admin pode alterar vinculos.' }
+      return { error: 'Apenas perfis MX podem alterar vínculos.' }
     }
 
     const { error: updateError } = await supabase
@@ -176,7 +199,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     financing: number
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode lancar dados financeiros.' }
+      return { error: 'Apenas perfis MX podem lançar dados financeiros.' }
     }
 
     const net_profit = input.revenue - input.fixed_expenses - input.marketing_expenses - input.investments - input.financing
@@ -197,13 +220,13 @@ export function useConsultingClientDetailBySlug(slug?: string) {
 
     if (input.id) {
       const { error: updateError } = await supabase
-        .from('consulting_financials')
+        .from('financeiro_consultoria')
         .update(payload)
         .eq('id', input.id)
       if (updateError) return { error: updateError.message }
     } else {
       const { error: insertError } = await supabase
-        .from('consulting_financials')
+        .from('financeiro_consultoria')
         .insert(payload)
       if (insertError) return { error: insertError.message }
     }
@@ -214,11 +237,11 @@ export function useConsultingClientDetailBySlug(slug?: string) {
 
   const deleteFinancial = useCallback(async (financialId: string) => {
     if (!supabaseUser || !canManage) {
-      return { error: 'Apenas admin pode excluir dados financeiros.' }
+      return { error: 'Apenas perfis MX podem excluir dados financeiros.' }
     }
 
     const { error: deleteError } = await supabase
-      .from('consulting_financials')
+      .from('financeiro_consultoria')
       .delete()
       .eq('id', financialId)
 

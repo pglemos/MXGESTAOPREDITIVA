@@ -1,8 +1,22 @@
 import { useState, useEffect, useCallback } from 'react'
+import { z } from 'zod'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
 import type { User, Store, StoreSeller } from '@/types/database'
+
+export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'active'>
+
+const storeUpdateSchema = z.object({
+    name: z.string().trim().min(2, 'Nome da loja deve ter pelo menos 2 caracteres.').max(120, 'Nome da loja muito longo.').optional(),
+    manager_email: z.union([
+        z.string().trim().email('E-mail do gestor inválido.'),
+        z.literal(''),
+        z.null(),
+    ]).optional(),
+    active: z.boolean().optional(),
+}).strict()
 
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
@@ -23,25 +37,25 @@ export function useTeam(storeIdOverride?: string) {
             // 1. Fetch Users & Memberships
             if (storeId && storeId !== 'all') {
                 const { data: members } = await supabase
-                    .from('memberships')
-                    .select('user_id, role, users:user_id(*), store:store_id(name)')
+                    .from('vinculos_loja')
+                    .select('user_id, role, users:usuarios(*), store:lojas(name)')
                     .eq('store_id', storeId)
                 teamData = members || []
             } else {
                 // Global view for Admins
                 const { data: members } = await supabase
-                    .from('memberships')
-                    .select('user_id, role, users:user_id(*), store:store_id(name)')
+                    .from('vinculos_loja')
+                    .select('user_id, role, users:usuarios(*), store:lojas(name)')
                 
-                // Also get users WITHOUT memberships (like some Donos or Admins)
+                // Also get users WITHOUT vinculos_loja (like some Donos or Admins)
                 const { data: allUsers } = await supabase
-                    .from('users')
+                    .from('usuarios')
                     .select('*')
                 
-                // Map to handle users with multiple stores or no stores
+                // Map to handle users with multiple lojas or no lojas
                 const userMap = new Map()
                 
-                // Process memberships first
+                // Process vinculos_loja first
                 ;(members || []).forEach((m: any) => {
                     if (!userMap.has(m.user_id)) {
                         userMap.set(m.user_id, {
@@ -73,7 +87,7 @@ export function useTeam(storeIdOverride?: string) {
             }
 
             // 2. Fetch Tenures (Vigência)
-            let tenuresQuery = supabase.from('store_sellers').select('seller_user_id, started_at, ended_at, is_active, closing_month_grace')
+            let tenuresQuery = supabase.from('vendedores_loja').select('seller_user_id, started_at, ended_at, is_active, closing_month_grace')
             if (storeId && storeId !== 'all') {
                 tenuresQuery = tenuresQuery.eq('store_id', storeId)
             }
@@ -81,7 +95,7 @@ export function useTeam(storeIdOverride?: string) {
             tenureMap = new Map((tenures || []).map(t => [t.seller_user_id, t]))
 
             // 3. Fetch Checkins
-            let checkinsQuery = supabase.from('daily_checkins').select('seller_user_id').eq('reference_date', referenceDate)
+            let checkinsQuery = supabase.from('lancamentos_diarios').select('seller_user_id').eq('reference_date', referenceDate)
             if (storeId && storeId !== 'all') {
                 checkinsQuery = checkinsQuery.eq('store_id', storeId)
             }
@@ -113,7 +127,7 @@ export function useTeam(storeIdOverride?: string) {
 
     const updateVigencia = async (userId: string, data: Record<string, unknown>) => {
         if (!storeId) return { error: 'Loja não identificada' }
-        const { error } = await supabase.from('store_sellers').upsert({
+        const { error } = await supabase.from('vendedores_loja').upsert({
             store_id: storeId,
             seller_user_id: userId,
             ...data
@@ -133,7 +147,7 @@ export function useTeam(storeIdOverride?: string) {
         const { data, error } = await supabase.functions.invoke('register-user', {
             body: { 
                 ...userData, 
-                password: userData.password || 'Mx#2026!' // Default password
+                password: userData.password || 'Mx#2026!'
             }
         })
         if (!error && data?.success) {
@@ -155,16 +169,16 @@ export function useTeam(storeIdOverride?: string) {
 }
 
 export function useStores() {
-    const { role, memberships, storeId } = useAuth()
-    const [stores, setStores] = useState<Store[]>([])
+    const { role, vinculos_loja, storeId } = useAuth()
+    const [lojas, setStores] = useState<Store[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchStores = useCallback(async () => {
         setLoading(true)
-        let query = supabase.from('stores').select('*').eq('active', true).order('name')
+        let query = supabase.from('lojas').select('*').order('name')
         
         if (role === 'dono' || role === 'gerente') {
-            const storeIds = memberships.map(m => m.store_id)
+            const storeIds = vinculos_loja.map(m => m.store_id)
             if (!storeIds.length) {
                 setStores([])
                 setLoading(false)
@@ -175,17 +189,21 @@ export function useStores() {
             query = query.eq('id', storeId)
         }
 
+        if (!isPerfilInternoMx(role)) {
+            query = query.eq('active', true)
+        }
+
         const { data } = await query
         if (data) {
             setStores(data)
         }
         setLoading(false)
-    }, [role, memberships, storeId])
+    }, [role, vinculos_loja, storeId])
 
     const createStore = async (name: string, managerEmail?: string) => {
-        if (role !== 'admin') return { error: 'Apenas admin pode criar lojas.' }
+        if (!isPerfilInternoMx(role)) return { error: 'Apenas perfis MX podem criar lojas.' }
         const { data: store, error } = await supabase
-            .from('stores')
+            .from('lojas')
             .insert({ name, manager_email: managerEmail || null })
             .select('id')
             .single()
@@ -210,13 +228,31 @@ export function useStores() {
         return { error: null }
     }
 
-    const updateStore = async (id: string, updates: { name?: string; manager_email?: string; active?: boolean }) => {
-        if (role !== 'admin') return { error: 'Apenas admin pode editar lojas.' }
-        const { error } = await supabase.from('stores').update(updates).eq('id', id)
-        if (error) return { error: error.message }
+    const updateStore = async (id: string, updates: Partial<StoreUpdateFields>) => {
+        if (!isPerfilInternoMx(role)) return { error: 'Apenas perfis MX podem editar lojas.' }
 
-        if (typeof updates.manager_email !== 'undefined') {
-            const recipients = updates.manager_email ? [updates.manager_email] : []
+        const validation = storeUpdateSchema.safeParse(updates)
+        if (!validation.success) {
+            const message = validation.error.issues[0]?.message || 'Dados da loja inválidos.'
+            toast.error(message)
+            return { error: message }
+        }
+
+        const payload: Partial<StoreUpdateFields> = {}
+        if (typeof validation.data.name !== 'undefined') payload.name = validation.data.name
+        if (typeof validation.data.manager_email !== 'undefined') {
+            payload.manager_email = validation.data.manager_email ? validation.data.manager_email : null
+        }
+        if (typeof validation.data.active !== 'undefined') payload.active = validation.data.active
+
+        const { error } = await supabase.from('lojas').update(payload).eq('id', id)
+        if (error) {
+            toast.error(error.message)
+            return { error: error.message }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(payload, 'manager_email')) {
+            const recipients = payload.manager_email ? [payload.manager_email] : []
             const { error: deliveryError } = await supabase.from('store_delivery_rules').upsert({
                 store_id: id,
                 matinal_recipients: recipients,
@@ -226,16 +262,20 @@ export function useStores() {
                 active: true,
             }, { onConflict: 'store_id' })
 
-            if (deliveryError) return { error: deliveryError.message }
+            if (deliveryError) {
+                toast.error(deliveryError.message)
+                return { error: deliveryError.message }
+            }
         }
 
         await fetchStores()
+        toast.success('Loja atualizada com sucesso.')
         return { error: null }
     }
 
     const deleteStore = async (id: string) => {
-        if (role !== 'admin') return { error: 'Apenas admin pode excluir lojas.' }
-        const { error } = await supabase.from('stores').delete().eq('id', id)
+        if (!isPerfilInternoMx(role)) return { error: 'Apenas perfis MX podem excluir lojas.' }
+        const { error } = await supabase.from('lojas').delete().eq('id', id)
         if (error) return { error: error.message }
         await fetchStores()
         return { error: null }
@@ -244,27 +284,27 @@ export function useStores() {
     const toggleStoreStatus = async (id: string, active: boolean) => updateStore(id, { active })
 
     useEffect(() => { fetchStores() }, [fetchStores])
-    return { stores, loading, createStore, updateStore, deleteStore, toggleStoreStatus, refetch: fetchStores }
+    return { lojas, loading, createStore, updateStore, deleteStore, toggleStoreStatus, refetch: fetchStores }
 }
 
 export function useMemberships() {
     const { role } = useAuth()
-    const [memberships, setMemberships] = useState<{ id: string; user_id: string; store_id: string; role: string; store?: { name?: string } }[]>([])
+    const [vinculos_loja, setMemberships] = useState<{ id: string; user_id: string; store_id: string; role: string; store?: { name?: string } }[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetch = useCallback(async () => {
         setLoading(true)
-        const { data } = await supabase.from('memberships').select('*, store:store_id(name)')
+        const { data } = await supabase.from('vinculos_loja').select('*, store:lojas(name)')
         if (data) setMemberships(data)
         setLoading(false)
     }, [])
 
     useEffect(() => { fetch() }, [fetch])
-    return { memberships, loading, refetch: fetch }
+    return { vinculos_loja, loading, refetch: fetch }
 }
 
 export function useStoresStats() {
-    const { role, memberships, storeId: authStoreId } = useAuth()
+    const { role, vinculos_loja, storeId: authStoreId } = useAuth()
     const [stats, setStats] = useState<Record<string, { sellers: number; checkedIn: number; disciplinePct: number }>>({})
     const [loading, setLoading] = useState(true)
     const referenceDate = calculateReferenceDate()
@@ -274,13 +314,13 @@ export function useStoresStats() {
         try {
             let authorizedStoreIds: string[] | null = null
             if (role === 'dono') {
-                authorizedStoreIds = memberships.map(m => m.store_id)
+                authorizedStoreIds = vinculos_loja.map(m => m.store_id)
             } else if ((role === 'gerente' || role === 'vendedor') && authStoreId) {
                 authorizedStoreIds = [authStoreId]
             }
 
-            let sellersQuery = supabase.from('store_sellers').select('store_id').eq('is_active', true)
-            let checkinsQuery = supabase.from('daily_checkins').select('store_id').eq('reference_date', referenceDate)
+            let sellersQuery = supabase.from('vendedores_loja').select('store_id').eq('is_active', true)
+            let checkinsQuery = supabase.from('lancamentos_diarios').select('store_id').eq('reference_date', referenceDate)
 
             if (authorizedStoreIds) {
                 sellersQuery = sellersQuery.in('store_id', authorizedStoreIds)
@@ -315,11 +355,11 @@ export function useStoresStats() {
 
             setStats(newStats)
         } catch (err) {
-            console.error('Error fetching stores stats:', err)
+            console.error('Error fetching lojas stats:', err)
         } finally {
             setLoading(false)
         }
-    }, [referenceDate, role, memberships, authStoreId])
+    }, [referenceDate, role, vinculos_loja, authStoreId])
 
     useEffect(() => { fetchStats() }, [fetchStats])
 
@@ -339,13 +379,13 @@ export function useSellersByStore(storeId: string | null) {
         }
         setLoading(true)
         const { data: sellersData } = await supabase
-            .from('store_sellers')
-            .select('*, users:seller_user_id(*)')
+            .from('vendedores_loja')
+            .select('*, users:usuarios(*)')
             .eq('store_id', storeId)
             .eq('is_active', true)
 
         const { data: checkins } = await supabase
-            .from('daily_checkins')
+            .from('lancamentos_diarios')
             .select('seller_user_id')
             .eq('store_id', storeId)
             .eq('reference_date', referenceDate)
@@ -371,14 +411,14 @@ export function useAllSellers() {
 
     const fetch = useCallback(async () => {
         setLoading(true)
-        const [{ data: tenures }, { data: stores }] = await Promise.all([
-            supabase.from('store_sellers')
-                .select('seller_user_id, store_id, users:seller_user_id(id, name, email, role), stores(name)')
+        const [{ data: tenures }, { data: lojas }] = await Promise.all([
+            supabase.from('vendedores_loja')
+                .select('seller_user_id, store_id, users:usuarios(id, name, email, role), stores:lojas(name)')
                 .eq('is_active', true),
-            supabase.from('stores').select('id, name'),
+            supabase.from('lojas').select('id, name'),
         ])
 
-        const storeMap = new Map((stores || []).map(s => [s.id, s.name]))
+        const storeMap = new Map((lojas || []).map(s => [s.id, s.name]))
         if (tenures) {
             setSellers(tenures
                 .filter(t => (t as any).users?.role === 'vendedor')

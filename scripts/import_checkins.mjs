@@ -28,11 +28,11 @@ const dataLines = lines.slice(1)
 
 console.log(`Total lines: ${dataLines.length}`)
 
-const stores = runCurl('GET', '/rest/v1/stores?select=id,name')
+const lojas = runCurl('GET', '/rest/v1/lojas?select=id,name')
 const storeMap = new Map()
-stores.forEach(s => storeMap.set(normalize(s.name), s.id))
+lojas.forEach(s => storeMap.set(normalize(s.name), s.id))
 
-const users = runCurl('GET', '/rest/v1/users?select=id,name,email,active')
+const users = runCurl('GET', '/rest/v1/usuarios?select=id,name,email,active')
 const userByName = new Map()
 users.forEach(u => {
   const key = normalize(u.name)
@@ -104,7 +104,7 @@ for (const e of entries) {
 
 console.log(`\nAggregated entries: ${entries.length}`)
 
-const UPSERT_PATH = '/rest/v1/daily_checkins?on_conflict=seller_user_id,store_id,reference_date'
+const UPSERT_PATH = '/rest/v1/lancamentos_diarios?on_conflict=seller_user_id,store_id,reference_date'
 const UPSERT_HEADERS = { 'Prefer': 'resolution=merge-duplicates,return=representation' }
 
 const BATCH_SIZE = 50
@@ -139,5 +139,5 @@ console.log(`\n\n=== RESULTADO ===`)
 console.log(`Upserted (inseridos + atualizados): ${upserted}`)
 console.log(`Erros: ${errors}`)
 
-const verify = runCurl('GET', '/rest/v1/daily_checkins?select=reference_date&reference_date=gte.2026-01-01&reference_date=lt.2026-05-01')
+const verify = runCurl('GET', '/rest/v1/lancamentos_diarios?select=reference_date&reference_date=gte.2026-01-01&reference_date=lt.2026-05-01')
 console.log(`Total checkins no periodo Jan-Abr 2026: ${verify?.length || 'N/A'}`)

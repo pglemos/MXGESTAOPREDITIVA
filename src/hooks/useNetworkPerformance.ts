@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useAllStoreGoals } from '@/hooks/useGoals'
 import { getDiasInfo, calcularProjecao, calcularAtingimento } from '@/lib/calculations'
 
@@ -40,12 +40,12 @@ const EMPTY_METRIC: NetworkMetric = {
 
 export function useNetworkPerformance() {
   const { role } = useAuth()
-  const { goals, loading: goalsLoading } = useAllStoreGoals()
+  const { metas, loading: goalsLoading } = useAllStoreGoals()
   const [metrics, setMetrics] = useState<NetworkMetric>(EMPTY_METRIC)
   const [loading, setLoading] = useState(true)
 
   const fetchMetrics = useCallback(async () => {
-    if (role !== 'admin') {
+    if (!isPerfilInternoMx(role)) {
       setMetrics(EMPTY_METRIC)
       setLoading(false)
       return
@@ -60,7 +60,7 @@ export function useNetworkPerformance() {
       let allCheckins: Record<string, unknown>[] = []
       let from = 0
       while (true) {
-        const { data, error } = await supabase.from('daily_checkins')
+        const { data, error } = await supabase.from('lancamentos_diarios')
           .select('store_id, reference_date, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, leads_prev_day, agd_cart_today, agd_net_today, visit_prev_day')
           .gte('reference_date', monthStart)
           .lte('reference_date', now)
@@ -72,7 +72,7 @@ export function useNetworkPerformance() {
         from += 1000
       }
 
-      const { data: stores } = await supabase.from('stores').select('id, name')
+      const { data: lojas } = await supabase.from('lojas').select('id, name')
 
       const byMonth: Record<string, number> = {}
       const byStoreMap: Record<string, { sales: number; leads: number; agd: number; vis: number; days: Set<string> }> = {}
@@ -103,8 +103,8 @@ export function useNetworkPerformance() {
 
       let networkGoal = 0
       const byStore: NetworkMetric['byStore'] = []
-      for (const store of stores || []) {
-        const goal = goals.find(g => g.store_id === store.id)?.target || 0
+      for (const store of lojas || []) {
+        const goal = metas.find(g => g.store_id === store.id)?.target || 0
         networkGoal += goal
         const s = byStoreMap[store.id] || { sales: 0, leads: 0, agd: 0, vis: 0, days: new Set<string>() }
         const convLeadVnd = s.leads > 0 ? Math.round((s.sales / s.leads) * 1000) / 10 : 0
@@ -137,7 +137,7 @@ export function useNetworkPerformance() {
       setMetrics({
         totalSales, totalLeads, totalAgd, totalVis,
         networkGoal, projection, reaching,
-        storeCount: stores?.length || 0,
+        storeCount: lojas?.length || 0,
         byMonth: Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, sales]) => ({ month, sales })),
         byStore,
       })
@@ -146,7 +146,7 @@ export function useNetworkPerformance() {
     } finally {
       setLoading(false)
     }
-  }, [role, goals])
+  }, [role, metas])
 
   useEffect(() => { fetchMetrics() }, [fetchMetrics])
 

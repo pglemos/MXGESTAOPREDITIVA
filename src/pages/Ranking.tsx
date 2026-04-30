@@ -1,14 +1,14 @@
 import { useRanking, useGlobalRanking } from '@/hooks/useRanking'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useStoreMetaRules } from '@/hooks/useGoals'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { 
     Trophy, Crown, TrendingUp, RefreshCw, 
     Search, Building2, Calendar, Zap, Target,
     Phone, Users, CheckCircle2, XCircle,
-    Flame, Swords, X, MessageSquare
+    Flame, Swords, X, MessageSquare, Eye, EyeOff
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -25,9 +25,11 @@ import { StoreBattleView } from '@/features/ranking/components/StoreBattleView'
 import { SellerProfileModal } from '@/features/ranking/components/SellerProfileModal'
 import { useNetworkPerformance } from '@/hooks/useNetworkPerformance'
 
+const STORE_PRIVACY_STORAGE_KEY = 'mx-ranking-hide-store-names'
+
 export default function Ranking() {
     const { role } = useAuth()
-    if (role === 'admin') return <GlobalRanking />
+    if (isPerfilInternoMx(role)) return <GlobalRanking />
     return <StoreRankingView />
 }
 
@@ -41,6 +43,10 @@ function GlobalRanking() {
     const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'live' | 'store-arena'>('leaderboard')
     const [battleOpponents, setBattleOpponents] = useState<string[]>([])
     const [storeOpponents, setStoreOpponents] = useState<string[]>([])
+    const [hideStoreNames, setHideStoreNames] = useState(() => {
+        if (typeof window === 'undefined') return false
+        return window.localStorage.getItem(STORE_PRIVACY_STORAGE_KEY) === 'true'
+    })
     const { metrics: networkMetrics, loading: networkLoading } = useNetworkPerformance()
 
     const toggleStoreOpponent = useCallback((id: string) => {
@@ -51,10 +57,16 @@ function GlobalRanking() {
         })
     }, [])
 
-    const stores = useMemo(() => {
+    const lojas = useMemo(() => {
         const set = new Set(ranking.map(r => r.store_name).filter(Boolean))
         return Array.from(set).sort()
     }, [ranking])
+
+    const getHiddenStoreName = useCallback((storeName?: string) => {
+        if (!storeName) return 'Loja oculta'
+        const index = lojas.indexOf(storeName)
+        return `LOJA #${index >= 0 ? index + 1 : '?'}`
+    }, [lojas])
 
     const filtered = useMemo(() => {
         let list = ranking
@@ -65,6 +77,40 @@ function GlobalRanking() {
         }
         return list.filter(r => !r.is_venda_loja) // Exclude venda loja for actual ranking
     }, [ranking, searchTerm, filterStore])
+
+    const displayRanking = useMemo(() => {
+        if (!hideStoreNames) return filtered
+        return filtered.map((entry) => ({
+            ...entry,
+            store_name: getHiddenStoreName(entry.store_name),
+        }))
+    }, [filtered, hideStoreNames, getHiddenStoreName])
+
+    const displayNetworkMetrics = useMemo(() => {
+        if (!hideStoreNames) return networkMetrics
+        return {
+            ...networkMetrics,
+            byStore: networkMetrics.byStore.map((store, index) => ({
+                ...store,
+                storeName: `LOJA #${index + 1}`,
+            })),
+        }
+    }, [hideStoreNames, networkMetrics])
+
+    useEffect(() => {
+        window.localStorage.setItem(STORE_PRIVACY_STORAGE_KEY, String(hideStoreNames))
+    }, [hideStoreNames])
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement | null
+            const tagName = target?.tagName?.toLowerCase()
+            if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') return
+            if (event.key.toLowerCase() === 'h') setHideStoreNames((current) => !current)
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
 
     // Podium 
     const top3 = [...filtered].sort((a, b) => a.position - b.position).slice(0, 3)
@@ -112,17 +158,17 @@ function GlobalRanking() {
                         <Typography variant="h1">Arena <span className="text-mx-green-700">Global</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">
-                        {stores.length} UNIDADES • {totalVendedores} VENDEDORES • MERITOCRACIA EM TEMPO REAL
+                        {lojas.length} UNIDADES • {totalVendedores} VENDEDORES • MERITOCRACIA EM TEMPO REAL
                     </Typography>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
                     <div className="flex w-full sm:w-auto overflow-x-auto no-scrollbar bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4">
                         <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <Trophy size={14} /> Ranking
+                            <Trophy size={14} /> Classificação
                         </button>
                         <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <div className="w-mx-xs h-mx-xs rounded-full bg-status-success animate-pulse" /> Live Floor
+                        <div className="w-mx-xs h-mx-xs rounded-full bg-status-success animate-pulse" /> Live Floor
                         </button>
                         <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
@@ -133,6 +179,16 @@ function GlobalRanking() {
                     </div>
 
                     <div className="flex items-center gap-mx-sm w-full sm:w-auto order-1 sm:order-none">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setHideStoreNames((current) => !current)}
+                            aria-label={hideStoreNames ? 'Mostrar lojas' : 'Ocultar lojas'}
+                            title={hideStoreNames ? 'Mostrar lojas' : 'Ocultar lojas'}
+                            className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white"
+                        >
+                            {hideStoreNames ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </Button>
                         <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                         </Button>
@@ -191,7 +247,7 @@ function GlobalRanking() {
                             filterStore === 'all' ? 'bg-brand-primary text-white' : 'text-text-tertiary hover:bg-surface-alt'
                         )}
                     >Todas</button>
-                    {stores.map(store => (
+                    {lojas.map(store => (
                         <button
                             key={store}
                             type="button"
@@ -200,13 +256,13 @@ function GlobalRanking() {
                                 "px-3 py-1 rounded-mx-sm text-mx-tiny font-black uppercase tracking-widest whitespace-nowrap transition-colors",
                                 filterStore === store ? 'bg-brand-primary text-mx-black' : 'text-text-tertiary hover:bg-surface-alt'
                             )}
-                        >{store}</button>
+                        >{hideStoreNames ? getHiddenStoreName(store) : store}</button>
                     ))}
                 </div>
             </div>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-                {viewMode === 'live' && <LiveFloor ranking={filtered} />}
+                {viewMode === 'live' && <LiveFloor ranking={displayRanking} />}
 
                 {viewMode === 'battle' && (
                     <div className="animate-slide-up">
@@ -224,12 +280,12 @@ function GlobalRanking() {
                                     <X className="w-mx-sm h-mx-sm" />
                                 </button>
                              )}
-                             <BattleView opponents={battleOpponents} ranking={filtered} />
+                             <BattleView opponents={battleOpponents} ranking={displayRanking} />
                         </div>
 
                         <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2">Escolha os Combatentes</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-mx-md">
-                            {filtered.map(seller => {
+                            {displayRanking.map(seller => {
                                 const selected = battleOpponents.includes(seller.user_id)
                                 const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
                                 return (
@@ -272,14 +328,14 @@ function GlobalRanking() {
                                             <X className="w-mx-sm h-mx-sm" />
                                         </button>
                                     )}
-                                    <StoreBattleView opponents={storeOpponents} stores={networkMetrics.byStore} />
+                                    <StoreBattleView opponents={storeOpponents} lojas={displayNetworkMetrics.byStore} />
                                 </div>
 
                                 <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2 flex items-center gap-mx-sm">
                                     <Building2 size={20} className="text-brand-primary" /> Selecione as lojas para o duelo
                                 </h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-mx-md">
-                                    {networkMetrics.byStore.map(store => {
+                                    {displayNetworkMetrics.byStore.map(store => {
                                         const selected = storeOpponents.includes(store.storeId)
                                         const reachingTone = store.reaching >= 100 ? 'text-status-success' : store.reaching >= 80 ? 'text-status-warning' : 'text-status-error'
                                         return (
@@ -357,7 +413,7 @@ function GlobalRanking() {
                         {/* LIST */}
                         <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none">
                             <AnimatePresence mode="popLayout">
-                                {filtered.map((r, i) => {
+                                {displayRanking.map((r, i) => {
                                     const isMe = r.user_id === profile?.id
                                     const isTop1 = r.position === 1
                                     const isBattleSelected = battleOpponents.includes(r.user_id)
@@ -440,7 +496,7 @@ function GlobalRanking() {
 
             {selectedSeller && (
                 <SellerProfileModal 
-                    seller={ranking.find(s => s.user_id === selectedSeller)!} 
+                    seller={displayRanking.find(s => s.user_id === selectedSeller)!}
                     onClose={() => setSelectedSeller(null)} 
                 />
             )}
@@ -511,7 +567,7 @@ function StoreRankingView() {
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
                     <div className="flex w-full sm:w-auto overflow-x-auto no-scrollbar bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4">
                         <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <Trophy size={14} /> Ranking
+                            <Trophy size={14} /> Classificação
                         </button>
                         <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <div className="w-mx-xs h-mx-xs rounded-full bg-status-success animate-pulse" /> Live Floor

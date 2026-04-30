@@ -61,7 +61,7 @@ describe("VisitCard", () => {
   });
 
   test("renders completed status", () => {
-    const completedVisit = { ...mockVisit, status: "concluída" };
+    const completedVisit = { ...mockVisit, status: "concluida" };
     renderWithRouter(<VisitCard visit={completedVisit} linkTo="/visits/1" />);
     expect(screen.getByText("CONCLUÍDA")).toBeDefined();
   });

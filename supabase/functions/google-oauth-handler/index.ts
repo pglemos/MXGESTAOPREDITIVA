@@ -83,12 +83,12 @@ Deno.serve(async (req) => {
 
       if (isCentralConnection) {
         const { data: roleCheck, error: roleError } = await adminClient
-          .from("users")
+          .from("usuarios")
           .select("role")
           .eq("id", user.id)
           .single();
         if (roleError) throw roleError;
-        if (roleCheck?.role !== "admin") throw new Error("Only admin users can connect the central MX calendar");
+        if (!["administrador_geral", "administrador_mx"].includes(roleCheck?.role)) throw new Error("Apenas administradores MX podem conectar a agenda central");
       }
 
       if (clientId) {
@@ -201,11 +201,11 @@ Deno.serve(async (req) => {
       if (settingsLookupError) throw settingsLookupError;
 
       const { data: roleCheck } = await adminClient
-        .from("users")
+        .from("usuarios")
         .select("role")
         .eq("id", stateRow.user_id)
         .single();
-      const isAdmin = roleCheck?.role === "admin" || roleCheck?.role === "consultor";
+      const isAdmin = roleCheck?.role === "administrador_geral" || roleCheck?.role === "administrador_mx" || roleCheck?.role === "consultor_mx";
 
       const shouldLinkClient = stateRow.client_id && !isAdmin;
 

@@ -18,7 +18,7 @@ async function test() {
 
   console.log('Fetching profile...')
   try {
-    const res1 = await supabase.from('users').select('*').eq('id', userId).single()
+    const res1 = await supabase.from('usuarios').select('*').eq('id', userId).single()
     console.log('Profile exists?', !!res1.data, res1.error ? res1.error.message : '')
   } catch (e) {
     console.error('Profile Error:', e)
@@ -27,8 +27,8 @@ async function test() {
   console.log('Fetching membership...')
   try {
     const res2 = await supabase
-            .from('memberships')
-            .select('*, store:stores(*)')
+            .from('vinculos_loja')
+            .select('*, store:lojas(*)')
             .eq('user_id', userId)
             .limit(1)
             .single()

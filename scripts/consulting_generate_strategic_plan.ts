@@ -28,11 +28,11 @@ async function main() {
   const supabase = envClient()
 
   const [clientRes, responsesRes, metricsRes, parameterSetRes, actionsRes] = await Promise.all([
-    supabase.from('consulting_clients').select('*').eq('id', args.clientId).single(),
+    supabase.from('clientes_consultoria').select('*').eq('id', args.clientId).single(),
     supabase.from('consulting_pmr_form_responses').select('*, template:consulting_pmr_form_templates(*)').eq('client_id', args.clientId),
     supabase.from('consulting_client_metric_results').select('*, metric:consulting_metric_catalog(*)').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
     supabase.from('consulting_parameter_sets').select('*, values:consulting_parameter_values(*)').eq('active', true).maybeSingle(),
-    supabase.from('consulting_action_items').select('*').eq('client_id', args.clientId),
+    supabase.from('itens_plano_acao').select('*').eq('client_id', args.clientId),
   ])
 
   const fetchError = clientRes.error || responsesRes.error || metricsRes.error || parameterSetRes.error || actionsRes.error
@@ -155,7 +155,7 @@ async function main() {
   }
 
   const { data: plan, error: planError } = await supabase
-    .from('consulting_strategic_plans')
+    .from('planejamentos_estrategicos')
     .insert({
       client_id: args.clientId,
       title: `Planejamento Estratégico PMR - ${payload.client.name}`,

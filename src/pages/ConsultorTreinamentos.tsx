@@ -18,7 +18,7 @@ const types = ['prospeccao', 'fechamento', 'atendimento', 'gestao', 'pre-vendas'
 const audiences = ['vendedor', 'gerente', 'todos']
 
 export default function ConsultorTreinamentos() {
-    const { trainings, loading, error, createTraining, refetch } = useTrainings()
+    const { treinamentos, loading, error, createTraining, refetch } = useTrainings()
     const [showForm, setShowForm] = useState(false)
     const [form, setForm] = useState({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos' })
     const [saving, setSaving] = useState(false)
@@ -135,7 +135,7 @@ export default function ConsultorTreinamentos() {
 
             {/* Academy Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg pb-32" aria-live="polite">
-                {trainings.map((t, i) => (
+                {treinamentos.map((t, i) => (
                     <motion.article key={t.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}>
                         <Card className="p-mx-lg h-full border-none shadow-mx-lg bg-white group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col">
                             <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-huge -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />

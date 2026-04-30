@@ -16,17 +16,17 @@ async function repairViaSQL() {
     console.log('--- REPAIRING VIA SQL ---')
 
     // 1. Get an active store ID
-    const stores = await sql`SELECT id FROM stores WHERE active = true LIMIT 1`
-    if (stores.length === 0) {
-        console.error('No active stores!')
+    const lojas = await sql`SELECT id FROM lojas WHERE active = true LIMIT 1`
+    if (lojas.length === 0) {
+        console.error('No active lojas!')
         return
     }
-    const storeId = stores[0].id
+    const storeId = lojas[0].id
     console.log(`Using Store ID: ${storeId}`)
 
     // 2. Define users (keeping old emails as they are in Auth)
     const usersToFix = [
-        { email: 'admin@mxgestaopreditiva.com.br', role: 'admin', name: 'Admin MX PERFORMANCE' },
+        { email: 'admin@mxgestaopreditiva.com.br', role: 'administrador_mx', name: 'Admin MX PERFORMANCE' },
         { email: 'dono@mxgestaopreditiva.com.br', role: 'dono', name: 'Dono MX PERFORMANCE' },
         { email: 'gerente@mxgestaopreditiva.com.br', role: 'gerente', name: 'Gerente MX PERFORMANCE' },
         { email: 'vendedor@mxgestaopreditiva.com.br', role: 'vendedor', name: 'Vendedor MX PERFORMANCE' }
@@ -43,9 +43,9 @@ async function repairViaSQL() {
             const userId = authUser[0].id
             console.log(`Found Auth ID: ${userId}`)
 
-            // Upsert public.users
+            // Upsert public.usuarios
             await sql`
-                INSERT INTO public.users (id, email, name, role, active, updated_at)
+                INSERT INTO public.usuarios (id, email, name, role, active, updated_at)
                 VALUES (${userId}, ${u.email}, ${u.name}, ${u.role}, true, now())
                 ON CONFLICT (id) DO UPDATE SET
                     email = EXCLUDED.email,
@@ -56,11 +56,11 @@ async function repairViaSQL() {
             `
 
             // Ensure membership
-            const memberships = await sql`SELECT id FROM public.memberships WHERE user_id = ${userId} AND store_id = ${storeId}`
-            if (memberships.length === 0) {
+            const vinculos_loja = await sql`SELECT id FROM public.vinculos_loja WHERE user_id = ${userId} AND store_id = ${storeId}`
+            if (vinculos_loja.length === 0) {
                 await sql`
-                    INSERT INTO public.memberships (user_id, store_id, role)
-                    VALUES (${userId}, ${storeId}, ${u.role === 'admin' ? 'gerente' : u.role})
+                    INSERT INTO public.vinculos_loja (user_id, store_id, role)
+                    VALUES (${userId}, ${storeId}, ${u.role === 'administrador_mx' ? 'gerente' : u.role})
                 `
                 console.log('Membership created.')
             }

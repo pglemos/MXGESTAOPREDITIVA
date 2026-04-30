@@ -5,7 +5,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-const STORAGE_URL = 'https://fbhcmzzgwjdgkctlfvbo.supabase.co/storage/v1/object/public/consulting-attachments/'
+const STORAGE_URL = 'https://fbhcmzzgwjdgkctlfvbo.supabase.co/storage/v1/object/evidencias-consultoria/'
 
 interface Props {
   client: ConsultingClientDetail
@@ -92,11 +92,11 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
         </div>
       </section>
 
-      {/* Feedback Direto */}
+      {/* Devolutiva Direta */}
       <section style={{ marginBottom: '30px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <div style={{ width: '6px', height: '24px', backgroundColor: colors.warning, borderRadius: '999px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Pontos de Atenção e Feedback</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Pontos de Atenção e Devolutiva</h3>
         </div>
         <div style={{ padding: '24px', border: `1px solid #FEF08A`, borderRadius: '16px', backgroundColor: '#FEFCE8', fontSize: '14px', lineHeight: '1.6', color: '#000000' }}>
           {visit.feedback_client || 'Nenhum feedback direto registrado.'}

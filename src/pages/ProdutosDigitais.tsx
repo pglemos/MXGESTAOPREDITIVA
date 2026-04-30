@@ -5,7 +5,7 @@ import type { DigitalProduct } from '@/types/database'
 import { Package, Plus, X, RefreshCw, Smartphone, Laptop, Layers, ExternalLink, Search, Globe, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
@@ -42,7 +42,7 @@ export default function ProdutosDigitais() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (role !== 'admin') { toast.error('Permissão negada.'); return }
+        if (!isPerfilInternoMx(role)) { toast.error('Permissão negada.'); return }
         const result = productSchema.safeParse(form)
         if (!result.success) { toast.error("Verifique os campos"); return }
 
@@ -90,7 +90,7 @@ export default function ProdutosDigitais() {
                             className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest" 
                         />
                     </div>
-                    {role === 'admin' && (
+                    {isPerfilInternoMx(role) && (
                         <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary">
                             <Plus size={18} className="mr-2" /> NOVO ATIVO
                         </Button>

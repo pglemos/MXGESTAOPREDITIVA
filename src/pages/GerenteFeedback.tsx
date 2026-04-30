@@ -1,7 +1,7 @@
 import { useFeedbacks, useWeeklyFeedbackReports } from '@/hooks/useData'
 import { useTeam, useAllSellers, useStores } from '@/hooks/useTeam'
 import { useCheckins, useCheckinsByDateRange } from '@/hooks/useCheckins'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { 
@@ -37,7 +37,7 @@ function getPreviousWeekRange() {
 
 export default function GerenteFeedback() {
     const { role } = useAuth()
-    const isAdmin = role === 'admin'
+    const isAdmin = isPerfilInternoMx(role)
 
     if (isAdmin) return <AdminFeedback />
     return <StoreFeedback />
@@ -48,7 +48,7 @@ function AdminFeedback() {
     const { feedbacks, loading: feedbacksLoading, createFeedback, refetch: refetchFeedbacks } = useFeedbacks()
     const { reports, loading: reportsLoading, refetch: refetchReports } = useWeeklyFeedbackReports()
     const { sellers: allSellers, loading: sellersLoading } = useAllSellers()
-    const { stores } = useStores()
+    const { lojas } = useStores()
 
     const previousWeek = useMemo(() => getPreviousWeekRange(), [])
 
@@ -95,7 +95,7 @@ function AdminFeedback() {
 
         const { supabase } = await import('@/lib/supabase')
         const { data: weekCheckins } = await supabase
-            .from('daily_checkins')
+            .from('lancamentos_diarios')
             .select('*')
             .eq('seller_user_id', sellerId)
             .eq('store_id', seller.store_id)
@@ -183,7 +183,7 @@ function AdminFeedback() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Feedback</span></Typography>
+                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Devolutivas</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">ADMIN — VISÃO DA REDE • METODOLOGIA MX</Typography>
                 </div>
@@ -235,7 +235,7 @@ function AdminFeedback() {
                                             <select value={selectedStoreId} onChange={(e) => { setSelectedStoreId(e.target.value); setFormData(f => ({ ...f, seller_id: '' })) }}
                                                 className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold uppercase shadow-inner appearance-none cursor-pointer">
                                                 <option value="">Todas as lojas</option>
-                                                {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                {lojas.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                             </select>
                                             <ChevronDown size={18} className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
                                         </div>
@@ -483,7 +483,7 @@ function StoreFeedback() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Feedback</span></Typography>
+                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Devolutivas</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Rotina Semanal Mandatória • Metodologia MX</Typography>
                 </div>
@@ -520,7 +520,7 @@ function StoreFeedback() {
                                     <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg"><MessageSquare size={24} /></div>
                                     <div>
                                         <Typography variant="h2" className="uppercase tracking-tighter">Nova Mentoria</Typography>
-                                        <Typography variant="tiny" tone="muted" className="font-black uppercase">Ciclo de Feedback Semanal</Typography>
+                                        <Typography variant="tiny" tone="muted" className="font-black uppercase">Ciclo de Devolutiva Semanal</Typography>
                                     </div>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl"><X size={24} /></Button>

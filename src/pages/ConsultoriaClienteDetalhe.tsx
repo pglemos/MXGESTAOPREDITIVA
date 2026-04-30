@@ -9,7 +9,7 @@ import { format, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { 
   ConsultingClientDetail, 
   ConsultingVisit, 
@@ -225,7 +225,7 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
       {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2 rounded-mx-2xl"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
       {pdis.map((pdi) => {
         const canSellerSign = profile?.id === pdi.seller_id && !(pdi as any).seller_acknowledged_at
-        const canManagerSign = (role === 'admin' || role === 'gerente') && !(pdi as any).manager_acknowledged_at
+        const canManagerSign = (isPerfilInternoMx(role) || role === 'gerente') && !(pdi as any).manager_acknowledged_at
         
         return (
           <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-2xl">
@@ -334,7 +334,7 @@ export default function ConsultoriaClienteDetalhe() {
     switch (activeTab) {
       case 'overview': {
         const lastFin = client.financials?.[0]
-        const finishedVisits = client.visits?.filter(v => v.status === 'concluída').length || 0
+        const finishedVisits = client.visits?.filter(v => v.status === 'concluida').length || 0
         
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -390,7 +390,7 @@ export default function ConsultoriaClienteDetalhe() {
                           <Typography variant="tiny" tone="muted" className="font-bold">{step.target} • {step.duration}</Typography>
                        </div>
                     </div>
-                    <Badge variant={v?.status === 'concluída' ? 'success' : 'outline'}>{v?.status?.toUpperCase() || 'PENDENTE'}</Badge>
+                    <Badge variant={v?.status === 'concluida' ? 'success' : 'outline'}>{v?.status?.toUpperCase() || 'PENDENTE'}</Badge>
                  </Card>
                </Link>
              )

@@ -9,8 +9,8 @@ export const VIEWPORTS = {
 export type ViewportName = keyof typeof VIEWPORTS;
 
 const AUTH_EMAIL =
-  process.env.E2E_AUTH_EMAIL || 'admin@mxperformance.com.br';
-const AUTH_PASSWORD = process.env.E2E_AUTH_PASSWORD || '';
+  process.env.E2E_AUTH_EMAIL || 'admin@mxgestaopreditiva.com.br';
+const AUTH_PASSWORD = process.env.E2E_AUTH_PASSWORD || 'Mx#2026!';
 
 export async function authenticate(page: Page): Promise<void> {
   if (!AUTH_PASSWORD) {

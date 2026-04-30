@@ -7,11 +7,11 @@
  * Devem ser mantidos em sincronia com as migrações SQL.
  */
 
-export type UserRole = 'admin' | 'dono' | 'gerente' | 'vendedor'
+export type UserRole = 'administrador_geral' | 'administrador_mx' | 'consultor_mx' | 'dono' | 'gerente' | 'vendedor'
 export type MembershipRole = 'dono' | 'gerente' | 'vendedor'
 export type PDIStatus = 'aberto' | 'em_andamento' | 'concluido'
 export type TrainingType = 'prospeccao' | 'fechamento' | 'atendimento' | 'gestao' | 'pre-vendas'
-export type TargetAudience = 'vendedor' | 'gerente' | 'todos'
+export type TargetAudience = 'vendedor' | 'gerente' | 'dono' | 'todos'
 export type CheckinScope = 'daily' | 'adjustment' | 'historical'
 export type CheckinSubmissionStatus = 'on_time' | 'late'
 export type StoreSourceMode = 'legacy_forms' | 'native_app' | 'hybrid'
@@ -518,4 +518,3 @@ export interface ConsultingCalendarSettings {
     created_at: string
     updated_at: string
 }
-

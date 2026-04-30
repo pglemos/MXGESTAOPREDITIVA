@@ -10,7 +10,7 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
 
 const LOGINS = [
-    { email: 'admin@mxgestaopreditiva.com.br', role: 'admin', name: 'Admin MX' },
+    { email: 'admin@mxgestaopreditiva.com.br', role: 'administrador_mx', name: 'Admin MX' },
     { email: 'dono@mxgestaopreditiva.com.br', role: 'dono', name: 'Dono MX' },
     { email: 'gerente@mxgestaopreditiva.com.br', role: 'gerente', name: 'Gerente MX' },
     { email: 'vendedor@mxgestaopreditiva.com.br', role: 'vendedor', name: 'Vendedor MX' }
@@ -33,14 +33,14 @@ async function retry<T>(fn: () => PromiseLike<T>, retries = 3): Promise<T> {
 async function repair() {
     console.log('--- REPAIRING SYSTEM ---')
 
-    const { data: stores } = await retry(async () =>
-        await supabase.from('stores').select('id, name').eq('active', true).limit(1)
+    const { data: lojas } = await retry(async () =>
+        await supabase.from('lojas').select('id, name').eq('active', true).limit(1)
     )
-    if (!stores || stores.length === 0) {
-        console.error('No active stores!')
+    if (!lojas || lojas.length === 0) {
+        console.error('No active lojas!')
         return
     }
-    const storeId = stores[0].id
+    const storeId = lojas[0].id
 
     for (const uInfo of LOGINS) {
         console.log(`\nUser: ${uInfo.email}`)
@@ -68,7 +68,7 @@ async function repair() {
 
         // 2. Profile
         console.log('Upserting profile...')
-        await retry(async () => await supabase.from('users').upsert({
+        await retry(async () => await supabase.from('usuarios').upsert({
             id: authUser!.id,
             email: uInfo.email,
             name: uInfo.name,
@@ -79,13 +79,13 @@ async function repair() {
         // 3. Membership
         console.log('Ensuring membership...')
         const { data: mems } = await retry(async () =>
-            await supabase.from('memberships').select('id').eq('user_id', authUser!.id).eq('store_id', storeId)
+            await supabase.from('vinculos_loja').select('id').eq('user_id', authUser!.id).eq('store_id', storeId)
         )
         if (!mems || mems.length === 0) {
-            await retry(async () => await supabase.from('memberships').insert({
+            await retry(async () => await supabase.from('vinculos_loja').insert({
                 user_id: authUser!.id,
                 store_id: storeId,
-                role: uInfo.role === 'admin' ? 'gerente' : uInfo.role
+                role: uInfo.role === 'administrador_mx' ? 'gerente' : uInfo.role
             }))
         }
     }

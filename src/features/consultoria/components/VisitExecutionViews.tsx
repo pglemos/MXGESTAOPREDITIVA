@@ -81,7 +81,7 @@ export function VisitThreeExecution() {
         <div className="p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default relative">
           <Badge className="absolute -top-mx-tiny left-mx-md font-bold text-mx-micro bg-brand-secondary text-white border-none px-mx-sm py-0.5 shadow-sm">GERENTE</Badge>
           <ul className="space-y-mx-md text-sm font-medium text-text-secondary mt-2">
-            {[ '09:30 - Cobrar preenchimento SGAP', '10:30 - Reunião Matinal / Ranking', '14:00 - Auditoria de CRM / Funil', '17:00 - Feedback Imediato' ].map(li => (<li key={li} className="flex items-center gap-mx-xs"><div className="w-mx-xs h-mx-xs rounded-mx-full bg-brand-secondary shrink-0" /> {li}</li>))}
+            {[ '09:30 - Cobrar preenchimento SGAP', '10:30 - Reunião Matinal / Classificação', '14:00 - Auditoria de CRM / Funil', '17:00 - Devolutiva Imediata' ].map(li => (<li key={li} className="flex items-center gap-mx-xs"><div className="w-mx-xs h-mx-xs rounded-mx-full bg-brand-secondary shrink-0" /> {li}</li>))}
           </ul>
         </div>
         <div className="p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default relative">
@@ -122,7 +122,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
       })
       const sn = sellers.find(s => s.id === v)?.name || 'Vnd'
       onGenerateSummary(`--- AUDITORIA DE FUNIL: ${sn} ---\nLeads: ${funnel.leads} | Agd: ${funnel.agd} | Visitas: ${funnel.visit} | Vendas: ${funnel.sale}\nPositivos: ${p}\nAção: ${a}\nMeta: ${m}`)
-      toast.success('Feedback e Funil salvos no sistema')
+      toast.success('Devolutiva e Funil salvos no sistema')
       setV(''); setP(''); setA(''); setM(0); setFunnel({ leads: 0, agd: 0, visit: 0, sale: 0 })
     } finally { setS(false) }
   }
@@ -131,7 +131,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
     <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
       <div className="flex items-center gap-mx-sm mb-mx-md">
         <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><TrendingUp size={20} /></div>
-        <Typography variant="h3" className="text-lg">Visita 4: Ritual de Feedback e Funil</Typography>
+        <Typography variant="h3" className="text-lg">Visita 4: Ritual de Devolutiva e Funil</Typography>
       </div>
       
       <div className="space-y-mx-md">

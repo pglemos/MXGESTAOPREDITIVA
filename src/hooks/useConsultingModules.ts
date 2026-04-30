@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import {
   parseConsultingClientModuleArray,
   type ConsultingClientModule,
@@ -20,7 +20,7 @@ export function useConsultingModules(clientId?: string) {
   const [modules, setModules] = useState<ConsultingClientModule[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const canManage = role === 'admin'
+  const canManage = isPerfilInternoMx(role)
 
   const fetchModules = useCallback(async () => {
     if (!clientId) {
@@ -51,7 +51,7 @@ export function useConsultingModules(clientId?: string) {
     enabled: boolean,
     notes?: string,
   ) => {
-    if (!clientId || !canManage) return { error: 'Apenas admin pode alterar modulos da consultoria.' }
+    if (!clientId || !canManage) return { error: 'Apenas perfis MX podem alterar módulos da consultoria.' }
     const defaults = DEFAULT_CONSULTING_MODULES.find((item) => item.module_key === moduleKey)
     const { error: upsertError } = await supabase
       .from('consulting_client_modules')
@@ -88,4 +88,3 @@ export function useConsultingModules(clientId?: string) {
 
   return { modules, moduleMap, loading, error, canManage, isEnabled, upsertModule, refetch: fetchModules }
 }
-

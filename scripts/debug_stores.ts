@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
 
 async function debugStores() {
     console.log('--- DEBUG STORES ---')
-    const { data, error } = await supabase.from('stores').select('*')
+    const { data, error } = await supabase.from('lojas').select('*')
     if (error) console.error('Error:', error)
     else console.log('Stores found:', data?.length, data)
 }

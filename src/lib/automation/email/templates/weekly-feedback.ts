@@ -27,7 +27,7 @@ export const getWeeklyFeedbackEmailTemplate = (storeName: string, dateRange: str
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Feedback Semanal: ${storeName}</h1>
+            <h1>📊 Devolutiva Semanal: ${storeName}</h1>
             <p>Período: ${dateRange}</p>
         </div>
 

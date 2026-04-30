@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 
 export interface ConsultingAgendaEvent {
@@ -166,7 +166,7 @@ export function useConsultingAgenda(clientId?: string) {
     }
 
     const assignment = assignmentRes?.data
-    const isAdminUser = role === 'admin'
+    const isAdminUser = isPerfilInternoMx(role)
     setHasClientLink(Boolean(assignment?.active) || (isAdminUser && Boolean(clientId)))
     setAssignmentRole(assignment?.assignment_role || (isAdminUser && clientId ? 'admin' : null))
     setIsConnected(Boolean(tokenRes.data))
@@ -246,8 +246,8 @@ export function useConsultingAgenda(clientId?: string) {
 
     if (!clientId) {
       return {
-        title: role === 'admin' ? 'Agenda do administrador' : 'Cliente indisponível',
-        description: role === 'admin'
+        title: isPerfilInternoMx(role) ? 'Agenda do administrador' : 'Cliente indisponível',
+        description: isPerfilInternoMx(role)
           ? 'Sua agenda Google está disponível abaixo como referência operacional.'
           : 'Não foi possível localizar o cliente atual para contextualizar a agenda.',
         linkedToClient: false,
@@ -264,8 +264,8 @@ export function useConsultingAgenda(clientId?: string) {
     }
 
     return {
-      title: role === 'admin' ? 'Agenda do consultor autenticado' : 'Sem vínculo ativo neste cliente',
-      description: role === 'admin'
+      title: isPerfilInternoMx(role) ? 'Agenda do consultor autenticado' : 'Sem vínculo ativo neste cliente',
+      description: isPerfilInternoMx(role)
         ? 'Você está autenticado. A agenda mostrada abaixo usa sua conta Google e pode ser usada como referência operacional.'
         : 'Seu login está ativo, mas este consultor não tem vínculo direto com o cliente selecionado.',
       linkedToClient: false,

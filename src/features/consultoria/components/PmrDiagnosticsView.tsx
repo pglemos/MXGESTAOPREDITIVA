@@ -45,7 +45,7 @@ const FULL_TEMPLATE_FIELDS: Record<string, PmrFormField[]> = {
     { key: 'manager_team_synergy', label: 'Sinergia entre Equipe e Gerente', type: 'scale', required: true },
     { key: 'manager_owner_synergy', label: 'Sinergia entre Gerente e Donos', type: 'scale', required: true },
     { key: 'recruitment_process', label: 'Processo de Contratação de Vendedores', type: 'scale' },
-    { key: 'feedback_routine', label: 'Rotina de Feedback Individual', type: 'scale' },
+    { key: 'feedback_routine', label: 'Rotina de Devolutiva Individual', type: 'scale' },
     { key: 'strategic_communication', label: 'Comunicação Estratégica (1-5)', type: 'scale' },
     { key: 'operational_focus', label: 'Gargalo: Excesso de Foco Operacional (1-5)', type: 'scale' }
   ],

@@ -120,9 +120,18 @@ export default function ConsultoriaVisitaExecucao() {
         const file = files[i]
         const fileExt = file.name.split('.').pop()
         const filePath = `${clientId}/visita-${visitNum}/${Math.random().toString(36).substring(2)}.${fileExt}`
-        const { error: uploadError } = await supabase.storage.from('consulting-attachments').upload(filePath, file)
+        const { error: uploadError } = await supabase.storage.from('evidencias-consultoria').upload(filePath, file)
         if (uploadError) throw uploadError
-        await supabase.from('consulting_visit_attachments').insert({ visit_id: visit.id, filename: file.name, storage_path: filePath, content_type: file.type, size_bytes: file.size })
+        const { error: evidenceError } = await supabase.from('evidencias_visita').insert({
+          visita_id: visit.id,
+          tipo: file.type.startsWith('image/') ? 'foto' : 'anexo',
+          nome_arquivo: file.name,
+          caminho_storage: filePath,
+          content_type: file.type,
+          tamanho_bytes: file.size,
+          enviado_por: profile?.id || null,
+        })
+        if (evidenceError) throw evidenceError
       }
       toast.success('Evidências anexadas!'); refetch()
     } catch (err: any) { toast.error(err.message) } finally { setIsUploading(false) }
@@ -131,8 +140,8 @@ export default function ConsultoriaVisitaExecucao() {
   const handleDeleteAttachment = async (file: any) => {
     if(!confirm('Excluir evidência?')) return
     try {
-      await supabase.storage.from('consulting-attachments').remove([file.storage_path])
-      await supabase.from('consulting_visit_attachments').delete().eq('id', file.id)
+      await supabase.storage.from('evidencias-consultoria').remove([file.storage_path])
+      await supabase.from('evidencias_visita').delete().eq('id', file.id)
       toast.success('Evidência removida!'); refetch()
     } catch (err: any) { toast.error(err.message) }
   }
@@ -163,7 +172,7 @@ export default function ConsultoriaVisitaExecucao() {
       const payload: any = {
         client_id: clientId, visit_number: visitNum, checklist_data: checklist,
         executive_summary: executiveSummary, feedback_client: feedbackClient,
-        status: complete ? 'concluída' : 'em_andamento',
+        status: 'em_andamento',
         meta_mensal: headerBase.meta_mensal, projecao: headerBase.projecao,
         leads_mes: headerBase.leads_mes, estoque_disponivel: headerBase.estoque_disponivel,
         consultant_name_manual: headerBase.consultant_name,
@@ -171,7 +180,13 @@ export default function ConsultoriaVisitaExecucao() {
         next_cycle_goal: nextCycleGoal
       }
       
-      const { error } = await supabase.from('consulting_visits').upsert(payload, { onConflict: 'client_id,visit_number' })
+      let savedVisitId = visit?.id
+      const { data: savedVisit, error } = await supabase
+        .from('visitas_consultoria')
+        .upsert(payload, { onConflict: 'client_id,visit_number' })
+        .select('id')
+        .single()
+      savedVisitId = savedVisit?.id || savedVisitId
       
       if (error && (error.code === 'PGRST204' || error.message.includes('consultant_name_manual'))) {
         console.warn('Schema mismatch detected, retrying without extended fields...')
@@ -182,10 +197,21 @@ export default function ConsultoriaVisitaExecucao() {
         delete legacyPayload.acknowledged_by
         delete legacyPayload.next_cycle_goal
         
-        const { error: retryError } = await supabase.from('consulting_visits').upsert(legacyPayload, { onConflict: 'client_id,visit_number' })
+        const { data: retryVisit, error: retryError } = await supabase
+          .from('visitas_consultoria')
+          .upsert(legacyPayload, { onConflict: 'client_id,visit_number' })
+          .select('id')
+          .single()
         if (retryError) throw retryError
+        savedVisitId = retryVisit?.id || savedVisitId
       } else if (error) {
         throw error
+      }
+
+      if (complete) {
+        if (!savedVisitId) throw new Error('Visita salva, mas não foi possível confirmar o identificador para conclusão.')
+        const { error: completeError } = await supabase.rpc('concluir_visita_consultoria', { p_visita_id: savedVisitId })
+        if (completeError) throw completeError
       }
 
       toast.success(complete ? 'Etapa Concluída com Sucesso!' : 'Progresso salvo'); refetch()
@@ -199,9 +225,9 @@ export default function ConsultoriaVisitaExecucao() {
   const handleAcknowledge = async () => {
     if (!visit?.id) return
     try {
-      const { error } = await supabase.from('consulting_visits').update({ 
+      const { error } = await supabase.from('visitas_consultoria').update({
         acknowledged_at: new Date().toISOString(),
-        acknowledged_by: profile?.id 
+        acknowledged_by: profile?.id
       }).eq('id', visit.id)
       
       if (error && (error.code === 'PGRST204' || error.message.includes('acknowledged_at'))) {
@@ -333,7 +359,7 @@ Gerado via MX PERFORMANCE`
                <Typography variant="h1" className="text-2xl font-black text-black tracking-tighter uppercase">VISITA <span className="text-brand-primary">{visitNum}</span></Typography>
                <div className={cn(
                  "px-mx-sm py-0.5 rounded-mx-full text-mx-nano font-black tracking-mx-widest uppercase shadow-mx-sm border",
-                 visit?.status === 'concluída' ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-mx-orange-500/10 text-mx-orange-600 border-mx-orange-200 animate-pulse"
+                 visit?.status === 'concluida' ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-mx-orange-500/10 text-mx-orange-600 border-mx-orange-200 animate-pulse"
                )}>
                  {visit?.status || 'EM ABERTO'}
                </div>
@@ -428,7 +454,7 @@ Gerado via MX PERFORMANCE`
                 </div>
                 <div className="flex items-center gap-mx-sm mb-mx-md relative z-10">
                   <div className="p-mx-xs bg-brand-secondary/10 rounded-mx-lg text-brand-secondary"><MessageSquare size={20} /></div>
-                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Feedback ao Cliente</Typography>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Devolutiva ao Cliente</Typography>
                 </div>
                 <Textarea 
                   value={feedbackClient} 
@@ -530,7 +556,7 @@ Gerado via MX PERFORMANCE`
                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
                
-               {visit?.status === 'concluída' && (
+               {visit?.status === 'concluida' && (
                  <Button 
                    className={cn("w-full shadow-mx-md font-black h-mx-11 uppercase tracking-widest text-xs", (visit as any).acknowledged_at ? "bg-status-success/10 text-status-success border-status-success/20 hover:bg-status-success/20" : "")} 
                    variant="outline" 

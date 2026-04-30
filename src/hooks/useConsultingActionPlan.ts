@@ -34,7 +34,7 @@ export function useConsultingActionPlan(clientId?: string) {
     setLoading(true)
     setError(null)
     const { data, error: fetchError } = await supabase
-      .from('consulting_action_items')
+      .from('itens_plano_acao')
       .select('*, metric:consulting_metric_catalog(*)')
       .eq('client_id', clientId)
       .order('priority', { ascending: true })
@@ -51,7 +51,7 @@ export function useConsultingActionPlan(clientId?: string) {
 
   const createItem = useCallback(async (input: ActionItemInput) => {
     if (!clientId) return { error: 'Cliente nao informado.' }
-    const { error: insertError } = await supabase.from('consulting_action_items').insert({
+    const { error: insertError } = await supabase.from('itens_plano_acao').insert({
       client_id: clientId,
       strategic_plan_id: input.strategic_plan_id || null,
       metric_key: input.metric_key || null,
@@ -72,7 +72,7 @@ export function useConsultingActionPlan(clientId?: string) {
 
   const updateItem = useCallback(async (id: string, patch: Partial<ActionItemInput> & { completed_at?: string | null }) => {
     const { error: updateError } = await supabase
-      .from('consulting_action_items')
+      .from('itens_plano_acao')
       .update(patch)
       .eq('id', id)
     if (updateError) return { error: updateError.message }

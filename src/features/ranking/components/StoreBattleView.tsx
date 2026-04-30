@@ -8,7 +8,7 @@ type StoreEntry = NetworkMetric['byStore'][number]
 
 interface StoreBattleViewProps {
   opponents: string[]
-  stores: StoreEntry[]
+  lojas: StoreEntry[]
 }
 
 interface ComparisonRowProps {
@@ -94,10 +94,10 @@ function ComparisonRow({ label, v1, v2, format = v => Math.round(v).toString(), 
   )
 }
 
-export function StoreBattleView({ opponents, stores }: StoreBattleViewProps) {
+export function StoreBattleView({ opponents, lojas }: StoreBattleViewProps) {
   const [showCelebration, setShowCelebration] = useState(false)
-  const p1 = stores.find(s => s.storeId === opponents[0])
-  const p2 = stores.find(s => s.storeId === opponents[1])
+  const p1 = lojas.find(s => s.storeId === opponents[0])
+  const p2 = lojas.find(s => s.storeId === opponents[1])
 
   const winnerSide: 'p1' | 'p2' | 'draw' = useMemo(() => {
     if (!p1 || !p2) return 'draw'

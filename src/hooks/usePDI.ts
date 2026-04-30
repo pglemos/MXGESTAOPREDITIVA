@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type { PDIFormData } from '@/types/database'
 import { parsePDIArray, parsePDIReviewArray, type PDI, type PDIReview } from '@/lib/schemas/pdi.schema'
 
@@ -29,12 +29,12 @@ export function usePDIs(storeIdOverride?: string) {
   const { data: pdis, isLoading: loading, refetch } = useQuery({
     queryKey: ['pdis', storeId, role, profile?.id],
     queryFn: async () => {
-      if (!profile || (!storeId && role !== 'admin')) return [] as (PDI & { seller_name?: string })[]
+      if (!profile || (!storeId && !isPerfilInternoMx(role))) return [] as (PDI & { seller_name?: string })[]
 
-      let query = supabase.from('pdis').select('*, seller:users!pdis_seller_id_fkey(name)')
+      let query = supabase.from('pdis').select('*, seller:usuarios!pdis_seller_id_fkey(name)')
       if (role === 'vendedor') query = query.eq('seller_id', profile.id)
       else if (role === 'gerente' || role === 'dono') query = query.eq('store_id', storeId)
-      else if (role === 'admin' && storeIdOverride) query = query.eq('store_id', storeId)
+      else if (isPerfilInternoMx(role) && storeIdOverride) query = query.eq('store_id', storeId)
 
       const { data } = await query.order('created_at', { ascending: false })
       if (data) {
@@ -56,7 +56,7 @@ export function usePDIs(storeIdOverride?: string) {
   const createPDIMut = useMutation({
     mutationFn: async (data: PDIFormData) => {
       if (!profile || !storeId) return { error: 'Não autenticado' }
-      if (role !== 'admin' && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não criar ou editar.' }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não criar ou editar.' }
       const { error } = await supabase.from('pdis').insert({
         store_id: storeId, manager_id: profile.id, seller_id: data.seller_id,
         objective: data.meta_6m,
@@ -96,7 +96,7 @@ export function usePDIs(storeIdOverride?: string) {
 
   const updateStatusMut = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      if (role !== 'admin' && role !== 'gerente') return
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return
       await supabase.from('pdis').update({ status }).eq('id', id)
     },
     onSuccess: () => {
@@ -118,7 +118,7 @@ export function usePDIs(storeIdOverride?: string) {
 
   const createReviewMut = useMutation({
     mutationFn: async ({ pdiId, data }: { pdiId: string; data: Record<string, unknown> }) => {
-      if (role !== 'admin' && role !== 'gerente') return { error: new Error('Seu papel permite acompanhar PDIs, mas não revisar.') }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: new Error('Seu papel permite acompanhar PDIs, mas não revisar.') }
       const sanitized = sanitizeReviewPayload(data)
       const { error } = await supabase.from('pdi_reviews').insert({ pdi_id: pdiId, ...sanitized })
       return { error }

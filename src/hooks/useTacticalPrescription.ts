@@ -5,13 +5,13 @@ import type { DailyCheckin, Training } from '@/types/database'
 
 interface PrescriptionParams {
     checkins: DailyCheckin[]
-    trainings: Training[]
+    treinamentos: Training[]
     userId?: string
 }
 
-export function useTacticalPrescription({ checkins, trainings, userId }: PrescriptionParams) {
+export function useTacticalPrescription({ checkins, treinamentos, userId }: PrescriptionParams) {
     return useMemo(() => {
-        if (!checkins.length || !trainings.length || !userId) return null
+        if (!checkins.length || !treinamentos.length || !userId) return null
         
         const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString().split('T')[0]
         const recentCheckins = checkins.filter(c => c.seller_user_id === userId && c.reference_date >= weekStart)
@@ -30,7 +30,7 @@ export function useTacticalPrescription({ checkins, trainings, userId }: Prescri
         }
 
         const category = categoryMap[diag.gargalo]
-        const recommended = trainings.find(t => t.type === category)
+        const recommended = treinamentos.find(t => t.type === category)
         
         if (!recommended) return null
 
@@ -39,5 +39,5 @@ export function useTacticalPrescription({ checkins, trainings, userId }: Prescri
             label: diag.diagnostico, 
             training: recommended 
         }
-    }, [checkins, trainings, userId])
+    }, [checkins, treinamentos, userId])
 }

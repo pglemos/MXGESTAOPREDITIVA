@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useState } from 'react'
 import { 
     User, Mail, Shield, Smartphone, Globe, 
@@ -172,7 +172,7 @@ export default function Configuracoes() {
                         </header>
                         
                         <div className="space-y-mx-md">
-                            {role === 'admin' && (
+                            {isPerfilInternoMx(role) && (
                                 <Button variant="outline" className="w-full h-mx-2xl rounded-mx-2xl justify-between px-8 border-border-strong group hover:border-brand-primary transition-all shadow-sm font-black uppercase tracking-widest bg-white text-xs" asChild>
                                     <a href="/configuracoes/consultoria-pmr">
                                         PARÂMETROS DA CONSULTORIA PMR <ChevronRight size={18} className="text-text-tertiary group-hover:text-brand-primary transition-colors" />

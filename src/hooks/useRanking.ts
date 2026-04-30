@@ -46,7 +46,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
 
         // Get checkins for the month using canonical EPIC-01 columns
         const { data: checkins } = await supabase
-            .from('daily_checkins')
+            .from('lancamentos_diarios')
             .select('seller_user_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
             .eq('metric_scope', 'daily') 
@@ -55,22 +55,22 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
 
 
 
-        // Get active sellers by operational tenure. Fallback keeps old data readable until stores are configured.
+        // Get active sellers by operational tenure. Fallback keeps old data readable until lojas are configured.
         const { data: tenures } = await supabase
-            .from('store_sellers')
-            .select('seller_user_id, users:seller_user_id(name, is_venda_loja)')
+            .from('vendedores_loja')
+            .select('seller_user_id, users:usuarios(name, is_venda_loja)')
             .eq('store_id', storeId)
             .eq('is_active', true)
 
         const { data: fallbackMembers } = (!tenures || tenures.length === 0)
             ? await supabase
-                .from('memberships')
-                .select('user_id, users(name, is_venda_loja)')
+                .from('vinculos_loja')
+                .select('user_id, users:usuarios(name, is_venda_loja)')
                 .eq('store_id', storeId)
                 .eq('role', 'vendedor')
             : { data: null }
 
-        // Get goals for the store
+        // Get metas for the store
         const { data: rules } = await supabase
             .from('store_meta_rules')
             .select('monthly_goal, include_venda_loja_in_individual_goal')
@@ -194,16 +194,16 @@ export function useGlobalRanking() {
         setLoading(true)
 
         const [{ data: checkins }, { data: tenures }, { data: rules }, { data: todayCheckins }] = await Promise.all([
-            supabase.from('daily_checkins')
+            supabase.from('lancamentos_diarios')
                 .select('seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                 .eq('metric_scope', 'daily')
                 .gte('reference_date', startOfMonth),
-            supabase.from('store_sellers')
-                .select('seller_user_id, store_id, users:seller_user_id(name, is_venda_loja), stores(name)')
+            supabase.from('vendedores_loja')
+                .select('seller_user_id, store_id, users:usuarios(name, is_venda_loja), lojas:lojas(name)')
                 .eq('is_active', true),
             supabase.from('store_meta_rules')
                 .select('store_id, monthly_goal, include_venda_loja_in_individual_goal'),
-            supabase.from('daily_checkins')
+            supabase.from('lancamentos_diarios')
                 .select('seller_user_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
                 .eq('metric_scope', 'daily')
                 .eq('reference_date', dias.referencia),
@@ -231,13 +231,13 @@ export function useGlobalRanking() {
 
         const agg = new Map<string, { vnd: number; vnd_yesterday: number; leads: number; agd: number; vis: number; name: string; store: string; storeId: string; isVendaLoja: boolean; checkedIn: boolean }>()
         for (const m of tenures) {
-            const mu = m as unknown as { users?: User; stores?: { name: string } }
+            const mu = m as unknown as { users?: User; lojas?: { name: string } }
             agg.set(m.seller_user_id, {
                 vnd: 0, 
                 vnd_yesterday: salesTodayMap.get(m.seller_user_id) || 0,
                 leads: 0, agd: 0, vis: 0,
                 name: mu.users?.name || '',
-                store: mu.stores?.name || '',
+                store: mu.lojas?.name || '',
                 storeId: m.store_id,
                 isVendaLoja: mu.users?.is_venda_loja || false,
                 checkedIn: checkedInToday.has(m.seller_user_id),
@@ -310,21 +310,21 @@ export function useStorePerformance() {
         const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
         const dias = getDiasInfo()
 
-        const [{ data: stores }, { data: rules }, { data: checkins }, { data: sellers }, { data: yesterdayCheckins }] = await Promise.all([
-            supabase.from('stores').select('id, name'),
+        const [{ data: lojas }, { data: rules }, { data: checkins }, { data: sellers }, { data: yesterdayCheckins }] = await Promise.all([
+            supabase.from('lojas').select('id, name'),
             supabase.from('store_meta_rules').select('store_id, monthly_goal'),
-            supabase.from('daily_checkins')
+            supabase.from('lancamentos_diarios')
                 .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
                 .eq('metric_scope', 'daily')
                 .gte('reference_date', startOfMonth),
-            supabase.from('store_sellers').select('store_id, is_active').eq('is_active', true),
-            supabase.from('daily_checkins')
+            supabase.from('vendedores_loja').select('store_id, is_active').eq('is_active', true),
+            supabase.from('lancamentos_diarios')
                 .select('store_id, seller_user_id')
                 .eq('metric_scope', 'daily')
                 .eq('reference_date', dias.referencia) // Today
         ])
 
-        if (!stores) { setLoading(false); return }
+        if (!lojas) { setLoading(false); return }
 
         const rulesMap = new Map(rules?.map(r => [r.store_id, r.monthly_goal]) || [])
         const salesMap = new Map<string, number>()
@@ -339,7 +339,7 @@ export function useStorePerformance() {
         const checkinsTodayMap = new Map<string, number>()
         yesterdayCheckins?.forEach(c => checkinsTodayMap.set(c.store_id, (checkinsTodayMap.get(c.store_id) || 0) + 1))
 
-        const perf = stores.map(s => {
+        const perf = lojas.map(s => {
             const meta = rulesMap.get(s.id) || 0
             const realizado = salesMap.get(s.id) || 0
             const projecao = Math.round((realizado / Math.max(dias.decorridos, 1)) * dias.total)

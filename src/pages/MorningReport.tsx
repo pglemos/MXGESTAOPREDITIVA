@@ -18,7 +18,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Card, CardHeader, CardTitle } from '@/components/molecules/Card'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 
 type StoreMorningData = {
@@ -37,8 +37,8 @@ type StoreMorningData = {
 }
 
 export default function MorningReport() {
-    const { profile, storeId, memberships, role } = useAuth()
-    const isAdmin = role === 'admin'
+    const { profile, storeId, vinculos_loja, role } = useAuth()
+    const isAdmin = isPerfilInternoMx(role)
 
     if (isAdmin) return <AdminMorningReport />
     return <StoreMorningReport />
@@ -81,22 +81,22 @@ function AdminMorningReport() {
         setLoading(true)
         try {
             const [storesRes, goalsRes, checkinsRes, todayCheckinsRes, membershipsRes] = await Promise.all([
-                supabase.from('stores').select('id, name').eq('active', true).order('name'),
+                supabase.from('lojas').select('id, name').eq('active', true).order('name'),
                 supabase.from('store_meta_rules').select('store_id, monthly_goal'),
-                supabase.from('daily_checkins')
+                supabase.from('lancamentos_diarios')
                     .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                     .gte('reference_date', range.start).lte('reference_date', range.end),
-                supabase.from('daily_checkins').select('seller_user_id, store_id').eq('reference_date', referenceDate),
-                supabase.from('memberships').select('user_id, store_id, users:user_id(id, name, active)'),
+                supabase.from('lancamentos_diarios').select('seller_user_id, store_id').eq('reference_date', referenceDate),
+                supabase.from('vinculos_loja').select('user_id, store_id, users:usuarios(id, name, active)'),
             ])
 
-        const stores = storesRes.data || []
-        const goals = goalsRes.data || []
+        const lojas = storesRes.data || []
+        const metas = goalsRes.data || []
         const checkins = checkinsRes.data || []
         const todayCheckins = todayCheckinsRes.data || []
         const members = ((membershipsRes.data || []) as any[]).filter(m => m.users?.active)
 
-        const goalMap = new Map(goals.map((g: any) => [g.store_id, g.monthly_goal || 0]))
+        const goalMap = new Map(metas.map((g: any) => [g.store_id, g.monthly_goal || 0]))
         const checkedInSet = new Set(todayCheckins.map((c: any) => `${c.store_id}-${c.seller_user_id}`))
         const membersByStore = new Map<string, any[]>()
         for (const m of members) {
@@ -112,7 +112,7 @@ function AdminMorningReport() {
             checkinsByStore.set(c.store_id, arr)
         }
 
-        const computed: StoreMorningData[] = stores.map((store: any) => {
+        const computed: StoreMorningData[] = lojas.map((store: any) => {
             const storeCheckins = checkinsByStore.get(store.id) || []
             const storeMembers = membersByStore.get(store.id) || []
             const storeGoal = goalMap.get(store.id) || 0
@@ -408,7 +408,7 @@ function AdminMorningReport() {
 }
 
 function StoreMorningReport() {
-    const { profile, storeId, memberships } = useAuth()
+    const { profile, storeId, vinculos_loja } = useAuth()
     const { checkins, loading: loadingCheckins, fetchCheckins: refetchCheckins } = useCheckins()
     const { storeGoal, loading: loadingGoals, fetchGoals: refetchGoals } = useGoals()
     const { metaRules, fetchMetaRules } = useStoreMetaRules()
@@ -433,7 +433,7 @@ function StoreMorningReport() {
         return { currentSales, teamGoal, projection, reaching, gap, checkedInCount, pendingSellers }
     }, [checkins, metaRules, storeGoal, daysInfo, sellers])
 
-    const activeStore = memberships.find(m => m.store_id === storeId)?.store
+    const activeStore = vinculos_loja.find(m => m.store_id === storeId)?.store
     const storeName = activeStore?.name || 'Unidade MX'
 
     const handleShareWhatsApp = useCallback(() => {
@@ -626,7 +626,7 @@ function StoreMorningReport() {
                                         ))}
                                     </div>
                                     <Button variant="danger" className="w-full h-mx-xl rounded-mx-xl shadow-mx-lg" onClick={() => {
-                                        const msg = encodeURIComponent(`MX PERFORMANCE — Lembrete de Check-in!\n\nPendente: ${metrics.pendingSellers.join(', ')}\n\nPreencha seu check-in agora.`)
+                                        const msg = encodeURIComponent(`MX PERFORMANCE — Lembrete de Lançamento Diário!\n\nPendente: ${metrics.pendingSellers.join(', ')}\n\nPreencha seu lançamento diário agora.`)
                                         window.open(`https://wa.me/?text=${msg}`, '_blank')
                                     }}>
                                         <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">Notificar Time</Typography>

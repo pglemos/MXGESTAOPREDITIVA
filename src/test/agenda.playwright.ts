@@ -2,10 +2,11 @@ import { test, expect } from '@playwright/test';
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto('/login');
-  await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
+  await page.fill('input[type="email"]', 'admin@mxgestaopreditiva.com.br');
   await page.fill('input[type="password"]', 'Mx#2026!');
   await page.click('button[type="submit"]');
-  await page.waitForURL(/\/(painel|home|loja|lojas)/, { timeout: 10000 }).catch(() => {});
+  await page.waitForURL(/\/(painel|home|loja|lojas)/, { timeout: 15000 });
+  await expect(page.locator('main#main-content')).toBeVisible({ timeout: 15000 });
 }
 
 test.describe('Agenda MX Page', () => {

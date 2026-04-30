@@ -68,8 +68,8 @@ export default function VendedorFeedback() {
                         <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
                             <MessageSquare size={48} className="text-text-tertiary" />
                         </div>
-                        <Typography variant="h2" className="mb-2">Nenhum Feedback</Typography>
-                        <Typography variant="p" tone="muted" className="max-w-xs uppercase">Seu gestor ainda não registrou rituais de feedback para você.</Typography>
+                        <Typography variant="h2" className="mb-2">Nenhuma Devolutiva</Typography>
+                        <Typography variant="p" tone="muted" className="max-w-xs uppercase">Seu gestor ainda não registrou rituais de devolutiva para você.</Typography>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-lg">

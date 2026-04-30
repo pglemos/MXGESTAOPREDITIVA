@@ -27,9 +27,9 @@ const sb = createClient(SUPABASE_URL, SERVICE_KEY, {
 })
 
 const ADMINS = [
-  { name: 'Gedson Freire', email: 'gedson.freire.localiza@gmail.com', role: 'admin' },
-  { name: 'João Augusto Câmara', email: 'camarajoaoaugusto@gmail.com', role: 'admin' },
-  { name: 'Mariane', email: 'marianedcs@gmail.com', role: 'admin' },
+  { name: 'Gedson Freire', email: 'gedson.freire.localiza@gmail.com', role: 'administrador_mx' },
+  { name: 'João Augusto Câmara', email: 'camarajoaoaugusto@gmail.com', role: 'administrador_mx' },
+  { name: 'Mariane', email: 'marianedcs@gmail.com', role: 'administrador_mx' },
 ]
 
 const DEFAULT_PASSWORD = 'Mx@2026*'
@@ -62,7 +62,7 @@ async function upsertAdmin({ name, email, role }) {
   }
 
   const { error: profileErr } = await sb
-    .from('users')
+    .from('usuarios')
     .upsert(
       {
         id: userId,
@@ -74,7 +74,7 @@ async function upsertAdmin({ name, email, role }) {
       { onConflict: 'id' }
     )
   if (profileErr) throw profileErr
-  console.log(`  ↳ public.users row upserted`)
+  console.log(`  ↳ public.usuarios row upserted`)
 }
 
 ;(async () => {

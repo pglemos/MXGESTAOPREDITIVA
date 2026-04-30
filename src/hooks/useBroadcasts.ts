@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { type Notification as AppNotification } from '@/lib/schemas/notification.schema'
 
 export function useBroadcasts() {
@@ -9,7 +9,7 @@ export function useBroadcasts() {
   const { data: broadcasts, isLoading: loading, refetch } = useQuery({
     queryKey: ['broadcasts', profile?.id, role],
     queryFn: async () => {
-      if (!profile || role !== 'admin') return []
+      if (!profile || !isPerfilInternoMx(role)) return []
 
       const { data, error } = await supabase
         .from('notifications')
@@ -26,7 +26,7 @@ export function useBroadcasts() {
       }
       return [] as AppNotification[]
     },
-    enabled: !!profile && role === 'admin',
+    enabled: !!profile && isPerfilInternoMx(role),
   })
 
   return {

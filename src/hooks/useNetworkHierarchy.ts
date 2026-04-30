@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
 
 /**
@@ -13,7 +13,7 @@ export function useNetworkHierarchy() {
     const referenceDate = calculateReferenceDate()
 
     const fetchNetwork = useCallback(async () => {
-        if (role !== 'admin') {
+        if (!isPerfilInternoMx(role)) {
             setLoading(false)
             return
         }
@@ -21,24 +21,24 @@ export function useNetworkHierarchy() {
         setLoading(true)
 
         // 1. Buscar todas as lojas
-        const { data: stores } = await supabase.from('stores').select('id, name').eq('active', true)
+        const { data: lojas } = await supabase.from('lojas').select('id, name').eq('active', true)
         
-        // 2. Buscar todas as memberships com dados dos usuários
-        const { data: memberships } = await supabase
-            .from('memberships')
-            .select('user_id, store_id, role, users:user_id(*)')
+        // 2. Buscar todas as vinculos_loja com dados dos usuários
+        const { data: vinculos_loja } = await supabase
+            .from('vinculos_loja')
+            .select('user_id, store_id, role, users:usuarios(*)')
 
         // 3. Buscar check-ins de hoje em toda a rede
         const { data: todayCheckins } = await supabase
-            .from('daily_checkins')
+            .from('lancamentos_diarios')
             .select('seller_user_id, store_id')
             .eq('reference_date', referenceDate)
 
-        if (stores && memberships) {
+        if (lojas && vinculos_loja) {
             const checkedInSet = new Set((todayCheckins || []).map(c => `${c.store_id}-${c.seller_user_id}`))
 
-            const aggregated = stores.map(store => {
-                const storeMembers = memberships
+            const aggregated = lojas.map(store => {
+                const storeMembers = vinculos_loja
                     .filter(m => m.store_id === store.id)
                     .map(m => ({
                         ...m.users,
@@ -59,7 +59,7 @@ export function useNetworkHierarchy() {
 
     const updateRole = async (userId: string, storeId: string, newRole: string) => {
         const { error } = await supabase
-            .from('memberships')
+            .from('vinculos_loja')
             .update({ role: newRole })
             .eq('user_id', userId)
             .eq('store_id', storeId)
@@ -70,7 +70,7 @@ export function useNetworkHierarchy() {
 
     const removeMember = async (userId: string, storeId: string) => {
         const { error } = await supabase
-            .from('memberships')
+            .from('vinculos_loja')
             .delete()
             .eq('user_id', userId)
             .eq('store_id', storeId)

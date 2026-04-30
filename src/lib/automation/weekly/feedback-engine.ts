@@ -6,7 +6,7 @@ import { startOfWeek, subWeeks, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export async function runWeeklyFeedbackWorkflow() {
-    console.log('🚀 Iniciando Ciclo de Feedback Semanal MX...');
+    console.log('🚀 Iniciando Ciclo de Devolutiva Semanal MX...');
 
     // 1. Período: Semana Anterior Fechada
     const now = new Date();
@@ -18,21 +18,21 @@ export async function runWeeklyFeedbackWorkflow() {
     const startKey = format(start, 'yyyy-MM-dd');
 
     // 2. Buscar lojas e suas regras de entrega
-    const { data: stores, error: storeErr } = await supabase
-        .from('stores')
+    const { data: lojas, error: storeErr } = await supabase
+        .from('lojas')
         .select('*, store_delivery_rules(*), store_meta_rules(*)');
 
-    if (storeErr || !stores) {
+    if (storeErr || !lojas) {
         console.error('❌ Erro ao buscar lojas:', storeErr);
         return;
     }
 
-    for (const store of stores) {
+    for (const store of lojas) {
         console.log(`\n- Processando Loja: ${store.name}`);
         
         // 3. Buscar checkins da semana para esta loja
         const { data: checkins } = await supabase
-            .from('daily_checkins')
+            .from('lancamentos_diarios')
             .select('*')
             .eq('store_id', store.id)
             .gte('reference_date', startKey)
@@ -45,8 +45,8 @@ export async function runWeeklyFeedbackWorkflow() {
 
         // 4. Buscar vendedores da loja
         const { data: members } = await supabase
-            .from('memberships')
-            .select('user_id, users(name)')
+            .from('vinculos_loja')
+            .select('user_id, users:usuarios(name)')
             .eq('store_id', store.id)
             .eq('role', 'vendedor');
 
@@ -82,7 +82,7 @@ export async function runWeeklyFeedbackWorkflow() {
             try {
                 const html = getWeeklyFeedbackEmailTemplate(store.name, dateRangeLabel, feedbackData);
                 // Por enquanto sem anexo para simplificar ou gerar um consolidado depois
-                await sendEmailReport(recipients, `📊 Feedback Semanal: ${store.name}`, html, Buffer.from(''));
+                await sendEmailReport(recipients, `📊 Devolutiva Semanal: ${store.name}`, html, Buffer.from(''));
                 console.log(`  ✅ E-mail enviado para ${recipients.join(', ')}`);
             } catch (e) {
                 console.error(`  ❌ Falha no envio:`, e);
@@ -92,5 +92,5 @@ export async function runWeeklyFeedbackWorkflow() {
         }
     }
 
-    console.log('\n✨ Ciclo de Feedback Finalizado.');
+    console.log('\n✨ Ciclo de Devolutiva Finalizado.');
 }

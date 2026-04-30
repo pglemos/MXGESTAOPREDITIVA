@@ -1,5 +1,5 @@
 import { useSellersByStore } from '@/hooks/useTeam'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { useStoreGoal } from '@/hooks/useGoals'
 import { useStoreSales } from '@/hooks/useStoreSales'
@@ -26,7 +26,7 @@ import { DataGrid, Column } from '@/components/organisms/DataGrid'
 import { supabase } from '@/lib/supabase'
 
 export default function DashboardLoja() {
-    const { role, storeId: authStoreId, setActiveStoreId, memberships } = useAuth()
+    const { role, storeId: authStoreId, setActiveStoreId, vinculos_loja } = useAuth()
     const { storeSlug } = useParams()
 
     const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(null)
@@ -41,7 +41,7 @@ export default function DashboardLoja() {
             setResolving(true)
             
             // 1. Tentar resolver pelas associações do usuário (mais rápido)
-            const found = memberships.find(m => {
+            const found = vinculos_loja.find(m => {
                 const slug = m.store?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
                 return slug === storeSlug
             })
@@ -53,10 +53,10 @@ export default function DashboardLoja() {
             }
 
             // 2. Tentar resolver via RPC ou Query global (para Admin/Dono)
-            if (role === 'admin' || role === 'dono') {
+            if (isPerfilInternoMx(role) || role === 'dono') {
                 try {
                     const { supabase } = await import('@/lib/supabase')
-                    const { data: allStores } = await supabase.from('stores').select('id, name').eq('active', true)
+                    const { data: allStores } = await supabase.from('lojas').select('id, name').eq('active', true)
                     
                     const match = allStores?.find(s => {
                         const slug = s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
@@ -76,14 +76,14 @@ export default function DashboardLoja() {
         }
 
         resolve()
-    }, [storeSlug, memberships, role])
+    }, [storeSlug, vinculos_loja, role])
 
     const urlStoreId = resolvedStoreId || new URLSearchParams(window.location.search).get('id')
     let storeId = urlStoreId || authStoreId
 
     // Bloqueio de Segurança: Gerente só vê as lojas que ele faz parte.
     if (role === 'gerente' && storeId) {
-        const isMember = memberships.some(m => m.store_id === storeId)
+        const isMember = vinculos_loja.some(m => m.store_id === storeId)
         if (!isMember) {
             // Se tentar acessar loja que não é dele, força para a loja primária
             storeId = authStoreId
@@ -91,8 +91,8 @@ export default function DashboardLoja() {
     }
 
     // Redirecionar apenas se NÃO estiver resolvendo e NÃO houver storeId válido
-    if (!resolving && !storeId && (role === 'admin' || role === 'dono')) {
-        return <Navigate to={role === 'admin' ? '/painel' : '/lojas'} replace />
+    if (!resolving && !storeId && (isPerfilInternoMx(role) || role === 'dono')) {
+        return <Navigate to={isPerfilInternoMx(role) ? '/painel' : '/lojas'} replace />
     }
 
     useEffect(() => {
@@ -130,7 +130,7 @@ export default function DashboardLoja() {
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'daily_checkins',
+                    table: 'lancamentos_diarios',
                     filter: `store_id=eq.${storeId}`
                 },
                 () => {
@@ -207,9 +207,9 @@ export default function DashboardLoja() {
             goalValue: storeSales.storeGoal,
             checkedInCount,
             ranking: storeSales.processedRanking,
-            storeName: memberships?.find(m => m.store_id === storeId)?.store?.name || 'Unidade MX'
+            storeName: vinculos_loja?.find(m => m.store_id === storeId)?.store?.name || 'Unidade MX'
         }
-    }, [storeSales, sellers, memberships, storeId])
+    }, [storeSales, sellers, vinculos_loja, storeId])
 
     const funilData = useMemo(() => calcularFunil(checkins as any), [checkins])
     const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
@@ -306,13 +306,13 @@ export default function DashboardLoja() {
                 <div className="flex flex-col gap-mx-xs text-center lg:text-left">
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-mx-tiny">Status de Unidade</Typography>                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        {(role === 'admin' || role === 'dono') ? (
+                        {(isPerfilInternoMx(role) || role === 'dono') ? (
                             <div className="relative group">
                                 <select 
                                     value={storeId || ''} 
                                     onChange={e => {
                                         const newStoreId = e.target.value
-                                        const newStore = memberships.find(m => m.store_id === newStoreId)
+                                        const newStore = vinculos_loja.find(m => m.store_id === newStoreId)
                                         if (newStore?.store) {
                                             const slug = newStore.store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
                                             window.location.href = `/loja/${slug}`
@@ -320,7 +320,7 @@ export default function DashboardLoja() {
                                     }}
                                     className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors"
                                 >
-                                    {memberships.map(m => (
+                                    {vinculos_loja.map(m => (
                                         <option key={m.store_id} value={m.store_id} className="text-lg bg-white">{m.store?.name?.toUpperCase() || 'LOJA'}</option>
                                     ))}
                                 </select>
@@ -358,7 +358,7 @@ export default function DashboardLoja() {
                 </div>
             </header>
 
-            {role === 'admin' && !urlStoreId && (
+            {isPerfilInternoMx(role) && !urlStoreId && (
                 <div className="mb-mx-lg"><AdminNetworkView /></div>
             )}
 
@@ -397,7 +397,7 @@ export default function DashboardLoja() {
                 </Card>
 
                 {/* DRE Summary for Owner/Admin */}
-                {(role === 'admin' || role === 'dono') && latestDRE && (
+                {(isPerfilInternoMx(role) || role === 'dono') && latestDRE && (
                    <Card className="p-mx-lg bg-white shadow-mx-lg border-none animate-in slide-in-from-right duration-500 delay-300">
                        <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny text-brand-primary">Lucratividade Preditiva (DRE)</Typography>
                         <div className="flex items-baseline gap-mx-xs mb-mx-xs">
@@ -460,7 +460,7 @@ export default function DashboardLoja() {
                     <Card className="border-none shadow-mx-lg bg-white overflow-hidden flex-1">
                         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
                             <div>
-                                <CardTitle className="text-xl md:text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Ranking Unidade'}</CardTitle>
+                                <CardTitle className="text-xl md:text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Classificação Unidade'}</CardTitle>
                                 <CardDescription className="font-black uppercase tracking-widest mt-1 text-mx-tiny">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
                             </div>
                             <div className="relative group w-full sm:w-mx-sidebar-expanded">

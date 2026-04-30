@@ -8,7 +8,7 @@ import { Button } from '@/components/atoms/Button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { useCheckins } from '@/hooks/useCheckins'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 
 interface AuditLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
@@ -22,12 +22,12 @@ export default function AiDiagnostics() {
     const [summary, setSummary] = useState<{ diagnostic: string; action: string } | null>(null)
     const terminalEndRef = useRef<HTMLDivElement>(null)
 
-    const checkins = role === 'admin' ? adminCheckins : storeCheckins
+    const checkins = isPerfilInternoMx(role) ? adminCheckins : storeCheckins
 
     useEffect(() => {
-        if (role !== 'admin') return
+        if (!isPerfilInternoMx(role)) return
         const fetchAll = async () => {
-            const { data } = await supabase.from('daily_checkins')
+            const { data } = await supabase.from('lancamentos_diarios')
                 .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                 .eq('metric_scope', 'daily')
                 .order('reference_date', { ascending: false })
@@ -49,7 +49,7 @@ export default function AiDiagnostics() {
         addLog('Conectando ao banco de dados Supabase...', 'info')
         await new Promise(r => setTimeout(r, 600))
         addLog('Conexão estabelecida. Protocolo SSL verificado.', 'success')
-        addLog(`Escaneando ${checkins.length} registros de check-in${role === 'admin' ? ' (REDE COMPLETA)' : ''}...`, 'info')
+        addLog(`Escaneando ${checkins.length} registros de lançamento diário${isPerfilInternoMx(role) ? ' (REDE COMPLETA)' : ''}...`, 'info')
         await new Promise(r => setTimeout(r, 1000))
         addLog('Executando heurística de conversão (MX 20/60/33)...', 'warning')
         const funnel = calcularFunil(checkins); const diagnosis = gerarDiagnosticoMX(funnel)
@@ -62,7 +62,7 @@ export default function AiDiagnostics() {
     useEffect(() => { handleScan() }, [handleScan])
     useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [logs])
 
-    if (role !== 'admin' && role !== 'dono') return (
+    if (!isPerfilInternoMx(role) && role !== 'dono') return (
         <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-brand-secondary" id="main-content">
             <ShieldCheck size={48} className="text-white/20 mb-6" aria-hidden="true" />
             <Typography variant="h2" tone="white" className="uppercase tracking-tighter">Acesso Restrito</Typography>
@@ -80,7 +80,7 @@ export default function AiDiagnostics() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-glow-brand animate-pulse" aria-hidden="true" />
                         <Typography variant="h1" tone="white">Auditoria <Typography as="span" className="text-brand-primary/80">Forense</Typography></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0{role === 'admin' ? ' • REDE COMPLETA' : ''}</Typography>
+                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0{isPerfilInternoMx(role) ? ' • REDE COMPLETA' : ''}</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-mx-md shrink-0 w-full sm:w-auto">

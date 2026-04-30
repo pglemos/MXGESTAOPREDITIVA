@@ -4,7 +4,7 @@ import { authenticate, waitForStable } from './helpers';
 test.describe('Feedback Page - Visual Regression', () => {
   test.beforeEach(async ({ page }) => {
     await authenticate(page);
-    await page.goto('/feedback');
+    await page.goto('/devolutivas');
     await waitForStable(page);
   });
 

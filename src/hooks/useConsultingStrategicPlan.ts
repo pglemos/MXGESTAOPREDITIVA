@@ -25,7 +25,7 @@ export function useConsultingStrategicPlan(clientId?: string) {
     setLoading(true)
     setError(null)
     const [plansRes, artifactsRes] = await Promise.all([
-      supabase.from('consulting_strategic_plans').select('*').eq('client_id', clientId).order('generated_at', { ascending: false }),
+      supabase.from('planejamentos_estrategicos').select('*').eq('client_id', clientId).order('generated_at', { ascending: false }),
       supabase.from('consulting_generated_artifacts').select('*').eq('client_id', clientId).order('generated_at', { ascending: false }),
     ])
     const fetchError = plansRes.error || artifactsRes.error
@@ -45,7 +45,7 @@ export function useConsultingStrategicPlan(clientId?: string) {
     generated_payload?: Record<string, unknown>
   }) => {
     if (!clientId) return { error: 'Cliente nao informado.' }
-    const { error: insertError } = await supabase.from('consulting_strategic_plans').insert({
+    const { error: insertError } = await supabase.from('planejamentos_estrategicos').insert({
       client_id: clientId,
       title: input.title,
       diagnosis_summary: input.diagnosis_summary || null,

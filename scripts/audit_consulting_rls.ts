@@ -13,8 +13,8 @@ async function testRLS() {
   
   // Simulação de cenários de acesso:
   const scenarios = [
-    { role: 'admin', expected: 'ALLOW ALL' },
-    { role: 'consultant_with_assignment', expected: 'ALLOW SELECT' },
+    { role: 'administrador_mx', expected: 'ALLOW ALL' },
+    { role: 'consultor_mx_com_atribuicao', expected: 'ALLOW SELECT' },
     { role: 'other_user', expected: 'DENY SELECT' }
   ];
 
@@ -23,10 +23,10 @@ async function testRLS() {
   console.log('🔍 Auditoria de tipos TypeScript...');
   // Verificando se os tipos foram adicionados em database.ts
   const dbTypes = await Bun.file('src/types/database.ts').text();
-  const hasConsulting = dbTypes.includes('consulting_clients');
+  const hasConsulting = dbTypes.includes('clientes_consultoria');
   
   if (hasConsulting) {
-    console.log('✅ Tipos consulting_clients encontrados em src/types/database.ts');
+    console.log('✅ Tipos clientes_consultoria encontrados em src/types/database.ts');
   } else {
     console.warn('⚠️ Tipos consulting_* não encontrados no arquivo de tipos principal.');
   }

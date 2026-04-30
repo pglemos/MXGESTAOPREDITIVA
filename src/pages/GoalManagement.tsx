@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { useStores } from '@/hooks/useTeam'
 import { useStoreGoal, useStoreMetaRules } from '@/hooks/useGoals'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { motion } from 'motion/react'
@@ -20,7 +20,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 
 export default function GoalManagement() {
     const { role } = useAuth()
-    const { stores, loading: storesLoading } = useStores()
+    const { lojas, loading: storesLoading } = useStores()
 
     // Suportar seleção via URL params legados ou slug via route (se tivéssemos)
     // Atualmente só usamos state pra loja e select pra admins.
@@ -94,7 +94,7 @@ export default function GoalManagement() {
         } finally { setSaving(false) }
     }
 
-    const canEdit = role === 'admin' || role === 'dono'
+    const canEdit = isPerfilInternoMx(role) || role === 'dono'
 
     if (storesLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
@@ -147,7 +147,7 @@ export default function GoalManagement() {
                                     className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner"
                                 >
                                     <option value="">Selecione a unidade...</option>
-                                    {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                                    {lojas.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                                 </select>
                                 <ChevronDown size={18} className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary transition-colors" />
                             </div>

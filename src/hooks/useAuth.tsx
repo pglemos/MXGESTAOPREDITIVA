@@ -11,7 +11,7 @@ interface AuthState {
     supabaseUser: SupabaseUser | null
     profile: AppUser | null
     membership: StoreMembership | null
-    memberships: StoreMembership[]
+    vinculos_loja: StoreMembership[]
     role: UserRole | null
     storeId: string | null
     activeStoreId: string | null
@@ -27,7 +27,7 @@ const AuthContext = createContext<AuthState>({
     supabaseUser: null, 
     profile: null, 
     membership: null, 
-    memberships: [],
+    vinculos_loja: [],
     role: null, 
     storeId: null, 
     activeStoreId: null,
@@ -40,9 +40,19 @@ const AuthContext = createContext<AuthState>({
     changePassword: async () => ({ error: 'Not initialized' })
 })
 
+export function isPerfilInternoMx(role: UserRole | string | null | undefined): boolean {
+    return role === 'administrador_geral' || role === 'administrador_mx' || role === 'consultor_mx'
+}
+
+export function isAdministradorMx(role: UserRole | string | null | undefined): boolean {
+    return role === 'administrador_geral' || role === 'administrador_mx'
+}
+
 function normalizeRole(rawRole: string | null | undefined): UserRole {
     const role = (rawRole || '').toLowerCase().trim()
-    if (role === 'admin' || role === 'consultor') return 'admin'
+    if (role === 'administrador_geral' || role === 'admin_master') return 'administrador_geral'
+    if (role === 'administrador_mx' || role === 'admin') return 'administrador_mx'
+    if (role === 'consultor_mx' || role === 'consultor') return 'consultor_mx'
     if (role === 'dono' || role === 'owner') return 'dono'
     if (role === 'gerente' || role === 'manager') return 'gerente'
     return 'vendedor'
@@ -83,7 +93,7 @@ function readDevBypassProfile(): AppUser | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
     const [profile, setProfile] = useState<AppUser | null>(null)
-    const [memberships, setMemberships] = useState<StoreMembership[]>([])
+    const [vinculos_loja, setMemberships] = useState<StoreMembership[]>([])
     const [activeStoreId, setActiveStoreId] = useState<string | null>(null)
     const [fallbackStoreId, setFallbackStoreId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
@@ -93,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const devBypassRef = useRef(false)
 
     const fetchProfile = useCallback(async (userId: string): Promise<AppUser | null> => {
-        const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
+        const { data, error } = await supabase.from('usuarios').select('*').eq('id', userId).maybeSingle()
         if (error && !isTransientFetchError(error)) {
             console.error('Audit Error [useAuth]: fetchProfile fail ->', error.message)
         }
@@ -104,8 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchMemberships = useCallback(async (userId: string): Promise<StoreMembership[]> => {
         const { data, error } = await supabase
-            .from('memberships')
-            .select('*, store:stores(*)')
+            .from('vinculos_loja')
+            .select('*, store:lojas(*)')
             .eq('user_id', userId)
             .order('created_at', { ascending: true })
         
@@ -126,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchFallbackStoreId = useCallback(async () => {
         const { data, error } = await supabase
-            .from('stores')
+            .from('lojas')
             .select('id')
             .eq('active', true)
             .order('name')
@@ -237,7 +247,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
                 
                 // Ejeção Ativa (Sessões Existentes): Se o usuário perder a loja ativada enquanto logado
-                if (currentRole !== 'admin' && loadedMemberships.length === 0) {
+                if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
                     await supabase.auth.signOut()
                     setSupabaseUser(null)
                     setProfile(null)
@@ -245,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     return // Aborta o carregamento
                 }
 
-                if (!loadedMemberships.length && currentRole === 'admin') {
+                if (!loadedMemberships.length && isPerfilInternoMx(currentRole)) {
                     await fetchFallbackStoreId()
                 } else {
                     setFallbackStoreId(null)
@@ -290,7 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
             
-            if (currentRole !== 'admin' && loadedMemberships.length === 0) {
+            if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
                 await supabase.auth.signOut()
                 setSupabaseUser(null)
                 setProfile(null)
@@ -306,7 +316,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!supabaseUser?.id) return { error: 'Não autenticado' }
 
         const { error } = await supabase
-            .from('users')
+            .from('usuarios')
             .update(updates)
             .eq('id', supabaseUser.id)
 
@@ -324,7 +334,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (authError) return { error: authError.message }
         
         const { error: dbError } = await supabase
-            .from('users')
+            .from('usuarios')
             .update({ must_change_password: false })
             .eq('id', supabaseUser.id)
             
@@ -349,7 +359,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const role = profile ? normalizeRole(profile.role) : null
-    const membership = memberships.find(m => m.store_id === activeStoreId) || memberships[0] || null
+    const membership = vinculos_loja.find(m => m.store_id === activeStoreId) || vinculos_loja[0] || null
     const storeId = activeStoreId || membership?.store_id || fallbackStoreId || null
 
     return (
@@ -357,7 +367,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             supabaseUser,
             profile,
             membership,
-            memberships,
+            vinculos_loja,
             role,
             storeId,
             activeStoreId,

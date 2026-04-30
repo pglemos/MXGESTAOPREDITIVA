@@ -15,10 +15,10 @@ async function test() {
   }
   const userId = session.user.id
 
-    const res1 = await supabase.from('users').select('*').eq('id', userId).single()
+    const res1 = await supabase.from('usuarios').select('*').eq('id', userId).single()
     const res2 = await supabase
-            .from('memberships')
-            .select('*, store:stores(*)')
+            .from('vinculos_loja')
+            .select('*, store:lojas(*)')
             .eq('user_id', userId)
             .limit(1)
             .maybeSingle()

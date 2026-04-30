@@ -21,8 +21,8 @@ serve(async (req) => {
 
     // 1. Buscar dados da visita e cliente
     const { data: visit, error: visitError } = await supabase
-      .from('consulting_visits')
-      .select('*, client:consulting_clients(*)')
+      .from('visitas_consultoria')
+      .select('*, client:clientes_consultoria(*)')
       .eq('id', visitId)
       .single()
 

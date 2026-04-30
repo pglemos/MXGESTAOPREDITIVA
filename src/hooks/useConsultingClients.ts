@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type {
   ConsultingClientContact,
   ConsultingClientDetail,
@@ -45,7 +45,7 @@ export function useConsultingClients() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const canCreate = role === 'admin'
+  const canCreate = isPerfilInternoMx(role)
 
   const fetchClients = useCallback(async () => {
     if (!supabaseUser) {
@@ -58,8 +58,8 @@ export function useConsultingClients() {
     setError(null)
 
     const { data, error: fetchError } = await supabase
-      .from('consulting_clients')
-      .select('*, consulting_visits(visit_number, status, created_at, effective_visit_date)')
+      .from('clientes_consultoria')
+      .select('*, visitas_consultoria(visit_number, status, created_at, effective_visit_date)')
       .order('name', { ascending: true })
 
     if (fetchError) {
@@ -68,8 +68,8 @@ export function useConsultingClients() {
     } else {
       try {
         const clientsWithLastVisit = (data || []).map(client => {
-          const finishedVisits = (client.consulting_visits || [])
-            .filter((v: any) => v.status === 'concluída')
+          const finishedVisits = (client.visitas_consultoria || [])
+            .filter((v: any) => v.status === 'concluida')
             .sort((a: any, b: any) => new Date(b.effective_visit_date || b.created_at).getTime() - new Date(a.effective_visit_date || a.created_at).getTime())
           
           const lastVisit = finishedVisits[0]
@@ -92,7 +92,7 @@ export function useConsultingClients() {
 
   const createClient = useCallback(async (input: CreateConsultingClientInput) => {
     if (!canCreate || !supabaseUser) {
-      return { error: 'Apenas admin pode criar clientes da consultoria.' }
+      return { error: 'Apenas perfis MX podem criar clientes da consultoria.' }
     }
 
     if (BLOCKED_NAMES.includes(input.name.trim().toUpperCase())) {
@@ -109,7 +109,7 @@ export function useConsultingClients() {
     }
 
     const { data: newClient, error: insertError } = await supabase
-      .from('consulting_clients')
+      .from('clientes_consultoria')
       .insert(payload)
       .select('id')
       .single()
@@ -163,7 +163,7 @@ export function useConsultingClientDetail(clientId?: string) {
   const [assignableUsers, setAssignableUsers] = useState<ConsultingAssignableUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const canManage = role === 'admin'
+  const canManage = isPerfilInternoMx(role)
 
   const fetchClient = useCallback(async () => {
     if (!supabaseUser || !clientId) {
@@ -176,14 +176,14 @@ export function useConsultingClientDetail(clientId?: string) {
     setError(null)
 
     const [clientRes, unitsRes, contactsRes, assignmentsRes, visitsRes, financialsRes, modulesRes, usersRes] = await Promise.all([
-      supabase.from('consulting_clients').select('*').eq('id', clientId).maybeSingle(),
+      supabase.from('clientes_consultoria').select('*').eq('id', clientId).maybeSingle(),
       supabase.from('consulting_client_units').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('consulting_client_contacts').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
-      supabase.from('consulting_assignments').select('*, user:users(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
-      supabase.from('consulting_visits').select('*, consultant:users(name,email), auxiliary_consultant:users(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
-      supabase.from('consulting_financials').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
+      supabase.from('consulting_assignments').select('*, user:usuarios(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
+      supabase.from('visitas_consultoria').select('*, consultant:usuarios(name,email), auxiliary_consultant:usuarios(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
+      supabase.from('financeiro_consultoria').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
       supabase.from('consulting_client_modules').select('*').eq('client_id', clientId).order('module_key', { ascending: true }),
-      supabase.from('users').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
+      supabase.from('usuarios').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),
     ])
 
     if (clientRes.error) {
@@ -218,7 +218,7 @@ export function useConsultingClientDetail(clientId?: string) {
     is_primary?: boolean
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode cadastrar unidade.' }
+      return { error: 'Apenas perfis MX podem cadastrar unidade.' }
     }
 
     const { error: insertError } = await supabase.from('consulting_client_units').insert({
@@ -242,7 +242,7 @@ export function useConsultingClientDetail(clientId?: string) {
     is_primary?: boolean
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode cadastrar contato.' }
+      return { error: 'Apenas perfis MX podem cadastrar contato.' }
     }
 
     const { error: insertError } = await supabase.from('consulting_client_contacts').insert({
@@ -265,7 +265,7 @@ export function useConsultingClientDetail(clientId?: string) {
     active?: boolean
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode vincular consultores.' }
+      return { error: 'Apenas perfis MX podem vincular consultores.' }
     }
 
     const { error: upsertError } = await supabase.from('consulting_assignments').upsert({
@@ -282,7 +282,7 @@ export function useConsultingClientDetail(clientId?: string) {
 
   const toggleAssignment = useCallback(async (assignmentId: string, active: boolean) => {
     if (!supabaseUser || !canManage) {
-      return { error: 'Apenas admin pode alterar vinculos.' }
+      return { error: 'Apenas perfis MX podem alterar vínculos.' }
     }
 
     const { error: updateError } = await supabase
@@ -305,7 +305,7 @@ export function useConsultingClientDetail(clientId?: string) {
     financing: number
   }) => {
     if (!supabaseUser || !clientId || !canManage) {
-      return { error: 'Apenas admin pode lancar dados financeiros.' }
+      return { error: 'Apenas perfis MX podem lançar dados financeiros.' }
     }
 
     const net_profit = input.revenue - input.fixed_expenses - input.marketing_expenses - input.investments - input.financing
@@ -326,13 +326,13 @@ export function useConsultingClientDetail(clientId?: string) {
 
     if (input.id) {
       const { error: updateError } = await supabase
-        .from('consulting_financials')
+        .from('financeiro_consultoria')
         .update(payload)
         .eq('id', input.id)
       if (updateError) return { error: updateError.message }
     } else {
       const { error: insertError } = await supabase
-        .from('consulting_financials')
+        .from('financeiro_consultoria')
         .insert(payload)
       if (insertError) return { error: insertError.message }
     }
@@ -343,11 +343,11 @@ export function useConsultingClientDetail(clientId?: string) {
 
   const deleteFinancial = useCallback(async (financialId: string) => {
     if (!supabaseUser || !canManage) {
-      return { error: 'Apenas admin pode excluir dados financeiros.' }
+      return { error: 'Apenas perfis MX podem excluir dados financeiros.' }
     }
 
     const { error: deleteError } = await supabase
-      .from('consulting_financials')
+      .from('financeiro_consultoria')
       .delete()
       .eq('id', financialId)
 

@@ -5,7 +5,7 @@ import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useManagerRoutine } from '@/hooks/useManagerRoutine'
 import { useFeedbacks, usePDIs, useNotifications } from '@/hooks/useData'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX, getDiasInfo, calcularAtingimento } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import {
@@ -35,8 +35,8 @@ type RoutineTab = 'diario' | 'semanal' | 'mensal' | 'ajustes'
 export default function RotinaGerente() {
     const [tab, setTab] = useState<RoutineTab>('diario')
     const { role } = useAuth()
-    const isAdmin = role === 'admin'
-    const { stores } = useStores()
+    const isAdmin = isPerfilInternoMx(role)
+    const { lojas } = useStores()
     const [selectedStoreId, setSelectedStoreId] = useState<string>('')
     
     const effectiveStoreId = isAdmin ? selectedStoreId : undefined
@@ -78,7 +78,7 @@ export default function RotinaGerente() {
             .channel('manager_routine_events')
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'daily_checkins', filter: `store_id=eq.${storeIdToListen}` },
+                { event: 'INSERT', schema: 'public', table: 'lancamentos_diarios', filter: `store_id=eq.${storeIdToListen}` },
                 (payload) => {
                     toast.info(`Novo Lançamento Diário recebido!`, {
                         description: 'A performance da unidade foi atualizada em tempo real.',
@@ -187,7 +187,7 @@ export default function RotinaGerente() {
                         Como administrador, escolha qual unidade gerenciar no Centro de Comando.
                     </Typography>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-mx-sm max-w-3xl mx-auto pt-mx-lg">
-                        {stores.map(store => (
+                        {lojas.map(store => (
                             <Button
                                 key={store.id}
                                 variant="outline"
@@ -206,7 +206,7 @@ export default function RotinaGerente() {
                     <Store size={16} className="text-brand-primary" />
                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-tertiary">Unidade:</Typography>
                     <Typography variant="tiny" className="font-black uppercase tracking-widest text-brand-primary">
-                        {stores.find(s => s.id === selectedStoreId)?.name || '...'}
+                        {lojas.find(s => s.id === selectedStoreId)?.name || '...'}
                     </Typography>
                     <Button variant="ghost" size="sm" onClick={() => setSelectedStoreId('')} className="h-mx-10 px-4 text-xs uppercase font-black ml-2">
                         Trocar

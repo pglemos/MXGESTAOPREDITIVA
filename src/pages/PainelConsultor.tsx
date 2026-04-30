@@ -33,7 +33,7 @@ type Timeframe = 'hoje' | 'ontem' | 'semanal' | 'mensal' | 'personalizada'
 export default function PainelConsultor() {
     const navigate = useNavigate()
     const { setActiveStoreId } = useAuth()
-    const { goals, loading: goalsLoading } = useAllStoreGoals()
+    const { metas, loading: goalsLoading } = useAllStoreGoals()
     const { notifications } = useNotifications()
     
     const [diagnostics, setDiagnostics] = useState<Record<string, StoreDiagnostic>>({})
@@ -116,7 +116,7 @@ export default function PainelConsultor() {
             let allCheckins: any[] = [];
             let from = 0;
             while (true) {
-                const { data, error } = await originalSupabase.from('daily_checkins')
+                const { data, error } = await originalSupabase.from('lancamentos_diarios')
                     .select('*')
                     .gte('reference_date', range.start)
                     .lte('reference_date', range.end)
@@ -134,9 +134,9 @@ export default function PainelConsultor() {
                 { data: sellers },
                 { data: todayCheckins },
             ] = await Promise.all([
-                originalSupabase.from('stores').select('id, name'),
-                originalSupabase.from('store_sellers').select('*').eq('is_active', true),
-                originalSupabase.from('daily_checkins').select('store_id, seller_user_id').eq('reference_date', yesterday),
+                originalSupabase.from('lojas').select('id, name'),
+                originalSupabase.from('vendedores_loja').select('*').eq('is_active', true),
+                originalSupabase.from('lancamentos_diarios').select('store_id, seller_user_id').eq('reference_date', yesterday),
             ])
 
             const salesMap: Record<string, any> = {}
@@ -162,7 +162,7 @@ export default function PainelConsultor() {
 
             for (const store of (allStores || [])) {
                 const s = salesMap[store.id] || { total: 0, leads: 0, agd: 0, vis: 0 }
-                const goal = goals.find(item => item.store_id === store.id)?.target || 0
+                const goal = metas.find(item => item.store_id === store.id)?.target || 0
                 const proj = timeframe === 'mensal' ? calcularProjecao(s.total, daysElapsed, totalDays) : s.total
                 const numSellers = sellerMap.get(store.id) || 0
                 const numCheckedIn = checkedInMap.get(store.id) || 0
@@ -186,7 +186,7 @@ export default function PainelConsultor() {
             }
             setDiagnostics(diagnosticsMap)
         } finally { setNetworkLoading(false); setIsRefetching(false) }
-    }, [goals, timeframe])
+    }, [metas, timeframe])
 
     useEffect(() => { if (!goalsLoading) fetchNetworkSnapshot() }, [goalsLoading, fetchNetworkSnapshot])
 

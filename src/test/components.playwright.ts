@@ -2,10 +2,11 @@ import { test, expect } from '@playwright/test';
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto('/login');
-  await page.fill('input[type="email"]', 'admin@mxperformance.com.br');
+  await page.fill('input[type="email"]', 'admin@mxgestaopreditiva.com.br');
   await page.fill('input[type="password"]', 'Mx#2026!');
   await page.click('button[type="submit"]');
-  await page.waitForURL(/\/(painel|home|loja|lojas)/, { timeout: 10000 }).catch(() => {});
+  await page.waitForURL(/\/(painel|home|loja|lojas)/, { timeout: 15000 });
+  await expect(page.locator('main#main-content')).toBeVisible({ timeout: 15000 });
 }
 
 test.describe('Components: Atomic Design Rendering', () => {
@@ -162,13 +163,12 @@ test.describe('Components: Atomic Design Rendering', () => {
     expect(count).toBeGreaterThanOrEqual(0);
   });
 
-  test('Card component renders with shadow styling', async ({ page }) => {
+  test('operational panels render on agenda page', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/agenda');
 
-    const cards = page.locator('[class*="shadow-mx"]');
-    const count = await cards.count();
-    expect(count).toBeGreaterThan(0);
+    await expect(page.getByText('TOTAL').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('AGENDADAS').first()).toBeVisible();
   });
 
   test('Typography component renders page headers', async ({ page }) => {

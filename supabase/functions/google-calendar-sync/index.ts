@@ -152,9 +152,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Persist event IDs back into consulting_visits
+    // Persist event IDs back into visitas_consultoria
     const { error: updateError } = await adminClient
-      .from("consulting_visits")
+      .from("visitas_consultoria")
       .update({
         google_event_id: personalEventId,
         google_event_id_central: centralEventId,
@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
     if (updateError && updateError.code !== "PGRST204") {
       // Column google_event_id_central may not exist yet — fall back to legacy update
       await adminClient
-        .from("consulting_visits")
+        .from("visitas_consultoria")
         .update({ google_event_id: personalEventId })
         .eq("id", visit.id);
     }

@@ -21,7 +21,7 @@ import { DataGrid, Column } from '@/components/organisms/DataGrid'
 interface ImportLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
 
 export default function Reprocessamento() {
-    const { stores } = useStores()
+    const { lojas } = useStores()
     const [selectedStoreId, setSelectedStoreId] = useState('')
     const [file, setFile] = useState<File | null>(null)
     const [processing, setProcessing] = useState(false)
@@ -36,7 +36,7 @@ export default function Reprocessamento() {
     }, [])
 
     const fetchHistory = useCallback(async () => {
-        const { data } = await supabase.from('reprocess_logs').select(`*, store:stores(name)`).order('created_at', { ascending: false })
+        const { data } = await supabase.from('reprocess_logs').select(`*, store:lojas(name)`).order('created_at', { ascending: false })
         if (data) setHistory(data.map(h => ({ ...h, store_name: (h as any).store?.name })))
     }, [])
 
@@ -208,7 +208,7 @@ export default function Reprocessamento() {
                                     className="w-full h-mx-12 px-4 bg-white/5 border border-white/10 rounded-mx-xl text-white text-xs font-bold appearance-none cursor-pointer uppercase outline-none"
                                 >
                                     <option value="" className="bg-mx-black">Selecione...</option>
-                                    {stores.map(s => <option key={s.id} value={s.id} className="bg-mx-black">{s.name.toUpperCase()}</option>)}
+                                    {lojas.map(s => <option key={s.id} value={s.id} className="bg-mx-black">{s.name.toUpperCase()}</option>)}
                                 </select>
                             </div>
 

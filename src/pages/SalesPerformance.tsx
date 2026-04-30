@@ -10,7 +10,7 @@ import { motion } from 'motion/react'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
 import { useNetworkPerformance } from '@/hooks/useNetworkPerformance'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom'
 
 export default function SalesPerformance() {
     const { role, setActiveStoreId } = useAuth()
-    const isAdmin = role === 'admin'
+    const isAdmin = isPerfilInternoMx(role)
     const navigate = useNavigate()
 
     if (isAdmin) return <AdminPerformance />
@@ -187,7 +187,7 @@ function AdminPerformance() {
 
                     <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
                         <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-md">
-                            <CardTitle className="text-sm">Ranking por Loja</CardTitle>
+                            <CardTitle className="text-sm">Classificação por Loja</CardTitle>
                         </CardHeader>
                         <CardContent className="p-mx-0">
                             {metrics.byStore.slice(0, 5).map((store, i) => (

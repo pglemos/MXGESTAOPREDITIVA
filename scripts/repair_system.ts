@@ -10,7 +10,7 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
 
 const USERS = [
-    { email: 'admin@mxgestaopreditiva.com.br', role: 'admin', name: 'Admin MX' },
+    { email: 'admin@mxgestaopreditiva.com.br', role: 'administrador_mx', name: 'Admin MX' },
     { email: 'dono@mxgestaopreditiva.com.br', role: 'dono', name: 'Dono MX' },
     { email: 'gerente@mxgestaopreditiva.com.br', role: 'gerente', name: 'Gerente MX' },
     { email: 'vendedor@mxgestaopreditiva.com.br', role: 'vendedor', name: 'Vendedor MX' }
@@ -21,14 +21,14 @@ async function repairSystem() {
     console.log('--- REPAIRING AUTH AND USERS ---')
 
     // 1. Get an active store
-    const { data: stores } = await supabase.from('stores').select('id, name').eq('active', true).limit(1)
-    if (!stores || stores.length === 0) {
-        console.error('No active stores found! Creating one...')
-        const { data: newStore } = await supabase.from('stores').insert({ name: 'Loja Matriz MX', active: true }).select().single()
-        stores?.push(newStore as any)
+    const { data: lojas } = await supabase.from('lojas').select('id, name').eq('active', true).limit(1)
+    if (!lojas || lojas.length === 0) {
+        console.error('No active lojas found! Creating one...')
+        const { data: newStore } = await supabase.from('lojas').insert({ name: 'Loja Matriz MX', active: true }).select().single()
+        lojas?.push(newStore as any)
     }
-    const storeId = stores![0].id
-    console.log(`Using Store: ${stores![0].name} (${storeId})`)
+    const storeId = lojas![0].id
+    console.log(`Using Store: ${lojas![0].name} (${storeId})`)
 
     for (const uInfo of USERS) {
         console.log(`\nProcessing ${uInfo.email}...`)
@@ -57,9 +57,9 @@ async function repairSystem() {
 
         if (!authUser) continue
 
-        // B. Ensure public.users record
-        console.log(`Upserting public.users for ${authUser.id}...`)
-        const { error: userError } = await supabase.from('users').upsert({
+        // B. Ensure public.usuarios record
+        console.log(`Upserting public.usuarios for ${authUser.id}...`)
+        const { error: userError } = await supabase.from('usuarios').upsert({
             id: authUser.id,
             email: uInfo.email,
             name: uInfo.name,
@@ -70,12 +70,12 @@ async function repairSystem() {
 
         // C. Ensure Membership
         console.log(`Ensuring membership for ${authUser.id} in store ${storeId}...`)
-        const { data: memberships } = await supabase.from('memberships').select('*').eq('user_id', authUser.id).eq('store_id', storeId)
-        if (!memberships || memberships.length === 0) {
-            const { error: memError } = await supabase.from('memberships').insert({
+        const { data: vinculos_loja } = await supabase.from('vinculos_loja').select('*').eq('user_id', authUser.id).eq('store_id', storeId)
+        if (!vinculos_loja || vinculos_loja.length === 0) {
+            const { error: memError } = await supabase.from('vinculos_loja').insert({
                 user_id: authUser.id,
                 store_id: storeId,
-                role: uInfo.role === 'admin' ? 'gerente' : uInfo.role // Admin can be gerente in a store
+                role: uInfo.role === 'administrador_mx' ? 'gerente' : uInfo.role
             })
             if (memError) console.error(`Error creating membership for ${uInfo.email}:`, memError.message)
         }

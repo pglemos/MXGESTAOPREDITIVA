@@ -19,13 +19,13 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 
 export default function Equipe() {
   const urlStoreId = new URLSearchParams(window.location.search).get('id')
   const { role, storeId: authStoreId } = useAuth()
-  const isAdmin = role === 'admin'
-  const { stores } = useStores()
+  const isAdmin = isPerfilInternoMx(role)
+  const { lojas } = useStores()
   const [selectedStoreId, setSelectedStoreId] = useState(urlStoreId || '')
   
   const effectiveStoreId = isAdmin ? selectedStoreId : (urlStoreId || authStoreId || undefined)
@@ -45,7 +45,7 @@ export default function Equipe() {
 
   const stats = useMemo(() => {
     const total = (team || []).length;
-    const leaders = (team || []).filter(m => m.role === 'admin' || m.role === 'dono' || m.role === 'gerente');
+    const leaders = (team || []).filter(m => isPerfilInternoMx(m.role) || m.role === 'dono' || m.role === 'gerente');
     const operational = (team || []).filter(m => m.checkin_today);
     
     return [
@@ -150,7 +150,7 @@ export default function Equipe() {
                 <Typography variant="h3" className="font-black uppercase tracking-tight group-hover:text-brand-primary transition-colors leading-tight">Visualizar Toda a Tropa</Typography>
               </button>
             )}
-            {stores.map(store => (
+            {lojas.map(store => (
               <button
                 key={store.id}
                 onClick={() => setSelectedStoreId(store.id)}
@@ -194,7 +194,7 @@ export default function Equipe() {
                   >
                     <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                   </Button>
-                  {(role === 'admin' || role === 'dono' || role === 'gerente') && (
+                  {(isPerfilInternoMx(role) || role === 'dono' || role === 'gerente') && (
                     <Button 
                       onClick={() => setIsUserModalOpen(true)}
                       className="flex-1 sm:flex-none h-mx-14 px-8 rounded-mx-xl font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
@@ -208,7 +208,7 @@ export default function Equipe() {
                       onClick={() => setSelectedStoreId('')}
                       className="h-mx-14 px-4 rounded-mx-xl border border-border-default bg-white hover:border-brand-primary/50 text-text-tertiary hover:text-brand-primary transition-all shadow-mx-sm uppercase font-black tracking-widest text-mx-nano"
                     >
-                      {selectedStoreId === 'all' ? 'GLOBAL' : (stores.find(s => s.id === selectedStoreId)?.name?.split(' ')[0] || 'UNIDADE')}
+                      {selectedStoreId === 'all' ? 'GLOBAL' : (lojas.find(s => s.id === selectedStoreId)?.name?.split(' ')[0] || 'UNIDADE')}
                       <RefreshCw size={12} className="ml-2 opacity-50" />
                     </Button>
                   )}
@@ -279,7 +279,7 @@ export default function Equipe() {
                               alt="" className="w-full h-full object-cover rounded-mx-3xl"
                             />
                           </div>
-                          {member.role === 'admin' && (
+                          {isPerfilInternoMx(member.role) && (
                             <div className="absolute -top-mx-xs -right-mx-xs w-mx-12 h-mx-12 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center border-4 border-white shadow-mx-xl animate-bounce">
                                 <Shield size={18} className="text-brand-primary fill-brand-primary/20" />
                             </div>
@@ -462,7 +462,7 @@ export default function Equipe() {
                 onSuccess={refetch}
                 registerUser={registerUser}
                 storeId={effectiveStoreId}
-                stores={stores}
+                lojas={lojas}
               />
             )}
           </AnimatePresence>

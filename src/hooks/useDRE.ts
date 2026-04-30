@@ -64,7 +64,7 @@ export function useDRE(clientId?: string, storeId?: string) {
     if (storeId) {
       setLoading(true)
       supabase
-        .from('consulting_clients')
+        .from('clientes_consultoria')
         .select('id')
         .eq('primary_store_id', storeId)
         .maybeSingle()
@@ -88,7 +88,7 @@ export function useDRE(clientId?: string, storeId?: string) {
     setLoading(true)
     setError(null)
     const { data, error: fetchError } = await supabase
-      .from('consulting_financials')
+      .from('financeiro_consultoria')
       .select('*')
       .eq('client_id', activeClientId)
       .order('reference_date', { ascending: false })
@@ -108,7 +108,7 @@ export function useDRE(clientId?: string, storeId?: string) {
     try {
       const payload = { ...row, client_id: activeClientId }
       const { error: upsertError } = await supabase
-        .from('consulting_financials')
+        .from('financeiro_consultoria')
         .upsert(payload, { onConflict: 'id' })
       if (upsertError) throw upsertError
       await fetchFinancials()
@@ -123,7 +123,7 @@ export function useDRE(clientId?: string, storeId?: string) {
 
   const deleteFinancial = useCallback(async (id: string) => {
     const { error: delError } = await supabase
-      .from('consulting_financials')
+      .from('financeiro_consultoria')
       .delete()
       .eq('id', id)
     if (delError) {

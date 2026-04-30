@@ -70,11 +70,11 @@ async function run() {
   const { headers, records } = parseCSV(csvData);
   console.log(`Buscando ${records.length} registros no CSV...`);
   
-  const { data: stores, error: err1 } = await supabase.from('stores').select('id, name');
-  const { data: users, error: err2 } = await supabase.from('users').select('id, name, email');
+  const { data: lojas, error: err1 } = await supabase.from('lojas').select('id, name');
+  const { data: users, error: err2 } = await supabase.from('usuarios').select('id, name, email');
 
   const storeMap = new Map();
-  stores?.forEach(s => storeMap.set(s.name.toLowerCase().trim(), s.id));
+  lojas?.forEach(s => storeMap.set(s.name.toLowerCase().trim(), s.id));
 
   const userMap = new Map();
   users?.forEach(u => {
@@ -231,7 +231,7 @@ async function run() {
   
   for (let i = 0; i < finalUniqueRecords.length; i += CHUNK_SIZE) {
     const chunk = finalUniqueRecords.slice(i, i + CHUNK_SIZE);
-    const { error } = await supabase.from('daily_checkins').upsert(chunk, { onConflict: 'user_id,store_id,date' });
+    const { error } = await supabase.from('lancamentos_diarios').upsert(chunk, { onConflict: 'user_id,store_id,date' });
     if (error) {
       console.error('Error upserting chunk:', error);
       process.exit(1);
@@ -240,12 +240,12 @@ async function run() {
     console.log(`Processado ${inserted}/${finalUniqueRecords.length} registros...`);
   }
 
-  // Update source_mode for affected stores to ensure ecosystem sync
+  // Update source_mode for affected lojas to ensure ecosystem sync
   const uniqueStoreIds = Array.from(new Set(finalUniqueRecords.map(r => r.store_id)));
   if (uniqueStoreIds.length > 0) {
       console.log(`\nAtualizando source_mode para 'hybrid' em ${uniqueStoreIds.length} lojas afetadas...`);
       for (const sid of uniqueStoreIds) {
-          const { error: storeErr } = await supabase.from('stores').update({ source_mode: 'hybrid' }).eq('id', sid);
+          const { error: storeErr } = await supabase.from('lojas').update({ source_mode: 'hybrid' }).eq('id', sid);
           if (storeErr) console.error(`Erro ao atualizar source_mode da loja ${sid}:`, storeErr.message);
       }
       console.log('Atualização de source_mode concluída.');

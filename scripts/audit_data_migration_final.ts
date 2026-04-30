@@ -19,30 +19,30 @@ async function runAudit() {
     console.log(`URL: ${supabaseUrl}`);
     
     // 1. Integridade de Unidades
-    const { data: stores, error: sErr } = await supabase.from('stores').select('id, name, active');
+    const { data: lojas, error: sErr } = await supabase.from('lojas').select('id, name, active');
     if (sErr) {
         console.error('❌ Erro ao buscar lojas:', sErr.message);
         return;
     }
     
-    console.log(`✅ Unidades Totais: ${stores.length}`);
-    console.log(`✅ Unidades Ativas: ${stores.filter(s => s.active).length}`);
+    console.log(`✅ Unidades Totais: ${lojas.length}`);
+    console.log(`✅ Unidades Ativas: ${lojas.filter(s => s.active).length}`);
     
     console.log('\n--- LISTAGEM DE UNIDADES (OFFICIAL CHECK) ---');
-    stores.map(s => s.name).sort().forEach(n => console.log(`[ ] ${n}`));
+    lojas.map(s => s.name).sort().forEach(n => console.log(`[ ] ${n}`));
     
-    if (stores.length < 13) {
-        console.warn(`⚠️ ALERTA: Esperado ao menos 13 unidades, encontrados ${stores.length}.`);
+    if (lojas.length < 13) {
+        console.warn(`⚠️ ALERTA: Esperado ao menos 13 unidades, encontrados ${lojas.length}.`);
     }
 
     // 2. Integridade de Usuários
-    const { data: users, error: uErr } = await supabase.from('users').select('id, name, role, active');
+    const { data: users, error: uErr } = await supabase.from('usuarios').select('id, name, role, active');
     if (uErr) console.error(uErr);
     console.log(`✅ Usuários Cadastrados: ${users?.length || 0}`);
 
     // 3. Integridade de Check-ins
     const { data: checkins, error: cErr } = await supabase
-        .from('daily_checkins')
+        .from('lancamentos_diarios')
         .select('id, seller_user_id, store_id, reference_date, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day');
 
     if (cErr) {
@@ -51,7 +51,7 @@ async function runAudit() {
         console.log(`✅ Total de Check-ins: ${checkins.length}`);
         
         console.log('\n--- VOLUME POR UNIDADE ---');
-        const storeStats = stores.map(s => {
+        const storeStats = lojas.map(s => {
             const count = checkins.filter(c => c.store_id === s.id).length;
             const sales = checkins.filter(c => c.store_id === s.id).reduce((sum, c) => 
                 sum + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0

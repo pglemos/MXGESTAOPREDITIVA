@@ -27,7 +27,7 @@ const todayKey = format(today, "yyyy-MM-dd");
 const mockCalendarDays = makeCalendarDays();
 
 const mockVisitsByDate: Record<string, { status: string }[]> = {
-  [todayKey]: [{ status: "agendada" }, { status: "concluída" }],
+  [todayKey]: [{ status: "agendada" }, { status: "concluida" }],
   [format(new Date(today.getFullYear(), today.getMonth(), 5), "yyyy-MM-dd")]: [{ status: "cancelada" }],
 };
 
@@ -44,7 +44,7 @@ describe("AgendaCalendar", () => {
     getVisitDotColor: (status: string) => {
       const map: Record<string, string> = {
         agendada: "bg-brand-primary",
-        "concluída": "bg-status-success",
+        "concluida": "bg-status-success",
         cancelada: "bg-status-error",
       };
       return map[status] || "bg-text-tertiary";

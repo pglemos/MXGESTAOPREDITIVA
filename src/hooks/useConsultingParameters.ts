@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import {
   parseConsultingMetricCatalogArray,
   parseConsultingParameterValueArray,
@@ -23,7 +23,7 @@ export function useConsultingParameters() {
   const [activeSet, setActiveSet] = useState<ActiveSet | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const canManage = role === 'admin'
+  const canManage = isPerfilInternoMx(role)
 
   const fetchParameters = useCallback(async () => {
     setLoading(true)
@@ -61,7 +61,7 @@ export function useConsultingParameters() {
   }, [])
 
   const updateParameterValue = useCallback(async (input: Partial<ConsultingParameterValue> & { metric_key: string }) => {
-    if (!canManage || !activeSet?.id) return { error: 'Apenas admin pode alterar parametros PMR.' }
+    if (!canManage || !activeSet?.id) return { error: 'Apenas perfis MX podem alterar parâmetros PMR.' }
     const { error: upsertError } = await supabase
       .from('consulting_parameter_values')
       .upsert({
@@ -90,4 +90,3 @@ export function useConsultingParameters() {
 
   return { catalog, values, valueByMetric, activeSet, loading, error, canManage, updateParameterValue, refetch: fetchParameters }
 }
-

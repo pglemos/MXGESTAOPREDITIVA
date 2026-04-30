@@ -24,7 +24,7 @@ export async function generateMorningReportXlsx(storeName: string, dateLabel: st
     worksheet.getCell('A2').value = `Referência: ${dateLabel}`;
     worksheet.getCell('A2').style = { alignment: { horizontal: 'center' }, font: { bold: true, color: { argb: '64748B' } } };
 
-    // 2. Cabeçalho da Tabela de Ranking
+    // 2. Cabeçalho da Tabela de Classificação
     const tableHeaderRow = 4;
     const columns = ['Especialista', 'Leads', 'Agendamentos', 'Visitas', 'Vendas', 'Atingimento (%)'];
     columns.forEach((col, i) => {
@@ -34,7 +34,7 @@ export async function generateMorningReportXlsx(storeName: string, dateLabel: st
     });
     worksheet.getRow(tableHeaderRow).height = 30;
 
-    // 3. Dados do Ranking
+    // 3. Dados da Classificação
     ranking.forEach((r, idx) => {
         const rowIdx = tableHeaderRow + 1 + idx;
         worksheet.getCell(rowIdx, 1).value = r.user_name;
@@ -79,7 +79,7 @@ export async function generateMorningReportXlsx(storeName: string, dateLabel: st
 
 export async function generateFeedbackXlsx(sellerName: string, data: any): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Feedback Individual');
+    const worksheet = workbook.addWorksheet('Devolutiva Individual');
 
     // Estilos MX
     const titleStyle: Partial<ExcelJS.Style> = { font: { bold: true, color: { argb: 'FFFFFF' }, size: 14 }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: '134F5C' } }, alignment: { horizontal: 'center' } };

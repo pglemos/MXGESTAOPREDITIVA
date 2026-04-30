@@ -4,22 +4,22 @@ const USERS = [
   { 
     email: 'admin@mxperformance.com.br', 
     role: 'admin',
-    routes: ['/painel', '/lojas', '/equipe', '/metas', '/relatorio-matinal', '/feedback', '/treinamentos', '/produtos', '/notificacoes', '/configuracoes/operacional', '/configuracoes/reprocessamento', '/configuracoes']
+    routes: ['/painel', '/lojas', '/equipe', '/metas', '/relatorio-matinal', '/devolutivas', '/treinamentos', '/produtos', '/notificacoes', '/configuracoes/operacional', '/configuracoes/reprocessamento', '/configuracoes']
   },
   { 
     email: 'dono@mxperformance.com.br', 
     role: 'dono',
-    routes: ['/lojas', '/loja', '/metas', '/funil', '/relatorio-matinal', '/feedback']
+    routes: ['/lojas', '/loja', '/metas', '/funil', '/relatorio-matinal', '/devolutivas']
   },
   { 
     email: 'gerente@mxperformance.com.br', 
     role: 'gerente',
-    routes: ['/loja', '/equipe', '/rotina', '/ranking', '/feedback', '/pdi', '/treinamentos']
+    routes: ['/loja', '/equipe', '/rotina', '/classificacao', '/devolutivas', '/pdi', '/treinamentos']
   },
   { 
     email: 'vendedor@mxperformance.com.br', 
     role: 'vendedor',
-    routes: ['/home', '/checkin', '/historico', '/ranking', '/feedback', '/pdi', '/treinamentos']
+    routes: ['/home', '/lancamento-diario', '/historico', '/classificacao', '/devolutivas', '/pdi', '/treinamentos']
   }
 ];
 const PASSWORD = 'Mx#2026!';

@@ -36,14 +36,14 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await parseReportBody(req);
     const dates = getSaoPauloPreviousWeek();
-    const { data: stores, error: storesError } = await buildStoreQuery(supabase, body.store_id);
+    const { data: lojas, error: storesError } = await buildStoreQuery(supabase, body.store_id);
 
     if (storesError) throw storesError;
-    if (!stores?.length) return jsonResponse({ message: "No active stores", reports: [] });
+    if (!lojas?.length) return jsonResponse({ message: "No active lojas", reports: [] });
 
     const reports = [];
 
-    for (const store of stores) {
+    for (const store of lojas) {
       const idempotencyKey = `semanal-${store.id}-${dates.weekStart}-${dates.weekEnd}`;
       const { data: existingLog } = await supabase
         .from("reprocess_logs")
@@ -68,7 +68,7 @@ Deno.serve(async (req: Request) => {
         const result = await sendReportEmail({
           resend,
           to: payload.recipients,
-          subject: `Feedback Semanal MX: ${store.name} (${formatPtBrDate(dates.weekStart)} a ${formatPtBrDate(dates.weekEnd)})`,
+          subject: `Devolutiva Semanal MX: ${store.name} (${formatPtBrDate(dates.weekStart)} a ${formatPtBrDate(dates.weekEnd)})`,
           html,
           attachments: [{ filename: `${baseFileName}.xlsx`, content: xlsxBase64 }],
           logPrefix: "[Semanal]",
@@ -166,9 +166,9 @@ function getSaoPauloPreviousWeek() {
 async function buildWeeklyPayload(store: any, dates: ReturnType<typeof getSaoPauloPreviousWeek>) {
   const [deliveryRulesRes, tenuresRes, fallbackMembersRes, checkinsRes, benchmarkRes, metaRulesRes] = await Promise.all([
     supabase.from("store_delivery_rules").select("weekly_recipients").eq("store_id", store.id).maybeSingle(),
-    supabase.from("store_sellers").select("seller_user_id, is_active, users:seller_user_id(name, email, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
-    supabase.from("memberships").select("user_id, users(name, email, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
-    supabase.from("daily_checkins").select("*").eq("store_id", store.id).eq("metric_scope", "daily").gte("reference_date", dates.weekStart).lte("reference_date", dates.weekEnd),
+    supabase.from("vendedores_loja").select("seller_user_id, is_active, users:usuarios(name, email, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
+    supabase.from("vinculos_loja").select("user_id, users:usuarios(name, email, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
+    supabase.from("lancamentos_diarios").select("*").eq("store_id", store.id).eq("metric_scope", "daily").gte("reference_date", dates.weekStart).lte("reference_date", dates.weekEnd),
     supabase.from("store_benchmarks").select("lead_to_agend, agend_to_visit, visit_to_sale").eq("store_id", store.id).maybeSingle(),
     supabase.from("store_meta_rules").select("monthly_goal, bench_lead_agd, bench_agd_visita, bench_visita_vnd").eq("store_id", store.id).maybeSingle(),
   ]);
@@ -233,7 +233,7 @@ async function buildWeeklyPayload(store: any, dates: ReturnType<typeof getSaoPau
     teamTotal,
     teamAvg,
     ranking,
-    reportUrl: `${appUrl}/feedback?store_id=${store.id}&week=${dates.weekStart}`,
+    reportUrl: `${appUrl}/devolutivas?store_id=${store.id}&week=${dates.weekStart}`,
   };
 }
 
@@ -259,7 +259,7 @@ function buildRankingRow(seller: SellerRow, teamAvg: Record<string, number>, ben
     txVisVnd,
     performanceLabel,
     diagnostic,
-    action: mainGap?.action || "Manter disciplina de check-in e elevar volume de leads qualificados.",
+    action: mainGap?.action || "Manter disciplina de lançamento diário e elevar volume de leads qualificados.",
     bottleneck: mainGap?.key || null,
     criterion: `Criterio MX: ${benchmark.lead_to_agend}/${benchmark.agend_to_visit}/${benchmark.visit_to_sale}.`,
   };
@@ -381,7 +381,7 @@ body{font-family:Inter,Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:
 .btn{display:block;background:#4f46e5;color:#fff;text-align:center;padding:18px;border-radius:14px;text-decoration:none;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;margin-top:20px}.wpp{background:#25d366}
 .f{text-align:center;padding:28px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:2px;border-top:1px solid #f1f5f9;background:#fcfcfc}
 </style></head><body><div class="c">
-<div class="h"><h1>Feedback Semanal MX</h1><p>${escapeHtml(payload.store.name)} &bull; ${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}</p></div>
+<div class="h"><h1>Devolutiva Semanal MX</h1><p>${escapeHtml(payload.store.name)} &bull; ${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}</p></div>
 <div class="content">
 <div class="ss">
 <div class="s"><div class="sv">${payload.weeklyGoal}</div><div class="sl">Meta semanal estimada</div></div>

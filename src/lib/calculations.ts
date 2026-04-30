@@ -4,7 +4,7 @@
 
 import type { DailyCheckin, CheckinTotals, FunnelData, FunnelDiagnostic, Benchmark, CheckinFormData, StoreMetaRules } from '@/types/database'
 
-/** Calculate check-in totals (agd_total, vnd_total) */
+/** Calcula totais de lançamento diário (agd_total, vnd_total) */
 export function calcularTotais(c: Partial<DailyCheckin> | CheckinFormData): CheckinTotals {
     // Se for FormData (nomes simples)
     if ('leads' in c) {
@@ -288,4 +288,3 @@ ${(data.actions || []).map((a: string, i: number) => `${i + 1}. ${a}`).join('\n'
 
 _Gerado via Inteligência Operacional MX_`
 }
-

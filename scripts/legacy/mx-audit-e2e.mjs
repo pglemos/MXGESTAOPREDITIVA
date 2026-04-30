@@ -31,7 +31,7 @@ import { chromium } from 'playwright';
     console.log('\n========================================');
     console.log('📝 FLUXO 1: VENDEDOR - Check-in Diário (Ontem vs Hoje)');
     console.log('========================================');
-    await page.goto(`${BASE_URL}/checkin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/lancamento-diario`, { waitUntil: 'networkidle' });
     
     console.log('Incrementando Produção de Ontem...');
     // Novo seletor baseado no label exato dentro do Card

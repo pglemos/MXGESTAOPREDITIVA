@@ -26,16 +26,16 @@ Deno.serve(async (req: Request) => {
     const body = await parseReportBody(req);
     const dates = getSaoPauloMonthlyWindow();
 
-    let storesQuery = supabase.from("stores").select("*").eq("active", true).order("name");
+    let storesQuery = supabase.from("lojas").select("*").eq("active", true).order("name");
     if (body.store_id) storesQuery = storesQuery.eq("id", body.store_id);
 
-    const { data: stores, error: storesError } = await storesQuery;
+    const { data: lojas, error: storesError } = await storesQuery;
     if (storesError) throw storesError;
-    if (!stores?.length) return jsonResponse({ message: "No active stores", reports: [] });
+    if (!lojas?.length) return jsonResponse({ message: "No active lojas", reports: [] });
 
     const reports = [];
 
-    for (const store of stores) {
+    for (const store of lojas) {
       const idempotencyKey = `mensal-${store.id}-${dates.year}-${String(dates.month).padStart(2, "0")}`;
       const { data: existingLog } = await supabase
         .from("reprocess_logs")
@@ -131,9 +131,9 @@ function getSaoPauloMonthlyWindow() {
 async function buildMonthlyPayload(store: any, dates: ReturnType<typeof getSaoPauloMonthlyWindow>) {
   const [deliveryRulesRes, tenuresRes, fallbackMembersRes, checkinsRes, metaRulesRes] = await Promise.all([
     supabase.from("store_delivery_rules").select("monthly_recipients").eq("store_id", store.id).maybeSingle(),
-    supabase.from("store_sellers").select("seller_user_id, is_active, users:seller_user_id(name, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
-    supabase.from("memberships").select("user_id, users(name, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
-    supabase.from("daily_checkins").select("*").eq("store_id", store.id).gte("reference_date", dates.start).lte("reference_date", dates.end),
+    supabase.from("vendedores_loja").select("seller_user_id, is_active, users:usuarios(name, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
+    supabase.from("vinculos_loja").select("user_id, users:usuarios(name, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
+    supabase.from("lancamentos_diarios").select("*").eq("store_id", store.id).gte("reference_date", dates.start).lte("reference_date", dates.end),
     supabase.from("store_meta_rules").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
   ]);
 

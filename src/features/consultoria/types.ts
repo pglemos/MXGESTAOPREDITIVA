@@ -80,7 +80,7 @@ export interface ConsultingVisit {
   scheduled_at: string
   duration_hours: number
   modality: string
-  status: 'agendada' | 'concluída' | 'cancelada' | 'em_andamento'
+  status: 'agendada' | 'concluida' | 'cancelada' | 'em_andamento'
   consultant_id: string | null
   auxiliary_consultant_id: string | null
   objective: string | null

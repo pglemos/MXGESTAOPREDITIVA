@@ -5,8 +5,18 @@ import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { toast } from 'sonner'
-import { useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+
+const papeisInternosMx = ['administrador_geral', 'administrador_mx', 'consultor_mx']
+
+const rotulosPapel: Record<string, string> = {
+  administrador_mx: 'Administrador MX',
+  consultor_mx: 'Consultor MX',
+  dono: 'Dono da loja',
+  gerente: 'Gerente',
+  vendedor: 'Vendedor',
+}
 
 interface UserCreationModalProps {
   isOpen: boolean
@@ -14,10 +24,10 @@ interface UserCreationModalProps {
   onSuccess: () => void
   registerUser: (data: any) => Promise<{ success?: boolean; error?: string }>
   storeId?: string
-  stores?: any[]
+  lojas?: any[]
 }
 
-export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, storeId: initialStoreId, stores }: UserCreationModalProps) {
+export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, storeId: initialStoreId, lojas }: UserCreationModalProps) {
   const { role: currentUserRole } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -29,12 +39,15 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
     phone: ''
   })
 
+  const papelSelecionadoInterno = papeisInternosMx.includes(formData.role)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.store_id) return toast.error('Selecione uma unidade operacional')
+    if (!papelSelecionadoInterno && !formData.store_id) return toast.error('Selecione uma unidade operacional')
     
     setLoading(true)
-    const { success, error } = await registerUser(formData)
+    const payload = papelSelecionadoInterno ? { ...formData, store_id: undefined } : formData
+    const { success, error } = await registerUser(payload)
     setLoading(true) // Keep it for a smooth transition if success
     
     if (success) {
@@ -51,7 +64,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
   }
 
   const allowedRoles = React.useMemo(() => {
-    if (currentUserRole === 'admin') return ['admin', 'dono', 'gerente', 'vendedor']
+    if (currentUserRole === 'administrador_geral') return ['administrador_mx', 'consultor_mx', 'dono', 'gerente', 'vendedor']
+    if (isAdministradorMx(currentUserRole)) return ['consultor_mx', 'dono', 'gerente', 'vendedor']
     if (currentUserRole === 'dono') return ['gerente', 'vendedor']
     if (currentUserRole === 'gerente') return ['vendedor']
     return []
@@ -180,7 +194,9 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer"
                             >
                               {allowedRoles.map(role => (
-                                <option key={role} value={role} className="bg-white text-text-primary">{role.toUpperCase()}</option>
+                                <option key={role} value={role} className="bg-white text-text-primary">
+                                  {(rotulosPapel[role] || role).toUpperCase()}
+                                </option>
                               ))}
                             </select>
                           </div>
@@ -194,11 +210,13 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                             <select 
                               value={formData.store_id} 
                               onChange={e => setFormData({...formData, store_id: e.target.value})}
-                              disabled={(!!initialStoreId && initialStoreId !== 'all') && currentUserRole !== 'admin'}
+                              disabled={(!!initialStoreId && initialStoreId !== 'all') && !isAdministradorMx(currentUserRole)}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer disabled:opacity-40"
                             >
-                              <option value="" className="bg-white text-text-tertiary/40">SELECIONE A UNIDADE</option>
-                              {stores?.map(store => (
+                              <option value="" className="bg-white text-text-tertiary/40">
+                                {papelSelecionadoInterno ? 'SEM UNIDADE OBRIGATÓRIA' : 'SELECIONE A UNIDADE'}
+                              </option>
+                              {lojas?.map(store => (
                                 <option key={store.id} value={store.id} className="bg-white text-text-primary">{store.name}</option>
                               ))}
                             </select>

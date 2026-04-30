@@ -8,25 +8,32 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY!;
+const senhaPadraoTeste = process.env.E2E_AUTH_PASSWORD || 'Mx#2026!';
 
 test.describe('Security: RLS Data Isolation', () => {
   
   test('Vendedor deve ver apenas dados de sua própria loja', async () => {
-    // 1. Setup: Criamos dois clientes Supabase com tokens de vendedores de lojas diferentes
-    // Nota: Em um ambiente real, carregaríamos esses tokens de um setup global ou login real
-    const sellerAClient = createClient(supabaseUrl, supabaseKey, {
-        global: { headers: { Authorization: `Bearer ${process.env.TEST_TOKEN_SELLER_LOJA_A}` } }
+    const vendedorClient = createClient(supabaseUrl, supabaseKey);
+    const { data: authData, error: authError } = await vendedorClient.auth.signInWithPassword({
+      email: 'vendedor@mxgestaopreditiva.com.br',
+      password: senhaPadraoTeste,
     });
+    expect(authError).toBeNull();
+    expect(authData.user?.id).toBeTruthy();
 
-    const idLojaB = 'ID-DA-LOJA-B-CONCORRENTE';
+    const { data: vinculos, error: vinculosError } = await vendedorClient
+      .from('vinculos_loja')
+      .select('store_id');
+    expect(vinculosError).toBeNull();
 
-    // 2. Ação: Vendedor A tenta consultar check-ins da Loja B
-    const { data, error } = await sellerAClient
-        .from('daily_checkins')
-        .select('*')
-        .eq('store_id', idLojaB);
+    const lojaDoVendedor = vinculos?.[0]?.store_id;
+    expect(lojaDoVendedor).toBeTruthy();
 
-    // 3. Validação: O resultado deve ser vazio (RLS bloqueou as linhas) e não deve haver erro de permissão (fail silent do RLS)
+    const { data, error } = await vendedorClient
+        .from('lancamentos_diarios')
+        .select('id, store_id, user_id, seller_user_id')
+        .neq('store_id', lojaDoVendedor);
+
     expect(error).toBeNull();
     expect(data?.length).toBe(0);
     
@@ -34,16 +41,19 @@ test.describe('Security: RLS Data Isolation', () => {
   });
 
   test('Admin deve conseguir ver dados de todas as lojas', async () => {
-    const adminClient = createClient(supabaseUrl, supabaseKey, {
-        global: { headers: { Authorization: `Bearer ${process.env.TEST_TOKEN_ADMIN}` } }
+    const adminClient = createClient(supabaseUrl, supabaseKey);
+    const { error: authError } = await adminClient.auth.signInWithPassword({
+      email: 'admin@mxgestaopreditiva.com.br',
+      password: senhaPadraoTeste,
     });
+    expect(authError).toBeNull();
 
-    const { data, error } = await adminClient
-        .from('daily_checkins')
-        .select('*', { count: 'exact', head: true });
+    const { count, error } = await adminClient
+        .from('lojas')
+        .select('id', { count: 'exact', head: true });
 
     expect(error).toBeNull();
-    expect(data).not.toBeNull();
+    expect(count ?? 0).toBeGreaterThan(1);
     
     console.log('✅ Admin mantém acesso total.');
   });

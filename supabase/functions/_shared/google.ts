@@ -41,7 +41,7 @@ export function createSessionClient(authHeader: string | null) {
 
 export async function assertClientAccess(sessionClient: any, clientId: string) {
   const { data, error } = await sessionClient
-    .from("consulting_clients")
+    .from("clientes_consultoria")
     .select("id")
     .eq("id", clientId)
     .maybeSingle();

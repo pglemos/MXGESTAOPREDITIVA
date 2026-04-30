@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type {
     Store,
     StoreBenchmark,
@@ -30,7 +30,7 @@ export function useOperationalSettings(storeId: string | null) {
     const [sellerUsers, setSellerUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(false)
 
-    const canManage = role === 'admin'
+    const canManage = isPerfilInternoMx(role)
 
     const fetchSettings = useCallback(async () => {
         if (!storeId || !canManage) {
@@ -45,18 +45,18 @@ export function useOperationalSettings(storeId: string | null) {
 
         setLoading(true)
         const [storeRes, deliveryRes, benchmarkRes, metaRes, tenuresRes, usersRes] = await Promise.all([
-            supabase.from('stores').select('*').eq('id', storeId).maybeSingle(),
+            supabase.from('lojas').select('*').eq('id', storeId).maybeSingle(),
             supabase.from('store_delivery_rules').select('*').eq('store_id', storeId).maybeSingle(),
             supabase.from('store_benchmarks').select('*').eq('store_id', storeId).maybeSingle(),
             supabase.from('store_meta_rules').select('*').eq('store_id', storeId).maybeSingle(),
             supabase
-                .from('store_sellers')
-                .select('*, user:users!store_sellers_seller_user_id_fkey(id,name,email,role,active,is_venda_loja)')
+                .from('vendedores_loja')
+                .select('*, user:usuarios!vendedores_loja_seller_user_id_fkey(id,name,email,role,active,is_venda_loja)')
                 .eq('store_id', storeId)
                 .order('is_active', { ascending: false })
                 .order('started_at', { ascending: false }),
             supabase
-                .from('users')
+                .from('usuarios')
                 .select('*')
                 .eq('role', 'vendedor')
                 .eq('active', true)
@@ -84,11 +84,11 @@ export function useOperationalSettings(storeId: string | null) {
     }, [storeId, canManage])
 
     const saveSettings = async (payload: StoreSettingsPayload) => {
-        if (!storeId || !profile || !canManage) return { error: 'Apenas admin pode alterar configuração operacional.' }
+        if (!storeId || !profile || !canManage) return { error: 'Apenas perfis MX podem alterar configuração operacional.' }
 
         const [storeRes, deliveryRes, benchmarkRes, metaRes] = await Promise.all([
             supabase
-                .from('stores')
+                .from('lojas')
                 .update({
                     manager_email: payload.delivery.matinal_recipients[0] || payload.store.manager_email || null,
                     source_mode: payload.store.source_mode,
@@ -126,8 +126,8 @@ export function useOperationalSettings(storeId: string | null) {
     }
 
     const addSellerTenure = async (sellerUserId: string, startedAt: string, closingMonthGrace: boolean) => {
-        if (!storeId || !canManage) return { error: 'Apenas admin pode alterar vigência.' }
-        const { error } = await supabase.from('store_sellers').insert({
+        if (!storeId || !canManage) return { error: 'Apenas perfis MX podem alterar vigência.' }
+        const { error } = await supabase.from('vendedores_loja').insert({
             store_id: storeId,
             seller_user_id: sellerUserId,
             started_at: startedAt,
@@ -140,9 +140,9 @@ export function useOperationalSettings(storeId: string | null) {
     }
 
     const endSellerTenure = async (tenureId: string, endedAt: string) => {
-        if (!canManage) return { error: 'Apenas admin pode alterar vigência.' }
+        if (!canManage) return { error: 'Apenas perfis MX podem alterar vigência.' }
         const { error } = await supabase
-            .from('store_sellers')
+            .from('vendedores_loja')
             .update({ ended_at: endedAt, is_active: false })
             .eq('id', tenureId)
         if (error) return { error: error.message }

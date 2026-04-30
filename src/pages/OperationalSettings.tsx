@@ -12,7 +12,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useStores } from '@/hooks/useTeam'
 import { useStoreDeliveryRules } from '@/hooks/useData'
 import { useStoreMetaRules } from '@/hooks/useGoals'
@@ -21,7 +21,7 @@ import { toast } from 'sonner'
 
 export default function OperationalSettings() {
     const { role } = useAuth()
-    const { stores, loading: storesLoading } = useStores()
+    const { lojas, loading: storesLoading } = useStores()
     
     const urlStoreId = new URLSearchParams(window.location.search).get('id')
     const [selectedStoreId, setSelectedStoreId] = useState(urlStoreId || '')
@@ -94,7 +94,7 @@ export default function OperationalSettings() {
         setSaving(false)
     }
 
-    if (role !== 'admin' && role !== 'dono') return (
+    if (!isPerfilInternoMx(role) && role !== 'dono') return (
         <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-xl bg-surface-alt" id="main-content">
             <Lock size={64} className="text-text-tertiary mb-8 opacity-20" aria-hidden="true" />
             <Typography variant="h2" className="uppercase tracking-tighter">Privilégios Insuficientes</Typography>
@@ -141,7 +141,7 @@ export default function OperationalSettings() {
                                     className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-xl text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner uppercase"
                                 >
                                     <option value="">Selecione a unidade...</option>
-                                    {stores.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                                    {lojas.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                                 </select>
                                 <ChevronDown size={18} className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none group-hover:text-brand-primary transition-colors" aria-hidden="true" />
                             </div>

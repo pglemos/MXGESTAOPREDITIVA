@@ -19,7 +19,7 @@ import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { startOfWeek } from 'date-fns'
 
 export default function VendedorTreinamentos() {
-    const { trainings, loading, error, markWatched, refetch } = useTrainings()
+    const { treinamentos, loading, error, markWatched, refetch } = useTrainings()
     const { checkins } = useCheckins()
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
@@ -44,19 +44,19 @@ export default function VendedorTreinamentos() {
         }
 
         const category = categoryMap[diag.gargalo]
-        const recommended = trainings?.find(t => t.type === category && !t.watched) || trainings?.find(t => t.type === category)
+        const recommended = treinamentos?.find(t => t.type === category && !t.watched) || treinamentos?.find(t => t.type === category)
 
         return { gargalo: diag.gargalo, label: diag.diagnostico, recommended }
-    }, [checkins, trainings])
+    }, [checkins, treinamentos])
 
-    const watched = useMemo(() => trainings?.filter(t => t.watched).length || 0, [trainings])
-    const progress = useMemo(() => (trainings?.length || 0) > 0 ? (watched / trainings.length) * 100 : 0, [watched, trainings])
+    const watched = useMemo(() => treinamentos?.filter(t => t.watched).length || 0, [treinamentos])
+    const progress = useMemo(() => (treinamentos?.length || 0) > 0 ? (watched / treinamentos.length) * 100 : 0, [watched, treinamentos])
 
     const filteredTrainings = useMemo(() => {
-        if (!trainings) return []
+        if (!treinamentos) return []
         const term = searchTerm.toLowerCase()
-        return trainings.filter(t => t.title.toLowerCase().includes(term) || t.type.toLowerCase().includes(term))
-    }, [trainings, searchTerm])
+        return treinamentos.filter(t => t.title.toLowerCase().includes(term) || t.type.toLowerCase().includes(term))
+    }, [treinamentos, searchTerm])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch?.(); setIsRefetching(false)
@@ -87,7 +87,7 @@ export default function VendedorTreinamentos() {
                     <Card className="flex items-center gap-mx-md px-6 py-2 bg-white border border-border-default shadow-mx-sm rounded-mx-xl">
                         <div className="flex flex-col items-end">
                             <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">Status Academy</Typography>
-                            <Typography variant="mono" tone="brand" className="text-sm font-black">{watched} / {trainings?.length || 0}</Typography>
+                            <Typography variant="mono" tone="brand" className="text-sm font-black">{watched} / {treinamentos?.length || 0}</Typography>
                         </div>
                         <div className="w-mx-20 h-1.5 bg-surface-alt rounded-mx-full overflow-hidden p-0.5 shadow-inner border border-border-default">
                             <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-brand-primary rounded-mx-full" />

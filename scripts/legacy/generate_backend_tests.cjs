@@ -1,19 +1,19 @@
 const fs = require('fs');
 
 const endpoints = [
-  { method: 'GET', path: '/rest/v1/stores', name: 'Stores List' },
-  { method: 'GET', path: '/rest/v1/daily_checkins', name: 'Checkins List' },
-  { method: 'GET', path: '/rest/v1/feedbacks', name: 'Feedbacks List' },
+  { method: 'GET', path: '/rest/v1/lojas', name: 'Stores List' },
+  { method: 'GET', path: '/rest/v1/lancamentos_diarios', name: 'Checkins List' },
+  { method: 'GET', path: '/rest/v1/devolutivass', name: 'Feedbacks List' },
   { method: 'GET', path: '/rest/v1/pdis', name: 'PDIs List' },
-  { method: 'GET', path: '/rest/v1/training_progress', name: 'Training Progress List' },
+  { method: 'GET', path: '/rest/v1/progresso_treinamentos', name: 'Training Progress List' },
   { method: 'GET', path: '/rest/v1/notifications', name: 'Notifications List' },
-  { method: 'GET', path: '/rest/v1/memberships', name: 'Memberships List' },
+  { method: 'GET', path: '/rest/v1/vinculos_loja', name: 'Memberships List' },
   { method: 'GET', path: '/rest/v1/reprocessing_logs', name: 'Reprocessing Logs' },
   { method: 'GET', path: '/rest/v1/store_benchmarks', name: 'Benchmarks List' },
   { method: 'GET', path: '/rest/v1/store_meta_rules', name: 'Meta Rules List' },
   { method: 'GET', path: '/rest/v1/store_delivery_rules', name: 'Delivery Rules List' },
-  { method: 'GET', path: '/rest/v1/store_sellers', name: 'Sellers List' },
-  { method: 'GET', path: '/rest/v1/trainings', name: 'Trainings List' },
+  { method: 'GET', path: '/rest/v1/vendedores_loja', name: 'Sellers List' },
+  { method: 'GET', path: '/rest/v1/treinamentos', name: 'Trainings List' },
   { method: 'GET', path: '/rest/v1/pdi_reviews', name: 'PDI Reviews List' },
   { method: 'GET', path: '/rest/v1/weekly_feedback_reports', name: 'Weekly Reports List' }
 ];

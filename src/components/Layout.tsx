@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
 
 import { motion, AnimatePresence } from 'motion/react'
@@ -20,8 +20,16 @@ import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordCha
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
 
-const navConfig: Record<string, NavCategory[]> = {
-  admin: [
+const rotulosPerfil: Record<string, string> = {
+  administrador_geral: 'Administrador geral',
+  administrador_mx: 'Administrador MX',
+  consultor_mx: 'Consultor MX',
+  dono: 'Dono',
+  gerente: 'Gerente',
+  vendedor: 'Vendedor',
+}
+
+const navegacaoInternaMx: NavCategory[] = [
     {
       category: 'Governança MX', icon: <Grid size={22} />,
       items: [
@@ -37,9 +45,9 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Rituais MX', icon: <Target size={22} />,
       items: [
-        { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
+        { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
-        { label: 'Feedback/PDI', path: '/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
         { label: 'Notificações', path: '/notificacoes', icon: <Bell size={16} /> },
@@ -53,7 +61,12 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }
-  ],
+  ]
+
+const navConfig: Record<string, NavCategory[]> = {
+  administrador_geral: navegacaoInternaMx,
+  administrador_mx: navegacaoInternaMx,
+  consultor_mx: navegacaoInternaMx,
   dono: [
     {
       category: 'Visão Executiva', icon: <Building2 size={22} />,
@@ -68,7 +81,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'Acompanhamento', icon: <User size={22} />,
       items: [
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
-        { label: 'Feedback/PDI', path: '/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
       ]
     }
   ],
@@ -79,13 +92,13 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Painel da Loja', path: '/loja', icon: <LayoutDashboard size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Rotina Diária', path: '/rotina', icon: <CheckSquare size={16} /> },
-        { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
+        { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
     },
     {
       category: 'Gestão de Gente', icon: <User size={22} />,
       items: [
-        { label: 'Feedback Estruturado', path: '/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'Devolutiva Estruturada', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
       ]
@@ -96,15 +109,15 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'Meu Ritual', icon: <Home size={22} />,
       items: [
         { label: 'Home', path: '/home', icon: <Home size={16} /> },
-        { label: 'Lançamento Diário', path: '/checkin', icon: <CheckSquare size={16} /> },
+        { label: 'Lançamento Diário', path: '/lancamento-diario', icon: <CheckSquare size={16} /> },
         { label: 'Histórico', path: '/historico', icon: <History size={16} /> },
-        { label: 'Ranking', path: '/ranking', icon: <Trophy size={16} /> },
+        { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
     },
     {
       category: 'Evolução', icon: <TrendingUp size={22} />,
       items: [
-        { label: 'Feedback', path: '/feedback', icon: <MessageSquare size={16} /> },
+        { label: 'Devolutivas', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
       ]
@@ -135,6 +148,7 @@ export default function Layout() {
 
   const categories = role ? (navConfig[role] || []) : []
   const activeCategoryData = categories.find(c => c.category === activeCategory) || categories[0]
+  const perfilVisivel = role ? rotulosPerfil[role] || 'Perfil autorizado' : 'Perfil autorizado'
 
   useEffect(() => {
     if (!categories.length) return
@@ -196,7 +210,7 @@ export default function Layout() {
           >
             <div className="hidden lg:flex flex-col items-end">
               <Typography variant="tiny" className="font-black text-text-primary tracking-tight leading-none mb-1">{profile.name}</Typography>
-              <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-60">{role} level</Typography>
+              <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-60">{perfilVisivel}</Typography>
             </div>
             <div className="w-mx-10 h-mx-10 rounded-mx-md overflow-hidden shadow-mx-sm border border-border-default bg-surface-alt flex items-center justify-center text-brand-primary font-black uppercase text-sm">
               {profile.avatar_url ? (
@@ -329,7 +343,7 @@ export default function Layout() {
                   <div className="h-mx-xl overflow-hidden"><img src={MxLogo} alt="MX Performance" className="h-full w-auto object-contain" /></div>
                   <div>
                     <Typography variant="h2" className="text-xl font-black text-text-primary tracking-tighter uppercase">MX PERFORMANCE</Typography>
-                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{role} level</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{perfilVisivel}</Typography>
                   </div>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)} className="w-mx-xl h-mx-xl rounded-mx-2xl bg-surface-alt flex items-center justify-center text-text-tertiary focus-visible:ring-2 focus-visible:ring-brand-primary/20"><X size={24} aria-label="Fechar" /></button>
@@ -370,26 +384,26 @@ export default function Layout() {
       <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-2xl bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
         <div className="flex w-full justify-between items-center relative z-10">
           <NavLink
-            to={role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}
+            to={role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}
             aria-label="Início"
-            aria-current={location.pathname === (role === 'vendedor' ? '/home' : role === 'admin' ? '/painel' : role === 'gerente' ? '/loja' : '/lojas') ? 'page' : undefined}
+            aria-current={location.pathname === (role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? '/loja' : '/lojas') ? 'page' : undefined}
             className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
           </NavLink>
           
           {role === 'vendedor' && (
-            <NavLink 
-              to="/checkin" 
+            <NavLink
+              to="/lancamento-diario"
               aria-label="Fazer Lançamento Diário"
-              aria-current={location.pathname === '/checkin' ? 'page' : undefined}
+              aria-current={location.pathname === '/lancamento-diario' ? 'page' : undefined}
               className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <CheckSquare size={22} />
             </NavLink>
           )}
 
-          {(role === 'gerente' || role === 'admin') && (
+          {(role === 'gerente' || isPerfilInternoMx(role)) && (
             <NavLink 
               to="/equipe" 
               aria-label="Gerir Equipe" 
@@ -409,10 +423,10 @@ export default function Layout() {
             <Menu size={24} aria-hidden="true" />
           </button>
 
-          <NavLink 
-            to="/ranking" 
-            aria-label="Ver Ranking" 
-            aria-current={location.pathname === '/ranking' ? 'page' : undefined}
+            <NavLink
+              to="/classificacao"
+            aria-label="Ver Classificação"
+            aria-current={location.pathname === '/classificacao' ? 'page' : undefined}
             className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             <Trophy size={22} />

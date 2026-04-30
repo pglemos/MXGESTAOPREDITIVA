@@ -49,22 +49,22 @@ export function useGoals(storeIdOverride?: string) {
 }
 
 export function useAllStoreGoals() {
-    const [goals, setGoals] = useState<{ store_id: string, target: number, store_name?: string }[]>([])
+    const [metas, setGoals] = useState<{ store_id: string, target: number, store_name?: string }[]>([])
     const [benchmarks, setBenchmarks] = useState<StoreBenchmark[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchData = useCallback(async () => {
         setLoading(true)
         const [goalsRes, benchRes] = await Promise.all([
-            supabase.from('store_meta_rules').select('store_id, monthly_goal, stores(name)'),
+            supabase.from('store_meta_rules').select('store_id, monthly_goal, stores:lojas(name)'),
             supabase.from('store_benchmarks').select('*')
         ])
         
         if (goalsRes.data) {
-            setGoals((goalsRes.data as { store_id: string; monthly_goal: number; stores?: { name?: string } }[]).map((g) => ({
+            setGoals((goalsRes.data as { store_id: string; monthly_goal: number; lojas?: { name?: string } }[]).map((g) => ({
                 store_id: g.store_id,
                 target: g.monthly_goal,
-                store_name: g.stores?.name
+                store_name: g.lojas?.name
             })))
         }
         if (benchRes.data) setBenchmarks(benchRes.data)
@@ -91,7 +91,7 @@ export function useAllStoreGoals() {
 
     useEffect(() => { fetchData() }, [fetchData])
 
-    return { goals, benchmarks, loading, updateGoal, updateBenchmark, refetch: fetchData }
+    return { metas, benchmarks, loading, updateGoal, updateBenchmark, refetch: fetchData }
 }
 
 export function useStoreMetaRules(storeIdOverride?: string) {

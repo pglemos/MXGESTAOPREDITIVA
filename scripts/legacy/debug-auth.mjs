@@ -13,7 +13,7 @@ async function test() {
   
   console.log("Session User ID:", session.user.id)
   
-  const { data: profile, error: pe } = await supabase.from('users').select('*').eq('id', session.user.id).single()
+  const { data: profile, error: pe } = await supabase.from('usuarios').select('*').eq('id', session.user.id).single()
   
   console.log("PROFILE ERROR:", pe)
   console.log("PROFILE DATA:", profile)

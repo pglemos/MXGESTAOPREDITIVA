@@ -15,18 +15,18 @@ export async function runMatinalWorkflow() {
     const daysInfo = getDiasInfo(referenceDate);
 
     // 1. Buscar lojas e suas regras
-    const { data: stores } = await supabase
-        .from('stores')
+    const { data: lojas } = await supabase
+        .from('lojas')
         .select('*, store_delivery_rules(*), store_meta_rules(*)');
 
-    if (!stores) return;
+    if (!lojas) return;
 
-    for (const store of stores) {
+    for (const store of lojas) {
         console.log(`\n- Processando Loja: ${store.name}`);
 
         // 2. Buscar dados do mês para esta loja
         const { data: monthCheckins } = await supabase
-            .from('daily_checkins')
+            .from('lancamentos_diarios')
             .select('*')
             .eq('store_id', store.id)
             .gte('reference_date', format(parseISO(referenceDate), 'yyyy-MM-01'));
@@ -35,8 +35,8 @@ export async function runMatinalWorkflow() {
 
         // 3. Buscar vendedores
         const { data: members } = await supabase
-            .from('memberships')
-            .select('user_id, users(name)')
+            .from('vinculos_loja')
+            .select('user_id, users:usuarios(name)')
             .eq('store_id', store.id)
             .eq('role', 'vendedor');
 

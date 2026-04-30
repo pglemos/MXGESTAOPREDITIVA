@@ -58,11 +58,11 @@ Deno.serve(async (req) => {
       requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
     );
     const { data: userProfile } = await adminClient
-      .from("users")
+      .from("usuarios")
       .select("role")
       .eq("id", authData.user.id)
       .single();
-    const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'consultor';
+    const isAdmin = userProfile?.role === 'administrador_geral' || userProfile?.role === 'administrador_mx' || userProfile?.role === 'consultor_mx';
 
     const { data: tokenRow, error: tokenError } = await sessionClient
       .from("consulting_oauth_tokens")
