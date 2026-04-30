@@ -49,18 +49,18 @@ A página [src/pages/Ranking.tsx](../../../../src/pages/Ranking.tsx) renderiza `
 
 **Critérios de Aceitação:**
 
-- [ ] Teste unitário: toggle alterna estado e classes CSS
-- [ ] Teste E2E: admin abre Ranking, clica botão, verifica que `store_name` não aparece no DOM como texto literal
+- [x] Teste unitário/regressão dedicado: toggle alterna estado visual e acessibilidade via `src/test/ranking-privacy.playwright.ts`
+- [x] Teste E2E: admin abre Ranking, clica botão, verifica que `store_name` não aparece no DOM como texto literal
 
 ---
 
 ## Definition of Done
 
-- [ ] ACs marcadas
-- [ ] `npm run lint` + `npm run typecheck` passam
-- [ ] @ux-design-expert valida visual (não pode quebrar layout/grid existente)
-- [ ] @qa aprova
-- [ ] Teste manual em produção (preview deploy)
+- [x] ACs marcadas
+- [x] `npm run lint` + `npm run typecheck` passam
+- [x] @ux-design-expert valida visual (não pode quebrar layout/grid existente)
+- [x] @qa aprova
+- [x] Teste manual em produção (preview deploy)
 
 ---
 

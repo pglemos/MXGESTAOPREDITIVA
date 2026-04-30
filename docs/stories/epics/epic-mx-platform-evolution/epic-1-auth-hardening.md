@@ -47,7 +47,7 @@ A edge function `register-user` (chamada via `supabase.functions.invoke`) també
   - [x] Aceita `password` no body com fallback para `123456`
   - [x] Cria usuário via `supabase.auth.admin.createUser` com `user_metadata.must_change_password = true`
 - [x] Validador frontend de força de senha em `ForcePasswordChange.tsx` mantém mínimo 6 chars (já implementado) — confirmar que não bloqueia `123456` em testes
-- [ ] Teste E2E (`e2e/`): novo usuário criado → faz login com `123456` → modal `<ForcePasswordChange />` aparece → troca para senha forte → modal desaparece → não reaparece em login subsequente
+- [x] Teste E2E (`src/test/auth-first-login.playwright.ts`): novo usuário criado → faz login com `123456` → modal `<ForcePasswordChange />` aparece → troca para senha forte → modal desaparece → não reaparece em login subsequente
 
 ### Story 1.2: Auditoria do flow de force password change
 
@@ -61,12 +61,12 @@ A edge function `register-user` (chamada via `supabase.functions.invoke`) també
 
 ## Definition of Done
 
-- [ ] Todas as ACs marcadas
-- [ ] `npm run typecheck` passa
-- [ ] `npm run lint` passa
-- [ ] Testes E2E em `e2e/` cobrindo o flow novo
-- [ ] @qa aprova (PASS ou CONCERNS documentado)
-- [ ] @devops faz push e deploy em produção
+- [x] Todas as ACs marcadas
+- [x] `npm run typecheck` passa
+- [x] `npm run lint` passa
+- [x] Testes E2E em `src/test/` cobrindo o flow novo
+- [x] @qa aprova (PASS ou CONCERNS documentado)
+- [x] @devops faz push e deploy em produção
 
 ---
 

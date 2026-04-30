@@ -11,7 +11,7 @@
 | `@sm *draft` | Epics 1-6 existentes foram usados como stories fonte. |
 | `@po *validate` | Checklist de 10 pontos abaixo executado. |
 | `@dev *develop` | Epics 1-5 implementados/aplicados onde havia artefato executavel. |
-| `@qa *qa-gate` | PASS para Onda A com CONCERNS documentado para ausencia de E2E dedicado. |
+| `@qa *qa-gate` | PASS para Onda A; E2E dedicado adicionado para auth e ranking privacy. |
 | `@devops *push` | Supabase migration aplicada e edge function redeployada. Push/deploy registrado no fechamento da tarefa. |
 
 ## PO 10-Point Checklist
@@ -29,7 +29,7 @@
 
 ## QA Gate
 
-**Gate:** PASS WITH CONCERNS
+**Gate:** PASS
 
 Evidencias:
 
@@ -37,12 +37,12 @@ Evidencias:
 - [x] `npm run lint`
 - [x] `npm test`
 - [x] `npm run build`
+- [x] `PLAYWRIGHT_SKIP_WEB_SERVER=1 VITE_APP_URL=http://localhost:3001 npx playwright test src/test/auth-first-login.playwright.ts src/test/ranking-privacy.playwright.ts --project=chromium`
 - [x] `supabase db push` aplicou `20260430002000_mx_store_audit_log.sql`
 - [x] `supabase functions deploy register-user`
 
 Concerns:
 
-- [ ] E2E dedicado de primeiro login/ranking privacy nao foi adicionado nesta rodada.
 - [ ] Epic 6 nao pode ser validado sem onboarding Meta WhatsApp Cloud API e dominio Resend verificado.
 
 ## File List
@@ -53,9 +53,13 @@ Concerns:
 - `docs/data/stores-schema.md`
 - `docs/data/consulting-visits-schema.md`
 - `docs/templates/welcome-message-mx-admin.md`
+- `playwright.config.ts`
 - `scripts/audit_mx_team_access.ts`
 - `scripts/provision_mx_team.ts`
 - `src/features/admin/components/StoreEditModal.tsx`
+- `src/test/auth-first-login.playwright.ts`
+- `src/test/e2e-helpers/supabase-admin.ts`
+- `src/test/ranking-privacy.playwright.ts`
 - `src/hooks/useAgendaAdmin.ts`
 - `src/hooks/useTeam.ts`
 - `src/pages/AgendaAdmin.tsx`

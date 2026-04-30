@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEB_SERVER === '1';
+
 /**
  * MX Performance E2E + Visual Regression Configuration
  */
@@ -65,9 +67,11 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: skipWebServer
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !process.env.CI,
+      },
 });
