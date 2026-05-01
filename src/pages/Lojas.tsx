@@ -1,5 +1,5 @@
 import { useStores, useStoresStats } from '@/hooks/useTeam'
-import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown } from 'lucide-react'
@@ -148,17 +148,17 @@ export default function Lojas() {
                             <Button asChild variant="outline" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny border-border-strong bg-white">
                                 <Link to={`/equipe?id=${store.id}`}>EQUIPE</Link>
                             </Button>
-                            {isPerfilInternoMx(role) && (
+                            {isAdministradorMx(role) && (
                                 <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
                                     <X size={16} />
                                 </Button>
                             )}
                         </>
-                    ) : (
+                    ) : isAdministradorMx(role) ? (
                         <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="h-mx-lg sm:h-mx-xl px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny bg-status-success hover:opacity-90 text-white">
                             REST.
                         </Button>
-                    )}
+                    ) : null}
                 </div>
             )
         }
@@ -209,7 +209,7 @@ export default function Lojas() {
                             className="!pl-mx-11 !h-mx-12 uppercase tracking-mx-wide text-mx-nano font-black"
                         />
                     </div>
-                    {isPerfilInternoMx(role) && (
+                    {isAdministradorMx(role) && (
                         <div className="flex w-full sm:w-auto gap-mx-sm order-1 sm:order-none">
                             <nav className="hidden md:flex bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default gap-mx-tiny mr-2" role="tablist">
                                 <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ATIVAS</Button>

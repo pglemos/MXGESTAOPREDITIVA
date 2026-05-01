@@ -50,8 +50,10 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
           {personalConnected ? (
             <Badge variant="success" className="text-mx-nano">Conectada</Badge>
           ) : (
-            <Button size="sm" variant="outline" onClick={() => connectPersonal(clientId)} className="w-full mt-2 gap-mx-xs">
-              <LinkIcon size={14} /> Conectar minha conta
+            <Button size="sm" variant="outline" onClick={() => connectPersonal(clientId)} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
+              <LinkIcon size={14} />
+              <span className="sm:hidden">Conectar conta</span>
+              <span className="hidden sm:inline">Conectar minha conta</span>
             </Button>
           )}
         </motion.div>
@@ -73,8 +75,10 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
           {centralConnected ? (
             <Badge variant="brand" className="text-mx-nano">gestao@mxconsultoria.com.br</Badge>
           ) : (
-            <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 gap-mx-xs">
-              <LinkIcon size={14} /> Conectar Agenda Central
+            <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
+              <LinkIcon size={14} />
+              <span className="sm:hidden">Conectar central</span>
+              <span className="hidden sm:inline">Conectar Agenda Central</span>
             </Button>
           )}
         </motion.div>

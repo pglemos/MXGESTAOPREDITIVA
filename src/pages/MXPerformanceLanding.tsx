@@ -430,20 +430,21 @@ body.mxp-active::before{
 .mxp-root .foot-bottom .right{display:flex;gap:24px;align-items:center}
 .mxp-root .foot-bottom .right a:hover{color:var(--mx)}
 
-.mxp-root .consultoria-sec{isolation:isolate}
-.mxp-root .team-figure{margin:0 0 70px;border:1px solid var(--line-2);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#0A140D,#070A08);box-shadow:0 40px 100px rgba(0,0,0,.5), inset 0 1px 0 rgba(31,203,110,.06);position:relative}
-.mxp-root .team-figure::before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--mx),transparent);opacity:.5;z-index:2}
-.mxp-root .team-figure img{display:block;width:100%;height:auto;object-fit:contain;background:#06090A}
-.mxp-root .team-figure-caption{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px 28px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);flex-wrap:wrap}
-.mxp-root .team-figure-caption b{color:var(--ink);font-weight:500;letter-spacing:.04em}
-.mxp-root .team-figure-caption .who{display:flex;align-items:center;gap:10px;color:var(--mx);font-weight:500}
-.mxp-root .team-figure-caption .who::before{content:"";width:6px;height:6px;background:var(--mx);border-radius:99px;box-shadow:0 0 12px rgba(31,203,110,.6)}
+.mxp-root .consultoria-sec{isolation:isolate;position:relative;overflow:hidden;background:linear-gradient(180deg,#080B09,#0A140D 70%,#070A08)}
+.mxp-root .consultoria-sec::before{content:"";position:absolute;inset:-6% -4% auto -4%;height:min(820px,72vw);background-image:url("/landing/team-mx.png");background-size:cover;background-position:center 34%;opacity:.18;filter:saturate(.92) contrast(1.08);mix-blend-mode:screen;mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.74) 48%,transparent 100%);pointer-events:none;z-index:0}
+.mxp-root .consultoria-sec::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,10,8,.82),rgba(10,20,13,.66) 42%,rgba(7,10,8,.95) 78%),radial-gradient(900px 520px at 76% 18%,rgba(31,203,110,.16),transparent 62%);pointer-events:none;z-index:1}
+.mxp-root .consultoria-sec .wrap{position:relative;z-index:2}
+.mxp-root .consultoria-showcase{max-width:720px;margin:0 0 78px;border-top:1px solid var(--line);padding-top:54px}
+.mxp-root .consultoria-showcase .sec-head{border-top:0;margin:0;padding:0}
+.mxp-root .consultoria-showcase .sec-title{font-size:clamp(42px,4.8vw,72px)}
+.mxp-root .consultoria-points{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:34px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.mxp-root .consultoria-points span{display:flex;flex-direction:column;gap:10px;min-height:112px;padding:18px;background:rgba(7,10,8,.72);font-family:var(--mono);font-size:10px;line-height:1.45;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.mxp-root .consultoria-points b{font-family:var(--serif);font-size:26px;line-height:1;letter-spacing:-.02em;color:var(--mx)}
 
 @media (max-width: 1024px){
   .mxp-root .modules-grid,.mxp-root .flow,.mxp-root .modlist{grid-template-columns:repeat(2,1fr) !important}
   .mxp-root .mod[data-span]{grid-column:span 2 !important}
-  .mxp-root .team-figure{margin:0 0 50px;border-radius:14px}
-  .mxp-root .team-figure-caption{padding:16px 20px;font-size:10px;gap:14px}
+  .mxp-root .consultoria-showcase{margin-bottom:56px}
 }
 @media (max-width: 900px){
   .mxp-root .particle-band-grid{grid-template-columns:1fr;padding:40px 22px;gap:18px}
@@ -469,6 +470,10 @@ body.mxp-active::before{
   .mxp-root .strip-cell{padding:14px 0;border-left:none !important}
   .mxp-root .strip-cell:nth-child(2n){padding-left:18px;border-left:1px solid var(--line) !important}
   .mxp-root .strip-cell:nth-child(n+3){border-top:1px solid var(--line)}
+  .mxp-root .consultoria-sec::before{height:620px;opacity:.14;background-size:auto 100%;background-repeat:no-repeat}
+  .mxp-root .consultoria-showcase{padding-top:38px}
+  .mxp-root .consultoria-points{grid-template-columns:1fr}
+  .mxp-root .consultoria-points span{min-height:auto}
   .mxp-root .scroll-hint{display:none}
   .mxp-root .sec-head{padding-top:36px;margin-bottom:50px}
   .mxp-root .top-cta .btn{padding:9px 14px;font-size:12.5px}
@@ -1460,26 +1465,26 @@ export default function MXPerformanceLanding() {
           </div>
         </section>
 
-        <section id="consultoria" className="sec-pad consultoria-sec" style={{ background: 'linear-gradient(180deg, #080B09, #0A140D 80%, #070A08)', position: 'relative', overflow: 'hidden' }} aria-labelledby="con-h">
-          <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
-            <div className="sec-head">
-              <div className="left" data-reveal>
-                <h2 id="con-h" className="sec-title">
-                  Método consultivo<br />
-                  com governança<br />
-                  e <span className="it">rastreabilidade.</span>
-                </h2>
-                <p className="sec-sub">Uma camada interna conecta clientes, agenda, visitas PMR, DRE, plano de ação e ROI. Cada visita gera registro, cada decisão gera evidência — sem perda de história entre encontros.</p>
+        <section id="consultoria" className="sec-pad consultoria-sec" aria-labelledby="con-h">
+          <div className="wrap">
+            <div className="consultoria-showcase">
+              <div className="sec-head">
+                <div className="left" data-reveal>
+                  <h2 id="con-h" className="sec-title">
+                    Método consultivo<br />
+                    com governança<br />
+                    e <span className="it">rastreabilidade.</span>
+                  </h2>
+                  <p className="sec-sub">Uma camada interna conecta clientes, agenda, visitas PMR, DRE, plano de ação e ROI. Cada visita gera registro, cada decisão gera evidência — sem perda de história entre encontros.</p>
+                  <div className="consultoria-points" aria-label="Pilares da consultoria MX">
+                    <span><b>01</b>Agenda, visita e registro</span>
+                    <span><b>02</b>Plano de ação e evidência</span>
+                    <span><b>03</b>ROI e histórico preservado</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <figure className="team-figure" data-reveal>
-              <img src="/landing/team-mx.png" alt="Equipe MX Consultoria — sócios" />
-              <figcaption className="team-figure-caption">
-                <span className="who">MX Consultoria · sócios</span>
-                <span><b>Método operacional</b> · desde 2018</span>
-              </figcaption>
-            </figure>
+            </div>
 
             <div className="modules-grid" data-reveal>
               <article className="mod" data-span="6">

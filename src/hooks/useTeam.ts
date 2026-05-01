@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
 import type { User, Store, StoreSeller } from '@/types/database'
 
 export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'active'>
+
+const normalizeStoreName = (name: string) => name.trim().toLocaleUpperCase('pt-BR')
 
 const storeUpdateSchema = z.object({
     name: z.string().trim().min(2, 'Nome da loja deve ter pelo menos 2 caracteres.').max(120, 'Nome da loja muito longo.').optional(),
@@ -201,10 +203,11 @@ export function useStores() {
     }, [role, vinculos_loja, storeId])
 
     const createStore = async (name: string, managerEmail?: string) => {
-        if (!isPerfilInternoMx(role)) return { error: 'Apenas perfis MX podem criar lojas.' }
+        if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem criar lojas.' }
+        const normalizedName = normalizeStoreName(name)
         const { data: store, error } = await supabase
             .from('lojas')
-            .insert({ name, manager_email: managerEmail || null })
+            .insert({ name: normalizedName, manager_email: managerEmail || null })
             .select('id')
             .single()
 
@@ -212,16 +215,36 @@ export function useStores() {
 
         if (store?.id) {
             const recipients = managerEmail ? [managerEmail] : []
-            const { error: deliveryError } = await supabase.from('regras_entrega_loja').upsert({
-                store_id: store.id,
-                matinal_recipients: recipients,
-                weekly_recipients: recipients,
-                monthly_recipients: recipients,
-                timezone: 'America/Sao_Paulo',
-                active: true,
-            }, { onConflict: 'store_id' })
+            const [deliveryResult, metaRulesResult, benchmarksResult] = await Promise.all([
+                supabase.from('regras_entrega_loja').upsert({
+                    store_id: store.id,
+                    matinal_recipients: recipients,
+                    weekly_recipients: recipients,
+                    monthly_recipients: recipients,
+                    timezone: 'America/Sao_Paulo',
+                    active: true,
+                }, { onConflict: 'store_id' }),
+                supabase.from('regras_metas_loja').upsert({
+                    store_id: store.id,
+                    monthly_goal: 0,
+                    individual_goal_mode: 'even',
+                    include_venda_loja_in_store_total: true,
+                    include_venda_loja_in_individual_goal: false,
+                    bench_lead_agd: 20,
+                    bench_agd_visita: 60,
+                    bench_visita_vnd: 33,
+                    projection_mode: 'calendar',
+                }, { onConflict: 'store_id' }),
+                supabase.from('benchmarks_loja').upsert({
+                    store_id: store.id,
+                    lead_to_agend: 20,
+                    agend_to_visit: 60,
+                    visit_to_sale: 33,
+                }, { onConflict: 'store_id' }),
+            ])
 
-            if (deliveryError) return { error: deliveryError.message }
+            const setupError = deliveryResult.error || metaRulesResult.error || benchmarksResult.error
+            if (setupError) return { error: setupError.message }
         }
 
         await fetchStores()
@@ -229,7 +252,7 @@ export function useStores() {
     }
 
     const updateStore = async (id: string, updates: Partial<StoreUpdateFields>) => {
-        if (!isPerfilInternoMx(role)) return { error: 'Apenas perfis MX podem editar lojas.' }
+        if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem editar lojas.' }
 
         const validation = storeUpdateSchema.safeParse(updates)
         if (!validation.success) {
@@ -239,7 +262,7 @@ export function useStores() {
         }
 
         const payload: Partial<StoreUpdateFields> = {}
-        if (typeof validation.data.name !== 'undefined') payload.name = validation.data.name
+        if (typeof validation.data.name !== 'undefined') payload.name = normalizeStoreName(validation.data.name)
         if (typeof validation.data.manager_email !== 'undefined') {
             payload.manager_email = validation.data.manager_email ? validation.data.manager_email : null
         }
@@ -274,7 +297,7 @@ export function useStores() {
     }
 
     const deleteStore = async (id: string) => {
-        if (!isPerfilInternoMx(role)) return { error: 'Apenas perfis MX podem excluir lojas.' }
+        if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem excluir lojas.' }
         const { error } = await supabase.from('lojas').delete().eq('id', id)
         if (error) return { error: error.message }
         await fetchStores()

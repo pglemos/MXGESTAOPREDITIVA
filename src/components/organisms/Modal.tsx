@@ -6,15 +6,15 @@ import { Typography } from '@/components/atoms/Typography'
 import { X } from 'lucide-react'
 
 const modalSizeVariants = cva(
-  'w-full bg-white shadow-mx-xl rounded-mx-3xl overflow-hidden flex flex-col max-h-[90vh]',
+  'w-[calc(100vw-2rem)] bg-white shadow-mx-xl rounded-mx-2xl sm:rounded-mx-3xl overflow-hidden flex flex-col max-h-[90vh]',
   {
     variants: {
       size: {
         sm: 'max-w-md',
         md: 'max-w-lg',
         lg: 'max-w-xl',
-        xl: 'max-w-mx-sidebar-expanded',
-        '2xl': 'max-w-4xl',
+        xl: 'max-w-3xl',
+        '2xl': 'max-w-5xl',
       },
     },
     defaultVariants: {
@@ -56,8 +56,8 @@ export function Modal({
             className
           )}
         >
-          <div className="p-mx-lg border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10 shrink-0">
-            <div>
+          <div className="p-mx-md sm:p-mx-lg border-b border-border-default flex items-start justify-between gap-mx-md sticky top-mx-0 bg-white z-10 shrink-0">
+            <div className="min-w-0">
               <Dialog.Title asChild>
                 <Typography variant="h3">{title}</Typography>
               </Dialog.Title>
@@ -79,12 +79,12 @@ export function Modal({
             )}
           </div>
 
-          <div className="p-mx-lg overflow-y-auto flex-1">
+          <div className="p-mx-md sm:p-mx-lg overflow-y-auto flex-1">
             {children}
           </div>
 
           {footer && (
-            <div className="p-mx-lg border-t border-border-default flex justify-end gap-mx-sm sticky bottom-mx-0 bg-white shrink-0">
+            <div className="p-mx-md sm:p-mx-lg border-t border-border-default flex flex-col-reverse sm:flex-row sm:justify-end gap-mx-sm sticky bottom-mx-0 bg-white shrink-0">
               {footer}
             </div>
           )}

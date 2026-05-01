@@ -15,6 +15,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
+import { GoogleCalendarStatus } from '@/features/agenda/components/GoogleCalendarStatus'
 
 export default function Configuracoes() {
     const { profile, role, signOut, updateProfile } = useAuth()
@@ -133,6 +134,18 @@ export default function Configuracoes() {
                             </Card>
                         </div>
                     </Card>
+
+                    {isPerfilInternoMx(role) && (
+                        <section className="space-y-mx-md">
+                            <header className="flex flex-col gap-mx-xs px-mx-xs">
+                                <Typography variant="h3" className="uppercase tracking-tight">Integrações de Agenda</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">
+                                    GOOGLE CALENDAR PESSOAL E AGENDA CENTRAL MX
+                                </Typography>
+                            </header>
+                            <GoogleCalendarStatus />
+                        </section>
+                    )}
                 </section>
 
                 <aside className="xl:col-span-4 flex flex-col gap-mx-lg">

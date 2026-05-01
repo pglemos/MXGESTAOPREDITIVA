@@ -16,6 +16,9 @@ export interface VisitCardData {
   duration_hours: number
   modality?: string
   objective?: string | null
+  visit_reason?: string | null
+  target_audience?: string | null
+  product_name?: string | null
   status: string
   consultant?: { name: string } | null
 }
@@ -92,6 +95,21 @@ export function VisitCard({
                 </div>
               )}
             </div>
+            {(visit.visit_reason || visit.target_audience || visit.product_name) && (
+              <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
+                {visit.visit_reason && (
+                  <Badge variant="outline" className="max-w-full text-mx-nano uppercase tracking-widest">
+                    <span className="truncate">{visit.visit_reason}</span>
+                  </Badge>
+                )}
+                {visit.target_audience && (
+                  <Badge variant="ghost" className="text-mx-nano uppercase tracking-widest">{visit.target_audience}</Badge>
+                )}
+                {visit.product_name && (
+                  <Badge variant="brand" className="text-mx-nano uppercase tracking-widest">{visit.product_name}</Badge>
+                )}
+              </div>
+            )}
           </div>
         </Link>
 
@@ -120,26 +138,26 @@ export function VisitCard({
 
           <div className="flex items-center gap-mx-xs">
             {onEdit && visit.status !== 'concluida' && (
-              <Button variant="ghost" size="sm" className="text-brand-primary" onClick={() => onEdit(visit.id)}>
+              <Button variant="ghost" size="sm" className="text-brand-primary" onClick={() => onEdit(visit.id)} aria-label={`Editar visita de ${visit.client_name}`}>
                 <Pencil size={14} />
               </Button>
             )}
             {visit.status === 'agendada' && onStart && (
-              <Button variant="ghost" size="sm" className="text-status-info" onClick={() => onStart(visit.id)}>
+              <Button variant="ghost" size="sm" className="text-status-info" onClick={() => onStart(visit.id)} aria-label={`Iniciar visita de ${visit.client_name}`}>
                 <Play size={14} />
               </Button>
             )}
             {visit.status === 'agendada' && onCancel && (
-              <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onCancel(visit.id)}>
+              <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onCancel(visit.id)} aria-label={`Cancelar visita de ${visit.client_name}`}>
                 <X size={14} />
               </Button>
             )}
             {visit.status === 'cancelada' && onDelete && (
-              <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onDelete(visit.id)}>
+              <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onDelete(visit.id)} aria-label={`Excluir visita de ${visit.client_name}`}>
                 <Trash2 size={14} />
               </Button>
             )}
-            <Link to={linkTo}>
+            <Link to={linkTo} aria-label={`Abrir visita de ${visit.client_name}`}>
               <ChevronRight size={18} className="text-text-tertiary group-hover:text-brand-primary transition-colors shrink-0" />
             </Link>
           </div>

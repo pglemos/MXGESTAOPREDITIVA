@@ -5,6 +5,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const WEEKDAYS_MON_FIRST = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 export interface CalendarDay {
   date: Date
@@ -23,6 +24,9 @@ export interface AgendaCalendarProps {
   onNextMonth: () => void
   onToday: () => void
   getVisitDotColor: (status: string) => string
+  viewMode?: 'day' | 'week' | 'month'
+  showNavigation?: boolean
+  showTodayButton?: boolean
   className?: string
 }
 
@@ -37,50 +41,71 @@ export function AgendaCalendar({
   onNextMonth,
   onToday,
   getVisitDotColor,
+  viewMode = 'month',
+  showNavigation = true,
+  showTodayButton = true,
   className,
 }: AgendaCalendarProps) {
+  const weekdayLabels = viewMode === 'day' && calendarDays[0]
+    ? [WEEKDAYS[calendarDays[0].date.getDay()]]
+    : viewMode === 'week'
+      ? WEEKDAYS_MON_FIRST
+      : WEEKDAYS
+  const gridClassName = viewMode === 'day' ? 'grid-cols-1' : 'grid-cols-7'
+
   return (
     <Card className={cn('border-none shadow-mx-md bg-white overflow-hidden', className)}>
-      <div className="flex items-center justify-between p-mx-md border-b border-border-default">
-        <button
-          type="button"
-          onClick={onPrevMonth}
-          className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-border-default transition-all"
-        >
-          <ChevronLeft size={18} />
-        </button>
-
-        <div className="flex items-center gap-mx-sm">
-          <Typography variant="h3" className="text-sm font-black uppercase tracking-widest capitalize">
-            {monthLabel}
-          </Typography>
+      <div className={cn(
+        'flex items-center gap-mx-xs p-mx-sm sm:p-mx-md border-b border-border-default',
+        showNavigation ? 'justify-between' : 'justify-center',
+      )}>
+        {showNavigation && (
           <button
             type="button"
-            onClick={onToday}
-            className="px-2 py-1 rounded-mx-md bg-brand-primary/10 text-brand-primary text-mx-micro font-black uppercase tracking-widest hover:bg-brand-primary/20 transition-all"
+            onClick={onPrevMonth}
+            aria-label="Mês anterior"
+            className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-border-default transition-all"
           >
-            Hoje
+            <ChevronLeft size={18} />
           </button>
+        )}
+
+        <div className="flex min-w-0 items-center justify-center gap-mx-xs sm:gap-mx-sm">
+          <Typography variant="h3" className="truncate text-xs sm:text-sm font-black uppercase tracking-widest">
+            {monthLabel}
+          </Typography>
+          {showTodayButton && (
+            <button
+              type="button"
+              onClick={onToday}
+              className="px-2 py-1 rounded-mx-md bg-brand-primary/10 text-brand-primary text-mx-micro font-black uppercase tracking-widest hover:bg-brand-primary/20 transition-all"
+            >
+              Hoje
+            </button>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={onNextMonth}
-          className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-border-default transition-all"
-        >
-          <ChevronRightIcon size={18} />
-        </button>
+        {showNavigation && (
+          <button
+            type="button"
+            onClick={onNextMonth}
+            aria-label="Próximo mês"
+            className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-border-default transition-all"
+          >
+            <ChevronRightIcon size={18} />
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-7 border-b border-border-default">
-        {WEEKDAYS.map((d) => (
-          <div key={d} className="py-mx-sm text-center">
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{d}</Typography>
+      <div className={cn('grid border-b border-border-default', gridClassName)}>
+        {weekdayLabels.map((d) => (
+          <div key={d} className="py-mx-xs sm:py-mx-sm text-center">
+            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-micro">{d}</Typography>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7">
+      <div className={cn('grid', gridClassName)}>
         {calendarDays.map((dayInfo, idx) => {
           const dateKey = format(dayInfo.date, 'yyyy-MM-dd')
           const dayVisits = visitsByDate[dateKey] || []
@@ -92,12 +117,14 @@ export function AgendaCalendar({
             <button
               key={dateKey}
               type="button"
+              aria-label={format(dayInfo.date, "dd/MM/yyyy")}
               onClick={() => {
                 onDateSelect(dayInfo.isCurrentMonth ? dayInfo.date : null)
                 if (dayInfo.isCurrentMonth) onDateClick?.(dayInfo.date)
               }}
               className={cn(
-                'relative min-h-mx-4xl p-mx-xs flex flex-col items-center gap-mx-xs border-b border-r border-border-subtle transition-all',
+                'relative min-h-14 sm:min-h-mx-4xl p-mx-xs flex flex-col items-center gap-mx-xs border-b border-r border-border-subtle transition-all',
+                viewMode === 'day' && 'min-h-mx-5xl sm:min-h-mx-6xl justify-center',
                 !dayInfo.isCurrentMonth && 'bg-surface-alt/50 opacity-40',
                 dayInfo.isCurrentMonth && 'hover:bg-brand-primary/5',
                 isSelected && 'bg-brand-primary/10 ring-2 ring-brand-primary ring-inset',

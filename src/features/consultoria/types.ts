@@ -84,6 +84,9 @@ export interface ConsultingVisit {
   consultant_id: string | null
   auxiliary_consultant_id: string | null
   objective: string | null
+  visit_reason?: string | null
+  target_audience?: string | null
+  product_name?: string | null
   checklist_data: Array<{ task: string; completed: boolean }>
   feedback_client: string | null
   executive_summary: string | null

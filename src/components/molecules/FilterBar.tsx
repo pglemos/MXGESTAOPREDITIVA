@@ -13,7 +13,7 @@ const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(
       <div
         ref={ref}
         className={cn(
-          'flex flex-wrap items-center gap-mx-sm',
+          'flex flex-col gap-mx-sm sm:flex-row sm:flex-wrap sm:items-center',
           className
         )}
         {...props}
@@ -24,7 +24,7 @@ const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(
             {label}
           </Typography>
         </div>
-        <div className="flex flex-wrap items-center gap-mx-xs">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-mx-xs sm:w-auto sm:flex-1">
           {children}
         </div>
       </div>

@@ -29,6 +29,9 @@ type VisitInput = {
   modality?: string | null;
   status?: string | null;
   objective?: string | null;
+  visit_reason?: string | null;
+  target_audience?: string | null;
+  product_name?: string | null;
   consultant_email?: string | null;
   google_event_id?: string | null;
   google_event_id_central?: string | null;
@@ -40,6 +43,9 @@ function buildEventPayload(visit: VisitInput, ownerEmail?: string | null): Googl
   const end = new Date(start.getTime() + durationMs);
   const summary = `MX • Visita${visit.client_name ? ` — ${visit.client_name}` : ""}`;
   const lines = [
+    visit.visit_reason ? `Motivo da visita: ${visit.visit_reason}` : null,
+    visit.target_audience ? `Alvo: ${visit.target_audience}` : null,
+    visit.product_name ? `Produto: ${visit.product_name}` : null,
     visit.objective ? `Objetivo: ${visit.objective}` : null,
     visit.modality ? `Modalidade: ${visit.modality}` : null,
     visit.status ? `Status: ${visit.status}` : null,

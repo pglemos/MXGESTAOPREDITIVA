@@ -82,6 +82,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
         { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
+        { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
       ]
     }
   ],
@@ -101,6 +102,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Devolutiva Estruturada', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
       ]
     }
   ],
@@ -120,6 +122,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Devolutivas', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
       ]
     }
   ]

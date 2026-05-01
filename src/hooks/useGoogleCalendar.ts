@@ -30,6 +30,19 @@ type SyncResult = {
   centralConnected: boolean
 }
 
+function getGoogleCalendarErrorMessage(err: unknown, fallback: string) {
+  const message = err instanceof Error ? err.message : ''
+  if (
+    message.includes('non-2xx') ||
+    message.includes('401') ||
+    message.toLowerCase().includes('unauthorized') ||
+    message.toLowerCase().includes('jwt')
+  ) {
+    return 'Não foi possível verificar a conexão com o Google Calendar. Atualize a agenda ou conecte a conta novamente.'
+  }
+  return message || fallback
+}
+
 export type SyncableVisit = {
   id: string
   client_id?: string | null
@@ -69,8 +82,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
       setPersonalConnected(data.personalConnected)
       setCentralConnected(data.centralConnected)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Falha ao consultar Google Calendar'
-      setError(msg)
+      setError(getGoogleCalendarErrorMessage(err, 'Falha ao consultar Google Calendar'))
     } finally {
       setLoading(false)
     }
@@ -89,7 +101,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
       if (!data?.authUrl) throw new Error('authUrl não retornada')
       window.location.href = data.authUrl
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Falha ao iniciar OAuth Google')
+      toast.error(getGoogleCalendarErrorMessage(err, 'Falha ao iniciar OAuth Google'))
     }
   }, [])
 
@@ -102,7 +114,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
       if (!data?.authUrl) throw new Error('authUrl não retornada')
       window.location.href = data.authUrl
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Falha ao conectar Agenda Central MX')
+      toast.error(getGoogleCalendarErrorMessage(err, 'Falha ao conectar Agenda Central MX'))
     }
   }, [])
 
@@ -120,7 +132,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
       }
       return data
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Falha ao sincronizar visita')
+      toast.error(getGoogleCalendarErrorMessage(err, 'Falha ao sincronizar visita'))
       return null
     }
   }, [])

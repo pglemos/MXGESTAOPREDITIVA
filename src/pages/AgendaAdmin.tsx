@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CalendarDays, Clock, MapPin, RefreshCw, Filter,
   Building2, User, ChevronRight, Calendar,
-  ChevronLeft, ChevronRightIcon, X, Plus, Trash2, Play,
+  X, Plus, Trash2,
   Pencil,
 } from 'lucide-react'
-import { format, parseISO, isToday, isTomorrow, isPast, isSameDay } from 'date-fns'
+import { addWeeks, endOfWeek, format, parseISO, isToday, isTomorrow, isSameDay, startOfWeek } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
@@ -26,7 +26,7 @@ import { PageHeader } from '@/components/molecules/PageHeader'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { Select } from '@/components/atoms/Select'
 import { DatePicker } from '@/components/atoms/DatePicker'
-import { GoogleCalendarStatus } from '@/features/agenda/components/GoogleCalendarStatus'
+import { AGENDA_TARGET_OPTIONS, VISIT_REASON_OPTIONS } from '@/features/agenda/constants'
 import type { AgendaScheduleEvent, AgendaVisit } from '@/hooks/useAgendaAdmin'
 
 type DateFilter = 'hoje' | 'semana' | 'proxima_semana' | 'mes' | 'todos'
@@ -72,6 +72,14 @@ function getEventTypeLabel(type: AgendaScheduleEvent['event_type']) {
     default: return 'EVENTO'
   }
 }
+
+const metricCards = [
+  { key: 'total', label: 'Total', valueKey: 'total', className: '' },
+  { key: 'agendadas', label: 'Agendadas', valueKey: 'agendadas', className: 'text-brand-primary' },
+  { key: 'andamento', label: 'Em andamento', valueKey: 'emAndamento', className: 'text-status-info' },
+  { key: 'concluidas', label: 'Concluídas', valueKey: 'concluidas', className: 'text-status-success' },
+  { key: 'canceladas', label: 'Canceladas', valueKey: 'canceladas', className: 'text-status-error' },
+] as const
 
 function ScheduleEventCard({
   event,
@@ -119,14 +127,29 @@ function ScheduleEventCard({
             {event.topic && (
               <Typography variant="tiny" tone="muted" className="block mt-1 truncate">{event.topic}</Typography>
             )}
+            {(event.visit_reason || event.target_audience || event.product_name) && (
+              <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
+                {event.visit_reason && (
+                  <Badge variant="outline" className="max-w-full text-mx-nano uppercase tracking-widest">
+                    <span className="truncate">{event.visit_reason}</span>
+                  </Badge>
+                )}
+                {event.target_audience && (
+                  <Badge variant="ghost" className="text-mx-nano uppercase tracking-widest">{event.target_audience}</Badge>
+                )}
+                {event.product_name && (
+                  <Badge variant="brand" className="text-mx-nano uppercase tracking-widest">{event.product_name}</Badge>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex items-center gap-mx-xs">
-          <Button variant="ghost" size="sm" className="text-text-secondary" onClick={() => onEdit(event)}>
+          <Button variant="ghost" size="sm" className="text-text-secondary" onClick={() => onEdit(event)} aria-label={`Editar ${event.title}`}>
             <Pencil size={14} />
           </Button>
-          <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onDelete(event.id)}>
+          <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onDelete(event.id)} aria-label={`Excluir ${event.title}`}>
             <Trash2 size={14} />
           </Button>
         </div>
@@ -140,6 +163,7 @@ export default function AgendaAdmin() {
     visits,
     clients,
     consultants,
+    products,
     metrics,
     loading,
     error,
@@ -185,6 +209,9 @@ export default function AgendaAdmin() {
     modality: 'Presencial',
     consultant_id: '',
     auxiliary_consultant_id: '',
+    visit_reason: '',
+    target_audience: '',
+    product_name: '',
     objective: '',
   })
   const [eventForm, setEventForm] = useState({
@@ -201,15 +228,41 @@ export default function AgendaAdmin() {
     responsible_user_id: '',
     responsible_name: '',
     ticket_price_text: '',
+    visit_reason: '',
+    product_name: '',
     google_event_id: '',
     status: 'agendado' as AgendaScheduleEvent['status'],
   })
 
-  const monthLabel = format(
-    new Date(calendarMonth.year, calendarMonth.month, 1),
-    "MMMM 'de' yyyy",
-    { locale: ptBR }
-  )
+  const calendarViewMode = dateFilter === 'hoje'
+    ? 'day'
+    : dateFilter === 'semana' || dateFilter === 'proxima_semana'
+      ? 'week'
+      : 'month'
+
+  const monthLabel = useMemo(() => {
+    if (dateFilter === 'hoje') {
+      return `Hoje · ${format(new Date(), "dd 'de' MMMM", { locale: ptBR })}`
+    }
+
+    if (dateFilter === 'semana' || dateFilter === 'proxima_semana') {
+      const base = dateFilter === 'proxima_semana' ? addWeeks(new Date(), 1) : new Date()
+      const start = startOfWeek(base, { weekStartsOn: 1 })
+      const end = endOfWeek(base, { weekStartsOn: 1 })
+      const prefix = dateFilter === 'proxima_semana' ? 'Próxima semana' : 'Semana'
+      return `${prefix} · ${format(start, 'dd/MM')} a ${format(end, 'dd/MM')}`
+    }
+
+    return format(
+      new Date(calendarMonth.year, calendarMonth.month, 1),
+      "MMMM 'de' yyyy",
+      { locale: ptBR }
+    )
+  }, [calendarMonth, dateFilter])
+
+  useEffect(() => {
+    setSelectedDate(dateFilter === 'hoje' ? new Date() : null)
+  }, [dateFilter])
 
   const selectedDayVisits = useMemo(() => {
     if (!selectedDate) return []
@@ -220,6 +273,13 @@ export default function AgendaAdmin() {
     if (!selectedDate) return []
     return scheduleEvents.filter((event) => isSameDay(parseISO(event.starts_at), selectedDate))
   }, [selectedDate, scheduleEvents])
+
+  const productSelectOptions = useMemo(() => {
+    const names = new Set(products.map((product) => product.name).filter(Boolean))
+    if (scheduleForm.product_name) names.add(scheduleForm.product_name)
+    if (eventForm.product_name) names.add(eventForm.product_name)
+    return Array.from(names).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [eventForm.product_name, products, scheduleForm.product_name])
 
   const groupedVisits = useMemo(() => {
     const groups: Record<string, { date: Date; label: string; visits: typeof visits; events: typeof scheduleEvents }> = {}
@@ -269,6 +329,9 @@ export default function AgendaAdmin() {
       modality: 'Presencial',
       consultant_id: '',
       auxiliary_consultant_id: '',
+      visit_reason: '',
+      target_audience: '',
+      product_name: '',
       objective: '',
     }))
     setShowScheduleModal(true)
@@ -289,6 +352,9 @@ export default function AgendaAdmin() {
       modality: visit.modality || 'Presencial',
       consultant_id: visit.consultant_id || '',
       auxiliary_consultant_id: visit.auxiliary_consultant_id || '',
+      visit_reason: visit.visit_reason || '',
+      target_audience: visit.target_audience || '',
+      product_name: visit.product_name || '',
       objective: visit.objective || '',
     })
     setShowScheduleModal(true)
@@ -311,6 +377,8 @@ export default function AgendaAdmin() {
       responsible_user_id: '',
       responsible_name: '',
       ticket_price_text: '',
+      visit_reason: '',
+      product_name: '',
       google_event_id: '',
       status: 'agendado',
     })
@@ -334,6 +402,8 @@ export default function AgendaAdmin() {
       responsible_user_id: event.responsible_user_id || '',
       responsible_name: event.responsible_name || '',
       ticket_price_text: event.ticket_price_text || '',
+      visit_reason: event.visit_reason || '',
+      product_name: event.product_name || '',
       google_event_id: event.google_event_id || '',
       status: event.status || 'agendado',
     })
@@ -372,6 +442,9 @@ export default function AgendaAdmin() {
       modality: scheduleForm.modality,
       consultant_id: scheduleForm.consultant_id || null,
       auxiliary_consultant_id: scheduleForm.auxiliary_consultant_id || null,
+      visit_reason: scheduleForm.visit_reason || null,
+      target_audience: scheduleForm.target_audience || null,
+      product_name: scheduleForm.product_name || null,
       objective: scheduleForm.objective || null,
     }
     const { error: createError } = editingVisitId
@@ -414,6 +487,8 @@ export default function AgendaAdmin() {
       responsible_user_id: eventForm.responsible_user_id || null,
       responsible_name: responsible?.name || eventForm.responsible_name.trim() || null,
       ticket_price_text: eventForm.ticket_price_text.trim() || null,
+      visit_reason: eventForm.visit_reason || null,
+      product_name: eventForm.product_name || null,
       google_event_id: eventForm.google_event_id.trim() || null,
       status: eventForm.status,
     }
@@ -476,53 +551,52 @@ export default function AgendaAdmin() {
   }, [scheduleForm.client_id, getNextVisitNumber])
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+    <main className="w-full h-full flex flex-col gap-mx-md sm:gap-mx-lg p-mx-sm sm:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
+      <header className="flex flex-col lg:flex-row lg:items-start justify-between gap-mx-md sm:gap-mx-lg border-b border-border-default pb-mx-lg sm:pb-10 shrink-0">
         <PageHeader
           title="Agenda MX"
           description="AGENDAMENTOS E VISITAS DE CONSULTORIA"
+          className="min-w-0"
         />
 
-        <div className="flex flex-wrap items-center gap-mx-sm">
-          <div className="grid grid-cols-5 gap-mx-xs">
-            <Card className="p-mx-md border-none shadow-mx-md bg-white text-center">
-              <Typography variant="tiny" tone="muted">TOTAL</Typography>
-              <Typography variant="h2">{metrics.total}</Typography>
-            </Card>
-            <Card className="p-mx-md border-none shadow-mx-md bg-white text-center">
-              <Typography variant="tiny" tone="muted">AGENDADAS</Typography>
-              <Typography variant="h2" className="text-brand-primary">{metrics.agendadas}</Typography>
-            </Card>
-            <Card className="p-mx-md border-none shadow-mx-md bg-white text-center">
-              <Typography variant="tiny" tone="muted">EM ANDAMENTO</Typography>
-              <Typography variant="h2" className="text-status-info">{metrics.emAndamento}</Typography>
-            </Card>
-            <Card className="p-mx-md border-none shadow-mx-md bg-white text-center">
-              <Typography variant="tiny" tone="muted">CONCLUÍDAS</Typography>
-              <Typography variant="h2" className="text-status-success">{metrics.concluidas}</Typography>
-            </Card>
-            <Card className="p-mx-md border-none shadow-mx-md bg-white text-center">
-              <Typography variant="tiny" tone="muted">CANCELADAS</Typography>
-              <Typography variant="h2" className="text-status-error">{metrics.canceladas}</Typography>
-            </Card>
+        <div className="flex w-full flex-col gap-mx-sm lg:w-auto">
+          <div className="grid w-full grid-cols-2 gap-mx-xs sm:grid-cols-3 xl:grid-cols-5 lg:w-auto">
+            {metricCards.map((metric, index) => (
+              <Card
+                key={metric.key}
+                className={cn(
+                  'min-w-0 p-mx-sm sm:p-mx-md border-none shadow-mx-md bg-white text-center',
+                  index === 0 && 'col-span-2 sm:col-span-1',
+                )}
+              >
+                <Typography variant="tiny" tone="muted" className="block text-mx-micro leading-tight tracking-widest">
+                  {metric.label}
+                </Typography>
+                <Typography variant="h2" className={cn('mt-1 text-2xl sm:text-3xl', metric.className)}>
+                  {metrics[metric.valueKey]}
+                </Typography>
+              </Card>
+            ))}
           </div>
 
-          <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar" className="rounded-mx-xl bg-white">
-            <RefreshCw size={18} />
-          </Button>
+          <div className="grid w-full grid-cols-[auto_1fr] gap-mx-xs sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end sm:gap-mx-sm">
+            <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar agenda" className="rounded-mx-xl bg-white">
+              <RefreshCw size={18} />
+            </Button>
 
-          <Button className="bg-brand-secondary" onClick={() => handleOpenSchedule()}>
-            <Plus size={18} className="mr-2" />
-            AGENDAR VISITA
-          </Button>
-          <Button variant="outline" className="bg-white" onClick={() => handleOpenEvent()}>
-            <Plus size={18} className="mr-2" />
-            EVENTO/AULA
-          </Button>
+            <Button className="bg-brand-secondary min-w-0 px-4" onClick={() => handleOpenSchedule()}>
+              <Plus size={18} className="mr-2" />
+              AGENDAR VISITA
+            </Button>
+            <Button variant="outline" className="col-span-2 bg-white min-w-0 px-4 sm:col-span-1" onClick={() => handleOpenEvent()}>
+              <Plus size={18} className="mr-2" />
+              EVENTO/AULA
+            </Button>
+          </div>
         </div>
       </header>
 
-      <Card className="p-mx-md border-none shadow-mx-md bg-white">
+      <Card className="p-mx-sm sm:p-mx-md border-none shadow-mx-md bg-white">
         <div className="flex flex-col gap-mx-sm">
           <FilterBar label="Período" icon={<CalendarDays size={16} className="text-brand-primary" />}>
             {dateFilters.map((f) => (
@@ -600,12 +674,17 @@ export default function AgendaAdmin() {
             visitsByDate={visitsByDate}
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
-            onDateClick={handleOpenSchedule}
             monthLabel={monthLabel}
             onPrevMonth={goToPrevMonth}
             onNextMonth={goToNextMonth}
-            onToday={goToToday}
+            onToday={() => {
+              goToToday()
+              setDateFilter('hoje')
+            }}
             getVisitDotColor={getVisitDotColor}
+            viewMode={calendarViewMode}
+            showNavigation={calendarViewMode === 'month'}
+            showTodayButton={dateFilter !== 'hoje'}
           />
 
           {loading ? (
@@ -675,8 +754,6 @@ export default function AgendaAdmin() {
         </div>
 
         <div className="xl:sticky xl:top-mx-0 xl:self-start space-y-mx-lg">
-          <GoogleCalendarStatus compact />
-
           <Card className="border-none shadow-mx-md bg-white overflow-hidden">
             <div className="p-mx-md border-b border-border-default flex items-center justify-between">
               <Typography variant="caption" className="font-black uppercase tracking-widest">
@@ -733,6 +810,21 @@ export default function AgendaAdmin() {
                               <Typography variant="tiny" tone="muted" className="truncate">{visit.consultant.name}</Typography>
                             </div>
                           )}
+                          {(visit.visit_reason || visit.target_audience || visit.product_name) && (
+                            <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
+                              {visit.visit_reason && (
+                                <Badge variant="outline" className="max-w-full text-mx-nano uppercase tracking-widest">
+                                  <span className="truncate">{visit.visit_reason}</span>
+                                </Badge>
+                              )}
+                              {visit.target_audience && (
+                                <Badge variant="ghost" className="text-mx-nano uppercase tracking-widest">{visit.target_audience}</Badge>
+                              )}
+                              {visit.product_name && (
+                                <Badge variant="brand" className="text-mx-nano uppercase tracking-widest">{visit.product_name}</Badge>
+                              )}
+                            </div>
+                          )}
                           <div className="flex items-center justify-between mt-1">
                             <Typography variant="tiny" tone="muted">Visita {visit.source_visit_code || visit.visit_number}/7</Typography>
                             <ChevronRight size={14} className="text-text-tertiary group-hover:text-brand-primary transition-colors" />
@@ -758,6 +850,21 @@ export default function AgendaAdmin() {
                         <Typography variant="tiny" className="font-bold truncate block">{event.title}</Typography>
                         {event.responsible_name && (
                           <Typography variant="tiny" tone="muted" className="truncate block mt-1">{event.responsible_name}</Typography>
+                        )}
+                        {(event.visit_reason || event.target_audience || event.product_name) && (
+                          <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
+                            {event.visit_reason && (
+                              <Badge variant="outline" className="max-w-full text-mx-nano uppercase tracking-widest">
+                                <span className="truncate">{event.visit_reason}</span>
+                              </Badge>
+                            )}
+                            {event.target_audience && (
+                              <Badge variant="ghost" className="text-mx-nano uppercase tracking-widest">{event.target_audience}</Badge>
+                            )}
+                            {event.product_name && (
+                              <Badge variant="brand" className="text-mx-nano uppercase tracking-widest">{event.product_name}</Badge>
+                            )}
+                          </div>
                         )}
                       </button>
                     )
@@ -811,7 +918,7 @@ export default function AgendaAdmin() {
           </div>
 
           {editingVisitId && (
-            <div className="grid grid-cols-2 gap-mx-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
               <div className="space-y-mx-xs">
                 <Typography as="label" htmlFor="agenda-visit-number" variant="caption" className="font-black uppercase tracking-widest">Número da visita</Typography>
                 <Input
@@ -836,7 +943,7 @@ export default function AgendaAdmin() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-mx-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="agenda-date" variant="caption" className="font-black uppercase tracking-widest">Data *</Typography>
               <DatePicker
@@ -856,7 +963,7 @@ export default function AgendaAdmin() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-mx-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="agenda-duration" variant="caption" className="font-black uppercase tracking-widest">Duração (horas)</Typography>
               <Input
@@ -879,7 +986,7 @@ export default function AgendaAdmin() {
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-mx-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
             <Select
               id="agenda-consultant"
               label="Consultor Responsável"
@@ -900,6 +1007,45 @@ export default function AgendaAdmin() {
               <option value="">Sem auxiliar...</option>
               {consultants.filter((c) => c.id !== scheduleForm.consultant_id).map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="space-y-mx-xs">
+            <Select
+              id="agenda-visit-reason"
+              label="Motivo da visita"
+              value={scheduleForm.visit_reason}
+              onChange={(e) => setScheduleForm((prev) => ({ ...prev, visit_reason: e.target.value }))}
+            >
+              <option value="">Selecionar motivo...</option>
+              {VISIT_REASON_OPTIONS.map((reason) => (
+                <option key={reason} value={reason}>{reason}</option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+            <Select
+              id="agenda-target-audience"
+              label="Alvo"
+              value={scheduleForm.target_audience}
+              onChange={(e) => setScheduleForm((prev) => ({ ...prev, target_audience: e.target.value }))}
+            >
+              <option value="">Selecionar alvo...</option>
+              {AGENDA_TARGET_OPTIONS.map((target) => (
+                <option key={target} value={target}>{target}</option>
+              ))}
+            </Select>
+            <Select
+              id="agenda-product-name"
+              label="Produto"
+              value={scheduleForm.product_name}
+              onChange={(e) => setScheduleForm((prev) => ({ ...prev, product_name: e.target.value }))}
+            >
+              <option value="">Selecionar produto...</option>
+              {productSelectOptions.map((product) => (
+                <option key={product} value={product}>{product}</option>
               ))}
             </Select>
           </div>
@@ -939,7 +1085,7 @@ export default function AgendaAdmin() {
         }
       >
         <form id="agenda-event-form" onSubmit={handleSubmitEvent} className="space-y-mx-lg">
-          <div className="grid grid-cols-2 gap-mx-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
             <Select
               id="agenda-event-type"
               label="Tipo"
@@ -988,7 +1134,21 @@ export default function AgendaAdmin() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-mx-md">
+          <div className="space-y-mx-xs">
+            <Select
+              id="agenda-event-reason"
+              label="Motivo da visita"
+              value={eventForm.visit_reason}
+              onChange={(e) => setEventForm((prev) => ({ ...prev, visit_reason: e.target.value }))}
+            >
+              <option value="">Selecionar motivo...</option>
+              {VISIT_REASON_OPTIONS.map((reason) => (
+                <option key={reason} value={reason}>{reason}</option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="agenda-event-date" variant="caption" className="font-black uppercase tracking-widest">Data *</Typography>
               <DatePicker
@@ -1019,7 +1179,7 @@ export default function AgendaAdmin() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-mx-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
             <Select
               id="agenda-event-responsible"
               label="Responsável"
@@ -1049,15 +1209,29 @@ export default function AgendaAdmin() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-mx-md">
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="agenda-event-target" variant="caption" className="font-black uppercase tracking-widest">Público alvo</Typography>
-              <Input
-                id="agenda-event-target"
-                value={eventForm.target_audience}
-                onChange={(e) => setEventForm((prev) => ({ ...prev, target_audience: e.target.value }))}
-              />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
+            <Select
+              id="agenda-event-target"
+              label="Alvo"
+              value={eventForm.target_audience}
+              onChange={(e) => setEventForm((prev) => ({ ...prev, target_audience: e.target.value }))}
+            >
+              <option value="">Selecionar alvo...</option>
+              {AGENDA_TARGET_OPTIONS.map((target) => (
+                <option key={target} value={target}>{target}</option>
+              ))}
+            </Select>
+            <Select
+              id="agenda-event-product-name"
+              label="Produto"
+              value={eventForm.product_name}
+              onChange={(e) => setEventForm((prev) => ({ ...prev, product_name: e.target.value }))}
+            >
+              <option value="">Selecionar produto...</option>
+              {productSelectOptions.map((product) => (
+                <option key={product} value={product}>{product}</option>
+              ))}
+            </Select>
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="agenda-event-goal" variant="caption" className="font-black uppercase tracking-widest">Meta de público</Typography>
               <Input
@@ -1070,7 +1244,7 @@ export default function AgendaAdmin() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-mx-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="agenda-event-ticket" variant="caption" className="font-black uppercase tracking-widest">Valor do ingresso</Typography>
               <Input

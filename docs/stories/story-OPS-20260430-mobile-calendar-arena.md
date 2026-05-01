@@ -48,6 +48,12 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Correções para verificação OAuth: home pública, nome exato do app, link de privacidade visível e política separada em `/privacy`.
 - [x] Playwright local: `/` exibe `MX Performance Calendar` e link para `/privacy`; `/privacy` descreve uso dos dados do Google Calendar.
 - [x] Search Console: arquivo de verificação publicado e propriedade `https://mxperformance.vercel.app/` verificada.
+- [x] Auditoria UX/UI da Agenda em Chrome MCP local: clique em dia seleciona o painel lateral sem abrir modal automaticamente, mês exibe `ABRIL DE 2026`, botões de navegação do calendário têm labels acessíveis e erro técnico do Google Calendar foi trocado por mensagem operacional.
+- [x] Auditoria responsiva local em viewports 390x844, 768x1024 e 1440x900: sem overflow horizontal, CTAs do Google Calendar sem texto estourado e modal de agendamento funcional no mobile.
+- [x] Google Calendar movido da Agenda para Configurações > Integrações de Agenda; Chrome MCP confirmou `/agenda` sem controles de conexão e `/configuracoes` com agenda pessoal + Agenda Central MX.
+- [x] Filtro de período passou a controlar a grade visual da agenda: `Hoje` renderiza 1 dia, `Semana` e `Próx. Semana` renderizam 7 dias, `Mês`/`Todos` renderizam a grade mensal; validado por Chrome MCP.
+- [x] Agenda passou a salvar e exibir Motivo da visita, Alvo e Produto em criação/edição/visualização de visita e evento/aula; campos validados em Chrome MCP mobile sem overflow.
+- [x] Gates pós-auditoria: `npm run lint`, `npm test` e `npm run build`.
 - [ ] Verificação final de acesso aos dados Google: pendente de URL de vídeo YouTube demonstrando o uso do escopo `calendar.events`.
 
 ### Google Calendar Central
@@ -98,16 +104,23 @@ Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 - `src/vite-env.d.ts`
 - `src/index.css`
 - `src/components/Layout.tsx`
+- `src/components/molecules/FilterBar.tsx`
+- `src/components/organisms/AgendaCalendar.tsx`
+- `src/components/organisms/Modal.tsx`
+- `src/components/organisms/VisitCard.tsx`
 - `src/components/PWAUpdater.tsx`
 - `src/features/agenda/components/GoogleCalendarStatus.tsx`
+- `src/features/agenda/constants.ts`
 - `src/features/consultoria/types.ts`
 - `src/features/equipe/components/UserCreationModal.tsx`
 - `src/features/ranking/components/StoreBattleView.tsx`
 - `src/hooks/useAgendaAdmin.ts`
 - `src/hooks/useGoogleCalendar.ts`
 - `src/hooks/useNetworkPerformance.ts`
+- `src/lib/schemas/consulting-client.schema.ts`
 - `src/pages/AgendaAdmin.tsx`
 - `src/pages/Checkin.tsx`
+- `src/pages/Configuracoes.tsx`
 - `src/pages/Equipe.tsx`
 - `src/pages/Login.tsx`
 - `src/pages/OAuthHome.tsx`
@@ -125,3 +138,4 @@ Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 - `supabase/migrations/20260427175235_update_handle_new_user_trigger.sql`
 - `supabase/migrations/20260430000000_visits_google_central.sql`
 - `supabase/migrations/20260430001000_google_oauth_state_purpose.sql`
+- `supabase/migrations/20260501000000_agenda_visit_metadata.sql`
