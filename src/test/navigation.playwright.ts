@@ -126,7 +126,7 @@ test.describe('Navigation: Main Sidebar & Mobile Bar', () => {
   });
 
   test('protected routes redirect unauthenticated users to login', async ({ page }) => {
-    const routes = ['/painel', '/lancamento-diario', '/equipe', '/classificacao', '/devolutivas', '/pdi'];
+    const routes = ['/painel', '/lancamento-diario', '/lojas/acertt?tab=equipe', '/classificacao', '/devolutivas', '/pdi'];
     for (const route of routes) {
       await page.goto(route);
       await expect(page).toHaveURL(/.*login/, { timeout: 5000 });

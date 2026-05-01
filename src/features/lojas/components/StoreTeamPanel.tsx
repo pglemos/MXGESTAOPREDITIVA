@@ -5,7 +5,7 @@ import {
     Users, UserPlus, Search, Phone, Shield, Mail, User, Trash2, Save,
     RefreshCw, X, TrendingUp, Zap,
     ShieldAlert, Clock, ShieldCheck,
-    ArrowUpRight, Settings2, Power, Building2
+    Settings2, Power
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn, getAvatarUrl } from '@/lib/utils'
@@ -21,17 +21,18 @@ import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 
-export default function Equipe() {
-  const urlStoreId = new URLSearchParams(window.location.search).get('id')
-  const { role, storeId: authStoreId } = useAuth()
-  const isAdmin = isPerfilInternoMx(role)
+type StoreTeamPanelProps = {
+  storeId: string | null
+  storeName?: string
+}
+
+export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
+  const { role } = useAuth()
   const canManageTeamMembers = isAdministradorMx(role)
   const canCreateMembers = canManageTeamMembers || role === 'dono' || role === 'gerente'
   const { lojas } = useStores()
-  const [selectedStoreId, setSelectedStoreId] = useState(urlStoreId || '')
 
-  const effectiveStoreId = isAdmin ? selectedStoreId : (urlStoreId || authStoreId || undefined)
-  const { team, loading, refetch, updateTeamMember, deleteTeamMember, registerUser } = useTeam(effectiveStoreId || undefined)
+  const { team, loading, refetch, updateTeamMember, deleteTeamMember, registerUser } = useTeam(storeId || undefined)
   const [searchTerm, setSearchTerm] = useState('')
   const [editingMember, setEditingMember] = useState<any>(null)
   const [saving, setSaving] = useState(false)
@@ -61,7 +62,7 @@ export default function Equipe() {
   const handleUpdateMember = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingMember) return
-    const memberStoreId = editingMember.store_id || (selectedStoreId !== 'all' ? effectiveStoreId : '')
+    const memberStoreId = editingMember.store_id || storeId
     if (!memberStoreId && !isPerfilInternoMx(editingMember.role)) {
       toast.error('Selecione a loja do integrante.')
       return
@@ -86,7 +87,7 @@ export default function Equipe() {
 
   const handleDeleteMember = async (member: any) => {
     if (!canManageTeamMembers) return
-    const memberStoreId = member.store_id || (selectedStoreId !== 'all' ? effectiveStoreId : null)
+    const memberStoreId = member.store_id || storeId
     const confirmed = window.confirm(`Excluir ${member.name} da equipe${memberStoreId ? ' desta loja' : ''}? O usuário será desativado se não tiver outro vínculo.`)
     if (!confirmed) return
 
@@ -120,8 +121,17 @@ export default function Equipe() {
     }
   }, [refetch])
 
+  if (!storeId) return (
+    <section className="w-full rounded-mx-3xl border border-border-default bg-white p-mx-xl text-center shadow-mx-sm">
+      <Typography variant="h2" className="uppercase tracking-tight">Selecione uma loja</Typography>
+      <Typography variant="caption" tone="muted" className="mt-2 block uppercase tracking-widest font-black">
+        A equipe agora é administrada dentro do dashboard operacional de cada loja.
+      </Typography>
+    </section>
+  )
+
   if (loading) return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500 overflow-hidden">
+    <section className="w-full flex flex-col gap-mx-lg animate-in fade-in duration-500 overflow-hidden">
         <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
             <div className="space-y-mx-xs">
                 <Skeleton className="h-mx-10 w-mx-64" />
@@ -154,60 +164,15 @@ export default function Equipe() {
                 ))}
             </div>
         </div>
-    </main>
+    </section>
   )
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
-
-      {/* Selection State for Admin/Owners without a store context */}
-      {(isAdmin || role === 'dono') && !selectedStoreId && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 flex flex-col items-center justify-center min-h-[60vh] text-center space-y-mx-lg">
-          <div className="relative">
-            <div className="w-mx-20 h-mx-20 rounded-mx-4xl bg-white flex items-center justify-center border border-border-default shadow-mx-xl">
-              <Building2 size={48} className="text-brand-primary" />
-            </div>
-            <div className="absolute -inset-mx-xs bg-brand-primary/5 rounded-mx-4xl blur-mx-xl -z-10 animate-pulse" />
-          </div>
-          <div className="space-y-mx-tiny">
-            <Typography variant="h1" className="text-3xl sm:text-5xl font-black uppercase tracking-tighter leading-none">Central de <span className="text-brand-primary">Governança</span></Typography>
-            <Typography variant="caption" tone="muted" className="uppercase tracking-mx-wider font-black text-mx-tiny block mt-2">Selecione uma unidade operacional para gerenciar</Typography>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-sm w-full max-w-5xl pt-mx-lg">
-            {isAdmin && (
-              <button
-                onClick={() => setSelectedStoreId('all')}
-                className="p-mx-lg rounded-mx-3xl bg-white border border-border-default hover:border-brand-primary hover:shadow-mx-lg transition-all group text-left relative overflow-hidden"
-              >
-                <div className="absolute top-mx-0 right-mx-0 p-mx-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ArrowUpRight size={20} className="text-brand-primary" />
-                </div>
-                <Typography variant="caption" tone="brand" className="block font-black uppercase tracking-mx-widest text-mx-nano mb-2">Visão Global</Typography>
-                <Typography variant="h3" className="font-black uppercase tracking-tight group-hover:text-brand-primary transition-colors leading-tight">Visualizar Toda a Tropa</Typography>
-              </button>
-            )}
-            {lojas.map(store => (
-              <button
-                key={store.id}
-                onClick={() => setSelectedStoreId(store.id)}
-                className="p-mx-lg rounded-mx-3xl bg-white border border-border-default hover:border-brand-primary hover:shadow-mx-lg transition-all group text-left relative overflow-hidden"
-              >
-                <div className="absolute top-mx-0 right-mx-0 p-mx-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ArrowUpRight size={20} className="text-brand-primary" />
-                </div>
-                <Typography variant="caption" tone="muted" className="block font-black uppercase tracking-mx-widest text-mx-nano mb-2">Unidade</Typography>
-                <Typography variant="h3" className="font-black uppercase tracking-tight group-hover:text-brand-primary transition-colors leading-tight">{store.name}</Typography>
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {(!isAdmin || selectedStoreId) && (
+    <section className="w-full flex flex-col gap-mx-lg relative">
         <>
           <PageHeader
             title="Time de Elite"
-            description="Gestão de Tropa & Hierarquia MX"
+            description={`Equipe operacional da loja ${storeName || ''}`.trim()}
             actions={
               <div className="flex flex-col sm:flex-row items-center gap-mx-sm w-full lg:w-auto">
                 <div className="relative group w-full sm:w-mx-96">
@@ -236,16 +201,6 @@ export default function Equipe() {
                       className="flex-1 sm:flex-none h-mx-14 px-8 rounded-mx-xl font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
                     >
                       <UserPlus size={18} className="mr-2" /> NOVO RECRUTA
-                    </Button>
-                  )}
-                  {(isAdmin || role === 'dono') && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setSelectedStoreId('')}
-                      className="h-mx-14 px-4 rounded-mx-xl border border-border-default bg-white hover:border-brand-primary/50 text-text-tertiary hover:text-brand-primary transition-all shadow-mx-sm uppercase font-black tracking-widest text-mx-nano"
-                    >
-                      {selectedStoreId === 'all' ? 'GLOBAL' : (lojas.find(s => s.id === selectedStoreId)?.name?.split(' ')[0] || 'UNIDADE')}
-                      <RefreshCw size={12} className="ml-2 opacity-50" />
                     </Button>
                   )}
                 </div>
@@ -330,7 +285,7 @@ export default function Equipe() {
                                     {member.role || 'ESPECIALISTA'}
                                 </Typography>
                             </div>
-                            {selectedStoreId === 'all' && member.store_name && (
+                            {member.store_name && member.store_id !== storeId && (
                                 <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-nano opacity-40 mt-1">
                                     {member.store_name}
                                 </Typography>
@@ -497,7 +452,7 @@ export default function Equipe() {
                           <div className="sm:col-span-2 space-y-mx-tiny">
                             <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Loja</Typography>
                             <select
-                              value={editingMember.store_id || (selectedStoreId !== 'all' ? effectiveStoreId : '') || ''}
+                              value={editingMember.store_id || storeId || ''}
                               onChange={e => setEditingMember({ ...editingMember, store_id: e.target.value })}
                               className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase focus:outline-none focus:border-brand-primary transition-all"
                             >
@@ -598,13 +553,14 @@ export default function Equipe() {
                 onClose={() => setIsUserModalOpen(false)}
                 onSuccess={refetch}
                 registerUser={registerUser}
-                storeId={effectiveStoreId}
+                storeId={storeId}
                 lojas={lojas}
               />
             )}
           </AnimatePresence>
         </>
-      )}
-    </main>
+    </section>
   )
 }
+
+export default StoreTeamPanel

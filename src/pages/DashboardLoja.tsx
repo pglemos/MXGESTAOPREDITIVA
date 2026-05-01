@@ -8,7 +8,7 @@ import { useDRE } from '@/hooks/useDRE'
 import { useState, useMemo, useCallback, useEffect, type FormEvent } from 'react'
 import { 
     RefreshCw, Search, Globe, ChevronDown, Calendar, History, ArrowRight,
-    Settings2, Plus, Trash2, Save, ShieldCheck, Mail, Target, Building2
+    Settings2, Plus, Trash2, Save, ShieldCheck, Mail, Target, Building2, Users
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { format, subDays, startOfMonth } from 'date-fns'
@@ -28,8 +28,9 @@ import { DataGrid, Column } from '@/components/organisms/DataGrid'
 import { supabase } from '@/lib/supabase'
 import type { ProjectionMode, StoreSourceMode } from '@/types/database'
 import { StoreGoalsPanel } from '@/features/lojas/components/StoreGoalsPanel'
+import { StoreTeamPanel } from '@/features/lojas/components/StoreTeamPanel'
 
-type DashboardTab = 'performance' | 'metas'
+type DashboardTab = 'performance' | 'metas' | 'equipe'
 
 const joinRecipients = (value?: string[] | null) => value?.join(', ') || ''
 const splitRecipients = (value: string) => value.split(',').map(email => email.trim()).filter(Boolean)
@@ -138,13 +139,14 @@ export default function DashboardLoja() {
     }, [selectedStoreId, authStoreId, setActiveStoreId])
 
     const activeTab = useMemo<DashboardTab>(() => {
-        return new URLSearchParams(location.search).get('tab') === 'metas' ? 'metas' : 'performance'
+        const tab = new URLSearchParams(location.search).get('tab')
+        return tab === 'metas' || tab === 'equipe' ? tab : 'performance'
     }, [location.search])
 
     const handleTabChange = useCallback((tab: DashboardTab) => {
         navigate({
             pathname: location.pathname,
-            search: tab === 'metas' ? '?tab=metas' : '',
+            search: tab === 'performance' ? '' : `?tab=${tab}`,
         })
     }, [location.pathname, navigate])
 
@@ -534,7 +536,7 @@ export default function DashboardLoja() {
 	                                        const newStore = selectableStores.find(store => store.id === newStoreId)
 	                                        if (newStore) {
 	                                            setActiveStoreId(newStoreId)
-	                                            navigate(`/lojas/${slugify(newStore.name)}${activeTab === 'metas' ? '?tab=metas' : ''}`)
+	                                            navigate(`/lojas/${slugify(newStore.name)}${activeTab === 'performance' ? '' : `?tab=${activeTab}`}`)
 	                                        }
 	                                    }}
                                     className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors whitespace-normal max-w-full"
@@ -556,6 +558,7 @@ export default function DashboardLoja() {
 	                        {[
 	                            { key: 'performance' as const, label: 'Performance', icon: Globe },
 	                            { key: 'metas' as const, label: 'Metas', icon: Target },
+	                            { key: 'equipe' as const, label: 'Equipe', icon: Users },
 	                        ].map(tab => (
 	                            <Button
 	                                key={tab.key}
@@ -602,6 +605,8 @@ export default function DashboardLoja() {
 
 	            {activeTab === 'metas' ? (
 	                <StoreGoalsPanel storeId={selectedStoreId} storeName={metrics.storeName} />
+	            ) : activeTab === 'equipe' ? (
+	                <StoreTeamPanel storeId={selectedStoreId} storeName={metrics.storeName} />
 	            ) : (
 	            <>
 	            {isAdminMx && selectedStore && (

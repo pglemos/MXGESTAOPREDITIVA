@@ -22,11 +22,11 @@ Administradores MX precisam gerenciar todos os integrantes da equipe de uma loja
 ### Debug Log
 
 - Adicionado CRUD administrativo em `useTeam` para atualizar cadastro, vínculo e vigência.
-- Tela `Equipe` passou a expor edição completa e exclusão para Admin Master/Admin MX.
+- O CRUD foi movido para `StoreTeamPanel` dentro do dashboard `/lojas/:slug?tab=equipe`.
 - Mantida criação existente via `UserCreationModal`, com botões de criação controlados por papel autorizado.
 
 ### File List
 
 - `docs/stories/story-OPS-20260501-store-team-admin-crud.md`
 - `src/hooks/useTeam.ts`
-- `src/pages/Equipe.tsx`
+- `src/features/lojas/components/StoreTeamPanel.tsx`

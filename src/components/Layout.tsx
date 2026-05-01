@@ -20,6 +20,7 @@ import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordCha
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
 const STORE_DASHBOARD_PATH = '__STORE_DASHBOARD__'
+const STORE_TEAM_PATH = '__STORE_TEAM__'
 
 const rotulosPerfil: Record<string, string> = {
   administrador_geral: 'Administrador geral',
@@ -38,7 +39,6 @@ const navegacaoInternaMx: NavCategory[] = [
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
         { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
-        { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
       ]
     },
@@ -73,7 +73,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Minhas Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Performance', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
-        { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
+        { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
       ]
     },
     {
@@ -90,7 +90,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'Operação Loja', icon: <Home size={22} />,
       items: [
         { label: 'Painel da Loja', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
-        { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
+        { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
         { label: 'Rotina Diária', path: '/rotina', icon: <CheckSquare size={16} /> },
         { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
@@ -149,20 +149,25 @@ export default function Layout() {
   }, [mobileMenuOpen])
 
   const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/lojas'
+  const storeTeamPath = storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}?tab=equipe`
   const categories = React.useMemo(() => {
     const baseCategories = role ? (navConfig[role] || []) : []
     return baseCategories.map(category => ({
       ...category,
-      items: category.items.map(item => item.path === STORE_DASHBOARD_PATH ? { ...item, path: storeDashboardPath } : item),
+      items: category.items.map(item => {
+        if (item.path === STORE_DASHBOARD_PATH) return { ...item, path: storeDashboardPath }
+        if (item.path === STORE_TEAM_PATH) return { ...item, path: storeTeamPath }
+        return item
+      }),
     }))
-  }, [role, storeDashboardPath])
+  }, [role, storeDashboardPath, storeTeamPath])
   const activeCategoryData = categories.find(c => c.category === activeCategory) || categories[0]
   const perfilVisivel = role ? rotulosPerfil[role] || 'Perfil autorizado' : 'Perfil autorizado'
 
   useEffect(() => {
     if (!categories.length) return
     for (const cat of categories) {
-      if (cat.items.some(item => location.pathname.startsWith(item.path))) {
+      if (cat.items.some(item => location.pathname.startsWith(item.path.split('?')[0]))) {
         setActiveCategory(cat.category)
         break
       }
@@ -414,9 +419,9 @@ export default function Layout() {
 
           {(role === 'gerente' || isPerfilInternoMx(role)) && (
             <NavLink 
-              to="/equipe" 
+              to={isPerfilInternoMx(role) ? '/lojas' : storeTeamPath}
               aria-label="Gerir Equipe" 
-              aria-current={location.pathname === '/equipe' ? 'page' : undefined}
+              aria-current={location.pathname === storeDashboardPath && new URLSearchParams(location.search).get('tab') === 'equipe' ? 'page' : undefined}
               className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <Users size={22} />

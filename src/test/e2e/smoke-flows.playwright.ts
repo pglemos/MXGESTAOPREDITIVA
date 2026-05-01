@@ -43,7 +43,7 @@ test.describe('Smoke Flows: Authenticated Experience', () => {
 
   test('Vendedor/Manager Route Resilience', async ({ page }) => {
     // Validamos que rotas protegidas redirecionam corretamente para login
-    const protectedRoutes = ['/lancamento-diario', '/equipe', '/perfil', '/classificacao'];
+    const protectedRoutes = ['/lancamento-diario', '/lojas/acertt?tab=equipe', '/perfil', '/classificacao'];
     
     for (const route of protectedRoutes) {
       await page.goto(route);

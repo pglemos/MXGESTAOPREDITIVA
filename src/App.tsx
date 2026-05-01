@@ -28,7 +28,6 @@ const Perfil = lazy(() => import('@/pages/Perfil'))
 
 // Gerente
 const DashboardLoja = lazy(() => import('@/pages/DashboardLoja'))
-const Equipe = lazy(() => import('@/pages/Equipe'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
 const PDIPrint = lazy(() => import('@/pages/PDIPrint'))
@@ -162,7 +161,7 @@ export default function App() {
             <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
-            <Route path="team" element={<Navigate to="/equipe" replace />} />
+            <Route path="team" element={<Navigate to="/lojas" replace />} />
 
             {/* Vendedor */}
             <Route path="home" element={<Suspense fallback={<Spinner />}>
@@ -189,9 +188,6 @@ export default function App() {
             {/* Gerente */}
             <Route path="lojas/:storeSlug" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
-            </Suspense>} />
-            <Route path="equipe" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Equipe />} dono={<Equipe />} admin={<Equipe />} />
             </Suspense>} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorPDI />} gerente={<GerentePDI />} dono={<GerentePDI />} admin={<GerentePDI />} />
