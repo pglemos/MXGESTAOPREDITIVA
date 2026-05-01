@@ -1,9 +1,9 @@
 import { useTeam, useStores } from '@/hooks/useTeam'
 import { UserCreationModal } from '@/features/equipe/components/UserCreationModal'
 import { useState, useMemo, useCallback } from 'react'
-import { 
-    Users, UserPlus, Search, Phone, Shield, 
-    RefreshCw, X, TrendingUp, Zap, 
+import {
+    Users, UserPlus, Search, Phone, Shield, Mail, User, Trash2, Save,
+    RefreshCw, X, TrendingUp, Zap,
     ShieldAlert, Clock, ShieldCheck,
     ArrowUpRight, Settings2, Power, Building2
 } from 'lucide-react'
@@ -19,17 +19,19 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
-import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 
 export default function Equipe() {
   const urlStoreId = new URLSearchParams(window.location.search).get('id')
   const { role, storeId: authStoreId } = useAuth()
   const isAdmin = isPerfilInternoMx(role)
+  const canManageTeamMembers = isAdministradorMx(role)
+  const canCreateMembers = canManageTeamMembers || role === 'dono' || role === 'gerente'
   const { lojas } = useStores()
   const [selectedStoreId, setSelectedStoreId] = useState(urlStoreId || '')
-  
+
   const effectiveStoreId = isAdmin ? selectedStoreId : (urlStoreId || authStoreId || undefined)
-  const { team, loading, refetch, updateVigencia, registerUser } = useTeam(effectiveStoreId || undefined)
+  const { team, loading, refetch, updateTeamMember, deleteTeamMember, registerUser } = useTeam(effectiveStoreId || undefined)
   const [searchTerm, setSearchTerm] = useState('')
   const [editingMember, setEditingMember] = useState<any>(null)
   const [saving, setSaving] = useState(false)
@@ -37,7 +39,7 @@ export default function Equipe() {
   const [isRefetching, setIsRefetching] = useState(false)
 
   const filteredTeam = useMemo(() => {
-    return (team || []).filter(m => 
+    return (team || []).filter(m =>
       m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.role?.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -47,7 +49,7 @@ export default function Equipe() {
     const total = (team || []).length;
     const leaders = (team || []).filter(m => isPerfilInternoMx(m.role) || m.role === 'dono' || m.role === 'gerente');
     const operational = (team || []).filter(m => m.checkin_today);
-    
+
     return [
         { label: 'Tropa Total', value: total, icon: Users, tone: 'brand', color: 'from-brand-primary/20 to-brand-primary/5' },
         { label: 'Operacionais', value: operational.length, icon: Zap, tone: 'success', color: 'from-status-success-surface to-transparent' },
@@ -56,17 +58,51 @@ export default function Equipe() {
     ];
   }, [team])
 
-  const handleUpdateVigencia = async (e: React.FormEvent) => {
+  const handleUpdateMember = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!editingMember) return
+    const memberStoreId = editingMember.store_id || (selectedStoreId !== 'all' ? effectiveStoreId : '')
+    if (!memberStoreId && !isPerfilInternoMx(editingMember.role)) {
+      toast.error('Selecione a loja do integrante.')
+      return
+    }
+
     setSaving(true)
-    const { error } = await updateVigencia(editingMember.id, {
+    const { error } = await updateTeamMember(editingMember.id, {
+      name: editingMember.name,
+      email: editingMember.email,
+      phone: editingMember.phone,
+      role: editingMember.role,
+      active: editingMember.active,
+      store_id: memberStoreId,
       started_at: editingMember.started_at,
       ended_at: editingMember.ended_at,
-      is_active: editingMember.is_active,
+      is_active: editingMember.active === false ? false : editingMember.is_active,
       closing_month_grace: editingMember.closing_month_grace
     })
     setSaving(false)
-    if (error) toast.error(error); else { toast.success('Vigência atualizada!'); setEditingMember(null); refetch() }
+    if (error) toast.error(error); else { toast.success('Integrante atualizado!'); setEditingMember(null); refetch() }
+  }
+
+  const handleDeleteMember = async (member: any) => {
+    if (!canManageTeamMembers) return
+    const memberStoreId = member.store_id || (selectedStoreId !== 'all' ? effectiveStoreId : null)
+    const confirmed = window.confirm(`Excluir ${member.name} da equipe${memberStoreId ? ' desta loja' : ''}? O usuário será desativado se não tiver outro vínculo.`)
+    if (!confirmed) return
+
+    setSaving(true)
+    try {
+      const { error } = await deleteTeamMember(member.id, memberStoreId)
+      if (error) {
+        toast.error(error)
+        return
+      }
+      toast.success('Integrante excluído da equipe.')
+      setEditingMember(null)
+      await refetch()
+    } finally {
+      setSaving(false)
+    }
   }
 
   const getVigenciaStatus = (m: any) => {
@@ -123,7 +159,7 @@ export default function Equipe() {
 
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
-      
+
       {/* Selection State for Admin/Owners without a store context */}
       {(isAdmin || role === 'dono') && !selectedStoreId && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 flex flex-col items-center justify-center min-h-[60vh] text-center space-y-mx-lg">
@@ -169,33 +205,33 @@ export default function Equipe() {
 
       {(!isAdmin || selectedStoreId) && (
         <>
-          <PageHeader 
+          <PageHeader
             title="Time de Elite"
             description="Gestão de Tropa & Hierarquia MX"
             actions={
               <div className="flex flex-col sm:flex-row items-center gap-mx-sm w-full lg:w-auto">
                 <div className="relative group w-full sm:w-mx-96">
                   <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
-                  <Input 
+                  <Input
                     id="search-specialist"
                     name="search-specialist"
-                    placeholder="LOCALIZAR ESPECIALISTA..." 
+                    placeholder="LOCALIZAR ESPECIALISTA..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                     className="!pl-12 !h-mx-14 uppercase font-black tracking-widest text-mx-tiny"
                   />
                 </div>
                 <div className="flex w-full sm:w-auto gap-mx-sm">
-                  <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={handleRefresh} 
+                  <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleRefresh}
                       className="w-mx-14 h-mx-14 rounded-mx-xl bg-white shadow-mx-sm border-border-default shrink-0"
                   >
                     <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                   </Button>
-                  {(isPerfilInternoMx(role) || role === 'dono' || role === 'gerente') && (
-                    <Button 
+                  {canCreateMembers && (
+                    <Button
                       onClick={() => setIsUserModalOpen(true)}
                       className="flex-1 sm:flex-none h-mx-14 px-8 rounded-mx-xl font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
                     >
@@ -203,7 +239,7 @@ export default function Equipe() {
                     </Button>
                   )}
                   {(isAdmin || role === 'dono') && (
-                    <Button 
+                    <Button
                       variant="ghost"
                       onClick={() => setSelectedStoreId('')}
                       className="h-mx-14 px-4 rounded-mx-xl border border-border-default bg-white hover:border-brand-primary/50 text-text-tertiary hover:text-brand-primary transition-all shadow-mx-sm uppercase font-black tracking-widest text-mx-nano"
@@ -219,7 +255,7 @@ export default function Equipe() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0 mt-mx-md">
             {stats.map((item, idx) => (
-              <motion.div 
+              <motion.div
                 key={item.label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -249,16 +285,16 @@ export default function Equipe() {
                 {filteredTeam.map((member, i) => {
                   const vigencia = getVigenciaStatus(member)
                   return (
-                    <motion.article 
-                      key={member.id} 
-                      layout 
-                      initial={{ opacity: 0, scale: 0.98 }} 
-                      animate={{ opacity: 1, scale: 1 }} 
-                      transition={{ delay: i * 0.03 }} 
+                    <motion.article
+                      key={member.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.03 }}
                       className="group relative rounded-mx-4xl bg-white border border-border-default hover:border-brand-primary/30 hover:shadow-mx-elite transition-all duration-500 overflow-hidden flex flex-col h-mx-96 shadow-mx-lg"
                     >
                       <div className="absolute top-mx-0 left-mx-0 right-mx-0 h-mx-48 bg-gradient-to-b from-brand-primary/10 via-brand-primary/5 to-transparent pointer-events-none group-hover:from-brand-primary/20 transition-all duration-700" />
-                      
+
                       <div className="p-mx-lg pb-0 flex items-center justify-between relative z-10">
                         <div className="flex items-center gap-mx-xs px-4 py-1.5 rounded-mx-full bg-mx-black text-white shadow-mx-xl">
                           <div className={cn("w-2 h-2 rounded-mx-full", member.checkin_today ? "bg-status-success shadow-mx-glow-brand animate-pulse" : "bg-white/20")} />
@@ -274,8 +310,8 @@ export default function Equipe() {
                       <div className="px-mx-lg flex flex-col items-center text-center space-y-mx-md relative z-10 flex-1 justify-center pt-mx-md">
                         <div className="relative group/avatar">
                           <div className="w-mx-28 h-mx-28 rounded-mx-4xl bg-white p-mx-xs border-2 border-border-default overflow-hidden group-hover/avatar:rotate-3 group-hover:scale-110 group-hover:border-brand-primary transition-all duration-500 shadow-mx-xl">
-                            <img 
-                              src={getAvatarUrl(member.name || '', { background: 'ffffff', color: '22C55E' })} 
+                            <img
+                              src={getAvatarUrl(member.name || '', { background: 'ffffff', color: '22C55E' })}
                               alt="" className="w-full h-full object-cover rounded-mx-3xl"
                             />
                           </div>
@@ -285,7 +321,7 @@ export default function Equipe() {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="space-y-mx-tiny w-full pt-mx-sm">
                           <Typography variant="h2" className="text-2xl font-black uppercase tracking-tighter truncate px-mx-sm leading-none">{member.name}</Typography>
                           <div className="flex flex-col items-center gap-mx-nano">
@@ -314,15 +350,28 @@ export default function Equipe() {
                         </div>
                       </div>
 
-                      <footer className="p-mx-lg pt-0 mt-auto relative z-10 grid grid-cols-3 gap-mx-sm">
-                        <Button 
-                          variant="outline"
-                          onClick={() => setEditingMember(member)}
-                          className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-mx-md"
-                        >
-                          <Settings2 size={20} />
-                        </Button>
-                        <Button 
+                      <footer className={cn("p-mx-lg pt-0 mt-auto relative z-10 grid gap-mx-sm", canManageTeamMembers ? "grid-cols-4" : "grid-cols-2")}>
+                        {canManageTeamMembers && (
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditingMember(member)}
+                            className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-mx-md"
+                            aria-label={`Editar ${member.name}`}
+                          >
+                            <Settings2 size={20} />
+                          </Button>
+                        )}
+                        {canManageTeamMembers && (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleDeleteMember(member)}
+                            className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-status-error hover:border-status-error/30 transition-all shadow-mx-md"
+                            aria-label={`Excluir ${member.name}`}
+                          >
+                            <Trash2 size={20} />
+                          </Button>
+                        )}
+                        <Button
                           variant="outline"
                           onClick={() => window.open(`tel:${member.phone}`)}
                           className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-status-success hover:border-status-success/30 transition-all shadow-mx-md"
@@ -357,12 +406,14 @@ export default function Equipe() {
                   <Typography variant="h1" className="text-4xl font-black uppercase tracking-tighter leading-none">Vácuo de <span className="text-brand-primary">Tropa</span></Typography>
                   <Typography variant="p" tone="muted" className="uppercase tracking-mx-widest font-black text-mx-tiny leading-relaxed opacity-60">A unidade operacional selecionada ainda não possui especialistas integrados ao terminal de performance MX.</Typography>
                 </div>
-                <Button 
-                    onClick={() => setIsUserModalOpen(true)}
-                    className="h-mx-16 px-10 rounded-mx-full font-black uppercase tracking-widest text-mx-tiny shadow-mx-xl relative z-10"
-                >
-                    <UserPlus size={18} className="mr-2" /> RECRUTAR AGORA
-                </Button>
+                {canCreateMembers && (
+                  <Button
+                      onClick={() => setIsUserModalOpen(true)}
+                      className="h-mx-16 px-10 rounded-mx-full font-black uppercase tracking-widest text-mx-tiny shadow-mx-xl relative z-10"
+                  >
+                      <UserPlus size={18} className="mr-2" /> RECRUTAR AGORA
+                  </Button>
+                )}
               </motion.div>
             )}
           </div>
@@ -371,7 +422,7 @@ export default function Equipe() {
             {editingMember && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-mx-md overflow-hidden" role="dialog" aria-modal="true">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingMember(null)} className="absolute inset-0 bg-mx-black/60 backdrop-blur-md" />
-                
+
                 <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="w-full max-w-xl relative z-10">
                   <Card className="shadow-mx-elite border-none">
                     <CardHeader className="bg-mx-black border-none text-white p-mx-xl relative">
@@ -393,30 +444,104 @@ export default function Equipe() {
                     </CardHeader>
 
                     <CardContent className="p-mx-xl space-y-mx-lg">
-                      <form onSubmit={handleUpdateVigencia} className="space-y-mx-lg">
+                      <form onSubmit={handleUpdateMember} className="space-y-mx-lg">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+                          <div className="space-y-mx-tiny">
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Nome</Typography>
+                            <div className="relative">
+                              <User size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                              <input
+                                required
+                                value={editingMember.name || ''}
+                                onChange={e => setEditingMember({ ...editingMember, name: e.target.value.toUpperCase() })}
+                                className="w-full h-mx-14 pl-12 pr-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase tracking-tight focus:outline-none focus:border-brand-primary transition-all"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-mx-tiny">
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">E-mail</Typography>
+                            <div className="relative">
+                              <Mail size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                              <input
+                                required
+                                type="email"
+                                value={editingMember.email || ''}
+                                onChange={e => setEditingMember({ ...editingMember, email: e.target.value })}
+                                className="w-full h-mx-14 pl-12 pr-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-bold focus:outline-none focus:border-brand-primary transition-all"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-mx-tiny">
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Telefone</Typography>
+                            <div className="relative">
+                              <Phone size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                              <input
+                                value={editingMember.phone || ''}
+                                onChange={e => setEditingMember({ ...editingMember, phone: e.target.value })}
+                                className="w-full h-mx-14 pl-12 pr-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-bold focus:outline-none focus:border-brand-primary transition-all"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-mx-tiny">
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Papel na Loja</Typography>
+                            <select
+                              value={editingMember.role || 'vendedor'}
+                              onChange={e => setEditingMember({ ...editingMember, role: e.target.value })}
+                              className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase focus:outline-none focus:border-brand-primary transition-all"
+                            >
+                              <option value="dono">Dono</option>
+                              <option value="gerente">Gerente</option>
+                              <option value="vendedor">Vendedor</option>
+                            </select>
+                          </div>
+                          <div className="sm:col-span-2 space-y-mx-tiny">
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Loja</Typography>
+                            <select
+                              value={editingMember.store_id || (selectedStoreId !== 'all' ? effectiveStoreId : '') || ''}
+                              onChange={e => setEditingMember({ ...editingMember, store_id: e.target.value })}
+                              className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase focus:outline-none focus:border-brand-primary transition-all"
+                            >
+                              <option value="">Selecione a loja</option>
+                              {lojas.map(store => (
+                                <option key={store.id} value={store.id}>{store.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-mx-md">
                           <div className="space-y-mx-tiny">
                             <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Início Contrato</Typography>
-                            <input 
+                            <input
                               id="started-at"
                               name="started_at"
-                              type="date" required 
-                              value={editingMember.started_at || ''} 
-                              onChange={e => setEditingMember({...editingMember, started_at: e.target.value})} 
-                              className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-bold focus:outline-none focus:border-brand-primary transition-all uppercase" 
+                              type="date" required
+                              value={editingMember.started_at || ''}
+                              onChange={e => setEditingMember({...editingMember, started_at: e.target.value})}
+                              className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-bold focus:outline-none focus:border-brand-primary transition-all uppercase"
                             />
                           </div>
                           <div className="space-y-mx-tiny">
                             <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Término (Opcional)</Typography>
-                            <input 
-                              type="date" 
-                              value={editingMember.ended_at || ''} 
-                              onChange={e => setEditingMember({...editingMember, ended_at: e.target.value})} 
-                              className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-bold focus:outline-none focus:border-brand-primary transition-all uppercase" 
+                            <input
+                              type="date"
+                              value={editingMember.ended_at || ''}
+                              onChange={e => setEditingMember({...editingMember, ended_at: e.target.value})}
+                              className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-bold focus:outline-none focus:border-brand-primary transition-all uppercase"
                             />
                           </div>
-                          
+
                           <div className="col-span-2 space-y-mx-sm pt-mx-md border-t border-border-default">
+                            <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
+                              <div className="flex items-center gap-mx-md">
+                                <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center border border-status-success/10"><ShieldCheck size={20} /></div>
+                                <div className="space-y-0.5">
+                                  <Typography variant="h3" className="text-sm font-black uppercase tracking-tight">Usuário ativo</Typography>
+                                  <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Permite acesso ao sistema</Typography>
+                                </div>
+                              </div>
+                              <input type="checkbox" checked={editingMember.active ?? true} onChange={e => setEditingMember({...editingMember, active: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-status-success cursor-pointer" />
+                            </label>
                             <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
                               <div className="flex items-center gap-mx-md">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary"><Power size={20} /></div>
@@ -427,7 +552,7 @@ export default function Equipe() {
                               </div>
                               <input type="checkbox" checked={editingMember.is_active} onChange={e => setEditingMember({...editingMember, is_active: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-brand-primary cursor-pointer" />
                             </label>
-                            
+
                             <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
                               <div className="flex items-center gap-mx-md">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-status-warning-surface text-status-warning border border-status-warning/10"><ShieldAlert size={20} /></div>
@@ -441,22 +566,34 @@ export default function Equipe() {
                           </div>
                         </div>
 
-                        <Button 
-                          type="submit" disabled={saving} 
-                          className="w-full h-mx-16 rounded-mx-2xl font-black uppercase tracking-mx-wide text-xs shadow-mx-lg"
-                        >
-                          {saving ? <RefreshCw className="animate-spin mr-2" /> : <Zap size={20} className="fill-current mr-2" />}
-                          SINCRONIZAR VIGÊNCIA
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-mx-sm">
+                          <Button
+                            type="button"
+                            variant="danger"
+                            disabled={saving}
+                            onClick={() => handleDeleteMember(editingMember)}
+                            className="h-mx-16 sm:w-mx-40 rounded-mx-2xl font-black uppercase tracking-mx-wide text-xs shadow-mx-lg"
+                          >
+                            <Trash2 size={18} className="mr-2" />
+                            EXCLUIR
+                          </Button>
+                          <Button
+                            type="submit" disabled={saving}
+                            className="h-mx-16 flex-1 rounded-mx-2xl font-black uppercase tracking-mx-wide text-xs shadow-mx-lg"
+                          >
+                            {saving ? <RefreshCw className="animate-spin mr-2" /> : <Save size={20} className="mr-2" />}
+                            SALVAR INTEGRANTE
+                          </Button>
+                        </div>
                       </form>
                     </CardContent>
                   </Card>
                 </motion.div>
               </div>
             )}
-            
+
             {isUserModalOpen && (
-              <UserCreationModal 
+              <UserCreationModal
                 isOpen={isUserModalOpen}
                 onClose={() => setIsUserModalOpen(false)}
                 onSuccess={refetch}

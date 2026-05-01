@@ -4,11 +4,21 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
-import type { User, Store, StoreSeller } from '@/types/database'
+import type { User, Store, StoreSeller, UserRole } from '@/types/database'
 
 export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'active'>
+export type TeamMemberUpdateFields = Partial<Pick<User, 'name' | 'email' | 'phone' | 'active'>> & {
+    role?: UserRole
+    store_id?: string | null
+    started_at?: string | null
+    ended_at?: string | null
+    is_active?: boolean
+    closing_month_grace?: boolean
+}
 
 const normalizeStoreName = (name: string) => name.trim().toLocaleUpperCase('pt-BR')
+const isInternalRole = (role?: string | null) => role === 'administrador_geral' || role === 'administrador_mx' || role === 'consultor_mx'
+const todayISO = () => new Date().toISOString().slice(0, 10)
 
 const storeUpdateSchema = z.object({
     name: z.string().trim().min(2, 'Nome da loja deve ter pelo menos 2 caracteres.').max(120, 'Nome da loja muito longo.').optional(),
@@ -21,7 +31,7 @@ const storeUpdateSchema = z.object({
 }).strict()
 
 export function useTeam(storeIdOverride?: string) {
-    const { storeId: authStoreId } = useAuth()
+    const { storeId: authStoreId, role } = useAuth()
     const storeId = storeIdOverride || authStoreId
     const [sellers, setSellers] = useState<(User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean; store_name?: string })[]>([])
     const [loading, setLoading] = useState(true)
@@ -40,14 +50,14 @@ export function useTeam(storeIdOverride?: string) {
             if (storeId && storeId !== 'all') {
                 const { data: members } = await supabase
                     .from('vinculos_loja')
-                    .select('user_id, role, users:usuarios(*), store:lojas(name)')
+                    .select('user_id, store_id, role, users:usuarios(*), store:lojas(name)')
                     .eq('store_id', storeId)
                 teamData = members || []
             } else {
                 // Global view for Admins
                 const { data: members } = await supabase
                     .from('vinculos_loja')
-                    .select('user_id, role, users:usuarios(*), store:lojas(name)')
+                    .select('user_id, store_id, role, users:usuarios(*), store:lojas(name)')
                 
                 // Also get users WITHOUT vinculos_loja (like some Donos or Admins)
                 const { data: allUsers } = await supabase
@@ -63,6 +73,7 @@ export function useTeam(storeIdOverride?: string) {
                         userMap.set(m.user_id, {
                             ...m.users,
                             role: m.role,
+                            store_id: m.store_id,
                             store_name: m.store?.name || 'MULTI-LOJA'
                         })
                     } else {
@@ -111,6 +122,7 @@ export function useTeam(storeIdOverride?: string) {
                 return {
                     ...u,
                     role: m.role || u.role, 
+                    store_id: m.store_id || u.store_id,
                     store_name: m.store?.name,
                     checkin_today: checkedIn.has(u.id),
                     started_at: tenure?.started_at,
@@ -136,6 +148,109 @@ export function useTeam(storeIdOverride?: string) {
         }, { onConflict: 'store_id, seller_user_id' })
         if (!error) await fetchTeam()
         return { error: error?.message || null }
+    }
+
+    const updateTeamMember = async (userId: string, updates: TeamMemberUpdateFields) => {
+        if (!isAdministradorMx(role)) return { error: 'Apenas Admin Master e Admin MX podem editar integrantes.' }
+
+        const nextRole = updates.role
+        const targetStoreId = updates.store_id || (storeId && storeId !== 'all' ? storeId : null)
+        if (nextRole && !isInternalRole(nextRole) && !targetStoreId) {
+            return { error: 'Selecione a loja do integrante.' }
+        }
+
+        const userPayload: Record<string, unknown> = {}
+        if (typeof updates.name !== 'undefined') userPayload.name = updates.name.trim().toLocaleUpperCase('pt-BR')
+        if (typeof updates.email !== 'undefined') userPayload.email = updates.email.trim().toLowerCase()
+        if (typeof updates.phone !== 'undefined') userPayload.phone = updates.phone || null
+        if (typeof updates.active !== 'undefined') userPayload.active = updates.active
+        if (nextRole) userPayload.role = nextRole
+
+        if (Object.keys(userPayload).length) {
+            const { error } = await supabase.from('usuarios').update(userPayload).eq('id', userId)
+            if (error) return { error: error.message }
+        }
+
+        if (nextRole && targetStoreId && !isInternalRole(nextRole)) {
+            const { error: membershipError } = await supabase
+                .from('vinculos_loja')
+                .upsert({ user_id: userId, store_id: targetStoreId, role: nextRole }, { onConflict: 'user_id,store_id' })
+            if (membershipError) return { error: membershipError.message }
+
+            if (nextRole === 'vendedor') {
+                const { error: tenureError } = await supabase
+                    .from('vendedores_loja')
+                    .upsert({
+                        store_id: targetStoreId,
+                        seller_user_id: userId,
+                        started_at: updates.started_at || todayISO(),
+                        ended_at: updates.ended_at || null,
+                        is_active: updates.is_active ?? updates.active ?? true,
+                        closing_month_grace: updates.closing_month_grace ?? false,
+                    }, { onConflict: 'store_id,seller_user_id' })
+                if (tenureError) return { error: tenureError.message }
+            } else {
+                const { error: tenureError } = await supabase
+                    .from('vendedores_loja')
+                    .update({ is_active: false, ended_at: updates.ended_at || todayISO() })
+                    .eq('store_id', targetStoreId)
+                    .eq('seller_user_id', userId)
+                if (tenureError) return { error: tenureError.message }
+            }
+        }
+
+        await fetchTeam()
+        return { error: null }
+    }
+
+    const deleteTeamMember = async (userId: string, targetStoreId?: string | null) => {
+        if (!isAdministradorMx(role)) return { error: 'Apenas Admin Master e Admin MX podem excluir integrantes.' }
+
+        const scopedStoreId = targetStoreId || (storeId && storeId !== 'all' ? storeId : null)
+        const endedAt = todayISO()
+
+        if (scopedStoreId) {
+            const { error: tenureError } = await supabase
+                .from('vendedores_loja')
+                .update({ is_active: false, ended_at: endedAt })
+                .eq('store_id', scopedStoreId)
+                .eq('seller_user_id', userId)
+            if (tenureError) return { error: tenureError.message }
+
+            const { error: membershipError } = await supabase
+                .from('vinculos_loja')
+                .delete()
+                .eq('store_id', scopedStoreId)
+                .eq('user_id', userId)
+            if (membershipError) return { error: membershipError.message }
+
+            const { data: remainingMemberships, error: remainingError } = await supabase
+                .from('vinculos_loja')
+                .select('id')
+                .eq('user_id', userId)
+                .limit(1)
+            if (remainingError) return { error: remainingError.message }
+
+            if (!remainingMemberships?.length) {
+                const { error: userError } = await supabase.from('usuarios').update({ active: false }).eq('id', userId)
+                if (userError) return { error: userError.message }
+            }
+        } else {
+            const { error: tenureError } = await supabase
+                .from('vendedores_loja')
+                .update({ is_active: false, ended_at: endedAt })
+                .eq('seller_user_id', userId)
+            if (tenureError) return { error: tenureError.message }
+
+            const { error: membershipError } = await supabase.from('vinculos_loja').delete().eq('user_id', userId)
+            if (membershipError) return { error: membershipError.message }
+
+            const { error: userError } = await supabase.from('usuarios').update({ active: false }).eq('id', userId)
+            if (userError) return { error: userError.message }
+        }
+
+        await fetchTeam()
+        return { error: null }
     }
 
     const registerUser = async (userData: { 
@@ -166,6 +281,8 @@ export function useTeam(storeIdOverride?: string) {
         loading, 
         refetch: fetchTeam,
         updateVigencia,
+        updateTeamMember,
+        deleteTeamMember,
         registerUser
     }
 }
