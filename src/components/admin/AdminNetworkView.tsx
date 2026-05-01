@@ -55,7 +55,7 @@ export function AdminNetworkView() {
                   <Building2 size={20} className="sm:size-mx-md" />
                 </div>
                 <div className="min-w-0">
-                  <Typography variant="h3" className="text-sm sm:text-lg truncate font-black uppercase tracking-tight">{store.store_name}</Typography>
+                  <Typography variant="h3" className="text-sm sm:text-lg font-black uppercase tracking-tight leading-tight whitespace-normal break-words">{store.store_name}</Typography>
                   <Typography variant="tiny" tone="muted" className="uppercase tracking-widest text-mx-nano sm:text-mx-micro">{total} ESPECIALISTAS</Typography>
                 </div>
               </div>
@@ -85,7 +85,7 @@ export function AdminNetworkView() {
                             {member.avatar_url ? <img src={member.avatar_url} alt="" className="w-full h-full object-cover" /> : <Users size={16} className="text-text-tertiary" />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <Typography className="font-black text-xs sm:text-sm uppercase tracking-tight truncate">{member.name}</Typography>
+                            <Typography className="font-black text-xs sm:text-sm uppercase tracking-tight leading-tight whitespace-normal break-words">{member.name}</Typography>
                             <Typography variant="tiny" tone="muted" className="uppercase text-mx-tiny font-bold">{member.role}</Typography>
                           </div>
                           {member.checkin_today ? <Zap size={16} className="text-status-success fill-status-success/20" /> : <Clock size={16} className="text-text-tertiary opacity-20" />}

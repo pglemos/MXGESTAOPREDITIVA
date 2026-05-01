@@ -8,7 +8,7 @@ import { supabase as originalSupabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useAllStoreGoals } from '@/hooks/useGoals'
 import { useNotifications } from '@/hooks/useData'
-import { cn } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
@@ -53,8 +53,7 @@ export default function PainelConsultor() {
 
     const handleStoreClick = (storeId: string, storeName: string) => {
         setActiveStoreId(storeId)
-        const slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        navigate(`/loja/${slug}`)
+        navigate(`/loja/${slugify(storeName)}`)
         toast.info('Unidade selecionada para monitoramento.')
     }
 

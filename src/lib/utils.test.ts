@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { cn, toCamelCase, toSnakeCase } from './utils'
+import { cn, slugify, toCamelCase, toSnakeCase } from './utils'
 
 describe('cn utility', () => {
   it('should merge class names correctly', () => {
@@ -34,6 +34,18 @@ describe('cn utility', () => {
 
   it('should handle empty inputs', () => {
     expect(cn()).toBe('')
+  })
+})
+
+describe('slugify utility', () => {
+  it('should preserve readable store slugs when names have accents', () => {
+    expect(slugify('PISCAR VEÍCULOS')).toBe('piscar-veiculos')
+    expect(slugify('OTÁVIO LAGE')).toBe('otavio-lage')
+    expect(slugify('BEDIM AUTOMÓVEIS')).toBe('bedim-automoveis')
+  })
+
+  it('should collapse separators and trim generated slugs', () => {
+    expect(slugify('  InvestCar MG / RJ  ')).toBe('investcar-mg-rj')
   })
 })
 

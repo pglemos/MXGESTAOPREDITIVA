@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
@@ -92,8 +92,8 @@ export default function Lojas() {
                     <div className="w-mx-8 h-mx-8 sm:w-mx-14 sm:h-mx-14 rounded-mx-lg sm:rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3 shrink-0" aria-hidden="true">
                         <Building2 size={18} className="sm:size-mx-md" />
                     </div>
-                    <div className="min-w-0">
-                        <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate max-w-mx-2xl font-black">{store.name}</Typography>
+                    <div className="min-w-0 flex-1">
+                        <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black leading-tight whitespace-normal break-words">{store.name}</Typography>
                         <Typography variant="tiny" tone="muted" className="text-mx-nano sm:text-mx-tiny font-black uppercase mt-0.5">ID: {store.id.split('-')[0]}</Typography>
                     </div>
                 </div>
@@ -143,7 +143,7 @@ export default function Lojas() {
                     {store.active ? (
                         <>
                             <Button asChild variant="secondary" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny">
-                                <Link to={`/loja/${store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>DASH</Link>
+                                <Link to={`/loja/${slugify(store.name)}`}>DASH</Link>
                             </Button>
                             <Button asChild variant="outline" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny border-border-strong bg-white">
                                 <Link to={`/equipe?id=${store.id}`}>EQUIPE</Link>

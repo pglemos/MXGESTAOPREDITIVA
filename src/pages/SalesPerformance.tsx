@@ -4,7 +4,7 @@ import {
     Activity, Target, Zap, Building2, ArrowRight
 } from 'lucide-react'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts'
-import { cn } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { toast } from 'sonner'
 import { motion } from 'motion/react'
 import { useCheckins } from '@/hooks/useCheckins'
@@ -55,8 +55,7 @@ function AdminPerformance() {
 
     const handleStoreClick = useCallback((storeId: string, storeName: string) => {
         setActiveStoreId(storeId)
-        const slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        navigate(`/loja/${slug}`)
+        navigate(`/loja/${slugify(storeName)}`)
     }, [setActiveStoreId, navigate])
 
     if (loading) return (

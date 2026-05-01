@@ -97,7 +97,7 @@ export function useTeam(storeIdOverride?: string) {
             tenureMap = new Map((tenures || []).map(t => [t.seller_user_id, t]))
 
             // 3. Fetch Checkins
-            let checkinsQuery = supabase.from('lancamentos_diarios').select('seller_user_id').eq('reference_date', referenceDate)
+            let checkinsQuery = supabase.from('lancamentos_diarios').select('seller_user_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
             if (storeId && storeId !== 'all') {
                 checkinsQuery = checkinsQuery.eq('store_id', storeId)
             }
@@ -343,7 +343,7 @@ export function useStoresStats() {
             }
 
             let sellersQuery = supabase.from('vendedores_loja').select('store_id').eq('is_active', true)
-            let checkinsQuery = supabase.from('lancamentos_diarios').select('store_id').eq('reference_date', referenceDate)
+            let checkinsQuery = supabase.from('lancamentos_diarios').select('store_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
 
             if (authorizedStoreIds) {
                 sellersQuery = sellersQuery.in('store_id', authorizedStoreIds)
@@ -412,6 +412,7 @@ export function useSellersByStore(storeId: string | null) {
             .select('seller_user_id')
             .eq('store_id', storeId)
             .eq('reference_date', referenceDate)
+            .eq('metric_scope', 'daily')
 
         const checkedIn = new Set(checkins?.map(c => c.seller_user_id) || [])
 

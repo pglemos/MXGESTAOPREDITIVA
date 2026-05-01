@@ -205,6 +205,7 @@ export function useCheckinsByDateRange(storeId: string | null, startDate: string
             .from('lancamentos_diarios')
             .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
+            .eq('metric_scope', 'daily')
             .gte('reference_date', startDate)
             .lte('reference_date', endDate)
             .order('reference_date', { ascending: false })

@@ -1,4 +1,4 @@
-import { useSellersByStore } from '@/hooks/useTeam'
+import { useSellersByStore, useStores } from '@/hooks/useTeam'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { useStoreGoal } from '@/hooks/useGoals'
@@ -6,10 +6,9 @@ import { useStoreSales } from '@/hooks/useStoreSales'
 import { useDRE } from '@/hooks/useDRE'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { 
-    Target, RefreshCw, Search, Globe, ChevronDown, Calendar, History, Settings, Users,
-    ArrowRight
+    RefreshCw, Search, Globe, ChevronDown, Calendar, History, ArrowRight
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { format, subDays, startOfMonth } from 'date-fns'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { motion } from 'motion/react'
@@ -19,8 +18,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
-import { AdminNetworkView } from '@/components/admin/AdminNetworkView'
-import { useParams, Link, Navigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 import { supabase } from '@/lib/supabase'
@@ -28,81 +26,75 @@ import { supabase } from '@/lib/supabase'
 export default function DashboardLoja() {
     const { role, storeId: authStoreId, setActiveStoreId, vinculos_loja } = useAuth()
     const { storeSlug } = useParams()
+    const navigate = useNavigate()
+    const { lojas, loading: storesLoading } = useStores()
 
     const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(null)
     const [resolving, setResolving] = useState(!!storeSlug)
 
-    useEffect(() => {
-        const resolve = async () => {
-            if (!storeSlug) {
-                setResolving(false)
-                return
-            }            
-            setResolving(true)
-            
-            // 1. Tentar resolver pelas associações do usuário (mais rápido)
-            const found = vinculos_loja.find(m => {
-                const slug = m.store?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                return slug === storeSlug
-            })
+    const activeStores = useMemo(() => (lojas || []).filter(store => store.active), [lojas])
+    const selectableStores = useMemo(() => {
+        if (isPerfilInternoMx(role)) return activeStores
+        return activeStores.filter(store => vinculos_loja.some(m => m.store_id === store.id))
+    }, [activeStores, role, vinculos_loja])
 
-            if (found) {
-                setResolvedStoreId(found.store_id)
+    const queryStoreId = useMemo(() => {
+        if (typeof window === 'undefined') return null
+        return new URLSearchParams(window.location.search).get('id')
+    }, [])
+
+    useEffect(() => {
+        const resolve = () => {
+            if (!storeSlug) {
+                setResolvedStoreId(null)
                 setResolving(false)
                 return
             }
 
-            // 2. Tentar resolver via RPC ou Query global (para Admin/Dono)
-            if (isPerfilInternoMx(role) || role === 'dono') {
-                try {
-                    const { supabase } = await import('@/lib/supabase')
-                    const { data: allStores } = await supabase.from('lojas').select('id, name').eq('active', true)
-                    
-                    const match = allStores?.find(s => {
-                        const slug = s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                        return slug === storeSlug
-                    })
+            if (storesLoading && selectableStores.length === 0) {
+                setResolving(true)
+                return
+            }
 
-                    if (match) {
-                        setResolvedStoreId(match.id)
-                    } else {
-                        toast.error('Unidade não localizada.')
-                    }
-                } catch (err) {
-                    console.error('Erro ao resolver slug:', err)
-                }
+            setResolving(true)
+            const found = selectableStores.find(store => slugify(store.name) === storeSlug)
+
+            if (found) {
+                setResolvedStoreId(found.id)
+                setResolving(false)
+                return
+            }
+
+            setResolvedStoreId(null)
+            if (!storesLoading) {
+                toast.error('Unidade não localizada.')
             }
             setResolving(false)
         }
 
         resolve()
-    }, [storeSlug, vinculos_loja, role])
+    }, [storeSlug, selectableStores, storesLoading])
 
-    const urlStoreId = resolvedStoreId || new URLSearchParams(window.location.search).get('id')
-    let storeId = urlStoreId || authStoreId
+    const urlStoreId = storeSlug ? resolvedStoreId : queryStoreId
+    const selectedStoreId = useMemo(() => {
+        const requestedStoreId = urlStoreId || (!storeSlug ? authStoreId || (isPerfilInternoMx(role) ? activeStores[0]?.id : null) : null) || null
 
-    // Bloqueio de Segurança: Gerente só vê as lojas que ele faz parte.
-    if (role === 'gerente' && storeId) {
-        const isMember = vinculos_loja.some(m => m.store_id === storeId)
-        if (!isMember) {
-            // Se tentar acessar loja que não é dele, força para a loja primária
-            storeId = authStoreId
+        if ((role === 'gerente' || role === 'dono') && requestedStoreId) {
+            const isMember = vinculos_loja.some(m => m.store_id === requestedStoreId)
+            return isMember ? requestedStoreId : authStoreId
         }
-    }
 
-    // Redirecionar apenas se NÃO estiver resolvendo e NÃO houver storeId válido
-    if (!resolving && !storeId && (isPerfilInternoMx(role) || role === 'dono')) {
-        return <Navigate to={isPerfilInternoMx(role) ? '/painel' : '/lojas'} replace />
-    }
+        return requestedStoreId
+    }, [activeStores, authStoreId, role, storeSlug, urlStoreId, vinculos_loja])
 
     useEffect(() => {
-        if (urlStoreId && urlStoreId !== authStoreId) {
-            setActiveStoreId(urlStoreId)
+        if (selectedStoreId && selectedStoreId !== authStoreId) {
+            setActiveStoreId(selectedStoreId)
         }
-    }, [urlStoreId, authStoreId, setActiveStoreId])
+    }, [selectedStoreId, authStoreId, setActiveStoreId])
 
-    const { sellers } = useSellersByStore(storeId)
-    const { goal: storeGoal } = useStoreGoal(storeId)
+    const { sellers } = useSellersByStore(selectedStoreId)
+    const { goal: storeGoal } = useStoreGoal(selectedStoreId)
 
     const [viewMode, setViewMode] = useState<'day' | 'month'>('day')
     const [startDate, setStartDate] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'))
@@ -114,24 +106,24 @@ export default function DashboardLoja() {
     const [referenceDate] = useState(() => format(subDays(new Date(), 1), 'yyyy-MM-dd'))
     
     const { checkins, loading, refetch } = useCheckinsByDateRange(
-        storeId, 
+        selectedStoreId, 
         viewMode === 'day' ? referenceDate : startDate, 
         viewMode === 'day' ? referenceDate : endDate
     )
 
     // Realtime Sync: Escutar alterações na tabela de checkins para esta loja
     useEffect(() => {
-        if (!storeId) return
+        if (!selectedStoreId) return
 
         const channel = supabase
-            .channel(`dashboard-sync-${storeId}`)
+            .channel(`dashboard-sync-${selectedStoreId}`)
             .on(
                 'postgres_changes',
                 {
                     event: '*',
                     schema: 'public',
                     table: 'lancamentos_diarios',
-                    filter: `store_id=eq.${storeId}`
+                    filter: `store_id=eq.${selectedStoreId}`
                 },
                 () => {
                     refetch() // Recarregar dados quando houver mudança real no banco
@@ -142,7 +134,7 @@ export default function DashboardLoja() {
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [storeId, refetch])
+    }, [selectedStoreId, refetch])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -166,6 +158,7 @@ export default function DashboardLoja() {
             ranking: (sellers || []).map(s => {
                 const sellerCheckins = checkinsBySeller[s.id] || []
                 return {
+                    id: s.id,
                     user_id: s.id,
                     user_name: s.name,
                     is_venda_loja: s.is_venda_loja || false,
@@ -189,12 +182,18 @@ export default function DashboardLoja() {
     }, [checkins, sellers, storeGoal])
 
     const storeSales = useStoreSales(storeSalesParams)
-    const { financials, computeDRE: computeDREFn } = useDRE(undefined, storeId || undefined)
+    const { financials, computeDRE: computeDREFn } = useDRE(undefined, selectedStoreId || undefined)
 
     const latestDRE = useMemo(() => {
         if (!financials || financials.length === 0) return null
         return computeDREFn(financials[0])
     }, [financials, computeDREFn])
+
+    const selectedStore = useMemo(() => {
+        return activeStores.find(store => store.id === selectedStoreId)
+            || vinculos_loja.find(m => m.store_id === selectedStoreId)?.store
+            || null
+    }, [activeStores, selectedStoreId, vinculos_loja])
 
     const metrics = useMemo(() => {
         const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
@@ -207,9 +206,9 @@ export default function DashboardLoja() {
             goalValue: storeSales.storeGoal,
             checkedInCount,
             ranking: storeSales.processedRanking,
-            storeName: vinculos_loja?.find(m => m.store_id === storeId)?.store?.name || 'Unidade MX'
+            storeName: selectedStore?.name || 'Unidade MX'
         }
-    }, [storeSales, sellers, vinculos_loja, storeId])
+    }, [storeSales, sellers, selectedStore])
 
     const funilData = useMemo(() => calcularFunil(checkins as any), [checkins])
     const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
@@ -243,7 +242,7 @@ export default function DashboardLoja() {
                         {r.user_name.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                        <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black truncate">{r.user_name}</Typography>
+                        <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black leading-tight whitespace-normal break-words">{r.user_name}</Typography>
                         {r.is_venda_loja && <span className="text-mx-nano font-black bg-brand-primary text-white px-1 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>}
                     </div>
                 </div>
@@ -274,7 +273,11 @@ export default function DashboardLoja() {
         return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
     }, [metrics.ranking, sellerSearch])
 
-    if (resolving) return (
+    if (!resolving && !storesLoading && !selectedStoreId && (isPerfilInternoMx(role) || role === 'dono')) {
+        return <Navigate to={isPerfilInternoMx(role) ? '/lojas' : '/painel'} replace />
+    }
+
+    if (resolving || (storesLoading && isPerfilInternoMx(role) && !selectedStoreId)) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status">
             <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
             <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Identificando Unidade...</Typography>
@@ -309,19 +312,19 @@ export default function DashboardLoja() {
                         {(isPerfilInternoMx(role) || role === 'dono') ? (
                             <div className="relative group">
                                 <select 
-                                    value={storeId || ''} 
+                                    value={selectedStoreId || ''} 
                                     onChange={e => {
                                         const newStoreId = e.target.value
-                                        const newStore = vinculos_loja.find(m => m.store_id === newStoreId)
-                                        if (newStore?.store) {
-                                            const slug = newStore.store.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                                            window.location.href = `/loja/${slug}`
+                                        const newStore = selectableStores.find(store => store.id === newStoreId)
+                                        if (newStore) {
+                                            setActiveStoreId(newStoreId)
+                                            navigate(`/loja/${slugify(newStore.name)}`)
                                         }
                                     }}
-                                    className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors"
+                                    className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors whitespace-normal max-w-full"
                                 >
-                                    {vinculos_loja.map(m => (
-                                        <option key={m.store_id} value={m.store_id} className="text-lg bg-white">{m.store?.name?.toUpperCase() || 'LOJA'}</option>
+                                    {selectableStores.map(store => (
+                                        <option key={store.id} value={store.id} className="text-lg bg-white">{store.name.toUpperCase()}</option>
                                     ))}
                                 </select>
                                 <ChevronDown size={24} className="absolute right-mx-0 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
@@ -357,10 +360,6 @@ export default function DashboardLoja() {
                     </Button>
                 </div>
             </header>
-
-            {isPerfilInternoMx(role) && !urlStoreId && (
-                <div className="mb-mx-lg"><AdminNetworkView /></div>
-            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
                 <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
