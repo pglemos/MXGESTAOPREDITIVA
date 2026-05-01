@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import { MotionConfig } from 'motion/react'
 import Layout from '@/components/Layout'
 import LegacyModuleShell from '@/components/LegacyModuleShell'
+import { slugify } from '@/lib/utils'
 
 // Pages — Lazy loaded
 const OAuthHome = lazy(() => import('@/pages/OAuthHome'))
@@ -123,10 +124,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function RoleRedirect() {
-  const { role } = useAuth()
+  const { role, membership } = useAuth()
   if (isPerfilInternoMx(role)) return <Navigate to="/painel" replace />
   if (role === 'dono') return <Navigate to="/lojas" replace />
-  if (role === 'gerente') return <Navigate to="/loja" replace />
+  if (role === 'gerente') {
+    const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/lojas'
+    return <Navigate to={storeDashboardPath} replace />
+  }
   return <Navigate to="/home" replace />
 }
 
@@ -189,10 +193,7 @@ export default function App() {
             <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
 
             {/* Gerente */}
-            <Route path="loja" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
-            </Suspense>} />
-            <Route path="loja/:storeSlug" element={<Suspense fallback={<Spinner />}>
+            <Route path="lojas/:storeSlug" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
             </Suspense>} />
             <Route path="equipe" element={<Suspense fallback={<Spinner />}>
@@ -228,7 +229,7 @@ export default function App() {
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
             <Route path="configuracoes/consultoria-pmr" element={<Suspense fallback={<Spinner />}><ConsultoriaParametros /></Suspense>} />
             <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Navigate to="/loja" replace />} dono={<Navigate to="/lojas" replace />} admin={<Reprocessamento />} />
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<RoleRedirect />} dono={<Navigate to="/lojas" replace />} admin={<Reprocessamento />} />
             </Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
             <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}><SalesPerformance /></Suspense>} />

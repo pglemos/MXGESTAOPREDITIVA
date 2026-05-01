@@ -11,7 +11,7 @@ import {
   BriefcaseBusiness,
   CalendarDays,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
 import MxLogo from '@/assets/mx-logo.png'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -19,6 +19,7 @@ import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordCha
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
+const STORE_DASHBOARD_PATH = '__STORE_DASHBOARD__'
 
 const rotulosPerfil: Record<string, string> = {
   administrador_geral: 'Administrador geral',
@@ -72,7 +73,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'Visão Executiva', icon: <Building2 size={22} />,
       items: [
         { label: 'Minhas Lojas', path: '/lojas', icon: <Building2 size={16} /> },
-        { label: 'Performance', path: '/loja', icon: <LayoutDashboard size={16} /> },
+        { label: 'Performance', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
         { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
       ]
@@ -90,7 +91,7 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'Operação Loja', icon: <Home size={22} />,
       items: [
-        { label: 'Painel da Loja', path: '/loja', icon: <LayoutDashboard size={16} /> },
+        { label: 'Painel da Loja', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Rotina Diária', path: '/rotina', icon: <CheckSquare size={16} /> },
         { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
@@ -129,7 +130,7 @@ const navConfig: Record<string, NavCategory[]> = {
 }
 
 export default function Layout() {
-  const { profile, role, signOut } = useAuth()
+  const { profile, role, signOut, membership } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const location = useLocation()
@@ -149,7 +150,14 @@ export default function Layout() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [mobileMenuOpen])
 
-  const categories = role ? (navConfig[role] || []) : []
+  const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/lojas'
+  const categories = React.useMemo(() => {
+    const baseCategories = role ? (navConfig[role] || []) : []
+    return baseCategories.map(category => ({
+      ...category,
+      items: category.items.map(item => item.path === STORE_DASHBOARD_PATH ? { ...item, path: storeDashboardPath } : item),
+    }))
+  }, [role, storeDashboardPath])
   const activeCategoryData = categories.find(c => c.category === activeCategory) || categories[0]
   const perfilVisivel = role ? rotulosPerfil[role] || 'Perfil autorizado' : 'Perfil autorizado'
 
@@ -387,9 +395,9 @@ export default function Layout() {
       <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-2xl bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
         <div className="flex w-full justify-between items-center relative z-10">
           <NavLink
-            to={role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? '/loja' : '/lojas'}
+            to={role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? storeDashboardPath : '/lojas'}
             aria-label="Início"
-            aria-current={location.pathname === (role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? '/loja' : '/lojas') ? 'page' : undefined}
+            aria-current={location.pathname === (role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? storeDashboardPath : '/lojas') ? 'page' : undefined}
             className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}

@@ -319,7 +319,7 @@ export default function DashboardLoja() {
                                         const newStore = selectableStores.find(store => store.id === newStoreId)
                                         if (newStore) {
                                             setActiveStoreId(newStoreId)
-                                            navigate(`/loja/${slugify(newStore.name)}`)
+                                            navigate(`/lojas/${slugify(newStore.name)}`)
                                         }
                                     }}
                                     className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors whitespace-normal max-w-full"

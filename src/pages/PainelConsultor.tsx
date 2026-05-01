@@ -53,7 +53,7 @@ export default function PainelConsultor() {
 
     const handleStoreClick = (storeId: string, storeName: string) => {
         setActiveStoreId(storeId)
-        navigate(`/loja/${slugify(storeName)}`)
+        navigate(`/lojas/${slugify(storeName)}`)
         toast.info('Unidade selecionada para monitoramento.')
     }
 

@@ -55,7 +55,7 @@ function AdminPerformance() {
 
     const handleStoreClick = useCallback((storeId: string, storeName: string) => {
         setActiveStoreId(storeId)
-        navigate(`/loja/${slugify(storeName)}`)
+        navigate(`/lojas/${slugify(storeName)}`)
     }, [setActiveStoreId, navigate])
 
     if (loading) return (
