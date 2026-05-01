@@ -76,8 +76,9 @@ export default function DashboardLoja() {
     }, [storeSlug, selectableStores, storesLoading])
 
     const urlStoreId = storeSlug ? resolvedStoreId : queryStoreId
+    const shouldUseStoreList = !storeSlug && !queryStoreId && (isPerfilInternoMx(role) || role === 'dono')
     const selectedStoreId = useMemo(() => {
-        const requestedStoreId = urlStoreId || (!storeSlug ? authStoreId || (isPerfilInternoMx(role) ? activeStores[0]?.id : null) : null) || null
+        const requestedStoreId = urlStoreId || (!storeSlug && !shouldUseStoreList ? authStoreId || (isPerfilInternoMx(role) ? activeStores[0]?.id : null) : null) || null
 
         if ((role === 'gerente' || role === 'dono') && requestedStoreId) {
             const isMember = vinculos_loja.some(m => m.store_id === requestedStoreId)
@@ -85,7 +86,7 @@ export default function DashboardLoja() {
         }
 
         return requestedStoreId
-    }, [activeStores, authStoreId, role, storeSlug, urlStoreId, vinculos_loja])
+    }, [activeStores, authStoreId, role, shouldUseStoreList, storeSlug, urlStoreId, vinculos_loja])
 
     useEffect(() => {
         if (selectedStoreId && selectedStoreId !== authStoreId) {
@@ -274,7 +275,7 @@ export default function DashboardLoja() {
     }, [metrics.ranking, sellerSearch])
 
     if (!resolving && !storesLoading && !selectedStoreId && (isPerfilInternoMx(role) || role === 'dono')) {
-        return <Navigate to={isPerfilInternoMx(role) ? '/lojas' : '/painel'} replace />
+        return <Navigate to="/lojas" replace />
     }
 
     if (resolving || (storesLoading && isPerfilInternoMx(role) && !selectedStoreId)) return (
