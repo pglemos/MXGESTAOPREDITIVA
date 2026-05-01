@@ -8,6 +8,7 @@ import LegacyModuleShell from '@/components/LegacyModuleShell'
 
 // Pages — Lazy loaded
 const OAuthHome = lazy(() => import('@/pages/OAuthHome'))
+const MXPerformanceLanding = lazy(() => import('@/pages/MXPerformanceLanding'))
 const Login = lazy(() => import('@/pages/Login'))
 const Privacy = lazy(() => import('@/pages/Privacy'))
 const Terms = lazy(() => import('@/pages/Terms'))
@@ -140,7 +141,7 @@ function PublicHome() {
 
   return (
     <Suspense fallback={<Spinner />}>
-      <OAuthHome />
+      <MXPerformanceLanding />
     </Suspense>
   )
 }
