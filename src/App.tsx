@@ -1,7 +1,6 @@
 import React, { Suspense, lazy, Component, type ReactNode, type ErrorInfo } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
-import { useStores } from '@/hooks/useTeam'
 import { Toaster } from 'sonner'
 import { MotionConfig } from 'motion/react'
 import Layout from '@/components/Layout'
@@ -150,17 +149,6 @@ function PublicHome() {
   )
 }
 
-const GoalManagementRedirect = () => {
-  const location = useLocation()
-  const { lojas, loading } = useStores()
-  const storeId = new URLSearchParams(location.search).get('id')
-  const store = storeId ? lojas.find(item => item.id === storeId) : null
-
-  if (storeId && loading) return <Spinner />
-  if (store) return <Navigate to={`/lojas/${slugify(store.name)}?tab=metas`} replace />
-  return <Navigate to="/lojas" replace />
-}
-
 export default function App() {
   return (
     <AuthProvider>
@@ -205,8 +193,6 @@ export default function App() {
             <Route path="equipe" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<Equipe />} dono={<Equipe />} admin={<Equipe />} />
             </Suspense>} />
-            <Route path="metas" element={<GoalManagementRedirect />} />
-            <Route path="goal-management" element={<GoalManagementRedirect />} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorPDI />} gerente={<GerentePDI />} dono={<GerentePDI />} admin={<GerentePDI />} />
             </Suspense>} />

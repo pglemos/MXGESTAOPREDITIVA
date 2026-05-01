@@ -16,7 +16,7 @@ Solicitação operacional: a página separada `/metas` não deve concentrar Meta
 - [x] Admin Master e Admin MX conseguem editar meta mensal e benchmarks.
 - [x] Admin Master e Admin MX conseguem excluir a configuração de metas da loja.
 - [x] Usuários fora de Admin Master/Admin MX não veem ações de edição/exclusão.
-- [x] `/metas` e `/goal-management` deixam de renderizar página separada e redirecionam para `/lojas` ou `/lojas/:slug?tab=metas` quando recebem `id`.
+- [x] `/metas` e `/goal-management` foram removidas do router; metas só existem dentro do fluxo `/lojas/:slug`.
 - [x] Navegação não aponta mais para `/metas`.
 - [x] Gates de qualidade: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
@@ -24,8 +24,8 @@ Solicitação operacional: a página separada `/metas` não deve concentrar Meta
 
 ### Debug Log
 
-- Movida a experiência da antiga página de metas para componente embutido em `/lojas/:slug?tab=metas`.
-- Rota legada `/metas?id=<store_id>` passa a redirecionar para a aba de metas da loja correspondente.
+- Movida a experiência da antiga página de metas para componente embutido no fluxo `/lojas/:slug`.
+- Removidas as rotas legadas `/metas` e `/goal-management`; não há redirect mantendo fluxo antigo vivo.
 - RLS reforçada para escrita em `regras_metas_loja` e `benchmarks_loja` somente via `eh_administrador_mx()`.
 - Gates locais passaram: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
