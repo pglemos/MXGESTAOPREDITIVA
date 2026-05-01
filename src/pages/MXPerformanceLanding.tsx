@@ -504,7 +504,7 @@ export default function MXPerformanceLanding() {
   useEffect(() => {
     document.body.classList.add('mxp-active')
     const prevTitle = document.title
-    document.title = 'MX Performance · Sistema operacional para lojas automotivas'
+    document.title = 'MX PERFORMANCE'
 
     // fonts link
     let fontsLink = document.querySelector<HTMLLinkElement>('link[data-mxp-fonts]')
@@ -764,7 +764,7 @@ export default function MXPerformanceLanding() {
       <div className="mxp-root">
         <header ref={topbarRef} className="topbar" role="banner">
           <div className="topbar-inner">
-            <a href="#" className="brand" aria-label="MX Performance · Início">
+            <a href="#" className="brand" aria-label="MX PERFORMANCE - Inicio">
               <div className="brand-mark">
                 <img src="/landing/logo-mx.png" alt="Logotipo MX" />
               </div>

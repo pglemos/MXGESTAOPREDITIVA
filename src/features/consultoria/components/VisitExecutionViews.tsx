@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { 
-  CheckCircle2, Circle, Zap, Target, ExternalLink, BarChart3, 
-  Clock, TrendingUp, Award, Rocket, ShieldCheck, AlertCircle,
-  ShieldAlert, Calculator, MousePointer2, Presentation, BarChart
+import {
+  CheckCircle2, Zap, Target, ExternalLink, BarChart3,
+  Clock, TrendingUp, Award, Rocket, ShieldCheck,
+  ShieldAlert, Calculator, Presentation
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card } from '@/components/molecules/Card'
@@ -11,7 +11,6 @@ import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
-import { Select } from '@/components/atoms/Select'
 import { useConsultingStrategicPlan } from '@/hooks/useConsultingStrategicPlan'
 import { useFeedbacks, usePDIs } from '@/hooks/useData'
 import { useTeam } from '@/hooks/useTeam'
@@ -30,7 +29,7 @@ export function VisitTwoExecution({ clientId, clientSlug }: { clientId: string, 
           Sem o formulário de ACOMPANHAMENTO DIÁRIO (SGAP) instalado no celular dos vendedores e a rotina validada, o trabalho não avança.
         </Typography>
       </Card>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
         <Card className="p-mx-lg bg-white border border-border-default shadow-sm rounded-mx-2xl flex flex-col justify-center gap-mx-md">
           <div className="flex items-center gap-mx-sm">
@@ -95,7 +94,7 @@ export function VisitThreeExecution() {
   )
 }
 
-export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: string, onGenerateSummary: (t: string) => void }) { 
+export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: string, onGenerateSummary: (t: string) => void }) {
   const { sellers } = useTeam(storeId)
   const { createFeedback } = useFeedbacks({ storeId })
   const [s, setS] = useState(false); const [v, setV] = useState(''); const [p, setP] = useState(''); const [a, setA] = useState(''); const [m, setM] = useState(0)
@@ -105,12 +104,12 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
     if (!v) return toast.error('Vendedor obrigatório')
     setS(true)
     try {
-      await createFeedback({ 
-        seller_id: v, 
-        positives: p, 
-        attention_points: '...', 
-        action: a, 
-        meta_compromisso: m, 
+      await createFeedback({
+        seller_id: v,
+        positives: p,
+        attention_points: '...',
+        action: a,
+        meta_compromisso: m,
         week_reference: new Date().toISOString(),
         leads_week: funnel.leads,
         agd_week: funnel.agd,
@@ -133,7 +132,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
         <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><TrendingUp size={20} /></div>
         <Typography variant="h3" className="text-lg">Visita 4: Ritual de Devolutiva e Funil</Typography>
       </div>
-      
+
       <div className="space-y-mx-md">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
           <div className="space-y-mx-md">
@@ -142,7 +141,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
               <option value="">Selecione o vendedor...</option>
               {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
-            
+
             <div className="grid grid-cols-2 gap-mx-sm">
               <div className="space-y-mx-xs">
                 <Typography variant="tiny" tone="muted">LEADS</Typography>
@@ -179,167 +178,203 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
         </div>
       </div>
     </Card>
-  ) 
-}
-
-export function VisitFiveExecution({ onGenerateSummary }: { onGenerateSummary: (t: string) => void }) {
-  const [topic, setTopic] = useState('')
-  const [participants, setParticipants] = useState('')
-  const [observations, setObservations] = useState('')
-
-  const handleSave = () => {
-    if (!topic || !participants) return toast.error('Preencha os campos obrigatórios')
-    onGenerateSummary(`--- TREINAMENTO DE VENDAS ---\nTema: ${topic}\nParticipantes: ${participants}\nObservações: ${observations}`)
-    toast.success('Treinamento registrado!')
-    setTopic(''); setParticipants(''); setObservations('')
-  }
-
-  return (
-    <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
-      <div className="flex items-center gap-mx-sm mb-mx-md">
-        <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Presentation size={20} /></div>
-        <Typography variant="h3" className="text-lg">Visita 5: Treinamento de Técnicas de Vendas</Typography>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
-        <div className="space-y-mx-md">
-          <div className="space-y-mx-xs">
-            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Tema do Treinamento</Typography>
-            <Input value={topic} onChange={e => setTopic(e.target.value)} placeholder="Ex: Contorno de Objeções, Fechamento..." className="h-mx-10" />
-          </div>
-          <div className="space-y-mx-xs">
-            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Participantes (Nomes)</Typography>
-            <Textarea value={participants} onChange={e => setParticipants(e.target.value)} placeholder="Quem participou?" className="min-h-mx-20" />
-          </div>
-        </div>
-        <div className="space-y-mx-md">
-          <div className="space-y-mx-xs">
-            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Parecer do Consultor</Typography>
-            <Textarea value={observations} onChange={e => setObservations(e.target.value)} placeholder="Como foi o engajamento? Algum destaque?" className="min-h-mx-40" />
-          </div>
-        </div>
-      </div>
-      <Button className="w-full mt-mx-md h-mx-12 font-black" variant="primary" onClick={handleSave} icon={<Presentation size={16} />}>REGISTRAR REALIZAÇÃO DO TREINAMENTO</Button>
-    </Card>
   )
 }
 
-export function VisitSixExecution({ clientId, clientSlug, onGenerateSummary }: { clientId: string, clientSlug: string, onGenerateSummary: (t: string) => void }) {
-  const [metrics, setMetrics] = useState({ current_sales: 0, projection: 0, new_goal: 0 })
-  const [rationale, setRationale] = useState('')
-
-  const calculateRunRate = (sales: number) => {
-    const now = new Date()
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-    const currentDay = now.getDate()
-    const projection = Math.round((sales / currentDay) * daysInMonth)
-    setMetrics(prev => ({ ...prev, current_sales: sales, projection }))
-  }
-
-  const handleSave = () => {
-    onGenerateSummary(`--- REVISÃO DE METAS PREDITIVA ---\nVendas Realizadas (D-atual): ${metrics.current_sales}\nProjeção Final (Run-rate): ${metrics.projection}\nNova Meta Pactuada: ${metrics.new_goal}\nEstratégia: ${rationale}`)
-    toast.success('Revisão de metas registrada!')
-    setMetrics({ current_sales: 0, projection: 0, new_goal: 0 }); setRationale('')
-  }
-
-  return (
-    <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
-      <div className="flex items-center gap-mx-sm mb-mx-md">
-        <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><BarChart size={20} /></div>
-        <Typography variant="h3" className="text-lg">Visita 6: Revisão de Metas (Matemática Preditiva)</Typography>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md mb-mx-md">
-        <div className="space-y-mx-xs">
-          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Vendas Realizadas (Hoje)</Typography>
-          <Input 
-            type="number" 
-            value={metrics.current_sales} 
-            onChange={e => calculateRunRate(parseInt(e.target.value) || 0)} 
-            className="h-mx-10 font-bold" 
-            placeholder="Qtd vendida até hoje"
-          />
-        </div>
-        <div className="space-y-mx-xs">
-          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Projeção Automática</Typography>
-          <div className="h-mx-10 flex items-center px-4 bg-surface-alt rounded-lg border border-border-default font-black text-brand-primary">
-            {metrics.projection} UNIDADES
-          </div>
-        </div>
-        <div className="space-y-mx-xs">
-          <Typography variant="tiny" className="font-bold text-brand-primary uppercase">Ajuste de Meta (Nova)</Typography>
-          <Input type="number" value={metrics.new_goal} onChange={e => setMetrics({...metrics, new_goal: parseInt(e.target.value) || 0})} className="h-mx-10 font-black text-brand-primary border-brand-primary/30" />
-        </div>
-      </div>
-      <div className="space-y-mx-xs mb-mx-md">
-        <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Justificativa e Plano de Ataque</Typography>
-        <Textarea value={rationale} onChange={e => setRationale(e.target.value)} placeholder="O que faremos para atingir ou superar a meta?" className="min-h-mx-20" />
-      </div>
-      <Button className="w-full h-mx-12 font-black" variant="primary" onClick={handleSave} icon={<Target size={16} />}>SALVAR REVISÃO E ATUALIZAR CRM</Button>
-    </Card>
-  )
-}
-
-export function VisitSevenExecution({ storeId, onGenerateSummary }: { storeId: string, onGenerateSummary: (t: string) => void }) { 
+export function VisitFiveExecution({ storeId, onGenerateSummary }: { storeId: string, onGenerateSummary: (t: string) => void }) {
   const { sellers } = useTeam(storeId)
   const { createPDI } = usePDIs(storeId)
-  const [s, setS] = useState(false); const [v, setV] = useState(''); const [o, setO] = useState('')
-  const [audit, setAudit] = useState({ crm: false, prep: false, posvenda: false })
+  const [isSaving, setIsSaving] = useState(false)
+  const [sellerId, setSellerId] = useState('')
+  const [goal6m, setGoal6m] = useState('')
+  const [goal12m, setGoal12m] = useState('')
+  const [action, setAction] = useState('')
+  const [notes, setNotes] = useState('')
 
-  const save = async () => {
-    if (!v || !o) return toast.error('Preencha os campos')
-    setS(true)
+  const handleSave = async () => {
+    if (!sellerId || !goal6m || !action) return toast.error('Selecione o vendedor e preencha objetivo e ação')
+    setIsSaving(true)
     try {
-      await createPDI({ 
-        seller_id: v, 
-        meta_6m: o, 
-        meta_12m: '...', 
-        meta_24m: '...',
-        action_1: '...',
-        comp_prospeccao: 3, comp_abordagem: 3, comp_demonstracao: 3, comp_fechamento: 3,
-        comp_crm: 3, comp_digital: 3, comp_disciplina: 3, comp_organizacao: 3,
-        comp_negociacao: 3, comp_produto: 3
+      await createPDI({
+        seller_id: sellerId,
+        meta_6m: goal6m,
+        meta_12m: goal12m || 'A definir',
+        meta_24m: 'A definir',
+        action_1: action,
+        comp_prospeccao: 3,
+        comp_abordagem: 3,
+        comp_demonstracao: 3,
+        comp_fechamento: 3,
+        comp_crm: 3,
+        comp_digital: 3,
+        comp_disciplina: 3,
+        comp_organizacao: 3,
+        comp_negociacao: 3,
+        comp_produto: 3
       })
-      const sn = sellers.find(s => s.id === v)?.name || 'Vnd'
-      onGenerateSummary(`--- AUDITORIA FINAL E PDI ---\nAudit CRM: ${audit.crm ? 'OK' : 'PENDENTE'}\nAudit Prep: ${audit.prep ? 'OK' : 'PENDENTE'}\nAudit Pós-Venda: ${audit.posvenda ? 'OK' : 'PENDENTE'}\n\nNOVO PDI: ${sn}\nObjetivo: ${o}`)
-      toast.success('PDI Criado com sucesso')
-      setO('')
-    } finally { setS(false) }
+
+      const sellerName = sellers.find(seller => seller.id === sellerId)?.name || 'Vendedor'
+      onGenerateSummary(`--- PDI VISITA 5: ${sellerName} ---\nObjetivo 6 meses: ${goal6m}\nObjetivo 12 meses: ${goal12m || 'A definir'}\nAção inicial: ${action}\nObservações: ${notes || 'Sem observações adicionais.'}`)
+      toast.success('PDI registrado no sistema')
+      setSellerId(''); setGoal6m(''); setGoal12m(''); setAction(''); setNotes('')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
     <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
       <div className="flex items-center gap-mx-sm mb-mx-md">
         <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Award size={20} /></div>
-        <Typography variant="h3" className="text-lg">Visita 7: Auditoria de Processos e PDI</Typography>
+        <Typography variant="h3" className="text-lg">Visita 5: Plano de Desenvolvimento Individual (PDI)</Typography>
       </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
         <div className="space-y-mx-md">
-           <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Checklist de Auditoria Final</Typography>
-           <div className="space-y-mx-xs">
-             {[
-               { k: 'crm', l: 'CRM: Dados Higienizados e Funil Real' },
-               { k: 'prep', l: 'PREP: Tempo Médio < 7 dias' },
-               { k: 'posvenda', l: 'PÓS-VENDA: Ritual de Satisfação Ativo' }
-             ].map(i => (
-               <label key={i.k} className="flex items-center gap-mx-sm p-mx-sm bg-surface-alt/30 rounded-mx-xl cursor-pointer hover:bg-surface-alt transition-colors">
-                 <input type="checkbox" checked={(audit as any)[i.k]} onChange={e => setAudit({...audit, [i.k]: e.target.checked})} className="w-mx-4 h-mx-4 rounded border-border-default text-brand-primary focus:ring-brand-primary" />
-                 <Typography variant="p" className="text-mx-micro font-bold text-text-secondary">{i.l}</Typography>
-               </label>
-             ))}
-           </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Vendedor / Gerente</Typography>
+            <select value={sellerId} onChange={e => setSellerId(e.target.value)} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold">
+              <option value="">Selecione...</option>
+              {sellers.map(seller => <option key={seller.id} value={seller.id}>{seller.name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Objetivo em 6 meses</Typography>
+            <Textarea value={goal6m} onChange={e => setGoal6m(e.target.value)} placeholder="Onde essa pessoa precisa estar em 6 meses?" className="min-h-mx-20" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Objetivo em 12 meses</Typography>
+            <Input value={goal12m} onChange={e => setGoal12m(e.target.value)} placeholder="Opcional" className="h-mx-10" />
+          </div>
+        </div>
+        <div className="space-y-mx-md">
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Ação inicial combinada</Typography>
+            <Textarea value={action} onChange={e => setAction(e.target.value)} placeholder="Primeira ação prática do PDI" className="min-h-mx-24" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Observações do consultor</Typography>
+            <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Contexto, riscos ou apoio necessário" className="min-h-mx-24" />
+          </div>
+        </div>
+      </div>
+      <Button className="w-full mt-mx-md h-mx-12 font-black" variant="primary" onClick={handleSave} loading={isSaving} icon={<Award size={16} />}>SALVAR PDI NO SISTEMA</Button>
+    </Card>
+  )
+}
+
+export function VisitSixExecution({ onGenerateSummary }: { onGenerateSummary: (t: string) => void }) {
+  const [plan, setPlan] = useState({
+    positioning: '',
+    owner: '',
+    startDate: '',
+    contentPillars: '',
+    trafficAction: '',
+    notes: ''
+  })
+
+  const handleSave = () => {
+    if (!plan.positioning || !plan.owner || !plan.startDate) return toast.error('Preencha posicionamento, responsável e prazo de início')
+    onGenerateSummary(`--- MARKETING, CONTEÚDO E TRÁFEGO ---\nPosicionamento: ${plan.positioning}\nResponsável: ${plan.owner}\nInício: ${plan.startDate}\nPilares de conteúdo: ${plan.contentPillars || 'A definir'}\nAção de tráfego pago: ${plan.trafficAction || 'A definir'}\nObservações: ${plan.notes || 'Sem observações adicionais.'}`)
+    toast.success('Plano de marketing registrado!')
+    setPlan({ positioning: '', owner: '', startDate: '', contentPillars: '', trafficAction: '', notes: '' })
+  }
+
+  return (
+    <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
+      <div className="flex items-center gap-mx-sm mb-mx-md">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Presentation size={20} /></div>
+        <Typography variant="h3" className="text-lg">Visita 6: Posicionamento de Marketing, Conteúdo e Tráfego Pago</Typography>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg mb-mx-md">
+        <div className="space-y-mx-xs">
+          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Posicionamento da loja</Typography>
+          <Textarea value={plan.positioning} onChange={e => setPlan({ ...plan, positioning: e.target.value })} placeholder="Qual mensagem a loja vai sustentar nos canais?" className="min-h-mx-24" />
+        </div>
+        <div className="space-y-mx-xs">
+          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Pilares de conteúdo</Typography>
+          <Textarea value={plan.contentPillars} onChange={e => setPlan({ ...plan, contentPillars: e.target.value })} placeholder="Ex: oferta, autoridade, bastidores, prova social" className="min-h-mx-24" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md mb-mx-md">
+        <div className="space-y-mx-xs">
+          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Responsável</Typography>
+          <Input value={plan.owner} onChange={e => setPlan({ ...plan, owner: e.target.value })} className="h-mx-10 font-bold" placeholder="Nome do responsável" />
+        </div>
+        <div className="space-y-mx-xs">
+          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Prazo de início</Typography>
+          <Input type="date" value={plan.startDate} onChange={e => setPlan({ ...plan, startDate: e.target.value })} className="h-mx-10 font-bold" />
+        </div>
+        <div className="space-y-mx-xs">
+          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Ação de tráfego pago</Typography>
+          <Input value={plan.trafficAction} onChange={e => setPlan({ ...plan, trafficAction: e.target.value })} className="h-mx-10 font-bold" placeholder="Campanha, verba ou público" />
+        </div>
+      </div>
+      <div className="space-y-mx-xs mb-mx-md">
+        <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Observações e próximos passos</Typography>
+        <Textarea value={plan.notes} onChange={e => setPlan({ ...plan, notes: e.target.value })} placeholder="Pendências, materiais necessários ou decisões do proprietário" className="min-h-mx-20" />
+      </div>
+      <Button className="w-full h-mx-12 font-black" variant="primary" onClick={handleSave} icon={<Presentation size={16} />}>REGISTRAR PLANO DE MARKETING</Button>
+    </Card>
+  )
+}
+
+export function VisitSevenExecution({ onGenerateSummary }: { onGenerateSummary: (t: string) => void }) {
+  const [review, setReview] = useState({
+    results: '',
+    positives: '',
+    improvements: '',
+    clientFeedback: '',
+    nextQuarterPlan: '',
+    followUpModel: ''
+  })
+
+  const save = () => {
+    if (!review.results || !review.nextQuarterPlan) return toast.error('Preencha resultado do trimestre e plano dos próximos 3 meses')
+    onGenerateSummary(`--- ANÁLISE DE IMPLEMENTAÇÕES E PLANO TRIMESTRAL ---\nResultados do trimestre: ${review.results}\nPontos positivos: ${review.positives || 'A registrar'}\nPontos a melhorar: ${review.improvements || 'A registrar'}\nFeedback do cliente: ${review.clientFeedback || 'A registrar'}\nPlano dos próximos 3 meses: ${review.nextQuarterPlan}\nModelo de acompanhamento: ${review.followUpModel || 'A definir'}`)
+    toast.success('Análise trimestral registrada!')
+    setReview({ results: '', positives: '', improvements: '', clientFeedback: '', nextQuarterPlan: '', followUpModel: '' })
+  }
+
+  return (
+    <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
+      <div className="flex items-center gap-mx-sm mb-mx-md">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Rocket size={20} /></div>
+        <Typography variant="h3" className="text-lg">Visita 7: Análise das Implementações e Plano de Ação Trimestral</Typography>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+        <div className="space-y-mx-md">
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Resultado do trimestre</Typography>
+            <Textarea value={review.results} onChange={e => setReview({ ...review, results: e.target.value })} className="min-h-mx-24 text-sm" placeholder="Indicadores, implementações concluídas e impacto observado" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Pontos positivos</Typography>
+            <Textarea value={review.positives} onChange={e => setReview({ ...review, positives: e.target.value })} className="min-h-mx-20 text-sm" placeholder="O que evoluiu e deve ser mantido" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Pontos a melhorar</Typography>
+            <Textarea value={review.improvements} onChange={e => setReview({ ...review, improvements: e.target.value })} className="min-h-mx-20 text-sm" placeholder="Gargalos, riscos e ajustes necessários" />
+          </div>
         </div>
 
         <div className="space-y-mx-md">
-          <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Novo Plano de Carreira (PDI)</Typography>
-          <select value={v} onChange={e => setV(e.target.value)} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold">
-            <option value="">Selecione o vendedor...</option>
-            {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-          <Textarea value={o} onChange={e => setO(e.target.value)} className="min-h-mx-20 text-sm" placeholder="Onde este vendedor quer estar em 6 meses?" />
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Feedback do cliente</Typography>
+            <Textarea value={review.clientFeedback} onChange={e => setReview({ ...review, clientFeedback: e.target.value })} className="min-h-mx-20 text-sm" placeholder="Percepção do proprietário/gestor sobre o ciclo" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Plano dos próximos 3 meses</Typography>
+            <Textarea value={review.nextQuarterPlan} onChange={e => setReview({ ...review, nextQuarterPlan: e.target.value })} className="min-h-mx-24 text-sm" placeholder="Prioridades, responsáveis e prazos do próximo trimestre" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Modelo de acompanhamento / renovação</Typography>
+            <Textarea value={review.followUpModel} onChange={e => setReview({ ...review, followUpModel: e.target.value })} className="min-h-mx-20 text-sm" placeholder="Como será acompanhado após a visita 7" />
+          </div>
         </div>
       </div>
 
-      <Button className="w-full mt-mx-md h-mx-12 font-black" variant="primary" onClick={save} loading={s} icon={<ShieldCheck size={16} />}>SALVAR AUDITORIA E ASSINAR PDI</Button>
+      <Button className="w-full mt-mx-md h-mx-12 font-black" variant="primary" onClick={save} icon={<Target size={16} />}>REGISTRAR ANÁLISE E PLANO TRIMESTRAL</Button>
     </Card>
   )
 }
@@ -349,13 +384,13 @@ export function VisitChecklist({ items, onToggle }: { items: Array<{ task: strin
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-mx-sm">
       {items.map((it, i) => (
-        <div 
-          key={i} 
-          onClick={() => toggle(i)} 
+        <div
+          key={i}
+          onClick={() => toggle(i)}
           className={cn(
-            "p-mx-md rounded-mx-xl border cursor-pointer transition-all flex items-center gap-mx-sm text-xs font-bold shadow-sm hover:shadow-mx-md active:scale-95", 
-            it.completed 
-              ? "bg-brand-primary/10 text-brand-primary border-brand-primary/30" 
+            "p-mx-md rounded-mx-xl border cursor-pointer transition-all flex items-start gap-mx-sm text-xs font-bold shadow-sm hover:shadow-mx-md active:scale-95 min-h-mx-16",
+            it.completed
+              ? "bg-brand-primary/10 text-brand-primary border-brand-primary/30"
               : "bg-white border-border-default text-text-secondary hover:border-brand-primary/40 hover:bg-surface-alt/20"
           )}
         >
@@ -365,7 +400,7 @@ export function VisitChecklist({ items, onToggle }: { items: Array<{ task: strin
           )}>
             <CheckCircle2 className="w-mx-4 h-mx-4" />
           </div>
-          <span className={cn("truncate transition-all", it.completed && "opacity-70")}>{it.task}</span>
+          <span className={cn("min-w-0 leading-snug text-left transition-all", it.completed && "opacity-70")}>{it.task}</span>
         </div>
       ))}
     </div>

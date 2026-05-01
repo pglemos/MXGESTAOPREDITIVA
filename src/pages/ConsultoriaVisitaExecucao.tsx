@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { 
+import {
   ArrowLeft, CheckCircle2, Circle, Save, FileText, Send,
   AlertCircle, Info, Building2, User2, Calendar,
   Plus, Trash2, Download, Loader2, Paperclip, Image,
@@ -26,10 +26,10 @@ import { Modal } from '@/components/organisms/Modal'
 
 import { VisitHeaderBase } from '@/features/consultoria/components/VisitHeaderBase'
 import { VisitOneHighFidelity } from '@/features/consultoria/components/VisitOneHighFidelity'
-import { 
-  VisitTwoExecution, VisitThreeExecution, VisitFourExecution, 
-  VisitFiveExecution, VisitSixExecution, VisitSevenExecution, 
-  VisitEightExecution, VisitNineExecution, VisitChecklist 
+import {
+  VisitTwoExecution, VisitThreeExecution, VisitFourExecution,
+  VisitFiveExecution, VisitSixExecution, VisitSevenExecution,
+  VisitEightExecution, VisitNineExecution, VisitChecklist
 } from '@/features/consultoria/components/VisitExecutionViews'
 import { VisitReportTemplate } from '@/features/consultoria/components/VisitReportTemplate'
 
@@ -40,10 +40,10 @@ export default function ConsultoriaVisitaExecucao() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const { client, loading: clientLoading, refetch } = useConsultingClientDetailBySlug(clientSlug)
-  
+
   const clientId = client?.id
   const resolvedStoreId = client?.primary_store_id || client?.store_id || ''
-  
+
   const { steps, loading: methodologyLoading } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const { templates, responsesByTemplate, saveResponse } = usePmrDiagnostics(clientId)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -97,9 +97,9 @@ export default function ConsultoriaVisitaExecucao() {
       })
       if ((visit as any).quant_data) setQuantData((visit as any).quant_data)
     } else if (step) {
-      setChecklist((step.checklist_template || []).map(item => ({ 
-        task: typeof item === 'string' ? item : (item as any).task, 
-        completed: (item as any).completed || false 
+      setChecklist((step.checklist_template || []).map(item => ({
+        task: typeof item === 'string' ? item : (item as any).task,
+        completed: (item as any).completed || false
       })))
       setHeaderBase(prev => ({ ...prev, consultant_name: profile?.name || '', tempo: step.duration || '1 DIA', alvo: step.target || 'Todos' }))
     }
@@ -158,7 +158,7 @@ export default function ConsultoriaVisitaExecucao() {
 
   const handleSave = async (complete: boolean = false) => {
     if (!clientId || !visitNum) return
-    
+
     if (complete && !hasRequiredEvidence) {
       toast.error(`Evidência Obrigatória: Esta etapa exige o upload de: ${step?.evidence_required}`, {
         duration: 5000,
@@ -179,7 +179,7 @@ export default function ConsultoriaVisitaExecucao() {
         effective_visit_date: headerBase.visit_date, quant_data: quantData,
         next_cycle_goal: nextCycleGoal
       }
-      
+
       let savedVisitId = visit?.id
       const { data: savedVisit, error } = await supabase
         .from('visitas_consultoria')
@@ -187,7 +187,7 @@ export default function ConsultoriaVisitaExecucao() {
         .select('id')
         .single()
       savedVisitId = savedVisit?.id || savedVisitId
-      
+
       if (error && (error.code === 'PGRST204' || error.message.includes('consultant_name_manual'))) {
         console.warn('Schema mismatch detected, retrying without extended fields...')
         const legacyPayload = { ...payload }
@@ -196,7 +196,7 @@ export default function ConsultoriaVisitaExecucao() {
         delete legacyPayload.acknowledged_at
         delete legacyPayload.acknowledged_by
         delete legacyPayload.next_cycle_goal
-        
+
         const { data: retryVisit, error: retryError } = await supabase
           .from('visitas_consultoria')
           .upsert(legacyPayload, { onConflict: 'client_id,visit_number' })
@@ -216,9 +216,9 @@ export default function ConsultoriaVisitaExecucao() {
 
       toast.success(complete ? 'Etapa Concluída com Sucesso!' : 'Progresso salvo'); refetch()
       if (complete) navigate(`/consultoria/clientes/${client?.slug}`)
-    } catch (err: any) { 
+    } catch (err: any) {
       console.error(err)
-      toast.error('Erro ao salvar: ' + err.message) 
+      toast.error('Erro ao salvar: ' + err.message)
     } finally { setIsSaving(false) }
   }
 
@@ -229,15 +229,15 @@ export default function ConsultoriaVisitaExecucao() {
         acknowledged_at: new Date().toISOString(),
         acknowledged_by: profile?.id
       }).eq('id', visit.id)
-      
+
       if (error && (error.code === 'PGRST204' || error.message.includes('acknowledged_at'))) {
          toast.error('Sistema em atualização: Coluna de assinatura ainda não disponível no banco de dados.')
          return
       }
-      
+
       if (error) throw error
       toast.success('Visita assinada/confirmada pelo gestor!')
-      
+
       try {
         supabase.functions.invoke('send-visit-report', {
           body: { visitId: visit.id }
@@ -253,13 +253,13 @@ export default function ConsultoriaVisitaExecucao() {
   const handleGenerateAISummary = () => {
     const completedTasks = checklist.filter(t => t.completed).map(t => t.task)
     const pendingTasks = checklist.filter(t => !t.completed).map(t => t.task)
-    
+
     let summary = `Durante a Visita ${visitNum}, focamos em: ${step?.objective}.\n\n`
-    
+
     if (completedTasks.length > 0) {
       summary += `✅ PONTOS CONCLUÍDOS:\n- ${completedTasks.join('\n- ')}\n\n`
     }
-    
+
     if (pendingTasks.length > 0) {
       summary += `⚠️ PONTOS PENDENTES:\n- ${pendingTasks.join('\n- ')}\n\n`
     }
@@ -278,7 +278,7 @@ export default function ConsultoriaVisitaExecucao() {
     const safeSales = quantData?.sales || []
     const safeMarketing = quantData?.marketing || { investment: 0, leads: 0, origin: [] }
     const safeStock = quantData?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
-    
+
     const totalSales = safeSales.reduce((acc: number, s: any) => acc + (s.value || 0), 0)
     const cpl = safeMarketing.leads > 0 ? (safeMarketing.investment / safeMarketing.leads).toFixed(2) : '0.00'
 
@@ -310,7 +310,7 @@ Gerado via MX PERFORMANCE`
 
   const handleDownloadPDF = async () => {
     const html2pdf = (await import('html2pdf.js')).default
-    
+
     const element = document.getElementById('report-template-render')
     if (!element) return
 
@@ -340,15 +340,15 @@ Gerado via MX PERFORMANCE`
     <div className="w-full pb-mx-xl relative z-0">
       <div className="fixed !-left-full top-mx-0 overflow-hidden pointer-events-none" aria-hidden="true">
          <div id="report-template-render">
-            <VisitReportTemplate 
-              client={client} 
-              visit={visit ? { ...visit, next_cycle_goal: nextCycleGoal, attachments } as any : { visit_number: visitNum, next_cycle_goal: nextCycleGoal, attachments } as any} 
-              headerBase={headerBase} 
-              quantData={quantData} 
+            <VisitReportTemplate
+              client={client}
+              visit={visit ? { ...visit, next_cycle_goal: nextCycleGoal, attachments } as any : { visit_number: visitNum, next_cycle_goal: nextCycleGoal, attachments } as any}
+              headerBase={headerBase}
+              quantData={quantData}
             />
          </div>
       </div>
-      
+
       <div className="sticky top-mx-0 z-40 bg-surface-alt/80 backdrop-blur-xl px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden border-b border-border-subtle shadow-mx-md transition-all">
         <div className="flex items-center gap-mx-md">
           <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-mx-xl hover:bg-white hover:shadow-mx-md transition-all text-text-secondary bg-white/50 backdrop-blur-sm shadow-mx-sm group">
@@ -371,20 +371,20 @@ Gerado via MX PERFORMANCE`
           </div>
         </div>
 
-        <div className="flex items-center gap-mx-sm w-full md:w-auto">
-          <Button variant="outline" className="flex-1 md:flex-none h-mx-11 text-xs font-black bg-white shadow-mx-sm uppercase tracking-mx-widest px-mx-md border-border-default hover:bg-surface-alt transition-all" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
-          <div className="relative flex-1 md:flex-none">
-            <Button 
-              variant="primary" 
-              className={cn("w-full md:w-auto h-mx-11 text-xs font-black shadow-mx-lg transition-all uppercase tracking-mx-widest px-mx-lg hover:translate-y-[-2px] active:translate-y-0", !hasRequiredEvidence ? "bg-status-error/20 text-status-error border-status-error/30" : "bg-gradient-to-r from-brand-primary to-brand-primary/80 border-none")} 
-              onClick={() => handleSave(true)} 
+        <div className="grid grid-cols-2 gap-mx-sm w-full md:flex md:items-center md:w-auto">
+          <Button variant="outline" className="w-full md:w-auto h-mx-11 text-xs font-black bg-white shadow-mx-sm uppercase tracking-mx-widest px-mx-sm md:px-mx-md border-border-default hover:bg-surface-alt transition-all" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
+          <div className="relative min-w-0">
+            <Button
+              variant="primary"
+              className={cn("w-full md:w-auto h-mx-11 text-[10px] sm:text-xs font-black shadow-mx-lg transition-all uppercase tracking-mx-widest px-mx-sm md:px-mx-lg hover:translate-y-[-2px] active:translate-y-0", !hasRequiredEvidence ? "bg-status-error/20 text-status-error border-status-error/30" : "bg-gradient-to-r from-brand-primary to-brand-primary/80 border-none")}
+              onClick={() => handleSave(true)}
               loading={isSaving}
               icon={!hasRequiredEvidence ? <AlertCircle className="w-mx-4 h-mx-4" /> : <CheckCircle2 className="w-mx-4 h-mx-4" />}
             >
               CONCLUIR VISITA
             </Button>
             {!hasRequiredEvidence && step?.evidence_required && (
-              <span className="absolute -top-1 -right-1 flex h-mx-4 w-mx-4 animate-pulse">
+              <span className="absolute -top-1 right-mx-0 flex h-mx-4 w-mx-4 animate-pulse">
                 <span className="relative inline-flex rounded-mx-full h-mx-4 w-mx-4 bg-status-error items-center justify-center text-mx-micro text-white font-black">!</span>
               </span>
             )}
@@ -393,13 +393,13 @@ Gerado via MX PERFORMANCE`
       </div>
 
       <div className="w-full px-mx-md lg:px-mx-xl grid grid-cols-1 lg:grid-cols-3 gap-mx-lg print:block print:p-0">
-        
+
         <div className="lg:col-span-2 space-y-mx-lg">
-          
-          <VisitHeaderBase 
-            data={headerBase} 
-            onChange={(u) => setHeaderBase(prev => ({ ...prev, ...u }))} 
-            clientName={client.name} 
+
+          <VisitHeaderBase
+            data={headerBase}
+            onChange={(u) => setHeaderBase(prev => ({ ...prev, ...u }))}
+            clientName={client.name}
           />
 
           <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden">
@@ -407,14 +407,14 @@ Gerado via MX PERFORMANCE`
                 <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><ClipboardCheck size={20} /></div>
                 <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Execução Metodológica</Typography>
              </div>
-             
+
              {visitNum === 1 && <VisitOneHighFidelity clientId={clientId!} clientSlug={clientSlug!} data={quantData} onChange={setQuantData} />}
              {visitNum === 2 && <VisitTwoExecution clientId={clientId!} clientSlug={clientSlug!} />}
              {visitNum === 3 && <VisitThreeExecution />}
              {visitNum === 4 && <VisitFourExecution storeId={resolvedStoreId} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
-             {visitNum === 5 && <VisitFiveExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
-             {visitNum === 6 && <VisitSixExecution clientId={clientId!} clientSlug={clientSlug!} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
-             {visitNum === 7 && <VisitSevenExecution storeId={resolvedStoreId} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
+             {visitNum === 5 && <VisitFiveExecution storeId={resolvedStoreId} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
+             {visitNum === 6 && <VisitSixExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
+             {visitNum === 7 && <VisitSevenExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 8 && <VisitEightExecution clientId={clientId!} clientSlug={clientSlug!} />}
              {visitNum === 9 && <VisitNineExecution financials={client.financials || []} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
 
@@ -436,11 +436,11 @@ Gerado via MX PERFORMANCE`
                 </div>
                 <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-mx-tiny tracking-mx-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} icon={<Sparkles size={14} />}>GERAR RASCUNHO AI</Button>
               </div>
-              <Textarea 
-                value={executiveSummary} 
-                onChange={(e) => setExecutiveSummary(e.target.value)} 
-                placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..." 
-                className="min-h-mx-64 text-sm bg-surface-alt/20 border-border-default focus:border-brand-primary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all mb-mx-md font-medium leading-relaxed relative z-10" 
+              <Textarea
+                value={executiveSummary}
+                onChange={(e) => setExecutiveSummary(e.target.value)}
+                placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..."
+                className="min-h-mx-64 text-sm bg-surface-alt/20 border-border-default focus:border-brand-primary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all mb-mx-md font-medium leading-relaxed relative z-10"
               />
               <div className="relative z-10">
                 <VisitActionQuickAdd clientId={clientId!} visitNumber={visitNum} />
@@ -456,11 +456,11 @@ Gerado via MX PERFORMANCE`
                   <div className="p-mx-xs bg-brand-secondary/10 rounded-mx-lg text-brand-secondary"><MessageSquare size={20} /></div>
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Devolutiva ao Cliente</Typography>
                 </div>
-                <Textarea 
-                  value={feedbackClient} 
-                  onChange={(e) => setFeedbackClient(e.target.value)} 
-                  placeholder="Pontos de atenção emergenciais..." 
-                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-brand-secondary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-medium leading-relaxed relative z-10" 
+                <Textarea
+                  value={feedbackClient}
+                  onChange={(e) => setFeedbackClient(e.target.value)}
+                  placeholder="Pontos de atenção emergenciais..."
+                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-brand-secondary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-medium leading-relaxed relative z-10"
                 />
               </Card>
 
@@ -472,11 +472,11 @@ Gerado via MX PERFORMANCE`
                   <div className="p-mx-xs bg-mx-orange-500/10 rounded-mx-lg text-mx-orange-500"><Target size={20} /></div>
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest text-mx-orange-600">Objetivo Próximo Ciclo</Typography>
                 </div>
-                <Textarea 
-                  value={nextCycleGoal} 
-                  onChange={(e) => setNextCycleGoal(e.target.value)} 
-                  placeholder="O que deve ser o foco da loja até a próxima visita da consultoria?" 
-                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-mx-orange-500 focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-bold leading-relaxed relative z-10 text-mx-orange-700" 
+                <Textarea
+                  value={nextCycleGoal}
+                  onChange={(e) => setNextCycleGoal(e.target.value)}
+                  placeholder="O que deve ser o foco da loja até a próxima visita da consultoria?"
+                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-mx-orange-500 focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-bold leading-relaxed relative z-10 text-mx-orange-700"
                 />
               </Card>
             </div>
@@ -508,7 +508,7 @@ Gerado via MX PERFORMANCE`
                <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*,application/pdf" />
                <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={isUploading} className="h-mx-10 font-black uppercase text-xs tracking-widest px-mx-md shadow-mx-sm" icon={<Plus size={14} />}>ADICIONAR</Button>
             </div>
-            
+
             {attachments.length === 0 ? (
                <div className="p-mx-md border border-dashed border-border-subtle rounded-mx-xl text-center opacity-50">
                   <Paperclip className="w-mx-6 h-mx-6 mx-auto mb-mx-xs text-text-tertiary" />
@@ -532,7 +532,7 @@ Gerado via MX PERFORMANCE`
                   ))}
                </div>
             )}
-            
+
             {step?.evidence_required && (
                <div className="mt-mx-md p-mx-md bg-status-error/10 border border-status-error/30 rounded-mx-xl flex gap-mx-sm animate-pulse shadow-sm">
                   <ShieldAlert className="w-mx-5 h-mx-5 text-status-error shrink-0" />
@@ -555,12 +555,12 @@ Gerado via MX PERFORMANCE`
                    <span className="relative z-10">VER RELATÓRIO</span>
                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
-               
+
                {visit?.status === 'concluida' && (
-                 <Button 
-                   className={cn("w-full shadow-mx-md font-black h-mx-11 uppercase tracking-widest text-xs", (visit as any).acknowledged_at ? "bg-status-success/10 text-status-success border-status-success/20 hover:bg-status-success/20" : "")} 
-                   variant="outline" 
-                   icon={(visit as any).acknowledged_at ? <ShieldCheck size={14} /> : <Award size={14} />} 
+                 <Button
+                   className={cn("w-full shadow-mx-md font-black h-mx-11 uppercase tracking-widest text-xs", (visit as any).acknowledged_at ? "bg-status-success/10 text-status-success border-status-success/20 hover:bg-status-success/20" : "")}
+                   variant="outline"
+                   icon={(visit as any).acknowledged_at ? <ShieldCheck size={14} /> : <Award size={14} />}
                    onClick={handleAcknowledge}
                    disabled={!!(visit as any).acknowledged_at}
                  >

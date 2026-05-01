@@ -8,6 +8,52 @@ import {
   type PmrFormTemplate,
 } from '@/lib/schemas/consulting-client.schema'
 
+const CANONICAL_FORM_ORDER = ['dono', 'gerente', 'processo', 'vendedor']
+
+const FORM_KEY_ALIASES: Record<string, string> = {
+  owner: 'dono',
+  proprietario: 'dono',
+  socio: 'dono',
+  socios: 'dono',
+  manager: 'gerente',
+  process: 'processo',
+  processos: 'processo',
+  seller: 'vendedor',
+  vendedores: 'vendedor',
+}
+
+export function getCanonicalPmrFormKey(value?: string | null) {
+  const normalized = (value || '').trim().toLowerCase()
+  return FORM_KEY_ALIASES[normalized] || normalized
+}
+
+function templatePriority(template: PmrFormTemplate) {
+  const canonicalKey = getCanonicalPmrFormKey(template.form_key)
+  let priority = template.form_key === canonicalKey ? 1000 : 0
+  priority += template.fields.length
+  return priority
+}
+
+function dedupeTemplates(templates: PmrFormTemplate[]) {
+  const byCanonical = new Map<string, PmrFormTemplate>()
+
+  for (const template of templates) {
+    const canonicalKey = getCanonicalPmrFormKey(template.form_key)
+    const current = byCanonical.get(canonicalKey)
+    if (!current || templatePriority(template) > templatePriority(current)) {
+      byCanonical.set(canonicalKey, template)
+    }
+  }
+
+  return Array.from(byCanonical.entries())
+    .sort(([keyA], [keyB]) => {
+      const orderA = CANONICAL_FORM_ORDER.indexOf(keyA)
+      const orderB = CANONICAL_FORM_ORDER.indexOf(keyB)
+      return (orderA < 0 ? 99 : orderA) - (orderB < 0 ? 99 : orderB)
+    })
+    .map(([, template]) => template)
+}
+
 export function usePmrDiagnostics(clientId?: string) {
   const { profile } = useAuth()
   const [templates, setTemplates] = useState<PmrFormTemplate[]>([])
@@ -44,13 +90,14 @@ export function usePmrDiagnostics(clientId?: string) {
       setTemplates([])
       setResponses([])
     } else {
-      setTemplates(parsePmrFormTemplateArray(templatesRes.data || []))
+      setTemplates(dedupeTemplates(parsePmrFormTemplateArray(templatesRes.data || [])))
       setResponses(parsePmrFormResponseArray(responsesRes.data || []))
     }
     setLoading(false)
   }, [clientId])
 
   const saveResponse = useCallback(async (input: {
+    response_id?: string
     template_id: string
     visit_id?: string | null
     respondent_name?: string
@@ -59,7 +106,8 @@ export function usePmrDiagnostics(clientId?: string) {
     summary?: string
   }) => {
     if (!clientId) return { error: 'Cliente nao informado.' }
-    const { error: insertError } = await supabase.from('respostas_formulario_pmr').insert({
+
+    const payload = {
       client_id: clientId,
       visit_id: input.visit_id || null,
       template_id: input.template_id,
@@ -68,9 +116,16 @@ export function usePmrDiagnostics(clientId?: string) {
       answers: input.answers,
       summary: input.summary?.trim() || null,
       submitted_by: profile?.id || null,
-    })
+    }
 
-    if (insertError) return { error: insertError.message }
+    const { error: writeError } = input.response_id
+      ? await supabase
+        .from('respostas_formulario_pmr')
+        .update(payload)
+        .eq('id', input.response_id)
+      : await supabase.from('respostas_formulario_pmr').insert(payload)
+
+    if (writeError) return { error: writeError.message }
     await fetchDiagnostics()
     return { error: null }
   }, [clientId, fetchDiagnostics, profile?.id])
@@ -81,14 +136,19 @@ export function usePmrDiagnostics(clientId?: string) {
 
   const responsesByTemplate = useMemo(() => {
     const map = new Map<string, PmrFormResponse[]>()
+    const canonicalTemplateId = new Map(
+      templates.map((template) => [getCanonicalPmrFormKey(template.form_key), template.id])
+    )
+
     for (const response of responses) {
-      const list = map.get(response.template_id) || []
+      const canonicalKey = getCanonicalPmrFormKey(response.template?.form_key || response.respondent_role)
+      const templateId = canonicalTemplateId.get(canonicalKey) || response.template_id
+      const list = map.get(templateId) || []
       list.push(response)
-      map.set(response.template_id, list)
+      map.set(templateId, list)
     }
     return map
-  }, [responses])
+  }, [responses, templates])
 
   return { templates, responses, responsesByTemplate, loading, error, saveResponse, refetch: fetchDiagnostics }
 }
-

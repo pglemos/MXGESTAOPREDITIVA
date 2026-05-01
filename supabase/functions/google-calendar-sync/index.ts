@@ -1,5 +1,5 @@
-// Sync visits → Google Calendar (personal + central MX)
-// POST { action: 'upsert' | 'delete', visit: {...} }
+// Sync MX agenda records → Google Calendar (personal + central MX)
+// POST { action: 'upsert' | 'delete', visit?: {...}, event?: {...} }
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -37,6 +37,26 @@ type VisitInput = {
   google_event_id_central?: string | null;
 };
 
+type ScheduleEventInput = {
+  id: string;
+  event_type?: "aula" | "evento_online" | "evento_presencial" | "bloqueio" | string | null;
+  title: string;
+  topic?: string | null;
+  starts_at: string;
+  duration_hours?: number | null;
+  modality?: string | null;
+  location?: string | null;
+  target_audience?: string | null;
+  audience_goal?: number | null;
+  responsible_name?: string | null;
+  responsible_email?: string | null;
+  ticket_price_text?: string | null;
+  visit_reason?: string | null;
+  product_name?: string | null;
+  google_event_id?: string | null;
+  status?: string | null;
+};
+
 function buildEventPayload(visit: VisitInput, ownerEmail?: string | null): GoogleEventInput {
   const start = new Date(visit.scheduled_at);
   const durationMs = Math.max(0.5, Number(visit.duration_hours ?? 3)) * 60 * 60 * 1000;
@@ -58,6 +78,49 @@ function buildEventPayload(visit: VisitInput, ownerEmail?: string | null): Googl
     start: { dateTime: start.toISOString(), timeZone: TIMEZONE },
     end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
     attendees: ownerEmail ? [{ email: ownerEmail }] : undefined,
+    reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }, { method: "email", minutes: 60 }] },
+  };
+}
+
+function getScheduleTypeLabel(type?: string | null) {
+  switch (type) {
+    case "aula":
+      return "Aula";
+    case "evento_online":
+      return "Evento online";
+    case "evento_presencial":
+      return "Evento presencial";
+    case "bloqueio":
+      return "Bloqueio de agenda";
+    default:
+      return "Evento";
+  }
+}
+
+function buildScheduleEventPayload(event: ScheduleEventInput): GoogleEventInput {
+  const start = new Date(event.starts_at);
+  const durationMs = Math.max(0.5, Number(event.duration_hours ?? 1)) * 60 * 60 * 1000;
+  const end = new Date(start.getTime() + durationMs);
+  const lines = [
+    event.topic ? `Tema: ${event.topic}` : null,
+    event.visit_reason ? `Motivo: ${event.visit_reason}` : null,
+    event.target_audience ? `Publico: ${event.target_audience}` : null,
+    event.audience_goal ? `Meta de publico: ${event.audience_goal}` : null,
+    event.product_name ? `Produto: ${event.product_name}` : null,
+    event.responsible_name ? `Responsavel: ${event.responsible_name}` : null,
+    event.modality ? `Modalidade: ${event.modality}` : null,
+    event.ticket_price_text ? `Ingresso: ${event.ticket_price_text}` : null,
+    event.status ? `Status: ${event.status}` : null,
+    `Origem: MX Performance (schedule event ${event.id})`,
+  ].filter(Boolean);
+
+  return {
+    summary: `MX • ${getScheduleTypeLabel(event.event_type)} — ${event.title}`,
+    description: lines.join("\n"),
+    location: event.location ?? undefined,
+    start: { dateTime: start.toISOString(), timeZone: TIMEZONE },
+    end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
+    attendees: event.responsible_email ? [{ email: event.responsible_email, displayName: event.responsible_name ?? undefined }] : undefined,
     reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }, { method: "email", minutes: 60 }] },
   };
 }
@@ -97,17 +160,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const sessionClient = createSessionClient(req.headers.get("Authorization"));
-    const { data: authData, error: authError } = await sessionClient.auth.getUser();
-    if (authError || !authData.user) {
-      return new Response(JSON.stringify({ error: "Invalid session" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const authHeader = req.headers.get("Authorization");
+    const serviceRoleBearer = `Bearer ${requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY)}`;
+    const adminSyncToken = Deno.env.get("GOOGLE_CALENDAR_SYNC_ADMIN_TOKEN");
+    const adminSyncHeader = req.headers.get("x-google-calendar-sync-admin-token");
+    const isServiceRoleCall = authHeader === serviceRoleBearer || (adminSyncToken ? adminSyncHeader === adminSyncToken : false);
+    let sessionClient: any = null;
+    let authUserId: string | null = null;
+
+    if (!isServiceRoleCall) {
+      sessionClient = createSessionClient(authHeader);
+      const { data: authData, error: authError } = await sessionClient.auth.getUser();
+      if (authError || !authData.user) {
+        return new Response(JSON.stringify({ error: "Invalid session" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      authUserId = authData.user.id;
     }
 
     const body = await req.json();
     const action: "upsert" | "delete" = body?.action === "delete" ? "delete" : "upsert";
-    const visit: VisitInput = body?.visit;
-    if (!visit?.id || !visit?.scheduled_at) {
+    const visit: VisitInput | null = body?.visit ?? null;
+    const scheduleEvent: ScheduleEventInput | null = body?.event ?? body?.scheduleEvent ?? null;
+    const syncKind = scheduleEvent ? "schedule_event" : "visit";
+
+    if (syncKind === "visit" && (!visit?.id || !visit?.scheduled_at)) {
       return new Response(JSON.stringify({ error: "visit.id and visit.scheduled_at are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (syncKind === "schedule_event" && (!scheduleEvent?.id || !scheduleEvent?.starts_at || !scheduleEvent?.title)) {
+      return new Response(JSON.stringify({ error: "event.id, event.title and event.starts_at are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const adminClient = createClient(
@@ -115,11 +195,15 @@ Deno.serve(async (req) => {
       requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
     );
 
-    const { token: userToken } = await getUserAccessToken(sessionClient, authData.user.id);
+    const { token: userToken } = syncKind === "visit" && sessionClient && authUserId
+      ? await getUserAccessToken(sessionClient, authUserId)
+      : { token: null };
     const centralToken = await getCentralCalendarAccessToken();
 
-    let personalEventId = visit.google_event_id ?? null;
-    let centralEventId = visit.google_event_id_central ?? null;
+    let personalEventId = visit?.google_event_id ?? null;
+    let centralEventId = syncKind === "schedule_event"
+      ? scheduleEvent?.google_event_id ?? null
+      : visit?.google_event_id_central ?? null;
     const errors: { calendar: "personal" | "central"; message: string }[] = [];
 
     if (action === "delete") {
@@ -138,11 +222,13 @@ Deno.serve(async (req) => {
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "delete failed" });
         }
+      } else if (!centralToken && centralEventId) {
+        errors.push({ calendar: "central", message: "Agenda Central MX nao conectada" });
       }
     } else {
-      const userPayload = buildEventPayload(visit, visit.consultant_email);
-      if (userToken) {
+      if (syncKind === "visit" && visit && userToken) {
         try {
+          const userPayload = buildEventPayload(visit, visit.consultant_email);
           personalEventId = await upsertGoogleEvent(userToken, "primary", userPayload, personalEventId);
         } catch (e) {
           errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "upsert failed" });
@@ -150,34 +236,57 @@ Deno.serve(async (req) => {
       }
       if (centralToken) {
         try {
-          const centralPayload = buildEventPayload(visit, CENTRAL_CALENDAR_EMAIL);
+          const centralPayload = scheduleEvent
+            ? buildScheduleEventPayload(scheduleEvent)
+            : buildEventPayload(visit!, CENTRAL_CALENDAR_EMAIL);
           centralEventId = await upsertGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralPayload, centralEventId);
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "upsert failed" });
         }
+      } else {
+        errors.push({ calendar: "central", message: "Agenda Central MX nao conectada" });
       }
     }
 
-    // Persist event IDs back into visitas_consultoria
-    const { error: updateError } = await adminClient
-      .from("visitas_consultoria")
-      .update({
-        google_event_id: personalEventId,
-        google_event_id_central: centralEventId,
-        google_synced_at: new Date().toISOString(),
-      })
-      .eq("id", visit.id);
-    if (updateError && updateError.code !== "PGRST204") {
-      // Column google_event_id_central may not exist yet — fall back to legacy update
-      await adminClient
+    const centralError = errors.find((item) => item.calendar === "central");
+    if (syncKind === "schedule_event" && scheduleEvent) {
+      const { error: eventUpdateError } = await adminClient
+        .from("eventos_agenda_consultoria")
+        .update({
+          google_event_id: centralEventId,
+          google_synced_at: centralError ? null : new Date().toISOString(),
+          google_sync_error: centralError?.message ?? null,
+        })
+        .eq("id", scheduleEvent.id);
+      if (eventUpdateError) {
+        await adminClient
+          .from("eventos_agenda_consultoria")
+          .update({ google_event_id: centralEventId })
+          .eq("id", scheduleEvent.id);
+      }
+    } else if (visit) {
+      // Persist event IDs back into visitas_consultoria
+      const { error: updateError } = await adminClient
         .from("visitas_consultoria")
-        .update({ google_event_id: personalEventId })
+        .update({
+          google_event_id: personalEventId,
+          google_event_id_central: centralEventId,
+          google_synced_at: centralError ? null : new Date().toISOString(),
+        })
         .eq("id", visit.id);
+      if (updateError && updateError.code !== "PGRST204") {
+        // Column google_event_id_central may not exist yet — fall back to legacy update
+        await adminClient
+          .from("visitas_consultoria")
+          .update({ google_event_id: personalEventId })
+          .eq("id", visit.id);
+      }
     }
 
     return new Response(
       JSON.stringify({
         ok: errors.length === 0,
+        kind: syncKind,
         personalEventId,
         centralEventId,
         errors,

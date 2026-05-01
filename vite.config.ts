@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'mx-logo.png'],
       manifest: {
-        name: 'MX Performance Calendar',
-        short_name: 'MX Calendar',
+        name: 'MX PERFORMANCE',
+        short_name: 'MX PERFORMANCE',
         description: 'Plataforma operacional da MX Consultoria para visitas e sincronizacao autorizada com Google Calendar',
         theme_color: '#0D3B2E',
         background_color: '#0D3B2E',

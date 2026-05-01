@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react'
-import { 
-  BarChart3, TrendingUp, MessageSquare, Sparkles, 
-  PieChart, Layers, ChevronRight, ChevronLeft, 
-  Paperclip, Trash2, Camera, Loader2, CheckCircle2,
+import React, { useEffect, useMemo, useState, useRef } from 'react'
+import {
+  BarChart3, TrendingUp, MessageSquare, Sparkles,
+  PieChart, Layers, ChevronRight, ChevronLeft,
+  Paperclip, Trash2, Camera, Loader2, CheckCircle2, Circle, Save,
   FileText, Plus, Info, Globe, Smartphone,
   Users, Target, Award, Zap, ShieldAlert,
   ArrowRight, MousePointer2, LayoutDashboard
@@ -13,13 +13,15 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Select } from '@/components/atoms/Select'
 import { Textarea } from '@/components/atoms/Textarea'
-import { 
-  ResponsiveContainer, PieChart as RePie, Pie, Cell, 
-  BarChart as ReBar, Bar, XAxis, YAxis, CartesianGrid, 
+import {
+  ResponsiveContainer, PieChart as RePie, Pie, Cell,
+  BarChart as ReBar, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, LineChart, Line
 } from 'recharts'
 import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
+import type { PmrFormField } from '@/lib/schemas/consulting-client.schema'
 import { cn } from '@/lib/utils'
 
 export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: { clientId: string, clientSlug: string, data: any, onChange: (d: any) => void }) {
@@ -57,7 +59,7 @@ export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: {
 
 function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) => void }) {
   const COLORS = ['#0D3B2E', '#22C55E', '#FACC15', '#6B7280']
-  
+
   const handleSalesChange = (index: number, value: number) => {
     const newSales = [...(data.sales || [])]
     newSales[index] = { ...newSales[index], value }
@@ -82,16 +84,16 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
               <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest opacity-60">Volume de emplacamentos/entregas</Typography>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md mb-mx-lg">
              {(data.sales || []).map((s: any, i: number) => (
                 <div key={s.month} className="space-y-mx-xs">
                    <Typography variant="tiny" className="font-black text-text-tertiary">{s.month.toUpperCase()}</Typography>
-                   <Input 
+                   <Input
                       id={`sales-${s.month}-${i}`}
                       name={`sales-${s.month}`}
-                      type="number" 
-                      value={s.value} 
+                      type="number"
+                      value={s.value}
                       onChange={e => handleSalesChange(i, parseInt(e.target.value) || 0)}
                       className="h-mx-12 font-black text-xl text-center border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all shadow-sm"
                    />
@@ -127,11 +129,11 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
           <div className="grid grid-cols-2 gap-mx-md mb-mx-lg">
              <div className="space-y-mx-xs">
                 <Typography variant="tiny" className="font-black text-text-tertiary uppercase">Investimento Total (R$)</Typography>
-                <Input 
+                <Input
                   id="marketing-investment"
                   name="marketing-investment"
-                  type="number" 
-                  value={data.marketing?.investment} 
+                  type="number"
+                  value={data.marketing?.investment}
                   onChange={e => onChange({ ...data, marketing: { ...data.marketing, investment: parseFloat(e.target.value) || 0 } })}
                   className="h-mx-12 font-black text-xl border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all"
                   placeholder="Ex: 5000"
@@ -139,11 +141,11 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
              </div>
              <div className="space-y-mx-xs">
                 <Typography variant="tiny" className="font-black text-text-tertiary uppercase">Leads Totais (UN)</Typography>
-                <Input 
+                <Input
                   id="marketing-leads"
                   name="marketing-leads"
-                  type="number" 
-                  value={data.marketing?.leads} 
+                  type="number"
+                  value={data.marketing?.leads}
                   onChange={e => onChange({ ...data, marketing: { ...data.marketing, leads: parseInt(e.target.value) || 0 } })}
                   className="h-mx-12 font-black text-xl border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all"
                   placeholder="Ex: 250"
@@ -201,11 +203,11 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
              ].map(f => (
                 <div key={f.k} className="space-y-mx-xs">
                    <Typography variant="tiny" className="font-black text-text-tertiary uppercase tracking-mx-widest text-mx-tiny">{f.l}</Typography>
-                   <Input 
+                   <Input
                       id={`stock-${f.k}`}
                       name={`stock-${f.k}`}
-                      type="number" 
-                      value={data.stock?.[f.k]} 
+                      type="number"
+                      value={data.stock?.[f.k]}
                       onChange={e => onChange({ ...data, stock: { ...data.stock, [f.k]: parseFloat(e.target.value) || 0 } })}
                       className="h-mx-10 font-bold border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all shadow-sm"
                       placeholder={f.p}
@@ -235,99 +237,283 @@ function VisitOneBenchmark({ data }: { data: any }) {
   )
 }
 
+function getInterviewLabel(formKey: string, fallback: string) {
+  const labels: Record<string, string> = {
+    dono: 'Dono / Sócio',
+    gerente: 'Gerente',
+    processo: 'Processos',
+    vendedor: 'Vendedores',
+  }
+  return labels[formKey] || fallback
+}
+
+function emptyInterviewAnswers(fields: PmrFormField[]) {
+  return Object.fromEntries(fields.map(field => [field.key, field.type === 'boolean' ? false : '']))
+}
+
+function parseInterviewValue(field: PmrFormField, value: string | boolean | number) {
+  if (field.type === 'boolean') return Boolean(value)
+  if (field.type === 'number' || field.type === 'scale') {
+    if (value === '') return null
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return String(value)
+}
+
 function VisitOneInterviews({ clientId }: { clientId: string }) {
   const { templates, responsesByTemplate, saveResponse } = usePmrDiagnostics(clientId)
   const [activeTmpl, setActiveTmpl] = useState<string | null>(null)
-  
-  if (!templates.length) return <div className="p-mx-lg text-center opacity-50">Carregando formulários de entrevista...</div>
+  const [answers, setAnswers] = useState<Record<string, unknown>>({})
+  const [respondentName, setRespondentName] = useState('')
+  const [summary, setSummary] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const currentTmpl = templates.find(t => t.id === activeTmpl) || templates[0]
+  const currentTmpl = useMemo(() => {
+    return templates.find(t => t.id === activeTmpl) || templates[0]
+  }, [activeTmpl, templates])
+
+  const currentResp = currentTmpl ? responsesByTemplate.get(currentTmpl.id)?.[0] : undefined
+  const currentResponses = currentTmpl ? responsesByTemplate.get(currentTmpl.id) || [] : []
+  const completedInterviews = templates.filter(template => (responsesByTemplate.get(template.id)?.length || 0) > 0).length
+
+  useEffect(() => {
+    if (!currentTmpl) return
+    setAnswers({
+      ...emptyInterviewAnswers(currentTmpl.fields),
+      ...(currentResp?.answers || {}),
+    })
+    setRespondentName(currentResp?.respondent_name || '')
+    setSummary(currentResp?.summary || '')
+  }, [currentTmpl?.id, currentResp?.id])
+
+  if (!templates.length || !currentTmpl) {
+    return <div className="p-mx-lg text-center opacity-50">Carregando formulários de entrevista...</div>
+  }
+
+  const updateField = (field: PmrFormField, value: string | boolean | number) => {
+    setAnswers(current => ({
+      ...current,
+      [field.key]: parseInterviewValue(field, value),
+    }))
+  }
+
+  const handleSaveInterview = async () => {
+    const missingRequired = currentTmpl.fields.some(field => {
+      if (!field.required) return false
+      const value = answers[field.key]
+      return value === '' || value === null || typeof value === 'undefined'
+    })
+
+    if (missingRequired) {
+      toast.error('Preencha os campos obrigatórios antes de salvar.')
+      return
+    }
+
+    setSaving(true)
+    const { error } = await saveResponse({
+      response_id: currentResp?.id,
+      template_id: currentTmpl.id,
+      respondent_name: respondentName,
+      respondent_role: getInterviewLabel(currentTmpl.form_key, currentTmpl.target_role),
+      answers,
+      summary,
+    })
+    setSaving(false)
+
+    if (error) {
+      toast.error(error)
+      return
+    }
+
+    toast.success(currentResp ? 'Entrevista atualizada.' : 'Entrevista salva.')
+  }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-mx-lg">
-        <div className="lg:col-span-1 space-y-mx-sm">
-          {templates.map(t => {
-             const hasResp = responsesByTemplate.has(t.id) && responsesByTemplate.get(t.id)!.length > 0
-             const isActive = currentTmpl.id === t.id
-             return (
-                <button 
-                  key={t.id} 
-                  onClick={() => setActiveTmpl(t.id)}
-                  className={cn(
-                    "w-full text-left p-mx-md rounded-mx-xl border transition-all relative overflow-hidden group shadow-sm",
-                    isActive 
-                      ? "bg-brand-primary border-brand-primary text-white shadow-mx-lg translate-x-mx-1" 
-                      : "bg-white border-border-default hover:border-brand-primary/30 hover:bg-surface-alt"
-                  )}
-                >
-                   {hasResp && (
-                     <div className={cn("absolute top-mx-sm right-mx-sm", isActive ? "text-white/50" : "text-status-success")}>
-                       <CheckCircle2 size={16} />
-                     </div>
-                   )}
-                   <Typography variant="tiny" className={cn("uppercase font-black tracking-mx-widest text-mx-tiny", isActive ? "text-white/70" : "text-text-tertiary")}>
-                     {t.target_role}
-                   </Typography>
-                   <Typography variant="h3" className={cn("text-sm font-black", isActive ? "text-white" : "text-text-primary")}>
-                     {t.title}
-                   </Typography>
-                </button>
-             )
-          })}
-       </div>
+    <div className="space-y-mx-lg">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-mx-md">
+        {templates.map(t => {
+          const responses = responsesByTemplate.get(t.id) || []
+          const isActive = currentTmpl.id === t.id
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTmpl(t.id)}
+              className={cn(
+                "text-left p-mx-md rounded-mx-xl border transition-all relative overflow-hidden shadow-sm min-h-mx-28",
+                isActive
+                  ? "bg-brand-primary border-brand-primary text-white shadow-mx-lg"
+                  : "bg-white border-border-default hover:border-brand-primary/30 hover:bg-surface-alt"
+              )}
+            >
+              <div className="flex items-start justify-between gap-mx-sm">
+                <div>
+                  <Typography variant="tiny" className={cn("uppercase font-black tracking-mx-widest text-mx-tiny", isActive ? "text-white/70" : "text-text-tertiary")}>
+                    Entrevista
+                  </Typography>
+                  <Typography variant="h3" className={cn("text-base font-black leading-tight", isActive ? "text-white" : "text-text-primary")}>
+                    {getInterviewLabel(t.form_key, t.title)}
+                  </Typography>
+                </div>
+                {responses.length ? (
+                  <CheckCircle2 className={cn("w-mx-5 h-mx-5 shrink-0", isActive ? "text-white/70" : "text-status-success")} />
+                ) : (
+                  <Circle className={cn("w-mx-5 h-mx-5 shrink-0", isActive ? "text-white/40" : "text-text-tertiary/50")} />
+                )}
+              </div>
+              <Typography variant="tiny" className={cn("mt-mx-md block font-bold", isActive ? "text-white/70" : "text-text-tertiary")}>
+                {responses.length ? `${responses.length} resposta(s) agrupada(s)` : 'Pendente'}
+              </Typography>
+            </button>
+          )
+        })}
+      </div>
 
-        <Card className="lg:col-span-3 p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
-           <div className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-subtle pb-mx-md">
-              <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Users size={20} /></div>
-              <Typography variant="h3" className="text-xl font-black text-text-primary uppercase tracking-tight">Entrevista: {currentTmpl.title}</Typography>
-           </div>
-
-          <div className="space-y-mx-md">
-             {currentTmpl.fields.map(f => {
-                const currentResp = responsesByTemplate.get(currentTmpl.id)?.[0]
-                return (
-                  <div key={f.key} className="space-y-mx-xs p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default hover:border-brand-primary/20 transition-colors">
-                    <Typography variant="p" className="font-black text-xs text-text-secondary uppercase">{f.label}</Typography>
-                    {f.type === 'textarea' ? (
-                        <Textarea 
-                          id={`interview-${currentTmpl.id}-${f.key}`}
-                          name={`interview-${currentTmpl.id}-${f.key}`}
-                          className="bg-white border-none shadow-mx-inner min-h-mx-20" 
-                          placeholder="Resposta do entrevistado..." 
-                          value={(currentResp?.answers?.[f.key] as string) || ''}
-                          onChange={e => saveResponse({ template_id: currentTmpl.id, answers: { ...(currentResp?.answers || {}), [f.key]: e.target.value } })}
-                        />
-                    ) : f.type === 'scale' ? (
-                        <div className="flex gap-mx-sm pt-mx-xs">
-                          {[1,2,3,4,5].map(v => (
-                              <button 
-                                key={v} 
-                                onClick={() => saveResponse({ template_id: currentTmpl.id, answers: { ...(currentResp?.answers || {}), [f.key]: v } })}
-                                className={cn(
-                                  "w-mx-12 h-mx-12 rounded-mx-xl font-black transition-all border-2 flex items-center justify-center text-lg",
-                                  currentResp?.answers?.[f.key] === v 
-                                    ? "bg-brand-primary border-brand-primary text-white shadow-mx-lg scale-110" 
-                                    : "bg-white border-border-default text-text-tertiary hover:border-brand-primary/40 hover:text-brand-primary"
-                                )}
-                              >
-                                {v}
-                              </button>
-                          ))}
-                        </div>
-                    ) : (
-                        <Input 
-                          id={`interview-${currentTmpl.id}-${f.key}`}
-                          name={`interview-${currentTmpl.id}-${f.key}`}
-                          className="bg-white border-none shadow-mx-inner" 
-                          value={(currentResp?.answers?.[f.key] as string) || ''}
-                          onChange={e => saveResponse({ template_id: currentTmpl.id, answers: { ...(currentResp?.answers || {}), [f.key]: e.target.value } })}
-                        />
-                    )}
-                  </div>
-                )
-             })}
+      <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md mb-mx-lg border-b border-border-subtle pb-mx-md">
+          <div className="flex items-start gap-mx-sm">
+            <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Users size={20} /></div>
+            <div>
+              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest">
+                Visita 1 - Diagnóstico PMR
+              </Typography>
+              <Typography variant="h3" className="text-xl font-black text-text-primary uppercase tracking-tight">
+                {getInterviewLabel(currentTmpl.form_key, currentTmpl.title)}
+              </Typography>
+            </div>
           </div>
-       </Card>
+          <Badge variant={currentResponses.length ? 'success' : 'outline'} className="self-start xl:self-auto rounded-mx-full px-mx-md py-mx-xs">
+            {completedInterviews}/{templates.length} entrevistas com resposta
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md mb-mx-lg">
+          <div className="space-y-mx-xs">
+            <Typography as="label" htmlFor={`interview-${currentTmpl.id}-respondent`} variant="tiny" className="font-black uppercase tracking-mx-widest text-text-tertiary">
+              Respondente
+            </Typography>
+            <Input
+              id={`interview-${currentTmpl.id}-respondent`}
+              name={`interview-${currentTmpl.id}-respondent`}
+              className="bg-surface-alt/30 border-border-default focus:bg-white"
+              value={respondentName}
+              onChange={e => setRespondentName(e.target.value)}
+              placeholder="Nome da pessoa entrevistada"
+            />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-black uppercase tracking-mx-widest text-text-tertiary">
+              Escopo
+            </Typography>
+            <div className="h-mx-12 rounded-mx-lg border border-border-default bg-surface-alt/30 px-mx-md flex items-center">
+              <Typography variant="p" className="text-sm font-bold text-text-secondary">
+                Diagnóstico consolidado da Visita 1.
+              </Typography>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
+          {currentTmpl.fields.map(field => {
+            const value = answers[field.key]
+            return (
+              <div key={field.key} className={cn("space-y-mx-xs p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default", field.type === 'textarea' ? 'md:col-span-2' : '')}>
+                <Typography as="label" htmlFor={`interview-${currentTmpl.id}-${field.key}`} variant="p" className="font-black text-xs text-text-secondary uppercase">
+                  {field.label}{field.required ? ' *' : ''}
+                </Typography>
+
+                {field.type === 'textarea' ? (
+                  <Textarea
+                    id={`interview-${currentTmpl.id}-${field.key}`}
+                    name={`interview-${currentTmpl.id}-${field.key}`}
+                    className="bg-white border-none shadow-mx-inner min-h-mx-24"
+                    placeholder="Resposta do entrevistado..."
+                    value={String(value || '')}
+                    onChange={e => updateField(field, e.target.value)}
+                  />
+                ) : field.type === 'scale' ? (
+                  <div className="flex flex-wrap gap-mx-sm pt-mx-xs">
+                    {[1, 2, 3, 4, 5].map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => updateField(field, option)}
+                        className={cn(
+                          "h-10 w-10 min-w-10 sm:h-12 sm:w-12 sm:min-w-12 rounded-mx-xl font-black transition-all border-2 flex items-center justify-center text-lg",
+                          value === option
+                            ? "bg-brand-primary border-brand-primary text-white shadow-mx-lg scale-105"
+                            : "bg-white border-border-default text-text-tertiary hover:border-brand-primary/40 hover:text-brand-primary"
+                        )}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                ) : field.type === 'boolean' ? (
+                  <label className="h-mx-12 rounded-mx-lg bg-white border border-border-default px-mx-md flex items-center gap-mx-sm font-bold text-sm">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(value)}
+                      onChange={e => updateField(field, e.target.checked)}
+                    />
+                    Sim
+                  </label>
+                ) : field.type === 'select' ? (
+                  <Select
+                    id={`interview-${currentTmpl.id}-${field.key}`}
+                    name={`interview-${currentTmpl.id}-${field.key}`}
+                    className="bg-white border-none shadow-mx-inner"
+                    value={String(value || '')}
+                    onChange={e => updateField(field, e.target.value)}
+                  >
+                    <option value="">Selecionar...</option>
+                    {(field.options || []).map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </Select>
+                ) : (
+                  <Input
+                    id={`interview-${currentTmpl.id}-${field.key}`}
+                    name={`interview-${currentTmpl.id}-${field.key}`}
+                    type={field.type === 'number' ? 'number' : 'text'}
+                    className="bg-white border-none shadow-mx-inner"
+                    value={String(value ?? '')}
+                    onChange={e => updateField(field, e.target.value)}
+                  />
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-mx-md space-y-mx-xs">
+          <Typography as="label" htmlFor={`interview-${currentTmpl.id}-summary`} variant="p" className="font-black text-xs text-text-secondary uppercase">
+            Resumo para planejamento
+          </Typography>
+          <Textarea
+            id={`interview-${currentTmpl.id}-summary`}
+            name={`interview-${currentTmpl.id}-summary`}
+            className="bg-surface-alt/30 border-border-default focus:bg-white min-h-mx-28"
+            value={summary}
+            onChange={e => setSummary(e.target.value)}
+            placeholder="Síntese consultiva para alimentar o planejamento estratégico e o plano de ação..."
+          />
+        </div>
+
+        <div className="mt-mx-lg flex justify-end">
+          <Button
+            type="button"
+            variant="primary"
+            className="h-mx-11 px-mx-lg font-black uppercase tracking-mx-widest text-xs shadow-mx-md"
+            loading={saving}
+            onClick={handleSaveInterview}
+            icon={<Save size={16} />}
+          >
+            {currentResp ? 'Atualizar Entrevista' : 'Salvar Entrevista'}
+          </Button>
+        </div>
+      </Card>
     </div>
   )
 }

@@ -28,13 +28,13 @@ export default function Privacy() {
                             <Lock size={32} strokeWidth={2} />
                         </div>
                         <Typography variant="h1" tone="white" className="text-4xl md:text-5xl mb-4 relative z-10 uppercase tracking-tighter">Política de <span className="text-brand-primary">Privacidade</span></Typography>
-                        <Typography variant="tiny" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 block font-black">MX PERFORMANCE CALENDAR - PROTECAO & TRATAMENTO DE DADOS</Typography>
+                        <Typography variant="tiny" tone="white" className="max-w-xl mx-auto opacity-60 relative z-10 block font-black">MX PERFORMANCE - PROTECAO & TRATAMENTO DE DADOS</Typography>
                     </header>
 
                     <CardContent className="p-mx-10 md:p-20 space-y-mx-14">
                         <div className="space-y-mx-10">
                             <Typography variant="p" className="text-xl font-bold text-text-secondary leading-relaxed border-l-4 border-brand-primary pl-8 uppercase tracking-tight">
-                                O MX Performance Calendar e uma plataforma da MX Consultoria para gestao de visitas, rotinas comerciais e sincronizacao autorizada com o Google Calendar.
+                                O MX PERFORMANCE e uma plataforma da MX Consultoria para gestao de visitas, rotinas comerciais e sincronizacao autorizada com o Google Calendar.
                             </Typography>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
@@ -65,7 +65,7 @@ export default function Privacy() {
                                     <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Uso de Dados do Google Calendar</Typography>
                                 </header>
                                 <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70">
-                                    Quando um usuario autoriza a integracao, o MX Performance Calendar acessa eventos do Google Calendar somente para exibir, criar, atualizar e sincronizar visitas relacionadas ao trabalho da MX Consultoria. O sistema nao vende dados do Google, nao usa dados do Google Calendar para publicidade e nao compartilha essas informacoes com terceiros fora da operacao autorizada.
+                                    Quando um usuario autoriza a integracao, o MX PERFORMANCE acessa eventos do Google Calendar somente para exibir, criar, atualizar e sincronizar visitas relacionadas ao trabalho da MX Consultoria. O sistema nao vende dados do Google, nao usa dados do Google Calendar para publicidade e nao compartilha essas informacoes com terceiros fora da operacao autorizada.
                                 </Typography>
                                 <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70 block">
                                     O usuario pode revogar o acesso a qualquer momento pela conta Google em Seguranca &gt; Apps e servicos de terceiros, ou solicitar remocao de dados pelo canal administrativo da MX Consultoria.
@@ -88,7 +88,7 @@ export default function Privacy() {
                                 <ArrowLeft size={16} className="mr-2" /> VOLTAR AO SISTEMA
                             </Button>
                             <div className="text-center sm:text-right space-y-mx-tiny">
-                                <Link to="/" className="text-xs font-black text-brand-primary uppercase tracking-widest hover:text-brand-primary-hover">MX Performance Calendar</Link>
+                                <Link to="/" className="text-xs font-black text-brand-primary uppercase tracking-widest hover:text-brand-primary-hover">MX PERFORMANCE</Link>
                                 <Typography variant="tiny" tone="muted" className="font-black">MX CONSULTORIA LTDA © {new Date().getFullYear()}</Typography>
                                 <Typography variant="tiny" tone="muted" className="font-black opacity-20 block tracking-widest">POLITICA PUBLICA DE PRIVACIDADE</Typography>
                             </div>

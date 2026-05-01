@@ -46,7 +46,7 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Função `google-oauth-handler` redeployada sem verificação JWT externa para permitir callback OAuth público com validação interna por `state`.
 - [x] Validação funcional: `google-calendar-merged` retornou `centralConnected: true` e `centralError: null`.
 - [x] Correções para verificação OAuth: home pública, nome exato do app, link de privacidade visível e política separada em `/privacy`.
-- [x] Playwright local: `/` exibe `MX Performance Calendar` e link para `/privacy`; `/privacy` descreve uso dos dados do Google Calendar.
+- [x] Playwright local: `/` exibia o nome publico do app e link para `/privacy`; `/privacy` descreve uso dos dados do Google Calendar. Substituido em 2026-05-01 por `MX PERFORMANCE` na story `story-OPS-20260501-browser-branding-title.md`.
 - [x] Search Console: arquivo de verificação publicado e propriedade `https://mxperformance.vercel.app/` verificada.
 - [x] Auditoria UX/UI da Agenda em Chrome MCP local: clique em dia seleciona o painel lateral sem abrir modal automaticamente, mês exibe `ABRIL DE 2026`, botões de navegação do calendário têm labels acessíveis e erro técnico do Google Calendar foi trocado por mensagem operacional.
 - [x] Auditoria responsiva local em viewports 390x844, 768x1024 e 1440x900: sem overflow horizontal, CTAs do Google Calendar sem texto estourado e modal de agendamento funcional no mobile.
@@ -76,7 +76,7 @@ Resultado operacional:
 - Google Calendar API ativada.
 - App OAuth publicado em produção. O Google passou a indicar que o app precisa de verificação formal antes de remover limites/avisos de app não verificado.
 - OAuth central concluído com `gestao@mxconsultoria.com.br`; token criptografado salvo em `tokens_oauth_consultoria` como `provider = google_central`.
-- Para atender a revisão do Google, a home pública `https://mxperformance.vercel.app/` agora exibe o nome exato `MX Performance Calendar` e link visível para a política em `https://mxperformance.vercel.app/privacy`.
+- Para atender a revisão do Google, a home pública `https://mxperformance.vercel.app/` passou a exibir o nome publico do app e link visível para a política em `https://mxperformance.vercel.app/privacy`. Em 2026-05-01, a marca user-facing foi atualizada para `MX PERFORMANCE` pela story `story-OPS-20260501-browser-branding-title.md`.
 - A marca passou para a etapa de envio final. O bloqueio remanescente é externo ao código: o formulário do Google exige vídeo YouTube demonstrando o uso do escopo `calendar.events`; a conta logada retornou erro ao abrir YouTube/Studio nesta sessão.
 
 ### Produção Mobile Audit

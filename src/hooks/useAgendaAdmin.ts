@@ -15,10 +15,34 @@ import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type { ConsultingVisit } from '@/features/consultoria/types'
 
+type CalendarSyncResult = {
+  ok: boolean
+  kind?: 'visit' | 'schedule_event'
+  personalEventId: string | null
+  centralEventId: string | null
+  errors: { calendar: 'personal' | 'central'; message: string }[]
+  userConnected: boolean
+  centralConnected: boolean
+}
+
+const SAO_PAULO_OFFSET = '-03:00'
+
+export function buildSaoPauloDateTime(date: string, time: string) {
+  return `${date}T${time}:00${SAO_PAULO_OFFSET}`
+}
+
+function getCentralSyncError(result: CalendarSyncResult | null) {
+  if (!result) return 'Agendamento salvo no sistema, mas não foi possível confirmar a sincronização com a Agenda Central MX.'
+  const centralError = result.errors.find((item) => item.calendar === 'central')
+  if (centralError) return `Agendamento salvo no sistema, mas não sincronizou com a Agenda Central MX: ${centralError.message}`
+  if (!result.centralConnected) return 'Agendamento salvo no sistema, mas a Agenda Central MX não está conectada.'
+  return null
+}
+
 async function syncVisitToGoogle(
   visitId: string,
   action: 'upsert' | 'delete' = 'upsert',
-): Promise<void> {
+): Promise<CalendarSyncResult | null> {
   try {
     const { data: visit } = await supabase
       .from('visitas_consultoria')
@@ -40,7 +64,7 @@ async function syncVisitToGoogle(
       `)
       .eq('id', visitId)
       .maybeSingle() as { data: any }
-    if (!visit) return
+    if (!visit) return null
     const payload = {
       id: visit.id,
       client_id: visit.client_id,
@@ -58,9 +82,70 @@ async function syncVisitToGoogle(
       google_event_id: visit.google_event_id ?? null,
       google_event_id_central: visit.google_event_id_central ?? null,
     }
-    await supabase.functions.invoke('google-calendar-sync', { body: { action, visit: payload } })
+    const { data, error } = await supabase.functions.invoke<CalendarSyncResult>('google-calendar-sync', { body: { action, visit: payload } })
+    if (error) throw error
+    return data ?? null
   } catch {
-    // Sync silencioso: não bloqueia operação principal
+    return null
+  }
+}
+
+async function syncScheduleEventToGoogle(
+  eventId: string,
+  action: 'upsert' | 'delete' = 'upsert',
+): Promise<CalendarSyncResult | null> {
+  try {
+    const { data: event } = await supabase
+      .from('eventos_agenda_consultoria')
+      .select(`
+        id,
+        event_type,
+        title,
+        topic,
+        starts_at,
+        duration_hours,
+        modality,
+        location,
+        target_audience,
+        audience_goal,
+        responsible_name,
+        ticket_price_text,
+        visit_reason,
+        product_name,
+        google_event_id,
+        status,
+        responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(email)
+      `)
+      .eq('id', eventId)
+      .maybeSingle() as { data: any }
+    if (!event) return null
+
+    const payload = {
+      id: event.id,
+      event_type: event.event_type,
+      title: event.title,
+      topic: event.topic ?? null,
+      starts_at: event.starts_at,
+      duration_hours: event.duration_hours,
+      modality: event.modality,
+      location: event.location ?? null,
+      target_audience: event.target_audience ?? null,
+      audience_goal: event.audience_goal ?? null,
+      responsible_name: event.responsible_name ?? null,
+      responsible_email: event.responsible?.email ?? null,
+      ticket_price_text: event.ticket_price_text ?? null,
+      visit_reason: event.visit_reason ?? null,
+      product_name: event.product_name ?? null,
+      google_event_id: event.google_event_id ?? null,
+      status: event.status,
+    }
+    const { data, error } = await supabase.functions.invoke<CalendarSyncResult>('google-calendar-sync', {
+      body: { action, event: payload },
+    })
+    if (error) throw error
+    return data ?? null
+  } catch {
+    return null
   }
 }
 
@@ -361,7 +446,12 @@ export function useAgendaAdmin() {
     }
 
     if (insertedVisit?.id) {
-      await syncVisitToGoogle(insertedVisit.id, 'upsert')
+      const syncResult = await syncVisitToGoogle(insertedVisit.id, 'upsert')
+      const syncError = getCentralSyncError(syncResult)
+      if (syncError) {
+        await fetchVisits()
+        return { error: syncError }
+      }
     }
     await fetchVisits()
     return { error: null }
@@ -381,9 +471,10 @@ export function useAgendaAdmin() {
       return { error: updateError.message }
     }
 
-    await syncVisitToGoogle(visitId, 'upsert')
+    const syncResult = await syncVisitToGoogle(visitId, 'upsert')
+    const syncError = getCentralSyncError(syncResult)
     await fetchVisits()
-    return { error: null }
+    return { error: syncError }
   }, [supabaseUser, role, fetchVisits])
 
   const updateVisit = useCallback(async (input: UpdateVisitInput) => {
@@ -411,9 +502,10 @@ export function useAgendaAdmin() {
 
     if (updateError) return { error: updateError.message }
 
-    await syncVisitToGoogle(input.id, 'upsert')
+    const syncResult = await syncVisitToGoogle(input.id, 'upsert')
+    const syncError = getCentralSyncError(syncResult)
     await fetchVisits()
-    return { error: null }
+    return { error: syncError }
   }, [supabaseUser, role, fetchVisits])
 
   const deleteVisit = useCallback(async (visitId: string) => {
@@ -421,7 +513,9 @@ export function useAgendaAdmin() {
       return { error: 'Apenas perfis MX podem cancelar visitas.' }
     }
 
-    await syncVisitToGoogle(visitId, 'delete')
+    const syncResult = await syncVisitToGoogle(visitId, 'delete')
+    const syncError = getCentralSyncError(syncResult)
+    if (syncError) return { error: syncError }
 
     const { error: deleteError } = await supabase
       .from('visitas_consultoria')
@@ -441,15 +535,25 @@ export function useAgendaAdmin() {
       return { error: 'Apenas perfis MX podem criar eventos e aulas.' }
     }
 
-    const { error: insertError } = await supabase
+    const { data: insertedEvent, error: insertError } = await supabase
       .from('eventos_agenda_consultoria')
       .insert({
         ...input,
         status: input.status || 'agendado',
         created_by: supabaseUser.id,
       })
+      .select('id')
+      .single()
 
     if (insertError) return { error: insertError.message }
+    if (insertedEvent?.id) {
+      const syncResult = await syncScheduleEventToGoogle(insertedEvent.id, 'upsert')
+      const syncError = getCentralSyncError(syncResult)
+      if (syncError) {
+        await fetchVisits()
+        return { error: syncError }
+      }
+    }
     await fetchVisits()
     return { error: null }
   }, [fetchVisits, role, supabaseUser])
@@ -468,14 +572,20 @@ export function useAgendaAdmin() {
       .eq('id', eventId)
 
     if (updateError) return { error: updateError.message }
+    const syncResult = await syncScheduleEventToGoogle(eventId, 'upsert')
+    const syncError = getCentralSyncError(syncResult)
     await fetchVisits()
-    return { error: null }
+    return { error: syncError }
   }, [fetchVisits, role, supabaseUser])
 
   const deleteScheduleEvent = useCallback(async (eventId: string) => {
     if (!supabaseUser || !isPerfilInternoMx(role)) {
       return { error: 'Apenas perfis MX podem excluir eventos e aulas.' }
     }
+
+    const syncResult = await syncScheduleEventToGoogle(eventId, 'delete')
+    const syncError = getCentralSyncError(syncResult)
+    if (syncError) return { error: syncError }
 
     const { error: deleteError } = await supabase
       .from('eventos_agenda_consultoria')

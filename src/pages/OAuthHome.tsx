@@ -8,9 +8,9 @@ export default function OAuthHome() {
     <main className="min-h-screen bg-white text-text-primary selection:bg-brand-primary/20">
       <section className="min-h-screen flex flex-col">
         <header className="w-full px-mx-lg sm:px-mx-2xl py-mx-lg flex items-center justify-between gap-mx-md border-b border-border-default bg-white/95">
-          <Link to="/" className="flex items-center gap-mx-sm min-w-0" aria-label="MX Performance Calendar">
-            <img src={MxLogo} alt="MX Performance Calendar" className="object-contain shrink-0" style={{ width: 44, height: 44 }} />
-            <span className="hidden sm:inline text-sm sm:text-base font-black tracking-tight uppercase">MX Performance Calendar</span>
+          <Link to="/" className="flex items-center gap-mx-sm min-w-0" aria-label="MX PERFORMANCE">
+            <img src={MxLogo} alt="MX PERFORMANCE" className="object-contain shrink-0" style={{ width: 44, height: 44 }} />
+            <span className="hidden sm:inline text-sm sm:text-base font-black tracking-tight uppercase">MX PERFORMANCE</span>
           </Link>
 
           <nav className="flex items-center gap-mx-sm text-xs font-black uppercase tracking-widest">
@@ -41,7 +41,7 @@ export default function OAuthHome() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-text-primary">
-                MX Performance Calendar
+                MX PERFORMANCE
               </h1>
 
               <p className="mt-mx-lg text-lg sm:text-xl leading-relaxed text-text-secondary max-w-2xl">
@@ -70,7 +70,7 @@ export default function OAuthHome() {
           <div className="bg-brand-secondary text-white px-mx-lg sm:px-mx-2xl py-mx-2xl lg:py-mx-hero flex flex-col justify-center relative overflow-hidden">
             <div className="absolute inset-0 bg-mx-matrix opacity-25" aria-hidden="true" />
             <div className="relative z-10 max-w-xl">
-              <img src={MxLogo} alt="MX Performance Calendar" className="object-contain mb-mx-2xl" style={{ width: 96, height: 96 }} />
+              <img src={MxLogo} alt="MX PERFORMANCE" className="object-contain mb-mx-2xl" style={{ width: 96, height: 96 }} />
               <div className="space-y-mx-lg">
                 <div className="flex gap-mx-md">
                   <div className="w-mx-12 h-mx-12 rounded-mx-lg bg-white/10 flex items-center justify-center shrink-0">

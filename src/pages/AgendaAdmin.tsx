@@ -17,7 +17,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { FilterBar } from '@/components/molecules/FilterBar'
-import { useAgendaAdmin } from '@/hooks/useAgendaAdmin'
+import { buildSaoPauloDateTime, useAgendaAdmin } from '@/hooks/useAgendaAdmin'
 import { cn } from '@/lib/utils'
 import { Modal } from '@/components/organisms/Modal'
 import { AgendaCalendar } from '@/components/organisms/AgendaCalendar'
@@ -431,7 +431,7 @@ export default function AgendaAdmin() {
     const visitNumber = editingVisitId
       ? Number(scheduleForm.visit_number) || 0
       : getNextVisitNumber(scheduleForm.client_id)
-    const scheduledAt = `${scheduleForm.scheduled_at}T${scheduleForm.scheduled_time}:00`
+    const scheduledAt = buildSaoPauloDateTime(scheduleForm.scheduled_at, scheduleForm.scheduled_time)
 
     setSubmitting(true)
     const payload = {
@@ -478,7 +478,7 @@ export default function AgendaAdmin() {
       event_type: eventForm.event_type,
       title: eventForm.title.trim(),
       topic: eventForm.topic.trim() || null,
-      starts_at: `${eventForm.starts_at}T${eventForm.starts_time}:00`,
+      starts_at: buildSaoPauloDateTime(eventForm.starts_at, eventForm.starts_time),
       duration_hours: Number(eventForm.duration_hours) || 1,
       modality: eventForm.modality,
       location: eventForm.location.trim() || null,

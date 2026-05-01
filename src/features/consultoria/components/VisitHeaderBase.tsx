@@ -2,7 +2,7 @@ import React from 'react'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Input } from '@/components/atoms/Input'
-import { Calendar, Clock, Target, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 interface Props {
   data: {
@@ -25,16 +25,16 @@ export function VisitHeaderBase({ data, onChange, clientName }: Props) {
       <div className="absolute top-mx-0 right-mx-0 p-mx-lg opacity-5 group-hover:opacity-10 transition-opacity">
         <Users className="w-mx-20 h-mx-20 text-brand-primary" />
       </div>
-      
+
       <div className="relative z-10">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md mb-mx-lg border-b border-border-subtle pb-mx-md">
-          <div>
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-mx-md mb-mx-lg border-b border-border-subtle pb-mx-md">
+          <div className="min-w-0">
             <Typography variant="tiny" tone="muted" className="mb-0 block font-black tracking-mx-widest uppercase opacity-60">Identificação do Cliente</Typography>
-          <Typography variant="h1" className="text-4xl font-black text-brand-primary tracking-tight leading-none uppercase">
-            {clientName}
-          </Typography>
+            <Typography variant="h1" className="text-2xl sm:text-3xl lg:text-4xl font-black text-brand-primary leading-tight uppercase break-words">
+              {clientName}
+            </Typography>
           </div>
-          <div className="flex flex-wrap gap-mx-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-md w-full lg:w-auto">
             <div className="space-y-mx-xs">
               <Typography variant="tiny" tone="muted" className="uppercase font-bold">Consultor</Typography>
               <Input id="header-consultant" name="header-consultant" value={data.consultant_name} onChange={e => onChange({ consultant_name: e.target.value })} className="h-mx-10 bg-surface-alt/50 border border-border-subtle focus:bg-white focus:border-brand-primary font-bold transition-all shadow-sm" />
