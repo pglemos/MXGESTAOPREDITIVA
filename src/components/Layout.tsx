@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
-import MxLogo from '@/assets/mx-logo.svg'
+import MxLogo from '@/assets/mx-logo.png'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
 

@@ -5,7 +5,7 @@ import { motion } from 'motion/react'
 import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap, Eye, EyeOff } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
 import { FormField } from '@/components/molecules/FormField'
-import MxLogo from '@/assets/mx-logo.svg'
+import MxLogo from '@/assets/mx-logo.png'
 
 export default function Login() {
     const { signIn, profile, loading: authLoading } = useAuth()

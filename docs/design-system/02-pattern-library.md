@@ -22,7 +22,7 @@
 
 - **Nome:** MX PERFORMANCE
 - **Tipografia:** Plus Jakarta Sans (sans) · JetBrains Mono (mono)
-- **Logo:** `src/assets/mx-logo.png` (símbolo geométrico verde) + `public/favicon.svg`
+- **Logo:** `src/assets/mx-logo.png` (símbolo geométrico verde oficial) + `public/mx-logo.png`
 - **Voice:** commanding, tracking-widest uppercase em CTAs, `font-black` default
 - **Palette principal:** `#22C55E` (green-500) · `#0D3B2E` (green-900 dark)
 
@@ -188,7 +188,7 @@ import MxLogo from '@/assets/mx-logo.png'
 - Aliased `mx-indigo-*` → green (legacy compat)
 - Logo PNG real substitui SVG de letras "MX"
 - Login redesign: split-screen premium
-- Favicon: `public/favicon.svg` + `public/mx-logo.png`
+- Favicon: `public/mx-logo.png`
 
 ---
 

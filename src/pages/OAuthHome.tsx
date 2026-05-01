@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CalendarDays, LockKeyhole, LogIn, ShieldCheck } from 'lucide-react'
 import { motion } from 'motion/react'
-import MxLogo from '@/assets/mx-logo.svg'
+import MxLogo from '@/assets/mx-logo.png'
 
 export default function OAuthHome() {
   return (
