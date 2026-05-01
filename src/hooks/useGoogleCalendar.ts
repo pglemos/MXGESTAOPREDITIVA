@@ -69,6 +69,13 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
     setLoading(true)
     setError(null)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setEvents([])
+        setPersonalConnected(false)
+        setCentralConnected(false)
+        return
+      }
       const { data, error: invokeError } = await supabase.functions.invoke<MergedResponse>('google-calendar-merged', {
         body: {
           timeMin: opts?.timeMin,
@@ -94,6 +101,8 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
 
   const connectPersonal = useCallback(async (clientId?: string) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Sessão autenticada obrigatória para conectar Google Calendar')
       const { data, error: invokeError } = await supabase.functions.invoke<{ authUrl: string }>('google-oauth-handler', {
         body: clientId ? { clientId } : {},
       })
@@ -107,6 +116,8 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
 
   const connectCentral = useCallback(async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Sessão autenticada obrigatória para conectar Agenda Central MX')
       const { data, error: invokeError } = await supabase.functions.invoke<{ authUrl: string }>('google-oauth-handler', {
         body: { central: true },
       })
@@ -120,6 +131,8 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
 
   const syncVisit = useCallback(async (visit: SyncableVisit, action: 'upsert' | 'delete' = 'upsert'): Promise<SyncResult | null> => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Sessão autenticada obrigatória para sincronizar Google Calendar')
       const { data, error: invokeError } = await supabase.functions.invoke<SyncResult>('google-calendar-sync', {
         body: { action, visit },
       })

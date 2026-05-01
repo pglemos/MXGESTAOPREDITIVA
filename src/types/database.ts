@@ -18,6 +18,31 @@ export type StoreSourceMode = 'legacy_forms' | 'native_app' | 'hybrid'
 export type ProjectionMode = 'calendar' | 'business'
 export type CorrectionStatus = 'pending' | 'approved' | 'rejected'
 
+/** Preferências granulares de notificação do usuário */
+export interface NotificationPreferences {
+    push: boolean
+    email: boolean
+    matinal: boolean
+    weekly: boolean
+    monthly: boolean
+    gaps: boolean
+    pdi: boolean
+    rituals: boolean
+    broadcasts: boolean
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+    push: true,
+    email: true,
+    matinal: true,
+    weekly: true,
+    monthly: false,
+    gaps: true,
+    pdi: true,
+    rituals: true,
+    broadcasts: true,
+}
+
 /** Interface de Usuário Canônica */
 export interface User {
     id: string
@@ -31,6 +56,7 @@ export interface User {
     phone?: string
     store_id?: string
     must_change_password?: boolean
+    notification_preferences?: NotificationPreferences | null
 }
 
 /** Interface de Unidade/Loja */

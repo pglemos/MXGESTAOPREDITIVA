@@ -1,0 +1,209 @@
+import { useMemo, useState } from 'react'
+import { Plus, Search, Trash2, Edit3, RefreshCw, Building2, Power, ShieldCheck, Users } from 'lucide-react'
+import { useStores, useStoresStats } from '@/hooks/useTeam'
+import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
+import { toast } from 'sonner'
+import { Card } from '@/components/molecules/Card'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Typography } from '@/components/atoms/Typography'
+import { Badge } from '@/components/atoms/Badge'
+import { StoreEditModal } from '@/features/admin/components/StoreEditModal'
+import { CreateStoreModal } from '@/features/configuracoes/components/CreateStoreModal'
+import type { Store } from '@/types/database'
+import type { TabContext } from '@/features/configuracoes/types'
+
+export function LojasRedeTab({ isReadOnly }: TabContext) {
+    const { role } = useAuth()
+    const canManage = !isReadOnly && isAdministradorMx(role)
+    const { lojas, loading, createStore, updateStore, deleteStore, toggleStoreStatus, refetch } = useStores()
+    const { stats } = useStoresStats()
+
+    const [showCreate, setShowCreate] = useState(false)
+    const [editing, setEditing] = useState<Store | null>(null)
+    const [savingEdit, setSavingEdit] = useState(false)
+    const [filter, setFilter] = useState('')
+    const [showInactive, setShowInactive] = useState(false)
+
+    const filtered = useMemo(() => {
+        return lojas.filter(s =>
+            (showInactive || s.active) &&
+            (!filter || s.name.toLowerCase().includes(filter.toLowerCase()) || s.manager_email?.toLowerCase().includes(filter.toLowerCase()))
+        )
+    }, [lojas, filter, showInactive])
+
+    const handleEditSubmit = async (id: string, updates: any) => {
+        setSavingEdit(true)
+        const { error } = await updateStore(id, updates)
+        setSavingEdit(false)
+        if (!error) setEditing(null)
+    }
+
+    const handleDelete = async (store: Store) => {
+        const confirmed = window.confirm(`Excluir permanentemente a loja ${store.name}? Esta ação NÃO pode ser desfeita. Considere apenas desativar.`)
+        if (!confirmed) return
+        const { error } = await deleteStore(store.id)
+        if (error) toast.error(error)
+        else toast.success('Loja excluída.')
+    }
+
+    const handleToggle = async (store: Store) => {
+        const { error } = await toggleStoreStatus(store.id, !store.active)
+        if (error) toast.error(error)
+        else toast.success(store.active ? 'Loja desativada.' : 'Loja ativada.')
+    }
+
+    const totals = useMemo(() => ({
+        total: lojas.length,
+        ativas: lojas.filter(s => s.active).length,
+        inativas: lojas.filter(s => !s.active).length,
+        vendedores: Object.values(stats).reduce((acc, s) => acc + (s.sellers || 0), 0),
+    }), [lojas, stats])
+
+    return (
+        <div className="space-y-mx-lg">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-md">
+                <Mini icon={<Building2 size={18} />} label="Lojas" value={totals.total} />
+                <Mini icon={<ShieldCheck size={18} />} label="Ativas" value={totals.ativas} tone="success" />
+                <Mini icon={<Power size={18} />} label="Inativas" value={totals.inativas} tone="error" />
+                <Mini icon={<Users size={18} />} label="Vendedores" value={totals.vendedores} tone="brand" />
+            </div>
+
+            <Card className="p-mx-md border-none shadow-mx-md bg-white flex flex-col md:flex-row items-stretch md:items-center gap-mx-md">
+                <div className="relative flex-1">
+                    <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                    <Input
+                        value={filter}
+                        onChange={e => setFilter(e.target.value)}
+                        placeholder="Buscar por nome ou e-mail do gestor..."
+                        className="!pl-mx-10 !h-mx-12 font-bold"
+                    />
+                </div>
+                <label className="flex items-center gap-mx-xs cursor-pointer text-xs font-black uppercase tracking-widest">
+                    <input
+                        type="checkbox"
+                        checked={showInactive}
+                        onChange={e => setShowInactive(e.target.checked)}
+                        className="accent-brand-primary"
+                    />
+                    Mostrar inativas
+                </label>
+                <Button variant="outline" onClick={refetch} className="h-mx-12 px-mx-sm rounded-mx-xl">
+                    <RefreshCw size={14} />
+                </Button>
+                {canManage && (
+                    <Button onClick={() => setShowCreate(true)} className="h-mx-12 px-6 rounded-mx-xl font-black uppercase tracking-widest text-xs">
+                        <Plus size={16} className="mr-2" /> Nova Loja
+                    </Button>
+                )}
+            </Card>
+
+            <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
+                {loading ? (
+                    <div className="p-mx-xl text-center"><RefreshCw size={24} className="animate-spin mx-auto text-brand-primary" /></div>
+                ) : filtered.length === 0 ? (
+                    <div className="p-mx-xl text-center space-y-mx-sm">
+                        <Building2 size={40} className="mx-auto text-text-tertiary opacity-30" />
+                        <Typography variant="caption" tone="muted" className="font-black uppercase">Nenhuma loja encontrada</Typography>
+                    </div>
+                ) : (
+                    <div className="divide-y divide-border-default">
+                        {filtered.map(store => {
+                            const s = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                            return (
+                                <div key={store.id} className="flex items-center justify-between gap-mx-md p-mx-md hover:bg-surface-alt transition-colors">
+                                    <div className="flex items-center gap-mx-sm flex-1 min-w-0">
+                                        <div className={`w-mx-12 h-mx-12 rounded-mx-xl flex items-center justify-center text-white shrink-0 ${store.active ? 'bg-brand-primary' : 'bg-text-tertiary'}`}>
+                                            <Building2 size={20} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{store.name}</Typography>
+                                            <div className="flex items-center gap-mx-md flex-wrap mt-1">
+                                                {store.manager_email && (
+                                                    <span className="text-mx-micro font-bold text-text-tertiary">{store.manager_email}</span>
+                                                )}
+                                                <span className="text-mx-micro font-bold text-text-tertiary">
+                                                    {s.sellers} vendedor{s.sellers !== 1 ? 'es' : ''} · {s.disciplinePct}% disciplina
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Badge variant={store.active ? 'success' : 'outline'} className="font-black uppercase shrink-0">
+                                        {store.active ? 'Ativa' : 'Inativa'}
+                                    </Badge>
+                                    {canManage && (
+                                        <div className="flex gap-mx-xs shrink-0">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleToggle(store)}
+                                                aria-label={store.active ? 'Desativar' : 'Ativar'}
+                                                className="h-mx-10 w-mx-10 rounded-mx-xl"
+                                            >
+                                                <Power size={16} />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => setEditing(store)}
+                                                aria-label="Editar"
+                                                className="h-mx-10 w-mx-10 rounded-mx-xl"
+                                            >
+                                                <Edit3 size={16} />
+                                            </Button>
+                                            {role === 'administrador_geral' && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleDelete(store)}
+                                                    aria-label="Excluir"
+                                                    className="h-mx-10 w-mx-10 rounded-mx-xl text-status-error hover:bg-status-error-surface"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
+            </Card>
+
+            {canManage && (
+                <>
+                    <CreateStoreModal
+                        open={showCreate}
+                        onClose={() => setShowCreate(false)}
+                        onSubmit={createStore}
+                    />
+                    <StoreEditModal
+                        open={Boolean(editing)}
+                        store={editing}
+                        saving={savingEdit}
+                        onClose={() => setEditing(null)}
+                        onSubmit={handleEditSubmit}
+                    />
+                </>
+            )}
+        </div>
+    )
+}
+
+function Mini({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone?: 'success' | 'brand' | 'error' }) {
+    const toneColor = tone === 'success' ? 'text-status-success' :
+        tone === 'brand' ? 'text-brand-primary' :
+        tone === 'error' ? 'text-status-error' : 'text-text-primary'
+    return (
+        <Card className="p-mx-md border-none shadow-mx-sm bg-white">
+            <div className="flex items-center gap-mx-sm">
+                <div className={`w-mx-10 h-mx-10 rounded-mx-xl bg-surface-alt flex items-center justify-center ${toneColor}`}>{icon}</div>
+                <div>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase">{label}</Typography>
+                    <Typography variant="h3" className="font-black tabular-nums">{value}</Typography>
+                </div>
+            </div>
+        </Card>
+    )
+}
