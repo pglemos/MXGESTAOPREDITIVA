@@ -28,7 +28,7 @@ export function ConfigTabsNav({ tabs, activeTab, role, onSelect }: ConfigTabsNav
 
                 return (
                     <section key={section} className="space-y-mx-xs">
-                        <Typography variant="tiny" tone="muted" className="px-mx-sm font-black uppercase tracking-widest">
+                        <Typography variant="tiny" className="px-mx-sm font-black uppercase tracking-widest text-text-secondary">
                             {SECTION_LABELS[section]}
                         </Typography>
                         <div className="space-y-mx-xs">
@@ -46,7 +46,7 @@ export function ConfigTabsNav({ tabs, activeTab, role, onSelect }: ConfigTabsNav
                                             'w-full min-h-mx-14 rounded-mx-xl border px-mx-sm py-mx-sm text-left transition-all',
                                             'flex items-center gap-mx-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15',
                                             selected
-                                                ? 'border-brand-primary/30 bg-brand-primary text-white shadow-mx-md'
+                                                ? 'border-brand-secondary bg-brand-secondary text-white shadow-mx-md'
                                                 : 'border-border-default bg-white hover:border-brand-primary/30 hover:bg-surface-alt'
                                         )}
                                         aria-current={selected ? 'page' : undefined}
@@ -63,7 +63,7 @@ export function ConfigTabsNav({ tabs, activeTab, role, onSelect }: ConfigTabsNav
                                             <span className={cn('block truncate text-xs font-black uppercase tracking-widest', selected ? 'text-white' : 'text-text-primary')}>
                                                 {tab.label}
                                             </span>
-                                            <span className={cn('mt-1 block truncate text-[10px] font-bold uppercase tracking-widest', selected ? 'text-white/65' : 'text-text-tertiary')}>
+                                            <span className={cn('mt-1 block truncate text-[10px] font-bold uppercase tracking-widest', selected ? 'text-white' : 'text-text-secondary')}>
                                                 {tab.description}
                                             </span>
                                         </span>

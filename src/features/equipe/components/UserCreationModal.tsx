@@ -7,6 +7,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { toast } from 'sonner'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 
 const papeisInternosMx = ['administrador_geral', 'administrador_mx', 'consultor_mx']
 
@@ -44,6 +45,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!papelSelecionadoInterno && !formData.store_id) return toast.error('Selecione uma unidade operacional')
+    if (!isStrongPassword(formData.password)) return toast.error(PASSWORD_POLICY_MESSAGE)
     
     setLoading(true)
     const payload = papelSelecionadoInterno ? { ...formData, store_id: undefined } : formData
@@ -137,6 +139,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <div className="relative group">
                             <User size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
+                              id="new-user-name"
+                              name="name"
                               required placeholder="NOME COMPLETO" 
                               value={formData.name} onChange={e => setFormData({...formData, name: e.target.value.toUpperCase()})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-xs focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
@@ -150,6 +154,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <div className="relative group">
                             <Phone size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
+                              id="new-user-phone"
+                              name="phone"
                               required placeholder="(00) 00000-0000" 
                               value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
@@ -163,6 +169,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <div className="relative group">
                             <Mail size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
+                              id="new-user-email"
+                              name="email"
                               required type="email" placeholder="USUARIO@MX PERFORMANCE.COM" 
                               value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
@@ -176,7 +184,12 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <div className="relative group">
                             <Lock size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
-                              type="password" placeholder="MIN. 6 CARACTERES" 
+                              id="new-user-password"
+                              name="password"
+                              required
+                              minLength={10}
+                              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}"
+                              type="password" placeholder="MIN. 10, Aa1#"
                               value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
                             />
@@ -189,6 +202,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <div className="relative group">
                             <Shield size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors z-10 pointer-events-none" />
                             <select 
+                              id="new-user-role"
+                              name="role"
                               value={formData.role} 
                               onChange={e => setFormData({...formData, role: e.target.value})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer"
@@ -208,6 +223,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <div className="relative group">
                             <Building2 size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors z-10 pointer-events-none" />
                             <select 
+                              id="new-user-store"
+                              name="store_id"
                               value={formData.store_id} 
                               onChange={e => setFormData({...formData, store_id: e.target.value})}
                               disabled={(!!initialStoreId && initialStoreId !== 'all') && !isAdministradorMx(currentUserRole)}

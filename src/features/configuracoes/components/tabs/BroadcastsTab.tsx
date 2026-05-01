@@ -1,4 +1,5 @@
-import { ExternalLink, Megaphone, Send, RefreshCw } from 'lucide-react'
+import { Megaphone, Send, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useBroadcasts } from '@/hooks/useBroadcasts'
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
@@ -27,9 +28,9 @@ export function BroadcastsTab() {
                         </div>
                     </div>
                     <Button asChild variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-mx-xl font-black uppercase tracking-widest text-xs shrink-0">
-                        <a href="/notificacoes">
+                        <Link to="/notificacoes">
                             <Send size={14} className="mr-2" /> Compor
-                        </a>
+                        </Link>
                     </Button>
                 </div>
             </Card>
@@ -40,7 +41,7 @@ export function BroadcastsTab() {
                         <Typography variant="caption" className="font-black uppercase tracking-widest">Últimos Broadcasts</Typography>
                         <Typography variant="tiny" tone="muted" className="font-bold">Histórico de comunicados disparados</Typography>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => refetch()} className="rounded-mx-xl">
+                    <Button variant="ghost" size="icon" onClick={() => refetch()} className="rounded-mx-xl" aria-label="Atualizar broadcasts">
                         <RefreshCw size={16} />
                     </Button>
                 </header>

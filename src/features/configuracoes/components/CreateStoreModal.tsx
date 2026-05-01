@@ -59,6 +59,8 @@ export function CreateStoreModal({ open, onClose, onSubmit }: CreateStoreModalPr
                     <div className="relative">
                         <Building2 size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                         <Input
+                            id="create-store-name"
+                            name="store-name"
                             required
                             autoFocus
                             value={name}
@@ -74,6 +76,8 @@ export function CreateStoreModal({ open, onClose, onSubmit }: CreateStoreModalPr
                     <div className="relative">
                         <Mail size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                         <Input
+                            id="create-store-manager-email"
+                            name="manager-email"
                             type="email"
                             value={managerEmail}
                             onChange={e => setManagerEmail(e.target.value)}

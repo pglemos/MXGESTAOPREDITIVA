@@ -94,6 +94,8 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
                 <div className="relative flex-1">
                     <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                     <Input
+                        id="team-search"
+                        name="team-search"
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
                         placeholder="Buscar por nome ou e-mail..."
@@ -101,6 +103,8 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
                     />
                 </div>
                 <select
+                    id="team-role-filter"
+                    name="role-filter"
                     value={roleFilter}
                     onChange={e => setRoleFilter(e.target.value)}
                     className="h-mx-12 px-mx-sm bg-surface-alt border border-border-default rounded-mx-xl font-black uppercase text-xs cursor-pointer"
@@ -108,7 +112,7 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
                     <option value="">Todos os papéis</option>
                     {Object.entries(ROLE_LABEL).map(([k, v]) => <option key={k} value={k}>{v.toUpperCase()}</option>)}
                 </select>
-                <Button variant="outline" onClick={refetch} className="h-mx-12 px-mx-sm rounded-mx-xl">
+                <Button variant="outline" onClick={refetch} className="h-mx-12 px-mx-sm rounded-mx-xl" aria-label="Atualizar equipe">
                     <RefreshCw size={14} />
                 </Button>
                 {canCreate && allowedRolesForCreate.length > 0 && (

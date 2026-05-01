@@ -8,6 +8,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 
 export function SegurancaTab() {
     const { changePassword, signOut, profile } = useAuth()
@@ -16,7 +17,7 @@ export function SegurancaTab() {
     const [saving, setSaving] = useState(false)
 
     const handleChangePassword = async () => {
-        if (form.next.length < 6) return toast.error('Nova senha deve ter ao menos 6 caracteres.')
+        if (!isStrongPassword(form.next)) return toast.error(PASSWORD_POLICY_MESSAGE)
         if (form.next !== form.confirm) return toast.error('Confirmação de senha não confere.')
         setSaving(true)
         const { error } = await changePassword(form.next)
@@ -57,11 +58,14 @@ export function SegurancaTab() {
                         <div className="relative">
                             <Lock size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                             <Input
+                                id="settings-new-password"
+                                name="new-password"
                                 type={showPasswords ? 'text' : 'password'}
+                                autoComplete="new-password"
                                 value={form.next}
                                 onChange={e => setForm(p => ({ ...p, next: e.target.value }))}
                                 className="!h-mx-14 !pl-mx-12 pr-mx-12 font-bold"
-                                placeholder="Mínimo 6 caracteres"
+                                placeholder="Mínimo 10, Aa1#"
                             />
                             <button
                                 type="button"
@@ -78,7 +82,10 @@ export function SegurancaTab() {
                         <div className="relative">
                             <Lock size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                             <Input
+                                id="settings-confirm-password"
+                                name="confirm-password"
                                 type={showPasswords ? 'text' : 'password'}
+                                autoComplete="new-password"
                                 value={form.confirm}
                                 onChange={e => setForm(p => ({ ...p, confirm: e.target.value }))}
                                 className="!h-mx-14 !pl-mx-12 font-bold"

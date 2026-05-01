@@ -121,6 +121,8 @@ export function PerfilTab() {
                             <UserIcon size={14} /> Nome Completo
                         </Typography>
                         <Input
+                            id="profile-name"
+                            name="name"
                             value={form.name}
                             onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                             className="!h-mx-14 px-6 font-bold"
@@ -132,6 +134,8 @@ export function PerfilTab() {
                             <Mail size={14} /> E-mail Corporativo
                         </Typography>
                         <Input
+                            id="profile-email"
+                            name="email"
                             value={profile?.email || ''}
                             disabled
                             className="!h-mx-14 px-6 font-bold opacity-50 bg-surface-alt"
@@ -142,6 +146,8 @@ export function PerfilTab() {
                             <Phone size={14} /> Telefone (WhatsApp)
                         </Typography>
                         <Input
+                            id="profile-phone"
+                            name="phone"
                             value={form.phone}
                             onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
                             className="!h-mx-14 px-6 font-bold"
@@ -153,6 +159,8 @@ export function PerfilTab() {
                             <Shield size={14} /> Hierarquia
                         </Typography>
                         <Input
+                            id="profile-role"
+                            name="role"
                             value={role ? ROLE_LABELS[role] : ''}
                             disabled
                             className="!h-mx-14 px-6 font-bold opacity-50 bg-surface-alt"

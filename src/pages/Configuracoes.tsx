@@ -65,13 +65,13 @@ export default function Configuracoes() {
                             </span>
                             <div>
                                 <Typography variant="h1">Configurações</Typography>
-                                <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
+                                <Typography variant="caption" className="font-black uppercase tracking-widest text-text-secondary">
                                     Governança, identidade e operação da rede MX
                                 </Typography>
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-mx-sm pl-0 md:pl-mx-16">
-                            <Badge variant="brand" className="font-black uppercase">
+                            <Badge variant="brand" className="bg-brand-secondary font-black uppercase text-white">
                                 {role ? ROLE_LABELS[role] : 'Perfil'}
                             </Badge>
                             <Badge variant="outline" className="font-black uppercase">
@@ -90,7 +90,7 @@ export default function Configuracoes() {
                         <Button
                             variant="outline"
                             onClick={() => signOut()}
-                            className="h-mx-xl rounded-mx-xl border-status-error/20 bg-white px-5 text-status-error hover:bg-status-error-surface"
+                            className="h-mx-xl rounded-mx-xl border-status-error/30 bg-white px-5 text-status-error-strong hover:bg-status-error-surface"
                         >
                             <LogOut size={16} className="mr-2" />
                             Encerrar Sessão
@@ -120,13 +120,13 @@ export default function Configuracoes() {
                                     <Typography variant="h2" className="uppercase tracking-tight">
                                         {activeDefinition.label}
                                     </Typography>
-                                    <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
+                                    <Typography variant="caption" className="font-black uppercase tracking-widest text-text-secondary">
                                         {activeDefinition.description}
                                     </Typography>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-mx-sm">
-                                <Badge variant={isReadOnly ? 'outline' : 'success'} className="font-black uppercase">
+                                <Badge variant={isReadOnly ? 'outline' : 'success'} className="bg-brand-secondary font-black uppercase text-white">
                                     {isReadOnly ? 'Somente leitura' : 'Edição habilitada'}
                                 </Badge>
                                 <Badge variant="outline" className="font-black uppercase">

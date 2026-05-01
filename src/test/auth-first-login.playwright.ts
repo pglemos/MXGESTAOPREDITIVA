@@ -24,7 +24,7 @@ test.describe('First login forced password change', () => {
     }
   })
 
-  test('new user logs in with 123456, is blocked by modal, changes password, and is not prompted again', async ({ page }, testInfo) => {
+  test('new user logs in with a temporary password, is blocked by modal, changes password, and is not prompted again', async ({ page }, testInfo) => {
     user = await createE2EAdminUser({
       prefix: `first-login-${testInfo.project.name}`,
       password: E2E_DEFAULT_PASSWORD,

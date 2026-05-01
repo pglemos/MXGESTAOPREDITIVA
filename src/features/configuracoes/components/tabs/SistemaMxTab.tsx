@@ -7,6 +7,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Link } from 'react-router-dom'
 
 interface AuditEntry {
     id: string
@@ -28,6 +29,26 @@ interface StoreAuditRow {
 export function SistemaMxTab() {
     const [audit, setAudit] = useState<AuditEntry[]>([])
     const [loading, setLoading] = useState(true)
+    const [health, setHealth] = useState({
+        api: 'verificando',
+        db: 'verificando',
+        network: 'verificando',
+        checkedAt: null as string | null,
+        tone: 'warning' as 'success' | 'warning' | 'error',
+    })
+
+    const fetchHealth = async () => {
+        const startedAt = performance.now()
+        const { error } = await supabase.from('lojas').select('id').limit(1)
+        const latency = `${Math.max(1, Math.round(performance.now() - startedAt))}ms`
+        setHealth({
+            api: error ? 'erro' : latency,
+            db: error ? 'falha' : 'OK',
+            network: typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'online',
+            checkedAt: new Date().toISOString(),
+            tone: error ? 'error' : 'success',
+        })
+    }
 
     const fetchAudit = async () => {
         setLoading(true)
@@ -49,7 +70,10 @@ export function SistemaMxTab() {
         setLoading(false)
     }
 
-    useEffect(() => { fetchAudit() }, [])
+    useEffect(() => {
+        fetchAudit()
+        fetchHealth()
+    }, [])
 
     return (
         <div className="space-y-mx-lg">
@@ -69,9 +93,9 @@ export function SistemaMxTab() {
                         </div>
                     </div>
                     <div className="flex items-center gap-mx-md">
-                        <StatusPill icon={<Cpu size={14} />} label="API" tone="success" value="100%" />
-                        <StatusPill icon={<Database size={14} />} label="DB" tone="success" value="OK" />
-                        <StatusPill icon={<Activity size={14} />} label="Realtime" tone="success" value="Ativo" />
+                        <StatusPill icon={<Cpu size={14} />} label="API" tone={health.tone} value={health.api} />
+                        <StatusPill icon={<Database size={14} />} label="DB" tone={health.tone} value={health.db} />
+                        <StatusPill icon={<Activity size={14} />} label="Rede" tone={health.network === 'offline' ? 'error' : health.tone} value={health.network} />
                     </div>
                 </div>
             </Card>
@@ -113,7 +137,7 @@ export function SistemaMxTab() {
                             <Typography variant="tiny" tone="muted" className="font-bold">Últimas 20 ações sensíveis</Typography>
                         </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={fetchAudit} className="rounded-mx-xl">
+                    <Button variant="ghost" size="icon" onClick={() => { fetchAudit(); fetchHealth() }} className="rounded-mx-xl" aria-label="Atualizar auditoria e saúde">
                         <RefreshCw size={16} />
                     </Button>
                 </header>
@@ -152,8 +176,10 @@ export function SistemaMxTab() {
             {/* Versão */}
             <Card className="p-mx-md border-none shadow-mx-sm bg-surface-alt">
                 <div className="flex items-center justify-between">
-                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Versão do Terminal</Typography>
-                    <Typography variant="tiny" className="font-mono-numbers font-black">4.0.2-stable</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Versão / Último check</Typography>
+                    <Typography variant="tiny" className="font-mono-numbers font-black">
+                        {import.meta.env.VITE_APP_VERSION || '1.0.0'} · {health.checkedAt ? format(new Date(health.checkedAt), 'dd/MM HH:mm', { locale: ptBR }) : 'pendente'}
+                    </Typography>
                 </div>
             </Card>
         </div>
@@ -195,7 +221,7 @@ function CriticalOpCard({ icon, label, desc, route, severity }: {
             <Typography variant="caption" className="font-black uppercase tracking-tight">{label}</Typography>
             <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-mx-sm">{desc}</Typography>
             <Button asChild variant="outline" size="sm" className="h-mx-9 px-3 rounded-mx-lg font-black uppercase text-mx-micro tracking-widest">
-                <a href={route}>Abrir <ExternalLink size={11} className="ml-1" /></a>
+                <Link to={route}>Abrir <ExternalLink size={11} className="ml-1" /></Link>
             </Button>
         </Card>
     )

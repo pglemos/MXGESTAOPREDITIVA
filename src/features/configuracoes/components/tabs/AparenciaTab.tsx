@@ -7,32 +7,63 @@ import { Badge } from '@/components/atoms/Badge'
 import { toast } from 'sonner'
 
 type Theme = 'light' | 'dark' | 'system'
+type Density = 'comfortable' | 'compact'
 
 const THEME_KEY = 'mx_theme_preference'
+const DENSITY_KEY = 'mx_density_preference'
+
+function applyThemeClass(t: Theme) {
+    if (typeof window === 'undefined') return
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.classList.toggle('dark', t === 'dark' || (t === 'system' && prefersDark))
+}
+
+function applyDensityClass(d: Density) {
+    if (typeof document === 'undefined') return
+    document.documentElement.dataset.mxDensity = d
+}
 
 export function AparenciaTab() {
     const [theme, setTheme] = useState<Theme>('light')
-    const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable')
+    const [density, setDensity] = useState<Density>('comfortable')
 
     useEffect(() => {
         const saved = (typeof window !== 'undefined' ? localStorage.getItem(THEME_KEY) : null) as Theme | null
-        if (saved) setTheme(saved)
+        const nextTheme = saved || 'light'
+        const savedDensity = (typeof window !== 'undefined' ? localStorage.getItem(DENSITY_KEY) : null) as Density | null
+        const nextDensity = savedDensity || 'comfortable'
+        setTheme(nextTheme)
+        setDensity(nextDensity)
+        applyThemeClass(nextTheme)
+        applyDensityClass(nextDensity)
+
+        const media = window.matchMedia('(prefers-color-scheme: dark)')
+        const handleSystemThemeChange = () => {
+            const current = (localStorage.getItem(THEME_KEY) || 'light') as Theme
+            if (current === 'system') applyThemeClass('system')
+        }
+        media.addEventListener('change', handleSystemThemeChange)
+        return () => media.removeEventListener('change', handleSystemThemeChange)
     }, [])
 
     const applyTheme = (t: Theme) => {
         setTheme(t)
         localStorage.setItem(THEME_KEY, t)
+        applyThemeClass(t)
         if (t === 'dark') {
-            document.documentElement.classList.add('dark')
             toast.success('Modo escuro ativado.')
         } else if (t === 'light') {
-            document.documentElement.classList.remove('dark')
             toast.success('Modo claro ativado.')
         } else {
-            const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches
-            document.documentElement.classList.toggle('dark', prefers)
             toast.success('Tema seguindo preferência do sistema.')
         }
+    }
+
+    const applyDensity = (d: Density) => {
+        setDensity(d)
+        localStorage.setItem(DENSITY_KEY, d)
+        applyDensityClass(d)
+        toast.success(d === 'compact' ? 'Densidade compacta ativada.' : 'Densidade confortável ativada.')
     }
 
     return (
@@ -45,7 +76,7 @@ export function AparenciaTab() {
                     </div>
                     <div>
                         <Typography variant="h3" className="uppercase tracking-tight">Tema Visual</Typography>
-                        <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Modo de exibição da interface</Typography>
+                        <Typography variant="caption" className="uppercase tracking-widest font-black text-text-secondary">Modo de exibição da interface</Typography>
                     </div>
                 </header>
 
@@ -64,13 +95,13 @@ export function AparenciaTab() {
                     </div>
                     <div>
                         <Typography variant="h3" className="uppercase tracking-tight">Densidade</Typography>
-                        <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Espaçamento da interface</Typography>
+                        <Typography variant="caption" className="uppercase tracking-widest font-black text-text-secondary">Espaçamento da interface</Typography>
                     </div>
                 </header>
 
                 <div className="grid grid-cols-2 gap-mx-md">
-                    <DensityOption label="Confortável" desc="Padrão MX, mais espaço" active={density === 'comfortable'} onClick={() => setDensity('comfortable')} />
-                    <DensityOption label="Compacto" desc="Mais informação por tela" active={density === 'compact'} onClick={() => setDensity('compact')} />
+                    <DensityOption label="Confortável" desc="Padrão MX, mais espaço" active={density === 'comfortable'} onClick={() => applyDensity('comfortable')} />
+                    <DensityOption label="Compacto" desc="Mais informação por tela" active={density === 'compact'} onClick={() => applyDensity('compact')} />
                 </div>
             </Card>
 
@@ -83,12 +114,12 @@ export function AparenciaTab() {
                         </div>
                         <div>
                             <Typography variant="h3" className="uppercase tracking-tight">Branding</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Cores e logo da marca</Typography>
+                            <Typography variant="caption" className="uppercase tracking-widest font-black text-text-secondary">Cores e logo da marca</Typography>
                         </div>
                     </div>
                     <Badge variant="outline" className="font-black uppercase">Em breve</Badge>
                 </header>
-                <Typography variant="caption" tone="muted" className="font-bold leading-relaxed">
+                <Typography variant="caption" className="font-bold leading-relaxed text-text-secondary">
                     Personalização de cores primárias, logo e favicon será liberada em breve para administradores master.
                     Por enquanto, o branding MX (verde MX 0D3B2E + accent 22C55E) é fixo em toda a rede.
                 </Typography>
@@ -121,8 +152,8 @@ function ThemeOption({ icon, label, desc, active, onClick, badge }: {
                 </div>
                 {badge && <Badge variant="outline" className="text-mx-micro font-black uppercase">{badge}</Badge>}
             </div>
-            <Typography variant="caption" className="font-black uppercase tracking-tight">{label}</Typography>
-            <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1">{desc}</Typography>
+            <Typography variant="caption" className="font-black uppercase tracking-tight !text-text-primary">{label}</Typography>
+            <Typography variant="tiny" className="font-bold leading-relaxed mt-1 text-text-secondary">{desc}</Typography>
         </button>
     )
 }
@@ -138,8 +169,8 @@ function DensityOption({ label, desc, active, onClick }: { label: string; desc: 
                     : 'border-border-default bg-white hover:border-brand-primary/30'
             }`}
         >
-            <Typography variant="caption" className="font-black uppercase tracking-tight">{label}</Typography>
-            <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1">{desc}</Typography>
+            <Typography variant="caption" className="font-black uppercase tracking-tight !text-text-primary">{label}</Typography>
+            <Typography variant="tiny" className="font-bold leading-relaxed mt-1 text-text-secondary">{desc}</Typography>
         </button>
     )
 }

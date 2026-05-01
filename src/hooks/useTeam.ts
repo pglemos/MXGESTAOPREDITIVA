@@ -262,10 +262,7 @@ export function useTeam(storeIdOverride?: string) {
         phone?: string;
     }) => {
         const { data, error } = await supabase.functions.invoke('register-user', {
-            body: { 
-                ...userData, 
-                password: userData.password || 'Mx#2026!'
-            }
+            body: userData
         })
         if (!error && data?.success) {
             await fetchTeam()

@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 import { parseStrictBody, sendFeedbackSchema } from "../_shared/schemas.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { canManageStore, forbidden, requireAuthenticatedRole } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -9,6 +10,9 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const auth = await requireAuthenticatedRole(req, ["administrador_geral", "administrador_mx", "dono", "gerente"]);
+    if (auth.response) return auth.response;
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -23,6 +27,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (fError || !f) throw new Error("Devolutiva não encontrada");
+    if (!(await canManageStore(auth.context, f.store_id))) {
+      return forbidden("Feedback does not belong to a store managed by this user");
+    }
 
     const { data: storeMembers, error: mError } = await supabaseClient
       .from("vinculos_loja")

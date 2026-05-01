@@ -5,6 +5,8 @@ import { buildStoreQuery } from "../_shared/store.ts";
 import { sendReportEmail } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/response.ts";
 import { formatPtBrDate, escapeHtml, escapeXml } from "../_shared/format.ts";
+import { authorizeReportRequest } from "../_shared/auth.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 const supabase = createServiceClient();
 const resend = createResendClient();
@@ -25,7 +27,12 @@ type SellerRow = {
 };
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
   try {
+    const auth = await authorizeReportRequest(req);
+    if (auth.response) return auth.response;
+
     const body = await parseReportBody(req);
     const dates = getSaoPauloDates();
     const { data: lojas, error: storesError } = await buildStoreQuery(supabase, body.store_id);

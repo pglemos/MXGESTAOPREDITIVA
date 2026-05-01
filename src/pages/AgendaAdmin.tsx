@@ -580,7 +580,7 @@ export default function AgendaAdmin() {
           </div>
 
           <div className="grid w-full grid-cols-[auto_1fr] gap-mx-xs sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end sm:gap-mx-sm">
-            <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar agenda" className="rounded-mx-xl bg-white">
+            <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar" className="rounded-mx-xl bg-white">
               <RefreshCw size={18} />
             </Button>
 

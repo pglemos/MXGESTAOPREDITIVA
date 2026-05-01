@@ -44,8 +44,8 @@ test.describe('Agenda admin filters', () => {
   test('filters by MX admin consultant and date windows: today, week, next week, month, all', async ({ page }, testInfo) => {
     const suffix = `${testInfo.project.name}-${Date.now()}`
     const loginAdmin = await createE2EAdminUser({ prefix: `agenda-login-${suffix}`, name: 'Agenda Login Admin' })
-    const consultantA = await createE2EAdminUser({ prefix: `agenda-a-${suffix}`, name: `Agenda Consultor A ${suffix}` })
-    const consultantB = await createE2EAdminUser({ prefix: `agenda-b-${suffix}`, name: `Agenda Consultor B ${suffix}` })
+    const consultantA = await createE2EAdminUser({ prefix: `agenda-a-${suffix}`, name: `Agenda Consultor A ${suffix}`, role: 'consultor_mx' })
+    const consultantB = await createE2EAdminUser({ prefix: `agenda-b-${suffix}`, name: `Agenda Consultor B ${suffix}`, role: 'consultor_mx' })
     users.push(loginAdmin, consultantA, consultantB)
 
     const clientToday = await createE2EConsultingClient({ name: `E2E Agenda Hoje ${suffix}`, createdBy: loginAdmin.id })

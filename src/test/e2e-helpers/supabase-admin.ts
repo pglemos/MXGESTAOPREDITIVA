@@ -3,7 +3,7 @@ import { config as loadEnv } from 'dotenv'
 
 loadEnv()
 
-export const E2E_DEFAULT_PASSWORD = '123456'
+export const E2E_DEFAULT_PASSWORD = 'Mx#2026!E2E'
 
 export interface E2EUser {
   id: string
@@ -34,6 +34,7 @@ export async function createE2EAdminUser(options?: {
   name?: string
   password?: string
   mustChangePassword?: boolean
+  role?: 'administrador_geral' | 'administrador_mx' | 'consultor_mx'
 }) {
   const admin = getSupabaseAdmin()
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -41,6 +42,7 @@ export async function createE2EAdminUser(options?: {
   const password = options?.password || E2E_DEFAULT_PASSWORD
   const mustChangePassword = options?.mustChangePassword ?? false
   const name = options?.name || 'E2E Admin'
+  const role = options?.role || 'administrador_geral'
 
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
@@ -48,7 +50,7 @@ export async function createE2EAdminUser(options?: {
     email_confirm: true,
     user_metadata: {
       name,
-      role: 'admin',
+      role,
       must_change_password: mustChangePassword,
     },
   })
@@ -57,12 +59,12 @@ export async function createE2EAdminUser(options?: {
     throw new Error(`Failed to create E2E auth user: ${createError?.message || 'missing user'}`)
   }
 
-  const { error: profileError } = await admin.from('users').upsert(
+  const { error: profileError } = await admin.from('usuarios').upsert(
     {
       id: created.user.id,
       email,
       name,
-      role: 'admin',
+      role,
       active: true,
       must_change_password: mustChangePassword,
     },
@@ -88,7 +90,7 @@ export async function createE2EConsultingClient(options: {
   const admin = getSupabaseAdmin()
   const slug = options.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   const { data, error } = await admin
-    .from('consulting_clients')
+    .from('clientes_consultoria')
     .insert({
       name: options.name,
       slug,
@@ -113,7 +115,7 @@ export async function createE2EConsultingVisit(options: {
 }) {
   const admin = getSupabaseAdmin()
   const { data, error } = await admin
-    .from('consulting_visits')
+    .from('visitas_consultoria')
     .insert({
       client_id: options.clientId,
       visit_number: options.visitNumber || 1,
@@ -135,20 +137,20 @@ export async function createE2EConsultingVisit(options: {
 export async function deleteE2EConsultingData(clientIds: string[]) {
   if (!clientIds.length) return
   const admin = getSupabaseAdmin()
-  await admin.from('consulting_visits').delete().in('client_id', clientIds)
-  await admin.from('consulting_clients').delete().in('id', clientIds)
+  await admin.from('visitas_consultoria').delete().in('client_id', clientIds)
+  await admin.from('clientes_consultoria').delete().in('id', clientIds)
 }
 
 export async function deleteE2EUser(userId: string) {
   const admin = getSupabaseAdmin()
-  await admin.from('users').delete().eq('id', userId)
+  await admin.from('usuarios').delete().eq('id', userId)
   await admin.auth.admin.deleteUser(userId)
 }
 
 export async function getMustChangePassword(userId: string) {
   const admin = getSupabaseAdmin()
   const { data, error } = await admin
-    .from('users')
+    .from('usuarios')
     .select('must_change_password')
     .eq('id', userId)
     .maybeSingle()
@@ -160,7 +162,7 @@ export async function getMustChangePassword(userId: string) {
 export async function getFirstRankingStoreName() {
   const admin = getSupabaseAdmin()
   const { data, error } = await admin
-    .from('store_sellers')
+    .from('vendedores_loja')
     .select('store:store_id(name)')
     .eq('is_active', true)
     .limit(1)

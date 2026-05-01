@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.10.0"
+import { canSendVisitReport, forbidden, requireAuthenticatedRole } from "../_shared/auth.ts"
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -14,8 +15,17 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 405
+    })
+  }
 
   try {
+    const auth = await requireAuthenticatedRole(req, ['administrador_geral', 'administrador_mx', 'consultor_mx'])
+    if (auth.response) return auth.response
+
     const { visitId } = await req.json()
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -27,6 +37,9 @@ serve(async (req) => {
       .single()
 
     if (visitError || !visit) throw new Error('Visita não encontrada')
+    if (!(await canSendVisitReport(auth.context, visit))) {
+      return forbidden('Visit report does not belong to this consultant')
+    }
 
     // 2. Buscar contatos do cliente (para enviar o e-mail)
     const { data: contacts } = await supabase

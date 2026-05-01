@@ -107,6 +107,8 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                 <div className="grid md:grid-cols-2 gap-mx-md">
                     <FormGroup icon={<UserIcon size={16} />} label="Nome">
                         <Input
+                            id="edit-user-name"
+                            name="name"
                             value={form.name || ''}
                             onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                             className="!pl-mx-12 !h-mx-14 font-bold uppercase"
@@ -115,6 +117,8 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
 
                     <FormGroup icon={<Mail size={16} />} label="E-mail">
                         <Input
+                            id="edit-user-email"
+                            name="email"
                             type="email"
                             value={form.email || ''}
                             onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
@@ -124,6 +128,8 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
 
                     <FormGroup icon={<Phone size={16} />} label="Telefone">
                         <Input
+                            id="edit-user-phone"
+                            name="phone"
                             value={form.phone || ''}
                             onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
                             className="!pl-mx-12 !h-mx-14 font-bold"
@@ -132,6 +138,8 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
 
                     <FormGroup icon={<Shield size={16} />} label="Papel/Hierarquia">
                         <select
+                            id="edit-user-role"
+                            name="role"
                             value={form.role || ''}
                             onChange={e => setForm(p => ({ ...p, role: e.target.value as UserRole }))}
                             className="w-full h-mx-14 pl-mx-12 pr-mx-sm bg-surface-alt border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
@@ -145,6 +153,8 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                     {!isInternal && (
                         <FormGroup icon={<Building2 size={16} />} label="Loja">
                             <select
+                                id="edit-user-store"
+                                name="store_id"
                                 value={form.store_id || ''}
                                 onChange={e => setForm(p => ({ ...p, store_id: e.target.value }))}
                                 className="w-full h-mx-14 pl-mx-12 pr-mx-sm bg-surface-alt border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
@@ -159,6 +169,7 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                         <label htmlFor="user-active" className="flex items-start gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md cursor-pointer">
                             <input
                                 id="user-active"
+                                name="active"
                                 type="checkbox"
                                 checked={Boolean(form.active)}
                                 onChange={e => setForm(p => ({ ...p, active: e.target.checked }))}

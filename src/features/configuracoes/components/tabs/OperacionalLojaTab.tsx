@@ -11,6 +11,9 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import type { TabContext } from '@/features/configuracoes/types'
 
+const fieldId = (prefix: string, label: string) =>
+    `${prefix}-${label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`
+
 export function OperacionalLojaTab({ isReadOnly }: TabContext) {
     const { role, storeId: authStoreId } = useAuth()
     const { lojas } = useStores()
@@ -82,6 +85,8 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                     </Typography>
                     <div className="relative flex-1 w-full">
                         <select
+                            id="operational-store"
+                            name="store_id"
                             value={selectedStoreId}
                             onChange={e => setSelectedStoreId(e.target.value)}
                             disabled={!isGlobal && lojas.length <= 1}
@@ -162,6 +167,8 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                                 <div className="relative">
                                     <History size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                                     <input
+                                        id="morning-report-time"
+                                        name="morning_report_time"
                                         type="time"
                                         value={settings.morning_report_time}
                                         onChange={e => setSettings(p => ({ ...p, morning_report_time: e.target.value }))}
@@ -285,10 +292,13 @@ function ToggleRow({ label, desc, value, onChange, disabled }: { label: string; 
 }
 
 function NumberField({ label, value, onChange, disabled }: { label: string; value: number; onChange: (v: number) => void; disabled?: boolean }) {
+    const id = fieldId('operational-number', label)
     return (
         <div className="space-y-mx-xs">
             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest px-1">{label}</Typography>
             <input
+                id={id}
+                name={id}
                 type="number"
                 value={value}
                 onChange={e => onChange(Number(e.target.value))}
@@ -306,10 +316,13 @@ function SelectField({ label, value, onChange, options, disabled }: {
     options: { value: string; label: string }[]
     disabled?: boolean
 }) {
+    const id = fieldId('operational-select', label)
     return (
         <div className="space-y-mx-xs">
             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest px-1">{label}</Typography>
             <select
+                id={id}
+                name={id}
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 disabled={disabled}

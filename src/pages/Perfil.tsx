@@ -9,6 +9,7 @@ import { cn, getAvatarUrl } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 
 export default function Perfil() {
   const { profile, role, signOut, updateProfile, changePassword } = useAuth()
@@ -73,8 +74,8 @@ export default function Perfil() {
   }
 
   const handleChangePassword = async () => {
-    if (newPassword.length < 6) {
-      toast.error('Senha deve ter no mínimo 6 caracteres.')
+    if (!isStrongPassword(newPassword)) {
+      toast.error(PASSWORD_POLICY_MESSAGE)
       return
     }
     if (newPassword !== confirmPassword) {
@@ -238,11 +239,11 @@ export default function Perfil() {
             <div className="space-y-mx-md">
               <div>
                 <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Nova Senha</label>
-                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className="w-full" />
+                <Input id="profile-password-modal-new" name="new-password" autoComplete="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 10, Aa1#" className="w-full" />
               </div>
               <div>
                 <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Confirmar Senha</label>
-                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" className="w-full" />
+                <Input id="profile-password-modal-confirm" name="confirm-password" autoComplete="new-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" className="w-full" />
               </div>
             </div>
 

@@ -12,7 +12,11 @@ interface RegisterUserPayload {
   phone?: string
 }
 
-const DEFAULT_PASSWORD = '123456'
+const PASSWORD_POLICY_MESSAGE = 'Password must be at least 10 characters and include uppercase, lowercase, number, and symbol'
+
+function isStrongPassword(password: string) {
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$/.test(password)
+}
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -80,6 +84,10 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: 'Missing required fields (email, name, role)' }, 400)
   }
 
+  if (!password || !isStrongPassword(password)) {
+    return jsonResponse({ success: false, error: PASSWORD_POLICY_MESSAGE }, 400)
+  }
+
   if (!['administrador_geral', 'administrador_mx', 'consultor_mx'].includes(role) && !store_id) {
     return jsonResponse({ success: false, error: 'store_id is required for store-scoped roles' }, 400)
   }
@@ -94,11 +102,9 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: `Caller role "${callerRole}" cannot create role "${role}"` }, 403)
   }
 
-  const finalPassword = password || DEFAULT_PASSWORD
-
   const { data: created, error: createError } = await adminClient.auth.admin.createUser({
     email: email.trim().toLowerCase(),
-    password: finalPassword,
+    password,
     email_confirm: true,
     user_metadata: {
       name,

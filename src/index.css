@@ -18,6 +18,7 @@
   --color-status-warning: #f59e0b;
   --color-status-warning-surface: rgba(245, 158, 11, 0.05);
   --color-status-error: #ef4444;
+  --color-status-error-strong: #b91c1c;
   --color-status-error-surface: rgba(239, 68, 68, 0.05);
   --color-status-info: #3b82f6;
   --color-status-info-surface: rgba(59, 130, 246, 0.05);

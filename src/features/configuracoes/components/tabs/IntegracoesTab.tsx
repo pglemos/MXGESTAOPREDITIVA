@@ -4,6 +4,7 @@ import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { GoogleCalendarStatus } from '@/features/agenda/components/GoogleCalendarStatus'
+import { Link } from 'react-router-dom'
 
 export function IntegracoesTab() {
     return (
@@ -81,8 +82,8 @@ export function IntegracoesTab() {
                         <Globe size={26} />
                     </div>
                     <div>
-                        <Typography variant="h3" className="uppercase tracking-tight">Edge Functions Ativas</Typography>
-                        <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Funções serverless da rede MX</Typography>
+                        <Typography variant="h3" className="uppercase tracking-tight">Edge Functions Registradas</Typography>
+                        <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Inventário local; saúde real via logs e Supabase</Typography>
                     </div>
                 </header>
                 <div className="grid md:grid-cols-2 gap-mx-sm">
@@ -100,7 +101,7 @@ export function IntegracoesTab() {
                     ].map(fn => (
                         <div key={fn} className="flex items-center justify-between p-mx-sm bg-surface-alt rounded-mx-xl border border-border-subtle">
                             <Typography variant="tiny" className="font-mono-numbers font-bold">{fn}</Typography>
-                            <Badge variant="success" className="text-mx-micro font-black uppercase">Online</Badge>
+                            <Badge variant="outline" className="text-mx-micro font-black uppercase">Registrada</Badge>
                         </div>
                     ))}
                 </div>
@@ -129,7 +130,7 @@ function IntegrationCard({ icon, title, desc, badge, route, disabled }: {
                     <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-mx-sm">{desc}</Typography>
                     {route && !disabled && (
                         <Button asChild variant="outline" size="sm" className="h-mx-9 px-3 rounded-mx-lg font-black uppercase text-mx-micro tracking-widest">
-                            <a href={route}>Acessar <ExternalLink size={11} className="ml-1" /></a>
+                            <Link to={route}>Acessar <ExternalLink size={11} className="ml-1" /></Link>
                         </Button>
                     )}
                 </div>

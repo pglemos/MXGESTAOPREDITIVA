@@ -73,6 +73,8 @@ export function LojasRedeTab({ isReadOnly }: TabContext) {
                 <div className="relative flex-1">
                     <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                     <Input
+                        id="store-search"
+                        name="store-search"
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
                         placeholder="Buscar por nome ou e-mail do gestor..."
@@ -81,6 +83,8 @@ export function LojasRedeTab({ isReadOnly }: TabContext) {
                 </div>
                 <label className="flex items-center gap-mx-xs cursor-pointer text-xs font-black uppercase tracking-widest">
                     <input
+                        id="show-inactive-stores"
+                        name="show-inactive-stores"
                         type="checkbox"
                         checked={showInactive}
                         onChange={e => setShowInactive(e.target.checked)}
@@ -88,7 +92,7 @@ export function LojasRedeTab({ isReadOnly }: TabContext) {
                     />
                     Mostrar inativas
                 </label>
-                <Button variant="outline" onClick={refetch} className="h-mx-12 px-mx-sm rounded-mx-xl">
+                <Button variant="outline" onClick={refetch} className="h-mx-12 px-mx-sm rounded-mx-xl" aria-label="Atualizar lojas">
                     <RefreshCw size={14} />
                 </Button>
                 {canManage && (

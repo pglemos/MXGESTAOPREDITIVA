@@ -7,6 +7,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 
 export function ForcePasswordChange() {
   const { changePassword, signOut, profile } = useAuth()
@@ -20,7 +21,7 @@ export function ForcePasswordChange() {
   const passwordStrength = useMemo(() => {
     if (!formData.password) return 0
     let strength = 0
-    if (formData.password.length >= 6) strength += 1
+    if (formData.password.length >= 10) strength += 1
     if (/[A-Z]/.test(formData.password)) strength += 1
     if (/[0-9]/.test(formData.password)) strength += 1
     if (/[^A-Za-z0-9]/.test(formData.password)) strength += 1
@@ -46,8 +47,8 @@ export function ForcePasswordChange() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (formData.password.length < 6) {
-      return toast.error('A senha deve ter pelo menos 6 caracteres')
+    if (!isStrongPassword(formData.password)) {
+      return toast.error(PASSWORD_POLICY_MESSAGE)
     }
     
     if (formData.password !== formData.confirmPassword) {
