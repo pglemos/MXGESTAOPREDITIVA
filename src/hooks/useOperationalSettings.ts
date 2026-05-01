@@ -17,7 +17,7 @@ export type StoreSettingsPayload = {
     store: Pick<Store, 'id' | 'manager_email' | 'source_mode' | 'active'>
     delivery: Pick<StoreDeliveryRules, 'store_id' | 'matinal_recipients' | 'weekly_recipients' | 'monthly_recipients' | 'whatsapp_group_ref' | 'timezone' | 'active'>
     benchmark: Pick<StoreBenchmark, 'store_id' | 'lead_to_agend' | 'agend_to_visit' | 'visit_to_sale'>
-    meta: Pick<StoreMetaRules, 'store_id' | 'monthly_goal' | 'individual_goal_mode' | 'include_venda_loja_in_store_total' | 'include_venda_loja_in_individual_goal' | 'bench_lead_agd' | 'bench_agd_visita' | 'bench_visita_vnd'>
+    meta: Pick<StoreMetaRules, 'store_id' | 'monthly_goal' | 'individual_goal_mode' | 'include_venda_loja_in_store_total' | 'include_venda_loja_in_individual_goal' | 'bench_lead_agd' | 'bench_agd_visita' | 'bench_visita_vnd' | 'projection_mode'>
 }
 
 export function useOperationalSettings(storeId: string | null) {
@@ -51,7 +51,7 @@ export function useOperationalSettings(storeId: string | null) {
             supabase.from('regras_metas_loja').select('*').eq('store_id', storeId).maybeSingle(),
             supabase
                 .from('vendedores_loja')
-                .select('*, user:usuarios!vendedores_loja_seller_user_id_fkey(id,name,email,role,active,is_venda_loja)')
+                .select('*, user:usuarios(id,name,email,role,active,is_venda_loja)')
                 .eq('store_id', storeId)
                 .order('is_active', { ascending: false })
                 .order('started_at', { ascending: false }),

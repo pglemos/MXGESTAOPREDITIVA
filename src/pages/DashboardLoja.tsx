@@ -1,12 +1,14 @@
 import { useSellersByStore, useStores } from '@/hooks/useTeam'
-import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { useStoreGoal } from '@/hooks/useGoals'
+import { useOperationalSettings, type StoreSettingsPayload } from '@/hooks/useOperationalSettings'
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useDRE } from '@/hooks/useDRE'
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, type FormEvent } from 'react'
 import { 
-    RefreshCw, Search, Globe, ChevronDown, Calendar, History, ArrowRight
+    RefreshCw, Search, Globe, ChevronDown, Calendar, History, ArrowRight,
+    Settings2, Plus, Trash2, Save, ShieldCheck, Mail, Target, Building2
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { format, subDays, startOfMonth } from 'date-fns'
@@ -18,19 +20,60 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
-import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { Modal } from '@/components/organisms/Modal'
+import { StoreEditModal } from '@/features/admin/components/StoreEditModal'
+import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 import { supabase } from '@/lib/supabase'
+import type { ProjectionMode, StoreSourceMode } from '@/types/database'
+import { StoreGoalsPanel } from '@/features/lojas/components/StoreGoalsPanel'
+
+type DashboardTab = 'performance' | 'metas'
+
+const joinRecipients = (value?: string[] | null) => value?.join(', ') || ''
+const splitRecipients = (value: string) => value.split(',').map(email => email.trim()).filter(Boolean)
+const toNumber = (value: string, fallback = 0) => {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : fallback
+}
 
 export default function DashboardLoja() {
     const { role, storeId: authStoreId, setActiveStoreId, vinculos_loja } = useAuth()
     const { storeSlug } = useParams()
     const navigate = useNavigate()
-    const { lojas, loading: storesLoading } = useStores()
+    const location = useLocation()
+    const { lojas, loading: storesLoading, createStore, updateStore, deleteStore, refetch: refetchStores } = useStores()
+    const isAdminMx = isAdministradorMx(role)
 
     const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(null)
     const [resolving, setResolving] = useState(!!storeSlug)
+    const [storeEditOpen, setStoreEditOpen] = useState(false)
+    const [createStoreOpen, setCreateStoreOpen] = useState(false)
+    const [savingStore, setSavingStore] = useState(false)
+    const [creatingStore, setCreatingStore] = useState(false)
+    const [deletingStore, setDeletingStore] = useState(false)
+    const [savingSettings, setSavingSettings] = useState(false)
+    const [newStore, setNewStore] = useState({ name: '', manager_email: '' })
+    const [settingsForm, setSettingsForm] = useState({
+        source_mode: 'native_app' as StoreSourceMode,
+        active: true,
+        manager_email: '',
+        monthly_goal: '0',
+        individual_goal_mode: 'even' as StoreSettingsPayload['meta']['individual_goal_mode'],
+        include_venda_loja_in_store_total: true,
+        include_venda_loja_in_individual_goal: false,
+        bench_lead_agd: '20',
+        bench_agd_visita: '60',
+        bench_visita_vnd: '33',
+        matinal_recipients: '',
+        weekly_recipients: '',
+        monthly_recipients: '',
+        whatsapp_group_ref: '',
+        timezone: 'America/Sao_Paulo',
+        delivery_active: true,
+        projection_mode: 'calendar' as ProjectionMode,
+    })
 
     const activeStores = useMemo(() => (lojas || []).filter(store => store.active), [lojas])
     const selectableStores = useMemo(() => {
@@ -94,8 +137,28 @@ export default function DashboardLoja() {
         }
     }, [selectedStoreId, authStoreId, setActiveStoreId])
 
+    const activeTab = useMemo<DashboardTab>(() => {
+        return new URLSearchParams(location.search).get('tab') === 'metas' ? 'metas' : 'performance'
+    }, [location.search])
+
+    const handleTabChange = useCallback((tab: DashboardTab) => {
+        navigate({
+            pathname: location.pathname,
+            search: tab === 'metas' ? '?tab=metas' : '',
+        })
+    }, [location.pathname, navigate])
+
     const { sellers } = useSellersByStore(selectedStoreId)
-    const { goal: storeGoal } = useStoreGoal(selectedStoreId)
+    const { goal: storeGoal, refetch: refetchStoreGoal } = useStoreGoal(selectedStoreId)
+    const {
+        store: operationalStore,
+        deliveryRules,
+        benchmark,
+        metaRules: operationalMetaRules,
+        loading: operationalLoading,
+        fetchSettings,
+        saveSettings,
+    } = useOperationalSettings(selectedStoreId)
 
     const [viewMode, setViewMode] = useState<'day' | 'month'>('day')
     const [startDate, setStartDate] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'))
@@ -147,6 +210,13 @@ export default function DashboardLoja() {
         }
     }, [refetch])
 
+    const effectiveMonthlyGoal = operationalMetaRules?.monthly_goal ?? storeGoal?.target ?? 0
+    const funnelBenchmarks = useMemo(() => ({
+        leadAgd: benchmark?.lead_to_agend ?? operationalMetaRules?.bench_lead_agd ?? 20,
+        agdVisita: benchmark?.agend_to_visit ?? operationalMetaRules?.bench_agd_visita ?? 60,
+        visitaVnd: benchmark?.visit_to_sale ?? operationalMetaRules?.bench_visita_vnd ?? 33,
+    }), [benchmark, operationalMetaRules])
+
     const storeSalesParams = useMemo(() => {
         const checkinsBySeller = (checkins || []).reduce((acc, c) => {
             if (!acc[c.seller_user_id]) acc[c.seller_user_id] = []
@@ -167,7 +237,7 @@ export default function DashboardLoja() {
                     leads: sellerCheckins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
                     agd_total: sellerCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0),
                     visitas: sellerCheckins.reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
-                    meta: storeGoal?.target || 0,
+                    meta: effectiveMonthlyGoal,
                     atingimento: 0,
                     projecao: 0,
                     ritmo: 0,
@@ -178,9 +248,9 @@ export default function DashboardLoja() {
                     checkin_today: (sellers || []).find(sel => sel.id === s.id)?.checkin_today
                 }
             }),
-            rules: { monthly_goal: storeGoal?.target || 0 } as any
+            rules: { monthly_goal: effectiveMonthlyGoal } as any
         }
-    }, [checkins, sellers, storeGoal])
+    }, [checkins, sellers, effectiveMonthlyGoal])
 
     const storeSales = useStoreSales(storeSalesParams)
     const { financials, computeDRE: computeDREFn } = useDRE(undefined, selectedStoreId || undefined)
@@ -204,12 +274,12 @@ export default function DashboardLoja() {
             totalAgd: storeSales.storeTotalAgd,
             totalVis: storeSales.storeTotalVis,
             attainment: storeSales.storeAttainment,
-            goalValue: storeSales.storeGoal,
+            goalValue: effectiveMonthlyGoal || storeSales.storeGoal,
             checkedInCount,
             ranking: storeSales.processedRanking,
             storeName: selectedStore?.name || 'Unidade MX'
         }
-    }, [storeSales, sellers, selectedStore])
+    }, [storeSales, sellers, selectedStore, effectiveMonthlyGoal])
 
     const funilData = useMemo(() => calcularFunil(checkins as any), [checkins])
     const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
@@ -274,6 +344,151 @@ export default function DashboardLoja() {
         return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
     }, [metrics.ranking, sellerSearch])
 
+    useEffect(() => {
+        if (!isAdminMx || !selectedStoreId) return
+
+        setSettingsForm({
+            source_mode: operationalStore?.source_mode || selectedStore?.source_mode || 'native_app',
+            active: operationalStore?.active ?? selectedStore?.active ?? true,
+            manager_email: operationalStore?.manager_email || selectedStore?.manager_email || '',
+            monthly_goal: String(operationalMetaRules?.monthly_goal ?? 0),
+            individual_goal_mode: operationalMetaRules?.individual_goal_mode || 'even',
+            include_venda_loja_in_store_total: operationalMetaRules?.include_venda_loja_in_store_total ?? true,
+            include_venda_loja_in_individual_goal: operationalMetaRules?.include_venda_loja_in_individual_goal ?? false,
+            bench_lead_agd: String(benchmark?.lead_to_agend ?? operationalMetaRules?.bench_lead_agd ?? 20),
+            bench_agd_visita: String(benchmark?.agend_to_visit ?? operationalMetaRules?.bench_agd_visita ?? 60),
+            bench_visita_vnd: String(benchmark?.visit_to_sale ?? operationalMetaRules?.bench_visita_vnd ?? 33),
+            matinal_recipients: joinRecipients(deliveryRules?.matinal_recipients),
+            weekly_recipients: joinRecipients(deliveryRules?.weekly_recipients),
+            monthly_recipients: joinRecipients(deliveryRules?.monthly_recipients),
+            whatsapp_group_ref: deliveryRules?.whatsapp_group_ref || '',
+            timezone: deliveryRules?.timezone || 'America/Sao_Paulo',
+            delivery_active: deliveryRules?.active ?? true,
+            projection_mode: operationalMetaRules?.projection_mode || storeGoal?.projection_mode || 'calendar',
+        })
+    }, [benchmark, deliveryRules, isAdminMx, operationalMetaRules, operationalStore, selectedStore, selectedStoreId, storeGoal])
+
+    const handleStoreUpdate = async (id: string, updates: Parameters<typeof updateStore>[1]) => {
+        setSavingStore(true)
+        try {
+            const { error } = await updateStore(id, updates)
+            if (error) {
+                toast.error(error)
+                return
+            }
+
+            setStoreEditOpen(false)
+            await fetchSettings()
+            const nextName = updates.name || selectedStore?.name
+            if (nextName && slugify(nextName) !== storeSlug) {
+                navigate(`/lojas/${slugify(nextName)}`, { replace: true })
+            }
+        } finally {
+            setSavingStore(false)
+        }
+    }
+
+    const handleCreateStore = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        if (!newStore.name.trim()) {
+            toast.error('Informe o nome da loja.')
+            return
+        }
+
+        setCreatingStore(true)
+        try {
+            const { error } = await createStore(newStore.name, newStore.manager_email || undefined)
+            if (error) {
+                toast.error(error)
+                return
+            }
+
+            const createdName = newStore.name
+            setNewStore({ name: '', manager_email: '' })
+            setCreateStoreOpen(false)
+            await refetchStores()
+            toast.success('Loja criada com sucesso.')
+            navigate(`/lojas/${slugify(createdName)}`)
+        } finally {
+            setCreatingStore(false)
+        }
+    }
+
+    const handleDeleteStore = async () => {
+        if (!selectedStoreId || !selectedStore) return
+        const confirmed = window.confirm(`Excluir definitivamente a loja ${selectedStore.name}? Esta ação depende das regras do banco e pode ser bloqueada se houver dados vinculados.`)
+        if (!confirmed) return
+
+        setDeletingStore(true)
+        try {
+            const { error } = await deleteStore(selectedStoreId)
+            if (error) {
+                toast.error(error)
+                return
+            }
+            toast.success('Loja excluída.')
+            navigate('/lojas', { replace: true })
+        } finally {
+            setDeletingStore(false)
+        }
+    }
+
+    const handleSettingsSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        if (!selectedStoreId) return
+
+        const matinalRecipients = splitRecipients(settingsForm.matinal_recipients)
+        const payload: StoreSettingsPayload = {
+            store: {
+                id: selectedStoreId,
+                manager_email: settingsForm.manager_email.trim() || matinalRecipients[0] || null,
+                source_mode: settingsForm.source_mode,
+                active: settingsForm.active,
+            },
+            delivery: {
+                store_id: selectedStoreId,
+                matinal_recipients: matinalRecipients,
+                weekly_recipients: splitRecipients(settingsForm.weekly_recipients),
+                monthly_recipients: splitRecipients(settingsForm.monthly_recipients),
+                whatsapp_group_ref: settingsForm.whatsapp_group_ref.trim() || null,
+                timezone: settingsForm.timezone.trim() || 'America/Sao_Paulo',
+                active: settingsForm.delivery_active,
+            },
+            benchmark: {
+                store_id: selectedStoreId,
+                lead_to_agend: toNumber(settingsForm.bench_lead_agd, 20),
+                agend_to_visit: toNumber(settingsForm.bench_agd_visita, 60),
+                visit_to_sale: toNumber(settingsForm.bench_visita_vnd, 33),
+            },
+            meta: {
+                store_id: selectedStoreId,
+                monthly_goal: toNumber(settingsForm.monthly_goal, 0),
+                individual_goal_mode: settingsForm.individual_goal_mode,
+                include_venda_loja_in_store_total: settingsForm.include_venda_loja_in_store_total,
+                include_venda_loja_in_individual_goal: settingsForm.include_venda_loja_in_individual_goal,
+                bench_lead_agd: toNumber(settingsForm.bench_lead_agd, 20),
+                bench_agd_visita: toNumber(settingsForm.bench_agd_visita, 60),
+                bench_visita_vnd: toNumber(settingsForm.bench_visita_vnd, 33),
+                projection_mode: settingsForm.projection_mode,
+            },
+        }
+
+        setSavingSettings(true)
+        try {
+            const { error } = await saveSettings(payload)
+            if (error) {
+                toast.error(error)
+                return
+            }
+
+            await Promise.all([refetchStores(), refetchStoreGoal()])
+            toast.success('Dados operacionais da loja atualizados.')
+            if (!payload.store.active) navigate('/lojas', { replace: true })
+        } finally {
+            setSavingSettings(false)
+        }
+    }
+
     if (!resolving && !storesLoading && !selectedStoreId && (isPerfilInternoMx(role) || role === 'dono')) {
         return <Navigate to="/lojas" replace />
     }
@@ -285,7 +500,7 @@ export default function DashboardLoja() {
         </div>
     )
 
-    if (loading && !isRefetching) return (
+    if (activeTab === 'performance' && loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
@@ -316,12 +531,12 @@ export default function DashboardLoja() {
                                     value={selectedStoreId || ''} 
                                     onChange={e => {
                                         const newStoreId = e.target.value
-                                        const newStore = selectableStores.find(store => store.id === newStoreId)
-                                        if (newStore) {
-                                            setActiveStoreId(newStoreId)
-                                            navigate(`/lojas/${slugify(newStore.name)}`)
-                                        }
-                                    }}
+	                                        const newStore = selectableStores.find(store => store.id === newStoreId)
+	                                        if (newStore) {
+	                                            setActiveStoreId(newStoreId)
+	                                            navigate(`/lojas/${slugify(newStore.name)}${activeTab === 'metas' ? '?tab=metas' : ''}`)
+	                                        }
+	                                    }}
                                     className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors whitespace-normal max-w-full"
                                 >
                                     {selectableStores.map(store => (
@@ -336,12 +551,33 @@ export default function DashboardLoja() {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny">
+	                <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
+	                    <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny" aria-label="Abas da loja">
+	                        {[
+	                            { key: 'performance' as const, label: 'Performance', icon: Globe },
+	                            { key: 'metas' as const, label: 'Metas', icon: Target },
+	                        ].map(tab => (
+	                            <Button
+	                                key={tab.key}
+	                                variant={activeTab === tab.key ? 'secondary' : 'ghost'}
+	                                size="sm"
+	                                onClick={() => handleTabChange(tab.key)}
+	                                className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny"
+	                                aria-current={activeTab === tab.key ? 'page' : undefined}
+	                            >
+	                                <tab.icon size={14} className="mr-1" />
+	                                {tab.label}
+	                            </Button>
+	                        ))}
+	                    </nav>
+
+	                    {activeTab === 'performance' && (
+	                    <>
+	                    <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny" aria-label="Período do dashboard">
                         {['month', 'day'].map((m) => (
-                            <Button 
+                            <Button
                                 key={m} variant={viewMode === m ? 'secondary' : 'ghost'} size="sm"
-                                onClick={() => setViewMode(m as any)} 
+                                onClick={() => setViewMode(m as any)}
                                 className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny"
                             >
                                 {m === 'month' ? 'Mês' : 'D-1'}
@@ -356,11 +592,172 @@ export default function DashboardLoja() {
                         <input type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="hidden sm:block uppercase font-black text-text-primary bg-transparent outline-none text-mx-tiny" />
                     </div>
 
-                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
-                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
-                    </Button>
-                </div>
-            </header>
+	                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
+	                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
+	                    </Button>
+	                    </>
+	                    )}
+	                </div>
+	            </header>
+
+	            {activeTab === 'metas' ? (
+	                <StoreGoalsPanel storeId={selectedStoreId} storeName={metrics.storeName} />
+	            ) : (
+	            <>
+	            {isAdminMx && selectedStore && (
+	                <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
+                    <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
+                        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md">
+                            <div className="flex items-center gap-mx-sm min-w-0">
+                                <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-inner shrink-0">
+                                    <Settings2 size={22} />
+                                </div>
+                                <div className="min-w-0">
+                                    <CardTitle className="text-lg md:text-xl uppercase tracking-tight">Administração da Loja</CardTitle>
+                                    <CardDescription className="uppercase tracking-widest font-black mt-1 text-mx-tiny">
+                                        {operationalLoading ? 'CARREGANDO DADOS...' : selectedStore.name.toUpperCase()}
+                                    </CardDescription>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-mx-sm">
+                                <Button type="button" variant="outline" onClick={() => setStoreEditOpen(true)} className="h-mx-10 rounded-mx-xl">
+                                    <Building2 size={16} className="mr-2" /> EDITAR
+                                </Button>
+                                <Button type="button" variant="outline" onClick={() => setCreateStoreOpen(true)} className="h-mx-10 rounded-mx-xl">
+                                    <Plus size={16} className="mr-2" /> NOVA
+                                </Button>
+                                <Button type="button" variant="danger" onClick={handleDeleteStore} disabled={deletingStore} className="h-mx-10 rounded-mx-xl">
+                                    {deletingStore ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Trash2 size={16} className="mr-2" />}
+                                    EXCLUIR
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-mx-lg">
+                        <form onSubmit={handleSettingsSubmit} className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg">
+                            <section className="xl:col-span-4 space-y-mx-md">
+                                <div className="flex items-center gap-mx-xs">
+                                    <Target size={16} className="text-brand-primary" />
+                                    <Typography variant="caption" className="font-black uppercase tracking-widest">Meta e Regras</Typography>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-mx-md">
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Meta Mensal</span>
+                                        <Input type="number" min="0" value={settingsForm.monthly_goal} onChange={e => setSettingsForm(prev => ({ ...prev, monthly_goal: e.target.value }))} className="font-mono-numbers font-black" />
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Modo de Projeção</span>
+                                        <select value={settingsForm.projection_mode} onChange={e => setSettingsForm(prev => ({ ...prev, projection_mode: e.target.value as ProjectionMode }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
+                                            <option value="calendar">Calendário</option>
+                                            <option value="business">Dias úteis</option>
+                                        </select>
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Meta Individual</span>
+                                        <select value={settingsForm.individual_goal_mode} onChange={e => setSettingsForm(prev => ({ ...prev, individual_goal_mode: e.target.value as StoreSettingsPayload['meta']['individual_goal_mode'] }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
+                                            <option value="even">Igual</option>
+                                            <option value="custom">Customizada</option>
+                                            <option value="proportional">Proporcional</option>
+                                        </select>
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Fonte</span>
+                                        <select value={settingsForm.source_mode} onChange={e => setSettingsForm(prev => ({ ...prev, source_mode: e.target.value as StoreSourceMode }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
+                                            <option value="native_app">App nativo</option>
+                                            <option value="legacy_forms">Forms legado</option>
+                                            <option value="hybrid">Híbrido</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div className="grid grid-cols-1 gap-mx-sm">
+                                    <label className="flex items-center gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-sm cursor-pointer">
+                                        <input type="checkbox" checked={settingsForm.active} onChange={e => setSettingsForm(prev => ({ ...prev, active: e.target.checked }))} className="h-mx-sm w-mx-sm accent-brand-primary" />
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest">Loja ativa</span>
+                                    </label>
+                                    <label className="flex items-center gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-sm cursor-pointer">
+                                        <input type="checkbox" checked={settingsForm.include_venda_loja_in_store_total} onChange={e => setSettingsForm(prev => ({ ...prev, include_venda_loja_in_store_total: e.target.checked }))} className="h-mx-sm w-mx-sm accent-brand-primary" />
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest">Venda loja no total</span>
+                                    </label>
+                                    <label className="flex items-center gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-sm cursor-pointer">
+                                        <input type="checkbox" checked={settingsForm.include_venda_loja_in_individual_goal} onChange={e => setSettingsForm(prev => ({ ...prev, include_venda_loja_in_individual_goal: e.target.checked }))} className="h-mx-sm w-mx-sm accent-brand-primary" />
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest">Venda loja na meta individual</span>
+                                    </label>
+                                </div>
+                            </section>
+
+                            <section className="xl:col-span-4 space-y-mx-md">
+                                <div className="flex items-center gap-mx-xs">
+                                    <ShieldCheck size={16} className="text-brand-primary" />
+                                    <Typography variant="caption" className="font-black uppercase tracking-widest">Benchmarks</Typography>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-mx-md">
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Lead / Agendamento (%)</span>
+                                        <Input type="number" min="0" step="0.01" value={settingsForm.bench_lead_agd} onChange={e => setSettingsForm(prev => ({ ...prev, bench_lead_agd: e.target.value }))} className="font-mono-numbers font-black" />
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Agendamento / Visita (%)</span>
+                                        <Input type="number" min="0" step="0.01" value={settingsForm.bench_agd_visita} onChange={e => setSettingsForm(prev => ({ ...prev, bench_agd_visita: e.target.value }))} className="font-mono-numbers font-black" />
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Visita / Venda (%)</span>
+                                        <Input type="number" min="0" step="0.01" value={settingsForm.bench_visita_vnd} onChange={e => setSettingsForm(prev => ({ ...prev, bench_visita_vnd: e.target.value }))} className="font-mono-numbers font-black" />
+                                    </label>
+                                </div>
+                            </section>
+
+                            <section className="xl:col-span-4 space-y-mx-md">
+                                <div className="flex items-center gap-mx-xs">
+                                    <Mail size={16} className="text-brand-primary" />
+                                    <Typography variant="caption" className="font-black uppercase tracking-widest">Relatórios</Typography>
+                                </div>
+                                <div className="grid grid-cols-1 gap-mx-md">
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">E-mail do gestor</span>
+                                        <Input type="email" value={settingsForm.manager_email} onChange={e => setSettingsForm(prev => ({ ...prev, manager_email: e.target.value }))} placeholder="gestor@loja.com.br" />
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Matinal</span>
+                                        <Input value={settingsForm.matinal_recipients} onChange={e => setSettingsForm(prev => ({ ...prev, matinal_recipients: e.target.value }))} placeholder="email1@loja.com.br, email2@loja.com.br" />
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Semanal</span>
+                                        <Input value={settingsForm.weekly_recipients} onChange={e => setSettingsForm(prev => ({ ...prev, weekly_recipients: e.target.value }))} placeholder="email1@loja.com.br, email2@loja.com.br" />
+                                    </label>
+                                    <label className="space-y-mx-xs">
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Mensal</span>
+                                        <Input value={settingsForm.monthly_recipients} onChange={e => setSettingsForm(prev => ({ ...prev, monthly_recipients: e.target.value }))} placeholder="email1@loja.com.br, email2@loja.com.br" />
+                                    </label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+                                        <label className="space-y-mx-xs">
+                                            <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">WhatsApp</span>
+                                            <Input value={settingsForm.whatsapp_group_ref} onChange={e => setSettingsForm(prev => ({ ...prev, whatsapp_group_ref: e.target.value }))} placeholder="grupo ou link" />
+                                        </label>
+                                        <label className="space-y-mx-xs">
+                                            <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Timezone</span>
+                                            <Input value={settingsForm.timezone} onChange={e => setSettingsForm(prev => ({ ...prev, timezone: e.target.value }))} />
+                                        </label>
+                                    </div>
+                                    <label className="flex items-center gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-sm cursor-pointer">
+                                        <input type="checkbox" checked={settingsForm.delivery_active} onChange={e => setSettingsForm(prev => ({ ...prev, delivery_active: e.target.checked }))} className="h-mx-sm w-mx-sm accent-brand-primary" />
+                                        <span className="text-mx-tiny font-black uppercase tracking-widest">Envios ativos</span>
+                                    </label>
+                                </div>
+                            </section>
+
+                            <footer className="xl:col-span-12 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-mx-sm pt-mx-md border-t border-border-default">
+                                <Button type="button" variant="ghost" onClick={fetchSettings} disabled={operationalLoading || savingSettings} className="h-mx-10 rounded-mx-xl">
+                                    <RefreshCw size={16} className={cn('mr-2', operationalLoading && 'animate-spin')} /> RECARREGAR
+                                </Button>
+                                <Button type="submit" disabled={savingSettings || operationalLoading} className="h-mx-10 rounded-mx-xl bg-brand-secondary">
+                                    {savingSettings ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Save size={16} className="mr-2" />}
+                                    SALVAR DADOS
+                                </Button>
+                            </footer>
+                        </form>
+                    </CardContent>
+                </Card>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
                 <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
@@ -426,9 +823,9 @@ export default function DashboardLoja() {
                 <CardContent className="p-mx-lg md:p-mx-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg md:gap-mx-14">
                         {[
-                            { from: 'Leads', to: 'Agendamentos', val: funilData.tx_lead_agd, bench: 20 },
-                            { from: 'Agendamentos', to: 'Visitas', val: funilData.tx_agd_visita, bench: 60 },
-                            { from: 'Visitas', to: 'Vendas', val: funilData.tx_visita_vnd, bench: 33 },
+                            { from: 'Leads', to: 'Agendamentos', val: funilData.tx_lead_agd, bench: funnelBenchmarks.leadAgd },
+                            { from: 'Agendamentos', to: 'Visitas', val: funilData.tx_agd_visita, bench: funnelBenchmarks.agdVisita },
+                            { from: 'Visitas', to: 'Vendas', val: funilData.tx_visita_vnd, bench: funnelBenchmarks.visitaVnd },
                         ].map((step, idx) => (
                             <div key={idx} className="space-y-mx-md">
                                 <div className="flex justify-between items-end">
@@ -500,8 +897,62 @@ export default function DashboardLoja() {
                             <Typography variant="caption" tone="white" className="text-mx-tiny font-black italic opacity-80 leading-relaxed uppercase tracking-widest max-w-xs mx-auto block italic">"{diagnostics.diagnostico} {diagnostics.sugestao}"</Typography>
                         </div>
                     </Card>
-                </aside>
-            </div>
+	                </aside>
+	            </div>
+	            </>
+	            )}
+
+	            <StoreEditModal
+                open={storeEditOpen}
+                store={selectedStore}
+                saving={savingStore}
+                onClose={() => setStoreEditOpen(false)}
+                onSubmit={handleStoreUpdate}
+            />
+
+            <Modal
+                open={createStoreOpen}
+                onClose={() => setCreateStoreOpen(false)}
+                title="Nova Loja"
+                description="Cadastro administrativo MX"
+                size="lg"
+                footer={
+                    <>
+                        <Button type="button" variant="ghost" onClick={() => setCreateStoreOpen(false)} disabled={creatingStore}>CANCELAR</Button>
+                        <Button type="submit" form="store-create-form" disabled={creatingStore} className="bg-brand-secondary">
+                            {creatingStore ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Plus size={16} className="mr-2" />}
+                            CADASTRAR
+                        </Button>
+                    </>
+                }
+            >
+                <form id="store-create-form" onSubmit={handleCreateStore} className="space-y-mx-lg">
+                    <label className="space-y-mx-xs block">
+                        <Typography as="span" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+                            Nome da Loja
+                        </Typography>
+                        <Input
+                            required
+                            autoFocus
+                            value={newStore.name}
+                            onChange={event => setNewStore(prev => ({ ...prev, name: event.target.value.toUpperCase() }))}
+                            className="!h-14 font-black uppercase tracking-widest"
+                        />
+                    </label>
+                    <label className="space-y-mx-xs block">
+                        <Typography as="span" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+                            E-mail do Gestor
+                        </Typography>
+                        <Input
+                            type="email"
+                            value={newStore.manager_email}
+                            onChange={event => setNewStore(prev => ({ ...prev, manager_email: event.target.value }))}
+                            placeholder="gestor@loja.com.br"
+                            className="!h-14 font-bold"
+                        />
+                    </label>
+                </form>
+            </Modal>
         </main>
     )
 }

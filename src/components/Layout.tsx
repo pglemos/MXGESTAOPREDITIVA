@@ -38,7 +38,6 @@ const navegacaoInternaMx: NavCategory[] = [
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
         { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
-        { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
         { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
       ]
@@ -74,7 +73,6 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Minhas Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Performance', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
-        { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
         { label: 'Equipe', path: '/equipe', icon: <Users size={16} /> },
       ]
     },

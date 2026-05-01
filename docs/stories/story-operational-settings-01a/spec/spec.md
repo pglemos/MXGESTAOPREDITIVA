@@ -40,6 +40,8 @@ O EPIC-01A do backlog `v1.2` pede superficie operacional para o schema canonico 
 - Escritas admin em `stores`, `regras_entrega_loja`, `benchmarks_loja`, `regras_metas_loja` e `store_sellers` validadas no Supabase live em transacao com rollback.
 - Queries do hook validadas via Supabase JS, incluindo join `store_sellers -> users`.
 - Nenhum dado persistente foi criado na validacao de escrita.
+- Correcao 2026-05-01: `/lojas/:slug` agora expoe administracao direta para `administrador_geral` e `administrador_mx`, com criacao, edicao, exclusao e atualizacao dos dados operacionais da loja.
+- Correcao 2026-05-01: validado em navegador local com `admin@mxgestaopreditiva.com.br` em `/lojas/acertt`; painel e modal renderizam sem erros de console.
 
 ## Gates
 
@@ -54,7 +56,9 @@ O EPIC-01A do backlog `v1.2` pede superficie operacional para o schema canonico 
 - `docs/stories/story-operational-settings-01a/spec/spec.md`
 - `docs/stories/story-operational-settings-01a/plan/implementation.yaml`
 - `src/hooks/useOperationalSettings.ts`
+- `src/hooks/useGoals.ts`
 - `src/pages/OperationalSettings.tsx`
+- `src/pages/DashboardLoja.tsx`
 - `src/App.tsx`
 - `src/components/Layout.tsx`
 - `src/types/database.ts`

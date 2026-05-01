@@ -127,9 +127,19 @@ export function useStoreMetaRules(storeIdOverride?: string) {
         return { error: error?.message || null }
     }
 
+    const deleteMetaRules = async () => {
+        if (!storeId) return { error: 'Loja não selecionada' }
+        const { error } = await supabase
+            .from('regras_metas_loja')
+            .delete()
+            .eq('store_id', storeId)
+        if (!error) await fetchMetaRules()
+        return { error: error?.message || null }
+    }
+
     useEffect(() => { fetchMetaRules() }, [fetchMetaRules])
 
-    return { metaRules, loading, fetchMetaRules, updateMetaRules }
+    return { metaRules, loading, fetchMetaRules, updateMetaRules, deleteMetaRules }
 }
 
 export function useStoreGoal(storeIdOverride?: string | null) {
