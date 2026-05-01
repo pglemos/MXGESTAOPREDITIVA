@@ -17,6 +17,7 @@ Solicitação operacional para transformar `/produtos` em catálogo administráv
 - [x] Usuários sem permissão administrativa visualizam apenas produtos ativos liberados para seu público.
 - [x] `/produtos` aparece na navegação de vendedores, gerentes e donos.
 - [x] Campo Produto da Agenda consome o catálogo de `/produtos`, sem lista fixa local.
+- [x] Admin consegue criar os produtos padrão PPA, PPA PREMIUM, PMR RENOVAÇÃO, PMR PRESENCIAL, PMR ONLINE e MENTORIA quando o catálogo estiver vazio ou incompleto.
 - [x] Schema versionado em migration Supabase.
 - [x] Validação local via Chrome MCP em mobile sem overflow.
 - [x] Gates de qualidade: `npm run lint`, `npm test`, `npm run build`.
@@ -29,6 +30,8 @@ Solicitação operacional para transformar `/produtos` em catálogo administráv
 - Chrome MCP com perfil vendedor: botão Novo Produto e filtro de status ficam ocultos; tela exibe aviso de catálogo filtrado por público.
 - Chrome MCP em Agenda: select Produto não exibe PPA/PMR hardcoded; usa apenas produtos carregados do catálogo.
 - Navegação atualizada para expor `/produtos` aos públicos classificados.
+- Produção em `https://mxperformance.vercel.app/produtos`: schema do catálogo confirmado, catálogo estava vazio e a tela agora oferece criação idempotente dos produtos padrão pelo próprio admin.
+- Playwright mobile local em `/produtos`: sem overflow horizontal; ações administrativas foram reposicionadas para não ficarem cobertas pela navegação inferior.
 
 ### File List
 

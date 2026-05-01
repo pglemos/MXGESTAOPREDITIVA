@@ -59,6 +59,62 @@ const PRODUCT_AUDIENCES: Array<{ key: ProductAudience; label: string; descriptio
 
 const PRODUCT_CATEGORIES = ['Operacional', 'Treinamento', 'Consultoria', 'Gestão', 'Comercial', 'Financeiro'] as const
 const PRODUCT_STATUSES: ProductStatus[] = ['ativo', 'rascunho', 'arquivado']
+const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_order: number }> = [
+  {
+    name: 'PPA',
+    description: 'Produto base para agenda e acompanhamento de consultoria MX.',
+    link: '/produtos',
+    category: 'Consultoria',
+    target_roles: ['vendedor', 'gerente', 'dono'],
+    status: 'ativo',
+    sort_order: 10,
+  },
+  {
+    name: 'PPA PREMIUM',
+    description: 'Produto premium para agenda e acompanhamento de consultoria MX.',
+    link: '/produtos',
+    category: 'Consultoria',
+    target_roles: ['vendedor', 'gerente', 'dono'],
+    status: 'ativo',
+    sort_order: 20,
+  },
+  {
+    name: 'PMR RENOVAÇÃO',
+    description: 'Produto de renovação PMR para agenda e rotinas comerciais.',
+    link: '/produtos',
+    category: 'Gestão',
+    target_roles: ['vendedor', 'gerente', 'dono'],
+    status: 'ativo',
+    sort_order: 30,
+  },
+  {
+    name: 'PMR PRESENCIAL',
+    description: 'Produto PMR presencial para agenda e execução de consultoria.',
+    link: '/produtos',
+    category: 'Gestão',
+    target_roles: ['vendedor', 'gerente', 'dono'],
+    status: 'ativo',
+    sort_order: 40,
+  },
+  {
+    name: 'PMR ONLINE',
+    description: 'Produto PMR online para agenda e acompanhamento remoto.',
+    link: '/produtos',
+    category: 'Gestão',
+    target_roles: ['vendedor', 'gerente', 'dono'],
+    status: 'ativo',
+    sort_order: 50,
+  },
+  {
+    name: 'MENTORIA',
+    description: 'Produto de mentoria para desenvolvimento comercial e acompanhamento.',
+    link: '/produtos',
+    category: 'Treinamento',
+    target_roles: ['vendedor', 'gerente', 'dono'],
+    status: 'ativo',
+    sort_order: 60,
+  },
+]
 
 const defaultForm: ProductForm = {
   name: '',
@@ -134,6 +190,7 @@ export default function ProdutosDigitais() {
   const [products, setProducts] = useState<ProductRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [creatingDefaults, setCreatingDefaults] = useState(false)
   const [isRefetching, setIsRefetching] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<ProductRecord | null>(null)
@@ -168,6 +225,36 @@ export default function ProdutosDigitais() {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
+
+  const createDefaultProducts = async () => {
+    if (!canManage || creatingDefaults) return
+
+    const existingNames = new Set(products.map((product) => product.name.trim().toLowerCase()))
+    const missingProducts = PRODUCT_DEFAULT_CATALOG.filter((product) => !existingNames.has(product.name.toLowerCase()))
+
+    if (missingProducts.length === 0) {
+      toast.success('Produtos padrão já estão cadastrados.')
+      return
+    }
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mxperformance.vercel.app'
+    const payload = missingProducts.map((product) => ({
+      ...product,
+      link: new URL(product.link, origin).toString(),
+    }))
+
+    setCreatingDefaults(true)
+    const { error } = await supabase.from('produtos_digitais').insert(payload)
+    setCreatingDefaults(false)
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+
+    toast.success(`${missingProducts.length} produto(s) padrão criado(s).`)
+    fetchProducts()
+  }
 
   const openCreateForm = () => {
     setEditingProduct(null)
@@ -362,7 +449,7 @@ export default function ProdutosDigitais() {
             </div>
           </div>
 
-          <div className="grid grid-cols-[auto_1fr] gap-mx-xs sm:flex sm:justify-end">
+          <div className="order-first grid grid-cols-[auto_1fr] gap-mx-xs sm:flex sm:justify-end lg:order-none">
             <Button
               variant="outline"
               size="icon"
@@ -376,9 +463,24 @@ export default function ProdutosDigitais() {
               <RefreshCw size={18} className={cn(isRefetching && 'animate-spin')} />
             </Button>
             {canManage && (
-              <Button onClick={openCreateForm} className="bg-brand-secondary">
-                <Plus size={18} className="mr-2" /> NOVO PRODUTO
-              </Button>
+              <div className="flex min-w-0 flex-col gap-mx-xs sm:flex-row">
+                {PRODUCT_DEFAULT_CATALOG.some(
+                  (item) => !products.some((product) => product.name.trim().toLowerCase() === item.name.toLowerCase()),
+                ) && (
+                  <Button
+                    variant="outline"
+                    onClick={createDefaultProducts}
+                    disabled={creatingDefaults}
+                    className="rounded-mx-xl bg-white text-mx-micro font-black uppercase tracking-widest"
+                  >
+                    <Package size={16} className="mr-2" />
+                    {creatingDefaults ? 'CRIANDO...' : 'CRIAR PADRÃO'}
+                  </Button>
+                )}
+                <Button onClick={openCreateForm} className="bg-brand-secondary">
+                  <Plus size={18} className="mr-2" /> NOVO PRODUTO
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -401,6 +503,14 @@ export default function ProdutosDigitais() {
               title="Nenhum produto encontrado"
               description={canManage ? 'Crie ou ajuste os filtros do catálogo.' : 'Nenhum produto ativo foi liberado para o seu público.'}
             />
+            {canManage && products.length === 0 && (
+              <div className="flex justify-center px-mx-md pb-mx-lg">
+                <Button onClick={createDefaultProducts} disabled={creatingDefaults} className="bg-brand-secondary">
+                  <Package size={18} className="mr-2" />
+                  {creatingDefaults ? 'CRIANDO PRODUTOS...' : 'CRIAR PRODUTOS PADRÃO'}
+                </Button>
+              </div>
+            )}
           </Card>
         ) : (
           <ul role="list" className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
