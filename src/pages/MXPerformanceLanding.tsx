@@ -196,16 +196,11 @@ body.mxp-active::before{
 
 .mxp-root section{position:relative;z-index:2}
 .mxp-root .sec-pad{padding:140px 0}
-.mxp-root .sec-head{display:grid;grid-template-columns:auto 1fr auto;gap:40px;margin-bottom:80px;border-top:1px solid var(--line);padding-top:30px;align-items:start}
-.mxp-root .sec-num{font-family:var(--mono);font-size:11px;color:var(--mx);letter-spacing:.18em;text-transform:uppercase;padding-top:6px}
-.mxp-root .sec-num .ix{color:var(--ink-3);margin-right:4px}
-.mxp-root .sec-head .left{max-width:880px}
-.mxp-root .sec-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--ink-3);margin-bottom:20px}
-.mxp-root .sec-eyebrow b{color:var(--mx);font-weight:500}
+.mxp-root .sec-head{display:block;margin-bottom:80px;border-top:1px solid var(--line);padding-top:48px}
+.mxp-root .sec-head .left{max-width:1040px}
 .mxp-root .sec-title{font-family:var(--serif);font-weight:600;font-size:clamp(42px,5.6vw,84px);line-height:.95;letter-spacing:-0.035em;margin:0}
 .mxp-root .sec-title .it{font-family:var(--instrument);font-style:italic;font-weight:400;color:var(--mx)}
-.mxp-root .sec-sub{color:var(--ink-2);font-size:17px;line-height:1.55;margin-top:22px;max-width:640px}
-.mxp-root .sec-side{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.14em;text-align:right;padding-top:6px;text-transform:uppercase}
+.mxp-root .sec-sub{color:var(--ink-2);font-size:17px;line-height:1.55;margin-top:24px;max-width:680px}
 
 .mxp-root .proof-wrap{padding:36px 0 0}
 .mxp-root .proof-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -436,26 +431,19 @@ body.mxp-active::before{
 .mxp-root .foot-bottom .right a:hover{color:var(--mx)}
 
 .mxp-root .consultoria-sec{isolation:isolate}
-.mxp-root .team-watermark{position:absolute;inset:0;pointer-events:none;z-index:1;display:flex;align-items:center;justify-content:flex-end;overflow:hidden}
-.mxp-root .team-watermark img{
-  width:min(960px, 64%);height:auto;object-fit:contain;object-position:right center;
-  opacity:.78;
-  filter:contrast(1.05) saturate(1.15) brightness(.95);
-  -webkit-mask-image:radial-gradient(ellipse 78% 88% at 78% 50%, #000 45%, rgba(0,0,0,.85) 70%, transparent 95%);
-  mask-image:radial-gradient(ellipse 78% 88% at 78% 50%, #000 45%, rgba(0,0,0,.85) 70%, transparent 95%);
-}
-.mxp-root .consultoria-sec::after{
-  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(90deg, #080B09 0%, rgba(8,11,9,.94) 32%, rgba(8,11,9,.55) 52%, rgba(8,11,9,.15) 72%, transparent 92%),
-             linear-gradient(180deg, rgba(8,11,9,.45) 0%, transparent 18%, transparent 82%, rgba(7,10,8,.85) 100%);
-}
+.mxp-root .team-figure{margin:0 0 70px;border:1px solid var(--line-2);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#0A140D,#070A08);box-shadow:0 40px 100px rgba(0,0,0,.5), inset 0 1px 0 rgba(31,203,110,.06);position:relative}
+.mxp-root .team-figure::before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--mx),transparent);opacity:.5;z-index:2}
+.mxp-root .team-figure img{display:block;width:100%;height:auto;object-fit:contain;background:#06090A}
+.mxp-root .team-figure-caption{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px 28px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);flex-wrap:wrap}
+.mxp-root .team-figure-caption b{color:var(--ink);font-weight:500;letter-spacing:.04em}
+.mxp-root .team-figure-caption .who{display:flex;align-items:center;gap:10px;color:var(--mx);font-weight:500}
+.mxp-root .team-figure-caption .who::before{content:"";width:6px;height:6px;background:var(--mx);border-radius:99px;box-shadow:0 0 12px rgba(31,203,110,.6)}
 
 @media (max-width: 1024px){
   .mxp-root .modules-grid,.mxp-root .flow,.mxp-root .modlist{grid-template-columns:repeat(2,1fr) !important}
   .mxp-root .mod[data-span]{grid-column:span 2 !important}
-  .mxp-root .team-watermark{align-items:flex-start;justify-content:center;padding-top:60px}
-  .mxp-root .team-watermark img{width:92%;max-width:720px;opacity:.32;filter:contrast(1) saturate(1.05) brightness(.85);-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 40%, #000 40%, transparent 90%);mask-image:radial-gradient(ellipse 70% 60% at 50% 40%, #000 40%, transparent 90%)}
-  .mxp-root .consultoria-sec::after{background:linear-gradient(180deg, rgba(8,11,9,.35) 0%, rgba(8,11,9,.85) 45%, rgba(7,10,8,.95) 100%)}
+  .mxp-root .team-figure{margin:0 0 50px;border-radius:14px}
+  .mxp-root .team-figure-caption{padding:16px 20px;font-size:10px;gap:14px}
 }
 @media (max-width: 900px){
   .mxp-root .particle-band-grid{grid-template-columns:1fr;padding:40px 22px;gap:18px}
@@ -482,8 +470,7 @@ body.mxp-active::before{
   .mxp-root .strip-cell:nth-child(2n){padding-left:18px;border-left:1px solid var(--line) !important}
   .mxp-root .strip-cell:nth-child(n+3){border-top:1px solid var(--line)}
   .mxp-root .scroll-hint{display:none}
-  .mxp-root .sec-head{grid-template-columns:1fr;gap:18px}
-  .mxp-root .sec-side{text-align:left}
+  .mxp-root .sec-head{padding-top:36px;margin-bottom:50px}
   .mxp-root .top-cta .btn{padding:9px 14px;font-size:12.5px}
   .mxp-root .pill-status{display:none}
   .mxp-root .verdict{position:static}
@@ -805,16 +792,7 @@ export default function MXPerformanceLanding() {
           </div>
           <div className="wrap">
             <div className="hero-grid">
-              <div data-reveal>
-                <div className="hero-meta">
-                  <span className="dotline" />
-                  <span>
-                    <b>● MX-OS · v.6</b>
-                  </span>
-                  <span style={{ color: 'var(--ink-4)' }}>/</span>
-                  <span>Sistema operacional para lojas automotivas</span>
-                </div>
-                <h1 id="hero-h" className="hero-title">
+              <div data-reveal>                <h1 id="hero-h" className="hero-title">
                   <span className="mask">
                     <span>Tire a loja do</span>
                   </span>
@@ -1038,19 +1016,13 @@ export default function MXPerformanceLanding() {
 
         <section id="problema" className="sec-pad problem" aria-labelledby="prob-h">
           <div className="wrap">
-            <div className="sec-head">
-              <div className="sec-num"><span className="ix">01 /</span> Diagnóstico</div>
-              <div className="left" data-reveal>
-                <div className="sec-eyebrow"><b>●</b> Diagnóstico da operação</div>
-                <h2 id="prob-h" className="sec-title">
+            <div className="sec-head">              <div className="left" data-reveal>                <h2 id="prob-h" className="sec-title">
                   Loja não vende menos<br />
                   por falta de cliente.<br />
                   Vende menos por <span className="it">falta de método.</span>
                 </h2>
                 <p className="sec-sub">Os leads chegam. As pessoas entram. Os números até parecem bons. Mas no fim do mês, ninguém sabe explicar com precisão <i>onde</i> a venda foi perdida.</p>
-              </div>
-              <div className="sec-side">método MX</div>
-            </div>
+              </div>            </div>
 
             <div className="problem-grid">
               <ul className="problem-list" data-reveal>
@@ -1124,20 +1096,14 @@ export default function MXPerformanceLanding() {
 
         <section id="sistema" className="sec-pad" aria-labelledby="sis-h">
           <div className="wrap">
-            <div className="sec-head">
-              <div className="sec-num"><span className="ix">02 /</span> O sistema</div>
-              <div className="left" data-reveal>
-                <div className="sec-eyebrow"><b>●</b> A grande ideia</div>
-                <h2 id="sis-h" className="sec-title">
+            <div className="sec-head">              <div className="left" data-reveal>                <h2 id="sis-h" className="sec-title">
                   Não é mais um<br />
                   dashboard. É um<br />
                   <span className="it">sistema operacional</span><br />
                   para a sua loja.
                 </h2>
                 <p className="sec-sub">Cada papel da loja tem sua função no sistema — e cada ação alimenta a próxima decisão. O vendedor lança. O gerente corrige. O dono enxerga. A consultoria registra método. E os dados viram devolutiva, PDI, treinamento e plano de ação.</p>
-              </div>
-              <div className="sec-side">06 módulos</div>
-            </div>
+              </div>            </div>
 
             <div className="modules-grid" data-reveal>
               <article className="mod mod-terminal" data-span="8">
@@ -1288,19 +1254,13 @@ export default function MXPerformanceLanding() {
 
         <section id="publicos" className="sec-pad" style={{ background: 'linear-gradient(180deg,transparent,#080B09)' }} aria-labelledby="pub-h">
           <div className="wrap">
-            <div className="sec-head">
-              <div className="sec-num"><span className="ix">03 /</span> Públicos</div>
-              <div className="left" data-reveal>
-                <div className="sec-eyebrow"><b>●</b> Para quem é</div>
-                <h2 id="pub-h" className="sec-title">
+            <div className="sec-head">              <div className="left" data-reveal>                <h2 id="pub-h" className="sec-title">
                   Três visões da<br />
                   mesma operação.<br />
                   <span className="it">Cada um com sua tela.</span>
                 </h2>
                 <p className="sec-sub">Mesmos dados. Recortes diferentes. Cada perfil acessa o que faz sentido para sua função — e cada ação reverbera para os outros papéis em tempo real.</p>
-              </div>
-              <div className="sec-side">3 perfis</div>
-            </div>
+              </div>            </div>
 
             <div className="personas">
               <article className="pcard" data-reveal>
@@ -1353,19 +1313,13 @@ export default function MXPerformanceLanding() {
 
         <section className="sec-pad journey" aria-labelledby="jor-h">
           <div className="wrap">
-            <div className="sec-head">
-              <div className="sec-num"><span className="ix">04 /</span> Jornada</div>
-              <div className="left" data-reveal>
-                <div className="sec-eyebrow"><b>●</b> Como a jornada funciona</div>
-                <h2 id="jor-h" className="sec-title">
+            <div className="sec-head">              <div className="left" data-reveal>                <h2 id="jor-h" className="sec-title">
                   Da rotina do vendedor<br />
                   ao plano de ação<br />
                   do <span className="it">conselho de loja.</span>
                 </h2>
                 <p className="sec-sub">Um único ciclo, oito atos. O dado entra na ponta e sobe até virar decisão estratégica — sem reescrita, sem perda de contexto.</p>
-              </div>
-              <div className="sec-side">08 atos</div>
-            </div>
+              </div>            </div>
 
             <div className="flow" data-reveal>
               <div className="step-card">
@@ -1446,18 +1400,12 @@ export default function MXPerformanceLanding() {
 
         <section id="modulos" className="sec-pad" aria-labelledby="mod-h">
           <div className="wrap">
-            <div className="sec-head">
-              <div className="sec-num"><span className="ix">05 /</span> Módulos</div>
-              <div className="left" data-reveal>
-                <div className="sec-eyebrow"><b>●</b> Mais módulos</div>
-                <h2 id="mod-h" className="sec-title">
+            <div className="sec-head">              <div className="left" data-reveal>                <h2 id="mod-h" className="sec-title">
                   Tudo que a operação<br />
                   precisa, em <span className="it">um lugar.</span>
                 </h2>
                 <p className="sec-sub">Não é um menu de features — é a anatomia de uma rotina funcionando todo dia, em cada unidade da rede.</p>
-              </div>
-              <div className="sec-side">12 módulos</div>
-            </div>
+              </div>            </div>
 
             <div className="modlist" data-reveal>
               <div className="mli">
@@ -1513,14 +1461,9 @@ export default function MXPerformanceLanding() {
         </section>
 
         <section id="consultoria" className="sec-pad consultoria-sec" style={{ background: 'linear-gradient(180deg, #080B09, #0A140D 80%, #070A08)', position: 'relative', overflow: 'hidden' }} aria-labelledby="con-h">
-          <div className="team-watermark" aria-hidden="true">
-            <img src="/landing/team-mx.png" alt="" />
-          </div>
           <div className="wrap" style={{ position: 'relative', zIndex: 2 }}>
             <div className="sec-head">
-              <div className="sec-num"><span className="ix">06 /</span> Consultoria</div>
               <div className="left" data-reveal>
-                <div className="sec-eyebrow"><b>●</b> Camada da MX Consultoria</div>
                 <h2 id="con-h" className="sec-title">
                   Método consultivo<br />
                   com governança<br />
@@ -1528,8 +1471,15 @@ export default function MXPerformanceLanding() {
                 </h2>
                 <p className="sec-sub">Uma camada interna conecta clientes, agenda, visitas PMR, DRE, plano de ação e ROI. Cada visita gera registro, cada decisão gera evidência — sem perda de história entre encontros.</p>
               </div>
-              <div className="sec-side">PMR · DRE · ROI</div>
             </div>
+
+            <figure className="team-figure" data-reveal>
+              <img src="/landing/team-mx.png" alt="Equipe MX Consultoria — sócios" />
+              <figcaption className="team-figure-caption">
+                <span className="who">MX Consultoria · sócios</span>
+                <span><b>Método operacional</b> · desde 2018</span>
+              </figcaption>
+            </figure>
 
             <div className="modules-grid" data-reveal>
               <article className="mod" data-span="6">
@@ -1597,14 +1547,8 @@ export default function MXPerformanceLanding() {
 
         <section id="faq" className="sec-pad" aria-labelledby="faq-h">
           <div className="wrap">
-            <div className="sec-head">
-              <div className="sec-num"><span className="ix">07 /</span> FAQ</div>
-              <div className="left" data-reveal>
-                <div className="sec-eyebrow"><b>●</b> Dúvidas frequentes</div>
-                <h2 id="faq-h" className="sec-title">Antes de implantar.<br /><span className="it">As perguntas reais.</span></h2>
-              </div>
-              <div className="sec-side">06 perguntas</div>
-            </div>
+            <div className="sec-head">              <div className="left" data-reveal>                <h2 id="faq-h" className="sec-title">Antes de implantar.<br /><span className="it">As perguntas reais.</span></h2>
+              </div>            </div>
 
             <div className="faq" data-reveal>
               <div>
@@ -1674,9 +1618,7 @@ export default function MXPerformanceLanding() {
           <div className="wrap">
             <div className="cta-mega" data-reveal>
               <div className="cta-grid">
-                <div>
-                  <div className="sec-eyebrow" style={{ marginBottom: 24 }}><b>●</b> Implante a rotina MX</div>
-                  <h2 id="cta-h">Pare de gerir a loja<br />no <span className="it">improviso.</span></h2>
+                <div>                  <h2 id="cta-h">Pare de gerir a loja<br />no <span className="it">improviso.</span></h2>
                   <p>MX Performance é o sistema operacional para lojas automotivas que conecta lançamento diário, metas, classificação, funil, devolutivas, PDI, treinamentos, relatórios, agenda e consultoria — em uma única plataforma.</p>
                   <div className="hero-ctas">
                     <a className="btn btn-primary" href="/login">Ver o MX Performance em ação <span className="arrow">→</span></a>
