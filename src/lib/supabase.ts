@@ -16,6 +16,18 @@ const supabaseAnonKey =
     import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY || 
     ''
 
+export function getSupabaseUrl(): string {
+    return supabaseUrl
+}
+
+export function getSupabaseFunctionUrl(functionName: string): string {
+    if (!supabaseUrl) {
+        throw new Error('Supabase URL missing. Check your .env file.')
+    }
+
+    return `${supabaseUrl.replace(/\/$/, '')}/functions/v1/${functionName.replace(/^\//, '')}`
+}
+
 /**
  * Verifica se as credenciais do Supabase estão presentes.
  * @param url URL do projeto Supabase

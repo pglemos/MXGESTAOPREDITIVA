@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
     Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar, X, Check, Shield, Store
 } from 'lucide-react'
-import { supabase as originalSupabase } from '@/lib/supabase'
+import { getSupabaseFunctionUrl, supabase as originalSupabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useAllStoreGoals } from '@/hooks/useGoals'
 import { useNotifications } from '@/hooks/useData'
@@ -61,7 +61,7 @@ export default function PainelConsultor() {
         setIsTriggering(type)
         try {
             const { data: { session } } = await originalSupabase.auth.getSession()
-            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/relatorio-${type}`, {
+            const response = await fetch(getSupabaseFunctionUrl(`relatorio-${type}`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${session?.access_token}`,

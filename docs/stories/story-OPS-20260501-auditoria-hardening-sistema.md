@@ -35,22 +35,36 @@ Auditoria completa do sistema MX apontou inconsistencias de schema em testes E2E
 - `send-visit-report` valida admin ou consultor vinculado a visita.
 - Migration `20260501030000_harden_legacy_open_policies.sql` aplicada no remoto via `npx supabase db push --linked`.
 - Functions publicadas no Supabase: `register-user`, `relatorio-matinal`, `feedback-semanal`, `relatorio-mensal`, `send-individual-feedback`, `send-visit-report`.
+- Vercel auditado: projeto `mxperformance` com deploy de producao `READY`; removida variavel publica insegura `VITE_SUPABASE_SERVICE_ROLE_KEY`.
+- Configuracao Vercel alinhada para `framework=vite`, `buildCommand=npm run build`, `outputDirectory=dist`.
+- Variaveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` ampliadas para `production`, `preview` e `development` na Vercel.
+- URLs de Edge Functions centralizadas em `getSupabaseFunctionUrl`, com fallback para `VITE_PUBLIC_SUPABASE_URL` em preview/development.
+- Supabase remoto auditado: projeto `MX GESTAO PREDITIVA` `ACTIVE_HEALTHY`, Edge Functions `ACTIVE`, migrations sincronizadas ate `20260501030000` antes da nova correcao.
+- Migration `20260501040000_fix_remote_lint_findings.sql` aplicada no remoto para corrigir `reject_correction_request` apos renomeacao canonica e limpar alerta de lint em `approve_pdi_action_evidence`.
+- Supabase `db lint --linked`: No schema errors found.
 - Chrome MCP percorreu as 12 abas de `/configuracoes` em desktop e mobile sem overflow horizontal e sem console errors.
 - Lighthouse snapshot mobile final de `/configuracoes`: Accessibility 100, Best Practices 100, SEO 100.
-- Playwright completo: 171 passed, 2 skipped.
+- Gates locais em 2026-05-01: `npm run lint`, `npm run typecheck`, `npm test` (195 passed), `npm run build`, `npm run test:e2e` (171 passed, 2 skipped).
 
 ### File List
 
 - `docs/stories/story-OPS-20260501-auditoria-hardening-sistema.md`
+- `.env.example`
+- `package.json`
+- `package-lock.json`
 - `public/robots.txt`
 - `src/App.tsx`
 - `src/index.css`
 - `src/lib/auth/constants.ts`
 - `src/lib/auth/passwordPolicy.ts`
 - `src/hooks/useTeam.ts`
+- `src/hooks/useConsultingAgenda.ts`
 - `src/pages/AgendaAdmin.tsx`
 - `src/pages/Configuracoes.tsx`
+- `src/pages/PainelConsultor.tsx`
 - `src/pages/Perfil.tsx`
+- `src/pages/RotinaGerente.tsx`
+- `src/lib/supabase.ts`
 - `src/features/auth/components/ForcePasswordChange.tsx`
 - `src/features/equipe/components/UserCreationModal.tsx`
 - `src/features/configuracoes/components/ConfigTabsNav.tsx`
@@ -77,3 +91,4 @@ Auditoria completa do sistema MX apontou inconsistencias de schema em testes E2E
 - `supabase/functions/send-individual-feedback/index.ts`
 - `supabase/functions/send-visit-report/index.ts`
 - `supabase/migrations/20260501030000_harden_legacy_open_policies.sql`
+- `supabase/migrations/20260501040000_fix_remote_lint_findings.sql`

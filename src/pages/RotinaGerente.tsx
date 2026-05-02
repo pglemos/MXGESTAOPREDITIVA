@@ -24,7 +24,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Card } from '@/components/molecules/Card'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useStoreMetaRules } from '@/hooks/useGoals'
@@ -155,7 +155,7 @@ export default function RotinaGerente() {
         setExecuting(true)
         try {
             const { data: { session } } = await supabase.auth.getSession()
-            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/relatorio-matinal`, {
+            const response = await fetch(getSupabaseFunctionUrl('relatorio-matinal'), {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' }
             })

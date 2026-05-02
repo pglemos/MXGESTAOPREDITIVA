@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 
@@ -44,7 +44,7 @@ export function useConsultingAgenda(clientId?: string) {
         throw new Error('Sessão inválida. Faça login novamente.')
       }
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-oauth-handler`, {
+      const response = await fetch(getSupabaseFunctionUrl('google-oauth-handler'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ export function useConsultingAgenda(clientId?: string) {
         throw new Error('Sessão inválida. Faça login novamente.')
       }
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-events`, {
+      const response = await fetch(getSupabaseFunctionUrl('google-calendar-events'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
