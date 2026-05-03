@@ -34,6 +34,7 @@ type DriveFolderRow = {
   google_drive_folder_id: string;
   google_drive_folder_url: string;
   status: string;
+  cache_available?: boolean;
 };
 
 type DriveFile = {
@@ -76,6 +77,15 @@ function escapeDriveQueryValue(value: string): string {
 
 function folderUrl(folderId: string): string {
   return `https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}`;
+}
+
+function isMissingTableError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: string; message?: string };
+  return candidate.code === "PGRST205" ||
+    candidate.code === "42P01" ||
+    Boolean(candidate.message?.includes("Could not find the table")) ||
+    Boolean(candidate.message?.includes("does not exist"));
 }
 
 async function driveJson(accessToken: string, path: string, init: RequestInit = {}) {
@@ -149,13 +159,27 @@ async function ensureClientFolder(adminClient: any, accessToken: string, client:
     .eq("client_id", client.id)
     .eq("status", "active")
     .maybeSingle();
-  if (existingError) throw existingError;
-  if (existing?.google_drive_folder_id) return existing as DriveFolderRow;
+  const cacheAvailable = !isMissingTableError(existingError);
+  if (existingError && cacheAvailable) throw existingError;
+  if (existing?.google_drive_folder_id) return { ...existing, cache_available: true } as DriveFolderRow;
 
   const root = await getRootFolder(accessToken);
   const folderName = normalizeFolderName(`${client.name} - ${client.slug || client.id.slice(0, 8)}`);
   const driveFolder = await findDriveFolder(accessToken, folderName, root.id) ?? await createDriveFolder(accessToken, folderName, root.id);
   const storeId = client.primary_store_id || client.store_id || null;
+
+  if (!cacheAvailable) {
+    return {
+      id: crypto.randomUUID(),
+      client_id: client.id,
+      store_id: storeId,
+      parent_folder_id: root.id,
+      google_drive_folder_id: driveFolder.id,
+      google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
+      status: "active",
+      cache_available: false,
+    };
+  }
 
   const { data: row, error: upsertError } = await adminClient
     .from("pastas_drive_consultoria")
@@ -171,8 +195,20 @@ async function ensureClientFolder(adminClient: any, accessToken: string, client:
     }, { onConflict: "client_id" })
     .select("*")
     .single();
-  if (upsertError) throw upsertError;
-  return row as DriveFolderRow;
+  if (upsertError) {
+    if (!isMissingTableError(upsertError)) throw upsertError;
+    return {
+      id: crypto.randomUUID(),
+      client_id: client.id,
+      store_id: storeId,
+      parent_folder_id: root.id,
+      google_drive_folder_id: driveFolder.id,
+      google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
+      status: "active",
+      cache_available: false,
+    };
+  }
+  return { ...row, cache_available: true } as DriveFolderRow;
 }
 
 async function listDriveFiles(accessToken: string, folderId: string): Promise<DriveFile[]> {
@@ -329,7 +365,7 @@ Deno.serve(async (req) => {
         .select("id,google_drive_file_id,pasta_id,client_id")
         .eq("client_id", client.id)
         .eq("pasta_id", folder.id);
-      if (fileError) throw fileError;
+      if (fileError && !isMissingTableError(fileError)) throw fileError;
       const fileRow = (fileRows || []).find((row: any) => row.id === deleteFileId || row.google_drive_file_id === deleteFileId);
       const driveFileId = fileRow?.google_drive_file_id || deleteFileId;
 
@@ -344,7 +380,7 @@ Deno.serve(async (req) => {
           .from("arquivos_drive_consultoria")
           .update({ status: "trashed", deleted_by: userId, deleted_at: new Date().toISOString() })
           .eq("id", fileRow.id);
-        if (updateError) throw updateError;
+        if (updateError && !isMissingTableError(updateError)) throw updateError;
       }
 
       const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
@@ -355,6 +391,7 @@ Deno.serve(async (req) => {
     for (const file of files) {
       const driveFile = await uploadDriveFile(accessToken, folder.google_drive_folder_id, file);
       uploaded.push(driveFile);
+      if (folder.cache_available === false) continue;
       const { error: upsertError } = await adminClient
         .from("arquivos_drive_consultoria")
         .upsert({
@@ -370,7 +407,7 @@ Deno.serve(async (req) => {
           status: "active",
           uploaded_by: userId,
         }, { onConflict: "google_drive_file_id" });
-      if (upsertError) throw upsertError;
+      if (upsertError && !isMissingTableError(upsertError)) throw upsertError;
     }
 
     const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);

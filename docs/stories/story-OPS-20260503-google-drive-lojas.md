@@ -65,6 +65,7 @@ O sistema já possui OAuth Google central para Calendar com tokens criptografado
 - `npx supabase db lint --local --fail-on error` não rodou porque o Postgres local em `127.0.0.1:54322` recusou conexão.
 - `deno check` não rodou porque `deno` não está instalado nesta máquina.
 - Validação live com a conta `gestao@mxconsultoria.com.br` não foi executada neste turno porque depende da migration aplicada no Supabase e reconexão OAuth central com o novo escopo Drive.
+- Após push/deploy em produção, a migration remota continuou bloqueada por ausência de `SUPABASE_DB_PASSWORD`. A Edge Function foi endurecida para operar com Drive mesmo antes das tabelas novas existirem, usando busca/criação determinística da pasta e pulando apenas o cache/auditoria até a migration ser aplicada.
 
 ### File List
 
