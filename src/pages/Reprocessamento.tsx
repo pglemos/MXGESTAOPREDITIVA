@@ -3,8 +3,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { 
     ArrowLeft, Database, Upload, RefreshCw, Terminal as TerminalIcon, 
-    Layers, History, ShieldCheck, 
-    FileSpreadsheet, X 
+    Layers, History, ShieldCheck,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -19,6 +18,29 @@ import { validateLegacyCSV, ValidationResult } from '@/lib/migration-validator'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 
 interface ImportLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
+type ImportHistoryStatus = 'pending' | 'processing' | 'completed' | 'failed'
+
+interface ImportHistory {
+    id: string
+    created_at: string
+    store_name?: string
+    rows_processed?: number | null
+    records_processed?: number | null
+    records_failed?: number | null
+    status: ImportHistoryStatus
+}
+
+const statusMeta: Record<ImportHistoryStatus, { label: string; variant: 'success' | 'danger' | 'warning' | 'info' }> = {
+    completed: { label: 'OK', variant: 'success' },
+    failed: { label: 'ERRO', variant: 'danger' },
+    processing: { label: 'PROCESSANDO', variant: 'info' },
+    pending: { label: 'PENDENTE', variant: 'warning' },
+}
+
+async function calculateFileHash(file: File) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
+    return Array.from(new Uint8Array(hashBuffer)).map(byte => byte.toString(16).padStart(2, '0')).join('')
+}
 
 export default function Reprocessamento() {
     const { lojas } = useStores()
@@ -27,7 +49,7 @@ export default function Reprocessamento() {
     const [processing, setProcessing] = useState(false)
     const [validation, setValidation] = useState<ValidationResult | null>(null)
     const [logs, setLogs] = useState<ImportLog[]>([])
-    const [history, setHistory] = useState<any[]>([])
+    const [history, setHistory] = useState<ImportHistory[]>([])
     const [isRefetching, setIsRefetching] = useState(false)
     const terminalEndRef = useRef<HTMLDivElement>(null)
 
@@ -36,8 +58,23 @@ export default function Reprocessamento() {
     }, [])
 
     const fetchHistory = useCallback(async () => {
-        const { data } = await supabase.from('logs_reprocessamento').select(`*, store:lojas(name)`).order('created_at', { ascending: false })
-        if (data) setHistory(data.map(h => ({ ...h, store_name: (h as any).store?.name })))
+        const { data, error } = await supabase
+            .from('logs_reprocessamento')
+            .select('id, created_at, status, rows_processed, records_processed, records_failed, store:lojas(name)')
+            .eq('source_type', 'csv_import')
+            .order('created_at', { ascending: false })
+            .limit(100)
+
+        if (error) {
+            toast.error('Falha ao carregar audit trail.')
+            return
+        }
+
+        setHistory((data || []).map(h => ({
+            ...h,
+            status: h.status as ImportHistoryStatus,
+            store_name: (h as any).store?.name,
+        })))
     }, [])
 
     useEffect(() => { fetchHistory() }, [fetchHistory])
@@ -61,6 +98,7 @@ export default function Reprocessamento() {
         setProcessing(true)
         setLogs([])
         setValidation(null)
+        let openedLogId: string | null = null
         
         addLog(`Iniciando protocolo de injeção: ${file.name}`, 'info')
         
@@ -80,15 +118,35 @@ export default function Reprocessamento() {
             }
 
             addLog(`Validação concluída. ${result.summary.validRows} registros íntegros localizados.`, 'success')
+
+            const fileHash = await calculateFileHash(file)
+            addLog(`Hash SHA-256 calculado: ${fileHash.slice(0, 12)}...`, 'info')
+
+            const { data: duplicate, error: duplicateError } = await supabase
+                .from('logs_reprocessamento')
+                .select('id, created_at')
+                .eq('file_hash', fileHash)
+                .eq('status', 'completed')
+                .maybeSingle()
+
+            if (duplicateError) throw new Error(duplicateError.message)
+            if (duplicate) throw new Error(`Arquivo já processado em lote concluído (${duplicate.id.split('-')[0]}).`)
             
             const { data: log, error: logError } = await supabase.from('logs_reprocessamento').insert({
                 store_id: selectedStoreId,
                 source_type: 'csv_import',
                 triggered_by: (await supabase.auth.getUser()).data.user?.id,
-                status: 'pending'
+                status: 'pending',
+                file_hash: fileHash,
+                rows_processed: 0,
+                records_processed: 0,
+                records_failed: 0,
+                warnings: [],
+                errors: [],
             }).select().single()
 
             if (logError) throw new Error(logError.message)
+            openedLogId = log.id
             addLog(`Lote ${log.id.split('-')[0]} aberto.`, 'success')
 
             const chunkSize = 100
@@ -105,28 +163,44 @@ export default function Reprocessamento() {
             if (rpcError) throw new Error(rpcError.message)
 
             let attempts = 0
+            let completed = false
             while (attempts < 30) {
                 const { data: statusCheck } = await supabase.from('logs_reprocessamento').select('status, records_processed, records_failed').eq('id', log.id).single()
                 if (statusCheck?.status === 'completed') {
                     addLog(`SINCRONIZAÇÃO FINALIZADA: ${statusCheck.records_processed} linhas processadas.`, 'success')
+                    completed = true
                     break
                 }
                 if (statusCheck?.status === 'failed') throw new Error('O motor reportou falha crítica.')
                 await new Promise(r => setTimeout(r, 1000))
                 attempts++
             }
+
+            if (!completed) throw new Error('Tempo limite aguardando conclusão do motor de importação.')
             
             toast.success('Dados integrados!')
-            fetchHistory()
+            await fetchHistory()
         } catch (err: any) {
-            addLog(`ERRO: ${err.message}`, 'error')
+            const message = err?.message || 'Erro inesperado no reprocessamento.'
+            if (openedLogId) {
+                await supabase
+                    .from('logs_reprocessamento')
+                    .update({
+                        status: 'failed',
+                        errors: [message],
+                        finished_at: new Date().toISOString(),
+                    })
+                    .eq('id', openedLogId)
+                await fetchHistory()
+            }
+            addLog(`ERRO: ${message}`, 'error')
             toast.error('Falha na injeção.')
         } finally {
             setProcessing(false)
         }
     }
 
-    const columns = useMemo<Column<any>[]>(() => [
+    const columns = useMemo<Column<ImportHistory>[]>(() => [
         {
             key: 'created_at',
             header: 'DATA / HORA',
@@ -151,17 +225,20 @@ export default function Reprocessamento() {
             key: 'rows_processed',
             header: 'REG.',
             align: 'center',
-            render: (h) => <Typography variant="mono" tone="brand" className="text-base sm:text-lg font-black tabular-nums">{h.rows_processed || 0}</Typography>
+            render: (h) => <Typography variant="mono" tone="brand" className="text-base sm:text-lg font-black tabular-nums">{h.records_processed ?? h.rows_processed ?? 0}</Typography>
         },
         {
             key: 'status',
             header: 'STATUS',
             align: 'right',
-            render: (h) => (
-                <Badge variant={h.status === 'completed' ? 'success' : 'danger'} className="px-3 sm:px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none text-mx-nano sm:text-mx-micro font-black">
-                    {h.status === 'completed' ? 'OK' : 'ERRO'}
+            render: (h) => {
+                const meta = statusMeta[h.status] || statusMeta.failed
+                return (
+                <Badge variant={meta.variant} className="px-3 sm:px-6 py-1.5 rounded-mx-lg shadow-sm border uppercase border-none text-mx-nano sm:text-mx-micro font-black">
+                    {meta.label}
                 </Badge>
-            )
+                )
+            }
         }
     ], [])
 
@@ -215,7 +292,7 @@ export default function Reprocessamento() {
                             <div className="space-y-mx-xs">
                                 <Typography variant="tiny" tone="white" className="ml-2 font-black uppercase tracking-widest text-mx-nano">Arquivo</Typography>
                                 <div className="relative group">
-                                    <input id="csv-upload" type="file" accept=".csv,.xlsx" onChange={handleFileSelect} className="sr-only" />
+                                    <input id="csv-upload" type="file" accept=".csv,text/csv" onChange={handleFileSelect} className="sr-only" />
                                     <label htmlFor="csv-upload" className={cn("flex flex-col items-center justify-center gap-mx-sm w-full min-h-24 border-2 border-dashed rounded-mx-2xl transition-all cursor-pointer", 
                                         file ? "bg-brand-primary/10 border-brand-primary/50" : "bg-white/5 border-white/10"
                                     )}>

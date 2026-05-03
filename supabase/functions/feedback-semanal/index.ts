@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
           rows_processed: payload.ranking.length,
           records_processed: payload.ranking.length,
           warnings,
-          errors: emailStatus === "failed" ? warnings : [],
+          errors: emailStatus === "sent" ? [] : warnings,
           started_at: new Date().toISOString(),
           finished_at: new Date().toISOString(),
         });

@@ -20,5 +20,8 @@ files:
   - docs/stories/story-reprocess-hardening-11/spec/spec.md
   - docs/stories/story-reprocess-hardening-11/plan/implementation.yaml
   - src/pages/Reprocessamento.tsx
+  - supabase/functions/feedback-semanal/index.ts
+  - supabase/functions/relatorio-matinal/index.ts
+  - supabase/functions/relatorio-mensal/index.ts
   - src/types/database.ts
   - supabase/migrations/20260407160000_reconcile_epic09_12_end_to_end.sql
