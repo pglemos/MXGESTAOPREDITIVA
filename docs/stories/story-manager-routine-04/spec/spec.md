@@ -38,7 +38,7 @@ O EPIC-04 do backlog exige que a rotina real do gerente exista em uma area unica
 
 - Migration `20260407003000_manager_daily_routine.sql` aplicada no Supabase live por transacao SQL direta e reparada com `supabase migration repair --status applied 20260407003000`.
 - Tabela live `logs_rotina_gerente` validada com colunas esperadas e politicas RLS `role_matrix_logs_rotina_gerente_*`.
-- Insert/update via RLS simulando usuario real `admin@autogestao.com.br` validado com `BEGIN ... ROLLBACK`; nenhum dado de teste ficou persistido.
+- Insert/update via RLS simulando usuario real `admin@mxperformance.com.br` validado com `BEGIN ... ROLLBACK`; nenhum dado de teste ficou persistido.
 - Query pós-rollback confirmou `0` registros com `notes = 'rollback validation'`.
 
 ## Gates

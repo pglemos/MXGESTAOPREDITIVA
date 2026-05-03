@@ -10,7 +10,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 const supabase = createServiceClient();
 const resend = createResendClient();
-const appUrl = Deno.env.get("APP_URL") || "https://autogestao.vercel.app";
+const appUrl = Deno.env.get("APP_URL") || "https://mxperformance.vercel.app";
 
 type SellerRow = {
   uid: string;

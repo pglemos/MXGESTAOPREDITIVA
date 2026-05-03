@@ -32,7 +32,7 @@ O EPIC-06 exige mensagem oficial de grupo a partir do matinal, com resumo do mes
 
 - Migration `20260407005000_logs_compartilhamento_whatsapp.sql` aplicada no Supabase live e reparada com `supabase migration repair --status applied 20260407005000`.
 - Tabela live `logs_compartilhamento_whatsapp` validada com colunas esperadas e politicas RLS `role_matrix_logs_compartilhamento_whatsapp_*`.
-- Insert via RLS simulando usuario real `admin@autogestao.com.br` validado com `BEGIN ... ROLLBACK`; nenhum dado de teste ficou persistido.
+- Insert via RLS simulando usuario real `admin@mxperformance.com.br` validado com `BEGIN ... ROLLBACK`; nenhum dado de teste ficou persistido.
 
 ## Gates
 
