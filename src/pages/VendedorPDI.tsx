@@ -1,5 +1,4 @@
-import { useMyPDIs } from '@/hooks/useData'
-import { useAuth } from '@/hooks/useAuth'
+import { useMyPDISessions } from '@/hooks/usePDI_MX'
 import { useState, useMemo, useCallback } from 'react'
 import { 
     Target, Zap, TrendingUp, Calendar, Award, 
@@ -18,8 +17,7 @@ import { Card } from '@/components/molecules/Card'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
 
 export default function VendedorPDI() {
-    const { profile } = useAuth()
-    const { pdis, loading, refetch } = useMyPDIs()
+    const { pdis, loading, refetch } = useMyPDISessions()
     const [isRefetching, setIsRefetching] = useState(false)
 
     const handleRefresh = useCallback(async () => {
@@ -31,15 +29,22 @@ export default function VendedorPDI() {
 
     const radarData = useMemo(() => {
         if (!activePDI) return []
-        return [
-            { subject: 'Prospecção', A: (activePDI as any).comp_prospeccao || 0 },
-            { subject: 'Abordagem', A: (activePDI as any).comp_abordagem || 0 },
-            { subject: 'Demons.', A: (activePDI as any).comp_demonstracao || 0 },
-            { subject: 'Fecham.', A: (activePDI as any).comp_fechamento || 0 },
-            { subject: 'CRM', A: (activePDI as any).comp_crm || 0 },
-            { subject: 'Digital', A: (activePDI as any).comp_digital || 0 },
-        ]
+        return ((activePDI as any).avaliacoes || []).map((av: any) => ({
+            subject: av.competencia,
+            A: av.nota,
+        }))
     }, [activePDI])
+
+    const metasByPrazo = useMemo(() => {
+        const metas = ((activePDI as any)?.metas || []) as any[]
+        return {
+            '6_meses': metas.filter(m => m.prazo === '6_meses'),
+            '12_meses': metas.filter(m => m.prazo === '12_meses'),
+            '24_meses': metas.filter(m => m.prazo === '24_meses'),
+        }
+    }, [activePDI])
+
+    const actionPlan = useMemo(() => ((activePDI as any)?.plano_acao || []) as any[], [activePDI])
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-white">
@@ -92,7 +97,7 @@ export default function VendedorPDI() {
                                         </div>
                                     </div>
                                     <Typography variant="h1" className="text-3xl md:text-4xl leading-tight">
-                                        "{(activePDI as any).meta_6m || (activePDI as any).objective}"
+                                        "{(activePDI as any).meta_6m || 'Metas em definicao'}"
                                     </Typography>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg pt-8">
                                         <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
@@ -104,6 +109,24 @@ export default function VendedorPDI() {
                                             <Typography variant="h3" className="text-base">{(activePDI as any).meta_24m || 'Plano em expansão'}</Typography>
                                         </div>
                                     </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md pt-2">
+                                        {[
+                                            ['6 meses', metasByPrazo['6_meses']],
+                                            ['12 meses', metasByPrazo['12_meses']],
+                                            ['24 meses', metasByPrazo['24_meses']],
+                                        ].map(([label, metas]) => (
+                                            <div key={label as string} className="bg-white border border-border-default rounded-mx-xl p-mx-sm shadow-sm">
+                                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest mb-2 block">{label as string}</Typography>
+                                                <ul className="space-y-mx-xs">
+                                                    {(metas as any[]).map((meta, idx) => (
+                                                        <li key={`${meta.prazo}-${idx}`} className="text-xs font-bold uppercase text-text-secondary">
+                                                            <span className="text-brand-primary">[{meta.tipo}]</span> {meta.descricao}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </Card>
 
@@ -113,13 +136,13 @@ export default function VendedorPDI() {
                                     <Typography variant="h3">Plano de Ação Imediato</Typography>
                                 </div>
                                 <div className="grid gap-mx-md">
-                                    {[
-                                        (activePDI as any).action_1, (activePDI as any).action_2, 
-                                        (activePDI as any).action_3, (activePDI as any).action_4
-                                    ].filter(Boolean).map((action, idx) => (
+                                    {actionPlan.map((action, idx) => (
                                         <div key={idx} className="flex items-center gap-mx-md p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-lg transition-all group">
                                             <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center font-black text-xs text-text-tertiary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all shadow-sm" aria-hidden="true">{idx + 1}</div>
-                                            <Typography variant="p" className="text-sm font-bold text-text-secondary flex-1 uppercase tracking-tight">{action}</Typography>
+                                            <div className="flex-1">
+                                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest block mb-1">{action.competencia}</Typography>
+                                                <Typography variant="p" className="text-sm font-bold text-text-secondary uppercase tracking-tight">{action.descricao_acao}</Typography>
+                                            </div>
                                             <CheckCircle2 size={20} className="text-text-tertiary/20 group-hover:text-status-success transition-colors" />
                                         </div>
                                     ))}

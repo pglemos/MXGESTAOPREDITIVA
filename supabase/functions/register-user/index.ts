@@ -10,12 +10,21 @@ interface RegisterUserPayload {
   role: 'administrador_geral' | 'administrador_mx' | 'consultor_mx' | 'dono' | 'gerente' | 'vendedor'
   store_id?: string
   phone?: string
+  started_at?: string
+  ended_at?: string | null
+  is_active?: boolean
+  closing_month_grace?: boolean
+  is_venda_loja?: boolean
 }
 
 const PASSWORD_POLICY_MESSAGE = 'Password must be at least 10 characters and include uppercase, lowercase, number, and symbol'
 
 function isStrongPassword(password: string) {
   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$/.test(password)
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10)
 }
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
@@ -78,7 +87,7 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: 'Invalid JSON body' }, 400)
   }
 
-  const { email, password, name, role, store_id, phone } = payload
+  const { email, password, name, role, store_id, phone, started_at, ended_at, is_active, closing_month_grace, is_venda_loja } = payload
 
   if (!email || !name || !role) {
     return jsonResponse({ success: false, error: 'Missing required fields (email, name, role)' }, 400)
@@ -107,11 +116,12 @@ serve(async (req) => {
     password,
     email_confirm: true,
     user_metadata: {
-      name,
-      role,
-      phone: phone || null,
-      must_change_password: true,
-    },
+        name,
+        role,
+        phone: phone || null,
+        must_change_password: true,
+        is_venda_loja: is_venda_loja ?? false,
+      },
   })
 
   if (createError || !created?.user) {
@@ -131,6 +141,7 @@ serve(async (req) => {
         phone: phone || null,
         active: true,
         must_change_password: true,
+        is_venda_loja: is_venda_loja ?? false,
       },
       { onConflict: 'id' },
     )
@@ -152,6 +163,26 @@ serve(async (req) => {
       return jsonResponse({ success: false, error: `Profile created but membership insert failed: ${membershipError.message}` }, 500)
     }
     membershipCreated = true
+
+    if (role === 'vendedor') {
+      const { error: tenureError } = await adminClient
+        .from('vendedores_loja')
+        .upsert(
+          {
+            store_id,
+            seller_user_id: newUserId,
+            started_at: started_at || todayISO(),
+            ended_at: ended_at || null,
+            is_active: is_active ?? true,
+            closing_month_grace: closing_month_grace ?? false,
+          },
+          { onConflict: 'store_id,seller_user_id' },
+        )
+
+      if (tenureError) {
+        return jsonResponse({ success: false, error: `Profile created but seller tenure insert failed: ${tenureError.message}` }, 500)
+      }
+    }
   }
 
   return jsonResponse({

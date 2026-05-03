@@ -554,7 +554,7 @@ export default function DashboardLoja() {
                 </div>
 
 	                <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
-	                    <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny" aria-label="Abas da loja">
+	                    <nav className="max-w-full overflow-x-auto bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny" aria-label="Abas da loja">
 	                        {[
 	                            { key: 'performance' as const, label: 'Performance', icon: Globe },
 	                            { key: 'metas' as const, label: 'Metas', icon: Target },
@@ -565,7 +565,7 @@ export default function DashboardLoja() {
 	                                variant={activeTab === tab.key ? 'secondary' : 'ghost'}
 	                                size="sm"
 	                                onClick={() => handleTabChange(tab.key)}
-	                                className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny"
+	                                className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny shrink-0"
 	                                aria-current={activeTab === tab.key ? 'page' : undefined}
 	                            >
 	                                <tab.icon size={14} className="mr-1" />

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 
 const papeisInternosMx = ['administrador_geral', 'administrador_mx', 'consultor_mx']
+const todayISO = () => new Date().toISOString().slice(0, 10)
 
 const rotulosPapel: Record<string, string> = {
   administrador_mx: 'Administrador MX',
@@ -37,7 +38,12 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
     password: '',
     role: 'vendedor',
     store_id: (initialStoreId === 'all' ? '' : initialStoreId) || '',
-    phone: ''
+    phone: '',
+    started_at: todayISO(),
+    ended_at: '',
+    is_active: true,
+    closing_month_grace: false,
+    is_venda_loja: false,
   })
 
   const papelSelecionadoInterno = papeisInternosMx.includes(formData.role)
@@ -48,12 +54,14 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
     if (!isStrongPassword(formData.password)) return toast.error(PASSWORD_POLICY_MESSAGE)
     
     setLoading(true)
-    const payload = papelSelecionadoInterno ? { ...formData, store_id: undefined } : formData
+    const payload = papelSelecionadoInterno
+      ? { ...formData, store_id: undefined, ended_at: formData.ended_at || null }
+      : { ...formData, ended_at: formData.ended_at || null }
     const { success, error } = await registerUser(payload)
     setLoading(true) // Keep it for a smooth transition if success
     
     if (success) {
-      toast.success('NOVO RECRUTA INTEGRADO À TROPA!')
+      toast.success('Integrante criado com sucesso.')
       setTimeout(() => {
         setLoading(false)
         onSuccess()
@@ -61,7 +69,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
       }, 1000)
     } else {
       setLoading(false)
-      toast.error(error || 'FALHA NA INTEGRAÇÃO DO RECRUTA')
+      toast.error(error || 'Falha ao criar integrante.')
     }
   }
 
@@ -94,7 +102,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
             <div className="relative w-full bg-white/90 backdrop-blur-2xl border border-border-default rounded-mx-4xl shadow-mx-elite overflow-hidden">
               <div className="absolute top-mx-0 left-mx-0 w-full h-mx-xs bg-gradient-to-r from-brand-primary/50 via-brand-primary to-brand-primary/50" />
             
-              <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row max-h-[85vh] w-full overflow-hidden">
+              <form onSubmit={handleSubmit} autoComplete="off" className="flex flex-col lg:flex-row max-h-[85vh] w-full overflow-hidden">
                 {/* Sidebar Context */}
                 <div className="w-full lg:w-mx-sidebar-expanded shrink-0 bg-surface-alt/50 border-b lg:border-b-0 lg:border-r border-border-default p-mx-lg flex flex-col justify-between relative overflow-y-auto lg:overflow-hidden">
                     <div className="space-y-mx-lg relative z-10">
@@ -102,22 +110,22 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                             <UserPlus size={40} strokeWidth={1.5} />
                         </div>
                         <div className="space-y-mx-xs">
-                            <Typography variant="h2" className="text-3xl font-black uppercase tracking-tighter">Novo <span className="text-brand-primary">Recruta</span></Typography>
-                            <Typography variant="tiny" tone="muted" className="uppercase tracking-mx-widest font-black leading-relaxed">Registro de novo especialista para o ecossistema de performance MX.</Typography>
+                            <Typography variant="h2" className="text-3xl font-black uppercase tracking-tighter">Novo <span className="text-brand-primary">Integrante</span></Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase tracking-mx-widest font-black leading-relaxed">Cadastro completo de acesso, vínculo e vigência operacional na loja.</Typography>
                         </div>
 
                         <div className="space-y-mx-md pt-mx-lg">
                             <div className="flex items-center gap-mx-sm">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm"><ShieldCheck size={20} /></div>
-                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Acesso Instantâneo</Typography>
+                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Acesso ao sistema</Typography>
                             </div>
                             <div className="flex items-center gap-mx-sm">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm"><Sparkles size={20} /></div>
-                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Lançamento Diário Habilitado</Typography>
+                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Vínculo com a loja</Typography>
                             </div>
                             <div className="flex items-center gap-mx-sm">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-warning shadow-mx-sm"><Zap size={20} /></div>
-                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Forçar Nova Senha</Typography>
+                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest text-mx-nano">Senha provisória obrigatória</Typography>
                             </div>
                         </div>
                     </div>
@@ -135,12 +143,13 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                         {/* Nome */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest truncate">Identidade do Especialista</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest truncate">Nome completo</Typography>
                           <div className="relative group">
                             <User size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
                               id="new-user-name"
-                              name="name"
+                              name="new_user_name"
+                              autoComplete="off"
                               required placeholder="NOME COMPLETO" 
                               value={formData.name} onChange={e => setFormData({...formData, name: e.target.value.toUpperCase()})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-xs focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
@@ -150,12 +159,13 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
 
                         {/* Telefone */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Canal de Contato (WhatsApp)</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Telefone / WhatsApp</Typography>
                           <div className="relative group">
                             <Phone size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
                               id="new-user-phone"
-                              name="phone"
+                              name="new_user_phone"
+                              autoComplete="off"
                               required placeholder="(00) 00000-0000" 
                               value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
@@ -165,12 +175,13 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
 
                         {/* Email */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Endereço de Acesso (E-mail)</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">E-mail de acesso</Typography>
                           <div className="relative group">
                             <Mail size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
                               id="new-user-email"
-                              name="email"
+                              name="new_user_email"
+                              autoComplete="off"
                               required type="email" placeholder="USUARIO@MX PERFORMANCE.COM" 
                               value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
@@ -180,12 +191,13 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
 
                         {/* Senha */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest truncate">Credencial Provisória</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest truncate">Senha provisória</Typography>
                           <div className="relative group">
                             <Lock size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <input 
                               id="new-user-password"
-                              name="password"
+                              name="new_user_password"
+                              autoComplete="new-password"
                               required
                               minLength={10}
                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}"
@@ -198,7 +210,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
 
                         {/* Hierarquia */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Nível de Autoridade</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Papel na loja</Typography>
                           <div className="relative group">
                             <Shield size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors z-10 pointer-events-none" />
                             <select 
@@ -219,7 +231,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
 
                         {/* Unidade */}
                         <div className="space-y-mx-xs">
-                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Alocação Operacional</Typography>
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Loja vinculada</Typography>
                           <div className="relative group">
                             <Building2 size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors z-10 pointer-events-none" />
                             <select 
@@ -239,6 +251,48 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                             </select>
                           </div>
                         </div>
+
+                        <div className="space-y-mx-xs">
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Início da vigência</Typography>
+                          <input
+                            id="new-user-started-at"
+                            name="started_at"
+                            type="date"
+                            required={!papelSelecionadoInterno && formData.role === 'vendedor'}
+                            value={formData.started_at}
+                            onChange={e => setFormData({...formData, started_at: e.target.value})}
+                            disabled={papelSelecionadoInterno || formData.role !== 'vendedor'}
+                            className="w-full h-mx-14 px-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all disabled:opacity-40"
+                          />
+                        </div>
+
+                        <div className="space-y-mx-xs">
+                          <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Fim da vigência</Typography>
+                          <input
+                            id="new-user-ended-at"
+                            name="ended_at"
+                            type="date"
+                            value={formData.ended_at}
+                            onChange={e => setFormData({...formData, ended_at: e.target.value})}
+                            disabled={papelSelecionadoInterno || formData.role !== 'vendedor'}
+                            className="w-full h-mx-14 px-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all disabled:opacity-40"
+                          />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md">
+                      <label className="flex items-center justify-between gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md cursor-pointer">
+                        <span className="text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Operacional ativo</span>
+                        <input type="checkbox" checked={formData.is_active} onChange={e => setFormData({...formData, is_active: e.target.checked})} disabled={papelSelecionadoInterno || formData.role !== 'vendedor'} className="h-mx-sm w-mx-sm accent-brand-primary disabled:opacity-40" />
+                      </label>
+                      <label className="flex items-center justify-between gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md cursor-pointer">
+                        <span className="text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Venda loja</span>
+                        <input type="checkbox" checked={formData.is_venda_loja} onChange={e => setFormData({...formData, is_venda_loja: e.target.checked})} disabled={papelSelecionadoInterno || formData.role !== 'vendedor'} className="h-mx-sm w-mx-sm accent-brand-primary disabled:opacity-40" />
+                      </label>
+                      <label className="flex items-center justify-between gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md cursor-pointer">
+                        <span className="text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Carência no mês</span>
+                        <input type="checkbox" checked={formData.closing_month_grace} onChange={e => setFormData({...formData, closing_month_grace: e.target.checked})} disabled={papelSelecionadoInterno || formData.role !== 'vendedor'} className="h-mx-sm w-mx-sm accent-brand-primary disabled:opacity-40" />
+                      </label>
                     </div>
 
                     <div className="pt-mx-md">
@@ -248,10 +302,10 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                         >
                             <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-500 skew-x-12" />
                             {loading ? <RefreshCw className="animate-spin" /> : <Zap size={24} className="fill-white" />}
-                            CONSOLIDAR REGISTRO
+                            CRIAR INTEGRANTE
                         </button>
                         <Typography variant="tiny" tone="muted" className="mt-mx-md text-center uppercase font-black tracking-mx-widest opacity-40">
-                            Ao confirmar, o sistema gerará as chaves de acesso e iniciará o protocolo de segurança.
+                            O usuário será criado com acesso, vínculo e regras operacionais da loja selecionada.
                         </Typography>
                     </div>
                 </div>

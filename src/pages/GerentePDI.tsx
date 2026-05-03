@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { usePDIs } from '@/hooks/useData'
+import { Link, useNavigate } from 'react-router-dom'
+import { usePDISessions } from '@/hooks/usePDI_MX'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { 
@@ -27,7 +27,8 @@ const statusCfg = {
 
 export default function GerentePDI() {
     const { role } = useAuth()
-    const { pdis, loading, refetch } = usePDIs()
+    const navigate = useNavigate()
+    const { pdis, loading, refetch } = usePDISessions()
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
@@ -41,8 +42,11 @@ export default function GerentePDI() {
     const filteredPDIs = useMemo(() => {
         const term = searchTerm.toLowerCase()
         return pdis.filter((p: any) =>
-            (p.meta_6m || p.objective || '').toLowerCase().includes(term) ||
-            (p.seller_name || '').toLowerCase().includes(term)
+            (p.meta_6m || '').toLowerCase().includes(term) ||
+            (p.meta_12m || '').toLowerCase().includes(term) ||
+            (p.meta_24m || '').toLowerCase().includes(term) ||
+            (p.seller_name || '').toLowerCase().includes(term) ||
+            (p.store_name || '').toLowerCase().includes(term)
         )
     }, [pdis, searchTerm])
 
@@ -102,7 +106,11 @@ export default function GerentePDI() {
                 {showForm && (
                     <WizardPDI 
                         onClose={() => setShowForm(false)} 
-                        onSuccess={() => { setShowForm(false); refetch() }} 
+                        onSuccess={async (sessionId) => {
+                            setShowForm(false)
+                            await refetch()
+                            if (sessionId) navigate(`/pdi/${sessionId}/print`)
+                        }} 
                     />
                 )}
             </AnimatePresence>
@@ -136,7 +144,7 @@ export default function GerentePDI() {
                                                 <div className="space-y-mx-lg relative z-10">
                                                     <div className="space-y-mx-xs">
                                                         <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest mb-2 block">Objetivo 06 Meses</Typography>
-                                                        <Typography variant="h2" className="text-xl leading-snug line-clamp-2 uppercase tracking-tighter font-black">"{(p as any).meta_6m || (p as any).objective || 'N/A'}"</Typography>
+                                                        <Typography variant="h2" className="text-xl leading-snug line-clamp-2 uppercase tracking-tighter font-black">"{(p as any).meta_6m || 'N/A'}"</Typography>
                                                     </div>
                                                 </div>
                                             </div>

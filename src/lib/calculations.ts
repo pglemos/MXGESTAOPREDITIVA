@@ -262,29 +262,51 @@ _Sistema Automático MX_`
 
 /** Formata o feedback estruturado para envio via WhatsApp */
 export function formatStructuredWhatsAppFeedback(data: {
-    sellerName: string;
+    sellerName?: string;
     metrics: any;
-    diagnostic: any;
-    actions: string[];
-    periodLabel: string;
+    diagnostic?: any;
+    actions?: string[];
+    periodLabel?: string;
+    dateLabel?: string;
+    metaIndividual?: number | string;
+    metaCompromisso?: number | string;
+    positives?: string | string[];
+    attentionPoints?: string | string[];
 }): string {
-    return `*💎 FEEDBACK ESTRUTURADO — MX PERFORMANCE*
-*Vendedor:* ${data.sellerName.toUpperCase()}
-*Período:* ${data.periodLabel}
+    const toLines = (value?: string | string[]) => {
+        if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean)
+        return String(value || '')
+            .split(/\n+/)
+            .map(v => v.replace(/^\d+[).]\s*/, '').trim())
+            .filter(Boolean)
+    }
 
-*📊 MÉTRICAS CONSOLIDADAS:*
-✅ *Vendas:* ${data.metrics.vnd_total}
-📞 *Agendamentos:* ${data.metrics.agd_total}
-👥 *Visitas:* ${data.metrics.visitas}
-📥 *Leads Recebidos:* ${data.metrics.leads}
+    const numbered = (items: string[], fallback: string) => {
+        const lines = items.length ? items : [fallback]
+        return lines.map((item, index) => `${index + 1}) ${item}`).join('\n')
+    }
 
-*🔥 DIAGNÓSTICO TÁTICO:*
-${data.diagnostic.diagnostico}
+    const orientation = toLines(data.actions)
+    const positives = toLines(data.positives)
+    const attention = toLines(data.attentionPoints)
+    const diagnosticText = data.diagnostic?.diagnostico || 'Acompanhar indicadores da semana e corrigir o principal gargalo do funil.'
+    const suggestionText = data.diagnostic?.sugestao || 'Definir uma acao objetiva para a semana.'
 
-*🚀 PLANO DE AÇÃO (TOP 3):*
-${(data.actions || []).map((a: string, i: number) => `${i + 1}. ${a}`).join('\n')}
+    return `🚗 *FEEDBACK ESTRUTURADO*
 
-*CONSELHO MX:* ${data.diagnostic.sugestao}
+Data: ${data.dateLabel || data.periodLabel || 'XX/XX/XXXX'}
+Meta individual: ${data.metaIndividual ?? data.metrics?.vnd_total ?? 'X'}
+Meta Compromisso: ${data.metaCompromisso ?? 'Y'}
 
-_Gerado via Inteligência Operacional MX_`
+📝 *Orientação para a Semana:*
+
+${numbered(orientation, suggestionText)}
+
+✅ *Pontos Positivos*
+
+${numbered(positives, `Vendas: ${data.metrics?.vnd_total ?? 0}; agendamentos: ${data.metrics?.agd_total ?? 0}; visitas: ${data.metrics?.visitas ?? 0}.`)}
+
+🔴 *Pontos de Atenção*
+
+${numbered(attention, diagnosticText)}`
 }

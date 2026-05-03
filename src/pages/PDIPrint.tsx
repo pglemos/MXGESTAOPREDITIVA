@@ -43,16 +43,20 @@ export default function PDIPrint() {
         window.print()
     }
 
-    const radarData = bundle.avaliacoes.map((av: any) => ({
+    const colaboradorNome = bundle.sessao.colaborador_nome || bundle.sessao.seller_name || bundle.sessao.colaborador_id
+    const gerenteNome = bundle.sessao.gerente_nome || bundle.sessao.manager_name || bundle.sessao.gerente_id
+    const lojaNome = bundle.sessao.loja_nome || bundle.sessao.store_name
+
+    const radarData = (bundle.avaliacoes || []).map((av: any) => ({
         subject: av.competencia,
         A: av.nota,
         alvo: av.alvo,
         fullMark: av.alvo
     }))
 
-    const metas6 = bundle.metas.filter((m: any) => m.prazo === '6_meses')
-    const metas12 = bundle.metas.filter((m: any) => m.prazo === '12_meses')
-    const metas24 = bundle.metas.filter((m: any) => m.prazo === '24_meses')
+    const metas6 = (bundle.metas || []).filter((m: any) => m.prazo === '6_meses')
+    const metas12 = (bundle.metas || []).filter((m: any) => m.prazo === '12_meses')
+    const metas24 = (bundle.metas || []).filter((m: any) => m.prazo === '24_meses')
 
     return (
         <div className="min-h-screen bg-mx-indigo-50 font-sans print:bg-white flex flex-col items-center py-10 print:py-0 overflow-x-hidden">
@@ -92,7 +96,10 @@ export default function PDIPrint() {
                         </div>
                         <div>
                             <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest">Colaborador (Especialista)</Typography>
-                            <Typography variant="h2" className="text-2xl font-black uppercase border-b-2 border-brand-primary inline-block pb-1 mt-1">{bundle.sessao.colaborador_id}</Typography>
+                            <Typography variant="h2" className="text-2xl font-black uppercase border-b-2 border-brand-primary inline-block pb-1 mt-1">{colaboradorNome}</Typography>
+                            {lojaNome && (
+                                <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest mt-2 block">{lojaNome}</Typography>
+                            )}
                         </div>
                     </div>
 
@@ -157,7 +164,7 @@ export default function PDIPrint() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {bundle.avaliacoes.map((av: any, i: number) => (
+                                    {(bundle.avaliacoes || []).map((av: any, i: number) => (
                                         <tr key={i} className="border-b border-border-default">
                                             <td className="py-2 px-3">{av.competencia}</td>
                                             <td className="py-2 px-3 text-center text-brand-primary">{av.nota}</td>
@@ -185,7 +192,7 @@ export default function PDIPrint() {
 
                     <div className="mt-auto">
                         <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-error mb-4">Top 5 Maiores Lacunas (Gaps) Identificadas</Typography>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">                            {bundle.top_5_gaps.map((gap: any, i: number) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">                            {(bundle.top_5_gaps || []).map((gap: any, i: number) => (
                                 <div key={i} className="bg-status-error-surface p-mx-sm border-l-4 border-status-error flex justify-between items-center">
                                     <Typography variant="p" className="text-xs font-bold uppercase">{gap.competencia}</Typography>
                                     <Typography variant="h3" tone="error" className="text-lg">-{gap.gap}</Typography>
@@ -215,7 +222,7 @@ export default function PDIPrint() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {bundle.plano_acao.map((acao: any, i: number) => (
+                                {(bundle.plano_acao || []).map((acao: any, i: number) => (
                                     <tr key={i} className="border-b-2 border-border-default">
                                         <td className="py-4 px-4 font-bold uppercase text-text-secondary">{acao.competencia}</td>
                                         <td className="py-4 px-4 font-bold text-text-primary">{acao.descricao_acao}</td>
@@ -240,6 +247,7 @@ export default function PDIPrint() {
                         <div className="text-center space-y-mx-sm">
                             <div className="border-t-2 border-mx-black pt-4">
                                 <Typography variant="p" className="text-sm font-black uppercase tracking-widest">Assinatura do Gestor (MX)</Typography>
+                                <Typography variant="tiny" tone="muted" className="text-mx-micro uppercase font-bold mt-1 block">{gerenteNome}</Typography>
                                 <Typography variant="tiny" tone="muted" className="text-mx-micro uppercase font-bold mt-1 block">Responsável Técnico</Typography>
                             </div>
                         </div>
@@ -256,4 +264,3 @@ export default function PDIPrint() {
         </div>
     )
 }
-

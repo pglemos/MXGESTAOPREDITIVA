@@ -156,7 +156,12 @@ function AdminFeedback() {
             metrics: { vnd_total: f.vnd_week, agd_total: f.agd_week, visitas: f.visit_week, leads: f.leads_week },
             diagnostic: { diagnostico: f.attention_points, sugestao: f.action },
             actions: [f.action],
-            periodLabel: `Semana ${f.week_reference}`
+            periodLabel: `Semana ${f.week_reference}`,
+            dateLabel: f.created_at ? format(parseISO(f.created_at), 'dd/MM/yyyy') : f.week_reference,
+            metaIndividual: f.commitment_suggested || f.meta_compromisso || f.vnd_week,
+            metaCompromisso: f.meta_compromisso,
+            positives: f.positives,
+            attentionPoints: f.attention_points,
         })
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     }
@@ -439,7 +444,12 @@ function StoreFeedback() {
             metrics: { vnd_total: f.vnd_week, agd_total: f.agd_week, visitas: f.visit_week, leads: f.leads_week },
             diagnostic: { diagnostico: f.attention_points, sugestao: f.action },
             actions: [f.action],
-            periodLabel: `Semana ${f.week_reference}`
+            periodLabel: `Semana ${f.week_reference}`,
+            dateLabel: f.created_at ? format(parseISO(f.created_at), 'dd/MM/yyyy') : f.week_reference,
+            metaIndividual: f.commitment_suggested || f.meta_compromisso || f.vnd_week,
+            metaCompromisso: f.meta_compromisso,
+            positives: f.positives,
+            attentionPoints: f.attention_points,
         })
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     }

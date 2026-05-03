@@ -13,7 +13,7 @@ import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } fro
 import { cn } from '@/lib/utils'
 import * as Dialog from '@radix-ui/react-dialog'
 
-export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSuccess: () => void }) {
+export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSuccess: (sessionId?: string) => void }) {
     const { storeId } = useAuth()
     const { sellers } = useTeam()
     const { cargos, template, loading, fetchCargos, fetchTemplate, fetchSuggestedActions, saveSessionBundle } = usePDI_MX()
@@ -21,6 +21,15 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
     const [currentStep, setCurrentStep] = useState(0)
     const [saving, setSaving] = useState(false)
     const [suggestedActions, setSuggestedActions] = useState<Record<string, any[]>>({})
+    const [preChecklist, setPreChecklist] = useState({
+        conversaIndividual: false,
+        localReservado: false,
+    })
+    const [closingChecklist, setClosingChecklist] = useState({
+        revisaoExplicada: false,
+        impressaoCombinada: false,
+        compromissoSimbolico: false,
+    })
 
     const [form, setForm] = useState({
         colaborador_id: '',
@@ -38,8 +47,18 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
             { prazo: '24_meses', tipo: 'pessoal', descricao: '' },
         ],
         avaliacoes: {} as Record<string, number>,
-        plano_acao: Array(5).fill({ competencia_id: '', descricao_acao: '', data_conclusao: '', impacto: 'medio', custo: 'medio' })
+        plano_acao: Array.from({ length: 5 }, () => ({ competencia_id: '', descricao_acao: '', data_conclusao: '', impacto: 'medio', custo: 'medio' }))
     })
+
+    const selectedSeller = useMemo(
+        () => sellers.find(s => s.id === form.colaborador_id),
+        [sellers, form.colaborador_id]
+    )
+
+    const selectedCargo = useMemo(
+        () => cargos.find(c => c.id === form.cargo_id),
+        [cargos, form.cargo_id]
+    )
 
     useEffect(() => {
         fetchCargos().then(cargos => {
@@ -89,6 +108,10 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
             const metasDoPrazo = form.metas.filter(m => m.prazo === prazo && m.descricao.trim())
             const temPessoal = metasDoPrazo.some(m => m.tipo === 'pessoal')
             const temProfissional = metasDoPrazo.some(m => m.tipo === 'profissional')
+            if (metasDoPrazo.length !== 3) {
+                toast.error(`Para ${prazo.replace('_', ' ')}, preencha exatamente 3 metas.`)
+                return false
+            }
             if (!temPessoal || !temProfissional) {
                 toast.error(`Para ${prazo.replace('_', ' ')}, é necessário ao menos 1 meta pessoal e 1 profissional.`)
                 return false
@@ -97,11 +120,72 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
         return true
     }
 
+    const validateMapeamento = () => {
+        if (!template?.competencias?.length || !template?.escala?.length) {
+            toast.error('A metodologia do cargo ainda não carregou competências e escala.')
+            return false
+        }
+
+        const min = template.escala[0].nota
+        const max = template.escala[template.escala.length - 1].nota
+        const missing = template.competencias.find(c => typeof form.avaliacoes[c.id] !== 'number')
+        if (missing) {
+            toast.error(`Informe a nota da competência ${missing.nome}.`)
+            return false
+        }
+
+        const outOfRange = template.competencias.find(c => {
+            const nota = form.avaliacoes[c.id]
+            return nota < min || nota > max
+        })
+        if (outOfRange) {
+            toast.error(`A nota de ${outOfRange.nome} precisa estar entre ${min} e ${max}.`)
+            return false
+        }
+
+        return true
+    }
+
+    const parseDateOnly = (value: string) => new Date(`${value}T12:00:00`)
+
+    const addMonths = (date: Date, months: number) => {
+        const next = new Date(date)
+        next.setMonth(next.getMonth() + months)
+        return next
+    }
+
     const validateAcoes = () => {
+        if (!validateMapeamento()) return false
+        if (form.plano_acao.length !== 5) {
+            toast.error('O PDI deve conter exatamente 5 ações de desenvolvimento.')
+            return false
+        }
+
+        const topGapIds = new Set(topGaps.map(g => g.id))
+        const selectedCompetencias = new Set<string>()
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const sixMonthsLimit = addMonths(today, 6)
+
         for (let i = 0; i < form.plano_acao.length; i++) {
             const a = form.plano_acao[i]
             if (!a.competencia_id || !a.descricao_acao.trim() || !a.data_conclusao) {
                 toast.error(`Ação ${i + 1} está incompleta. Selecione a competência, descreva a ação e informe a data.`)
+                return false
+            }
+            if (!topGapIds.has(a.competencia_id)) {
+                toast.error(`Ação ${i + 1} precisa estar vinculada a uma das 5 maiores lacunas.`)
+                return false
+            }
+            if (selectedCompetencias.has(a.competencia_id)) {
+                toast.error('Use uma competência diferente para cada uma das 5 ações.')
+                return false
+            }
+            selectedCompetencias.add(a.competencia_id)
+
+            const actionDate = parseDateOnly(a.data_conclusao)
+            if (actionDate < today || actionDate > sixMonthsLimit) {
+                toast.error(`Ação ${i + 1} precisa ter conclusão dentro dos próximos 6 meses.`)
                 return false
             }
         }
@@ -109,33 +193,46 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
             toast.error('Informe a data da próxima revisão mensal.')
             return false
         }
+        const reviewDate = parseDateOnly(form.proxima_revisao_data)
+        if (reviewDate < today || reviewDate > addMonths(today, 2)) {
+            toast.error('A próxima revisão precisa estar agendada dentro do ciclo mensal.')
+            return false
+        }
         return true
     }
 
     const handleNext = () => {
         if (currentStep === 0 && (!form.colaborador_id || !form.cargo_id)) return toast.error('Selecione colaborador e cargo.')
+        if (currentStep === 0 && !(selectedSeller?.store_id || storeId)) return toast.error('O vendedor selecionado precisa estar vinculado a uma loja.')
+        if (currentStep === 0 && (!preChecklist.conversaIndividual || !preChecklist.localReservado)) return toast.error('Confirme a aplicação individual e o local reservado antes de iniciar.')
         if (currentStep === 1 && !validateMetas()) return
+        if (currentStep === 2 && !validateMapeamento()) return
         setCurrentStep(s => s + 1)
     }
 
     const handleSubmit = async () => {
         if (!validateAcoes()) return
+        if (!closingChecklist.revisaoExplicada || !closingChecklist.impressaoCombinada) {
+            toast.error('Confirme a revisão mensal e a impressão/entrega do PDI antes de concluir.')
+            return
+        }
         setSaving(true)
         try {
             const payload = {
                 colaborador_id: form.colaborador_id,
-                loja_id: storeId,
+                loja_id: selectedSeller?.store_id || storeId,
+                cargo_id: form.cargo_id,
                 proxima_revisao_data: form.proxima_revisao_data,
                 metas: form.metas.filter(m => m.descricao.trim()),
                 avaliacoes: Object.entries(form.avaliacoes).map(([competencia_id, nota_atribuida]) => {
                     const comp = template?.competencias.find(c => c.id === competencia_id)
-                    return { competencia_id, nota_atribuida, alvo: comp?.alvo || 10 }
+                    return { competencia_id, nota_atribuida, alvo: comp?.alvo || selectedCargo?.nota_max || 10 }
                 }),
                 plano_acao: form.plano_acao
             }
-            await saveSessionBundle(payload)
+            const sessionId = await saveSessionBundle(payload)
             toast.success('Sessão de PDI concluída com sucesso! O bundle foi gerado.')
-            onSuccess()
+            onSuccess(String(sessionId || ''))
         } catch (err: any) {
             toast.error(err.message || 'Erro ao salvar PDI')
         } finally {
@@ -216,6 +313,29 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                             {cargos.map(c => <option key={c.id} value={c.id}>Nível {c.nivel} - {c.nome} ({c.nota_min} a {c.nota_max})</option>)}
                                         </select>
                                     </div>
+                                    <Card className="p-mx-md bg-surface-alt border border-border-default shadow-inner space-y-mx-sm">
+                                        <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Protocolo de Aplicação</Typography>
+                                        <div className="grid gap-mx-xs">
+                                            <label className="flex items-start gap-mx-sm text-sm font-bold text-text-secondary">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={preChecklist.conversaIndividual}
+                                                    onChange={e => setPreChecklist(prev => ({ ...prev, conversaIndividual: e.target.checked }))}
+                                                    className="mt-1 accent-brand-primary"
+                                                />
+                                                Aplicação individual prevista em 45 minutos, seguindo a pauta de metas, competências e ações.
+                                            </label>
+                                            <label className="flex items-start gap-mx-sm text-sm font-bold text-text-secondary">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={preChecklist.localReservado}
+                                                    onChange={e => setPreChecklist(prev => ({ ...prev, localReservado: e.target.checked }))}
+                                                    className="mt-1 accent-brand-primary"
+                                                />
+                                                Local reservado na loja, com conversa individual e sem interrupções.
+                                            </label>
+                                        </div>
+                                    </Card>
                                 </div>
                             )}
 
@@ -424,6 +544,39 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                 </div>
                                             </div>
                                         ))}
+
+                                        <Card className="p-mx-md bg-white border border-brand-primary/20 shadow-sm space-y-mx-sm">
+                                            <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Encerramento da Sessão</Typography>
+                                            <div className="grid gap-mx-xs">
+                                                <label className="flex items-start gap-mx-sm text-sm font-bold text-text-secondary">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={closingChecklist.revisaoExplicada}
+                                                        onChange={e => setClosingChecklist(prev => ({ ...prev, revisaoExplicada: e.target.checked }))}
+                                                        className="mt-1 accent-brand-primary"
+                                                    />
+                                                    Próximo passo explicado: no próximo mês haverá nova conversa para analisar evolução e apoio necessário.
+                                                </label>
+                                                <label className="flex items-start gap-mx-sm text-sm font-bold text-text-secondary">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={closingChecklist.impressaoCombinada}
+                                                        onChange={e => setClosingChecklist(prev => ({ ...prev, impressaoCombinada: e.target.checked }))}
+                                                        className="mt-1 accent-brand-primary"
+                                                    />
+                                                    Impressão e entrega do PDF combinadas; ao concluir, o sistema abre Capa, Vendedor 1 e PDI para impressão.
+                                                </label>
+                                                <label className="flex items-start gap-mx-sm text-sm font-bold text-text-secondary">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={closingChecklist.compromissoSimbolico}
+                                                        onChange={e => setClosingChecklist(prev => ({ ...prev, compromissoSimbolico: e.target.checked }))}
+                                                        className="mt-1 accent-brand-primary"
+                                                    />
+                                                    Compromisso simbólico preparado ou dispensado pelo gerente.
+                                                </label>
+                                            </div>
+                                        </Card>
                                     </div>
                                 </div>
                             )}

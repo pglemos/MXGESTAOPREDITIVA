@@ -15,6 +15,7 @@ import {
     validarFunil,
     calcularScoreMX,
     getOperationalStatus,
+    formatStructuredWhatsAppFeedback,
     somarVendas,
     somarVendasPorCanal,
 } from './calculations'
@@ -148,6 +149,27 @@ describe('Business Calculations (MX Performance)', () => {
         const funilVazio: FunnelData = { leads: 0, agd_total: 0, visitas: 0, vnd_total: 0, tx_lead_agd: 0, tx_agd_visita: 0, tx_visita_vnd: 0 }
         const diag = gerarDiagnosticoMX(funilVazio)
         expect(diag.gargalo).toBe('SEM_DADOS')
+    })
+
+    test('formatStructuredWhatsAppFeedback segue o modelo operacional anexado', () => {
+        const text = formatStructuredWhatsAppFeedback({
+            metrics: { vnd_total: 3, agd_total: 12, visitas: 8, leads: 40 },
+            dateLabel: '03/05/2026',
+            metaIndividual: 10,
+            metaCompromisso: 6,
+            actions: ['Aumentar a quantidade de leads em 10'],
+            positives: 'Conversao de vendas acima da media',
+            attentionPoints: 'Melhorar respostas nos leads',
+        })
+
+        expect(text).toContain('FEEDBACK ESTRUTURADO')
+        expect(text).toContain('Data: 03/05/2026')
+        expect(text).toContain('Meta individual: 10')
+        expect(text).toContain('Meta Compromisso: 6')
+        expect(text).toContain('Orientação para a Semana')
+        expect(text).toContain('Pontos Positivos')
+        expect(text).toContain('Pontos de Atenção')
+        expect(text).toContain('1) Aumentar a quantidade de leads em 10')
     })
 
     test('getBusinessDaysInMonth', () => {

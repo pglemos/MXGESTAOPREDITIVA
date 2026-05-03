@@ -28,9 +28,14 @@ type StoreTeamPanelProps = {
 
 export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const { role } = useAuth()
-  const canManageTeamMembers = isAdministradorMx(role)
-  const canCreateMembers = canManageTeamMembers || role === 'dono' || role === 'gerente'
+  const canManageTeamMembers = isAdministradorMx(role) || role === 'dono' || role === 'gerente'
+  const canCreateMembers = canManageTeamMembers
   const { lojas } = useStores()
+  const editableStoreRoles = useMemo(() => {
+    if (role === 'gerente') return ['vendedor']
+    if (role === 'dono') return ['gerente', 'vendedor']
+    return ['dono', 'gerente', 'vendedor']
+  }, [role])
 
   const { team, loading, refetch, updateTeamMember, deleteTeamMember, registerUser } = useTeam(storeId || undefined)
   const [searchTerm, setSearchTerm] = useState('')
@@ -49,12 +54,12 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const stats = useMemo(() => {
     const total = (team || []).length;
     const leaders = (team || []).filter(m => isPerfilInternoMx(m.role) || m.role === 'dono' || m.role === 'gerente');
-    const operational = (team || []).filter(m => m.checkin_today);
+    const activeMembers = (team || []).filter(m => m.active !== false && m.is_active !== false);
 
     return [
-        { label: 'Tropa Total', value: total, icon: Users, tone: 'brand', color: 'from-brand-primary/20 to-brand-primary/5' },
-        { label: 'Operacionais', value: operational.length, icon: Zap, tone: 'success', color: 'from-status-success-surface to-transparent' },
-        { label: 'Offline', value: total - operational.length, icon: Clock, tone: 'error', color: 'from-status-error-surface to-transparent' },
+        { label: 'Integrantes', value: total, icon: Users, tone: 'brand', color: 'from-brand-primary/20 to-brand-primary/5' },
+        { label: 'Ativos', value: activeMembers.length, icon: Zap, tone: 'success', color: 'from-status-success-surface to-transparent' },
+        { label: 'Inativos', value: total - activeMembers.length, icon: Clock, tone: 'error', color: 'from-status-error-surface to-transparent' },
         { label: 'Líderes', value: leaders.length, icon: Shield, tone: 'warning', color: 'from-status-warning-surface to-transparent' },
     ];
   }, [team])
@@ -76,10 +81,12 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
       role: editingMember.role,
       active: editingMember.active,
       store_id: memberStoreId,
+      previous_store_id: editingMember.previous_store_id || editingMember.store_id || storeId,
       started_at: editingMember.started_at,
       ended_at: editingMember.ended_at,
       is_active: editingMember.active === false ? false : editingMember.is_active,
-      closing_month_grace: editingMember.closing_month_grace
+      closing_month_grace: editingMember.closing_month_grace,
+      is_venda_loja: editingMember.is_venda_loja
     })
     setSaving(false)
     if (error) toast.error(error); else { toast.success('Integrante atualizado!'); setEditingMember(null); refetch() }
@@ -171,8 +178,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     <section className="w-full flex flex-col gap-mx-lg relative">
         <>
           <PageHeader
-            title="Time de Elite"
-            description={`Equipe operacional da loja ${storeName || ''}`.trim()}
+            title="Equipe da Loja"
+            description={`Criar, editar e remover integrantes vinculados à loja ${storeName || ''}`.trim()}
             actions={
               <div className="flex flex-col sm:flex-row items-center gap-mx-sm w-full lg:w-auto">
                 <div className="relative group w-full sm:w-mx-96">
@@ -200,7 +207,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                       onClick={() => setIsUserModalOpen(true)}
                       className="flex-1 sm:flex-none h-mx-14 px-8 rounded-mx-xl font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
                     >
-                      <UserPlus size={18} className="mr-2" /> NOVO RECRUTA
+                      <UserPlus size={18} className="mr-2" /> NOVO INTEGRANTE
                     </Button>
                   )}
                 </div>
@@ -236,116 +243,90 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
           <div className="flex-1 min-h-0 pb-32 mt-mx-md">
             {filteredTeam.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
-                {filteredTeam.map((member, i) => {
-                  const vigencia = getVigenciaStatus(member)
-                  return (
-                    <motion.article
-                      key={member.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="group relative rounded-mx-4xl bg-white border border-border-default hover:border-brand-primary/30 hover:shadow-mx-elite transition-all duration-500 overflow-hidden flex flex-col h-mx-96 shadow-mx-lg"
-                    >
-                      <div className="absolute top-mx-0 left-mx-0 right-mx-0 h-mx-48 bg-gradient-to-b from-brand-primary/10 via-brand-primary/5 to-transparent pointer-events-none group-hover:from-brand-primary/20 transition-all duration-700" />
-
-                      <div className="p-mx-lg pb-0 flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-mx-xs px-4 py-1.5 rounded-mx-full bg-mx-black text-white shadow-mx-xl">
-                          <div className={cn("w-2 h-2 rounded-mx-full", member.checkin_today ? "bg-status-success shadow-mx-glow-brand animate-pulse" : "bg-white/20")} />
-                          <span className="text-mx-nano font-black uppercase tracking-mx-widest">
-                            {member.checkin_today ? 'Operacional' : 'Offline'}
-                          </span>
-                        </div>
-                        <Badge variant={vigencia.variant} className="font-black uppercase tracking-mx-widest text-mx-nano px-4 py-1 h-mx-lg shadow-mx-sm border-none">
-                          {vigencia.label}
-                        </Badge>
-                      </div>
-
-                      <div className="px-mx-lg flex flex-col items-center text-center space-y-mx-md relative z-10 flex-1 justify-center pt-mx-md">
-                        <div className="relative group/avatar">
-                          <div className="w-mx-28 h-mx-28 rounded-mx-4xl bg-white p-mx-xs border-2 border-border-default overflow-hidden group-hover/avatar:rotate-3 group-hover:scale-110 group-hover:border-brand-primary transition-all duration-500 shadow-mx-xl">
-                            <img
-                              src={getAvatarUrl(member.name || '', { background: 'ffffff', color: '22C55E' })}
-                              alt="" className="w-full h-full object-cover rounded-mx-3xl"
-                            />
-                          </div>
-                          {isPerfilInternoMx(member.role) && (
-                            <div className="absolute -top-mx-xs -right-mx-xs w-mx-12 h-mx-12 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center border-4 border-white shadow-mx-xl animate-bounce">
-                                <Shield size={18} className="text-brand-primary fill-brand-primary/20" />
+              <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
+                <div className="hidden lg:grid store-team-grid gap-mx-md px-mx-lg py-mx-sm bg-surface-alt border-b border-border-default text-mx-nano font-black uppercase tracking-mx-widest text-text-tertiary">
+                  <span>Integrante</span>
+                  <span>Papel</span>
+                  <span>Status</span>
+                  <span>Vigência</span>
+                  <span className="text-right">Ações</span>
+                </div>
+                <div className="divide-y divide-border-default">
+                  {filteredTeam.map((member, i) => {
+                    const vigencia = getVigenciaStatus(member)
+                    return (
+                      <motion.div
+                        key={`${member.id}-${member.store_id || storeId || 'sem-loja'}`}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.02 }}
+                        className="grid grid-cols-1 lg:store-team-grid gap-mx-md p-mx-lg items-center hover:bg-surface-alt/60 transition-colors"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-mx-sm min-w-0">
+                            <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-brand-primary/10 text-brand-primary border border-brand-primary/10 flex items-center justify-center font-black uppercase shrink-0">
+                              {(member.name || '?').slice(0, 2)}
                             </div>
+                            <div className="min-w-0">
+                              <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{member.name}</Typography>
+                              <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">
+                                <span className="inline-flex items-center gap-mx-tiny min-w-0"><Mail size={11} />{member.email || 'sem e-mail'}</span>
+                                <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} />{member.phone || 'sem telefone'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-mx-xs">
+                          <Badge variant={member.role === 'vendedor' ? 'outline' : 'warning'} className="font-black uppercase">
+                            {member.role || 'vendedor'}
+                          </Badge>
+                          {member.is_venda_loja && <Badge variant="brand" className="font-black uppercase">Venda loja</Badge>}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-mx-xs">
+                          <Badge variant={vigencia.variant} className="font-black uppercase">{vigencia.label}</Badge>
+                          <Badge variant={member.checkin_today ? 'success' : 'outline'} className="font-black uppercase">
+                            {member.checkin_today ? 'Check-in hoje' : 'Sem check-in'}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-mx-sm text-mx-tiny font-black uppercase">
+                          <div>
+                            <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Início</span>
+                            {member.started_at ? format(parseISO(member.started_at), 'dd/MM/yyyy') : '--'}
+                          </div>
+                          <div>
+                            <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Fim</span>
+                            {member.ended_at ? format(parseISO(member.ended_at), 'dd/MM/yyyy') : '--'}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-start lg:justify-end gap-mx-xs">
+                          {canManageTeamMembers && (
+                            <Button variant="outline" size="icon" onClick={() => setEditingMember({ ...member, previous_store_id: member.store_id })} className="h-mx-10 w-mx-10 rounded-mx-xl" aria-label={`Editar ${member.name}`}>
+                              <Settings2 size={16} />
+                            </Button>
                           )}
-                        </div>
-
-                        <div className="space-y-mx-tiny w-full pt-mx-sm">
-                          <Typography variant="h2" className="text-2xl font-black uppercase tracking-tighter truncate px-mx-sm leading-none">{member.name}</Typography>
-                          <div className="flex flex-col items-center gap-mx-nano">
-                            <div className="flex items-center gap-mx-xs bg-brand-primary/5 px-4 py-1 rounded-mx-full border border-brand-primary/10">
-                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-mx-widest text-mx-nano">
-                                    {member.role || 'ESPECIALISTA'}
-                                </Typography>
-                            </div>
-                            {member.store_name && member.store_id !== storeId && (
-                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-nano opacity-40 mt-1">
-                                    {member.store_name}
-                                </Typography>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="w-full grid grid-cols-2 gap-mx-md pt-mx-lg border-t border-border-subtle mt-mx-lg">
-                          <div className="text-left">
-                            <span className="block text-mx-nano text-text-tertiary font-black uppercase tracking-mx-widest mb-1 opacity-50">Efetivo</span>
-                            <span className="text-mx-tiny text-text-primary font-black uppercase tracking-tighter">{member.started_at ? format(parseISO(member.started_at), 'dd/MM/yyyy') : '---'}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="block text-mx-nano text-text-tertiary font-black uppercase tracking-mx-widest mb-1 opacity-50">Ciclo</span>
-                            <span className="text-mx-tiny text-text-primary font-black uppercase tracking-tighter">{member.ended_at ? 'PROGRAMADO' : 'INDEFINIDO'}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <footer className={cn("p-mx-lg pt-0 mt-auto relative z-10 grid gap-mx-sm", canManageTeamMembers ? "grid-cols-4" : "grid-cols-2")}>
-                        {canManageTeamMembers && (
-                          <Button
-                            variant="outline"
-                            onClick={() => setEditingMember(member)}
-                            className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-mx-md"
-                            aria-label={`Editar ${member.name}`}
-                          >
-                            <Settings2 size={20} />
+                          {canManageTeamMembers && (
+                            <Button variant="outline" size="icon" onClick={() => handleDeleteMember(member)} className="h-mx-10 w-mx-10 rounded-mx-xl text-status-error hover:bg-status-error-surface" aria-label={`Excluir ${member.name}`}>
+                              <Trash2 size={16} />
+                            </Button>
+                          )}
+                          <Button variant="outline" size="icon" onClick={() => member.phone && window.open(`tel:${member.phone}`)} disabled={!member.phone} className="h-mx-10 w-mx-10 rounded-mx-xl" aria-label={member.phone ? `Ligar para ${member.name}` : `Telefone não informado para ${member.name}`}>
+                            <Phone size={16} />
                           </Button>
-                        )}
-                        {canManageTeamMembers && (
-                          <Button
-                            variant="outline"
-                            onClick={() => handleDeleteMember(member)}
-                            className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-status-error hover:border-status-error/30 transition-all shadow-mx-md"
-                            aria-label={`Excluir ${member.name}`}
-                          >
-                            <Trash2 size={20} />
+                          <Button variant="outline" size="icon" asChild className="h-mx-10 w-mx-10 rounded-mx-xl bg-mx-black text-white border-none hover:bg-brand-primary" aria-label={`Ver performance de ${member.name}`}>
+                            <Link to={`/relatorios/performance-vendedor?id=${member.id}`}>
+                              <TrendingUp size={16} />
+                            </Link>
                           </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          onClick={() => window.open(`tel:${member.phone}`)}
-                          className="h-mx-14 rounded-mx-2xl bg-white border-border-default text-text-tertiary hover:text-status-success hover:border-status-success/30 transition-all shadow-mx-md"
-                        >
-                          <Phone size={20} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          asChild
-                          className="h-mx-14 rounded-mx-2xl bg-mx-black text-white border-none hover:bg-brand-primary transition-all shadow-mx-xl"
-                        >
-                          <Link to={`/relatorios/performance-vendedor?id=${member.id}`}>
-                            <TrendingUp size={20} />
-                          </Link>
-                        </Button>                      </footer>
-                    </motion.article>
-                  )
-                })}
-              </div>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              </Card>
             ) : (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[50vh] space-y-mx-xl text-center border-2 border-dashed border-border-default rounded-mx-4xl bg-white/30 backdrop-blur-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
@@ -358,15 +339,15 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                     </div>
                 </div>
                 <div className="space-y-mx-sm max-w-md relative z-10">
-                  <Typography variant="h1" className="text-4xl font-black uppercase tracking-tighter leading-none">Vácuo de <span className="text-brand-primary">Tropa</span></Typography>
-                  <Typography variant="p" tone="muted" className="uppercase tracking-mx-widest font-black text-mx-tiny leading-relaxed opacity-60">A unidade operacional selecionada ainda não possui especialistas integrados ao terminal de performance MX.</Typography>
+                  <Typography variant="h1" className="text-4xl font-black uppercase tracking-tighter leading-none">Equipe <span className="text-brand-primary">vazia</span></Typography>
+                  <Typography variant="p" tone="muted" className="uppercase tracking-mx-widest font-black text-mx-tiny leading-relaxed opacity-60">A loja selecionada ainda não possui integrantes vinculados ao sistema de performance.</Typography>
                 </div>
                 {canCreateMembers && (
                   <Button
                       onClick={() => setIsUserModalOpen(true)}
                       className="h-mx-16 px-10 rounded-mx-full font-black uppercase tracking-widest text-mx-tiny shadow-mx-xl relative z-10"
                   >
-                      <UserPlus size={18} className="mr-2" /> RECRUTAR AGORA
+                      <UserPlus size={18} className="mr-2" /> ADICIONAR INTEGRANTE
                   </Button>
                 )}
               </motion.div>
@@ -375,11 +356,11 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
           <AnimatePresence>
             {editingMember && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-mx-md overflow-hidden" role="dialog" aria-modal="true">
+              <div className="fixed inset-0 z-[100] flex items-start justify-center p-mx-md overflow-y-auto" role="dialog" aria-modal="true">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingMember(null)} className="absolute inset-0 bg-mx-black/60 backdrop-blur-md" />
 
-                <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="w-full max-w-xl relative z-10">
-                  <Card className="shadow-mx-elite border-none">
+                <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="w-full max-w-2xl relative z-10 my-mx-lg">
+                  <Card className="shadow-mx-elite border-none overflow-hidden">
                     <CardHeader className="bg-mx-black border-none text-white p-mx-xl relative">
                         <div className="absolute top-mx-0 left-mx-0 w-full h-mx-px bg-brand-primary shadow-mx-glow-brand" />
                         <div className="flex items-center justify-between">
@@ -388,8 +369,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                                     <ShieldCheck size={28} className="text-white" />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-white text-2xl">Governança MX</CardTitle>
-                                    <Typography variant="caption" tone="white" className="opacity-60 block uppercase font-black tracking-mx-widest text-mx-nano">Configurar vigência de {editingMember.name}</Typography>
+                                    <CardTitle className="text-white text-2xl">Editar integrante</CardTitle>
+                                    <Typography variant="caption" tone="white" className="opacity-60 block uppercase font-black tracking-mx-widest text-mx-nano">Dados de acesso, vínculo e vigência de {editingMember.name}</Typography>
                                 </div>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => setEditingMember(null)} className="text-white/40 hover:text-white hover:bg-white/10 rounded-mx-full">
@@ -398,7 +379,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                         </div>
                     </CardHeader>
 
-                    <CardContent className="p-mx-xl space-y-mx-lg">
+                    <CardContent className="p-mx-xl space-y-mx-lg overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
                       <form onSubmit={handleUpdateMember} className="space-y-mx-lg">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                           <div className="space-y-mx-tiny">
@@ -438,19 +419,19 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             </div>
                           </div>
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Papel na Loja</Typography>
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Papel na loja</Typography>
                             <select
                               value={editingMember.role || 'vendedor'}
                               onChange={e => setEditingMember({ ...editingMember, role: e.target.value })}
                               className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase focus:outline-none focus:border-brand-primary transition-all"
                             >
-                              <option value="dono">Dono</option>
-                              <option value="gerente">Gerente</option>
-                              <option value="vendedor">Vendedor</option>
+                              {editableStoreRoles.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
                             </select>
                           </div>
                           <div className="sm:col-span-2 space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Loja</Typography>
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Loja vinculada</Typography>
                             <select
                               value={editingMember.store_id || storeId || ''}
                               onChange={e => setEditingMember({ ...editingMember, store_id: e.target.value })}
@@ -466,7 +447,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
                         <div className="grid grid-cols-2 gap-mx-md">
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Início Contrato</Typography>
+                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Início da vigência</Typography>
                             <input
                               id="started-at"
                               name="started_at"
@@ -501,11 +482,22 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                               <div className="flex items-center gap-mx-md">
                                 <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary"><Power size={20} /></div>
                                 <div className="space-y-0.5">
-                                  <Typography variant="h3" className="text-sm font-black uppercase tracking-tight">Status Ativo</Typography>
-                                  <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Habilitado no ecossistema</Typography>
+                                  <Typography variant="h3" className="text-sm font-black uppercase tracking-tight">Vigência ativa</Typography>
+                                  <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Conta na lista operacional da loja</Typography>
                                 </div>
                               </div>
                               <input type="checkbox" checked={editingMember.is_active} onChange={e => setEditingMember({...editingMember, is_active: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-brand-primary cursor-pointer" />
+                            </label>
+
+                            <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
+                              <div className="flex items-center gap-mx-md">
+                                <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary"><TrendingUp size={20} /></div>
+                                <div className="space-y-0.5">
+                                  <Typography variant="h3" className="text-sm font-black uppercase tracking-tight">Venda loja</Typography>
+                                  <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Conta como indicador operacional da unidade</Typography>
+                                </div>
+                              </div>
+                              <input type="checkbox" checked={editingMember.is_venda_loja ?? false} onChange={e => setEditingMember({...editingMember, is_venda_loja: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-brand-primary cursor-pointer" />
                             </label>
 
                             <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
