@@ -6,6 +6,7 @@ import { jsonResponse } from "../_shared/response.ts";
 import { escapeXml, escapeHtml } from "../_shared/format.ts";
 import { authorizeReportRequest } from "../_shared/auth.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { uploadDocumentToStore } from "../_shared/drive-upload.ts";
 
 const supabase = createServiceClient();
 const resend = createResendClient();
@@ -60,6 +61,12 @@ Deno.serve(async (req: Request) => {
       const html = generateMonthlyHTML(payload);
       const xlsxBase64 = generateMonthlyXLSX(payload);
       const fileName = `fechamento_mensal_MX_${store.name.replace(/\s+/g, "_")}_${dates.year}_${String(dates.month).padStart(2, "0")}.xlsx`;
+
+      // Upload ao Drive (fire-and-forget, não bloqueia o envio de email)
+      ;(async () => {
+        const bytes = Uint8Array.from(atob(xlsxBase64), c => c.charCodeAt(0));
+        await uploadDocumentToStore(store.id, "dre_financeiro", fileName, bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      })().catch(() => {});
 
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
