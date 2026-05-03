@@ -1,5 +1,5 @@
 const allowedOrigins = [
-    process.env.APP_URL,
+    'https://mxperformance.vercel.app',
     'http://localhost:3000'
 ].filter(Boolean);
 
