@@ -331,8 +331,8 @@ async function ensureClientFolder(
         google_drive_folder_id: driveFolder.id,
         google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
         status: "active",
-        created_by: userId,
-        updated_by: userId,
+        created_by: userId || null,
+        updated_by: userId || null,
       },
       { onConflict: "client_id" },
     )
@@ -449,16 +449,13 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
 
   try {
-    const auth = await authenticate(req);
-    if ("error" in auth) return auth.error;
-    const { adminClient, userId } = auth;
-
     const contentType = req.headers.get("Content-Type") || "";
     const isMultipart = contentType.toLowerCase().includes("multipart/form-data");
     let action: DriveAction;
     let clientId: string;
     let deleteFileId: string | null = null;
     let files: File[] = [];
+    let body: Record<string, unknown> = {};
 
     if (isMultipart) {
       const form = await req.formData();
@@ -467,14 +464,42 @@ Deno.serve(async (req) => {
       files = form.getAll("files").filter((item): item is File => item instanceof File);
       if (files.length === 0) throw new Error("Nenhum arquivo enviado");
     } else {
-      const body = await req.json().catch(() => ({}));
-      action = body?.action;
+      body = await req.json().catch(() => ({}));
+      action = body?.action as DriveAction;
       if (!["ensure-folder", "list", "delete", "setup_client", "setup_all", "delete_client_folder"].includes(action)) {
         throw new Error("Ação inválida");
       }
       // setup_all does not require a clientId
       clientId = action === "setup_all" ? "" : parseUuid(body?.clientId, "clientId");
       deleteFileId = typeof body?.fileId === "string" ? body.fileId : null;
+    }
+
+    // setup_all accepts service role JWT directly (for automated/CLI invocations)
+    const authHeader = req.headers.get("Authorization") || "";
+    const isServiceRole = (() => {
+      try {
+        const token = authHeader.replace(/^Bearer\s+/i, "");
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return payload?.role === "service_role";
+      } catch { return false; }
+    })();
+
+    let adminClient: ReturnType<typeof createClient>;
+    let userId: string;
+
+    if (action === "setup_all" && isServiceRole) {
+      adminClient = createClient(
+        requireEnv("SUPABASE_URL", SUPABASE_URL),
+        requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
+      );
+      userId = ""; // service role — created_by will be null
+    } else if (action === "setup_all") {
+      return jsonResponse({ error: "setup_all requer service role JWT" }, 403);
+    } else {
+      const auth = await authenticate(req);
+      if ("error" in auth) return auth.error;
+      adminClient = auth.adminClient;
+      userId = auth.userId;
     }
 
     const accessToken = await getCentralDriveAccessToken();
@@ -506,7 +531,7 @@ Deno.serve(async (req) => {
           results.push({ clientId: c.id, name: c.name, ok: false, error: toError(err).message });
         }
       }
-      return jsonResponse({ ok: true, created: results.filter(r => r.ok).length, results });
+      return jsonResponse({ ok: true, created: results.filter(r => r.ok).length, total: (allClients || []).length, existing: existingSet.size, pending: pending.length, results });
     }
 
     // ── setup_client: create Drive folder + subfolders for one client ─────────
