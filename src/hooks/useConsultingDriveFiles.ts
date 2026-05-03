@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 
 export type ConsultingDriveFile = {
   id: string
@@ -25,6 +25,12 @@ function getErrorMessage(err: unknown, fallback: string) {
   return fallback
 }
 
+function getDriveError(data: DriveResponse, fallback: string) {
+  const err = new Error(data.error || fallback) as Error & { code?: string }
+  err.code = data.code
+  return err
+}
+
 export function useConsultingDriveFiles(clientId?: string | null) {
   const [folderUrl, setFolderUrl] = useState<string | null>(null)
   const [files, setFiles] = useState<ConsultingDriveFile[]>([])
@@ -34,14 +40,21 @@ export function useConsultingDriveFiles(clientId?: string | null) {
   const [needsReconnect, setNeedsReconnect] = useState(false)
 
   const invokeJson = useCallback(async (body: Record<string, unknown>) => {
-    const { data, error: invokeError } = await supabase.functions.invoke<DriveResponse>('google-drive-files', { body })
-    if (invokeError) throw invokeError
-    if (data?.error) {
-      const err = new Error(data.error) as Error & { code?: string }
-      err.code = data.code
-      throw err
-    }
-    return data || {}
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Sessão autenticada obrigatória para acessar arquivos')
+
+    const response = await fetch(getSupabaseFunctionUrl('google-drive-files'), {
+      method: 'POST',
+      headers: {
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+    const data = await response.json().catch(() => ({})) as DriveResponse
+    if (!response.ok || data.error) throw getDriveError(data, 'Falha ao acessar Google Drive')
+    return data
   }, [])
 
   const applyResponse = useCallback((data: DriveResponse) => {
@@ -95,16 +108,20 @@ export function useConsultingDriveFiles(clientId?: string | null) {
       formData.append('clientId', targetClientId)
       for (const file of selectedFiles) formData.append('files', file)
 
-      const { data, error: invokeError } = await supabase.functions.invoke<DriveResponse>('google-drive-files', {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Sessão autenticada obrigatória para enviar arquivos')
+
+      const response = await fetch(getSupabaseFunctionUrl('google-drive-files'), {
+        method: 'POST',
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: formData,
       })
-      if (invokeError) throw invokeError
-      if (data?.error) {
-        const err = new Error(data.error) as Error & { code?: string }
-        err.code = data.code
-        throw err
-      }
-      applyResponse(data || {})
+      const data = await response.json().catch(() => ({})) as DriveResponse
+      if (!response.ok || data.error) throw getDriveError(data, 'Falha ao enviar arquivos')
+      applyResponse(data)
     } catch (err) {
       const message = getErrorMessage(err, 'Falha ao enviar arquivos')
       setError(message)
