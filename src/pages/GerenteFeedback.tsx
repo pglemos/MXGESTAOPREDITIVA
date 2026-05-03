@@ -9,6 +9,7 @@ import {
     Target, RefreshCw, Search, Calendar, ShieldCheck, ChevronDown,
     Building2
 } from 'lucide-react'
+import { TabNavPill, type TabNavPillItem } from '@/components/molecules/TabNavPill'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Skeleton } from '@/components/atoms/Skeleton'
@@ -42,6 +43,12 @@ export default function GerenteFeedback() {
     if (isAdmin) return <AdminFeedback />
     return <StoreFeedback />
 }
+
+type FeedbackTab = 'individual' | 'weekly'
+const FEEDBACK_TABS: TabNavPillItem<FeedbackTab>[] = [
+    { key: 'individual', label: 'Individual' },
+    { key: 'weekly',     label: 'Relatórios' },
+]
 
 function AdminFeedback() {
     const { profile, setActiveStoreId } = useAuth()
@@ -193,14 +200,7 @@ function AdminFeedback() {
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">ADMIN — VISÃO DA REDE • METODOLOGIA MX</Typography>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <nav className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm mr-2" role="tablist">
-                        <Button variant={activeTab === 'individual' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setActiveTab('individual')} className="h-mx-9 rounded-mx-full px-6 text-mx-tiny font-black uppercase"
-                            role="tab" aria-selected={activeTab === 'individual'}>Individual</Button>
-                        <Button variant={activeTab === 'weekly' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setActiveTab('weekly')} className="h-mx-9 rounded-mx-full px-6 text-mx-tiny font-black uppercase"
-                            role="tab" aria-selected={activeTab === 'weekly'}>Relatórios</Button>
-                    </nav>
+                    <TabNavPill tabs={FEEDBACK_TABS} activeTab={activeTab} onTabChange={setActiveTab} buttonClassName="h-mx-9 px-6" className="mr-2" />
                     <div className="relative group w-full sm:w-mx-sidebar-expanded">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                         <Input placeholder="BUSCAR MENTORIA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}

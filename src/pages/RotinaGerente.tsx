@@ -16,6 +16,7 @@ import {
     Smartphone, History, AlertTriangle, Send, Store
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { TabNavPill } from '@/components/molecules/TabNavPill'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/atoms/Badge'
@@ -106,6 +107,12 @@ export default function RotinaGerente() {
     }, [effectiveStoreId, membership?.store_id, handleRefresh])
 
     const [pendingRequests, setPendingRequests] = useState<any[]>([])
+    const rotinaTabs = useMemo(() => [
+        { key: 'diario'  as const, label: 'Diário',  icon: Zap },
+        { key: 'semanal' as const, label: 'Semanal', icon: BarChart3 },
+        { key: 'mensal'  as const, label: 'Mensal',  icon: Target },
+        { key: 'ajustes' as const, label: 'Ajustes', icon: ShieldAlert, badge: pendingRequests.length },
+    ], [pendingRequests.length])
     const [executing, setExecuting] = useState(false)
     const [reuniaoDone, setReuniaoDone] = useState(false)
     const [agendaValidated, setAgendaDone] = useState(false)
@@ -227,20 +234,7 @@ export default function RotinaGerente() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <nav className="flex bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm mr-4" role="tablist">
-                        {(['diario', 'semanal', 'mensal', 'ajustes'] as const).map((t) => (
-                            <Button 
-                                key={t} variant={tab === t ? 'secondary' : 'ghost'} size="sm"
-                                onClick={() => setTab(t)} className="h-mx-10 px-8 rounded-mx-full font-black uppercase text-tiny relative"
-                            >
-                                {t === 'ajustes' && pendingRequests.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-mx-xs h-mx-xs bg-status-error text-white rounded-full flex items-center justify-center text-mx-tiny shadow-mx-sm border-2 border-white animate-bounce">{pendingRequests.length}</span>
-                                )}
-                                {t === 'diario' ? <Zap size={14} className="mr-2" /> : t === 'semanal' ? <BarChart3 size={14} className="mr-2" /> : t === 'mensal' ? <Target size={14} className="mr-2" /> : <ShieldAlert size={14} className="mr-2" />}
-                                {t}
-                            </Button>
-                        ))}
-                    </nav>
+                    <TabNavPill tabs={rotinaTabs} activeTab={tab} onTabChange={setTab} buttonClassName="h-mx-10 px-8" className="mr-4" />
                     <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>

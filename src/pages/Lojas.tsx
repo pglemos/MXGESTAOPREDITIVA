@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn, slugify } from '@/lib/utils'
+import { TabNavPill } from '@/components/molecules/TabNavPill'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
@@ -211,10 +212,15 @@ export default function Lojas() {
                     </div>
                     {isAdministradorMx(role) && (
                         <div className="flex w-full sm:w-auto gap-mx-sm order-1 sm:order-none">
-                            <nav className="hidden md:flex bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default gap-mx-tiny mr-2" role="tablist">
-                                <Button variant={filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(true)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ATIVAS</Button>
-                                <Button variant={!filterActive ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilterActive(false)} className="h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny">ARQUIVADAS</Button>
-                            </nav>
+                            <TabNavPill
+                                tabs={[
+                                    { key: 'ativas',     label: 'Ativas' },
+                                    { key: 'arquivadas', label: 'Arquivadas' },
+                                ]}
+                                activeTab={filterActive ? 'ativas' : 'arquivadas'}
+                                onTabChange={(k) => setFilterActive(k === 'ativas')}
+                                className="hidden md:flex mr-2"
+                            />
                             <Button onClick={() => setIsCreateModalOpen(true)} className="flex-1 sm:flex-none h-mx-xl px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
                                 <Plus size={18} className="mr-2" aria-hidden="true" /> NOVA LOJA
                             </Button>

@@ -11,6 +11,7 @@ import {
     Settings2, Plus, Trash2, Save, ShieldCheck, Mail, Target, Building2, Users
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
+import { TabNavPill } from '@/components/molecules/TabNavPill'
 import { format, subDays, startOfMonth } from 'date-fns'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { motion } from 'motion/react'
@@ -149,6 +150,17 @@ export default function DashboardLoja() {
             search: tab === 'performance' ? '' : `?tab=${tab}`,
         })
     }, [location.pathname, navigate])
+
+    const LOJA_TABS = useMemo(() => [
+        { key: 'performance' as const, label: 'Performance', icon: Globe },
+        { key: 'metas'       as const, label: 'Metas',       icon: Target },
+        { key: 'equipe'      as const, label: 'Equipe',      icon: Users },
+    ], [])
+
+    const PERIODO_TABS = useMemo(() => [
+        { key: 'month' as const, label: 'Mês' },
+        { key: 'day'   as const, label: 'D-1' },
+    ], [])
 
     const { sellers } = useSellersByStore(selectedStoreId)
     const { goal: storeGoal, refetch: refetchStoreGoal } = useStoreGoal(selectedStoreId)
@@ -554,39 +566,11 @@ export default function DashboardLoja() {
                 </div>
 
 	                <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
-	                    <nav className="max-w-full overflow-x-auto bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny" aria-label="Abas da loja">
-	                        {[
-	                            { key: 'performance' as const, label: 'Performance', icon: Globe },
-	                            { key: 'metas' as const, label: 'Metas', icon: Target },
-	                            { key: 'equipe' as const, label: 'Equipe', icon: Users },
-	                        ].map(tab => (
-	                            <Button
-	                                key={tab.key}
-	                                variant={activeTab === tab.key ? 'secondary' : 'ghost'}
-	                                size="sm"
-	                                onClick={() => handleTabChange(tab.key)}
-	                                className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny shrink-0"
-	                                aria-current={activeTab === tab.key ? 'page' : undefined}
-	                            >
-	                                <tab.icon size={14} className="mr-1" />
-	                                {tab.label}
-	                            </Button>
-	                        ))}
-	                    </nav>
+	                    <TabNavPill tabs={LOJA_TABS} activeTab={activeTab} onTabChange={handleTabChange} className="max-w-full overflow-x-auto" buttonClassName="h-mx-8 sm:h-mx-10 px-4 sm:px-6 shrink-0" aria-label="Abas da loja" />
 
 	                    {activeTab === 'performance' && (
 	                    <>
-	                    <nav className="bg-white p-mx-tiny rounded-mx-full shadow-mx-sm border border-border-default flex gap-mx-tiny" aria-label="Período do dashboard">
-                        {['month', 'day'].map((m) => (
-                            <Button
-                                key={m} variant={viewMode === m ? 'secondary' : 'ghost'} size="sm"
-                                onClick={() => setViewMode(m as any)}
-                                className="h-mx-8 sm:h-mx-10 px-4 sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny"
-                            >
-                                {m === 'month' ? 'Mês' : 'D-1'}
-                            </Button>
-                        ))}
-                    </nav>
+	                    <TabNavPill tabs={PERIODO_TABS} activeTab={viewMode} onTabChange={(m) => setViewMode(m as 'day' | 'month')} buttonClassName="h-mx-8 sm:h-mx-10 px-4 sm:px-6" aria-label="Período do dashboard" />
 
                     <div className="flex items-center gap-mx-sm px-4 bg-white h-mx-10 sm:h-mx-14 rounded-mx-xl shadow-mx-sm border border-border-default">
                         <Calendar size={14} className="text-brand-primary shrink-0" />

@@ -6,6 +6,7 @@ import {
     Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send
 } from 'lucide-react'
 import { cn, getAvatarUrl } from '@/lib/utils'
+import { TabNavPill } from '@/components/molecules/TabNavPill'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
@@ -142,26 +143,15 @@ export default function GerenteTreinamentos() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <div className="bg-white p-mx-tiny rounded-mx-full flex border border-border-default shadow-mx-sm" role="tablist">
-                        <Button 
-                            variant={tab === 'equipe' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setTab('equipe')} className="h-mx-10 px-6 rounded-mx-full uppercase"
-                        >
-                            <Users size={14} className="mr-2" /> <Typography variant="tiny" as="span" className="font-black">Equipe</Typography>
-                        </Button>
-                        <Button 
-                            variant={tab === 'matriz' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setTab('matriz')} className="h-mx-10 px-6 rounded-mx-full uppercase"
-                        >
-                            <LayoutDashboard size={14} className="mr-2" /> <Typography variant="tiny" as="span" className="font-black">Matriz</Typography>
-                        </Button>
-                        <Button 
-                            variant={tab === 'meus' ? 'secondary' : 'ghost'} size="sm"
-                            onClick={() => setTab('meus')} className="h-mx-10 px-6 rounded-mx-full uppercase"
-                        >
-                            <Target size={14} className="mr-2" /> <Typography variant="tiny" as="span" className="font-black">Meu Plano</Typography>
-                        </Button>
-                    </div>
+                    <TabNavPill
+                        tabs={[
+                            { key: 'equipe' as const, label: 'Equipe',    icon: Users },
+                            { key: 'matriz' as const, label: 'Matriz',    icon: LayoutDashboard },
+                            { key: 'meus'   as const, label: 'Meu Plano', icon: Target },
+                        ]}
+                        activeTab={tab}
+                        onTabChange={setTab}
+                    />
                     <div className="flex items-center gap-mx-sm">
                         <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
