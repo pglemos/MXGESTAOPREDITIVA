@@ -67,6 +67,7 @@ O sistema já possui OAuth Google central para Calendar com tokens criptografado
 - Validação live com a conta `gestao@mxconsultoria.com.br` não foi executada neste turno porque depende da migration aplicada no Supabase e reconexão OAuth central com o novo escopo Drive.
 - Após push/deploy em produção, a migration remota continuou bloqueada por ausência de `SUPABASE_DB_PASSWORD`. A Edge Function foi endurecida para operar com Drive mesmo antes das tabelas novas existirem, usando busca/criação determinística da pasta e pulando apenas o cache/auditoria até a migration ser aplicada.
 - Smoke de navegador em produção identificou mensagem genérica para erro 409 da Edge Function. O hook passou a chamar `google-drive-files` via `fetch` autenticado para preservar o payload e exibir a mensagem real de reconexão do Drive.
+- Smoke final em produção passou em `https://mxperformance.vercel.app/consultoria/clientes/acertt?tab=files` com usuário E2E temporário interno MX: aba Arquivos renderizada, aviso de reconexão exibido e usuário removido ao final.
 
 ### File List
 
