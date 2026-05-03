@@ -22,7 +22,6 @@ type ConsultingClientRow = {
   id: string;
   name: string;
   slug?: string | null;
-  store_id?: string | null;
   primary_store_id?: string | null;
 };
 
@@ -53,6 +52,14 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function toError(err: unknown): Error {
+  if (err instanceof Error) return err;
+  if (err && typeof err === "object" && "message" in err) {
+    return new Error(String((err as { message: unknown }).message));
+  }
+  return new Error(String(err));
 }
 
 function parseUuid(value: unknown, label: string): string {
@@ -160,13 +167,13 @@ async function ensureClientFolder(adminClient: any, accessToken: string, client:
     .eq("status", "active")
     .maybeSingle();
   const cacheAvailable = !isMissingTableError(existingError);
-  if (existingError && cacheAvailable) throw existingError;
+  if (existingError && cacheAvailable) throw toError(existingError);
   if (existing?.google_drive_folder_id) return { ...existing, cache_available: true } as DriveFolderRow;
 
   const root = await getRootFolder(accessToken);
   const folderName = normalizeFolderName(`${client.name} - ${client.slug || client.id.slice(0, 8)}`);
   const driveFolder = await findDriveFolder(accessToken, folderName, root.id) ?? await createDriveFolder(accessToken, folderName, root.id);
-  const storeId = client.primary_store_id || client.store_id || null;
+  const storeId = client.primary_store_id || null;
 
   if (!cacheAvailable) {
     return {
@@ -196,7 +203,7 @@ async function ensureClientFolder(adminClient: any, accessToken: string, client:
     .select("*")
     .single();
   if (upsertError) {
-    if (!isMissingTableError(upsertError)) throw upsertError;
+    if (!isMissingTableError(upsertError)) throw toError(upsertError);
     return {
       id: crypto.randomUUID(),
       client_id: client.id,
@@ -287,7 +294,7 @@ async function authenticate(req: Request) {
     .select("role")
     .eq("id", authData.user.id)
     .single();
-  if (profileError) throw profileError;
+  if (profileError) throw toError(profileError);
   if (!INTERNAL_ROLES.has(profile?.role)) {
     return { error: jsonResponse({ error: "Apenas perfis internos MX podem acessar arquivos da consultoria" }, 403) };
   }
@@ -298,10 +305,10 @@ async function authenticate(req: Request) {
 async function getClient(adminClient: any, clientId: string): Promise<ConsultingClientRow> {
   const { data, error } = await adminClient
     .from("clientes_consultoria")
-    .select("id,name,slug,store_id,primary_store_id")
+    .select("id,name,slug,primary_store_id")
     .eq("id", clientId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw toError(error);
   if (!data) throw new Error("Cliente da consultoria não encontrado");
   return data as ConsultingClientRow;
 }
@@ -365,7 +372,7 @@ Deno.serve(async (req) => {
         .select("id,google_drive_file_id,pasta_id,client_id")
         .eq("client_id", client.id)
         .eq("pasta_id", folder.id);
-      if (fileError && !isMissingTableError(fileError)) throw fileError;
+      if (fileError && !isMissingTableError(fileError)) throw toError(fileError);
       const fileRow = (fileRows || []).find((row: any) => row.id === deleteFileId || row.google_drive_file_id === deleteFileId);
       const driveFileId = fileRow?.google_drive_file_id || deleteFileId;
 
@@ -380,7 +387,7 @@ Deno.serve(async (req) => {
           .from("arquivos_drive_consultoria")
           .update({ status: "trashed", deleted_by: userId, deleted_at: new Date().toISOString() })
           .eq("id", fileRow.id);
-        if (updateError && !isMissingTableError(updateError)) throw updateError;
+        if (updateError && !isMissingTableError(updateError)) throw toError(updateError);
       }
 
       const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
@@ -407,14 +414,14 @@ Deno.serve(async (req) => {
           status: "active",
           uploaded_by: userId,
         }, { onConflict: "google_drive_file_id" });
-      if (upsertError && !isMissingTableError(upsertError)) throw upsertError;
+      if (upsertError && !isMissingTableError(upsertError)) throw toError(upsertError);
     }
 
     const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
     return jsonResponse({ folderUrl: folder.google_drive_folder_url, uploaded, files: driveFiles });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Falha no Google Drive";
-    const status = message.includes("Sessão inválida") ? 401 : 400;
-    return jsonResponse({ error: message }, status);
+    const error = toError(err);
+    const status = error.message.includes("Sessão inválida") ? 401 : 400;
+    return jsonResponse({ error: error.message }, status);
   }
 });
