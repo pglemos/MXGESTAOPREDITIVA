@@ -469,8 +469,11 @@ Deno.serve(async (req) => {
     } else {
       const body = await req.json().catch(() => ({}));
       action = body?.action;
-      if (!["ensure-folder", "list", "delete"].includes(action)) throw new Error("Ação inválida");
-      clientId = parseUuid(body?.clientId, "clientId");
+      if (!["ensure-folder", "list", "delete", "setup_client", "setup_all", "delete_client_folder"].includes(action)) {
+        throw new Error("Ação inválida");
+      }
+      // setup_all does not require a clientId
+      clientId = action === "setup_all" ? "" : parseUuid(body?.clientId, "clientId");
       deleteFileId = typeof body?.fileId === "string" ? body.fileId : null;
     }
 
@@ -482,8 +485,60 @@ Deno.serve(async (req) => {
       }, 409);
     }
 
+    // ── setup_all: create Drive folders for ALL active clients without one ──────
+    if (action === "setup_all") {
+      const { data: allClients } = await adminClient
+        .from("clientes_consultoria")
+        .select("id, name, slug, primary_store_id");
+      const { data: existingFolders } = await adminClient
+        .from("pastas_drive_consultoria")
+        .select("client_id")
+        .eq("status", "active");
+      const existingSet = new Set((existingFolders || []).map((f: { client_id: string }) => f.client_id));
+      const pending = (allClients || []).filter((c: { id: string }) => !existingSet.has(c.id));
+      const results: Array<{ clientId: string; name: string; ok: boolean; error?: string }> = [];
+      for (const c of pending as ConsultingClientRow[]) {
+        try {
+          const f = await ensureClientFolder(adminClient, accessToken, c, userId);
+          await ensureSubfolders(adminClient, accessToken, f, userId);
+          results.push({ clientId: c.id, name: c.name, ok: true });
+        } catch (err) {
+          results.push({ clientId: c.id, name: c.name, ok: false, error: toError(err).message });
+        }
+      }
+      return jsonResponse({ ok: true, created: results.filter(r => r.ok).length, results });
+    }
+
+    // ── setup_client: create Drive folder + subfolders for one client ─────────
+    if (action === "setup_client") {
+      const c = await getClient(adminClient, clientId);
+      const f = await ensureClientFolder(adminClient, accessToken, c, userId);
+      const subfolders = await ensureSubfolders(adminClient, accessToken, f, userId);
+      return jsonResponse({ ok: true, folderUrl: f.google_drive_folder_url, subfolders });
+    }
+
     const client = await getClient(adminClient, clientId);
     const folder = await ensureClientFolder(adminClient, accessToken, client, userId);
+
+    // ── delete_client_folder: trash Drive folder and mark DB record trashed ───
+    if (action === "delete_client_folder") {
+      const { data: folderRow } = await adminClient
+        .from("pastas_drive_consultoria")
+        .select("id, google_drive_folder_id")
+        .eq("client_id", clientId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (folderRow?.google_drive_folder_id) {
+        await trashDriveFile(accessToken, folderRow.google_drive_folder_id).catch(() => {});
+        await (async () => {
+          await adminClient
+            .from("pastas_drive_consultoria")
+            .update({ status: "trashed", updated_at: new Date().toISOString() })
+            .eq("id", folderRow.id);
+        })().catch(() => {});
+      }
+      return jsonResponse({ ok: true });
+    }
 
     if (action === "ensure-folder") {
       const subfolders = await ensureSubfolders(adminClient, accessToken, folder, userId);

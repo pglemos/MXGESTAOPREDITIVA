@@ -323,7 +323,7 @@ export default function ConsultoriaClienteDetalhe() {
 
   useEffect(() => {
     const tab = searchParams.get('tab') as Tab
-    if (tab && tabLabels[tab]) {
+    if (tab && TABS.some(t => t.key === tab)) {
       setActiveTab(tab)
     }
   }, [searchParams])

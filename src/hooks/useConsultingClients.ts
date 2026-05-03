@@ -119,6 +119,13 @@ export function useConsultingClients() {
       return { error: insertError.message }
     }
 
+    // Dispara criação da pasta no Drive (fire-and-forget)
+    if (newClient?.id) {
+      supabase.functions.invoke('google-drive-files', {
+        body: { action: 'setup_client', clientId: newClient.id },
+      }).catch(() => {})
+    }
+
     // If modules were selected, insert them
     if (input.enabled_modules && input.enabled_modules.length > 0 && newClient) {
       const { DEFAULT_CONSULTING_MODULES } = await import('@/hooks/useConsultingModules')
@@ -144,6 +151,28 @@ export function useConsultingClients() {
     return { error: null }
   }, [canCreate, fetchClients, supabaseUser])
 
+  const deleteClient = useCallback(async (clientId: string): Promise<{ error: string | null }> => {
+    if (!isPerfilInternoMx(role)) return { error: 'Sem permissão para excluir clientes.' }
+    try {
+      // 1. Remove pasta do Drive (fire-and-forget — não bloqueia exclusão)
+      supabase.functions.invoke('google-drive-files', {
+        body: { action: 'delete_client_folder', clientId },
+      }).catch(() => {})
+
+      // 2. Exclui o registro do banco (cascata remove subpastas e arquivos)
+      const { error: deleteError } = await supabase
+        .from('clientes_consultoria')
+        .delete()
+        .eq('id', clientId)
+      if (deleteError) return { error: deleteError.message }
+
+      await fetchClients()
+      return { error: null }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'Erro ao excluir cliente.' }
+    }
+  }, [role, fetchClients])
+
   useEffect(() => {
     fetchClients()
   }, [fetchClients])
@@ -155,6 +184,7 @@ export function useConsultingClients() {
     canCreate,
     refetch: fetchClients,
     createClient,
+    deleteClient,
   }
 }
 
