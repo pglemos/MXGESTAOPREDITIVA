@@ -1733,7 +1733,7 @@ CREATE INDEX IF NOT EXISTS consulting_visits_scheduled_at_idx ON public.consulti
 
 CREATE INDEX IF NOT EXISTS daily_checkins_seller_reference_idx ON public.daily_checkins USING btree (seller_user_id, reference_date);
 
-CREATE UNIQUE INDEX IF NOT EXISTS daily_checkins_seller_store_reference_key ON public.daily_checkins USING btree (seller_user_id, store_id, reference_date);
+CREATE UNIQUE INDEX IF NOT EXISTS daily_checkins_seller_store_reference_key ON public.daily_checkins USING btree (seller_user_id, store_id, reference_date, metric_scope);
 
 CREATE INDEX IF NOT EXISTS daily_checkins_store_reference_idx ON public.daily_checkins USING btree (store_id, reference_date);
 
@@ -2481,7 +2481,7 @@ BEGIN
                     COALESCE((SELECT triggered_by FROM public.reprocess_logs WHERE id = p_log_id), v_seller_id),
                     now()
                 )
-                ON CONFLICT (seller_user_id, store_id, reference_date)
+                ON CONFLICT (seller_user_id, store_id, reference_date, metric_scope)
                 DO UPDATE SET
                     submitted_at = EXCLUDED.submitted_at,
                     leads_prev_day = EXCLUDED.leads_prev_day,

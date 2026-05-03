@@ -1,8 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 import { parseStrictBody, sendFeedbackSchema } from "../_shared/schemas.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { canManageStore, forbidden, requireAuthenticatedRole } from "../_shared/auth.ts";
+import { sendReportEmail } from "../_shared/email.ts";
+import { createResendClient, createServiceClient } from "../_shared/supabase-client.ts";
+
+const supabaseClient = createServiceClient();
+const resend = createResendClient();
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,11 +16,6 @@ Deno.serve(async (req) => {
   try {
     const auth = await requireAuthenticatedRole(req, ["administrador_geral", "administrador_mx", "dono", "gerente"]);
     if (auth.response) return auth.response;
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
 
     const { feedbackId } = await parseStrictBody(req, sendFeedbackSchema);
 
@@ -39,9 +38,6 @@ Deno.serve(async (req) => {
 
     const recipients = storeMembers?.map((m: any) => m.users.email).filter(Boolean) || [];
     if (recipients.length === 0) throw new Error("No recipients found for this store");
-
-    const resendKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendKey) throw new Error("Missing RESEND_API_KEY");
 
     const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
@@ -69,27 +65,18 @@ Deno.serve(async (req) => {
       </div>
     `;
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${resendKey}`,
-      },
-      body: JSON.stringify({
-        from: `MX PERFORMANCE <${Deno.env.get("RESEND_FROM_EMAIL") ?? "noreply@mxperformance.com.br"}>`,
-        to: recipients,
-        subject: `[Devolutiva MX] Auditoria de Performance: ${f.seller.name}`,
-        html,
-      }),
+    const email = await sendReportEmail({
+      resend,
+      to: recipients,
+      subject: `[Devolutiva MX] Auditoria de Performance: ${f.seller.name}`,
+      html,
+      logPrefix: "[IndividualFeedback]",
+      storeName: f.lojas.name,
     });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Resend API Error: ${errorText}`);
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: email.status === "sent", email }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: email.status === "failed" ? 502 : 200,
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: "Erro ao processar envio." }), {

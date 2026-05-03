@@ -23,6 +23,7 @@ type SellerRow = {
   vp: number;
   vc: number;
   vn: number;
+  vnd_yesterday: number;
   sem_registro: boolean;
 };
 
@@ -61,7 +62,7 @@ Deno.serve(async (req: Request) => {
       const payload = await buildMorningPayload(store, dates);
       const html = generateHTML(payload);
       const xlsxBase64 = generateXLSX(payload.ranking);
-      const fileName = `matinal_MX_${store.name.replace(/\s+/g, "_")}_${formatPtBrDate(dates.referenceDate).replace(/\//g, "-")}.xlsx`;
+      const fileName = `Relatorio_${sanitizeAttachmentName(store.name)}.xlsx`;
 
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
@@ -70,7 +71,7 @@ Deno.serve(async (req: Request) => {
         const result = await sendReportEmail({
           resend,
           to: payload.recipients,
-          subject: `Matinal MX: ${store.name} - ${formatPtBrDate(payload.referenceDate)}`,
+          subject: `📊 Matinal: ${store.name.toUpperCase()} - Tendência: ${payload.projection} ${pluralizeCar(payload.projection)}`,
           html,
           attachments: [{ filename: fileName, content: xlsxBase64 }],
           logPrefix: "[Matinal]",
@@ -208,6 +209,7 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
       vp: 0,
       vc: 0,
       vn: 0,
+      vnd_yesterday: 0,
       sem_registro: !checkedReference.has(row.user_id),
     });
   }
@@ -223,6 +225,12 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
     seller.vp += checkin.vnd_porta_prev_day || 0;
     seller.vc += checkin.vnd_cart_prev_day || 0;
     seller.vn += checkin.vnd_net_prev_day || 0;
+    if (checkin.reference_date === dates.referenceDate) {
+      seller.vnd_yesterday +=
+        (checkin.vnd_porta_prev_day || 0) +
+        (checkin.vnd_cart_prev_day || 0) +
+        (checkin.vnd_net_prev_day || 0);
+    }
   }
 
   const includeVendaLoja = metaRulesRes.data?.include_venda_loja_in_store_total ?? true;
@@ -237,7 +245,7 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
   const productionRows = includeVendaLoja ? ranking : ranking.filter((row) => !row.is_venda_loja);
   const totalSales = productionRows.reduce((sum, row) => sum + row.vt, 0);
   const storeGoal = metaRulesRes.data?.monthly_goal || 0;
-  const reaching = storeGoal > 0 ? Math.round((totalSales / storeGoal) * 100) : 0;
+  const reaching = storeGoal > 0 ? Math.round((totalSales / storeGoal) * 1000) / 10 : 0;
   const projection = dates.daysElapsed > 0 ? Math.round((totalSales / dates.daysElapsed) * dates.totalDays) : 0;
   const gap = Math.max(storeGoal - totalSales, 0);
   const semRegistro = ranking.filter((row) => row.sem_registro).map((row) => row.name);
@@ -264,7 +272,25 @@ async function buildMorningPayload(store: any, dates: ReturnType<typeof getSaoPa
   };
 }
 
+function pluralizeCar(value: number) {
+  return value === 1 ? "carro" : "carros";
+}
+
+function sanitizeAttachmentName(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9 _-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase() || "LOJA";
+}
+
 function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
+  const totalSales = ranking.reduce((sum, row) => sum + row.vt, 0);
+  const totalYesterday = ranking.reduce((sum, row) => sum + row.vnd_yesterday, 0);
+  const totalLeads = ranking.reduce((sum, row) => sum + row.leads, 0);
+  const totalAgd = ranking.reduce((sum, row) => sum + row.agd_cart_today + row.agd_net_today, 0);
   const xml = `<?xml version="1.0"?>
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
@@ -272,17 +298,56 @@ function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
  xmlns:x="urn:schemas-microsoft-com:office:excel"
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
- <Worksheet ss:Name="Matinal MX">
+ <Styles>
+  <Style ss:ID="Title"><Font ss:Bold="1" ss:Size="16" ss:Color="#FFFFFF"/><Interior ss:Color="#082B66" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#225A86" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="MetricHeader"><Font ss:Bold="1" ss:Color="#666666"/><Interior ss:Color="#EDEDED" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Metric"><Font ss:Bold="1"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Highlight"><Font ss:Bold="1"/><Interior ss:Color="#DDEEFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+ </Styles>
+ <Worksheet ss:Name="Painel Visual">
   <Table>
-   <Row ss:StyleID="Header">
-    <Cell><Data ss:Type="String">Vendedor</Data></Cell>
-    <Cell><Data ss:Type="String">LEADS NOVOS RECEBIDOS NO DIA ANTERIOR</Data></Cell>
-    <Cell><Data ss:Type="String">AGENDAMENTOS CARTEIRA ( HOJE )</Data></Cell>
-    <Cell><Data ss:Type="String">AGENDAMENTOS INTERNET ( HOJE )</Data></Cell>
-    <Cell><Data ss:Type="String">VENDA PORTA ( ONTEM )</Data></Cell>
-    <Cell><Data ss:Type="String">VENDAS CARTEIRA VENDEDOR ( ONTEM )</Data></Cell>
-    <Cell><Data ss:Type="String">VENDA INTERNET ( ONTEM )</Data></Cell>
-    <Cell><Data ss:Type="String">STATUS REGISTRO</Data></Cell>
+   <Row>
+    <Cell ss:MergeAcross="3" ss:StyleID="Title"><Data ss:Type="String">RELATORIO MATINAL</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">LEADS</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">AGD (HOJE)</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">VND (ONTEM)</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">TOTAL (MES)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${totalLeads}</Data></Cell>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${totalAgd}</Data></Cell>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${totalYesterday}</Data></Cell>
+    <Cell ss:StyleID="Highlight"><Data ss:Type="Number">${totalSales}</Data></Cell>
+   </Row>
+   ${ranking.map(row => `
+   <Row><Cell ss:MergeAcross="3" ss:StyleID="Header"><Data ss:Type="String">${escapeXml(row.name.toUpperCase())}</Data></Cell></Row>
+   <Row>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">LEADS</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">AGD (HOJE)</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">VND (ONTEM)</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">TOTAL (MES)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${row.leads}</Data></Cell>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${row.agd_cart_today + row.agd_net_today}</Data></Cell>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${row.vnd_yesterday}</Data></Cell>
+    <Cell ss:StyleID="Highlight"><Data ss:Type="Number">${row.vt}</Data></Cell>
+   </Row>`).join("")}
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Lista de Vendas Detalhada">
+  <Table>
+   <Row>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Vendedor</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">LEADS NOVOS RECEBIDOS NO DIA ANTERIOR</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">AGENDAMENTOS CARTEIRA (HOJE)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">AGENDAMENTOS INTERNET (HOJE)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">VND (ONTEM)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">TOTAL (MES)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">STATUS REGISTRO</Data></Cell>
    </Row>
    ${ranking.map(row => `
    <Row>
@@ -290,9 +355,8 @@ function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
     <Cell><Data ss:Type="Number">${row.leads}</Data></Cell>
     <Cell><Data ss:Type="Number">${row.agd_cart_today}</Data></Cell>
     <Cell><Data ss:Type="Number">${row.agd_net_today}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vp}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vc}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vn}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vnd_yesterday}</Data></Cell>
+    <Cell><Data ss:Type="Number">${row.vt}</Data></Cell>
     <Cell><Data ss:Type="String">${row.sem_registro ? "PENDENTE" : "REGISTRADO"}</Data></Cell>
    </Row>`).join("")}
   </Table>
@@ -305,57 +369,122 @@ function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
 }
 
 function generateWhatsAppText(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
-  return `*MATINAL MX - ${payload.store.name}*
-Ref: ${formatPtBrDate(payload.referenceDate)}
+  return `📊 *RELATÓRIO MATINAL*
+${payload.store.name.toUpperCase()} | Ref: ${formatPtBrDate(payload.referenceDate)}
 
+🔎 FALTA POUCO: ${payload.gap} ${pluralizeCar(payload.gap)}
+🔮 PROJEÇÃO ATUAL: FECHAR COM ${payload.projection} ${pluralizeCar(payload.projection)}
+
+${payload.semRegistro.length > 0 ? `⚠️ SEM REGISTRO HOJE: ${payload.semRegistro.join(", ")}` : "✅ TODOS REGISTRARAM"}
+
+*Resumo*
+Vendas: ${payload.totalSales}
 Meta: ${payload.storeGoal}
-Vendido: ${payload.totalSales} (${payload.reaching}%)
-Projecao: ${payload.projection}
-Faltam: ${payload.gap}
+Projeção: ${payload.projection}
+Ating.: ${payload.reaching}%
 
-Top 3
-${payload.ranking.slice(0, 3).map((row, index) => `${index + 1}º ${row.name} - ${row.vt}v`).join("\n")}
-
-${payload.semRegistro.length > 0 ? `SEM REGISTRO:\n${payload.semRegistro.join(", ")}` : "Todos registraram."}
+*Ranking*
+${payload.ranking.slice(0, 5).map((row, index) => `${index + 1}º ${row.name} - ${row.vt} no mês (${row.vnd_yesterday} ontem)`).join("\n")}
 
 MX PERFORMANCE`;
 }
 
 function generateHTML(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
   const wppText = encodeURIComponent(generateWhatsAppText(payload));
-  const statusColor = payload.reaching >= 100 ? "#10b981" : payload.reaching >= 80 ? "#4f46e5" : "#f43f5e";
+  const projectionColor = payload.projection >= payload.storeGoal ? "#22c55e" : "#ff3b3b";
+  const reachingColor = payload.reaching >= 100 ? "#22c55e" : payload.reaching >= 80 ? "#ffe100" : "#ff3b3b";
   const wppLink = payload.whatsappGroupRef && payload.whatsappGroupRef.startsWith("http")
     ? payload.whatsappGroupRef
     : `https://api.whatsapp.com/send?text=${wppText}`;
+  const sellerRows = payload.ranking.length > 0
+    ? payload.ranking.map((row) => `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0;margin:0 0 12px 0;border:1px solid #c9d0d6;border-radius:6px;overflow:hidden;background:#ffffff;">
+        <tr>
+          <td colspan="4" style="background:#225a86;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:22px;font-weight:800;text-transform:uppercase;padding:8px 18px;">${escapeHtml(row.name.toUpperCase())}</td>
+        </tr>
+        <tr>
+          <td width="25%" align="center" style="background:#ededed;color:#666666;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:18px;font-weight:800;text-transform:uppercase;padding:6px 8px;">LEADS</td>
+          <td width="25%" align="center" style="background:#ededed;color:#666666;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:18px;font-weight:800;text-transform:uppercase;padding:6px 8px;">AGD (HOJE)</td>
+          <td width="25%" align="center" style="background:#ededed;color:#666666;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:18px;font-weight:800;text-transform:uppercase;padding:6px 8px;">VND (ONTEM)</td>
+          <td width="25%" align="center" style="background:#ededed;color:#000000;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:18px;font-weight:900;text-transform:uppercase;padding:6px 8px;">TOTAL (MÊS)</td>
+        </tr>
+        <tr>
+          <td align="center" style="background:#ffffff;color:#111111;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:22px;font-weight:800;padding:10px 8px;">${row.leads}</td>
+          <td align="center" style="background:#ffffff;color:#111111;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:22px;font-weight:800;padding:10px 8px;">${row.agd_cart_today + row.agd_net_today}</td>
+          <td align="center" style="background:#ffffff;color:#082b66;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:22px;font-weight:900;padding:10px 8px;">${row.vnd_yesterday}</td>
+          <td align="center" style="background:#dcecf8;color:#111111;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:22px;font-weight:900;padding:10px 8px;">${row.vt}</td>
+        </tr>
+      </table>`).join("")
+    : `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 12px 0;background:#ffffff;border:1px solid #e5e7eb;"><tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;color:#666666;font-size:14px;font-weight:700;padding:18px;">Nenhum vendedor ativo encontrado.</td></tr></table>`;
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-body{font-family:Inter,Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:20px;line-height:1.5}
-.c{max-width:720px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 10px 30px -10px rgba(0,0,0,.12);overflow:hidden}
-.h{background:#0f172a;padding:44px 32px;text-align:center;border-bottom:4px solid #4f46e5}
-.h h1{color:#fff;margin:0 0 12px;font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.h p{color:#94a3b8;margin:0;font-size:13px;text-transform:uppercase;letter-spacing:3px}
-.content{padding:36px 32px}.sr{background:#fff1f2;border-left:4px solid #f43f5e;padding:18px;border-radius:12px;margin-bottom:28px;color:#9f1239;font-weight:700;font-size:14px}
-.ss{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:28px}.s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:22px;text-align:center}
-.sv{font-size:36px;font-weight:900;color:#0f172a;line-height:1;margin-bottom:8px}.sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
-.alert{text-align:center;padding:18px;background:#f1f5f9;border-radius:16px;font-size:14px;font-weight:800;color:#334155;margin-bottom:34px;border:1px dashed #cbd5e1}
-table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:34px}th{background:#fff;padding:14px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #0f172a;font-weight:800}
-td{padding:16px 10px;border-bottom:1px solid #f1f5f9;font-size:13px;font-weight:700;color:#334155}.btn{display:block;background:#4f46e5;color:#fff;text-align:center;padding:18px;border-radius:14px;text-decoration:none;font-weight:900;text-transform:uppercase;letter-spacing:1.5px}
-.f{text-align:center;padding:28px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:2px;border-top:1px solid #f1f5f9;background:#fcfcfc}
-</style></head><body><div class="c">
-<div class="h"><h1>Matinal MX</h1><p>${payload.store.name} &bull; ${formatPtBrDate(payload.referenceDate)}</p></div>
-<div class="content">
-${payload.semRegistro.length > 0 ? `<div class="sr">Atencao: ${payload.semRegistro.join(", ")} estao sem registro no fechamento.</div>` : ""}
-<div class="ss">
-<div class="s"><div class="sv" style="color:${statusColor}">${payload.totalSales}</div><div class="sl">Vendido</div></div>
-<div class="s"><div class="sv">${payload.storeGoal}</div><div class="sl">Meta</div></div>
-<div class="s"><div class="sv">${payload.projection}</div><div class="sl">Projecao</div></div>
-<div class="s"><div class="sv" style="color:${statusColor}">${payload.reaching}%</div><div class="sl">Atingimento</div></div>
-</div>
-<div class="alert">Faltam ${payload.gap} vendas em ${payload.daysRemaining} dias (${payload.daysRemaining > 0 ? (payload.gap / payload.daysRemaining).toFixed(1) : 0}/dia)</div>
-<table><thead><tr><th>Vendedor</th><th>Leads</th><th>AGD Hoje</th><th>Visitas D-1</th><th>VND</th><th>Registro</th></tr></thead>
-<tbody>${payload.ranking.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${row.leads}</td><td>${row.agd_cart_today + row.agd_net_today}</td><td>${row.vis}</td><td>${row.vt}</td><td>${row.sem_registro ? "Sem registro" : "OK"}</td></tr>`).join("")}</tbody></table>
-<a href="${wppLink}" class="btn">Enviar no WhatsApp</a>
-</div>
-<div class="f">MX PERFORMANCE &copy; ${payload.year}</div>
-</div></body></html>`;
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Relatório Matinal</title>
+</head>
+<body style="margin:0;padding:0;background:#f2f2f2;color:#111111;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f2f2f2;margin:0;padding:0;">
+    <tr>
+      <td align="center" style="padding:28px 14px;">
+        <table role="presentation" width="860" cellspacing="0" cellpadding="0" style="width:860px;max-width:100%;border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #d5d9de;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td align="center" style="background:#082b66;color:#ffffff;font-family:Arial,Helvetica,sans-serif;padding:28px 24px;">
+              <div style="font-size:28px;line-height:34px;font-weight:900;text-transform:uppercase;">📊 RELATÓRIO MATINAL</div>
+              <div style="font-size:18px;line-height:24px;margin-top:8px;">${escapeHtml(payload.store.name.toUpperCase())} | Ref: ${formatPtBrDate(payload.referenceDate)}</div>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="background:#fffef1;border-bottom:1px solid #e7e7d8;font-family:Arial,Helvetica,sans-serif;padding:24px 18px;">
+              <div style="font-size:22px;line-height:28px;color:#3d3d3d;font-weight:900;text-transform:uppercase;">🔎 FALTA POUCO: ${payload.gap} ${pluralizeCar(payload.gap)}</div>
+              <div style="font-size:17px;line-height:24px;color:#111111;font-weight:900;text-transform:uppercase;margin-top:8px;">🔮 PROJEÇÃO ATUAL: FECHAR COM ${payload.projection} ${pluralizeCar(payload.projection)}</div>
+              ${payload.semRegistro.length > 0 ? `<div style="font-size:15px;line-height:21px;color:#ff0000;font-weight:500;text-transform:uppercase;margin-top:10px;">⚠️ SEM REGISTRO HOJE: ${escapeHtml(payload.semRegistro.join(", ").toUpperCase())}</div>` : `<div style="font-size:15px;line-height:21px;color:#15803d;font-weight:700;text-transform:uppercase;margin-top:10px;">✅ TODOS REGISTRARAM HOJE</div>`}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:22px 22px 0 22px;background:#ffffff;">
+              ${sellerRows}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 22px 0 22px;background:#ffffff;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#303030;margin:0;">
+                <tr>
+                  <td width="25%" align="center" style="font-family:Arial,Helvetica,sans-serif;color:#ffffff;padding:20px 8px;">
+                    <div style="font-size:18px;line-height:22px;text-transform:uppercase;">VENDAS</div>
+                    <div style="font-size:24px;line-height:28px;font-weight:900;">${payload.totalSales}</div>
+                  </td>
+                  <td width="25%" align="center" style="font-family:Arial,Helvetica,sans-serif;color:#ffffff;padding:20px 8px;">
+                    <div style="font-size:18px;line-height:22px;text-transform:uppercase;">META</div>
+                    <div style="font-size:24px;line-height:28px;font-weight:900;">${payload.storeGoal}</div>
+                  </td>
+                  <td width="25%" align="center" style="font-family:Arial,Helvetica,sans-serif;color:#ffffff;padding:20px 8px;">
+                    <div style="font-size:18px;line-height:22px;text-transform:uppercase;">PROJEÇÃO</div>
+                    <div style="font-size:24px;line-height:28px;font-weight:900;color:${projectionColor};">${payload.projection}</div>
+                  </td>
+                  <td width="25%" align="center" style="font-family:Arial,Helvetica,sans-serif;color:#ffffff;padding:20px 8px;">
+                    <div style="font-size:18px;line-height:22px;text-transform:uppercase;">ATING</div>
+                    <div style="font-size:24px;line-height:28px;font-weight:900;color:${reachingColor};">${payload.reaching}%</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="background:#ffffff;padding:26px 22px 12px 22px;font-family:Arial,Helvetica,sans-serif;color:#666666;font-size:16px;line-height:22px;font-style:italic;">
+              *O arquivo anexo contém duas abas: O Painel Visual e a <strong>Lista de Vendas Detalhada</strong> onde você pode aplicar filtros.
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="background:#ffffff;padding:0 22px 40px 22px;">
+              <a href="${wppLink}" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:28px;font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:22px;font-weight:900;text-transform:uppercase;padding:17px 42px;">📲 ENVIAR NO WHATSAPP</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }

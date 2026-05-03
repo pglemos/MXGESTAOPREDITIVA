@@ -22,6 +22,7 @@ import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
 import { Modal } from '@/components/organisms/Modal'
 
 import { VisitHeaderBase } from '@/features/consultoria/components/VisitHeaderBase'
@@ -309,8 +310,6 @@ Gerado via MX PERFORMANCE`
   }
 
   const handleDownloadPDF = async () => {
-    const html2pdf = (await import('html2pdf.js')).default
-
     const element = document.getElementById('report-template-render')
     if (!element) return
 
@@ -324,7 +323,7 @@ Gerado via MX PERFORMANCE`
 
     try {
       toast.loading('Gerando PDF Oficial...')
-      await html2pdf().set(opt).from(element).save()
+      await downloadHtmlAsPdf(element, opt)
       toast.success('Relatório gerado com sucesso!')
     } catch (err) {
       toast.error('Erro ao gerar PDF')

@@ -1,0 +1,19 @@
+{
+  "runId": "E2E_ADMIN_MASTER_20260503042149",
+  "storeId": "80ca497a-10ce-4d72-a70b-751a72bd2543",
+  "storeName": "E2E ADMIN MASTER 20260503042149 EDITADA",
+  "testUserId": "16f5f97f-2be7-4958-bf2d-d6d3a605e7aa",
+  "testUserEmail": "e2e-admin-master-20260503042149@mxperformance.test",
+  "productId": "5527e060-7e40-431e-95ba-39939c3d295d",
+  "clientId": "a616bbd6-5963-4291-9ef5-30f229f8db59",
+  "clientSlug": "e2e-admin-master-20260503042149",
+  "visitId": "1cd91ed8-58b6-4d1f-b5fd-8dc56bb645be",
+  "eventId": "6b8c9a17-79b7-4023-abb1-66e8898f62fa",
+  "feedbackId": "ec594b32-40ad-47b6-976f-bf236834f7a3",
+  "evidenceIds": [
+    "a386860a-ed23-444f-a4ff-ef59a1274949"
+  ],
+  "storagePaths": [
+    "a616bbd6-5963-4291-9ef5-30f229f8db59/1cd91ed8-58b6-4d1f-b5fd-8dc56bb645be/20260503042149-evidence.txt"
+  ]
+}

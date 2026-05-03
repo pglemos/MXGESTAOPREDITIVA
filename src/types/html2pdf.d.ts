@@ -10,8 +10,10 @@ declare module 'html2pdf.js' {
   interface Html2Pdf {
     set: (options: Html2PdfOptions) => Html2Pdf
     from: (element: HTMLElement) => Html2Pdf
+    toPdf: () => Html2Pdf
     save: () => Promise<void>
-    output: (type: string, options: any) => Promise<any>
+    output: (type: string, options?: any) => Promise<any>
+    outputPdf: (type: string, options?: any) => Promise<any>
   }
 
   function html2pdf(): Html2Pdf

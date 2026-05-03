@@ -35,6 +35,7 @@ import { DREView } from '@/features/consultoria/components/DREView'
 import { ConsultingDailyTrackingView } from '@/features/consultoria/components/ConsultingDailyTrackingView'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
+import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
 
 type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis'
 
@@ -56,7 +57,6 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
   const currentData = financials.length > 0 ? financials[financials.length - 1] : null
   
   const handleDownloadROI = async () => {
-    const html2pdf = (await import('html2pdf.js')).default
     const element = document.getElementById('roi-report-content')
     if (!element) return
 
@@ -69,7 +69,7 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
     } as const
 
     toast.loading('Gerando Relatório de Choque...')
-    await html2pdf().set(opt).from(element).save()
+    await downloadHtmlAsPdf(element, opt)
     toast.success('Relatório de ROI gerado!')
   }
 

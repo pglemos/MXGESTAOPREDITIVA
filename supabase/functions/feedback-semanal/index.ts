@@ -27,6 +27,17 @@ type RankingRow = SellerRow & {
   txLeadAgd: number;
   txAgdVis: number;
   txVisVnd: number;
+  sellerWeeklyGoal: number;
+  idealAgd: number;
+  idealVis: number;
+  idealVnd: number;
+  agdGap: number;
+  visitGap: number;
+  saleGap: number;
+  salesComparison: string;
+  agdComparison: string;
+  visitComparison: string;
+  feedbackText: string;
   performanceLabel: string;
   diagnostic: string;
   action: string;
@@ -67,7 +78,7 @@ Deno.serve(async (req: Request) => {
       const payload = await buildWeeklyPayload(store, dates);
       const html = generateWeeklyHTML(payload);
       const xlsxBase64 = generateWeeklyXLSX(payload);
-      const baseFileName = `feedback_semanal_MX_${store.name.replace(/\s+/g, "_")}_${dates.weekEnd}`;
+      const baseFileName = `Feedback Semanal - ${sanitizeAttachmentName(store.name)} - ${formatShortDateForFile(dates.weekStart)} a ${formatShortDateForFile(dates.weekEnd)}`;
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
 
@@ -75,7 +86,7 @@ Deno.serve(async (req: Request) => {
         const result = await sendReportEmail({
           resend,
           to: payload.recipients,
-          subject: `Devolutiva Semanal MX: ${store.name} (${formatPtBrDate(dates.weekStart)} a ${formatPtBrDate(dates.weekEnd)})`,
+          subject: `📊 Feedback Semanal - ${store.name.toUpperCase()}`,
           html,
           attachments: [{ filename: `${baseFileName}.xlsx`, content: xlsxBase64 }],
           logPrefix: "[Semanal]",
@@ -207,6 +218,7 @@ async function buildWeeklyPayload(store: any, dates: ReturnType<typeof getSaoPau
   const monthlyGoal = metaRulesRes.data?.monthly_goal || 0;
   const weeklyGoal = Math.round(monthlyGoal / 4);
   const activeCount = agg.size || 1;
+  const sellerWeeklyGoal = Math.max(1, Math.round(weeklyGoal / activeCount));
   const teamTotal = Array.from(agg.values()).reduce((total, seller) => ({
     leads: total.leads + seller.leads, agd: total.agd + seller.agd, vis: total.vis + seller.vis, vnd: total.vnd + seller.vnd,
   }), { leads: 0, agd: 0, vis: 0, vnd: 0 });
@@ -221,7 +233,7 @@ async function buildWeeklyPayload(store: any, dates: ReturnType<typeof getSaoPau
   };
 
   const ranking = Array.from(agg.values())
-    .map((seller) => buildRankingRow(seller, teamAvg, benchmark))
+    .map((seller) => buildRankingRow(seller, teamAvg, benchmark, sellerWeeklyGoal, dates.weekStart, dates.weekEnd))
     .sort((a, b) => {
       if (b.vnd !== a.vnd) return b.vnd - a.vnd;
       if (b.vis !== a.vis) return b.vis - a.vis;
@@ -237,6 +249,7 @@ async function buildWeeklyPayload(store: any, dates: ReturnType<typeof getSaoPau
     benchmark,
     monthlyGoal,
     weeklyGoal,
+    sellerWeeklyGoal,
     teamTotal,
     teamAvg,
     ranking,
@@ -244,7 +257,14 @@ async function buildWeeklyPayload(store: any, dates: ReturnType<typeof getSaoPau
   };
 }
 
-function buildRankingRow(seller: SellerRow, teamAvg: Record<string, number>, benchmark: Record<string, number>): RankingRow {
+function buildRankingRow(
+  seller: SellerRow,
+  teamAvg: Record<string, number>,
+  benchmark: Record<string, number>,
+  sellerWeeklyGoal: number,
+  weekStart: string,
+  weekEnd: string,
+): RankingRow {
   const txLeadAgd = rate(seller.agd, seller.leads);
   const txAgdVis = rate(seller.vis, seller.agd);
   const txVisVnd = rate(seller.vnd, seller.vis);
@@ -257,19 +277,46 @@ function buildRankingRow(seller: SellerRow, teamAvg: Record<string, number>, ben
   ].filter((gap) => gap.real < gap.bench).sort((a, b) => (b.bench - b.real) - (a.bench - a.real));
 
   const mainGap = gaps[0];
-  const diagnostic = mainGap ? `Gargalo principal: ${mainGap.label} (${mainGap.real}% vs ${mainGap.bench}% ideal).` : "Funil dentro ou acima do criterio MX.";
+  const idealAgd = Math.round(seller.leads * (benchmark.lead_to_agend / 100));
+  const idealVis = Math.round(seller.agd * (benchmark.agend_to_visit / 100));
+  const idealVnd = Math.round(seller.vis * (benchmark.visit_to_sale / 100));
+  const agdGap = Math.max(idealAgd - seller.agd, 0);
+  const visitGap = Math.max(idealVis - seller.vis, 0);
+  const saleGap = Math.max(idealVnd - seller.vnd, 0);
+  const diagnostic = mainGap
+    ? buildDiagnosticMessage(mainGap.key, seller, benchmark, { idealAgd, idealVis, idealVnd, agdGap, visitGap, saleGap })
+    : "Funil dentro ou acima do criterio MX.";
+  const action = mainGap
+    ? buildActionMessage(mainGap.key, { agdGap, visitGap, saleGap })
+    : "Manter disciplina de lançamento diário e elevar volume de leads qualificados.";
+  const salesComparison = compareToTeam(seller.vnd, teamAvg.vnd, "Volume de Vendas");
+  const agdComparison = compareToTeam(seller.agd, teamAvg.agd, "Volume de Agendamentos");
+  const visitComparison = compareToTeam(seller.vis, teamAvg.vis, "Volume de Visitas");
+  const criterion = `Baseado em ${benchmark.lead_to_agend}% de conversão de Leads para Agendamento; ${benchmark.agend_to_visit} visitas a cada 100 agendamentos; e ${benchmark.visit_to_sale} venda(s) a cada 100 visitas.`;
 
-  return {
+  const row = {
     ...seller,
     txLeadAgd,
     txAgdVis,
     txVisVnd,
+    sellerWeeklyGoal,
+    idealAgd,
+    idealVis,
+    idealVnd,
+    agdGap,
+    visitGap,
+    saleGap,
+    salesComparison,
+    agdComparison,
+    visitComparison,
     performanceLabel,
     diagnostic,
-    action: mainGap?.action || "Manter disciplina de lançamento diário e elevar volume de leads qualificados.",
+    action,
     bottleneck: mainGap?.key || null,
-    criterion: `Criterio MX: ${benchmark.lead_to_agend}/${benchmark.agend_to_visit}/${benchmark.visit_to_sale}.`,
+    criterion,
+    feedbackText: "",
   };
+  return { ...row, feedbackText: buildSellerFeedbackText(row, weekStart, weekEnd) };
 }
 
 function rate(numerator: number, denominator: number) {
@@ -277,8 +324,83 @@ function rate(numerator: number, denominator: number) {
   return Math.round((numerator / denominator) * 100);
 }
 
+function sanitizeAttachmentName(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9 _-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase() || "LOJA";
+}
+
+function formatShortDateForFile(date: string) {
+  const [, month, day] = date.split("-");
+  return `${day}_${month}`;
+}
+
+function compareToTeam(value: number, avg: number, label: string) {
+  if (value > avg) return `${label}: 📈 Acima da média da loja.`;
+  if (value < avg) return `${label}: 📉 Abaixo da média da loja.`;
+  return `${label}: ➖ Igual à média da loja.`;
+}
+
+function buildDiagnosticMessage(
+  gapKey: string,
+  seller: SellerRow,
+  benchmark: Record<string, number>,
+  ideals: { idealAgd: number; idealVis: number; idealVnd: number; agdGap: number; visitGap: number; saleGap: number },
+) {
+  if (gapKey === "lead_agendamento") {
+    return `Entrada do Funil: Você recebeu ${seller.leads} leads e agendou ${seller.agd}. Pela métrica de ${benchmark.lead_to_agend}%, deveríamos ter agendado pelo menos ${ideals.idealAgd}. Perdemos ${ideals.agdGap} oportunidades de contato aqui.`;
+  }
+  if (gapKey === "agendamento_visita") {
+    return `Meio do Funil: Você realizou ${seller.agd} agendamentos e recebeu ${seller.vis} visitas. Pela métrica de ${benchmark.agend_to_visit}%, deveríamos ter recebido pelo menos ${ideals.idealVis} visitas. Perdemos ${ideals.visitGap} oportunidades de showroom aqui.`;
+  }
+  return `Fechamento do Funil: Você recebeu ${seller.vis} visitas e fechou ${seller.vnd} vendas. Pela métrica de ${benchmark.visit_to_sale}%, deveríamos ter fechado pelo menos ${ideals.idealVnd}. Perdemos ${ideals.saleGap} oportunidades de venda aqui.`;
+}
+
+function buildActionMessage(gapKey: string, gaps: { agdGap: number; visitGap: number; saleGap: number }) {
+  if (gapKey === "lead_agendamento") {
+    return `Foco na velocidade: Nesta semana, ligue para o cliente nos primeiros 5 minutos. Revise seus áudios de apresentação para tentar recuperar esses ${gaps.agdGap} agendamentos.`;
+  }
+  if (gapKey === "agendamento_visita") {
+    return `Foco na confirmação: Confirme a visita na véspera e no dia, gere compromisso claro e envie motivo forte para o cliente comparecer.`;
+  }
+  return `Foco no fechamento: Prepare proposta antes da visita, reforce test drive, contorne objeções e peça o fechamento com próxima ação definida.`;
+}
+
+function buildSellerFeedbackText(row: RankingRow, weekStart: string, weekEnd: string) {
+  return `👋 Olá, ${row.name.toUpperCase()}. Segue seu Feedback Semanal.
+
+🗓️ *Período:* ${formatPtBrDate(weekStart)} a ${formatPtBrDate(weekEnd)}
+
+🔢 *SEUS NÚMEROS DA SEMANA*
+• Vendas Fechadas: ${row.vnd} (Meta Ref: ${row.sellerWeeklyGoal})
+• Leads Recebidos: ${row.leads}
+• Agendamentos: ${row.agd}
+• Visitas na Loja: ${row.vis}
+
+💡 *ANÁLISE DE OPORTUNIDADE (O que deveria ter acontecido)*
+• Com ${row.leads} Leads, a boa prática diz que você faria *${row.idealAgd} agendamentos*.
+• Com ${row.agd} Agendamentos, a boa prática diz que você receberia *${row.idealVis} visitas*.
+• Com ${row.vis} Visitas, a boa prática diz que você fecharia *${row.idealVnd} vendas*.
+
+🏆 *COMPARATIVO COM A EQUIPE*
+• ${row.salesComparison}
+• ${row.agdComparison}
+• ${row.visitComparison}
+
+🚨 *DIAGNÓSTICO E AÇÃO*
+${row.diagnostic}
+👉 *O que fazer:* ${row.action}
+
+------------------------
+📊 *Entenda o critério:* ${row.criterion}`;
+}
+
 function generateWeeklyXLSX(payload: any) {
-  const { ranking, teamAvg, benchmark, store, weekStart, weekEnd } = payload;
+  const { ranking, teamAvg, store, weekStart, weekEnd } = payload;
 
   let xml = `<?xml version="1.0"?>
 <?mso-application progid="Excel.Sheet"?>
@@ -288,43 +410,41 @@ function generateWeeklyXLSX(payload: any) {
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <Styles>
-  <Style ss:ID="Default" ss:Name="Normal">
-   <Alignment ss:Vertical="Bottom"/>
-   <Borders/>
-   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
-   <Interior/>
-   <NumberFormat/>
-   <Protection/>
-  </Style>
-  <Style ss:ID="Header">
-   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
-   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="Benchmark">
-   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#1E3A8A" ss:Bold="1"/>
-   <Interior ss:Color="#DBEAFE" ss:Pattern="Solid"/>
-  </Style>
+  <Style ss:ID="Header"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="12" ss:Color="#FFFFFF" ss:Bold="1"/><Interior ss:Color="#14555F" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="ColumnHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#D9D9D9" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Opportunity"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#F1C232" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="Compare"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#CFE2F3" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="SubHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#FFF2CC" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Center"><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Bold"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Bold="1"/></Style>
+  <Style ss:ID="Danger"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FF0000" ss:Bold="1"/></Style>
+  <Style ss:ID="Italic"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Italic="1"/></Style>
+  <Style ss:ID="Footnote"><Interior ss:Color="#E6E6E6" ss:Pattern="Solid"/><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Bold="1"/></Style>
  </Styles>
- <Worksheet ss:Name="RESUMO DA LOJA">
+ <Worksheet ss:Name="Resumo Geral">
   <Table>
-   <Row><Cell><Data ss:Type="String">LOJA: ${escapeXml(store.name)}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">PERIODO: ${weekStart} a ${weekEnd}</Data></Cell></Row>
-   <Row ss:Index="4" ss:StyleID="Header">
-    <Cell><Data ss:Type="String">Vendedor</Data></Cell>
-    <Cell><Data ss:Type="String">Leads</Data></Cell>
-    <Cell><Data ss:Type="String">Agendamentos</Data></Cell>
-    <Cell><Data ss:Type="String">Visitas</Data></Cell>
-    <Cell><Data ss:Type="String">Vendas</Data></Cell>
-    <Cell><Data ss:Type="String">Tx Conversao</Data></Cell>
+   <Row><Cell ss:MergeAcross="7" ss:StyleID="Header"><Data ss:Type="String">FEEDBACK SEMANAL - ${escapeXml(store.name.toUpperCase())}</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="7" ss:StyleID="Center"><Data ss:Type="String">Periodo: ${formatPtBrDate(weekStart)} a ${formatPtBrDate(weekEnd)}</Data></Cell></Row>
+   <Row ss:Index="4">
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Vendedor</Data></Cell>
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Leads</Data></Cell>
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Agendamentos</Data></Cell>
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Visitas</Data></Cell>
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Vendas</Data></Cell>
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Meta Ref</Data></Cell>
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Gargalo</Data></Cell>
+    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Diagnostico</Data></Cell>
    </Row>
-   ${ranking.map((row: any) => `
+   ${ranking.map((row: RankingRow) => `
    <Row>
     <Cell><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.leads}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.agd}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vis}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vnd}</Data></Cell>
-    <Cell><Data ss:Type="String">${row.txVisVnd}%</Data></Cell>
+    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.leads}</Data></Cell>
+    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.agd}</Data></Cell>
+    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.vis}</Data></Cell>
+    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.vnd}</Data></Cell>
+    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.sellerWeeklyGoal}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(row.bottleneck || "OK")}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(row.diagnostic)}</Data></Cell>
    </Row>`).join("")}
   </Table>
  </Worksheet>`;
@@ -333,20 +453,29 @@ function generateWeeklyXLSX(payload: any) {
     const safeName = escapeXml(seller.name).substring(0, 30).replace(/[\\/?*\[\]]/g, "");
     xml += `
  <Worksheet ss:Name="${safeName}">
-  <Table ss:ExpandedColumnCount="2">
-   <Row><Cell ss:MergeAcross="1" ss:StyleID="Header"><Data ss:Type="String">ANALISE DE FUNIL: ${escapeXml(seller.name)}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Metrica</Data></Cell><Cell><Data ss:Type="String">Valor</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Leads</Data></Cell><Cell><Data ss:Type="Number">${seller.leads}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Agendamentos</Data></Cell><Cell><Data ss:Type="Number">${seller.agd}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Visitas</Data></Cell><Cell><Data ss:Type="Number">${seller.vis}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Vendas</Data></Cell><Cell><Data ss:Type="Number">${seller.vnd}</Data></Cell></Row>
-   <Row ss:Index="8" ss:StyleID="Benchmark"><Cell><Data ss:Type="String">TAXA REAL VS CRITERIO MX</Data></Cell><Cell><Data ss:Type="String">${benchmark.lead_to_agend}% / ${benchmark.agend_to_visit}% / ${benchmark.visit_to_sale}%</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">L -&gt; A</Data></Cell><Cell><Data ss:Type="String">${seller.txLeadAgd}%</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">A -&gt; V</Data></Cell><Cell><Data ss:Type="String">${seller.txAgdVis}%</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">V -&gt; V</Data></Cell><Cell><Data ss:Type="String">${seller.txVisVnd}%</Data></Cell></Row>
-   <Row ss:Index="13" ss:StyleID="Header"><Cell ss:MergeAcross="1"><Data ss:Type="String">DIAGNOSTICO E PLANO DE ACAO</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">${escapeXml(seller.diagnostic)}</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">${escapeXml(seller.action)}</Data></Cell></Row>
+  <Table ss:ExpandedColumnCount="5">
+   <Row><Cell ss:MergeAcross="4" ss:StyleID="Header"><Data ss:Type="String">RESUMO DO VENDEDOR: ${escapeXml(seller.name.toUpperCase())}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
+   <Row><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Leads Recebidos</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Agendamentos Feitos</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Visitas Realizadas</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Vendas Fechadas</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Sua Meta Semanal</Data></Cell></Row>
+   <Row><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.leads}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.agd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.sellerWeeklyGoal}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="4" ss:StyleID="Opportunity"><Data ss:Type="String">ANALISE DE APROVEITAMENTO (REAL vs IDEAL)</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1" ss:StyleID="SubHeader"><Data ss:Type="String">Etapa do Processo</Data></Cell><Cell ss:StyleID="SubHeader"><Data ss:Type="String">Seu Resultado</Data></Cell><Cell ss:StyleID="SubHeader"><Data ss:Type="String">O Ideal Seria</Data></Cell><Cell ss:StyleID="SubHeader"><Data ss:Type="String">Status</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">De Leads para Agendamentos</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.agd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.idealAgd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="String">${seller.agd >= seller.idealAgd ? "Bom" : "Abaixo"}</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">De Agendamentos para Visitas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.idealVis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="String">${seller.vis >= seller.idealVis ? "Bom" : "Abaixo"}</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">De Visitas para Vendas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.idealVnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="String">${seller.vnd >= seller.idealVnd ? "Bom" : "Abaixo"}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="4" ss:StyleID="Compare"><Data ss:Type="String">SEU DESEMPENHO COMPARADO A MEDIA DA EQUIPE</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1" ss:StyleID="ColumnHeader"><Data ss:Type="String">Criterio</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Sua Producao</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Media da Equipe</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Conclusao</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">Volume de Vendas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${teamAvg.vnd}</Data></Cell><Cell><Data ss:Type="String">${escapeXml(seller.salesComparison.replace("Volume de Vendas: ", ""))}</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">Volume de Agendamentos</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.agd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${teamAvg.agd}</Data></Cell><Cell><Data ss:Type="String">${escapeXml(seller.agdComparison.replace("Volume de Agendamentos: ", ""))}</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">Volume de Visitas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${teamAvg.vis}</Data></Cell><Cell><Data ss:Type="String">${escapeXml(seller.visitComparison.replace("Volume de Visitas: ", ""))}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1" ss:StyleID="Bold"><Data ss:Type="String">DIAGNOSTICO DA SEMANA:</Data></Cell><Cell ss:MergeAcross="2" ss:StyleID="Danger"><Data ss:Type="String">${escapeXml(seller.diagnostic)}</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="1" ss:StyleID="Bold"><Data ss:Type="String">ORIENTACAO DE ACAO:</Data></Cell><Cell ss:MergeAcross="2" ss:StyleID="Italic"><Data ss:Type="String">${escapeXml(seller.action)}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="4" ss:StyleID="Footnote"><Data ss:Type="String">ENTENDA A CONTA (BOAS PRATICAS DO SETOR)</Data></Cell></Row>
+   <Row><Cell ss:MergeAcross="4"><Data ss:Type="String">${escapeXml(seller.criterion)}</Data></Cell></Row>
   </Table>
  </Worksheet>`;
   }
@@ -359,57 +488,40 @@ function generateWeeklyXLSX(payload: any) {
 }
 
 function generateWeeklyWhatsAppText(payload: Awaited<ReturnType<typeof buildWeeklyPayload>>) {
-  return `*FEEDBACK SEMANAL MX - ${payload.store.name}*
-Periodo: ${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}
+  return `📊 *Feedback Semanal - ${payload.store.name.toUpperCase()}*
+Período: ${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}
 
-Meta semanal estimada: ${payload.weeklyGoal}
-Media da equipe: ${payload.teamAvg.leads}L | ${payload.teamAvg.agd}A | ${payload.teamAvg.vis}V | ${payload.teamAvg.vnd} vendas
-Criterio MX: ${payload.benchmark.lead_to_agend}/${payload.benchmark.agend_to_visit}/${payload.benchmark.visit_to_sale}
+${payload.ranking.map((row) => row.feedbackText).join("\n\n====================\n\n")}
 
-Top 3
-${payload.ranking.slice(0, 3).map((row, index) => `${index + 1}\u00ba ${row.name} - ${row.vnd}v - ${row.diagnostic}`).join("\n")}
-
-Relatorio completo: ${payload.reportUrl}`;
+Relatório completo: ${payload.reportUrl}`;
 }
 
 function generateWeeklyHTML(payload: Awaited<ReturnType<typeof buildWeeklyPayload>>) {
   const wppText = encodeURIComponent(generateWeeklyWhatsAppText(payload));
-  return `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-body{font-family:Inter,Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:20px;line-height:1.5}
-.c{max-width:760px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 10px 30px -10px rgba(0,0,0,.12);overflow:hidden}
-.h{background:#0f172a;padding:44px 32px;text-align:center;border-bottom:4px solid #4f46e5}
-.h h1{color:#fff;margin:0 0 12px;font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.h p{color:#94a3b8;margin:0;font-size:13px;text-transform:uppercase;letter-spacing:3px}
-.content{padding:36px 32px}.ss{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:28px}.s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:22px;text-align:center}
-.sv{font-size:28px;font-weight:900;color:#0f172a;line-height:1;margin-bottom:8px}.sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
-.card{border:1px solid #e2e8f0;border-radius:20px;padding:22px;margin-bottom:18px}.name{font-size:18px;font-weight:900;text-transform:uppercase;margin:0 0 8px}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.m{background:#f8fafc;border-radius:12px;padding:12px;text-align:center}.mv{font-weight:900;font-size:18px}.ml{font-size:9px;color:#64748b;text-transform:uppercase;font-weight:800;letter-spacing:1px}
-.diag{background:#eff6ff;border:1px solid #bfdbfe;padding:14px;border-radius:12px;color:#1e3a8a;font-weight:700;font-size:13px}.action{background:#ecfdf5;border:1px solid #a7f3d0;padding:14px;border-radius:12px;color:#065f46;font-weight:700;font-size:13px;margin-top:10px}
-.btn{display:block;background:#4f46e5;color:#fff;text-align:center;padding:18px;border-radius:14px;text-decoration:none;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;margin-top:20px}.wpp{background:#25d366}
-.f{text-align:center;padding:28px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:2px;border-top:1px solid #f1f5f9;background:#fcfcfc}
-</style></head><body><div class="c">
-<div class="h"><h1>Devolutiva Semanal MX</h1><p>${escapeHtml(payload.store.name)} &bull; ${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}</p></div>
-<div class="content">
-<div class="ss">
-<div class="s"><div class="sv">${payload.weeklyGoal}</div><div class="sl">Meta semanal estimada</div></div>
-<div class="s"><div class="sv">${payload.teamAvg.leads} | ${payload.teamAvg.agd} | ${payload.teamAvg.vis} | ${payload.teamAvg.vnd}</div><div class="sl">Media da equipe</div></div>
-</div>
-${payload.ranking.map((row) => `
-<div class="card">
-<h3 class="name">${escapeHtml(row.name)}</h3>
-<div style="font-size:11px;color:#64748b;font-weight:800;text-transform:uppercase">${escapeHtml(row.performanceLabel)} &bull; ${escapeHtml(row.criterion)}</div>
-<div class="metrics">
-<div class="m"><div class="mv">${row.leads}</div><div class="ml">Leads</div></div>
-<div class="m"><div class="mv">${row.agd}</div><div class="ml">Agend.</div></div>
-<div class="m"><div class="mv">${row.vis}</div><div class="ml">Visitas</div></div>
-<div class="m"><div class="mv">${row.vnd}</div><div class="ml">Vendas</div></div>
-</div>
-<div class="diag">${escapeHtml(row.diagnostic)}</div>
-<div class="action">Acao orientada: ${escapeHtml(row.action)}</div>
-</div>`).join("")}
-<a href="${payload.reportUrl}" class="btn">Acessar relatorio completo</a>
-<a href="https://api.whatsapp.com/send?text=${wppText}" class="btn wpp">Enviar via WhatsApp</a>
-</div>
-<div class="f">MX PERFORMANCE &copy; ${payload.year}</div>
-</div></body></html>`;
+  const dateRange = `${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}`;
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Feedback Semanal</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;color:#111111;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#ffffff;margin:0;padding:0;">
+    <tr>
+      <td align="center" style="padding:34px 18px;">
+        <table role="presentation" width="980" cellspacing="0" cellpadding="0" style="width:980px;max-width:100%;border-collapse:collapse;background:#ffffff;">
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;color:#103f49;padding:0 0 22px 0;"><div style="font-size:28px;line-height:36px;font-weight:900;">📊 Feedback Semanal: ${escapeHtml(payload.store.name.toUpperCase())}</div></td></tr>
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:24px;color:#111111;padding:0 0 24px 0;"><strong>Período:</strong> ${dateRange}</td></tr>
+          <tr><td align="center" style="padding:0 0 26px 0;"><a href="${payload.reportUrl}" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:7px;font-family:Arial,Helvetica,sans-serif;font-size:20px;line-height:24px;font-weight:900;text-transform:uppercase;padding:18px 42px;">📂 ABRIR RELATÓRIO COMPLETO</a></td></tr>
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:28px;color:#111111;font-weight:900;padding:0 0 18px 0;">📝 Sugestões de Mensagem (Copiar e Colar)</td></tr>
+          ${payload.ranking.map((row) => `
+          <tr><td style="padding:0 0 28px 0;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f7f7f7;border-left:6px solid #14555f;"><tr><td style="font-family:Arial,Helvetica,sans-serif;color:#111111;padding:22px 28px;"><div style="font-size:20px;line-height:26px;font-weight:900;text-transform:uppercase;margin:0 0 18px 0;">${escapeHtml(row.name.toUpperCase())}</div><div style="font-size:16px;line-height:22px;color:#3f3f3f;white-space:pre-line;">${escapeHtml(row.feedbackText)}</div></td></tr></table></td></tr>`).join("")}
+          <tr><td align="center" style="padding:4px 0 30px 0;"><a href="https://api.whatsapp.com/send?text=${wppText}" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:24px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:20px;font-weight:900;text-transform:uppercase;padding:14px 34px;">📲 ENVIAR VIA WHATSAPP</a></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }

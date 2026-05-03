@@ -139,7 +139,7 @@ export function useCheckins(storeIdOverride?: string) {
         }
 
         const { error } = await supabase.from('lancamentos_diarios').upsert(payload, {
-            onConflict: 'seller_user_id, store_id, reference_date, metric_scope'
+            onConflict: 'seller_user_id,store_id,reference_date,metric_scope'
         })
 
         if (error) return { error: error.message }

@@ -1,54 +1,69 @@
+function escapeHtml(value: unknown) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export const getWeeklyFeedbackEmailTemplate = (storeName: string, dateRange: string, feedbackData: any[]) => {
+  const blocks = feedbackData.map((feedback) => {
+    const name = feedback.seller_name ?? feedback.name ?? 'Vendedor'
+    const text = feedback.whatsapp_text ?? feedback.feedbackText ?? feedback.message ?? ''
+
     return `
-<!DOCTYPE html>
+      <tr>
+        <td style="padding:0 0 28px 0;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f7f7f7;border-left:6px solid #14555f;">
+            <tr>
+              <td style="font-family:Arial,Helvetica,sans-serif;color:#111111;padding:22px 28px;">
+                <div style="font-size:20px;line-height:26px;font-weight:900;text-transform:uppercase;margin:0 0 18px 0;">${escapeHtml(String(name).toUpperCase())}</div>
+                <div style="font-size:16px;line-height:22px;color:#3f3f3f;white-space:pre-line;">${escapeHtml(text)}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`
+  }).join('')
+
+  return `<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1d20; background-color: #f8fafc; margin: 0; padding: 40px 20px; }
-        .container { max-width: 700px; margin: auto; background: #ffffff; border-radius: 32px; overflow: hidden; shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
-        .header { background-color: #0c343d; color: #ffffff; padding: 50px 40px; text-align: center; }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
-        .header p { margin: 15px 0 0; font-size: 14px; opacity: 0.6; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
-        
-        .main-btn-container { padding: 40px; text-align: center; background: #fdfdfd; border-bottom: 1px solid #f1f5f9; }
-        .main-btn { background-color: #25d366; color: white; padding: 20px 50px; text-decoration: none; border-radius: 16px; font-weight: 900; font-size: 14px; display: inline-block; text-transform: uppercase; shadow: 0 10px 15px -3px rgba(37, 211, 102, 0.3); }
-        
-        .section-title { font-size: 18px; font-weight: 900; color: #0c343d; padding: 40px 40px 10px; margin: 0; text-transform: uppercase; letter-spacing: -0.5px; }
-        
-        .feedback-block { margin: 20px 40px 40px; padding: 30px; background: #f9fafb; border-left: 6px solid #134f5c; border-radius: 0 20px 20px 0; }
-        .seller-name { font-size: 16px; font-weight: 900; color: #134f5c; margin-bottom: 15px; display: block; text-transform: uppercase; }
-        .zap-text { font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #334155; white-space: pre-wrap; background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        
-        .footer { padding: 40px; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0; }
-        .footer p { font-size: 12px; color: #94a3b8; font-weight: 600; margin: 0; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Feedback Semanal</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📊 Devolutiva Semanal: ${storeName}</h1>
-            <p>Período: ${dateRange}</p>
-        </div>
-
-        <div class="main-btn-container">
-            <a href="#" class="main-btn">📂 ABRIR RELATÓRIO COMPLETO</a>
-        </div>
-
-        <h2 class="section-title">📝 Sugestões de Mensagem (Copiar e Colar)</h2>
-
-        ${feedbackData.map(f => `
-        <div class="feedback-block">
-            <span class="seller-name">👤 ${f.seller_name}</span>
-            <div class="zap-text">${f.whatsapp_text}</div>
-        </div>
-        `).join('')}
-
-        <div class="footer">
-            <p>MX PERFORMANCE © 2026 • CONSULTORIA DE ALTA PERFORMANCE</p>
-        </div>
-    </div>
+<body style="margin:0;padding:0;background:#ffffff;color:#111111;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#ffffff;margin:0;padding:0;">
+    <tr>
+      <td align="center" style="padding:34px 18px;">
+        <table role="presentation" width="980" cellspacing="0" cellpadding="0" style="width:980px;max-width:100%;border-collapse:collapse;background:#ffffff;">
+          <tr>
+            <td style="font-family:Arial,Helvetica,sans-serif;color:#103f49;padding:0 0 22px 0;">
+              <div style="font-size:28px;line-height:36px;font-weight:900;">📊 Feedback Semanal: ${escapeHtml(storeName.toUpperCase())}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:24px;color:#111111;padding:0 0 24px 0;">
+              <strong>Período:</strong> ${escapeHtml(dateRange)}
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:0 0 26px 0;">
+              <a href="#" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:7px;font-family:Arial,Helvetica,sans-serif;font-size:20px;line-height:24px;font-weight:900;text-transform:uppercase;padding:18px 42px;">📂 ABRIR RELATÓRIO COMPLETO</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:28px;color:#111111;font-weight:900;padding:0 0 18px 0;">
+              📝 Sugestões de Mensagem (Copiar e Colar)
+            </td>
+          </tr>
+          ${blocks}
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
-</html>
-    `;
-};
+</html>`
+}

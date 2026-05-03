@@ -1,10 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.10.0"
 import { canSendVisitReport, forbidden, requireAuthenticatedRole } from "../_shared/auth.ts"
+import { sendReportEmail } from "../_shared/email.ts"
+import { createResendClient, createServiceClient } from "../_shared/supabase-client.ts"
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+const supabase = createServiceClient()
+const resend = createResendClient()
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,7 +27,6 @@ serve(async (req) => {
     if (auth.response) return auth.response
 
     const { visitId } = await req.json()
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!)
 
     // 1. Buscar dados da visita e cliente
     const { data: visit, error: visitError } = await supabase
@@ -50,7 +49,10 @@ serve(async (req) => {
 
     const recipientEmails = contacts?.map(c => c.email).filter(Boolean) || []
     if (recipientEmails.length === 0) {
-      return new Response(JSON.stringify({ message: 'Nenhum contato primário com e-mail encontrado' }), {
+      return new Response(JSON.stringify({
+        message: 'Nenhum contato primário com e-mail encontrado',
+        email: { status: 'not_sent', warnings: ['Nenhum destinatario configurado'] },
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       })
@@ -76,24 +78,21 @@ serve(async (req) => {
     `
 
     // 4. Enviar via Resend
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: 'MX PERFORMANCE <consultoria@mxgestaopreditiva.com.br>',
-        to: recipientEmails,
-        subject: `📍 Relatório de Visita: ${visit.client.name} (Visita ${visit.visit_number})`,
-        html,
-      }),
+    const email = await sendReportEmail({
+      resend,
+      to: recipientEmails,
+      subject: `Relatório de Visita: ${visit.client.name} (Visita ${visit.visit_number})`,
+      html,
+      logPrefix: '[VisitReport]',
+      storeName: visit.client.name,
     })
 
-    const result = await res.json()
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({
+      success: email.status === 'sent',
+      email,
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200
+      status: email.status === 'failed' ? 502 : 200
     })
 
   } catch (err: any) {
