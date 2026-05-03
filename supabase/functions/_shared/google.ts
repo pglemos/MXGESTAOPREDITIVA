@@ -49,12 +49,21 @@ export async function assertClientAccess(sessionClient: any, clientId: string) {
   if (!data) throw new Error("Client access denied");
 }
 
+const CENTRAL_PROVIDER = "google_central";
+
+function hasRequiredScopes(savedScopes: unknown, requiredScopes: string[]): boolean {
+  if (requiredScopes.length === 0) return true;
+  if (!Array.isArray(savedScopes)) return false;
+  const scopeSet = new Set(savedScopes.filter((scope): scope is string => typeof scope === "string"));
+  return requiredScopes.every((scope) => scopeSet.has(scope));
+}
+
 /**
- * Returns access_token for the central MX calendar (gestao@mxconsultoria.com.br).
+ * Returns access_token for central MX Google integrations (gestao@mxconsultoria.com.br).
  * Uses GOOGLE_CENTRAL_REFRESH_TOKEN when configured, otherwise falls back to
  * the encrypted google_central OAuth token saved by an admin connection.
  */
-export async function getCentralCalendarAccessToken(): Promise<string | null> {
+export async function getCentralGoogleAccessToken(requiredScopes: string[] = []): Promise<string | null> {
   const refreshToken = Deno.env.get("GOOGLE_CENTRAL_REFRESH_TOKEN");
   if (refreshToken) {
     try {
@@ -74,13 +83,14 @@ export async function getCentralCalendarAccessToken(): Promise<string | null> {
   );
   const { data: tokenRow } = await adminClient
     .from("tokens_oauth_consultoria")
-    .select("id, access_token, refresh_token, expires_at")
-    .eq("provider", "google_central")
+    .select("id, access_token, refresh_token, expires_at, scopes")
+    .eq("provider", CENTRAL_PROVIDER)
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (!tokenRow) return null;
+  if (!hasRequiredScopes(tokenRow.scopes, requiredScopes)) return null;
 
   try {
     let accessToken = await decryptToken(tokenRow.access_token);
@@ -101,8 +111,22 @@ export async function getCentralCalendarAccessToken(): Promise<string | null> {
   }
 }
 
+/**
+ * Returns access_token for the central MX calendar (gestao@mxconsultoria.com.br).
+ */
+export async function getCentralCalendarAccessToken(): Promise<string | null> {
+  return getCentralGoogleAccessToken();
+}
+
 export const CENTRAL_CALENDAR_ID = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_ID") || "primary";
 export const CENTRAL_CALENDAR_EMAIL = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_EMAIL") || "gestao@mxconsultoria.com.br";
+export const CENTRAL_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+export const CENTRAL_DRIVE_ROOT_FOLDER_ID = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_ID") || "";
+export const CENTRAL_DRIVE_ROOT_FOLDER_NAME = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_NAME") || "MX Performance - Clientes";
+
+export async function getCentralDriveAccessToken(): Promise<string | null> {
+  return getCentralGoogleAccessToken([CENTRAL_DRIVE_SCOPE]);
+}
 
 export async function googleApiRequest(
   accessToken: string,

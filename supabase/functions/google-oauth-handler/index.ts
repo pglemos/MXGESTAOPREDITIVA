@@ -11,7 +11,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
 
-const GOOGLE_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email";
+const GOOGLE_PERSONAL_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email";
+const GOOGLE_CENTRAL_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
 type GoogleTokens = {
@@ -23,12 +24,12 @@ type GoogleTokens = {
   error_description?: string;
 };
 
-function buildGoogleAuthUrl(state: string): string {
+function buildGoogleAuthUrl(state: string, scope: string): string {
   const params = new URLSearchParams({
     client_id: requireEnv("GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID),
     redirect_uri: requireEnv("GOOGLE_REDIRECT_URI", GOOGLE_REDIRECT_URI),
     response_type: "code",
-    scope: GOOGLE_SCOPE,
+    scope,
     access_type: "offline",
     prompt: "consent",
     state,
@@ -114,7 +115,8 @@ Deno.serve(async (req) => {
       });
       if (insertError) throw insertError;
 
-      return new Response(JSON.stringify({ authUrl: buildGoogleAuthUrl(generatedState), state: generatedState, expiresAt }), {
+      const scope = isCentralConnection ? GOOGLE_CENTRAL_SCOPE : GOOGLE_PERSONAL_SCOPE;
+      return new Response(JSON.stringify({ authUrl: buildGoogleAuthUrl(generatedState, scope), state: generatedState, expiresAt }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

@@ -1,0 +1,156 @@
+import { useRef, type ChangeEvent } from 'react'
+import { ExternalLink, FileUp, FolderOpen, RefreshCw, Trash2, UploadCloud } from 'lucide-react'
+import { toast } from 'sonner'
+import { Button } from '@/components/atoms/Button'
+import { Badge } from '@/components/atoms/Badge'
+import { Typography } from '@/components/atoms/Typography'
+import { Card } from '@/components/molecules/Card'
+import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar'
+import { useConsultingDriveFiles, type ConsultingDriveFile } from '@/hooks/useConsultingDriveFiles'
+
+const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024
+
+function formatBytes(value?: string) {
+  const bytes = Number(value || 0)
+  if (!bytes) return '0 B'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function formatDate(value?: string) {
+  if (!value) return '-'
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
+}
+
+function getKind(file: ConsultingDriveFile) {
+  const mime = file.mimeType || ''
+  if (mime.includes('pdf')) return 'PDF'
+  if (mime.startsWith('image/')) return 'Imagem'
+  if (mime.includes('spreadsheet') || mime.includes('excel')) return 'Planilha'
+  if (mime.includes('document') || mime.includes('word')) return 'Documento'
+  return 'Arquivo'
+}
+
+export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const { role } = useAuth()
+  const canUseFiles = isPerfilInternoMx(role)
+  const canReconnect = isAdministradorMx(role)
+  const { connectCentral } = useGoogleCalendar({ autoFetch: false })
+  const {
+    folderUrl,
+    files,
+    loading,
+    uploading,
+    error,
+    needsReconnect,
+    listFiles,
+    uploadFiles,
+    deleteFile,
+  } = useConsultingDriveFiles(canUseFiles ? clientId : null)
+
+  const handleSelectFiles = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files || [])
+    event.target.value = ''
+    if (selected.length === 0) return
+
+    const oversized = selected.find(file => file.size > MAX_FILE_SIZE_BYTES)
+    if (oversized) {
+      toast.error(`${oversized.name} excede o limite de 25 MB`)
+      return
+    }
+
+    await uploadFiles(selected)
+  }
+
+  if (!canUseFiles) {
+    return (
+      <Card className="p-mx-xl border-dashed text-center rounded-mx-2xl">
+        <Typography variant="h3" className="uppercase font-black">Acesso restrito</Typography>
+      </Card>
+    )
+  }
+
+  return (
+    <section className="space-y-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
+      <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
+        <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-mx-md min-w-0">
+            <div className="h-mx-12 w-mx-12 rounded-mx-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+              <FolderOpen className="h-mx-6 w-mx-6" />
+            </div>
+            <div className="min-w-0">
+              <Typography variant="h3" className="uppercase font-black tracking-widest">Arquivos</Typography>
+              <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest">
+                {files.length} {files.length === 1 ? 'item' : 'itens'}
+              </Typography>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-mx-xs">
+            <Button variant="secondary" size="sm" onClick={() => listFiles()} loading={loading} icon={<RefreshCw />}>
+              Atualizar
+            </Button>
+            {folderUrl && (
+              <Button variant="outline" size="sm" onClick={() => window.open(folderUrl, '_blank', 'noopener,noreferrer')} icon={<ExternalLink />}>
+                Abrir pasta
+              </Button>
+            )}
+            <Button variant="primary" size="sm" onClick={() => inputRef.current?.click()} loading={uploading} icon={<UploadCloud />}>
+              Enviar
+            </Button>
+            <input ref={inputRef} type="file" multiple className="hidden" onChange={handleSelectFiles} />
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-mx-lg rounded-mx-xl border border-status-warning/30 bg-status-warning/10 p-mx-md flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
+            <Typography variant="p" className="text-sm font-bold text-text-primary">{error}</Typography>
+            {needsReconnect && canReconnect && (
+              <Button variant="warning" size="sm" onClick={connectCentral}>
+                Reconectar
+              </Button>
+            )}
+          </div>
+        )}
+
+        {!error && !loading && files.length === 0 && (
+          <div className="mt-mx-lg rounded-mx-xl border border-dashed border-border-default p-mx-xl text-center">
+            <FileUp className="h-mx-10 w-mx-10 mx-auto text-text-tertiary mb-mx-sm" />
+            <Typography variant="p" tone="muted" className="font-bold">Nenhum arquivo registrado.</Typography>
+          </div>
+        )}
+
+        {files.length > 0 && (
+          <div className="mt-mx-lg overflow-hidden rounded-mx-xl border border-border-subtle">
+            {files.map((file) => (
+              <div key={file.id} className="grid grid-cols-1 gap-mx-sm border-b border-border-subtle p-mx-md last:border-b-0 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-mx-xs min-w-0">
+                    <Badge variant="outline" className="shrink-0">{getKind(file)}</Badge>
+                    <Typography variant="p" className="font-black truncate">{file.name}</Typography>
+                  </div>
+                  <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest mt-mx-xs">
+                    {formatBytes(file.size)} • {formatDate(file.modifiedTime || file.createdTime)}
+                  </Typography>
+                </div>
+                <div className="flex gap-mx-xs">
+                  {file.webViewLink && (
+                    <Button variant="outline" size="xs" onClick={() => window.open(file.webViewLink, '_blank', 'noopener,noreferrer')} icon={<ExternalLink />}>
+                      Abrir
+                    </Button>
+                  )}
+                  <Button variant="danger" size="xs" onClick={() => deleteFile(file.id)} disabled={loading || uploading} icon={<Trash2 />}>
+                    Remover
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </section>
+  )
+}

@@ -34,11 +34,12 @@ import { ConsultingActionPlanView } from '@/features/consultoria/components/Cons
 import { DREView } from '@/features/consultoria/components/DREView'
 import { ConsultingDailyTrackingView } from '@/features/consultoria/components/ConsultingDailyTrackingView'
 import { ConsultingMonthlyCloseView } from '@/features/consultoria/components/ConsultingMonthlyCloseView'
+import { ConsultingDriveFilesView } from '@/features/consultoria/components/ConsultingDriveFilesView'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
 import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
 
-type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis'
+type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis' | 'files'
 
 const tabLabels: Record<Tab, string> = {
   overview: 'Visão Geral',
@@ -50,6 +51,7 @@ const tabLabels: Record<Tab, string> = {
   monthly: 'Fechamento',
   roi: 'ROI/Choque',
   pdis: 'Plano de Carreira (PDI)',
+  files: 'Arquivos',
 }
 
 function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
@@ -405,6 +407,7 @@ export default function ConsultoriaClienteDetalhe() {
       case 'monthly': return <ConsultingMonthlyCloseView clientId={clientId!} />
       case 'roi': return <ConsultingROIView client={client} />
       case 'pdis': return <ConsultingPDIsView storeId={resolvedStoreId} />
+      case 'files': return <ConsultingDriveFilesView clientId={clientId!} />
       default: return null
     }
   }
@@ -430,7 +433,7 @@ export default function ConsultoriaClienteDetalhe() {
       </header>
 
       <nav className="flex gap-mx-xs border-b border-border-subtle mb-mx-md overflow-x-auto no-scrollbar">
-         {(['overview', 'visits', 'strategic', 'action', 'financial', 'daily', 'roi', 'pdis'] as Tab[]).map(tab => (
+         {(['overview', 'visits', 'strategic', 'action', 'financial', 'daily', 'roi', 'pdis', 'files'] as Tab[]).map(tab => (
             <button key={tab} onClick={() => handleTabChange(tab)} className={cn("px-mx-md py-mx-sm text-xs font-black uppercase tracking-mx-widest transition-all border-b-2 whitespace-nowrap", activeTab === tab ? "border-brand-primary text-brand-primary bg-brand-primary/5" : "border-transparent text-text-tertiary hover:text-text-primary hover:bg-surface-alt")}>
                {tabLabels[tab]}
             </button>
