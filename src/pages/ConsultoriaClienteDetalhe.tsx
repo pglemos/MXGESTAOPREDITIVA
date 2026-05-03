@@ -35,24 +35,25 @@ import { DREView } from '@/features/consultoria/components/DREView'
 import { ConsultingDailyTrackingView } from '@/features/consultoria/components/ConsultingDailyTrackingView'
 import { ConsultingMonthlyCloseView } from '@/features/consultoria/components/ConsultingMonthlyCloseView'
 import { ConsultingDriveFilesView } from '@/features/consultoria/components/ConsultingDriveFilesView'
+import { TabNav, TabNavItem } from '@/components/molecules/TabNav'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
 import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
 
 type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis' | 'files'
 
-const tabLabels: Record<Tab, string> = {
-  overview: 'Visão Geral',
-  visits: 'Agenda/Visitas',
-  strategic: 'Estratégico',
-  action: 'Plano de Ação',
-  financial: 'DRE/Financeiro',
-  daily: 'Acomp. Diário',
-  monthly: 'Fechamento',
-  roi: 'ROI/Choque',
-  pdis: 'Plano de Carreira (PDI)',
-  files: 'Arquivos',
-}
+const TABS: TabNavItem<Tab>[] = [
+  { key: 'overview',   label: 'Visão Geral' },
+  { key: 'visits',     label: 'Agenda/Visitas' },
+  { key: 'strategic',  label: 'Estratégico' },
+  { key: 'action',     label: 'Plano de Ação' },
+  { key: 'financial',  label: 'DRE/Financeiro' },
+  { key: 'daily',      label: 'Acomp. Diário' },
+  { key: 'monthly',    label: 'Fechamento' },
+  { key: 'roi',        label: 'ROI/Choque' },
+  { key: 'pdis',       label: 'Plano de Carreira (PDI)' },
+  { key: 'files',      label: 'Arquivos' },
+]
 
 function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
   const initialData = client.visits?.find((v: any) => v.visit_number === 1)?.quant_data as any
@@ -432,19 +433,10 @@ export default function ConsultoriaClienteDetalhe() {
          </div>
       </header>
 
-      <nav className="flex gap-mx-xs border-b border-border-subtle mb-mx-md overflow-x-auto no-scrollbar">
-         {(['overview', 'visits', 'strategic', 'action', 'financial', 'daily', 'roi', 'pdis', 'files'] as Tab[]).map(tab => (
-            <button key={tab} onClick={() => handleTabChange(tab)} className={cn("px-mx-md py-mx-sm text-xs font-black uppercase tracking-mx-widest transition-all border-b-2 whitespace-nowrap", activeTab === tab ? "border-brand-primary text-brand-primary bg-brand-primary/5" : "border-transparent text-text-tertiary hover:text-text-primary hover:bg-surface-alt")}>
-               {tabLabels[tab]}
-            </button>
-         ))}
-      </nav>
+      <TabNav tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
       {renderTabContent()}
     </main>
   )
 }
 
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ')
-}

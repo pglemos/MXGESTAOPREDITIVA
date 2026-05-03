@@ -257,15 +257,17 @@ async function ensureSubfolders(
     const found = await findDriveFolder(accessToken, name, folder.google_drive_folder_id);
     const driveFolder = found ?? await createDriveFolder(accessToken, name, folder.google_drive_folder_id);
 
-    await adminClient.from("subpastas_drive_consultoria").upsert({
-      pasta_id: folder.id,
-      client_id: folder.client_id,
-      tipo,
-      google_drive_folder_id: driveFolder.id,
-      google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
-      status: "active",
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "client_id,tipo" }).catch(() => {});
+    await (async () => {
+      await adminClient.from("subpastas_drive_consultoria").upsert({
+        pasta_id: folder.id,
+        client_id: folder.client_id,
+        tipo,
+        google_drive_folder_id: driveFolder.id,
+        google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
+        status: "active",
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "client_id,tipo" });
+    })().catch(() => {});
 
     result[tipo] = driveFolder.webViewLink || folderUrl(driveFolder.id);
   }
@@ -287,7 +289,18 @@ async function ensureClientFolder(
     .maybeSingle();
   const cacheAvailable = !isMissingTableError(existingError);
   if (existingError && cacheAvailable) throw toError(existingError);
-  if (existing?.google_drive_folder_id) return { ...existing, cache_available: true } as DriveFolderRow;
+  if (existing?.google_drive_folder_id) {
+    // Ensure config_drive_central knows the root folder (non-blocking)
+    if (existing.parent_folder_id) {
+      (async () => {
+        await adminClient.from("config_drive_central").upsert(
+          { key: "root_folder_id", value: existing.parent_folder_id, updated_at: new Date().toISOString() },
+          { onConflict: "key" },
+        );
+      })().catch(() => {});
+    }
+    return { ...existing, cache_available: true } as DriveFolderRow;
+  }
 
   const root = await getRootFolder(adminClient, accessToken);
   const folderName = normalizeFolderName(`${client.name} - ${client.slug || client.id.slice(0, 8)}`);
@@ -479,8 +492,38 @@ Deno.serve(async (req) => {
 
     if (action === "list") {
       const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
-      // Trigger subfolder creation in background (non-blocking)
-      ensureSubfolders(adminClient, accessToken, folder, userId).catch(() => {});
+
+      // Use EdgeRuntime.waitUntil so background tasks finish even after response is sent
+      const bgTasks = (async () => {
+        await Promise.allSettled([
+          ensureSubfolders(adminClient, accessToken, folder, userId).catch(() => {}),
+          (async () => {
+            const { data: dedupRow } = await adminClient
+              .from("config_drive_central").select("value").eq("key", "dedup_done").maybeSingle();
+            if (dedupRow?.value === "true") return;
+            const { data: rootRow } = await adminClient
+              .from("config_drive_central").select("value").eq("key", "root_folder_id").maybeSingle();
+            if (!rootRow?.value) return;
+            const allRoots = await findAllDriveFolders(accessToken, CENTRAL_DRIVE_ROOT_FOLDER_NAME, "root");
+            for (const candidate of allRoots) {
+              if (candidate.id === rootRow.value) continue;
+              const hasKids = await driveHasChildren(accessToken, candidate.id);
+              if (!hasKids) {
+                await googleApiRequest(accessToken, `/drive/v3/files/${encodeURIComponent(candidate.id)}`, {
+                  method: "DELETE",
+                }).catch(() => {});
+              }
+            }
+            await adminClient.from("config_drive_central").upsert(
+              { key: "dedup_done", value: "true", updated_at: new Date().toISOString() },
+              { onConflict: "key" },
+            );
+          })().catch(() => {}),
+        ]);
+      })();
+
+      try { EdgeRuntime.waitUntil(bgTasks); } catch { bgTasks.catch(() => {}); }
+
       return jsonResponse({ folderUrl: folder.google_drive_folder_url, files: driveFiles });
     }
 
