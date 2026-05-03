@@ -4,9 +4,10 @@ import { parseReportBody } from "../_shared/schemas.ts";
 import { buildStoreQuery } from "../_shared/store.ts";
 import { sendReportEmail } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/response.ts";
-import { formatPtBrDate, escapeHtml, escapeXml } from "../_shared/format.ts";
+import { formatPtBrDate, escapeHtml } from "../_shared/format.ts";
 import { authorizeReportRequest } from "../_shared/auth.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { buildXlsxBase64, xlsxCell } from "../_shared/xlsx.ts";
 
 const supabase = createServiceClient();
 const resend = createResendClient();
@@ -77,7 +78,7 @@ Deno.serve(async (req: Request) => {
 
       const payload = await buildWeeklyPayload(store, dates);
       const html = generateWeeklyHTML(payload);
-      const xlsBase64 = generateWeeklyXLSX(payload);
+      const xlsxBase64 = await generateWeeklyXLSX(payload);
       const baseFileName = `Feedback Semanal - ${sanitizeAttachmentName(store.name)} - ${formatShortDateForFile(dates.weekStart)} a ${formatShortDateForFile(dates.weekEnd)}`;
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
@@ -88,7 +89,7 @@ Deno.serve(async (req: Request) => {
           to: payload.recipients,
           subject: `MX Performance | Feedback semanal ${store.name.toUpperCase()}`,
           html,
-          attachments: [{ filename: `${baseFileName}.xls`, content: xlsBase64, mimeType: "application/vnd.ms-excel" }],
+          attachments: [{ filename: `${baseFileName}.xlsx`, content: xlsxBase64, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }],
           logPrefix: "[Semanal]",
           storeName: store.name,
         });
@@ -399,92 +400,162 @@ ${row.diagnostic}
 *Entenda o critério:* ${row.criterion}`;
 }
 
-function generateWeeklyXLSX(payload: any) {
-  const { ranking, teamAvg, store, weekStart, weekEnd } = payload;
+async function generateWeeklyXLSX(payload: Awaited<ReturnType<typeof buildWeeklyPayload>>) {
+  const { ranking, teamAvg, teamTotal, store, weekStart, weekEnd, benchmark, weeklyGoal } = payload;
+  const summaryRows = [
+    { cells: [xlsxCell("MX PERFORMANCE | FEEDBACK SEMANAL", "title"), "", "", "", "", "", "", "", "", ""], height: 28 },
+    { cells: [xlsxCell(`${store.name.toUpperCase()} | ${formatPtBrDate(weekStart)} a ${formatPtBrDate(weekEnd)}`, "subtitle"), "", "", "", "", "", "", "", "", ""], height: 22 },
+    { cells: ["", "", "", "", "", "", "", "", "", ""] },
+    {
+      cells: [
+        xlsxCell("Vendedores", "metricLabel"),
+        xlsxCell("Leads", "metricLabel"),
+        xlsxCell("Agendamentos", "metricLabel"),
+        xlsxCell("Visitas", "metricLabel"),
+        xlsxCell("Vendas", "metricLabel"),
+        xlsxCell("Meta semanal", "metricLabel"),
+        xlsxCell("Lead > AGD", "metricLabel"),
+        xlsxCell("AGD > Visita", "metricLabel"),
+        xlsxCell("Visita > Venda", "metricLabel"),
+        xlsxCell("Link", "metricLabel"),
+      ],
+      height: 24,
+    },
+    {
+      cells: [
+        xlsxCell(ranking.length, "metricValue"),
+        xlsxCell(teamTotal.leads, "metricValue"),
+        xlsxCell(teamTotal.agd, "metricValue"),
+        xlsxCell(teamTotal.vis, "metricValue"),
+        xlsxCell(teamTotal.vnd, "greenMetric"),
+        xlsxCell(weeklyGoal, "metricValue"),
+        xlsxCell(`${teamAvg.txLeadAgd}%`, teamAvg.txLeadAgd >= benchmark.lead_to_agend ? "statusGreen" : "statusRed"),
+        xlsxCell(`${teamAvg.txAgdVis}%`, teamAvg.txAgdVis >= benchmark.agend_to_visit ? "statusGreen" : "statusRed"),
+        xlsxCell(`${teamAvg.txVisVnd}%`, teamAvg.txVisVnd >= benchmark.visit_to_sale ? "statusGreen" : "statusRed"),
+        xlsxCell(payload.reportUrl, "bodyWrap"),
+      ],
+      height: 30,
+    },
+    { cells: ["", "", "", "", "", "", "", "", "", ""] },
+    { cells: [xlsxCell("Ranking e diagnóstico", "section"), "", "", "", "", "", "", "", "", ""], height: 22 },
+    {
+      cells: [
+        "#",
+        "Vendedor",
+        "Leads",
+        "AGD",
+        "Visitas",
+        "Vendas",
+        "Meta ref.",
+        "Gargalo",
+        "Diagnóstico",
+        "Ação",
+      ].map((value) => xlsxCell(value, "header")),
+      height: 28,
+    },
+    ...ranking.map((row, index) => ({
+      cells: [
+        xlsxCell(index + 1, "bodyCenter"),
+        xlsxCell(row.name, "body"),
+        xlsxCell(row.leads, "bodyCenter"),
+        xlsxCell(row.agd, "bodyCenter"),
+        xlsxCell(row.vis, "bodyCenter"),
+        xlsxCell(row.vnd, "bodyCenter"),
+        xlsxCell(row.sellerWeeklyGoal, "bodyCenter"),
+        xlsxCell(row.bottleneck || "OK", row.bottleneck ? "danger" : "bodyCenter"),
+        xlsxCell(row.diagnostic, row.bottleneck ? "danger" : "bodyWrap"),
+        xlsxCell(row.action, "bodyWrap"),
+      ],
+      height: 42,
+    })),
+  ];
 
-  let xml = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- <Styles>
-  <Style ss:ID="Header"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="12" ss:Color="#E8F0EA" ss:Bold="1"/><Interior ss:Color="#0B100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="ColumnHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#9BA89F" ss:Bold="1"/><Interior ss:Color="#0F1612" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Opportunity"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#062012" ss:Bold="1"/><Interior ss:Color="#1FCB6E" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="Compare"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#E8F0EA" ss:Bold="1"/><Interior ss:Color="#172019" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="SubHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#E8F0EA" ss:Bold="1"/><Interior ss:Color="#243227" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Center"><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Bold"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Bold="1"/></Style>
-  <Style ss:ID="Danger"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FF6B5B" ss:Bold="1"/></Style>
-  <Style ss:ID="Italic"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Italic="1"/></Style>
-  <Style ss:ID="Footnote"><Interior ss:Color="#172019" ss:Pattern="Solid"/><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#E8F0EA" ss:Bold="1"/></Style>
- </Styles>
- <Worksheet ss:Name="Resumo Geral">
-  <Table>
-   <Row><Cell ss:MergeAcross="7" ss:StyleID="Header"><Data ss:Type="String">FEEDBACK SEMANAL - ${escapeXml(store.name.toUpperCase())}</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="7" ss:StyleID="Center"><Data ss:Type="String">Periodo: ${formatPtBrDate(weekStart)} a ${formatPtBrDate(weekEnd)}</Data></Cell></Row>
-   <Row ss:Index="4">
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Vendedor</Data></Cell>
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Leads</Data></Cell>
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Agendamentos</Data></Cell>
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Visitas</Data></Cell>
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Vendas</Data></Cell>
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Meta Ref</Data></Cell>
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Gargalo</Data></Cell>
-    <Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Diagnostico</Data></Cell>
-   </Row>
-   ${ranking.map((row: RankingRow) => `
-   <Row>
-    <Cell><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.leads}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.agd}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.vis}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.vnd}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${row.sellerWeeklyGoal}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(row.bottleneck || "OK")}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(row.diagnostic)}</Data></Cell>
-   </Row>`).join("")}
-  </Table>
- </Worksheet>`;
+  const sheets = [
+    {
+      name: "Resumo Geral",
+      columns: [8, 34, 12, 12, 12, 12, 12, 18, 52, 58],
+      rows: summaryRows,
+      merges: ["A1:J1", "A2:J2", "A7:J7"],
+      autoFilter: `A8:J${Math.max(summaryRows.length, 8)}`,
+      freezeRow: 8,
+    },
+    ...ranking.map((seller) => {
+      const rows = [
+        { cells: [xlsxCell(`RESUMO DO VENDEDOR: ${seller.name.toUpperCase()}`, "title"), "", "", "", ""], height: 28 },
+        { cells: [xlsxCell(`${formatPtBrDate(weekStart)} a ${formatPtBrDate(weekEnd)}`, "subtitle"), "", "", "", ""], height: 22 },
+        { cells: ["", "", "", "", ""] },
+        {
+          cells: ["Leads", "Agendamentos", "Visitas", "Vendas", "Meta semanal"].map((value) => xlsxCell(value, "metricLabel")),
+          height: 24,
+        },
+        {
+          cells: [
+            xlsxCell(seller.leads, "metricValue"),
+            xlsxCell(seller.agd, "metricValue"),
+            xlsxCell(seller.vis, "metricValue"),
+            xlsxCell(seller.vnd, "greenMetric"),
+            xlsxCell(seller.sellerWeeklyGoal, "metricValue"),
+          ],
+          height: 30,
+        },
+        { cells: ["", "", "", "", ""] },
+        { cells: [xlsxCell("Análise de aproveitamento (real vs ideal)", "section"), "", "", "", ""], height: 22 },
+        {
+          cells: ["Etapa", "Real", "Ideal", "Status", "Gap"].map((value) => xlsxCell(value, "header")),
+          height: 24,
+        },
+        {
+          cells: [
+            xlsxCell("Leads para agendamentos", "body"),
+            xlsxCell(seller.agd, "bodyCenter"),
+            xlsxCell(seller.idealAgd, "bodyCenter"),
+            xlsxCell(seller.agd >= seller.idealAgd ? "Bom" : "Abaixo", seller.agd >= seller.idealAgd ? "statusGreen" : "statusRed"),
+            xlsxCell(seller.agdGap, "bodyCenter"),
+          ],
+        },
+        {
+          cells: [
+            xlsxCell("Agendamentos para visitas", "body"),
+            xlsxCell(seller.vis, "bodyCenter"),
+            xlsxCell(seller.idealVis, "bodyCenter"),
+            xlsxCell(seller.vis >= seller.idealVis ? "Bom" : "Abaixo", seller.vis >= seller.idealVis ? "statusGreen" : "statusRed"),
+            xlsxCell(seller.visitGap, "bodyCenter"),
+          ],
+        },
+        {
+          cells: [
+            xlsxCell("Visitas para vendas", "body"),
+            xlsxCell(seller.vnd, "bodyCenter"),
+            xlsxCell(seller.idealVnd, "bodyCenter"),
+            xlsxCell(seller.vnd >= seller.idealVnd ? "Bom" : "Abaixo", seller.vnd >= seller.idealVnd ? "statusGreen" : "statusRed"),
+            xlsxCell(seller.saleGap, "bodyCenter"),
+          ],
+        },
+        { cells: ["", "", "", "", ""] },
+        { cells: [xlsxCell("Comparativo com a equipe", "section"), "", "", "", ""], height: 22 },
+        { cells: ["Critério", "Sua produção", "Média equipe", "Conclusão", ""].map((value) => xlsxCell(value, "header")), height: 24 },
+        { cells: [xlsxCell("Volume de vendas", "body"), xlsxCell(seller.vnd, "bodyCenter"), xlsxCell(teamAvg.vnd, "bodyCenter"), xlsxCell(seller.salesComparison.replace("Volume de Vendas: ", ""), "bodyWrap"), ""] },
+        { cells: [xlsxCell("Volume de agendamentos", "body"), xlsxCell(seller.agd, "bodyCenter"), xlsxCell(teamAvg.agd, "bodyCenter"), xlsxCell(seller.agdComparison.replace("Volume de Agendamentos: ", ""), "bodyWrap"), ""] },
+        { cells: [xlsxCell("Volume de visitas", "body"), xlsxCell(seller.vis, "bodyCenter"), xlsxCell(teamAvg.vis, "bodyCenter"), xlsxCell(seller.visitComparison.replace("Volume de Visitas: ", ""), "bodyWrap"), ""] },
+        { cells: ["", "", "", "", ""] },
+        { cells: [xlsxCell("Diagnóstico da semana", "section"), "", "", "", ""], height: 22 },
+        { cells: [xlsxCell(seller.diagnostic, seller.bottleneck ? "danger" : "bodyWrap"), "", "", "", ""], height: 48 },
+        { cells: [xlsxCell("Orientação de ação", "section"), "", "", "", ""], height: 22 },
+        { cells: [xlsxCell(seller.action, "bodyWrap"), "", "", "", ""], height: 48 },
+        { cells: [xlsxCell("Entenda o critério", "footnote"), "", "", "", ""], height: 22 },
+        { cells: [xlsxCell(seller.criterion, "bodyWrap"), "", "", "", ""], height: 52 },
+      ];
+      return {
+        name: seller.name,
+        columns: [32, 16, 16, 32, 14],
+        rows,
+        merges: ["A1:E1", "A2:E2", "A7:E7", "A13:E13", "A19:E19", "A20:E20", "A21:E21", "A22:E22", "A23:E23", "A24:E24"],
+        freezeRow: 8,
+      };
+    }),
+  ];
 
-  for (const seller of ranking) {
-    const safeName = escapeXml(seller.name).substring(0, 30).replace(/[\\/?*\[\]]/g, "");
-    xml += `
- <Worksheet ss:Name="${safeName}">
-  <Table ss:ExpandedColumnCount="5">
-   <Row><Cell ss:MergeAcross="4" ss:StyleID="Header"><Data ss:Type="String">RESUMO DO VENDEDOR: ${escapeXml(seller.name.toUpperCase())}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-   <Row><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Leads Recebidos</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Agendamentos Feitos</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Visitas Realizadas</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Vendas Fechadas</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Sua Meta Semanal</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.leads}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.agd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.sellerWeeklyGoal}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="4" ss:StyleID="Opportunity"><Data ss:Type="String">ANALISE DE APROVEITAMENTO (REAL vs IDEAL)</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1" ss:StyleID="SubHeader"><Data ss:Type="String">Etapa do Processo</Data></Cell><Cell ss:StyleID="SubHeader"><Data ss:Type="String">Seu Resultado</Data></Cell><Cell ss:StyleID="SubHeader"><Data ss:Type="String">O Ideal Seria</Data></Cell><Cell ss:StyleID="SubHeader"><Data ss:Type="String">Status</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">De Leads para Agendamentos</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.agd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.idealAgd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="String">${seller.agd >= seller.idealAgd ? "Bom" : "Abaixo"}</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">De Agendamentos para Visitas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.idealVis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="String">${seller.vis >= seller.idealVis ? "Bom" : "Abaixo"}</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">De Visitas para Vendas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.idealVnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="String">${seller.vnd >= seller.idealVnd ? "Bom" : "Abaixo"}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="4" ss:StyleID="Compare"><Data ss:Type="String">SEU DESEMPENHO COMPARADO A MEDIA DA EQUIPE</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1" ss:StyleID="ColumnHeader"><Data ss:Type="String">Criterio</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Sua Producao</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Media da Equipe</Data></Cell><Cell ss:StyleID="ColumnHeader"><Data ss:Type="String">Conclusao</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">Volume de Vendas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vnd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${teamAvg.vnd}</Data></Cell><Cell><Data ss:Type="String">${escapeXml(seller.salesComparison.replace("Volume de Vendas: ", ""))}</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">Volume de Agendamentos</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.agd}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${teamAvg.agd}</Data></Cell><Cell><Data ss:Type="String">${escapeXml(seller.agdComparison.replace("Volume de Agendamentos: ", ""))}</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1"><Data ss:Type="String">Volume de Visitas</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${seller.vis}</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">${teamAvg.vis}</Data></Cell><Cell><Data ss:Type="String">${escapeXml(seller.visitComparison.replace("Volume de Visitas: ", ""))}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1" ss:StyleID="Bold"><Data ss:Type="String">DIAGNOSTICO DA SEMANA:</Data></Cell><Cell ss:MergeAcross="2" ss:StyleID="Danger"><Data ss:Type="String">${escapeXml(seller.diagnostic)}</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="1" ss:StyleID="Bold"><Data ss:Type="String">ORIENTACAO DE ACAO:</Data></Cell><Cell ss:MergeAcross="2" ss:StyleID="Italic"><Data ss:Type="String">${escapeXml(seller.action)}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="4" ss:StyleID="Footnote"><Data ss:Type="String">ENTENDA A CONTA (BOAS PRATICAS DO SETOR)</Data></Cell></Row>
-   <Row><Cell ss:MergeAcross="4"><Data ss:Type="String">${escapeXml(seller.criterion)}</Data></Cell></Row>
-  </Table>
- </Worksheet>`;
-  }
-
-  xml += `\n</Workbook>`;
-
-  const data = new TextEncoder().encode(xml);
-  const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
-  return btoa(binString);
+  return buildXlsxBase64(sheets);
 }
 
 function generateWeeklyWhatsAppText(payload: Awaited<ReturnType<typeof buildWeeklyPayload>>) {

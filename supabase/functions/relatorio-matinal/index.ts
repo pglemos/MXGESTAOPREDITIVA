@@ -4,9 +4,10 @@ import { parseReportBody } from "../_shared/schemas.ts";
 import { buildStoreQuery } from "../_shared/store.ts";
 import { sendReportEmail } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/response.ts";
-import { formatPtBrDate, escapeHtml, escapeXml } from "../_shared/format.ts";
+import { formatPtBrDate, escapeHtml } from "../_shared/format.ts";
 import { authorizeReportRequest } from "../_shared/auth.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { buildXlsxBase64, xlsxCell } from "../_shared/xlsx.ts";
 
 const supabase = createServiceClient();
 const resend = createResendClient();
@@ -61,8 +62,8 @@ Deno.serve(async (req: Request) => {
 
       const payload = await buildMorningPayload(store, dates);
       const html = generateHTML(payload);
-      const xlsBase64 = generateXLSX(payload);
-      const fileName = `Relatorio_${sanitizeAttachmentName(store.name)}.xls`;
+      const xlsxBase64 = await generateXLSX(payload);
+      const fileName = `Relatorio_${sanitizeAttachmentName(store.name)}.xlsx`;
 
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
@@ -73,7 +74,7 @@ Deno.serve(async (req: Request) => {
           to: payload.recipients,
           subject: `MX Performance | Matinal ${store.name.toUpperCase()} | Tendencia ${payload.projection} ${pluralizeCar(payload.projection)}`,
           html,
-          attachments: [{ filename: fileName, content: xlsBase64, mimeType: "application/vnd.ms-excel" }],
+          attachments: [{ filename: fileName, content: xlsxBase64, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }],
           logPrefix: "[Matinal]",
           storeName: store.name,
         });
@@ -286,111 +287,113 @@ function sanitizeAttachmentName(name: string) {
     .toUpperCase() || "LOJA";
 }
 
-function generateXLSX(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
+async function generateXLSX(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
   const ranking = payload.ranking;
   const totalSales = ranking.reduce((sum, row) => sum + row.vt, 0);
   const totalYesterday = ranking.reduce((sum, row) => sum + row.vnd_yesterday, 0);
   const totalLeads = ranking.reduce((sum, row) => sum + row.leads, 0);
   const totalAgd = ranking.reduce((sum, row) => sum + row.agd_cart_today + row.agd_net_today, 0);
-  const reachingColor = payload.reaching >= 100 ? "#1FCB6E" : payload.reaching >= 80 ? "#FFB547" : "#FF6B5B";
-  const xml = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- <Styles>
-  <Style ss:ID="Title"><Font ss:FontName="Calibri" ss:Bold="1" ss:Size="16" ss:Color="#E8F0EA"/><Interior ss:Color="#0B100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Subtitle"><Font ss:FontName="Calibri" ss:Bold="1" ss:Size="11" ss:Color="#9BA89F"/><Interior ss:Color="#0F1612" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Header"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#E8F0EA"/><Interior ss:Color="#0F1612" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="MetricHeader"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#9BA89F"/><Interior ss:Color="#172019" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Metric"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#E8F0EA"/><Interior ss:Color="#0A100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Highlight"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#062012"/><Interior ss:Color="#1FCB6E" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Warning"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="${reachingColor}"/><Interior ss:Color="#0A100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Cell"><Font ss:FontName="Calibri" ss:Color="#0B100C"/></Style>
- </Styles>
- <Worksheet ss:Name="Painel Visual">
-  <Table>
-   <Column ss:Width="160"/><Column ss:Width="120"/><Column ss:Width="120"/><Column ss:Width="120"/><Column ss:Width="120"/>
-   <Row>
-    <Cell ss:MergeAcross="4" ss:StyleID="Title"><Data ss:Type="String">MX PERFORMANCE | RELATORIO MATINAL</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:MergeAcross="4" ss:StyleID="Subtitle"><Data ss:Type="String">${escapeXml(payload.store.name.toUpperCase())} | Ref. ${formatPtBrDate(payload.referenceDate)}</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">VENDAS</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">META</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">PROJECAO</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">ATINGIMENTO</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">FALTA</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${payload.totalSales}</Data></Cell>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${payload.storeGoal}</Data></Cell>
-    <Cell ss:StyleID="Highlight"><Data ss:Type="Number">${payload.projection}</Data></Cell>
-    <Cell ss:StyleID="Warning"><Data ss:Type="String">${payload.reaching}%</Data></Cell>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${payload.gap}</Data></Cell>
-   </Row>
-   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
-   <Row>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">LEADS</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">AGD (HOJE)</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">VND (ONTEM)</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">TOTAL (MES)</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${totalLeads}</Data></Cell>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${totalAgd}</Data></Cell>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${totalYesterday}</Data></Cell>
-    <Cell ss:StyleID="Highlight"><Data ss:Type="Number">${totalSales}</Data></Cell>
-   </Row>
-   ${ranking.map(row => `
-   <Row><Cell ss:MergeAcross="3" ss:StyleID="Header"><Data ss:Type="String">${escapeXml(row.name.toUpperCase())}</Data></Cell></Row>
-   <Row>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">LEADS</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">AGD (HOJE)</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">VND (ONTEM)</Data></Cell>
-    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">TOTAL (MES)</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${row.leads}</Data></Cell>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${row.agd_cart_today + row.agd_net_today}</Data></Cell>
-    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${row.vnd_yesterday}</Data></Cell>
-    <Cell ss:StyleID="Highlight"><Data ss:Type="Number">${row.vt}</Data></Cell>
-   </Row>`).join("")}
-  </Table>
- </Worksheet>
- <Worksheet ss:Name="Lista de Vendas Detalhada">
-  <Table>
-   <Column ss:Width="220"/><Column ss:Width="190"/><Column ss:Width="190"/><Column ss:Width="190"/><Column ss:Width="110"/><Column ss:Width="110"/><Column ss:Width="130"/>
-   <Row>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Vendedor</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">LEADS NOVOS RECEBIDOS NO DIA ANTERIOR</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">AGENDAMENTOS CARTEIRA (HOJE)</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">AGENDAMENTOS INTERNET (HOJE)</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">VND (ONTEM)</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">TOTAL (MES)</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">STATUS REGISTRO</Data></Cell>
-   </Row>
-   ${ranking.map(row => `
-   <Row>
-    <Cell ss:StyleID="Cell"><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
-    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.leads}</Data></Cell>
-    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.agd_cart_today}</Data></Cell>
-    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.agd_net_today}</Data></Cell>
-    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.vnd_yesterday}</Data></Cell>
-    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.vt}</Data></Cell>
-    <Cell ss:StyleID="Cell"><Data ss:Type="String">${row.sem_registro ? "PENDENTE" : "REGISTRADO"}</Data></Cell>
-   </Row>`).join("")}
-  </Table>
- </Worksheet>
-</Workbook>`;
+  const reachingStyle = payload.reaching >= 100 ? "statusGreen" : payload.reaching >= 80 ? "statusAmber" : "statusRed";
+  const summaryRows = [
+    { cells: [xlsxCell("MX PERFORMANCE | RELATÓRIO MATINAL", "title"), "", "", "", "", "", "", ""], height: 28 },
+    { cells: [xlsxCell(`${payload.store.name.toUpperCase()} | Ref. ${formatPtBrDate(payload.referenceDate)}`, "subtitle"), "", "", "", "", "", "", ""], height: 22 },
+    { cells: ["", "", "", "", "", "", "", ""] },
+    {
+      cells: [
+        xlsxCell("Vendas", "metricLabel"),
+        xlsxCell("Meta", "metricLabel"),
+        xlsxCell("Projeção", "metricLabel"),
+        xlsxCell("Atingimento", "metricLabel"),
+        xlsxCell("Falta", "metricLabel"),
+        xlsxCell("Leads", "metricLabel"),
+        xlsxCell("AGD hoje", "metricLabel"),
+        xlsxCell("VND ontem", "metricLabel"),
+      ],
+      height: 22,
+    },
+    {
+      cells: [
+        xlsxCell(payload.totalSales, "metricValue"),
+        xlsxCell(payload.storeGoal, "metricValue"),
+        xlsxCell(payload.projection, "greenMetric"),
+        xlsxCell(`${payload.reaching}%`, reachingStyle),
+        xlsxCell(payload.gap, "metricValue"),
+        xlsxCell(totalLeads, "metricValue"),
+        xlsxCell(totalAgd, "metricValue"),
+        xlsxCell(totalYesterday, "metricValue"),
+      ],
+      height: 28,
+    },
+    { cells: ["", "", "", "", "", "", "", ""] },
+    { cells: [xlsxCell("Ranking por vendedor", "section"), "", "", "", "", "", "", ""], height: 22 },
+    {
+      cells: ["#", "Vendedor", "Leads", "AGD hoje", "VND ontem", "Total mês", "Status", "Venda loja?"].map((value) => xlsxCell(value, "header")),
+      height: 24,
+    },
+    ...ranking.map((row, index) => ({
+      cells: [
+        xlsxCell(index + 1, "bodyCenter"),
+        xlsxCell(row.name, "body"),
+        xlsxCell(row.leads, "bodyCenter"),
+        xlsxCell(row.agd_cart_today + row.agd_net_today, "bodyCenter"),
+        xlsxCell(row.vnd_yesterday, "bodyCenter"),
+        xlsxCell(row.vt, "bodyCenter"),
+        xlsxCell(row.sem_registro ? "PENDENTE" : "REGISTRADO", row.sem_registro ? "danger" : "bodyCenter"),
+        xlsxCell(row.is_venda_loja ? "Sim" : "Não", "bodyCenter"),
+      ],
+    })),
+  ];
+  const detailRows = [
+    {
+      cells: [
+        "Vendedor",
+        "Leads",
+        "AGD carteira hoje",
+        "AGD internet hoje",
+        "AGD total hoje",
+        "VND ontem",
+        "Vendas porta",
+        "Vendas carteira",
+        "Vendas internet",
+        "Total mês",
+        "Status registro",
+      ].map((value) => xlsxCell(value, "header")),
+      height: 28,
+    },
+    ...ranking.map((row) => ({
+      cells: [
+        xlsxCell(row.name, "body"),
+        xlsxCell(row.leads, "bodyCenter"),
+        xlsxCell(row.agd_cart_today, "bodyCenter"),
+        xlsxCell(row.agd_net_today, "bodyCenter"),
+        xlsxCell(row.agd_cart_today + row.agd_net_today, "bodyCenter"),
+        xlsxCell(row.vnd_yesterday, "bodyCenter"),
+        xlsxCell(row.vp, "bodyCenter"),
+        xlsxCell(row.vc, "bodyCenter"),
+        xlsxCell(row.vn, "bodyCenter"),
+        xlsxCell(row.vt, "bodyCenter"),
+        xlsxCell(row.sem_registro ? "PENDENTE" : "REGISTRADO", row.sem_registro ? "danger" : "bodyCenter"),
+      ],
+    })),
+  ];
 
-  const data = new TextEncoder().encode(xml);
-  const binString = Array.from(data, (byte) => String.fromCharCode(byte)).join("");
-  return btoa(binString);
+  return buildXlsxBase64([
+    {
+      name: "Painel Visual",
+      columns: [10, 34, 13, 13, 13, 13, 14, 14],
+      rows: summaryRows,
+      merges: ["A1:H1", "A2:H2", "A7:H7"],
+      autoFilter: `A8:H${Math.max(summaryRows.length, 8)}`,
+      freezeRow: 8,
+    },
+    {
+      name: "Lista Detalhada",
+      columns: [34, 13, 18, 18, 16, 13, 13, 16, 16, 13, 18],
+      rows: detailRows,
+      autoFilter: `A1:K${Math.max(detailRows.length, 1)}`,
+      freezeRow: 1,
+    },
+  ]);
 }
 
 function generateWhatsAppText(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {

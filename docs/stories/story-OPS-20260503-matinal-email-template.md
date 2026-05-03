@@ -14,7 +14,7 @@ O PDF `/Users/pedroguilherme/Downloads/EMAIL MODELO QUE CHEGA.pdf` foi usado com
 - [x] HTML do e-mail usa layout compativel com Gmail por tabelas, com fundo `#070A08`, paineis `#0A100C/#0B100C`, bordas `#243227` e destaque `#1FCB6E`.
 - [x] Cada vendedor exibe `LEADS`, `AGD (HOJE)`, `VND (ONTEM)` e `TOTAL (MES)`.
 - [x] `VND (ONTEM)` usa apenas o lancamento da data de referencia, sem confundir com o acumulado mensal.
-- [x] Anexo do matinal usa Excel XML valido com nome `Relatorio_<LOJA>.xls` e MIME `application/vnd.ms-excel`.
+- [x] Anexo do matinal usa XLSX real com nome `Relatorio_<LOJA>.xlsx` e MIME `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
 - [x] Workbook possui abas `Painel Visual` e `Lista de Vendas Detalhada`.
 - [x] Template legado local fica alinhado ao novo visual para evitar divergencia.
 - [x] Gates locais passam apos redesign MX.
@@ -36,12 +36,13 @@ O PDF `/Users/pedroguilherme/Downloads/EMAIL MODELO QUE CHEGA.pdf` foi usado com
 - Previa MX gerada em `output/email-mx-redesign/matinal-mx-preview.png`.
 - Gates do redesign MX: `npm run typecheck`, `npm run lint`, `npm test` com 196 testes passando.
 - Edge Function `relatorio-matinal` publicada novamente no Supabase live apos redesign MX.
-- Anexo do matinal alinhado ao padrao MX: cabecalhos escuros, destaque verde, dados de loja/data/meta/projecao/atingimento e MIME Excel correto.
+- Anexo do matinal alinhado ao padrao MX: XLSX real, cabecalhos escuros, destaque verde, dados de loja/data/meta/projecao/atingimento, filtros, congelamento de cabecalho e MIME Excel moderno.
 
 ### File List
 
 - `docs/stories/story-OPS-20260503-matinal-email-template.md`
 - `supabase/functions/relatorio-matinal/index.ts`
+- `supabase/functions/_shared/xlsx.ts`
 - `src/lib/automation/email/templates/matinal.ts`
 - `output/mx-brand-reference-home.png`
 - `output/email-mx-redesign/matinal-mx-preview.html`
