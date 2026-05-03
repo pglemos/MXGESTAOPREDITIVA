@@ -431,6 +431,10 @@ export default function AgendaAdmin() {
     const visitNumber = editingVisitId
       ? Number(scheduleForm.visit_number) || 0
       : getNextVisitNumber(scheduleForm.client_id)
+    if (!Number.isInteger(visitNumber) || visitNumber < 1 || visitNumber > 7) {
+      toast.error('O PMR trabalha apenas com visitas de 1 a 7.')
+      return
+    }
     const scheduledAt = buildSaoPauloDateTime(scheduleForm.scheduled_at, scheduleForm.scheduled_time)
 
     setSubmitting(true)
@@ -924,7 +928,8 @@ export default function AgendaAdmin() {
                 <Input
                   id="agenda-visit-number"
                   type="number"
-                  min="0"
+                  min="1"
+                  max="7"
                   value={scheduleForm.visit_number}
                   onChange={(e) => setScheduleForm((prev) => ({ ...prev, visit_number: e.target.value }))}
                 />

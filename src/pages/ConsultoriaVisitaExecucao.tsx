@@ -30,7 +30,7 @@ import { VisitOneHighFidelity } from '@/features/consultoria/components/VisitOne
 import {
   VisitTwoExecution, VisitThreeExecution, VisitFourExecution,
   VisitFiveExecution, VisitSixExecution, VisitSevenExecution,
-  VisitEightExecution, VisitNineExecution, VisitChecklist
+  VisitChecklist
 } from '@/features/consultoria/components/VisitExecutionViews'
 import { VisitReportTemplate } from '@/features/consultoria/components/VisitReportTemplate'
 
@@ -57,6 +57,13 @@ export default function ConsultoriaVisitaExecucao() {
       window.history.replaceState({}, '', `/consultoria/clientes/${client.slug}/visitas/${visitNumber}${window.location.search}`)
     }
   }, [client, clientSlug, visitNumber])
+
+  useEffect(() => {
+    if (!client?.slug || (visitNum >= 1 && visitNum <= 7)) return
+    const normalizedVisit = visitNum < 1 ? 1 : 7
+    toast.info('PMR agora opera com visitas de 1 a 7. Redirecionando para a etapa válida.')
+    navigate(`/consultoria/clientes/${client.slug}/visitas/${normalizedVisit}`, { replace: true })
+  }, [client?.slug, navigate, visitNum])
 
   const [checklist, setChecklist] = useState<Array<{ task: string, completed: boolean }>>([])
   const [executiveSummary, setExecutiveSummary] = useState('')
@@ -159,6 +166,10 @@ export default function ConsultoriaVisitaExecucao() {
 
   const handleSave = async (complete: boolean = false) => {
     if (!clientId || !visitNum) return
+    if (visitNum < 1 || visitNum > 7) {
+      toast.error('O PMR trabalha apenas com visitas de 1 a 7.')
+      return
+    }
 
     if (complete && !hasRequiredEvidence) {
       toast.error(`Evidência Obrigatória: Esta etapa exige o upload de: ${step?.evidence_required}`, {
@@ -414,8 +425,6 @@ Gerado via MX PERFORMANCE`
              {visitNum === 5 && <VisitFiveExecution storeId={resolvedStoreId} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 6 && <VisitSixExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 7 && <VisitSevenExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
-             {visitNum === 8 && <VisitEightExecution clientId={clientId!} clientSlug={clientSlug!} />}
-             {visitNum === 9 && <VisitNineExecution financials={client.financials || []} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
 
              <div className="mt-mx-lg pt-mx-lg border-t border-border-subtle">
                 <Typography variant="tiny" tone="muted" className="mb-mx-sm block font-black tracking-mx-widest uppercase">Checklist de Tarefas</Typography>

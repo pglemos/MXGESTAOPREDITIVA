@@ -39,6 +39,10 @@ function getCentralSyncError(result: CalendarSyncResult | null) {
   return null
 }
 
+function validPmrVisitNumber(visitNumber: number) {
+  return Number.isInteger(visitNumber) && visitNumber >= 1 && visitNumber <= 7
+}
+
 async function syncVisitToGoogle(
   visitId: string,
   action: 'upsert' | 'delete' = 'upsert',
@@ -320,6 +324,8 @@ export function useAgendaAdmin() {
           auxiliary_consultant:usuarios!visitas_consultoria_consultor_auxiliar_id_fkey(name, email),
           client:clientes_consultoria!client_id(name, slug, status, modality)
         `)
+        .gte('visit_number', 1)
+        .lte('visit_number', 7)
         .order('scheduled_at', { ascending: true }),
       supabase
         .from('eventos_agenda_consultoria')
@@ -421,6 +427,9 @@ export function useAgendaAdmin() {
     if (!supabaseUser || !isPerfilInternoMx(role)) {
       return { error: 'Apenas perfis MX podem agendar visitas.' }
     }
+    if (!validPmrVisitNumber(input.visit_number)) {
+      return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
+    }
 
     const { data: insertedVisit, error: insertError } = await supabase
       .from('visitas_consultoria')
@@ -480,6 +489,9 @@ export function useAgendaAdmin() {
   const updateVisit = useCallback(async (input: UpdateVisitInput) => {
     if (!supabaseUser || !isPerfilInternoMx(role)) {
       return { error: 'Apenas perfis MX podem editar visitas.' }
+    }
+    if (!validPmrVisitNumber(input.visit_number)) {
+      return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
     }
 
     const { error: updateError } = await supabase

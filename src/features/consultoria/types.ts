@@ -269,6 +269,7 @@ export interface ConsultingInventorySnapshot {
   avg_price: number
   avg_km: number
   percent_over_90_days: number
+  source_payload?: Record<string, unknown>
 }
 
 export interface ConsultingStrategicPlan {

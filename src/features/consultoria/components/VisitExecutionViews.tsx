@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import {
   CheckCircle2, Zap, Target, ExternalLink, BarChart3,
-  Clock, TrendingUp, Award, Rocket, ShieldCheck,
-  ShieldAlert, Calculator, Presentation
+  Clock, TrendingUp, Award, Rocket,
+  ShieldAlert, Presentation
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card } from '@/components/molecules/Card'
@@ -404,30 +404,5 @@ export function VisitChecklist({ items, onToggle }: { items: Array<{ task: strin
         </div>
       ))}
     </div>
-  )
-}
-
-export function VisitEightExecution({ clientId, clientSlug }: { clientId: string, clientSlug: string }) {
-  return (
-    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-mx-2xl">
-      <div className="flex items-center gap-mx-sm mb-mx-md">
-        <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><ShieldCheck size={20} /></div>
-        <Typography variant="h3" className="text-lg">Auditoria de Processos</Typography>
-      </div>
-      <Typography variant="p">Auditoria completa dos processos de CRM, Preparação e Pós-Venda.</Typography>
-    </Card>
-  )
-}
-
-export function VisitNineExecution({ financials, onGenerateSummary }: { financials: any[], onGenerateSummary: (t: string) => void }) {
-  return (
-    <Card className="p-mx-lg shadow-sm border border-border-default bg-white rounded-mx-2xl">
-      <div className="flex items-center gap-mx-sm mb-mx-md">
-        <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Calculator size={20} /></div>
-        <Typography variant="h3" className="text-lg">Análise de DRE e Lucratividade</Typography>
-      </div>
-      <Typography variant="p" className="mb-mx-md">Revisão final dos indicadores financeiros e lucratividade do período.</Typography>
-      <Button variant="outline" onClick={() => onGenerateSummary("Análise de DRE e lucratividade concluída.")}>Registrar Análise</Button>
-    </Card>
   )
 }

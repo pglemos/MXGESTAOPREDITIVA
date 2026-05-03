@@ -48,6 +48,8 @@ O fluxo em `/consultoria/clientes/:slug/visitas/1..7` estava confuso para o prog
 - Produção/Supabase foi corrigido diretamente para que os textos de objetivo, participantes, evidências e checklist das visitas 5-7 reflitam PMR 7.
 - Validação local autenticada feita em `http://127.0.0.1:3001/consultoria/clientes/maiscar/visitas/5`, `/6` e `/7`.
 - Mobile validado em viewport `390x844`; o bloco de ações passou a caber em duas colunas.
+- Consolidação posterior: motor autônomo PMR, seed, importação de cronograma, agenda e execução de visitas foram travados no fluxo canônico 1-7.
+- `pmr_9` foi tratado como legado: clientes passam para `pmr_7`, programa/etapas ficam inativos e visitas históricas já existentes são preservadas fora do fluxo operacional.
 
 ## File List
 
@@ -55,8 +57,19 @@ O fluxo em `/consultoria/clientes/:slug/visitas/1..7` estava confuso para o prog
 - `src/features/consultoria/components/VisitOneHighFidelity.tsx`
 - `src/features/consultoria/components/VisitExecutionViews.tsx`
 - `src/features/consultoria/components/VisitHeaderBase.tsx`
+- `src/features/configuracoes/components/tabs/ConsultoriaPmrTab.tsx`
+- `src/hooks/useAgendaAdmin.ts`
+- `src/hooks/useConsultingClientBySlug.ts`
+- `src/hooks/useConsultingClients.ts`
+- `src/lib/consultoria/pmr-engine.ts`
+- `src/lib/consultoria/pmr-engine.test.ts`
 - `src/pages/ConsultoriaVisitaExecucao.tsx`
+- `src/pages/AgendaAdmin.tsx`
+- `scripts/import_cronograma_2026_mx.ts`
+- `scripts/seed_pmr_methodology.ts`
 - `supabase/migrations/20260501003000_pmr_unify_interview_aliases.sql`
 - `supabase/migrations/20260501004000_pmr7_visit_5_7_alignment.sql`
+- `supabase/migrations/20260503090000_pmr7_canonical_visit_flow.sql`
+- `src/test/security/evidencias-visita.playwright.ts`
 - `docs/stories/story-OPS-20260501-pmr-interview-unification.md`
 - `docs/stories/story-OPS-20260501-pmr-visits-1-7-cleanup.md`

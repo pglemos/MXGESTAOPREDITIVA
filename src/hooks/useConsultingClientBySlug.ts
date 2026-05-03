@@ -61,7 +61,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       supabase.from('snapshots_estoque_consultoria').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
     ])
 
-    const visitRows = visitsRes.data || []
+    const visitRows = (visitsRes.data || []).filter((visit: any) => visit.visit_number >= 1 && visit.visit_number <= 7)
     const visitIds = visitRows.map((v: any) => v.id).filter(Boolean)
     const { data: evidenceRows } = visitIds.length
       ? await supabase.from('evidencias_visita').select('*').in('visita_id', visitIds)

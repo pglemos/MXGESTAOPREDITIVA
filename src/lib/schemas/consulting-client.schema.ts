@@ -361,6 +361,7 @@ export const ConsultingInventorySnapshotSchema = z.object({
   avg_price: z.number(),
   avg_km: z.number(),
   percent_over_90_days: z.number(),
+  source_payload: z.record(z.string(), z.unknown()).optional().default({}),
 })
 
 export type ConsultingInventorySnapshot = z.infer<typeof ConsultingInventorySnapshotSchema>

@@ -69,6 +69,7 @@ export function useConsultingClients() {
       try {
         const clientsWithLastVisit = (data || []).map(client => {
           const finishedVisits = (client.visitas_consultoria || [])
+            .filter((v: any) => v.visit_number >= 1 && v.visit_number <= 7)
             .filter((v: any) => v.status === 'concluida')
             .sort((a: any, b: any) => new Date(b.effective_visit_date || b.created_at).getTime() - new Date(a.effective_visit_date || a.created_at).getTime())
           
@@ -200,7 +201,7 @@ export function useConsultingClientDetail(clientId?: string) {
           units: parseConsultingClientUnitArray(unitsRes.data || []),
           contacts: parseConsultingClientContactArray(contactsRes.data || []),
           assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
-          visits: (visitsRes.data || []) as any[],
+          visits: (visitsRes.data || []).filter((visit: any) => visit.visit_number >= 1 && visit.visit_number <= 7) as any[],
           financials: parseConsultingFinancialArray(financialsRes.data || []),
           modules: parseConsultingClientModuleArray(modulesRes.data || []),
         } as ConsultingClientDetail
@@ -377,6 +378,7 @@ export function useConsultingClientDetail(clientId?: string) {
 }
 
 export function useConsultingMethodology(programKey = 'pmr_7') {
+  const effectiveProgramKey = programKey === 'pmr_9' ? 'pmr_7' : programKey
   const [steps, setSteps] = useState<ConsultingMethodologyStep[]>([])
   const [program, setProgram] = useState<ConsultingVisitProgram | null>(null)
   const [loading, setLoading] = useState(true)
@@ -385,11 +387,11 @@ export function useConsultingMethodology(programKey = 'pmr_7') {
     async function fetchSteps() {
       setLoading(true)
       const [programRes, templateRes] = await Promise.all([
-        supabase.from('programas_visita_consultoria').select('*').eq('program_key', programKey).maybeSingle(),
+        supabase.from('programas_visita_consultoria').select('*').eq('program_key', effectiveProgramKey).maybeSingle(),
         supabase
           .from('etapas_modelo_visita_consultoria')
           .select('*')
-          .eq('program_key', programKey)
+          .eq('program_key', effectiveProgramKey)
           .eq('active', true)
           .order('visit_number', { ascending: true }),
       ])
@@ -412,7 +414,7 @@ export function useConsultingMethodology(programKey = 'pmr_7') {
       setLoading(false)
     }
     fetchSteps()
-  }, [programKey])
+  }, [effectiveProgramKey])
 
   return { steps, program, loading }
 }

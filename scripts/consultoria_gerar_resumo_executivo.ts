@@ -1,5 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
+import {
+  buildPmrMetricViews,
+  buildPmrStrategicPlan,
+  derivePmrMetricResults,
+  mergeLatestPmrResults,
+} from '../src/lib/consultoria/pmr-engine'
 
 dotenv.config()
 
@@ -27,20 +33,50 @@ async function main() {
   if (!args.clientId) throw new Error('Use --client-id UUID')
   const supabase = envClient()
 
-  const [clientRes, plansRes, responsesRes, actionsRes] = await Promise.all([
+  const [clientRes, plansRes, responsesRes, actionsRes, metricsRes, catalogRes, parameterSetRes, marketingRes, salesRes, inventoryRes, financialsRes] = await Promise.all([
     supabase.from('clientes_consultoria').select('*').eq('id', args.clientId).single(),
     supabase.from('planejamentos_estrategicos').select('*').eq('client_id', args.clientId).order('generated_at', { ascending: false }).limit(1),
     supabase.from('respostas_formulario_pmr').select('*, template:modelos_formulario_pmr(*)').eq('client_id', args.clientId).order('submitted_at', { ascending: false }),
     supabase.from('itens_plano_acao').select('*').eq('client_id', args.clientId).order('priority', { ascending: true }),
+    supabase.from('resultados_metricas_cliente').select('*').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
+    supabase.from('catalogo_metricas_consultoria').select('*').eq('active', true).order('sort_order', { ascending: true }),
+    supabase.from('conjuntos_parametros_consultoria').select('*, values:valores_parametros_consultoria(*)').eq('active', true).maybeSingle(),
+    supabase.from('marketing_mensal_consultoria').select('*').eq('client_id', args.clientId).order('reference_month', { ascending: false }),
+    supabase.from('entradas_vendas_consultoria').select('*').eq('client_id', args.clientId).order('sale_date', { ascending: false }),
+    supabase.from('snapshots_estoque_consultoria').select('*').eq('client_id', args.clientId).order('reference_month', { ascending: false }),
+    supabase.from('financeiro_consultoria').select('*').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
   ])
 
-  const fetchError = clientRes.error || plansRes.error || responsesRes.error || actionsRes.error
+  const fetchError = clientRes.error || plansRes.error || responsesRes.error || actionsRes.error || metricsRes.error || catalogRes.error || parameterSetRes.error || marketingRes.error || salesRes.error || inventoryRes.error || financialsRes.error
   if (fetchError) throw fetchError
 
   const latestPlan = plansRes.data?.[0] || null
   const actions = actionsRes.data || []
-  
-  // Categorize responses by role
+
+  const parameterByMetric = new Map<string, any>()
+  for (const value of parameterSetRes.data?.values || []) {
+    parameterByMetric.set(value.metric_key, value)
+  }
+  const derivedResults = derivePmrMetricResults({
+    clientId: args.clientId,
+    marketing: marketingRes.data || [],
+    sales: salesRes.data || [],
+    inventory: inventoryRes.data || [],
+    financials: financialsRes.data || [],
+  })
+  const metricRows = buildPmrMetricViews({
+    catalog: catalogRes.data || [],
+    latestResults: mergeLatestPmrResults(metricsRes.data || [], derivedResults),
+    parameterByMetric,
+  })
+  const draft = buildPmrStrategicPlan({
+    clientName: clientRes.data.name,
+    metricRows,
+    diagnostics: responsesRes.data || [],
+    existingActions: actions,
+    summaryOverride: latestPlan?.diagnosis_summary || undefined,
+  })
+
   const getResp = (role: string) => responsesRes.data?.find(r => r.respondent_role?.toLowerCase().includes(role.toLowerCase())) || null
 
   const donoResp = getResp('dono') || getResp('socio') || responsesRes.data?.[0]
@@ -51,7 +87,7 @@ async function main() {
   const summary = {
     client: clientRes.data.name,
     generated_at: new Date().toISOString(),
-    headline: latestPlan?.diagnosis_summary || `${clientRes.data.name}: resumo gerado a partir do diagnostico PMR nativo.`,
+    headline: draft.diagnosisSummary,
     diagnostics: {
         dono: donoResp ? { name: donoResp.respondent_name, summary: donoResp.summary } : null,
         gerente: gerenteResp ? { name: gerenteResp.respondent_name, summary: gerenteResp.summary } : null,
@@ -102,24 +138,24 @@ async function main() {
     `---`,
     '',
     `## 6. PRINCIPAIS GARGALOS`,
-    `- Identificados na Visão Geral e nas entrevistas. (Consolidado automático pendente da IA)`,
+    ...(draft.criticalGaps.length
+      ? draft.criticalGaps.map((gap) => `- ${gap.label}: realizado ${gap.latest_result ?? 'sem dado'}, referência de boa prática ${gap.best_practice ?? 'sem referência'}.`)
+      : [`- Nenhum gargalo crítico calculado nos indicadores disponíveis.`]),
     '',
     `---`,
     '',
     `## 7. RISCOS DO NEGÓCIO`,
-    `- Identificados nas entrevistas. (Consolidado automático pendente da IA)`,
+    ...draft.swot.threats.map((risk) => `- ${risk}`),
     '',
     `---`,
     '',
     `## 8. DIRECIONAMENTO ESTRATÉGICO (PMR)`,
-    ...Object.entries(summary.action_plan.priorities as Record<string, string[]>).map(([priority, acts]) => {
-        return `\n**PRIORIDADE ${priority}**\n` + acts.map(a => `• ${a}`).join('\n')
-    }),
+    ...draft.actions.map((action) => `- P${action.priority} ${action.action}: ${action.how} Responsável: ${action.owner_name}.`),
     '',
     `---`,
     '',
     `## CONCLUSÃO EXECUTIVA`,
-    `A ${summary.client} possui potencial que será destravado mediante execução rigorosa da gestão.`,
+    `A ${summary.client} possui potencial que será destravado mediante execução rigorosa da gestão, indicadores atualizados e acompanhamento do plano de ação no sistema.`,
     '',
     `## DIAGNÓSTICO FINAL (DIRETO)`,
     `👉 O gargalo não está no mercado`,

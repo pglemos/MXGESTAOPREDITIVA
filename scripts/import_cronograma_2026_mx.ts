@@ -79,6 +79,7 @@ type SourceObjective = {
 
 const DEFAULT_XLSX_PATH = '/Users/pedroguilherme/Downloads/_CRONOGRAMA 2026 MX ESCOLA DE NEGOCIOS .xlsx'
 const SOURCE_NAME = 'cronograma-2026-mx-escola-de-negocios'
+const PMR_MAX_VISITS = 7
 
 function argValue(name: string) {
   const prefix = `${name}=`
@@ -315,9 +316,9 @@ function parseWorkbook(path: string) {
 
 async function getAdminUsers(supabase: SupabaseClient) {
   const { data, error } = await supabase
-    .from('users')
+    .from('usuarios')
     .select('id,name,email')
-    .eq('role', 'admin')
+    .in('role', ['administrador_geral', 'administrador_mx', 'consultor_mx'])
     .eq('active', true)
     .order('name')
   if (error) throw new Error(error.message)
@@ -339,7 +340,9 @@ async function main() {
     visits: parsed.visits.length,
     visitsWithDate: parsed.visits.filter((visit) => visit.scheduledAt).length,
     visitsSkippedNoDate: parsed.visits.filter((visit) => !visit.scheduledAt).length,
+    visitsOutsidePmr7: parsed.visits.filter((visit) => visit.visitNumber < 1 || visit.visitNumber > PMR_MAX_VISITS).length,
     objectives: parsed.objectives.length,
+    objectivesOutsidePmr7: parsed.objectives.filter((objective) => objective.visitNumber < 1 || objective.visitNumber > PMR_MAX_VISITS).length,
     scheduleEvents: parsed.events.length,
     scheduleEventsWithDate: parsed.events.filter((event) => event.startsAt).length,
     apply: shouldApply,
@@ -364,17 +367,17 @@ async function main() {
   if (!importer) throw new Error('No active admin user found to own imported rows.')
 
   if (replaceSource) {
-    await supabase.from('consulting_visits').delete().like('source_import_key', 'cronograma-2026:visit:%')
-    await supabase.from('consulting_schedule_events').delete().like('source_import_key', 'cronograma-2026:%')
+    await supabase.from('visitas_consultoria').delete().like('source_import_key', 'cronograma-2026:visit:%')
+    await supabase.from('eventos_agenda_consultoria').delete().like('source_import_key', 'cronograma-2026:%')
     await supabase
-      .from('consulting_import_batches')
+      .from('lotes_importacao_consultoria')
       .update({ status: 'failed', finished_at: new Date().toISOString() })
       .eq('source_name', SOURCE_NAME)
       .eq('status', 'running')
   }
 
   const { data: batch, error: batchError } = await supabase
-    .from('consulting_import_batches')
+    .from('lotes_importacao_consultoria')
     .insert({
       source_name: SOURCE_NAME,
       source_path: filePath,
@@ -388,7 +391,7 @@ async function main() {
 
   const batchId = batch.id as string
   const importedClients = new Map<string, string>()
-  const existingClientsRes = await supabase.from('consulting_clients').select('id,name,source_import_key')
+  const existingClientsRes = await supabase.from('clientes_consultoria').select('id,name,source_import_key')
   if (existingClientsRes.error) throw new Error(existingClientsRes.error.message)
   const existingClients = (existingClientsRes.data || []) as Array<{ id: string; name: string; source_import_key: string | null }>
 
@@ -402,25 +405,35 @@ async function main() {
       modality: client.modality || 'Presencial',
       notes: client.notes,
       status: 'ativo',
+      program_template_key: 'pmr_7',
       created_by: importer.id,
       source_import_key: client.sourceKey,
       source_payload: client.payload,
     }
     if (match) {
-      const { error } = await supabase.from('consulting_clients').update(payload).eq('id', match.id)
+      const { error } = await supabase.from('clientes_consultoria').update(payload).eq('id', match.id)
       if (error) throw new Error(`Client update failed ${client.name}: ${error.message}`)
       importedClients.set(client.name, match.id)
     } else {
-      const { data, error } = await supabase.from('consulting_clients').insert(payload).select('id').single()
+      const { data, error } = await supabase.from('clientes_consultoria').insert(payload).select('id').single()
       if (error || !data) throw new Error(`Client insert failed ${client.name}: ${error?.message || 'missing row'}`)
       importedClients.set(client.name, data.id as string)
     }
   }
 
-  for (const objective of parsed.objectives) {
+  await supabase.from('programas_visita_consultoria').upsert({
+    program_key: 'pmr_7',
+    name: 'PMR - 7 Visitas',
+    total_visits: PMR_MAX_VISITS,
+    active: true,
+  }, { onConflict: 'program_key' })
+  await supabase.from('programas_visita_consultoria').update({ active: false }).eq('program_key', 'pmr_9')
+  await supabase.from('etapas_modelo_visita_consultoria').update({ active: false }).eq('program_key', 'pmr_9')
+
+  for (const objective of parsed.objectives.filter((item) => item.visitNumber >= 1 && item.visitNumber <= PMR_MAX_VISITS)) {
     for (const programKey of ['pmr_7']) {
       const { error } = await supabase
-        .from('consulting_visit_template_steps')
+        .from('etapas_modelo_visita_consultoria')
         .upsert({
           program_key: programKey,
           visit_number: objective.visitNumber,
@@ -441,9 +454,23 @@ async function main() {
     const clientId = importedClients.get(visit.clientName)
     const consultant = userByName(admins, visit.consultantName)
     const auxiliary = userByName(admins, visit.auxiliaryConsultantName)
+    if (visit.visitNumber < 1 || visit.visitNumber > PMR_MAX_VISITS) {
+      skippedVisits += 1
+      await supabase.from('linhas_importacao_consultoria').insert({
+        batch_id: batchId,
+        source_sheet: 'AGENDA',
+        row_number: visit.rowNumber,
+        entity_type: 'consulting_visit',
+        source_import_key: visit.sourceKey,
+        status: 'skipped',
+        message: 'PMR canonico possui somente visitas 1 a 7',
+        payload: visit.payload,
+      })
+      continue
+    }
     if (!clientId || !visit.scheduledAt) {
       skippedVisits += 1
-      await supabase.from('consulting_import_rows').insert({
+      await supabase.from('linhas_importacao_consultoria').insert({
         batch_id: batchId,
         source_sheet: 'AGENDA',
         row_number: visit.rowNumber,
@@ -456,7 +483,7 @@ async function main() {
       continue
     }
 
-    const { error } = await supabase.from('consulting_visits').upsert({
+    const { error } = await supabase.from('visitas_consultoria').upsert({
       client_id: clientId,
       visit_number: visit.visitNumber,
       source_visit_code: visit.sourceVisitCode,
@@ -478,7 +505,7 @@ async function main() {
       consultant ? { user_id: consultant.id, assignment_role: 'responsavel' } : null,
       auxiliary ? { user_id: auxiliary.id, assignment_role: 'auxiliar' } : null,
     ].filter(Boolean) as Array<{ user_id: string; assignment_role: string }>) {
-      await supabase.from('consulting_assignments').upsert({
+      await supabase.from('atribuicoes_consultoria').upsert({
         client_id: clientId,
         user_id: assignment.user_id,
         assignment_role: assignment.assignment_role,
@@ -493,7 +520,7 @@ async function main() {
     const responsible = userByName(admins, event.responsibleName)
     if (!event.startsAt) {
       skippedEvents += 1
-      await supabase.from('consulting_import_rows').insert({
+      await supabase.from('linhas_importacao_consultoria').insert({
         batch_id: batchId,
         source_sheet: event.sourceSheet,
         row_number: event.rowNumber,
@@ -506,7 +533,7 @@ async function main() {
       continue
     }
 
-    const { error } = await supabase.from('consulting_schedule_events').upsert({
+    const { error } = await supabase.from('eventos_agenda_consultoria').upsert({
       event_type: event.eventType,
       title: event.title,
       topic: event.topic,
@@ -540,7 +567,7 @@ async function main() {
   }
 
   const { error: finishError } = await supabase
-    .from('consulting_import_batches')
+    .from('lotes_importacao_consultoria')
     .update({ status: 'completed', finished_at: new Date().toISOString(), summary: finalSummary })
     .eq('id', batchId)
   if (finishError) throw new Error(finishError.message)

@@ -53,7 +53,7 @@ test.describe('Consultoria: evidência obrigatória de visita', () => {
           legal_name: `Cliente ${marcador} LTDA`,
           product_name: 'PMR E2E',
           status: 'ativo',
-          program_template_key: 'pmr_9',
+          program_template_key: 'pmr_7',
           slug: marcador,
           created_by: userId,
         })

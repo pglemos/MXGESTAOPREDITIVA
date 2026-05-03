@@ -33,6 +33,7 @@ import { ConsultingStrategicView } from '@/features/consultoria/components/Consu
 import { ConsultingActionPlanView } from '@/features/consultoria/components/ConsultingActionPlanView'
 import { DREView } from '@/features/consultoria/components/DREView'
 import { ConsultingDailyTrackingView } from '@/features/consultoria/components/ConsultingDailyTrackingView'
+import { ConsultingMonthlyCloseView } from '@/features/consultoria/components/ConsultingMonthlyCloseView'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
 import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
@@ -397,11 +398,11 @@ export default function ConsultoriaClienteDetalhe() {
           })}
         </div>
       )
-      case 'strategic': return <ConsultingStrategicView clientId={clientId!} />
+      case 'strategic': return <ConsultingStrategicView clientId={clientId!} clientName={client.name} />
       case 'action': return <ConsultingActionPlanView clientId={clientId!} />
       case 'financial': return <DREView clientId={clientId!} />
       case 'daily': return <ConsultingDailyTrackingView clientId={clientId!} />
-      case 'monthly': return <div className="p-mx-lg text-center opacity-50 py-mx-20"><Typography variant="h3">Módulo de Fechamento Mensal em Breve</Typography></div>
+      case 'monthly': return <ConsultingMonthlyCloseView clientId={clientId!} />
       case 'roi': return <ConsultingROIView client={client} />
       case 'pdis': return <ConsultingPDIsView storeId={resolvedStoreId} />
       default: return null

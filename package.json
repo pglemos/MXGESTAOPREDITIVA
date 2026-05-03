@@ -30,6 +30,7 @@
     "validate:admin-master:e2e:live": "node scripts/validate_admin_master_full_e2e.mjs",
     "consultoria:carregar-parametros": "tsx scripts/consultoria_carregar_parametros.ts",
     "consultoria:importar-fechamento-mensal": "tsx scripts/consultoria_importar_fechamento_mensal.ts",
+    "consultoria:sincronizar-metricas-pmr": "tsx scripts/consultoria_sincronizar_metricas_pmr.ts",
     "consultoria:gerar-planejamento-estrategico": "tsx scripts/consultoria_gerar_planejamento_estrategico.ts",
     "consultoria:gerar-resumo-executivo": "tsx scripts/consultoria_gerar_resumo_executivo.ts"
   },

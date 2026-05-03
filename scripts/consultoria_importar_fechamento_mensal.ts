@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
 import XLSX from 'xlsx'
+import { derivePmrMetricResults } from '../src/lib/consultoria/pmr-engine'
 
 dotenv.config()
 
@@ -74,6 +75,11 @@ function asMonth(value: unknown) {
   return `${date.slice(0, 7)}-01`
 }
 
+function average(values: Array<number | null>, allowNegative = false) {
+  const valid = values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && (allowNegative ? value !== 0 : value > 0))
+  return valid.length ? valid.reduce((sum, value) => sum + value, 0) / valid.length : 0
+}
+
 async function main() {
   const args = parseArgs()
   if (!args.file) throw new Error('Use --file caminho.xlsx')
@@ -126,15 +132,38 @@ async function main() {
     source_payload: row,
   }))
 
-  const referenceMonth = marketingRows[0]?.reference_month || `${new Date().toISOString().slice(0, 7)}-01`
-  const over90 = inventory.filter((row) => (asNumber(row.tempo_estoque || row.dias_estoque || row.dias) || 0) > 90).length
+  const inventoryRows = inventory.map((row) => ({
+    purchase_date: row.data_compra ? asDate(row.data_compra) : null,
+    vehicle: String(row.veiculo || row.modelo || ''),
+    vehicle_year: row.ano ? String(row.ano) : null,
+    model: String(row.modelo || ''),
+    fipe_price: asNumber(row.preco_fipe || row.fipe),
+    sale_price: asNumber(row.preco_de_venda || row.valor_venda || row.preco_venda),
+    purchase_value: asNumber(row.valor_de_compra || row.valor_compra || row.compra),
+    km: asNumber(row.km || row.quilometragem),
+    stock_days: asNumber(row.tempo_estoque || row.dias_estoque || row.dias),
+    source_payload: row,
+  }))
+
+  const referenceMonth = marketingRows[0]?.reference_month || salesRows[0]?.sale_date?.slice(0, 7).concat('-01') || `${new Date().toISOString().slice(0, 7)}-01`
+  const over90 = inventoryRows.filter((row) => (row.stock_days || 0) > 90).length
+  const avgPrice = average(inventoryRows.map((row) => row.sale_price || row.purchase_value || null))
+  const avgKm = average(inventoryRows.map((row) => row.km || null))
+  const fipeDeltas = inventoryRows.map((row) => row.sale_price != null && row.fipe_price != null ? row.sale_price - row.fipe_price : null)
+  const totalInvestment = inventoryRows.reduce((sum, row) => sum + (row.sale_price || row.purchase_value || 0), 0)
   const snapshot = {
     client_id: args.clientId,
     reference_month: referenceMonth,
     total_stock: inventory.length,
     active_stock: inventory.length,
+    avg_price: avgPrice,
+    avg_km: avgKm,
     percent_over_90_days: inventory.length ? over90 / inventory.length : 0,
-    source_payload: { file: args.file },
+    source_payload: {
+      file: args.file,
+      total_investment: totalInvestment,
+      avg_fipe_delta: average(fipeDeltas, true),
+    },
   }
 
   const { data: snapshotRow, error: snapshotError } = await supabase
@@ -144,29 +173,53 @@ async function main() {
     .single()
   if (snapshotError) throw snapshotError
 
-  const inventoryRows = inventory.map((row) => ({
+  const inventoryRowsWithSnapshot = inventoryRows.map((row) => ({
     snapshot_id: snapshotRow.id,
-    purchase_date: row.data_compra ? asDate(row.data_compra) : null,
-    vehicle: String(row.veiculo || row.modelo || ''),
-    vehicle_year: row.ano ? String(row.ano) : null,
-    model: String(row.modelo || ''),
-    fipe_price: asNumber(row.preco_fipe || row.fipe),
-    sale_price: asNumber(row.preco_de_venda || row.valor_venda || row.preco_venda),
-    km: asNumber(row.km || row.quilometragem),
-    stock_days: asNumber(row.tempo_estoque || row.dias_estoque || row.dias),
-    source_payload: row,
+    purchase_date: row.purchase_date,
+    vehicle: row.vehicle,
+    vehicle_year: row.vehicle_year,
+    model: row.model,
+    purchase_value: row.purchase_value,
+    fipe_price: row.fipe_price,
+    sale_price: row.sale_price,
+    km: row.km,
+    stock_days: row.stock_days,
+    source_payload: row.source_payload,
   }))
 
   const inserts = await Promise.all([
     marketingRows.length ? supabase.from('marketing_mensal_consultoria').upsert(marketingRows, { onConflict: 'client_id,reference_month,media' }) : { error: null },
     salesRows.length ? supabase.from('entradas_vendas_consultoria').insert(salesRows) : { error: null },
-    inventoryRows.length ? supabase.from('itens_estoque_consultoria').insert(inventoryRows) : { error: null },
+    inventoryRowsWithSnapshot.length ? supabase.from('itens_estoque_consultoria').insert(inventoryRowsWithSnapshot) : { error: null },
   ])
 
   const insertError = inserts.find((result) => result.error)?.error
   if (insertError) throw insertError
 
-  console.log(`Importacao concluida para cliente ${args.clientId}.`)
+  const derivedResults = derivePmrMetricResults({
+    clientId: args.clientId!,
+    marketing: marketingRows as any,
+    sales: salesRows,
+    inventory: [{ id: snapshotRow.id, ...snapshot, client_id: args.clientId! } as any],
+    source: 'monthly_close',
+  })
+
+  if (derivedResults.length) {
+    const { error: metricsError } = await supabase.from('resultados_metricas_cliente').upsert(
+      derivedResults.map((result) => ({
+        client_id: args.clientId,
+        metric_key: result.metric_key,
+        reference_date: result.reference_date,
+        result_value: result.result_value,
+        source: 'monthly_close',
+        source_payload: result.source_payload,
+      })),
+      { onConflict: 'client_id,metric_key,reference_date,source' }
+    )
+    if (metricsError) throw metricsError
+  }
+
+  console.log(`Importacao concluida para cliente ${args.clientId}. Indicadores PMR atualizados: ${derivedResults.length}.`)
 }
 
 main().catch((error) => {

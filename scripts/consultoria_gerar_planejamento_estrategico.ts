@@ -1,5 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
+import {
+  buildPmrMetricViews,
+  buildPmrStrategicPlan,
+  derivePmrMetricResults,
+  mapRecommendationsToInsert,
+  mergeLatestPmrResults,
+} from '../src/lib/consultoria/pmr-engine'
 
 dotenv.config()
 
@@ -27,130 +34,65 @@ async function main() {
   if (!args.clientId) throw new Error('Use --client-id UUID')
   const supabase = envClient()
 
-  const [clientRes, responsesRes, metricsRes, parameterSetRes, actionsRes] = await Promise.all([
+  const [clientRes, responsesRes, metricsRes, catalogRes, parameterSetRes, actionsRes, marketingRes, salesRes, inventoryRes, financialsRes] = await Promise.all([
     supabase.from('clientes_consultoria').select('*').eq('id', args.clientId).single(),
     supabase.from('respostas_formulario_pmr').select('*, template:modelos_formulario_pmr(*)').eq('client_id', args.clientId),
     supabase.from('resultados_metricas_cliente').select('*, metric:catalogo_metricas_consultoria(*)').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
+    supabase.from('catalogo_metricas_consultoria').select('*').eq('active', true).order('sort_order', { ascending: true }),
     supabase.from('conjuntos_parametros_consultoria').select('*, values:valores_parametros_consultoria(*)').eq('active', true).maybeSingle(),
     supabase.from('itens_plano_acao').select('*').eq('client_id', args.clientId),
+    supabase.from('marketing_mensal_consultoria').select('*').eq('client_id', args.clientId).order('reference_month', { ascending: false }),
+    supabase.from('entradas_vendas_consultoria').select('*').eq('client_id', args.clientId).order('sale_date', { ascending: false }),
+    supabase.from('snapshots_estoque_consultoria').select('*').eq('client_id', args.clientId).order('reference_month', { ascending: false }),
+    supabase.from('financeiro_consultoria').select('*').eq('client_id', args.clientId).order('reference_date', { ascending: false }),
   ])
 
-  const fetchError = clientRes.error || responsesRes.error || metricsRes.error || parameterSetRes.error || actionsRes.error
+  const fetchError = clientRes.error || responsesRes.error || metricsRes.error || catalogRes.error || parameterSetRes.error || actionsRes.error || marketingRes.error || salesRes.error || inventoryRes.error || financialsRes.error
   if (fetchError) throw fetchError
-
-  const latestByMetric = new Map<string, any>()
-  for (const metricResult of metricsRes.data || []) {
-    if (!latestByMetric.has(metricResult.metric_key)) latestByMetric.set(metricResult.metric_key, metricResult)
-  }
 
   const parameterByMetric = new Map<string, any>()
   for (const value of parameterSetRes.data?.values || []) {
     parameterByMetric.set(value.metric_key, value)
   }
 
-  const marketComparison = Array.from(latestByMetric.values()).map((result) => {
-    const parameters = parameterByMetric.get(result.metric_key)
-    return {
-      metric_key: result.metric_key,
-      label: result.metric?.label || result.metric_key,
-      latest_result: result.result_value,
-      reference_date: result.reference_date,
-      market_average: parameters?.market_average ?? null,
-      best_practice: parameters?.best_practice ?? null,
-      gap_to_best_practice: parameters?.best_practice != null ? Number(parameters.best_practice) - Number(result.result_value) : null,
-    }
+  const derivedResults = derivePmrMetricResults({
+    clientId: args.clientId,
+    marketing: marketingRes.data || [],
+    sales: salesRes.data || [],
+    inventory: inventoryRes.data || [],
+    financials: financialsRes.data || [],
+    source: 'automatic',
+  })
+  const latestResults = mergeLatestPmrResults(metricsRes.data || [], derivedResults)
+  const metricRows = buildPmrMetricViews({
+    catalog: catalogRes.data || [],
+    latestResults,
+    parameterByMetric,
   })
 
-  // Categorize responses by role for the presentation slides
-  const getResp = (role: string) => responsesRes.data?.find(r => r.respondent_role?.toLowerCase().includes(role.toLowerCase())) || null
-
-  const donoResp = getResp('dono') || getResp('socio') || responsesRes.data?.[0]
-  const gerenteResp = getResp('gerente')
-  const vendedorResp = getResp('vendedor')
-  const processoResp = getResp('processo')
-
-  const actions = actionsRes.data || []
-  const actionPlanGroups = actions.reduce((acc, curr) => {
-      if (!acc[curr.priority]) acc[curr.priority] = []
-      acc[curr.priority].push(curr)
-      return acc
-  }, {} as Record<number, any[]>)
-
+  const draft = buildPmrStrategicPlan({
+    clientName: clientRes.data.name,
+    metricRows,
+    diagnostics: responsesRes.data || [],
+    existingActions: actionsRes.data || [],
+  })
   const payload = {
+    ...draft.payload,
     client: {
       id: clientRes.data.id,
       name: clientRes.data.name,
       product_name: clientRes.data.product_name,
     },
-    generated_at: new Date().toISOString(),
     parameter_set: parameterSetRes.data ? {
       name: parameterSetRes.data.name,
       version: parameterSetRes.data.version,
     } : null,
-    diagnostics: {
-        dono: donoResp ? { name: donoResp.respondent_name, summary: donoResp.summary } : null,
-        gerente: gerenteResp ? { name: gerenteResp.respondent_name, summary: gerenteResp.summary } : null,
-        vendedor: vendedorResp ? { name: vendedorResp.respondent_name, summary: vendedorResp.summary } : null,
-        processos: processoResp ? { name: processoResp.respondent_name, summary: processoResp.summary } : null,
-    },
-    market_comparison: marketComparison,
-    action_plan: actionPlanGroups,
-    swot: {
-        strengths: 'Não informado',
-        weaknesses: 'Não informado',
-        opportunities: 'Não informado',
-        threats: 'Não informado',
-    },
   }
 
-  // Generate markdown representing presentation slides
-  const slidesMd = [
-    `# SLIDE 1: CAPA`,
-    `## PLANEJAMENTO ESTRATÉGICO PMR`,
-    `**Cliente:** ${payload.client.name}`,
-    `**Data:** ${new Date().toLocaleDateString('pt-BR')}`,
-    `---`,
-    `# SLIDE 2: DIAGNÓSTICO DOS SÓCIOS`,
-    payload.diagnostics.dono ? `**${payload.diagnostics.dono.name}**\n${payload.diagnostics.dono.summary}` : `(Sem dados de sócio/dono)`,
-    `---`,
-    `# SLIDE 3: DIAGNÓSTICO DA LIDERANÇA`,
-    payload.diagnostics.gerente ? `**${payload.diagnostics.gerente.name}**\n${payload.diagnostics.gerente.summary}` : `(Sem dados de gerente)`,
-    `---`,
-    `# SLIDE 4: DIAGNÓSTICO COMERCIAL`,
-    payload.diagnostics.vendedor ? `**Equipe de Vendas**\n${payload.diagnostics.vendedor.summary}` : `(Sem dados de vendedores)`,
-    `---`,
-    `# SLIDE 5: BENCHMARK E MÉTRICAS DE MERCADO`,
-    ...payload.market_comparison.map(m => {
-        return `- **${m.label}**: Realizado: ${m.latest_result} | Mercado: ${m.market_average || 'N/A'} | Boa Prática: ${m.best_practice || 'N/A'}`
-    }),
-    `---`,
-    `# SLIDE 6: FORÇAS (STRENGTHS)`,
-    payload.swot.strengths,
-    `---`,
-    `# SLIDE 7: FRAQUEZAS (WEAKNESSES)`,
-    payload.swot.weaknesses,
-    `---`,
-    `# SLIDE 8: OPORTUNIDADES (OPPORTUNITIES)`,
-    payload.swot.opportunities,
-    `---`,
-    `# SLIDE 9: AMEAÇAS (THREATS)`,
-    payload.swot.threats,
-    `---`,
-    `# SLIDE 10+: PLANO DE AÇÃO E PRIORIDADES`,
-    ...Object.entries(payload.action_plan).map(([priority, acts]) => {
-        return `\n### PRIORIDADE ${priority}\n` + (acts as any[]).map(a => `- **Ação:** ${a.action}\n  - **Como:** ${a.how || 'N/A'}\n  - **Resp:** ${a.owner_name || 'N/A'} | **Prazo:** ${a.due_date || 'N/A'}`).join('\n')
-    }),
-    `---`,
-    `# SLIDE FINAL: ENCERRAMENTO`,
-    `Próximos passos e assinaturas.`
-  ].join('\n')
-
-  const diagnosisSummary = `Planejamento Estratégico gerado nativamente contendo ${payload.market_comparison.length} indicadores mapeados contra as Boas Práticas do Mercado e estruturado em ${Object.keys(payload.action_plan).length} níveis de prioridade.`
-
   if (args.dryRun) {
-    console.log(slidesMd)
+    console.log(draft.markdown)
     console.log('\n--- payload ---')
-    console.log(JSON.stringify({ diagnosisSummary, payload }, null, 2))
+    console.log(JSON.stringify({ diagnosisSummary: draft.diagnosisSummary, payload }, null, 2))
     return
   }
 
@@ -158,9 +100,9 @@ async function main() {
     .from('planejamentos_estrategicos')
     .insert({
       client_id: args.clientId,
-      title: `Planejamento Estratégico PMR - ${payload.client.name}`,
-      diagnosis_summary: diagnosisSummary,
-      market_comparison: { metrics: marketComparison },
+      title: draft.title,
+      diagnosis_summary: draft.diagnosisSummary,
+      market_comparison: { metrics: metricRows, critical_gaps: draft.criticalGaps },
       generated_payload: payload,
     })
     .select('id')
@@ -170,12 +112,22 @@ async function main() {
   const { error: artifactError } = await supabase.from('artefatos_gerados_consultoria').insert({
     client_id: args.clientId,
     strategic_plan_id: plan.id,
-    artifact_type: 'strategic_payload',
-    title: `Apresentação Planejamento PMR - ${payload.client.name}`,
-    content_md: slidesMd,
+    artifact_type: 'strategic_plan_markdown',
+    title: `Apresentação Planejamento PMR - ${clientRes.data.name}`,
+    content_md: draft.markdown,
     payload,
   })
   if (artifactError) throw artifactError
+
+  if (!actionsRes.data?.length && draft.actions.length) {
+    const { error: actionError } = await supabase.from('itens_plano_acao').insert(
+      mapRecommendationsToInsert(draft.actions, plan.id).map((action) => ({
+        client_id: args.clientId,
+        ...action,
+      }))
+    )
+    if (actionError) throw actionError
+  }
 
   console.log(`Planejamento PMR gerado: ${plan.id}`)
 }

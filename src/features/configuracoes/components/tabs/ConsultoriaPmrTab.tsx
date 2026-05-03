@@ -34,7 +34,7 @@ export function ConsultoriaPmrTab() {
                     icon={<ListChecks size={22} />}
                     label="Programas de Visita"
                     desc="Mapeamento de visitas e blocos por programa de consultoria"
-                    badge="9 visitas"
+                    badge="7 visitas"
                 />
                 <ShortcutCard
                     icon={<FileText size={22} />}

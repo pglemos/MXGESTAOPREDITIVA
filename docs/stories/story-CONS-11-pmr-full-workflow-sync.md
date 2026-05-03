@@ -65,3 +65,51 @@ para garantir autonomia operacional e gerar entregáveis precisos em tempo real.
 - `src/hooks/useConsultingClients.ts`
 - `src/pages/Configuracoes.tsx`
 - `src/features/consultoria/components/ConsultingParametersView.tsx`
+
+## Dev Agent Record
+
+### Agent Model Used
+
+GPT-5 Codex
+
+### Debug Log References
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`
+- `npm run build`
+
+### Completion Notes List
+
+- Motor PMR autônomo criado para derivar indicadores de marketing, vendas, estoque e DRE sem depender de lançamento manual em `resultados_metricas_cliente`.
+- Aba Estratégico agora gera planejamento com síntese executiva, SWOT, gargalos, cronograma, contingências, artifact markdown e ações recomendadas quando o plano de ação ainda está vazio.
+- Importador mensal passa a calcular snapshot de estoque completo e persistir indicadores PMR derivados.
+- Scripts CLI de planejamento e resumo executivo agora usam o mesmo motor PMR e removem placeholders de consolidação pendente.
+- Novo comando CLI sincroniza indicadores PMR derivados para um cliente ou para todos os clientes ativos.
+- Aba Fechamento Mensal deixou de ser placeholder e agora observa marketing, vendas, estoque e indicadores derivados.
+- Artefatos gerados ficam legíveis na aba Estratégico e SWOT manual entra no markdown final do planejamento.
+
+### File List
+
+- `docs/stories/story-CONS-11-pmr-full-workflow-sync.md`
+- `src/lib/consultoria/pmr-engine.ts`
+- `src/lib/consultoria/pmr-engine.test.ts`
+- `src/lib/schemas/consulting-client.schema.ts`
+- `src/features/consultoria/types.ts`
+- `src/hooks/useConsultingMetrics.ts`
+- `src/hooks/useConsultingStrategicPlan.ts`
+- `src/features/consultoria/components/ConsultingStrategicView.tsx`
+- `src/features/consultoria/components/ConsultingMonthlyCloseView.tsx`
+- `src/pages/ConsultoriaClienteDetalhe.tsx`
+- `package.json`
+- `scripts/README.md`
+- `scripts/consultoria_importar_fechamento_mensal.ts`
+- `scripts/consultoria_sincronizar_metricas_pmr.ts`
+- `scripts/consultoria_gerar_planejamento_estrategico.ts`
+- `scripts/consultoria_gerar_resumo_executivo.ts`
+- `supabase/migrations/20260503080000_pmr_autonomous_metrics.sql`
+
+### Change Log
+
+- 2026-05-03: PMR consolidado como fluxo autônomo de indicadores, planejamento estratégico, artifacts CLI e geração inicial de ações.
+- 2026-05-03: Adicionada visão nativa de fechamento mensal, sincronizador CLI de métricas e leitura in-app dos artefatos gerados.

@@ -25,6 +25,7 @@ Todos os scripts operacionais do projeto. Execute com `tsx` (`.ts`) ou `node` (`
 | `consultoria_gerar_resumo_executivo.ts` | Geração CLI do resumo executivo PMR | `npm run consultoria:gerar-resumo-executivo -- --client-id <uuid>` | util |
 | `consultoria_gerar_planejamento_estrategico.ts` | Geração CLI do planejamento estratégico PMR | `npm run consultoria:gerar-planejamento-estrategico -- --client-id <uuid>` | util |
 | `consultoria_importar_fechamento_mensal.ts` | Importação do fechamento mensal PMR (`Cadmkt`, `Cadven`, `Cadest`) | `npm run consultoria:importar-fechamento-mensal -- --client-id <uuid> --file <xlsx>` | carga |
+| `consultoria_sincronizar_metricas_pmr.ts` | Recalcula e persiste indicadores PMR derivados de marketing, vendas, estoque e DRE | `npm run consultoria:sincronizar-metricas-pmr -- --client-id <uuid>` | carga |
 | `consultoria_carregar_parametros.ts` | Carga de indicadores e parâmetros PMR editáveis | `npm run consultoria:carregar-parametros` | carga |
 | `create_managers.mjs` | Criação de contas auth para gerentes | `node scripts/create_managers.mjs` | seed |
 | `debug_caio_browser.mjs` | Debug de login via navegador (Playwright) | `node scripts/debug_caio_browser.mjs` | util |

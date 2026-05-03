@@ -13,6 +13,12 @@ import {
   type ConsultingMetricResult,
   type ConsultingMetricTarget,
 } from '@/lib/schemas/consulting-client.schema'
+import {
+  derivePmrMetricResults,
+  mergeLatestPmrResults,
+  type PmrFinancialRow,
+  type PmrSalesEntry,
+} from '@/lib/consultoria/pmr-engine'
 
 export function useConsultingMetrics(clientId?: string) {
   const { profile } = useAuth()
@@ -21,25 +27,36 @@ export function useConsultingMetrics(clientId?: string) {
   const [results, setResults] = useState<ConsultingMetricResult[]>([])
   const [marketing, setMarketing] = useState<ConsultingMarketingMonthly[]>([])
   const [inventory, setInventory] = useState<ConsultingInventorySnapshot[]>([])
+  const [sales, setSales] = useState<PmrSalesEntry[]>([])
+  const [financials, setFinancials] = useState<PmrFinancialRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchMetrics = useCallback(async () => {
     if (!clientId) {
+      setCatalog([])
+      setTargets([])
+      setResults([])
+      setMarketing([])
+      setInventory([])
+      setSales([])
+      setFinancials([])
       setLoading(false)
       return
     }
     setLoading(true)
     setError(null)
-    const [catalogRes, targetsRes, resultsRes, marketingRes, inventoryRes] = await Promise.all([
+    const [catalogRes, targetsRes, resultsRes, marketingRes, inventoryRes, salesRes, financialsRes] = await Promise.all([
       supabase.from('catalogo_metricas_consultoria').select('*').eq('active', true).order('sort_order', { ascending: true }),
       supabase.from('metas_metricas_cliente').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
       supabase.from('resultados_metricas_cliente').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
       supabase.from('marketing_mensal_consultoria').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
       supabase.from('snapshots_estoque_consultoria').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
+      supabase.from('entradas_vendas_consultoria').select('*').eq('client_id', clientId).order('sale_date', { ascending: false }),
+      supabase.from('financeiro_consultoria').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
     ])
 
-    const fetchError = catalogRes.error || targetsRes.error || resultsRes.error || marketingRes.error || inventoryRes.error
+    const fetchError = catalogRes.error || targetsRes.error || resultsRes.error || marketingRes.error || inventoryRes.error || salesRes.error || financialsRes.error
     if (fetchError) {
       setError(fetchError.message)
     } else {
@@ -48,6 +65,8 @@ export function useConsultingMetrics(clientId?: string) {
       setResults(parseConsultingMetricResultArray(resultsRes.data || []))
       setMarketing(parseConsultingMarketingMonthlyArray(marketingRes.data || []))
       setInventory(parseConsultingInventorySnapshotArray(inventoryRes.data || []))
+      setSales((salesRes.data || []) as PmrSalesEntry[])
+      setFinancials((financialsRes.data || []) as PmrFinancialRow[])
     }
     setLoading(false)
   }, [clientId])
@@ -87,14 +106,13 @@ export function useConsultingMetrics(clientId?: string) {
     fetchMetrics()
   }, [fetchMetrics])
 
-  const latestResults = useMemo(() => {
-    const map = new Map<string, ConsultingMetricResult>()
-    for (const result of results) {
-      if (!map.has(result.metric_key)) map.set(result.metric_key, result)
-    }
-    return map
-  }, [results])
+  const derivedResults = useMemo(() => (
+    clientId
+      ? derivePmrMetricResults({ clientId, marketing, sales, inventory, financials })
+      : []
+  ), [clientId, financials, inventory, marketing, sales])
 
-  return { catalog, targets, results, latestResults, marketing, inventory, loading, error, upsertTarget, upsertResult, refetch: fetchMetrics }
+  const latestResults = useMemo(() => mergeLatestPmrResults(results, derivedResults), [derivedResults, results])
+
+  return { catalog, targets, results, derivedResults, latestResults, marketing, inventory, sales, financials, loading, error, upsertTarget, upsertResult, refetch: fetchMetrics }
 }
-
