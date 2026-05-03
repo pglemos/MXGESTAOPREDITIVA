@@ -1,0 +1,45 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - progressbar [ref=e6]
+    - main [ref=e14]:
+      - generic [ref=e15]:
+        - img [ref=e18]
+        - generic [ref=e23]:
+          - heading "Daniel Santos" [level=1] [ref=e24]
+          - generic [ref=e25]: Para proteger sua conta, a organização quer confirmar sua identidade.
+          - link "gestao@mxconsultoria.com.br selecionado. Alternar entre contas" [ref=e27] [cursor=pointer]:
+            - generic [ref=e30]: gestao@mxconsultoria.com.br
+            - img [ref=e32]
+      - generic [ref=e38]:
+        - generic [ref=e42]: Para continuar, primeiro confirme sua identidade
+        - generic [ref=e46]:
+          - generic [ref=e54]:
+            - textbox "Digite sua senha" [active] [ref=e55]
+            - generic: Digite sua senha
+          - generic [ref=e62]:
+            - generic [ref=e65] [cursor=pointer]:
+              - checkbox "Mostrar senha" [ref=e66]
+              - generic:
+                - img
+            - generic [ref=e69] [cursor=pointer]: Mostrar senha
+      - generic [ref=e71]:
+        - button "Avançar" [ref=e75]:
+          - generic [ref=e78]: Avançar
+        - button "Esqueceu a senha?" [ref=e82]:
+          - generic [ref=e85]: Esqueceu a senha?
+  - contentinfo [ref=e89]:
+    - combobox "Alterar idioma Português (Brasil)" [ref=e93] [cursor=pointer]:
+      - generic:
+        - generic: Português (Brasil)
+      - generic:
+        - img
+    - list [ref=e95]:
+      - listitem [ref=e96]:
+        - link "Ajuda" [ref=e97] [cursor=pointer]:
+          - /url: https://support.google.com/accounts?hl=pt-BR&p=account_iph
+      - listitem [ref=e98]:
+        - link "Privacidade" [ref=e99] [cursor=pointer]:
+          - /url: https://accounts.google.com/TOS?loc=BR&hl=pt-BR&privacy=true
+      - listitem [ref=e100]:
+        - link "Termos" [ref=e101] [cursor=pointer]:
+          - /url: https://accounts.google.com/TOS?loc=BR&hl=pt-BR

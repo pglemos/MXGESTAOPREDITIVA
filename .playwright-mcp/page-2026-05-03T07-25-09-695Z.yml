@@ -1,0 +1,51 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - progressbar [ref=e6]
+    - main [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e18]:
+          - img [ref=e20]
+          - generic [ref=e25]: Fazer Login com o Google
+        - generic [ref=e26]:
+          - heading "Você está fazendo login novamente no fbhcmzzgwjdgkctlfvbo.supabase.co" [level=1] [ref=e27]
+          - link "gestao@mxconsultoria.com.br selecionado. Alternar entre contas" [ref=e29] [cursor=pointer]:
+            - generic [ref=e32]: gestao@mxconsultoria.com.br
+            - img [ref=e34]
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - text: Analise a
+          - link "Política de Privacidade" [ref=e48] [cursor=pointer]:
+            - /url: https://mxperformance.vercel.app/privacy
+          - text: e os
+          - link "Termos de Serviço" [ref=e49] [cursor=pointer]:
+            - /url: https://mxperformance.vercel.app/terms
+          - text: do app fbhcmzzgwjdgkctlfvbo.supabase.co para entender como fbhcmzzgwjdgkctlfvbo.supabase.co vai tratar e proteger seus dados.
+        - generic [ref=e50]:
+          - text: Para fazer mudanças a qualquer momento, acesse sua
+          - link "Conta do Google" [ref=e51] [cursor=pointer]:
+            - /url: https://myaccount.google.com/connections#filter=4
+          - text: .
+        - generic [ref=e52]:
+          - text: Saiba mais sobre o recurso
+          - link "Fazer login com o Google" [ref=e53] [cursor=pointer]:
+            - /url: https://support.google.com/accounts/answer/12921417?sjid=1919169284593837430-NC
+          - text: .
+      - generic [ref=e56]:
+        - button "Cancelar" [ref=e60]: Cancelar
+        - button "Continuar" [ref=e66]: Continuar
+  - contentinfo [ref=e72]:
+    - combobox "Alterar idioma Português (Brasil)" [ref=e76] [cursor=pointer]:
+      - generic:
+        - generic: Português (Brasil)
+      - generic:
+        - img
+    - list [ref=e78]:
+      - listitem [ref=e79]:
+        - link "Ajuda" [ref=e80] [cursor=pointer]:
+          - /url: https://support.google.com/accounts?hl=pt-BR&p=account_iph
+      - listitem [ref=e81]:
+        - link "Privacidade" [ref=e82] [cursor=pointer]:
+          - /url: https://accounts.google.com/TOS?loc=BR&hl=pt-BR&privacy=true
+      - listitem [ref=e83]:
+        - link "Termos" [ref=e84] [cursor=pointer]:
+          - /url: https://accounts.google.com/TOS?loc=BR&hl=pt-BR

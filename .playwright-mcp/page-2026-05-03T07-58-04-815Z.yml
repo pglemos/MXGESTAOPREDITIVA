@@ -1,0 +1,88 @@
+- generic [ref=e2]:
+  - generic [ref=e9]:
+    - link "Pular para conteúdo principal" [ref=e10] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e11]:
+      - generic [ref=e12]:
+        - button "Ir para o painel inicial" [ref=e13]:
+          - img "MX Performance" [ref=e14]
+        - generic [ref=e16]: MX PERFORMANCE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "Pesquisar no sistema" [ref=e19]:
+            - img [ref=e20]
+          - button "Abrir notificações. 0 não lidas." [ref=e23]:
+            - img [ref=e24]
+        - button "Ver perfil de Admin MX" [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Admin MX
+            - generic [ref=e30]: Administrador MX
+          - generic [ref=e31]: A
+    - generic [ref=e32]:
+      - complementary "Menu Lateral Principal" [ref=e33]:
+        - navigation "Módulos de Gestão" [ref=e34]:
+          - 'button "Abrir módulo: Governança MX" [ref=e35]':
+            - img [ref=e36]
+          - 'button "Abrir módulo: Rituais MX" [ref=e38]':
+            - img [ref=e39]
+          - 'button "Abrir módulo: Sustentação" [ref=e43]':
+            - img [ref=e44]
+        - button "Encerrar Sessão do Sistema" [ref=e47]:
+          - img [ref=e48]
+      - main [ref=e51]:
+        - main [ref=e52]:
+          - generic [ref=e54]:
+            - link [ref=e55] [cursor=pointer]:
+              - /url: /consultoria/clientes
+              - img [ref=e56]
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - heading "Acertt" [level=1] [ref=e60]
+                - generic [ref=e62]: ativo
+              - text: Módulo de Gestão Preditiva MX
+          - navigation [ref=e63]:
+            - button "Visão Geral" [ref=e64]
+            - button "Agenda/Visitas" [ref=e65]
+            - button "Estratégico" [ref=e66]
+            - button "Plano de Ação" [ref=e67]
+            - button "DRE/Financeiro" [ref=e68]
+            - button "Acomp. Diário" [ref=e69]
+            - button "ROI/Choque" [ref=e70]
+            - button "Plano de Carreira (PDI)" [ref=e71]
+            - button "Arquivos" [active] [ref=e72]
+          - generic [ref=e74]:
+            - generic [ref=e75]:
+              - generic [ref=e76]:
+                - img [ref=e78]
+                - generic [ref=e80]:
+                  - heading "Arquivos" [level=3] [ref=e81]
+                  - generic [ref=e82]: 1 item
+              - generic [ref=e83]:
+                - button "Atualizar" [ref=e84]:
+                  - generic [ref=e85]:
+                    - img
+                  - generic [ref=e86]: Atualizar
+                - button "Abrir pasta" [ref=e87]:
+                  - generic [ref=e88]:
+                    - img
+                  - generic [ref=e89]: Abrir pasta
+                - button "Enviar" [ref=e90]:
+                  - generic [ref=e91]:
+                    - img
+                  - generic [ref=e92]: Enviar
+            - generic [ref=e94]:
+              - generic [ref=e95]:
+                - generic [ref=e96]:
+                  - generic [ref=e98]: Arquivo
+                  - paragraph [ref=e99]: teste-drive-mx.txt
+                - generic [ref=e100]: 43 B • 03/05/2026, 04:45
+              - generic [ref=e101]:
+                - button "Abrir" [ref=e102]:
+                  - generic [ref=e103]:
+                    - img
+                  - generic [ref=e104]: Abrir
+                - button "Remover" [ref=e105]:
+                  - generic [ref=e106]:
+                    - img
+                  - generic [ref=e107]: Remover
+  - region "Notifications alt+T"

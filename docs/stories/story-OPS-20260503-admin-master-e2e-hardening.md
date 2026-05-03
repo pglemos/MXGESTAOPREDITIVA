@@ -43,14 +43,17 @@ A auditoria live `E2E_ADMIN_MASTER_20260503010521` validou o ciclo completo do `
 - Auditoria final `E2E_ADMIN_MASTER_20260503042149`: 55 `PASS`, 0 `WARN`, 0 `FAIL`, 0 `BLOCKED`.
 - Envios live por Gmail confirmados: `relatorio-matinal`, `feedback-semanal`, `relatorio-mensal` e `send-visit-report`.
 - Varredura de artefatos finais nao encontrou senha, client secret ou codigo OAuth.
+- Auditoria final complementar `E2E_ADMIN_MASTER_20260503052018`: 55 `PASS`, 0 `WARN`, 0 `FAIL`, 0 `BLOCKED`.
 
 ### File List
 
 - `docs/stories/story-OPS-20260503-admin-master-e2e-hardening.md`
 - `docs/audit/admin-master-full-e2e-20260503023622.md`
 - `docs/audit/admin-master-full-e2e-20260503042149.md`
+- `docs/audit/admin-master-full-e2e-20260503052018.md`
 - `output/e2e-admin-master-full-20260503023622/`
 - `output/e2e-admin-master-full-20260503042149/`
+- `output/e2e-admin-master-full-20260503052018/`
 - `package.json`
 - `package-lock.json`
 - `scripts/validate_admin_master_full_e2e.mjs`

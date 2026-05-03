@@ -1,0 +1,52 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - progressbar [ref=e6]
+      - main [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e18]:
+            - img [ref=e20]
+            - generic [ref=e25]: Fazer Login com o Google
+          - generic [ref=e26]:
+            - heading "Escolha uma conta" [level=1] [ref=e27]
+            - generic [ref=e29]:
+              - text: Prosseguir para
+              - button "fbhcmzzgwjdgkctlfvbo.supabase.co" [ref=e30] [cursor=pointer]
+        - generic [ref=e33]:
+          - list [ref=e41]:
+            - listitem [ref=e42]:
+              - link "Daniel Santos gestao@mxconsultoria.com.br" [ref=e43] [cursor=pointer]:
+                - generic [ref=e47]:
+                  - generic [ref=e48]: Daniel Santos
+                  - generic [ref=e49]: gestao@mxconsultoria.com.br
+            - listitem [ref=e50]:
+              - link "Usar outra conta" [ref=e51] [cursor=pointer]:
+                - generic [ref=e52]:
+                  - img [ref=e54]
+                  - generic [ref=e57]: Usar outra conta
+          - generic [ref=e60]:
+            - text: Consulte a
+            - link "Política de Privacidade" [ref=e61] [cursor=pointer]:
+              - /url: https://mxperformance.vercel.app/privacy
+            - text: e os
+            - link "Termos de Serviço" [ref=e62] [cursor=pointer]:
+              - /url: https://mxperformance.vercel.app/terms
+            - text: do app fbhcmzzgwjdgkctlfvbo.supabase.co antes de usá-lo.
+    - contentinfo [ref=e67]:
+      - combobox "Alterar idioma Português (Brasil)" [ref=e71] [cursor=pointer]:
+        - generic:
+          - generic: Português (Brasil)
+        - generic:
+          - img
+      - list [ref=e73]:
+        - listitem [ref=e74]:
+          - link "Ajuda" [ref=e75] [cursor=pointer]:
+            - /url: https://support.google.com/accounts?hl=pt-BR&p=account_iph
+        - listitem [ref=e76]:
+          - link "Privacidade" [ref=e77] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=BR&hl=pt-BR&privacy=true
+        - listitem [ref=e78]:
+          - link "Termos" [ref=e79] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=BR&hl=pt-BR
+  - iframe [ref=e80]:
+    

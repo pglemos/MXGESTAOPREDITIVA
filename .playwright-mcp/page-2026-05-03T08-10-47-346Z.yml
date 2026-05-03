@@ -1,0 +1,275 @@
+- generic [ref=e1]:
+  - iframe [ref=e2]:
+    
+  - region
+  - generic [ref=e4]:
+    - navigation [ref=e5]:
+      - button "Pular para o conteúdo principal" [ref=e7] [cursor=pointer]:
+        - generic [ref=e9]: Pular para o conteúdo principal
+      - button "Atalhos do teclado" [ref=e11] [cursor=pointer]:
+        - generic [ref=e13]: Atalhos do teclado
+      - button "Feedback sobre acessibilidade" [ref=e15] [cursor=pointer]:
+        - generic [ref=e17]: Feedback sobre acessibilidade
+    - banner [ref=e19]:
+      - generic [ref=e20]:
+        - link "Drive" [ref=e24] [cursor=pointer]:
+          - /url: https://drive.google.com/?tab=oo&authuser=0
+          - img [ref=e25]
+          - generic [ref=e26]: Drive
+        - generic [ref=e27]:
+          - search [ref=e29]:
+            - table [ref=e31]:
+              - rowgroup [ref=e32]:
+                - row [ref=e33]:
+                  - cell [ref=e34]:
+                    - textbox "Pesquise no Drive" [ref=e35]
+            - button "Pesquisa avançada" [ref=e36] [cursor=pointer]:
+              - img [ref=e37]
+            - button "Pesquisar no Google Drive" [ref=e39] [cursor=pointer]:
+              - img [ref=e40]
+          - generic [ref=e43]:
+            - button "Suporte" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+            - button "Configurações" [ref=e51] [cursor=pointer]:
+              - img [ref=e53]
+            - generic [ref=e56]:
+              - button "Studio" [ref=e577] [cursor=pointer]:
+                - img [ref=e578]
+              - generic [ref=e58]:
+                - generic:
+                  - button "Pedir para Gemini" [ref=e61] [cursor=pointer]:
+                    - img [ref=e64]
+                  - tooltip [ref=e67]: Pedir para Gemini
+        - generic [ref=e69]:
+          - button "Google Apps" [ref=e73] [cursor=pointer]:
+            - img [ref=e74]
+          - 'button "Conta do Google: Daniel Santos (gestao@mxconsultoria.com.br), Alerta importante da conta" [ref=e581] [cursor=pointer]':
+            - 'button "Conta do Google: Daniel Santos (gestao@mxconsultoria.com.br), Alerta importante da conta" [ref=e582]':
+              - img [ref=e84]
+              - img [ref=e584]
+    - button "Novo" [ref=e87] [cursor=pointer]:
+      - img [ref=e90]
+      - generic [ref=e92]: Novo
+    - generic [ref=e95]:
+      - navigation [ref=e98]:
+        - heading "Pastas e visualizações" [level=2] [ref=e99]
+        - tree "Pastas e visualizações" [ref=e100]:
+          - treeitem "Pessoal" [ref=e101]:
+            - link "Pessoal" [ref=e102] [cursor=pointer]:
+              - generic [ref=e105]:
+                - generic [ref=e107]:
+                  - img [ref=e110]
+                  - img [ref=e115]
+                - generic "Pessoal" [ref=e120]
+            - group
+          - treeitem "Atividades" [ref=e121]:
+            - link "Atividades" [ref=e122] [cursor=pointer]:
+              - generic [ref=e125]:
+                - generic [ref=e127]:
+                  - img [ref=e130]
+                  - img [ref=e135]
+                - generic "Atividades" [ref=e138]
+            - group
+          - treeitem "Espaços de trabalho" [ref=e139]:
+            - link "Espaços de trabalho" [ref=e140] [cursor=pointer]:
+              - generic [ref=e143]:
+                - generic [ref=e145]:
+                  - img [ref=e148]
+                  - img [ref=e153]
+                - generic "Espaços de trabalho" [ref=e156]
+            - group
+          - treeitem "Meu Drive Recolhido" [selected] [ref=e157]:
+            - link "Meu Drive Recolhido" [ref=e158] [cursor=pointer]:
+              - img [ref=e161]
+              - generic [ref=e164]:
+                - generic [ref=e166]:
+                  - img [ref=e169]
+                  - img [ref=e174]
+                - generic "Meu Drive" [ref=e176]
+              - text: Recolhido
+          - treeitem "Drives compartilhados Recolhido" [ref=e177]:
+            - link "Drives compartilhados Recolhido" [ref=e178] [cursor=pointer]:
+              - img [ref=e181]
+              - generic [ref=e184]:
+                - generic [ref=e186]:
+                  - img [ref=e189]
+                  - img [ref=e193]
+                - generic "Drives compartilhados" [ref=e200]
+              - text: Recolhido
+          - treeitem "Itens compartilhados comigo" [ref=e201]:
+            - link "Itens compartilhados comigo" [ref=e202] [cursor=pointer]:
+              - generic [ref=e205]:
+                - generic [ref=e207]:
+                  - img [ref=e210]
+                  - img [ref=e215]
+                - generic "Itens compartilhados comigo" [ref=e221]: Compartilhados comigo
+            - group
+          - treeitem "Itens recentes" [ref=e222]:
+            - link "Itens recentes" [ref=e223] [cursor=pointer]:
+              - generic [ref=e226]:
+                - generic [ref=e228]:
+                  - img [ref=e231]
+                  - img [ref=e237]
+                - generic "Itens recentes" [ref=e242]: Recentes
+            - group
+          - treeitem "Itens com estrela" [ref=e243]:
+            - link "Itens com estrela" [ref=e244] [cursor=pointer]:
+              - generic [ref=e247]:
+                - generic [ref=e249]:
+                  - img [ref=e251]
+                  - img [ref=e254]
+                - generic "Itens com estrela" [ref=e258]: Com estrela
+            - group
+          - treeitem "Spam" [ref=e259]:
+            - link "Spam" [ref=e260] [cursor=pointer]:
+              - generic [ref=e263]:
+                - generic [ref=e265]:
+                  - img [ref=e268]
+                  - img [ref=e272]
+                - generic "Spam" [ref=e277]
+            - group
+          - treeitem "Itens na lixeira" [ref=e278]:
+            - link "Itens na lixeira" [ref=e279] [cursor=pointer]:
+              - generic [ref=e282]:
+                - generic [ref=e284]:
+                  - img [ref=e287]
+                  - img [ref=e292]
+                - generic "Itens na lixeira" [ref=e297]: Lixeira
+            - group
+          - treeitem "Armazenamento" [ref=e298]:
+            - link "Armazenamento" [ref=e299] [cursor=pointer]:
+              - generic [ref=e302]:
+                - generic [ref=e304]:
+                  - img [ref=e587]
+                  - img [ref=e590]
+                - generic "Armazenamento" [ref=e315]
+            - group
+        - 'progressbar "Armazenamento usado: 64 KB" [ref=e318]':
+          - generic [ref=e319]: "Armazenamento usado: 64 KB"
+      - region [ref=e323]:
+        - button "Admin Console" [ref=e325]:
+          - treeitem "Admin Console" [ref=e327]:
+            - link "Admin Console" [ref=e328] [cursor=pointer]:
+              - generic "Admin Console" [ref=e331]:
+                - generic [ref=e333]:
+                  - img [ref=e336]
+                  - img [ref=e340]
+                - generic "Admin Console" [ref=e342]
+            - group
+        - 'progressbar "Uso: 64 KB de 300 GB compartilhados" [ref=e345]':
+          - generic [ref=e349]: "Uso: 64 KB de 300 GB compartilhados"
+    - generic [ref=e351]:
+      - generic [ref=e357]:
+        - generic [ref=e360]:
+          - button "Meu Drive" [ref=e363] [cursor=pointer]:
+            - generic [ref=e364]: Meu Drive
+            - img [ref=e366]
+          - toolbar [ref=e368]:
+            - generic [ref=e369]:
+              - radiogroup "Layout de lista ou grade (⌥V, depois L)" [ref=e373]:
+                - generic [ref=e374]:
+                  - radio "Lista" [checked] [ref=e375] [cursor=pointer]:
+                    - generic [ref=e376]:
+                      - img [ref=e377]
+                      - img [ref=e381]
+                  - radio "Grade" [ref=e384] [cursor=pointer]:
+                    - generic [ref=e385]:
+                      - img [ref=e386]
+                      - img [ref=e390]
+              - button "Mostrar detalhes (⌥V, depois D)" [ref=e393] [cursor=pointer]:
+                - img [ref=e395]
+        - generic [ref=e401]:
+          - generic [ref=e402]: Nenhum filtro aplicado
+          - toolbar "Filtros" [ref=e404]:
+            - generic [ref=e406]:
+              - button "Tipo" [ref=e407] [cursor=pointer]:
+                - generic [ref=e408]:
+                  - generic [ref=e409]: Tipo
+                  - img [ref=e411]
+              - button "Pessoas" [ref=e413] [cursor=pointer]:
+                - generic [ref=e414]:
+                  - generic [ref=e415]: Pessoas
+                  - img [ref=e417]
+              - button "Modificado" [ref=e419] [cursor=pointer]:
+                - generic [ref=e420]:
+                  - generic [ref=e421]: Modificado
+                  - img [ref=e423]
+              - button "Fonte" [ref=e425] [cursor=pointer]:
+                - generic [ref=e426]:
+                  - generic [ref=e427]: Fonte
+                  - img [ref=e429]
+      - main [ref=e432]:
+        - region [active] [ref=e438]:
+          - grid "Lista de itens" [ref=e442]:
+            - rowgroup [ref=e443]:
+              - generic [ref=e444] [cursor=pointer]: Nome
+              - img [ref=e446] [cursor=pointer]
+              - text: Proprietário
+              - generic [ref=e448] [cursor=pointer]: Data da modificação
+              - text: Tamanho do arquivo
+              - generic [ref=e454]:
+                - button "Classificado" [ref=e456] [cursor=pointer]:
+                  - img [ref=e460]
+                  - generic [ref=e462]: Classificado
+                - tooltip [ref=e463]: Ver opções de ordenação
+            - rowgroup [ref=e464]:
+              - row "MX Performance - Clientes Pasta Pertence a eu Modificado 04:44 eu Tamanho indisponível Mais ações (Alt+A)" [ref=e593]:
+                - gridcell "MX Performance - Clientes Pasta" [ref=e594]:
+                  - generic [ref=e595]:
+                    - img [ref=e601]
+                    - generic "MX Performance - Clientes Pasta" [ref=e609]:
+                      - strong [ref=e612]: MX Performance - Clientes
+                - gridcell "Pertence a eu" [ref=e613]:
+                  - button "Pertence a eu" [ref=e615]:
+                    - generic "Pertence a eu" [ref=e616]:
+                      - img [ref=e618]
+                      - generic [ref=e619]: eu
+                - gridcell "Modificado 04:44 eu" [ref=e620]:
+                  - generic "Modificado 04:44 eu" [ref=e623]:
+                    - generic [ref=e624]: 04:44 eu
+                - gridcell "Tamanho indisponível" [ref=e625]:
+                  - generic "Tamanho indisponível" [ref=e628]:
+                    - generic [ref=e629]: —
+                - gridcell "Mais ações (Alt+A)" [ref=e630]:
+                  - generic [ref=e634]:
+                    - button "Mais ações (Alt+A)" [ref=e635] [cursor=pointer]:
+                      - img [ref=e638]
+                    - tooltip [ref=e641]: Mais ações (Alt+A)
+              - row "MX Performance - Clientes Pasta Pertence a eu Modificado 04:44 eu Tamanho indisponível Mais ações (Alt+A)" [ref=e642]:
+                - gridcell "MX Performance - Clientes Pasta" [ref=e643]:
+                  - generic [ref=e644]:
+                    - img [ref=e650]
+                    - generic "MX Performance - Clientes Pasta" [ref=e658]:
+                      - strong [ref=e661]: MX Performance - Clientes
+                - gridcell "Pertence a eu" [ref=e662]:
+                  - button "Pertence a eu" [ref=e664]:
+                    - generic "Pertence a eu" [ref=e665]:
+                      - img [ref=e667]
+                      - generic [ref=e668]: eu
+                - gridcell "Modificado 04:44 eu" [ref=e669]:
+                  - generic "Modificado 04:44 eu" [ref=e672]:
+                    - generic [ref=e673]: 04:44 eu
+                - gridcell "Tamanho indisponível" [ref=e674]:
+                  - generic "Tamanho indisponível" [ref=e677]:
+                    - generic [ref=e678]: —
+                - gridcell "Mais ações (Alt+A)" [ref=e679]:
+                  - generic [ref=e683]:
+                    - button "Mais ações (Alt+A)" [ref=e684] [cursor=pointer]:
+                      - img [ref=e687]
+                    - tooltip [ref=e690]: Mais ações (Alt+A)
+      - generic:
+        - navigation
+    - generic [ref=e573]:
+      - complementary "Painel lateral" [ref=e691]:
+        - tablist [ref=e693]:
+          - tab "Agenda"
+          - tab "Keep"
+          - tab "Tarefas"
+          - tab "Contatos"
+          - separator [disabled] [ref=e698]
+          - tab "Instalar complementos"
+      - generic:
+        - button "Ocultar painel lateral":
+          - img [ref=e701] [cursor=pointer]
+  - region
+  - img [ref=e575]

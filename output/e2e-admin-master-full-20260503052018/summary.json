@@ -1,0 +1,738 @@
+{
+  "summary": {
+    "auditPath": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA/docs/audit/admin-master-full-e2e-20260503052018.md",
+    "overall": "PASS",
+    "counts": {
+      "PASS": 55
+    }
+  },
+  "results": [
+    {
+      "at": "2026-05-03T05:20:20.233Z",
+      "section": "Preflight",
+      "name": "account, role and password login",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 1536,
+        "profile": {
+          "id": "9b9ee2fb-d002-492f-b274-06846972a014",
+          "email": "synvollt@gmail.com",
+          "name": "Synvollt",
+          "role": "administrador_geral",
+          "active": true,
+          "must_change_password": false
+        }
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:20.382Z",
+      "section": "Preflight",
+      "name": "permission matrix",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 149,
+        "modules": 7,
+        "permission_codes": [
+          "comparar",
+          "criar",
+          "editar",
+          "excluir",
+          "exportar",
+          "visualizar"
+        ],
+        "matrix_rows": 24,
+        "delete_permissions": 5,
+        "export_permissions": 1
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:20.987Z",
+      "section": "CLI/API",
+      "name": "store CRUD and operational rules",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 605,
+        "store_id": "d9bdb60e-4ed7-4c67-9c01-6e19938701ae",
+        "store_name": "E2E ADMIN MASTER 20260503052018 EDITADA",
+        "manager_email": "synvollt@gmail.com"
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:22.509Z",
+      "section": "CLI/API",
+      "name": "team/user CRUD, seller tenure and checkins",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 1522,
+        "user_id": "83518ba8-327e-4782-a219-e25606cf4dd4",
+        "feedback_id": "9e3e5050-7252-4fde-be45-313020b74d30",
+        "checkin_rows": 4
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:22.718Z",
+      "section": "CLI/API",
+      "name": "digital product CRUD",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 209,
+        "product_id": "b4005358-41c7-4fe3-b33f-e7cbd7722c8f",
+        "status": "ativo"
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:23.262Z",
+      "section": "CLI/API",
+      "name": "consulting client, visit and agenda CRUD",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 544,
+        "client_id": "3f7d0e9d-b3db-471e-99d3-1a88c59ae59c",
+        "visit_id": "cb4dead9-fcdf-4441-8a16-bbf3ddc180a5",
+        "event_id": "8553b74d-54cc-4819-9649-32a8aad8539d",
+        "slug": "e2e-admin-master-20260503052018"
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:24.032Z",
+      "section": "CLI/API",
+      "name": "evidence upload and visit completion",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 770,
+        "negative_without_evidence_ok": true,
+        "evidence_id": "212c178d-5e2c-4b8e-bd84-43499e68e47c",
+        "completed_status": "concluida"
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:33.473Z",
+      "section": "Integracoes externas",
+      "name": "relatorio-matinal",
+      "status": "PASS",
+      "details": {
+        "name": "relatorio-matinal",
+        "status": "PASS",
+        "email": "sent",
+        "recipients": 1,
+        "dry_run": false
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:33.474Z",
+      "section": "Integracoes externas",
+      "name": "feedback-semanal",
+      "status": "PASS",
+      "details": {
+        "name": "feedback-semanal",
+        "status": "PASS",
+        "email": "sent",
+        "recipients": 1,
+        "dry_run": false
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:33.474Z",
+      "section": "Integracoes externas",
+      "name": "relatorio-mensal",
+      "status": "PASS",
+      "details": {
+        "name": "relatorio-mensal",
+        "status": "PASS",
+        "email": "sent",
+        "recipients": 1,
+        "dry_run": false
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:33.474Z",
+      "section": "Integracoes externas",
+      "name": "send-visit-report",
+      "status": "PASS",
+      "details": {
+        "name": "send-visit-report",
+        "status": "PASS",
+        "email": "sent",
+        "warnings": [],
+        "message": "sent"
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:33.474Z",
+      "section": "Integracoes externas",
+      "name": "google-calendar-sync",
+      "status": "PASS",
+      "details": {
+        "name": "google-calendar-sync",
+        "status": "PASS",
+        "message": "{\"ok\":true,\"centralConnected\":true,\"userConnected\":false,\"errors\":[]}"
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:33.474Z",
+      "section": "Integracoes externas",
+      "name": "reports, visit email and calendar sync",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 9441,
+        "integrations": 5,
+        "sent": 4
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:33.686Z",
+      "section": "Downloads",
+      "name": "CLI workbook exports",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 212,
+        "files": [
+          {
+            "name": "lojas-20260503052018.xlsx",
+            "bytes": 16078
+          },
+          {
+            "name": "matinal-api-20260503052018.xlsx",
+            "bytes": 21518
+          },
+          {
+            "name": "produtos-20260503052018.xlsx",
+            "bytes": 16077
+          },
+          {
+            "name": "consultoria-20260503052018.xlsx",
+            "bytes": 16083
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:44.278Z",
+      "section": "UI rotas",
+      "name": "Painel Geral",
+      "status": "PASS",
+      "details": {
+        "route": "/painel",
+        "status": 200,
+        "text_length": 3744
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:46.450Z",
+      "section": "UI rotas",
+      "name": "Lojas",
+      "status": "PASS",
+      "details": {
+        "route": "/lojas",
+        "status": 200,
+        "text_length": 2967
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:49.086Z",
+      "section": "UI rotas",
+      "name": "Loja Dashboard E2E",
+      "status": "PASS",
+      "details": {
+        "route": "/lojas/e2e-admin-master-20260503052018-editada",
+        "status": 200,
+        "text_length": 1803
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:52.035Z",
+      "section": "UI rotas",
+      "name": "Loja Equipe E2E",
+      "status": "PASS",
+      "details": {
+        "route": "/lojas/e2e-admin-master-20260503052018-editada?tab=equipe",
+        "status": 200,
+        "text_length": 818
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:54.747Z",
+      "section": "UI rotas",
+      "name": "Consultoria",
+      "status": "PASS",
+      "details": {
+        "route": "/consultoria/clientes",
+        "status": 200,
+        "text_length": 3916
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:57.244Z",
+      "section": "UI rotas",
+      "name": "Consultoria Cliente E2E",
+      "status": "PASS",
+      "details": {
+        "route": "/consultoria/clientes/e2e-admin-master-20260503052018",
+        "status": 200,
+        "text_length": 437
+      }
+    },
+    {
+      "at": "2026-05-03T05:20:59.860Z",
+      "section": "UI rotas",
+      "name": "Consultoria Visita E2E",
+      "status": "PASS",
+      "details": {
+        "route": "/consultoria/clientes/e2e-admin-master-20260503052018/visitas/1",
+        "status": 200,
+        "text_length": 1928
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:02.282Z",
+      "section": "UI rotas",
+      "name": "Agenda",
+      "status": "PASS",
+      "details": {
+        "route": "/agenda",
+        "status": 200,
+        "text_length": 1132
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:05.137Z",
+      "section": "UI rotas",
+      "name": "Benchmarks",
+      "status": "PASS",
+      "details": {
+        "route": "/relatorios/performance-vendas",
+        "status": 200,
+        "text_length": 4590
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:07.355Z",
+      "section": "UI rotas",
+      "name": "Performance Vendedor",
+      "status": "PASS",
+      "details": {
+        "route": "/relatorios/performance-vendedor",
+        "status": 200,
+        "text_length": 3561
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:10.673Z",
+      "section": "UI rotas",
+      "name": "Classificacao",
+      "status": "PASS",
+      "details": {
+        "route": "/classificacao",
+        "status": 200,
+        "text_length": 7148
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:12.844Z",
+      "section": "UI rotas",
+      "name": "Matinal Oficial",
+      "status": "PASS",
+      "details": {
+        "route": "/relatorio-matinal",
+        "status": 200,
+        "text_length": 2138
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:15.010Z",
+      "section": "UI rotas",
+      "name": "Devolutivas PDI",
+      "status": "PASS",
+      "details": {
+        "route": "/devolutivas",
+        "status": 200,
+        "text_length": 294
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:17.018Z",
+      "section": "UI rotas",
+      "name": "PDI",
+      "status": "PASS",
+      "details": {
+        "route": "/pdi",
+        "status": 200,
+        "text_length": 255
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:19.359Z",
+      "section": "UI rotas",
+      "name": "Rotina",
+      "status": "PASS",
+      "details": {
+        "route": "/rotina",
+        "status": 200,
+        "text_length": 636
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:21.643Z",
+      "section": "UI rotas",
+      "name": "Treinamentos",
+      "status": "PASS",
+      "details": {
+        "route": "/treinamentos",
+        "status": 200,
+        "text_length": 461
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:23.742Z",
+      "section": "UI rotas",
+      "name": "Produtos Digitais",
+      "status": "PASS",
+      "details": {
+        "route": "/produtos",
+        "status": 200,
+        "text_length": 460
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:25.837Z",
+      "section": "UI rotas",
+      "name": "Notificacoes",
+      "status": "PASS",
+      "details": {
+        "route": "/notificacoes",
+        "status": 200,
+        "text_length": 204
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:27.965Z",
+      "section": "UI rotas",
+      "name": "Configuracao Operacional",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes/operacional",
+        "status": 200,
+        "text_length": 1463
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:30.294Z",
+      "section": "UI rotas",
+      "name": "Parametros PMR",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes/consultoria-pmr",
+        "status": 200,
+        "text_length": 3394
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:32.271Z",
+      "section": "UI rotas",
+      "name": "Reprocessamento",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes/reprocessamento",
+        "status": 200,
+        "text_length": 737
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:34.542Z",
+      "section": "UI rotas",
+      "name": "Auditoria",
+      "status": "PASS",
+      "details": {
+        "route": "/auditoria",
+        "status": 200,
+        "text_length": 539
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:36.288Z",
+      "section": "UI rotas",
+      "name": "Configuracoes",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes",
+        "status": 200,
+        "text_length": 1036
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:38.142Z",
+      "section": "UI rotas",
+      "name": "Configuracoes perfil",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=perfil",
+        "status": 200,
+        "text_length": 1036
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:39.843Z",
+      "section": "UI rotas",
+      "name": "Configuracoes seguranca",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=seguranca",
+        "status": 200,
+        "text_length": 1121
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:41.537Z",
+      "section": "UI rotas",
+      "name": "Configuracoes notificacoes",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=notificacoes",
+        "status": 200,
+        "text_length": 1369
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:44.442Z",
+      "section": "UI rotas",
+      "name": "Configuracoes equipe-usuarios",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=equipe-usuarios",
+        "status": 200,
+        "text_length": 9493
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:46.560Z",
+      "section": "UI rotas",
+      "name": "Configuracoes lojas-rede",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=lojas-rede",
+        "status": 200,
+        "text_length": 3178
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:48.840Z",
+      "section": "UI rotas",
+      "name": "Configuracoes operacional-loja",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=operacional-loja",
+        "status": 200,
+        "text_length": 2111
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:51.021Z",
+      "section": "UI rotas",
+      "name": "Configuracoes consultoria-pmr",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=consultoria-pmr",
+        "status": 200,
+        "text_length": 4403
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:52.870Z",
+      "section": "UI rotas",
+      "name": "Configuracoes catalogos",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=catalogos",
+        "status": 200,
+        "text_length": 1140
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:54.905Z",
+      "section": "UI rotas",
+      "name": "Configuracoes broadcasts",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=broadcasts",
+        "status": 200,
+        "text_length": 897
+      }
+    },
+    {
+      "at": "2026-05-03T05:21:58.820Z",
+      "section": "UI rotas",
+      "name": "Configuracoes integracoes",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=integracoes",
+        "status": 200,
+        "text_length": 2140
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:00.832Z",
+      "section": "UI rotas",
+      "name": "Configuracoes sistema-mx",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=sistema-mx",
+        "status": 200,
+        "text_length": 1654
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:02.518Z",
+      "section": "UI rotas",
+      "name": "Configuracoes aparencia",
+      "status": "PASS",
+      "details": {
+        "route": "/configuracoes?aba=aparencia",
+        "status": 200,
+        "text_length": 1222
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:03.717Z",
+      "section": "UI downloads",
+      "name": "Matinal XLSX",
+      "status": "PASS",
+      "details": {
+        "file": "output/e2e-admin-master-full-20260503052018/downloads/ui-matinal-20260503052018.xlsx",
+        "bytes": 26479
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:05.305Z",
+      "section": "UI downloads",
+      "name": "Performance XLSX",
+      "status": "PASS",
+      "details": {
+        "file": "output/e2e-admin-master-full-20260503052018/downloads/ui-performance-20260503052018.xlsx",
+        "bytes": 35357
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:07.675Z",
+      "section": "UI downloads",
+      "name": "ROI PDF",
+      "status": "PASS",
+      "details": {
+        "file": "output/e2e-admin-master-full-20260503052018/downloads/ui-roi-20260503052018.pdf",
+        "bytes": 5778
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:10.037Z",
+      "section": "UI",
+      "name": "production navigation, tabs and browser downloads",
+      "status": "PASS",
+      "details": {
+        "duration_ms": 96351,
+        "routes": 35,
+        "failed_routes": 0,
+        "screenshots": 37
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:14.166Z",
+      "section": "Limpeza",
+      "name": "cleanup registry",
+      "status": "PASS",
+      "details": {
+        "cleanupWarnings": [],
+        "checks": [
+          {
+            "table": "lojas",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "usuarios",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "clientes_consultoria",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "produtos_digitais",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "eventos_agenda_consultoria",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "visitas_consultoria",
+            "count": 0,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-05-03T05:22:14.167Z",
+      "section": "Limpeza",
+      "name": "leftover verification",
+      "status": "PASS",
+      "details": {
+        "leftovers": [],
+        "checks": [
+          {
+            "table": "lojas",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "usuarios",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "clientes_consultoria",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "produtos_digitais",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "eventos_agenda_consultoria",
+            "count": 0,
+            "error": null
+          },
+          {
+            "table": "visitas_consultoria",
+            "count": 0,
+            "error": null
+          }
+        ]
+      }
+    }
+  ],
+  "created": {
+    "runId": "E2E_ADMIN_MASTER_20260503052018",
+    "storeId": "d9bdb60e-4ed7-4c67-9c01-6e19938701ae",
+    "storeName": "E2E ADMIN MASTER 20260503052018 EDITADA",
+    "testUserId": "83518ba8-327e-4782-a219-e25606cf4dd4",
+    "testUserEmail": "e2e-admin-master-20260503052018@mxperformance.test",
+    "productId": "b4005358-41c7-4fe3-b33f-e7cbd7722c8f",
+    "clientId": "3f7d0e9d-b3db-471e-99d3-1a88c59ae59c",
+    "clientSlug": "e2e-admin-master-20260503052018",
+    "visitId": "cb4dead9-fcdf-4441-8a16-bbf3ddc180a5",
+    "eventId": "8553b74d-54cc-4819-9649-32a8aad8539d",
+    "feedbackId": "9e3e5050-7252-4fde-be45-313020b74d30",
+    "evidenceIds": [
+      "212c178d-5e2c-4b8e-bd84-43499e68e47c"
+    ],
+    "storagePaths": [
+      "3f7d0e9d-b3db-471e-99d3-1a88c59ae59c/cb4dead9-fcdf-4441-8a16-bbf3ddc180a5/20260503052018-evidence.txt"
+    ]
+  }
+}

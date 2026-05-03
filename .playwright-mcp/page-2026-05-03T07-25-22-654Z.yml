@@ -1,0 +1,78 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - progressbar [ref=e5]
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e16]:
+            - img [ref=e18]
+            - generic [ref=e23]: Fazer Login com o Google
+          - generic [ref=e24]:
+            - heading "O app fbhcmzzgwjdgkctlfvbo.supabase.co quer acessar sua Conta do Google" [level=1] [ref=e25]:
+              - generic [ref=e26]:
+                - text: O app
+                - button "fbhcmzzgwjdgkctlfvbo.supabase.co" [ref=e27] [cursor=pointer]
+                - text: quer acessar sua Conta do Google
+            - generic [ref=e34]: gestao@mxconsultoria.com.br
+        - generic [ref=e37]:
+          - generic [ref=e40]:
+            - heading "Isso permitirá ao app fbhcmzzgwjdgkctlfvbo.supabase.co as seguintes ações:" [level=2] [ref=e43]:
+              - generic [ref=e44]:
+                - text: Isso permitirá ao app
+                - button "fbhcmzzgwjdgkctlfvbo.supabase.co" [ref=e45] [cursor=pointer]
+                - text: "as seguintes ações:"
+            - list [ref=e48]:
+              - listitem [ref=e49]:
+                - generic [ref=e50]:
+                  - img [ref=e52]
+                  - generic [ref=e53]: Ver, editar, criar e excluir apenas os arquivos do Google Drive que você usa com este app
+                  - button "Mais informações" [ref=e55] [cursor=pointer]:
+                    - img [ref=e58]
+              - listitem [ref=e60]:
+                - generic [ref=e61]:
+                  - img [ref=e63]
+                  - generic [ref=e64]: Ver e editar eventos em todas as suas agendas
+                  - button "Mais informações" [ref=e66] [cursor=pointer]:
+                    - img [ref=e69]
+          - generic [ref=e73]:
+            - heading "Confirme se o app fbhcmzzgwjdgkctlfvbo.supabase.co é confiável" [level=2] [ref=e75]:
+              - generic [ref=e76]: Confirme se o app fbhcmzzgwjdgkctlfvbo.supabase.co é confiável
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - text: Leia a
+                - link "Política de Privacidade" [ref=e81] [cursor=pointer]:
+                  - /url: https://mxperformance.vercel.app/privacy
+                - text: e os
+                - link "Termos de Serviço" [ref=e82] [cursor=pointer]:
+                  - /url: https://mxperformance.vercel.app/terms
+                - text: de fbhcmzzgwjdgkctlfvbo.supabase.co para entender como o app fbhcmzzgwjdgkctlfvbo.supabase.co vai processar e proteger seus dados.
+              - generic [ref=e83]:
+                - text: Para fazer mudanças a qualquer momento, acesse sua
+                - link "Conta do Google" [ref=e84] [cursor=pointer]:
+                  - /url: https://myaccount.google.com/connections
+                - text: .
+              - generic [ref=e85]:
+                - text: Veja como o Google ajuda você a
+                - link "compartilhar dados de maneira segura" [ref=e86] [cursor=pointer]:
+                  - /url: https://support.google.com/accounts/answer/14012355
+                - text: .
+        - generic [ref=e89]:
+          - button "Cancelar" [ref=e93]: Cancelar
+          - button "Permitir" [ref=e99]: Permitir
+    - contentinfo [ref=e103]:
+      - combobox "‪Português (Brasil)‬" [ref=e107] [cursor=pointer]:
+        - generic:
+          - generic: ‪Português (Brasil)‬
+        - generic:
+          - img
+      - list [ref=e109]:
+        - listitem [ref=e110]:
+          - link "Ajuda" [ref=e111] [cursor=pointer]:
+            - /url: https://support.google.com/accounts?hl=pt&p=account_iph
+        - listitem [ref=e112]:
+          - link "Privacidade" [ref=e113] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=BR&hl=pt&privacy=true
+        - listitem [ref=e114]:
+          - link "Termos" [ref=e115] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=BR&hl=pt
+  - generic [ref=e117]: O app fbhcmzzgwjdgkctlfvbo.supabase.co quer acessar sua Conta do Google
