@@ -61,8 +61,8 @@ Deno.serve(async (req: Request) => {
 
       const payload = await buildMorningPayload(store, dates);
       const html = generateHTML(payload);
-      const xlsxBase64 = generateXLSX(payload.ranking);
-      const fileName = `Relatorio_${sanitizeAttachmentName(store.name)}.xlsx`;
+      const xlsBase64 = generateXLSX(payload);
+      const fileName = `Relatorio_${sanitizeAttachmentName(store.name)}.xls`;
 
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
           to: payload.recipients,
           subject: `MX Performance | Matinal ${store.name.toUpperCase()} | Tendencia ${payload.projection} ${pluralizeCar(payload.projection)}`,
           html,
-          attachments: [{ filename: fileName, content: xlsxBase64 }],
+          attachments: [{ filename: fileName, content: xlsBase64, mimeType: "application/vnd.ms-excel" }],
           logPrefix: "[Matinal]",
           storeName: store.name,
         });
@@ -286,11 +286,13 @@ function sanitizeAttachmentName(name: string) {
     .toUpperCase() || "LOJA";
 }
 
-function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
+function generateXLSX(payload: Awaited<ReturnType<typeof buildMorningPayload>>) {
+  const ranking = payload.ranking;
   const totalSales = ranking.reduce((sum, row) => sum + row.vt, 0);
   const totalYesterday = ranking.reduce((sum, row) => sum + row.vnd_yesterday, 0);
   const totalLeads = ranking.reduce((sum, row) => sum + row.leads, 0);
   const totalAgd = ranking.reduce((sum, row) => sum + row.agd_cart_today + row.agd_net_today, 0);
+  const reachingColor = payload.reaching >= 100 ? "#1FCB6E" : payload.reaching >= 80 ? "#FFB547" : "#FF6B5B";
   const xml = `<?xml version="1.0"?>
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
@@ -299,17 +301,39 @@ function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <Styles>
-  <Style ss:ID="Title"><Font ss:Bold="1" ss:Size="16" ss:Color="#FFFFFF"/><Interior ss:Color="#082B66" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#225A86" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="MetricHeader"><Font ss:Bold="1" ss:Color="#666666"/><Interior ss:Color="#EDEDED" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Metric"><Font ss:Bold="1"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Highlight"><Font ss:Bold="1"/><Interior ss:Color="#DDEEFF" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Title"><Font ss:FontName="Calibri" ss:Bold="1" ss:Size="16" ss:Color="#E8F0EA"/><Interior ss:Color="#0B100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Subtitle"><Font ss:FontName="Calibri" ss:Bold="1" ss:Size="11" ss:Color="#9BA89F"/><Interior ss:Color="#0F1612" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Header"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#E8F0EA"/><Interior ss:Color="#0F1612" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="MetricHeader"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#9BA89F"/><Interior ss:Color="#172019" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Metric"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#E8F0EA"/><Interior ss:Color="#0A100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Highlight"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="#062012"/><Interior ss:Color="#1FCB6E" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Warning"><Font ss:FontName="Calibri" ss:Bold="1" ss:Color="${reachingColor}"/><Interior ss:Color="#0A100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Cell"><Font ss:FontName="Calibri" ss:Color="#0B100C"/></Style>
  </Styles>
  <Worksheet ss:Name="Painel Visual">
   <Table>
+   <Column ss:Width="160"/><Column ss:Width="120"/><Column ss:Width="120"/><Column ss:Width="120"/><Column ss:Width="120"/>
    <Row>
-    <Cell ss:MergeAcross="3" ss:StyleID="Title"><Data ss:Type="String">RELATORIO MATINAL</Data></Cell>
+    <Cell ss:MergeAcross="4" ss:StyleID="Title"><Data ss:Type="String">MX PERFORMANCE | RELATORIO MATINAL</Data></Cell>
    </Row>
+   <Row>
+    <Cell ss:MergeAcross="4" ss:StyleID="Subtitle"><Data ss:Type="String">${escapeXml(payload.store.name.toUpperCase())} | Ref. ${formatPtBrDate(payload.referenceDate)}</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">VENDAS</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">META</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">PROJECAO</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">ATINGIMENTO</Data></Cell>
+    <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">FALTA</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${payload.totalSales}</Data></Cell>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${payload.storeGoal}</Data></Cell>
+    <Cell ss:StyleID="Highlight"><Data ss:Type="Number">${payload.projection}</Data></Cell>
+    <Cell ss:StyleID="Warning"><Data ss:Type="String">${payload.reaching}%</Data></Cell>
+    <Cell ss:StyleID="Metric"><Data ss:Type="Number">${payload.gap}</Data></Cell>
+   </Row>
+   <Row><Cell><Data ss:Type="String"></Data></Cell></Row>
    <Row>
     <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">LEADS</Data></Cell>
     <Cell ss:StyleID="MetricHeader"><Data ss:Type="String">AGD (HOJE)</Data></Cell>
@@ -340,6 +364,7 @@ function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
  </Worksheet>
  <Worksheet ss:Name="Lista de Vendas Detalhada">
   <Table>
+   <Column ss:Width="220"/><Column ss:Width="190"/><Column ss:Width="190"/><Column ss:Width="190"/><Column ss:Width="110"/><Column ss:Width="110"/><Column ss:Width="130"/>
    <Row>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Vendedor</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">LEADS NOVOS RECEBIDOS NO DIA ANTERIOR</Data></Cell>
@@ -351,13 +376,13 @@ function generateXLSX(ranking: Array<SellerRow & { vt: number }>) {
    </Row>
    ${ranking.map(row => `
    <Row>
-    <Cell><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.leads}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.agd_cart_today}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.agd_net_today}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vnd_yesterday}</Data></Cell>
-    <Cell><Data ss:Type="Number">${row.vt}</Data></Cell>
-    <Cell><Data ss:Type="String">${row.sem_registro ? "PENDENTE" : "REGISTRADO"}</Data></Cell>
+    <Cell ss:StyleID="Cell"><Data ss:Type="String">${escapeXml(row.name)}</Data></Cell>
+    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.leads}</Data></Cell>
+    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.agd_cart_today}</Data></Cell>
+    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.agd_net_today}</Data></Cell>
+    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.vnd_yesterday}</Data></Cell>
+    <Cell ss:StyleID="Cell"><Data ss:Type="Number">${row.vt}</Data></Cell>
+    <Cell ss:StyleID="Cell"><Data ss:Type="String">${row.sem_registro ? "PENDENTE" : "REGISTRADO"}</Data></Cell>
    </Row>`).join("")}
   </Table>
  </Worksheet>

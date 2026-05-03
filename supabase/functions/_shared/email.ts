@@ -1,6 +1,6 @@
 import type { Resend } from "https://esm.sh/resend@3";
 
-type EmailAttachment = { filename: string; content: string };
+type EmailAttachment = { filename: string; content: string; mimeType?: string };
 
 type SendReportParams = {
   resend: Resend | null;
@@ -100,9 +100,10 @@ function buildGmailRawMessage({
   ];
 
   for (const attachment of attachments) {
+    const mimeType = attachment.mimeType || "application/octet-stream";
     parts.push(
       `--${boundary}`,
-      "Content-Type: application/octet-stream",
+      `Content-Type: ${mimeType}`,
       "Content-Transfer-Encoding: base64",
       `Content-Disposition: attachment; filename="${attachment.filename.replace(/"/g, "")}"`,
       "",

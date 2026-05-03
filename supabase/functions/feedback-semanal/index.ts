@@ -77,7 +77,7 @@ Deno.serve(async (req: Request) => {
 
       const payload = await buildWeeklyPayload(store, dates);
       const html = generateWeeklyHTML(payload);
-      const xlsxBase64 = generateWeeklyXLSX(payload);
+      const xlsBase64 = generateWeeklyXLSX(payload);
       const baseFileName = `Feedback Semanal - ${sanitizeAttachmentName(store.name)} - ${formatShortDateForFile(dates.weekStart)} a ${formatShortDateForFile(dates.weekEnd)}`;
       let emailStatus: "sent" | "failed" | "not_sent" | "dry_run" = body.dry_run ? "dry_run" : "not_sent";
       let warnings: string[] = [];
@@ -88,7 +88,7 @@ Deno.serve(async (req: Request) => {
           to: payload.recipients,
           subject: `MX Performance | Feedback semanal ${store.name.toUpperCase()}`,
           html,
-          attachments: [{ filename: `${baseFileName}.xlsx`, content: xlsxBase64 }],
+          attachments: [{ filename: `${baseFileName}.xls`, content: xlsBase64, mimeType: "application/vnd.ms-excel" }],
           logPrefix: "[Semanal]",
           storeName: store.name,
         });

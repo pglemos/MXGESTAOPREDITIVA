@@ -13,7 +13,7 @@ Os PDFs `/Users/pedroguilherme/Downloads/SEMANAL.pdf` e `/Users/pedroguilherme/D
 - [x] Subject segue a marca MX: `MX Performance | Feedback semanal <LOJA>`.
 - [x] HTML do e-mail usa layout compativel com Gmail por tabelas, com fundo `#070A08`, paineis `#0A100C/#0B100C`, bordas `#243227` e destaque `#1FCB6E`.
 - [x] Mensagem por vendedor inclui saudacao, periodo, numeros da semana, analise de oportunidade, comparativo com equipe, diagnostico, acao e criterio.
-- [x] Workbook anexo usa nome `Feedback Semanal - <LOJA> - <DD_MM> a <DD_MM>.xlsx`.
+- [x] Workbook anexo usa Excel XML valido com nome `Feedback Semanal - <LOJA> - <DD_MM> a <DD_MM>.xls` e MIME `application/vnd.ms-excel`.
 - [x] Workbook possui resumo geral e abas individuais com o layout operacional de resumo do vendedor.
 - [x] Workbook usa cores alinhadas ao padrao MX no cabecalho e secoes.
 - [x] Template legado local fica alinhado ao novo visual.
@@ -36,6 +36,7 @@ Os PDFs `/Users/pedroguilherme/Downloads/SEMANAL.pdf` e `/Users/pedroguilherme/D
 - Previa MX gerada em `output/email-mx-redesign/weekly-feedback-mx-preview.png`.
 - Gates do redesign MX: `npm run typecheck`, `npm run lint`, `npm test` com 196 testes passando.
 - Edge Function `feedback-semanal` publicada novamente no Supabase live apos redesign MX.
+- Anexo semanal alinhado ao padrao MX com cabecalhos escuros, secoes verdes e MIME Excel correto.
 
 ### File List
 
