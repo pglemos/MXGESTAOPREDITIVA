@@ -86,7 +86,7 @@ Deno.serve(async (req: Request) => {
         const result = await sendReportEmail({
           resend,
           to: payload.recipients,
-          subject: `📊 Feedback Semanal - ${store.name.toUpperCase()}`,
+          subject: `MX Performance | Feedback semanal ${store.name.toUpperCase()}`,
           html,
           attachments: [{ filename: `${baseFileName}.xlsx`, content: xlsxBase64 }],
           logPrefix: "[Semanal]",
@@ -340,9 +340,9 @@ function formatShortDateForFile(date: string) {
 }
 
 function compareToTeam(value: number, avg: number, label: string) {
-  if (value > avg) return `${label}: 📈 Acima da média da loja.`;
-  if (value < avg) return `${label}: 📉 Abaixo da média da loja.`;
-  return `${label}: ➖ Igual à média da loja.`;
+  if (value > avg) return `${label}: Acima da média da loja.`;
+  if (value < avg) return `${label}: Abaixo da média da loja.`;
+  return `${label}: Igual à média da loja.`;
 }
 
 function buildDiagnosticMessage(
@@ -371,32 +371,32 @@ function buildActionMessage(gapKey: string, gaps: { agdGap: number; visitGap: nu
 }
 
 function buildSellerFeedbackText(row: RankingRow, weekStart: string, weekEnd: string) {
-  return `👋 Olá, ${row.name.toUpperCase()}. Segue seu Feedback Semanal.
+  return `Olá, ${row.name.toUpperCase()}. Segue seu Feedback Semanal.
 
-🗓️ *Período:* ${formatPtBrDate(weekStart)} a ${formatPtBrDate(weekEnd)}
+*Período:* ${formatPtBrDate(weekStart)} a ${formatPtBrDate(weekEnd)}
 
-🔢 *SEUS NÚMEROS DA SEMANA*
+*SEUS NÚMEROS DA SEMANA*
 • Vendas Fechadas: ${row.vnd} (Meta Ref: ${row.sellerWeeklyGoal})
 • Leads Recebidos: ${row.leads}
 • Agendamentos: ${row.agd}
 • Visitas na Loja: ${row.vis}
 
-💡 *ANÁLISE DE OPORTUNIDADE (O que deveria ter acontecido)*
+*ANÁLISE DE OPORTUNIDADE*
 • Com ${row.leads} Leads, a boa prática diz que você faria *${row.idealAgd} agendamentos*.
 • Com ${row.agd} Agendamentos, a boa prática diz que você receberia *${row.idealVis} visitas*.
 • Com ${row.vis} Visitas, a boa prática diz que você fecharia *${row.idealVnd} vendas*.
 
-🏆 *COMPARATIVO COM A EQUIPE*
+*COMPARATIVO COM A EQUIPE*
 • ${row.salesComparison}
 • ${row.agdComparison}
 • ${row.visitComparison}
 
-🚨 *DIAGNÓSTICO E AÇÃO*
+*DIAGNÓSTICO E AÇÃO*
 ${row.diagnostic}
-👉 *O que fazer:* ${row.action}
+*O que fazer:* ${row.action}
 
 ------------------------
-📊 *Entenda o critério:* ${row.criterion}`;
+*Entenda o critério:* ${row.criterion}`;
 }
 
 function generateWeeklyXLSX(payload: any) {
@@ -410,16 +410,16 @@ function generateWeeklyXLSX(payload: any) {
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <Styles>
-  <Style ss:ID="Header"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="12" ss:Color="#FFFFFF" ss:Bold="1"/><Interior ss:Color="#14555F" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="ColumnHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#D9D9D9" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
-  <Style ss:ID="Opportunity"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#F1C232" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="Compare"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#CFE2F3" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="SubHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/><Interior ss:Color="#FFF2CC" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Header"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="12" ss:Color="#E8F0EA" ss:Bold="1"/><Interior ss:Color="#0B100C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="ColumnHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#9BA89F" ss:Bold="1"/><Interior ss:Color="#0F1612" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
+  <Style ss:ID="Opportunity"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#062012" ss:Bold="1"/><Interior ss:Color="#1FCB6E" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="Compare"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#E8F0EA" ss:Bold="1"/><Interior ss:Color="#172019" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="SubHeader"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#E8F0EA" ss:Bold="1"/><Interior ss:Color="#243227" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>
   <Style ss:ID="Center"><Alignment ss:Horizontal="Center"/></Style>
   <Style ss:ID="Bold"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Bold="1"/></Style>
-  <Style ss:ID="Danger"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FF0000" ss:Bold="1"/></Style>
+  <Style ss:ID="Danger"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#FF6B5B" ss:Bold="1"/></Style>
   <Style ss:ID="Italic"><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Italic="1"/></Style>
-  <Style ss:ID="Footnote"><Interior ss:Color="#E6E6E6" ss:Pattern="Solid"/><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Bold="1"/></Style>
+  <Style ss:ID="Footnote"><Interior ss:Color="#172019" ss:Pattern="Solid"/><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#E8F0EA" ss:Bold="1"/></Style>
  </Styles>
  <Worksheet ss:Name="Resumo Geral">
   <Table>
@@ -488,7 +488,8 @@ function generateWeeklyXLSX(payload: any) {
 }
 
 function generateWeeklyWhatsAppText(payload: Awaited<ReturnType<typeof buildWeeklyPayload>>) {
-  return `📊 *Feedback Semanal - ${payload.store.name.toUpperCase()}*
+  return `*MX PERFORMANCE | FEEDBACK SEMANAL*
+${payload.store.name.toUpperCase()}
 Período: ${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}
 
 ${payload.ranking.map((row) => row.feedbackText).join("\n\n====================\n\n")}
@@ -499,25 +500,66 @@ Relatório completo: ${payload.reportUrl}`;
 function generateWeeklyHTML(payload: Awaited<ReturnType<typeof buildWeeklyPayload>>) {
   const wppText = encodeURIComponent(generateWeeklyWhatsAppText(payload));
   const dateRange = `${formatPtBrDate(payload.weekStart)} a ${formatPtBrDate(payload.weekEnd)}`;
+  const totalSales = payload.ranking.reduce((sum, row) => sum + row.vnd, 0);
+  const totalLeads = payload.ranking.reduce((sum, row) => sum + row.leads, 0);
+  const sellerCount = payload.ranking.length;
+  const blocks = payload.ranking.map((row) => `
+          <tr>
+            <td style="padding:0 24px 16px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0;background:#0A100C;border:1px solid #243227;border-radius:12px;overflow:hidden;">
+                <tr>
+                  <td style="border-left:4px solid #1FCB6E;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:20px 24px;">
+                    <div style="font-size:11px;line-height:15px;color:#5C6A60;font-weight:900;text-transform:uppercase;">Mensagem pronta</div>
+                    <div style="font-size:20px;line-height:26px;font-weight:900;text-transform:uppercase;margin:4px 0 14px 0;">${escapeHtml(row.name.toUpperCase())}</div>
+                    <div style="font-size:14px;line-height:21px;color:#9BA89F;white-space:pre-line;">${escapeHtml(row.feedbackText)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>`).join("");
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Feedback Semanal</title>
+  <title>MX Performance | Feedback Semanal</title>
 </head>
-<body style="margin:0;padding:0;background:#ffffff;color:#111111;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#ffffff;margin:0;padding:0;">
+<body style="margin:0;padding:0;background:#070A08;color:#E8F0EA;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#070A08;margin:0;padding:0;">
     <tr>
-      <td align="center" style="padding:34px 18px;">
-        <table role="presentation" width="980" cellspacing="0" cellpadding="0" style="width:980px;max-width:100%;border-collapse:collapse;background:#ffffff;">
-          <tr><td style="font-family:Arial,Helvetica,sans-serif;color:#103f49;padding:0 0 22px 0;"><div style="font-size:28px;line-height:36px;font-weight:900;">📊 Feedback Semanal: ${escapeHtml(payload.store.name.toUpperCase())}</div></td></tr>
-          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:24px;color:#111111;padding:0 0 24px 0;"><strong>Período:</strong> ${dateRange}</td></tr>
-          <tr><td align="center" style="padding:0 0 26px 0;"><a href="${payload.reportUrl}" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:7px;font-family:Arial,Helvetica,sans-serif;font-size:20px;line-height:24px;font-weight:900;text-transform:uppercase;padding:18px 42px;">📂 ABRIR RELATÓRIO COMPLETO</a></td></tr>
-          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:28px;color:#111111;font-weight:900;padding:0 0 18px 0;">📝 Sugestões de Mensagem (Copiar e Colar)</td></tr>
-          ${payload.ranking.map((row) => `
-          <tr><td style="padding:0 0 28px 0;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f7f7f7;border-left:6px solid #14555f;"><tr><td style="font-family:Arial,Helvetica,sans-serif;color:#111111;padding:22px 28px;"><div style="font-size:20px;line-height:26px;font-weight:900;text-transform:uppercase;margin:0 0 18px 0;">${escapeHtml(row.name.toUpperCase())}</div><div style="font-size:16px;line-height:22px;color:#3f3f3f;white-space:pre-line;">${escapeHtml(row.feedbackText)}</div></td></tr></table></td></tr>`).join("")}
-          <tr><td align="center" style="padding:4px 0 30px 0;"><a href="https://api.whatsapp.com/send?text=${wppText}" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:24px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:20px;font-weight:900;text-transform:uppercase;padding:14px 34px;">📲 ENVIAR VIA WHATSAPP</a></td></tr>
+      <td align="center" style="padding:32px 14px;background:#070A08;">
+        <table role="presentation" width="980" cellspacing="0" cellpadding="0" style="width:980px;max-width:100%;border-collapse:separate;border-spacing:0;background:#0B100C;border:1px solid #243227;border-radius:16px;overflow:hidden;">
+          <tr>
+            <td style="background:#0F1612;border-bottom:1px solid #243227;font-family:Arial,Helvetica,sans-serif;padding:22px 24px;">
+              <div style="color:#1FCB6E;font-size:12px;line-height:16px;font-weight:900;text-transform:uppercase;">MX Performance</div>
+              <div style="color:#E8F0EA;font-size:30px;line-height:36px;font-weight:900;text-transform:uppercase;margin-top:4px;">Feedback Semanal</div>
+              <div style="color:#9BA89F;font-size:14px;line-height:20px;margin-top:8px;">${escapeHtml(payload.store.name.toUpperCase())} | ${dateRange}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#0B100C;padding:22px 24px 10px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:10px 0;margin:0;">
+                <tr>
+                  <td width="33%" align="center" style="background:#0A100C;border:1px solid #243227;border-radius:12px;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:17px 8px;"><div style="font-size:11px;line-height:15px;text-transform:uppercase;color:#5C6A60;font-weight:900;">Vendedores</div><div style="font-size:27px;line-height:32px;font-weight:900;margin-top:4px;">${sellerCount}</div></td>
+                  <td width="33%" align="center" style="background:#0A100C;border:1px solid #243227;border-radius:12px;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:17px 8px;"><div style="font-size:11px;line-height:15px;text-transform:uppercase;color:#5C6A60;font-weight:900;">Leads</div><div style="font-size:27px;line-height:32px;font-weight:900;margin-top:4px;">${totalLeads}</div></td>
+                  <td width="33%" align="center" style="background:#0A100C;border:1px solid #243227;border-radius:12px;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:17px 8px;"><div style="font-size:11px;line-height:15px;text-transform:uppercase;color:#5C6A60;font-weight:900;">Vendas</div><div style="font-size:27px;line-height:32px;font-weight:900;color:#1FCB6E;margin-top:4px;">${totalSales}</div></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="background:#0B100C;padding:8px 24px 24px 24px;">
+              <a href="${payload.reportUrl}" style="display:inline-block;background:#1FCB6E;color:#062012;text-decoration:none;border-radius:8px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:20px;font-weight:900;text-transform:uppercase;padding:15px 34px;">Abrir relatório completo</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#0B100C;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:0 24px 12px 24px;">
+              <div style="font-size:11px;line-height:15px;color:#5C6A60;font-weight:900;text-transform:uppercase;">Operação</div>
+              <div style="font-size:22px;line-height:28px;font-weight:900;margin-top:4px;">Sugestões de mensagem</div>
+            </td>
+          </tr>
+          ${blocks}
+          <tr><td align="center" style="background:#0B100C;padding:10px 24px 34px 24px;"><a href="https://api.whatsapp.com/send?text=${wppText}" style="display:inline-block;background:#1FCB6E;color:#062012;text-decoration:none;border-radius:8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:19px;font-weight:900;text-transform:uppercase;padding:14px 30px;">Enviar via WhatsApp</a></td></tr>
         </table>
       </td>
     </tr>

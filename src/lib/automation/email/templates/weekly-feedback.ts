@@ -8,18 +8,21 @@ function escapeHtml(value: unknown) {
 }
 
 export const getWeeklyFeedbackEmailTemplate = (storeName: string, dateRange: string, feedbackData: any[]) => {
+  const totalSales = feedbackData.reduce((sum, item) => sum + Number(item.vnd ?? item.sales ?? 0), 0)
+  const totalLeads = feedbackData.reduce((sum, item) => sum + Number(item.leads ?? 0), 0)
   const blocks = feedbackData.map((feedback) => {
     const name = feedback.seller_name ?? feedback.name ?? 'Vendedor'
     const text = feedback.whatsapp_text ?? feedback.feedbackText ?? feedback.message ?? ''
 
     return `
       <tr>
-        <td style="padding:0 0 28px 0;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f7f7f7;border-left:6px solid #14555f;">
+        <td style="padding:0 24px 16px 24px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0;background:#0A100C;border:1px solid #243227;border-radius:12px;overflow:hidden;">
             <tr>
-              <td style="font-family:Arial,Helvetica,sans-serif;color:#111111;padding:22px 28px;">
-                <div style="font-size:20px;line-height:26px;font-weight:900;text-transform:uppercase;margin:0 0 18px 0;">${escapeHtml(String(name).toUpperCase())}</div>
-                <div style="font-size:16px;line-height:22px;color:#3f3f3f;white-space:pre-line;">${escapeHtml(text)}</div>
+              <td style="border-left:4px solid #1FCB6E;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:20px 24px;">
+                <div style="font-size:11px;line-height:15px;color:#5C6A60;font-weight:900;text-transform:uppercase;">Mensagem pronta</div>
+                <div style="font-size:20px;line-height:26px;font-weight:900;text-transform:uppercase;margin:4px 0 14px 0;">${escapeHtml(String(name).toUpperCase())}</div>
+                <div style="font-size:14px;line-height:21px;color:#9BA89F;white-space:pre-line;">${escapeHtml(text)}</div>
               </td>
             </tr>
           </table>
@@ -32,31 +35,40 @@ export const getWeeklyFeedbackEmailTemplate = (storeName: string, dateRange: str
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Feedback Semanal</title>
+  <title>MX Performance | Feedback Semanal</title>
 </head>
-<body style="margin:0;padding:0;background:#ffffff;color:#111111;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#ffffff;margin:0;padding:0;">
+<body style="margin:0;padding:0;background:#070A08;color:#E8F0EA;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#070A08;margin:0;padding:0;">
     <tr>
-      <td align="center" style="padding:34px 18px;">
-        <table role="presentation" width="980" cellspacing="0" cellpadding="0" style="width:980px;max-width:100%;border-collapse:collapse;background:#ffffff;">
+      <td align="center" style="padding:32px 14px;background:#070A08;">
+        <table role="presentation" width="980" cellspacing="0" cellpadding="0" style="width:980px;max-width:100%;border-collapse:separate;border-spacing:0;background:#0B100C;border:1px solid #243227;border-radius:16px;overflow:hidden;">
           <tr>
-            <td style="font-family:Arial,Helvetica,sans-serif;color:#103f49;padding:0 0 22px 0;">
-              <div style="font-size:28px;line-height:36px;font-weight:900;">📊 Feedback Semanal: ${escapeHtml(storeName.toUpperCase())}</div>
+            <td style="background:#0F1612;border-bottom:1px solid #243227;font-family:Arial,Helvetica,sans-serif;padding:22px 24px;">
+              <div style="color:#1FCB6E;font-size:12px;line-height:16px;font-weight:900;text-transform:uppercase;">MX Performance</div>
+              <div style="color:#E8F0EA;font-size:30px;line-height:36px;font-weight:900;text-transform:uppercase;margin-top:4px;">Feedback Semanal</div>
+              <div style="color:#9BA89F;font-size:14px;line-height:20px;margin-top:8px;">${escapeHtml(storeName.toUpperCase())} | ${escapeHtml(dateRange)}</div>
             </td>
           </tr>
           <tr>
-            <td style="font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:24px;color:#111111;padding:0 0 24px 0;">
-              <strong>Período:</strong> ${escapeHtml(dateRange)}
+            <td style="background:#0B100C;padding:22px 24px 10px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:10px 0;margin:0;">
+                <tr>
+                  <td width="33%" align="center" style="background:#0A100C;border:1px solid #243227;border-radius:12px;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:17px 8px;"><div style="font-size:11px;line-height:15px;text-transform:uppercase;color:#5C6A60;font-weight:900;">Vendedores</div><div style="font-size:27px;line-height:32px;font-weight:900;margin-top:4px;">${feedbackData.length}</div></td>
+                  <td width="33%" align="center" style="background:#0A100C;border:1px solid #243227;border-radius:12px;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:17px 8px;"><div style="font-size:11px;line-height:15px;text-transform:uppercase;color:#5C6A60;font-weight:900;">Leads</div><div style="font-size:27px;line-height:32px;font-weight:900;margin-top:4px;">${totalLeads}</div></td>
+                  <td width="33%" align="center" style="background:#0A100C;border:1px solid #243227;border-radius:12px;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:17px 8px;"><div style="font-size:11px;line-height:15px;text-transform:uppercase;color:#5C6A60;font-weight:900;">Vendas</div><div style="font-size:27px;line-height:32px;font-weight:900;color:#1FCB6E;margin-top:4px;">${totalSales}</div></td>
+                </tr>
+              </table>
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:0 0 26px 0;">
-              <a href="#" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:7px;font-family:Arial,Helvetica,sans-serif;font-size:20px;line-height:24px;font-weight:900;text-transform:uppercase;padding:18px 42px;">📂 ABRIR RELATÓRIO COMPLETO</a>
+            <td align="center" style="background:#0B100C;padding:8px 24px 24px 24px;">
+              <a href="#" style="display:inline-block;background:#1FCB6E;color:#062012;text-decoration:none;border-radius:8px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:20px;font-weight:900;text-transform:uppercase;padding:15px 34px;">Abrir relatório completo</a>
             </td>
           </tr>
           <tr>
-            <td style="font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:28px;color:#111111;font-weight:900;padding:0 0 18px 0;">
-              📝 Sugestões de Mensagem (Copiar e Colar)
+            <td style="background:#0B100C;font-family:Arial,Helvetica,sans-serif;color:#E8F0EA;padding:0 24px 12px 24px;">
+              <div style="font-size:11px;line-height:15px;color:#5C6A60;font-weight:900;text-transform:uppercase;">Operação</div>
+              <div style="font-size:22px;line-height:28px;font-weight:900;margin-top:4px;">Sugestões de mensagem</div>
             </td>
           </tr>
           ${blocks}
