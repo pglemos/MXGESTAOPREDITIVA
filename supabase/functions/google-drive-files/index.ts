@@ -16,6 +16,15 @@ const FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 const INTERNAL_ROLES = new Set(["administrador_geral", "administrador_mx", "consultor_mx"]);
 
+const SUBFOLDER_TYPES = [
+  { tipo: "pdi", name: "PDI" },
+  { tipo: "feedback", name: "Feedback" },
+  { tipo: "relatorios", name: "Relatórios" },
+  { tipo: "plano_acao", name: "Plano de Ação" },
+  { tipo: "dre_financeiro", name: "DRE e Financeiro" },
+  { tipo: "visitas", name: "Relatórios de Visita" },
+] as const;
+
 type DriveAction = "ensure-folder" | "list" | "upload" | "delete";
 
 type ConsultingClientRow = {
@@ -46,6 +55,8 @@ type DriveFile = {
   createdTime?: string;
   modifiedTime?: string;
 };
+
+type DriveFolder = { id: string; name: string; webViewLink: string };
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -102,21 +113,13 @@ async function driveJson(accessToken: string, path: string, init: RequestInit = 
   return data;
 }
 
-async function createDriveFolder(accessToken: string, name: string, parentId?: string) {
-  const metadata: Record<string, unknown> = {
-    name,
-    mimeType: FOLDER_MIME_TYPE,
-  };
+async function createDriveFolder(accessToken: string, name: string, parentId?: string): Promise<DriveFolder> {
+  const metadata: Record<string, unknown> = { name, mimeType: FOLDER_MIME_TYPE };
   if (parentId) metadata.parents = [parentId];
-
-  const data = await driveJson(
-    accessToken,
-    "/drive/v3/files?fields=id,name,webViewLink",
-    {
-      method: "POST",
-      body: JSON.stringify(metadata),
-    },
-  );
+  const data = await driveJson(accessToken, "/drive/v3/files?fields=id,name,webViewLink", {
+    method: "POST",
+    body: JSON.stringify(metadata),
+  });
   return {
     id: String(data.id),
     name: String(data.name || name),
@@ -124,7 +127,7 @@ async function createDriveFolder(accessToken: string, name: string, parentId?: s
   };
 }
 
-async function findDriveFolder(accessToken: string, name: string, parentId: string) {
+async function findDriveFolder(accessToken: string, name: string, parentId: string): Promise<DriveFolder | null> {
   const query = [
     `mimeType='${FOLDER_MIME_TYPE}'`,
     `name='${escapeDriveQueryValue(name)}'`,
@@ -145,21 +148,137 @@ async function findDriveFolder(accessToken: string, name: string, parentId: stri
     : null;
 }
 
-async function getRootFolder(accessToken: string) {
-  if (CENTRAL_DRIVE_ROOT_FOLDER_ID) {
-    return {
-      id: CENTRAL_DRIVE_ROOT_FOLDER_ID,
-      name: CENTRAL_DRIVE_ROOT_FOLDER_NAME,
-      webViewLink: folderUrl(CENTRAL_DRIVE_ROOT_FOLDER_ID),
-    };
-  }
-
-  const existing = await findDriveFolder(accessToken, CENTRAL_DRIVE_ROOT_FOLDER_NAME, "root");
-  if (existing) return existing;
-  return createDriveFolder(accessToken, CENTRAL_DRIVE_ROOT_FOLDER_NAME, "root");
+/** Finds ALL folders with the given name at the given parent (to detect duplicates). */
+async function findAllDriveFolders(accessToken: string, name: string, parentId: string): Promise<DriveFolder[]> {
+  const query = [
+    `mimeType='${FOLDER_MIME_TYPE}'`,
+    `name='${escapeDriveQueryValue(name)}'`,
+    `'${escapeDriveQueryValue(parentId)}' in parents`,
+    "trashed=false",
+  ].join(" and ");
+  const data = await driveJson(
+    accessToken,
+    `/drive/v3/files?q=${encodeURIComponent(query)}&spaces=drive&pageSize=20&fields=files(id,name,webViewLink)`,
+  );
+  return Array.isArray(data.files)
+    ? data.files.map((f: Record<string, unknown>) => ({
+        id: String(f.id),
+        name: String(f.name || name),
+        webViewLink: String(f.webViewLink || folderUrl(String(f.id))),
+      }))
+    : [];
 }
 
-async function ensureClientFolder(adminClient: any, accessToken: string, client: ConsultingClientRow, userId: string): Promise<DriveFolderRow> {
+/** Checks whether a Drive folder has any children (files or sub-folders). */
+async function driveHasChildren(accessToken: string, folderId: string): Promise<boolean> {
+  const data = await driveJson(
+    accessToken,
+    `/drive/v3/files?q=${encodeURIComponent(`'${escapeDriveQueryValue(folderId)}' in parents and trashed=false`)}&spaces=drive&pageSize=1&fields=files(id)`,
+  );
+  return Array.isArray(data.files) && data.files.length > 0;
+}
+
+/**
+ * Returns (or creates) the single root folder "MX Performance - Clientes".
+ * Stores the chosen folder ID in config_drive_central to prevent future duplicates.
+ * If duplicates already exist, keeps the one with content and deletes the empty ones.
+ */
+async function getRootFolder(adminClient: ReturnType<typeof createClient>, accessToken: string): Promise<DriveFolder> {
+  if (CENTRAL_DRIVE_ROOT_FOLDER_ID) {
+    return { id: CENTRAL_DRIVE_ROOT_FOLDER_ID, name: CENTRAL_DRIVE_ROOT_FOLDER_NAME, webViewLink: folderUrl(CENTRAL_DRIVE_ROOT_FOLDER_ID) };
+  }
+
+  const { data: configRow } = await adminClient
+    .from("config_drive_central")
+    .select("value")
+    .eq("key", "root_folder_id")
+    .maybeSingle();
+  if (configRow?.value) {
+    return { id: configRow.value, name: CENTRAL_DRIVE_ROOT_FOLDER_NAME, webViewLink: folderUrl(configRow.value) };
+  }
+
+  const allRoots = await findAllDriveFolders(accessToken, CENTRAL_DRIVE_ROOT_FOLDER_NAME, "root");
+
+  let root: DriveFolder;
+  if (allRoots.length === 0) {
+    root = await createDriveFolder(accessToken, CENTRAL_DRIVE_ROOT_FOLDER_NAME);
+  } else if (allRoots.length === 1) {
+    root = allRoots[0];
+  } else {
+    // Dedup: keep the folder with content, delete the empty ones
+    let winner = allRoots[0];
+    for (const candidate of allRoots) {
+      if (await driveHasChildren(accessToken, candidate.id)) {
+        winner = candidate;
+        break;
+      }
+    }
+    for (const candidate of allRoots) {
+      if (candidate.id === winner.id) continue;
+      await googleApiRequest(accessToken, `/drive/v3/files/${encodeURIComponent(candidate.id)}`, {
+        method: "DELETE",
+      }).catch(() => {});
+    }
+    root = winner;
+  }
+
+  await adminClient
+    .from("config_drive_central")
+    .upsert({ key: "root_folder_id", value: root.id, updated_at: new Date().toISOString() }, { onConflict: "key" });
+
+  return root;
+}
+
+/** Ensures all document-type subfolders exist inside the client folder. */
+async function ensureSubfolders(
+  adminClient: ReturnType<typeof createClient>,
+  accessToken: string,
+  folder: DriveFolderRow,
+  userId: string,
+): Promise<Record<string, string>> {
+  const { data: existing } = await adminClient
+    .from("subpastas_drive_consultoria")
+    .select("tipo,google_drive_folder_id,google_drive_folder_url")
+    .eq("client_id", folder.client_id)
+    .eq("status", "active");
+
+  const existingMap = new Map<string, string>(
+    (existing || []).map((r: { tipo: string; google_drive_folder_id: string }) => [r.tipo, r.google_drive_folder_id]),
+  );
+
+  const result: Record<string, string> = {};
+
+  for (const { tipo, name } of SUBFOLDER_TYPES) {
+    if (existingMap.has(tipo)) {
+      result[tipo] = folderUrl(existingMap.get(tipo)!);
+      continue;
+    }
+
+    const found = await findDriveFolder(accessToken, name, folder.google_drive_folder_id);
+    const driveFolder = found ?? await createDriveFolder(accessToken, name, folder.google_drive_folder_id);
+
+    await adminClient.from("subpastas_drive_consultoria").upsert({
+      pasta_id: folder.id,
+      client_id: folder.client_id,
+      tipo,
+      google_drive_folder_id: driveFolder.id,
+      google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
+      status: "active",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "client_id,tipo" }).catch(() => {});
+
+    result[tipo] = driveFolder.webViewLink || folderUrl(driveFolder.id);
+  }
+
+  return result;
+}
+
+async function ensureClientFolder(
+  adminClient: ReturnType<typeof createClient>,
+  accessToken: string,
+  client: ConsultingClientRow,
+  userId: string,
+): Promise<DriveFolderRow> {
   const { data: existing, error: existingError } = await adminClient
     .from("pastas_drive_consultoria")
     .select("*")
@@ -170,9 +289,10 @@ async function ensureClientFolder(adminClient: any, accessToken: string, client:
   if (existingError && cacheAvailable) throw toError(existingError);
   if (existing?.google_drive_folder_id) return { ...existing, cache_available: true } as DriveFolderRow;
 
-  const root = await getRootFolder(accessToken);
+  const root = await getRootFolder(adminClient, accessToken);
   const folderName = normalizeFolderName(`${client.name} - ${client.slug || client.id.slice(0, 8)}`);
-  const driveFolder = await findDriveFolder(accessToken, folderName, root.id) ?? await createDriveFolder(accessToken, folderName, root.id);
+  const driveFolder = await findDriveFolder(accessToken, folderName, root.id) ??
+    await createDriveFolder(accessToken, folderName, root.id);
   const storeId = client.primary_store_id || null;
 
   if (!cacheAvailable) {
@@ -190,18 +310,22 @@ async function ensureClientFolder(adminClient: any, accessToken: string, client:
 
   const { data: row, error: upsertError } = await adminClient
     .from("pastas_drive_consultoria")
-    .upsert({
-      client_id: client.id,
-      store_id: storeId,
-      parent_folder_id: root.id,
-      google_drive_folder_id: driveFolder.id,
-      google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
-      status: "active",
-      created_by: userId,
-      updated_by: userId,
-    }, { onConflict: "client_id" })
+    .upsert(
+      {
+        client_id: client.id,
+        store_id: storeId,
+        parent_folder_id: root.id,
+        google_drive_folder_id: driveFolder.id,
+        google_drive_folder_url: driveFolder.webViewLink || folderUrl(driveFolder.id),
+        status: "active",
+        created_by: userId,
+        updated_by: userId,
+      },
+      { onConflict: "client_id" },
+    )
     .select("*")
     .single();
+
   if (upsertError) {
     if (!isMissingTableError(upsertError)) throw toError(upsertError);
     return {
@@ -232,37 +356,30 @@ async function listDriveFiles(accessToken: string, folderId: string): Promise<Dr
 }
 
 async function uploadDriveFile(accessToken: string, folderId: string, file: File): Promise<DriveFile> {
-  if (file.size > MAX_FILE_SIZE_BYTES) {
-    throw new Error(`Arquivo ${file.name} excede o limite de 25 MB`);
-  }
-
-  const metadata = {
-    name: file.name,
-    parents: [folderId],
-  };
+  if (file.size > MAX_FILE_SIZE_BYTES) throw new Error(`Arquivo ${file.name} excede o limite de 25 MB`);
+  const metadata = { name: file.name, parents: [folderId] };
   const boundary = `mx-drive-${crypto.randomUUID()}`;
-  const body = new Blob([
-    `--${boundary}\r\n`,
-    "Content-Type: application/json; charset=UTF-8\r\n\r\n",
-    JSON.stringify(metadata),
-    "\r\n",
-    `--${boundary}\r\n`,
-    `Content-Type: ${file.type || "application/octet-stream"}\r\n\r\n`,
-    await file.arrayBuffer(),
-    "\r\n",
-    `--${boundary}--`,
-  ], { type: `multipart/related; boundary=${boundary}` });
-
-  const headers = new Headers();
-  headers.set("Authorization", `Bearer ${accessToken}`);
-  headers.set("Content-Type", `multipart/related; boundary=${boundary}`);
+  const body = new Blob(
+    [
+      `--${boundary}\r\n`,
+      "Content-Type: application/json; charset=UTF-8\r\n\r\n",
+      JSON.stringify(metadata),
+      "\r\n",
+      `--${boundary}\r\n`,
+      `Content-Type: ${file.type || "application/octet-stream"}\r\n\r\n`,
+      await file.arrayBuffer(),
+      "\r\n",
+      `--${boundary}--`,
+    ],
+    { type: `multipart/related; boundary=${boundary}` },
+  );
+  const headers = new Headers({
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": `multipart/related; boundary=${boundary}`,
+  });
   const res = await fetch(
     "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,webViewLink,webContentLink,createdTime,modifiedTime",
-    {
-      method: "POST",
-      headers,
-      body,
-    },
+    { method: "POST", headers, body },
   );
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error?.message || `Upload falhou (${res.status})`);
@@ -273,10 +390,7 @@ async function trashDriveFile(accessToken: string, fileId: string): Promise<void
   await driveJson(
     accessToken,
     `/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,trashed`,
-    {
-      method: "PATCH",
-      body: JSON.stringify({ trashed: true }),
-    },
+    { method: "PATCH", body: JSON.stringify({ trashed: true }) },
   );
 }
 
@@ -296,13 +410,17 @@ async function authenticate(req: Request) {
     .single();
   if (profileError) throw toError(profileError);
   if (!INTERNAL_ROLES.has(profile?.role)) {
-    return { error: jsonResponse({ error: "Apenas perfis internos MX podem acessar arquivos da consultoria" }, 403) };
+    return {
+      error: jsonResponse(
+        { error: "Apenas perfis internos MX podem acessar arquivos da consultoria" },
+        403,
+      ),
+    };
   }
-
   return { sessionClient, adminClient, userId: authData.user.id };
 }
 
-async function getClient(adminClient: any, clientId: string): Promise<ConsultingClientRow> {
+async function getClient(adminClient: ReturnType<typeof createClient>, clientId: string): Promise<ConsultingClientRow> {
   const { data, error } = await adminClient
     .from("clientes_consultoria")
     .select("id,name,slug,primary_store_id")
@@ -338,9 +456,7 @@ Deno.serve(async (req) => {
     } else {
       const body = await req.json().catch(() => ({}));
       action = body?.action;
-      if (!["ensure-folder", "list", "delete"].includes(action)) {
-        throw new Error("Ação inválida");
-      }
+      if (!["ensure-folder", "list", "delete"].includes(action)) throw new Error("Ação inválida");
       clientId = parseUuid(body?.clientId, "clientId");
       deleteFileId = typeof body?.fileId === "string" ? body.fileId : null;
     }
@@ -357,11 +473,14 @@ Deno.serve(async (req) => {
     const folder = await ensureClientFolder(adminClient, accessToken, client, userId);
 
     if (action === "ensure-folder") {
-      return jsonResponse({ folderUrl: folder.google_drive_folder_url, folder });
+      const subfolders = await ensureSubfolders(adminClient, accessToken, folder, userId);
+      return jsonResponse({ folderUrl: folder.google_drive_folder_url, folder, subfolders });
     }
 
     if (action === "list") {
       const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
+      // Trigger subfolder creation in background (non-blocking)
+      ensureSubfolders(adminClient, accessToken, folder, userId).catch(() => {});
       return jsonResponse({ folderUrl: folder.google_drive_folder_url, files: driveFiles });
     }
 
@@ -373,13 +492,14 @@ Deno.serve(async (req) => {
         .eq("client_id", client.id)
         .eq("pasta_id", folder.id);
       if (fileError && !isMissingTableError(fileError)) throw toError(fileError);
-      const fileRow = (fileRows || []).find((row: any) => row.id === deleteFileId || row.google_drive_file_id === deleteFileId);
+      const fileRow = (fileRows || []).find(
+        (row: { id: string; google_drive_file_id: string }) =>
+          row.id === deleteFileId || row.google_drive_file_id === deleteFileId,
+      );
       const driveFileId = fileRow?.google_drive_file_id || deleteFileId;
 
       const currentFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
-      if (!currentFiles.some((file) => file.id === driveFileId)) {
-        throw new Error("Arquivo não encontrado para este cliente");
-      }
+      if (!currentFiles.some((f) => f.id === driveFileId)) throw new Error("Arquivo não encontrado para este cliente");
 
       await trashDriveFile(accessToken, driveFileId);
       if (fileRow?.id) {
@@ -394,6 +514,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ folderUrl: folder.google_drive_folder_url, files: driveFiles });
     }
 
+    // action === "upload"
     const uploaded: DriveFile[] = [];
     for (const file of files) {
       const driveFile = await uploadDriveFile(accessToken, folder.google_drive_folder_id, file);
@@ -401,19 +522,22 @@ Deno.serve(async (req) => {
       if (folder.cache_available === false) continue;
       const { error: upsertError } = await adminClient
         .from("arquivos_drive_consultoria")
-        .upsert({
-          pasta_id: folder.id,
-          client_id: client.id,
-          store_id: folder.store_id,
-          google_drive_file_id: driveFile.id,
-          name: driveFile.name || file.name,
-          mime_type: driveFile.mimeType || file.type || "application/octet-stream",
-          size_bytes: Number(driveFile.size || file.size || 0),
-          web_view_link: driveFile.webViewLink || null,
-          web_content_link: driveFile.webContentLink || null,
-          status: "active",
-          uploaded_by: userId,
-        }, { onConflict: "google_drive_file_id" });
+        .upsert(
+          {
+            pasta_id: folder.id,
+            client_id: client.id,
+            store_id: folder.store_id,
+            google_drive_file_id: driveFile.id,
+            name: driveFile.name || file.name,
+            mime_type: driveFile.mimeType || file.type || "application/octet-stream",
+            size_bytes: Number(driveFile.size || file.size || 0),
+            web_view_link: driveFile.webViewLink || null,
+            web_content_link: driveFile.webContentLink || null,
+            status: "active",
+            uploaded_by: userId,
+          },
+          { onConflict: "google_drive_file_id" },
+        );
       if (upsertError && !isMissingTableError(upsertError)) throw toError(upsertError);
     }
 

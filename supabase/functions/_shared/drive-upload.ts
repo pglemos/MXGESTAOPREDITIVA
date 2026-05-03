@@ -1,0 +1,140 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireEnv } from "./crypto.ts";
+import { getCentralDriveAccessToken } from "./google.ts";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+export type DriveDocTipo = "pdi" | "feedback" | "relatorios" | "plano_acao" | "dre_financeiro" | "visitas";
+
+function makeAdminClient() {
+  return createClient(
+    requireEnv("SUPABASE_URL", SUPABASE_URL),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+}
+
+async function driveUploadMultipart(
+  accessToken: string,
+  folderId: string,
+  fileName: string,
+  content: Uint8Array,
+  mimeType: string,
+): Promise<{ fileId: string; fileUrl: string } | null> {
+  const metadata = { name: fileName, parents: [folderId] };
+  const boundary = `mx-drive-${crypto.randomUUID()}`;
+  const body = new Blob(
+    [
+      `--${boundary}\r\n`,
+      "Content-Type: application/json; charset=UTF-8\r\n\r\n",
+      JSON.stringify(metadata),
+      "\r\n",
+      `--${boundary}\r\n`,
+      `Content-Type: ${mimeType}\r\n\r\n`,
+      content,
+      "\r\n",
+      `--${boundary}--`,
+    ],
+    { type: `multipart/related; boundary=${boundary}` },
+  );
+  const headers = new Headers({
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": `multipart/related; boundary=${boundary}`,
+  });
+  const res = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink",
+    { method: "POST", headers, body },
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return null;
+  return {
+    fileId: String(data.id),
+    fileUrl: String(data.webViewLink || `https://drive.google.com/file/d/${data.id}/view`),
+  };
+}
+
+/**
+ * Uploads a document to the correct Drive subfolder of a consultoria client.
+ * Finds the client by storeId (primary_store_id), then looks up the subfolder for the given tipo.
+ * Returns null silently if no client, no subfolder, or Drive is not connected — never throws.
+ */
+export async function uploadDocumentToStore(
+  storeId: string,
+  tipo: DriveDocTipo,
+  fileName: string,
+  content: Uint8Array | ArrayBuffer,
+  mimeType: string,
+): Promise<{ fileId: string; fileUrl: string } | null> {
+  try {
+    const adminClient = makeAdminClient();
+
+    const { data: client } = await adminClient
+      .from("clientes_consultoria")
+      .select("id")
+      .eq("primary_store_id", storeId)
+      .maybeSingle();
+    if (!client) return null;
+
+    const { data: subfolder } = await adminClient
+      .from("subpastas_drive_consultoria")
+      .select("google_drive_folder_id")
+      .eq("client_id", client.id)
+      .eq("tipo", tipo)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!subfolder) return null;
+
+    const accessToken = await getCentralDriveAccessToken();
+    if (!accessToken) return null;
+
+    const bytes = content instanceof ArrayBuffer ? new Uint8Array(content) : content;
+    return await driveUploadMultipart(
+      accessToken,
+      subfolder.google_drive_folder_id,
+      fileName,
+      bytes,
+      mimeType,
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Same as uploadDocumentToStore but accepts clientId directly.
+ */
+export async function uploadDocumentToClient(
+  clientId: string,
+  tipo: DriveDocTipo,
+  fileName: string,
+  content: Uint8Array | ArrayBuffer,
+  mimeType: string,
+): Promise<{ fileId: string; fileUrl: string } | null> {
+  try {
+    const adminClient = makeAdminClient();
+
+    const { data: subfolder } = await adminClient
+      .from("subpastas_drive_consultoria")
+      .select("google_drive_folder_id")
+      .eq("client_id", clientId)
+      .eq("tipo", tipo)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!subfolder) return null;
+
+    const accessToken = await getCentralDriveAccessToken();
+    if (!accessToken) return null;
+
+    const bytes = content instanceof ArrayBuffer ? new Uint8Array(content) : content;
+    return await driveUploadMultipart(
+      accessToken,
+      subfolder.google_drive_folder_id,
+      fileName,
+      bytes,
+      mimeType,
+    );
+  } catch {
+    return null;
+  }
+}

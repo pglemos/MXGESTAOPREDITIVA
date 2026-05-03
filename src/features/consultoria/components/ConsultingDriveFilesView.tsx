@@ -1,5 +1,5 @@
 import { useRef, type ChangeEvent } from 'react'
-import { ExternalLink, FileUp, FolderOpen, RefreshCw, Trash2, UploadCloud } from 'lucide-react'
+import { Download, Eye, FileUp, FolderOpen, RefreshCw, Trash2, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
@@ -94,7 +94,7 @@ export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
               Atualizar
             </Button>
             {folderUrl && (
-              <Button variant="outline" size="sm" onClick={() => window.open(folderUrl, '_blank', 'noopener,noreferrer')} icon={<ExternalLink />}>
+              <Button variant="outline" size="sm" onClick={() => window.open(folderUrl, '_blank', 'noopener,noreferrer')} icon={<FolderOpen />}>
                 Abrir pasta
               </Button>
             )}
@@ -138,10 +138,22 @@ export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
                 </div>
                 <div className="flex gap-mx-xs">
                   {file.webViewLink && (
-                    <Button variant="outline" size="xs" onClick={() => window.open(file.webViewLink, '_blank', 'noopener,noreferrer')} icon={<ExternalLink />}>
+                    <Button variant="outline" size="xs" onClick={() => window.open(file.webViewLink, '_blank', 'noopener,noreferrer')} icon={<Eye />}>
                       Abrir
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() => window.open(
+                      file.webContentLink || `https://drive.google.com/uc?export=download&id=${file.id}`,
+                      '_blank',
+                      'noopener,noreferrer',
+                    )}
+                    icon={<Download />}
+                  >
+                    Baixar
+                  </Button>
                   <Button variant="danger" size="xs" onClick={() => deleteFile(file.id)} disabled={loading || uploading} icon={<Trash2 />}>
                     Remover
                   </Button>
