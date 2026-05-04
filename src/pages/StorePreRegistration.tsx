@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type React from 'react'
 import { useParams } from 'react-router-dom'
-import { motion } from 'motion/react'
-import { ArrowRight, BadgeCheck, Building2, Camera, CheckCircle2, LockKeyhole, Mail, Phone, ShieldCheck, Upload, UserRound } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { ArrowLeft, ArrowRight, Building2, Camera, Check, CheckCircle2, LockKeyhole, Mail, Phone, ShieldCheck, Upload, UserRound } from 'lucide-react'
 import { getSupabaseFunctionUrl } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -53,6 +53,11 @@ const roleOptions = [
 
 const tenureOptions = ['Menos de 3 meses', '3 a 6 meses', '6 meses a 1 ano', '1 a 2 anos', 'Mais de 2 anos']
 const marketOptions = ['Primeira experiência', 'Menos de 1 ano', '1 a 3 anos', '3 a 5 anos', 'Mais de 5 anos']
+const steps = [
+  { id: 0, label: 'Identidade', helper: 'Foto, nome e contato' },
+  { id: 1, label: 'Vínculo', helper: 'Loja, função e segmento' },
+  { id: 2, label: 'Experiência', helper: 'Tempo, mercado e revisão' },
+] as const
 
 export default function StorePreRegistration() {
   const { storeSlug } = useParams()
@@ -65,6 +70,7 @@ export default function StorePreRegistration() {
   const [photo, setPhoto] = useState<PhotoState | null>(null)
   const [formErrors, setFormErrors] = useState<FormErrors>({})
   const [provisionalLogin, setProvisionalLogin] = useState<{ email: string; password: string } | null>(null)
+  const [step, setStep] = useState(0)
 
   const functionUrl = useMemo(() => getSupabaseFunctionUrl('store-pre-registration'), [])
   const completion = useMemo(() => {
@@ -72,6 +78,8 @@ export default function StorePreRegistration() {
     const filled = fields.filter(Boolean).length
     return Math.round((filled / fields.length) * 100)
   }, [form, photo])
+
+  const stepProgress = useMemo(() => Math.round(((step + 1) / steps.length) * 100), [step])
 
   useEffect(() => {
     const fetchStore = async () => {
@@ -97,17 +105,44 @@ export default function StorePreRegistration() {
     setFormErrors(prev => ({ ...prev, [field]: undefined }))
   }
 
-  const validateForm = () => {
+  const getValidationErrors = (scope: 'all' | 'step' = 'all') => {
     const nextErrors: FormErrors = {}
-    if (form.full_name.trim().split(/\s+/).length < 2) nextErrors.full_name = 'Informe nome e sobrenome.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) nextErrors.email = 'Informe um e-mail válido.'
-    if (form.phone.replace(/\D/g, '').length < 10) nextErrors.phone = 'Informe um telefone válido.'
-    if (!form.segment.trim()) nextErrors.segment = 'Informe o segmento.'
-    if (!form.store_tenure) nextErrors.store_tenure = 'Selecione o tempo na loja.'
-    if (!form.market_experience) nextErrors.market_experience = 'Selecione a experiência de mercado.'
-    if (!photo?.base64) nextErrors.photo = 'Envie ou tire uma foto para criar o avatar.'
+
+    if (scope === 'all' || step === 0) {
+      if (!photo?.base64) nextErrors.photo = 'Envie ou tire uma foto para criar o avatar.'
+      if (form.full_name.trim().split(/\s+/).length < 2) nextErrors.full_name = 'Informe nome e sobrenome.'
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) nextErrors.email = 'Informe um e-mail válido.'
+      if (form.phone.replace(/\D/g, '').length < 10) nextErrors.phone = 'Informe um telefone válido.'
+    }
+
+    if (scope === 'all' || step === 1) {
+      if (!form.segment.trim()) nextErrors.segment = 'Informe o segmento.'
+    }
+
+    if (scope === 'all' || step === 2) {
+      if (!form.store_tenure) nextErrors.store_tenure = 'Selecione o tempo na loja.'
+      if (!form.market_experience) nextErrors.market_experience = 'Selecione a experiência de mercado.'
+    }
+
+    return nextErrors
+  }
+
+  const validateForm = () => {
+    const nextErrors = getValidationErrors('all')
     setFormErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
+  }
+
+  const handleNext = () => {
+    const nextErrors = getValidationErrors('step')
+    setFormErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) return
+    setStep(current => Math.min(current + 1, steps.length - 1))
+  }
+
+  const handleBack = () => {
+    setFormErrors({})
+    setStep(current => Math.max(current - 1, 0))
   }
 
   const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,6 +200,7 @@ export default function StorePreRegistration() {
       setProvisionalLogin({ email: payload.login_email || form.email, password: payload.temporary_password || 'Mx@123456!' })
       setForm(initialForm)
       setPhoto(null)
+      setStep(0)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o pré-cadastro.')
     } finally {
@@ -173,277 +209,324 @@ export default function StorePreRegistration() {
   }
 
   return (
-    <main className="min-h-screen mx-pre-bg text-white overflow-hidden relative">
-      <div className="absolute inset-0 mx-pre-glow" />
-      <div className="absolute inset-0 mx-pre-grid" />
-      <motion.div
-        className="absolute mx-pre-scanline h-px bg-gradient-to-r from-transparent via-brand-primary/55 to-transparent"
-        initial={{ x: '-35%', opacity: 0.2 }}
-        animate={{ x: '35%', opacity: 0.72 }}
-        transition={{ duration: 5.8, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
-      />
+    <main className="mx-pre-shell min-h-screen text-white overflow-hidden relative">
+      <div className="mx-pre-noise" />
+      <div className="mx-pre-hero-bg">
+        <div className="mx-pre-hero-grid" />
+        <div className="mx-pre-hero-glow" />
+        <motion.div
+          className="mx-pre-hero-scan"
+          initial={{ y: '-15%' }}
+          animate={{ y: '115%' }}
+          transition={{ duration: 7.5, repeat: Infinity, ease: 'linear' }}
+        />
+      </div>
 
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-mx-md sm:px-mx-lg py-mx-lg sm:py-mx-10">
-        <header className="flex items-center justify-between gap-mx-sm">
-          <div className="flex items-center gap-mx-sm min-w-0">
-            <div className="h-mx-11 w-mx-11 rounded-mx-lg border border-white/10 mx-pre-logo-tile flex items-center justify-center shadow-mx-glow-brand">
-              <img src="/landing/logo-mx.png" alt="MX" className="h-mx-8 w-mx-8 object-contain" />
+      <header className="mx-pre-topbar">
+        <div className="mx-pre-topbar-inner">
+          <div className="mx-pre-brand">
+            <div className="mx-pre-brand-mark">
+              <img src="/landing/logo-mx.png" alt="MX" />
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-black tracking-mx-wider uppercase">MX Performance</p>
-              <p className="text-mx-tiny font-black tracking-mx-wide uppercase text-white/40 truncate">Pré-cadastro de equipe</p>
+            <div className="mx-pre-brand-copy">
+              <p>MX <span>Performance</span></p>
+              <small>Pré-cadastro de equipe</small>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-mx-xs rounded-full border border-brand-primary/30 bg-brand-primary/10 px-mx-sm py-mx-xs text-mx-tiny font-black tracking-mx-wide uppercase text-brand-primary">
-            <span className="h-mx-xs w-mx-xs rounded-full bg-brand-primary shadow-mx-glow-brand" />
+          <div className="mx-pre-live">
+            <span />
             Link oficial
           </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg lg:gap-mx-xl items-start pt-mx-14 lg:pt-mx-20">
-          <aside className="lg:sticky lg:top-10">
-            <div className="space-y-mx-lg">
-              <div className="space-y-mx-md">
-                <div className="inline-flex items-center gap-mx-sm text-mx-tiny font-black tracking-mx-wider uppercase text-brand-primary">
-                  <span className="block w-mx-12 h-px bg-brand-primary shadow-mx-glow-brand" />
-                  Sincronização operacional
-                </div>
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[0.9] max-w-2xl">
-                  Acesso oficial da equipe {store?.name ? ` ${store.name}.` : 'da loja.'}
-                </h1>
-                <p className="max-w-xl text-base sm:text-lg leading-8 text-white/62 font-medium">
-                  Tire ou anexe uma foto, confirme seu vínculo e aguarde a validação do Admin MX antes do primeiro acesso.
-                </p>
+      <section className="mx-pre-stage">
+        <motion.aside
+          className="mx-pre-intro"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.7, 0.2, 1] }}
+        >
+          <div className="mx-pre-meta">
+            <i />
+            <b>{loading ? 'Sincronizando loja' : store?.name || 'Link da loja'}</b>
+          </div>
+          <h1>
+            Seu acesso entra na <em>Malha MX</em>.
+          </h1>
+          <p>
+            Um cadastro curto, em etapas, para validar foto, contato e hierarquia antes do login ser liberado pelo Admin MX.
+          </p>
+
+          <div className="mx-pre-proof">
+            {[
+              { label: 'Loja', value: loading ? 'Carregando' : store?.name || 'Indisponível', icon: Building2 },
+              { label: 'Validação', value: 'Admin MX', icon: ShieldCheck },
+              { label: 'Login', value: 'Pendente', icon: LockKeyhole },
+            ].map(item => (
+              <motion.div key={item.label} whileHover={{ x: 6 }} className="mx-pre-proof-row">
+                <item.icon size={18} />
+                <span>{item.label}</span>
+                <b>{item.value}</b>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mx-pre-mobile-progress" aria-label={`Progresso ${completion}%`}>
+            <div>
+              <span>Dados preenchidos</span>
+              <b>{completion}%</b>
+            </div>
+            <i><motion.span initial={false} animate={{ width: `${completion}%` }} /></i>
+          </div>
+        </motion.aside>
+
+        <motion.section
+          initial={{ opacity: 0, y: 22, rotateX: -4 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+          transition={{ duration: 0.72, ease: [0.2, 0.7, 0.2, 1], delay: 0.08 }}
+          className="mx-pre-console"
+        >
+          <div className="mx-pre-console-bar">
+            <div className="mx-pre-window-dots"><i /><i /><i /></div>
+            <span>store.access / {store?.name || 'mx'}</span>
+            <b>{step + 1}/{steps.length}</b>
+          </div>
+
+          <div className="mx-pre-console-body">
+            <div className="mx-pre-wizard-head">
+              <div>
+                <p>Pré-cadastro</p>
+                <h2>{steps[step].label}</h2>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-mx-sm">
-                {[
-                  { icon: Building2, label: 'Loja identificada', value: loading ? 'Carregando' : store?.name || 'Link indisponível' },
-                  { icon: ShieldCheck, label: 'Validação', value: 'Admin MX' },
-                  { icon: LockKeyhole, label: 'Login', value: 'Pendente' },
-                ].map(item => (
-                  <div key={item.label} className="rounded-mx-2xl border border-white/10 mx-pre-info-card p-mx-sm backdrop-blur-xl">
-                    <item.icon size={18} className="text-brand-primary mb-mx-sm" />
-                    <p className="text-mx-tiny font-black uppercase tracking-mx-wide text-white/35">{item.label}</p>
-                    <p className="mt-1 text-sm font-black uppercase tracking-tight text-white truncate">{item.value}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mx-pre-signal-panel">
-                <div className="flex items-center justify-between gap-mx-md">
-                  <div>
-                    <p className="text-mx-tiny font-black uppercase tracking-mx-wide text-white/35">Progresso do cadastro</p>
-                    <p className="mt-1 text-2xl font-black tabular-nums">{completion}%</p>
-                  </div>
-                  <div className="h-mx-12 w-mx-12 rounded-mx-2xl border border-brand-primary/20 bg-brand-primary/10 text-brand-primary flex items-center justify-center">
-                    <BadgeCheck size={22} />
-                  </div>
-                </div>
-                <div className="mt-mx-sm h-mx-xs rounded-full bg-white/10 overflow-hidden">
-                  <motion.div
-                    className="h-full bg-brand-primary rounded-full shadow-mx-glow-brand"
-                    initial={false}
-                    animate={{ width: `${completion}%` }}
-                    transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-                  />
-                </div>
+              <div className="mx-pre-step-meter">
+                <span>{stepProgress}%</span>
+                <i><motion.b initial={false} animate={{ width: `${stepProgress}%` }} /></i>
               </div>
             </div>
-          </aside>
 
-          <motion.section
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.2, 0.7, 0.2, 1] }}
-            className="rounded-mx-3xl border border-white/10 bg-white/[0.97] text-text-primary shadow-mx-elite overflow-hidden"
-          >
-            <div className="border-b border-border-default bg-surface-alt p-mx-md sm:p-mx-lg">
-              <div className="flex items-start gap-mx-sm">
-                <motion.div
-                  whileHover={{ rotate: -2, scale: 1.03 }}
-                  className="h-mx-12 w-mx-12 rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-glow-brand shrink-0"
+            <div className="mx-pre-steps">
+              {steps.map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => item.id < step && setStep(item.id)}
+                  className={cn('mx-pre-step-tab', item.id === step && 'active', item.id < step && 'done')}
                 >
-                  <UserRound size={24} />
-                </motion.div>
-                <div className="min-w-0">
-                  <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">Pré-cadastro</h2>
-                  <p className="mt-1 text-xs sm:text-sm font-bold text-text-tertiary uppercase tracking-widest">
-                    {loading ? 'Validando link da loja' : store ? store.name : 'Loja não encontrada'}
-                  </p>
-                </div>
-              </div>
+                  <span>{item.id < step ? <Check size={13} /> : item.id + 1}</span>
+                  <b>{item.label}</b>
+                  <small>{item.helper}</small>
+                </button>
+              ))}
             </div>
 
-            <div className="p-mx-md sm:p-mx-lg">
+            <div>
               {loading ? (
-                <div className="min-h-mx-96 flex items-center justify-center">
-                  <div className="h-mx-12 w-mx-12 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
+                <div className="mx-pre-state">
+                  <div className="mx-pre-loader" />
                 </div>
               ) : success ? (
-                <div className="min-h-mx-96 flex flex-col items-center justify-center text-center gap-mx-md">
-                  <div className="h-mx-20 w-mx-20 rounded-mx-3xl bg-status-success-surface text-status-success flex items-center justify-center">
+                <div className="mx-pre-success">
+                  <div className="mx-pre-success-icon">
                     <CheckCircle2 size={42} />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-black uppercase tracking-tight">Cadastro recebido</h2>
-                    <p className="mt-3 max-w-md text-sm font-bold text-text-tertiary leading-6">
+                    <h2>Cadastro recebido</h2>
+                    <p>
                       O login foi criado como pendente. Admin MX ou MX Master precisa validar a hierarquia antes de liberar seu acesso.
                     </p>
                   </div>
                   {provisionalLogin && (
-                    <div className="w-full max-w-md rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md text-left">
-                      <p className="text-mx-nano font-black uppercase tracking-mx-widest text-text-tertiary">Login provisório após aprovação</p>
-                      <p className="mt-2 text-sm font-black text-text-primary break-all">{provisionalLogin.email}</p>
-                      <p className="mt-1 text-lg font-black text-brand-primary">{provisionalLogin.password}</p>
+                    <div className="mx-pre-login-box">
+                      <small>Login provisório após aprovação</small>
+                      <p>{provisionalLogin.email}</p>
+                      <b>{provisionalLogin.password}</b>
                     </div>
                   )}
                   <button
                     type="button"
                     onClick={() => setSuccess(false)}
-                    className="h-mx-12 px-mx-md rounded-mx-xl bg-mx-black text-white text-xs font-black uppercase tracking-widest"
+                    className="mx-pre-btn ghost"
                   >
                     Enviar outro cadastro
                   </button>
                 </div>
               ) : error && !store ? (
-                <div className="min-h-mx-96 flex flex-col items-center justify-center text-center gap-mx-sm">
+                <div className="mx-pre-state">
                   <Building2 size={42} className="text-text-tertiary" />
-                  <h2 className="text-2xl font-black uppercase">Link indisponível</h2>
-                  <p className="max-w-md text-sm font-bold text-text-tertiary">{error}</p>
+                  <h2>Link indisponível</h2>
+                  <p>{error}</p>
                 </div>
               ) : (
                 <motion.form
                   onSubmit={handleSubmit}
-                  className="space-y-mx-md"
+                  className="mx-pre-form"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.35 }}
                 >
-                  <div>
-                    <label className="mx-public-label">Foto para avatar</label>
-                    <div className="mt-2 grid mx-photo-grid gap-mx-sm">
-                      <motion.div
-                        whileHover={{ y: -2 }}
-                        className={cn(
-                          'mx-photo-stage',
-                          formErrors.photo && 'border-status-error/40 bg-status-error-surface'
-                        )}
-                      >
-                        {photo?.preview ? (
-                          <img src={photo.preview} alt="Prévia da foto enviada" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full flex-col items-center justify-center text-center px-mx-sm">
-                            <Camera size={34} className="text-brand-primary" />
-                            <span className="mt-mx-xs text-mx-nano font-black uppercase tracking-mx-widest text-text-tertiary">Foto obrigatória</span>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={step}
+                      initial={{ opacity: 0, x: 22 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -22 }}
+                      transition={{ duration: 0.26, ease: [0.2, 0.7, 0.2, 1] }}
+                      className="mx-pre-step-panel"
+                    >
+                      {step === 0 && (
+                        <div className="mx-pre-identity-grid">
+                          <div>
+                            <label className="mx-public-label">Foto para avatar</label>
+                            <motion.div
+                              whileHover={{ y: -2 }}
+                              className={cn('mx-photo-stage', formErrors.photo && 'is-invalid')}
+                            >
+                              {photo?.preview ? (
+                                <img src={photo.preview} alt="Prévia da foto enviada" />
+                              ) : (
+                                <div>
+                                  <Camera size={34} />
+                                  <span>Foto obrigatória</span>
+                                </div>
+                              )}
+                            </motion.div>
+                            {formErrors.photo && <FieldError>{formErrors.photo}</FieldError>}
+                            <div className="mx-photo-actions">
+                              <label className="mx-photo-action">
+                                <Camera size={17} />
+                                <span>Tirar foto</span>
+                                <input type="file" accept="image/*" capture="user" onChange={handlePhotoChange} className="sr-only" />
+                              </label>
+                              <label className="mx-photo-action">
+                                <Upload size={17} />
+                                <span>Anexar</span>
+                                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhotoChange} className="sr-only" />
+                              </label>
+                            </div>
                           </div>
-                        )}
-                      </motion.div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
-                        <label className="mx-photo-action">
-                          <Camera size={18} />
-                          <span>Tirar foto</span>
-                          <input type="file" accept="image/*" capture="user" onChange={handlePhotoChange} className="sr-only" />
-                        </label>
-                        <label className="mx-photo-action">
-                          <Upload size={18} />
-                          <span>Anexar foto</span>
-                          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhotoChange} className="sr-only" />
-                        </label>
-                        <div className="sm:col-span-2 rounded-mx-xl border border-border-default bg-surface-alt px-mx-sm py-mx-xs text-mx-tiny font-bold text-text-tertiary leading-5">
-                          A foto fica vinculada ao perfil e entra na fila de aprovação com a loja, o papel solicitado e os dados de contato.
+                          <div className="mx-pre-field-stack">
+                            <Field label="Nome completo" icon={UserRound} error={formErrors.full_name}>
+                              <input required value={form.full_name} onChange={event => updateForm('full_name', event.target.value.toUpperCase())} placeholder="NOME COMPLETO" className="mx-public-input" />
+                            </Field>
+                            <Field label="E-mail" icon={Mail} error={formErrors.email}>
+                              <input required type="email" value={form.email} onChange={event => updateForm('email', event.target.value)} placeholder="voce@email.com" className="mx-public-input" />
+                            </Field>
+                            <Field label="Telefone / WhatsApp" icon={Phone} error={formErrors.phone}>
+                              <input required value={form.phone} onChange={event => updateForm('phone', event.target.value)} placeholder="(00) 00000-0000" className="mx-public-input" />
+                            </Field>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    {formErrors.photo && <FieldError>{formErrors.photo}</FieldError>}
-                  </div>
+                      )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-sm">
-                    <Field label="Nome completo" icon={UserRound} error={formErrors.full_name}>
-                      <input required value={form.full_name} onChange={event => updateForm('full_name', event.target.value.toUpperCase())} placeholder="NOME COMPLETO" className="mx-public-input" />
-                    </Field>
-                    <Field label="Telefone / WhatsApp" icon={Phone} error={formErrors.phone}>
-                      <input required value={form.phone} onChange={event => updateForm('phone', event.target.value)} placeholder="(00) 00000-0000" className="mx-public-input" />
-                    </Field>
-                    <Field label="E-mail" icon={Mail} error={formErrors.email}>
-                      <input required type="email" value={form.email} onChange={event => updateForm('email', event.target.value)} placeholder="voce@email.com" className="mx-public-input" />
-                    </Field>
-                    <Field label="Loja" icon={Building2}>
-                      <input readOnly value={store?.name || ''} className="mx-public-input bg-surface-alt text-text-tertiary" />
-                    </Field>
-                    <div>
-                      <label className="mx-public-label">Segmento</label>
-                      <input required value={form.segment} onChange={event => updateForm('segment', event.target.value)} placeholder="Automotivo" className="mx-public-input mt-2" />
-                      {formErrors.segment && <FieldError>{formErrors.segment}</FieldError>}
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="mx-public-label">Função</label>
-                      <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-mx-xs">
-                        {roleOptions.map(option => (
-                          <motion.button
-                            key={option.value}
-                            type="button"
-                            whileHover={{ y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => updateForm('role', option.value)}
-                            className={cn(
-                              'mx-role-option',
-                              form.role === option.value && 'mx-role-option-active'
-                            )}
-                          >
-                            <span>{option.label}</span>
-                            <small>{option.description}</small>
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="mx-public-label">Tempo na loja</label>
-                      <select required value={form.store_tenure} onChange={event => updateForm('store_tenure', event.target.value)} className="mx-public-input mt-2">
-                        <option value="">Selecione</option>
-                        {tenureOptions.map(option => <option key={option} value={option}>{option}</option>)}
-                      </select>
-                      {formErrors.store_tenure && <FieldError>{formErrors.store_tenure}</FieldError>}
-                    </div>
-                    <div>
-                      <label className="mx-public-label">Experiência de mercado</label>
-                      <select required value={form.market_experience} onChange={event => updateForm('market_experience', event.target.value)} className="mx-public-input mt-2">
-                        <option value="">Selecione</option>
-                        {marketOptions.map(option => <option key={option} value={option}>{option}</option>)}
-                      </select>
-                      {formErrors.market_experience && <FieldError>{formErrors.market_experience}</FieldError>}
-                    </div>
-                  </div>
+                      {step === 1 && (
+                        <div className="mx-pre-field-stack">
+                          <Field label="Loja" icon={Building2}>
+                            <input readOnly value={store?.name || ''} className="mx-public-input" />
+                          </Field>
+                          <div>
+                            <label className="mx-public-label">Segmento</label>
+                            <input required value={form.segment} onChange={event => updateForm('segment', event.target.value)} placeholder="Automotivo" className="mx-public-input" />
+                            {formErrors.segment && <FieldError>{formErrors.segment}</FieldError>}
+                          </div>
+                          <div>
+                            <label className="mx-public-label">Função</label>
+                            <div className="mx-role-grid">
+                              {roleOptions.map(option => (
+                                <motion.button
+                                  key={option.value}
+                                  type="button"
+                                  whileHover={{ y: -2 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  onClick={() => updateForm('role', option.value)}
+                                  className={cn('mx-role-option', form.role === option.value && 'mx-role-option-active')}
+                                >
+                                  <span>{option.label}</span>
+                                  <small>{option.description}</small>
+                                </motion.button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
-                  <div>
-                    <label className="mx-public-label">Observações</label>
-                    <textarea value={form.notes} onChange={event => updateForm('notes', event.target.value)} rows={4} placeholder="Alguma informação importante para a MX validar seu cadastro?" className="mx-public-input mt-2 min-h-28 resize-none py-4" />
-                  </div>
+                      {step === 2 && (
+                        <div className="mx-pre-field-stack">
+                          <div className="mx-pre-two">
+                            <div>
+                              <label className="mx-public-label">Tempo na loja</label>
+                              <select required value={form.store_tenure} onChange={event => updateForm('store_tenure', event.target.value)} className="mx-public-input">
+                                <option value="">Selecione</option>
+                                {tenureOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                              </select>
+                              {formErrors.store_tenure && <FieldError>{formErrors.store_tenure}</FieldError>}
+                            </div>
+                            <div>
+                              <label className="mx-public-label">Experiência de mercado</label>
+                              <select required value={form.market_experience} onChange={event => updateForm('market_experience', event.target.value)} className="mx-public-input">
+                                <option value="">Selecione</option>
+                                {marketOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                              </select>
+                              {formErrors.market_experience && <FieldError>{formErrors.market_experience}</FieldError>}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="mx-public-label">Observações</label>
+                            <textarea value={form.notes} onChange={event => updateForm('notes', event.target.value)} rows={4} placeholder="Alguma informação importante para a MX validar seu cadastro?" className="mx-public-input mx-pre-textarea" />
+                          </div>
+                          <ReviewSummary form={form} storeName={store?.name || ''} photo={photo} />
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
 
                   {error && (
-                    <div className="rounded-mx-xl border border-status-error/15 bg-status-error-surface p-mx-sm text-sm font-bold text-status-error">
+                    <div className="mx-pre-error">
                       {error}
                     </div>
                   )}
 
-                  <motion.button
-                    type="submit"
-                    disabled={submitting}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.99 }}
-                    className={cn(
-                      'w-full h-mx-16 rounded-mx-2xl bg-brand-primary text-white shadow-mx-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-mx-sm transition-all',
-                      'hover:bg-brand-primary-hover active:scale-[0.99] disabled:opacity-60'
+                  <div className="mx-pre-actions">
+                    <motion.button
+                      type="button"
+                      disabled={step === 0 || submitting}
+                      onClick={handleBack}
+                      whileTap={{ scale: 0.98 }}
+                      className="mx-pre-btn ghost"
+                    >
+                      <ArrowLeft size={16} />
+                      Voltar
+                    </motion.button>
+
+                    {step < steps.length - 1 ? (
+                      <motion.button
+                        type="button"
+                        onClick={handleNext}
+                        whileHover={{ y: -1 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="mx-pre-btn primary"
+                      >
+                        Continuar
+                        <ArrowRight size={16} />
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        type="submit"
+                        disabled={submitting}
+                        whileHover={{ y: -1 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="mx-pre-btn primary"
+                      >
+                        {submitting ? 'Enviando...' : 'Enviar pré-cadastro'}
+                        <ArrowRight size={16} />
+                      </motion.button>
                     )}
-                  >
-                    {submitting ? 'Enviando cadastro...' : 'Enviar pré-cadastro'}
-                    <ArrowRight size={18} />
-                  </motion.button>
+                  </div>
                 </motion.form>
               )}
             </div>
-          </motion.section>
-        </div>
+          </div>
+        </motion.section>
       </section>
     </main>
   )
@@ -467,5 +550,35 @@ function FieldError({ children, className }: { children: React.ReactNode; classN
     <p className={cn('mt-mx-tiny text-mx-tiny font-black text-status-error', className)}>
       {children}
     </p>
+  )
+}
+
+function ReviewSummary({ form, storeName, photo }: { form: FormState; storeName: string; photo: PhotoState | null }) {
+  const summary = [
+    ['Loja', storeName],
+    ['Função', form.role],
+    ['Segmento', form.segment],
+    ['Tempo na loja', form.store_tenure || 'Não informado'],
+    ['Mercado', form.market_experience || 'Não informado'],
+  ]
+
+  return (
+    <div className="mx-pre-review">
+      <div className="mx-pre-review-avatar">
+        {photo?.preview ? <img src={photo.preview} alt="Avatar selecionado" /> : <UserRound size={22} />}
+      </div>
+      <div>
+        <h3>{form.full_name || 'Nome pendente'}</h3>
+        <p>{form.email || 'email pendente'} · {form.phone || 'telefone pendente'}</p>
+        <dl>
+          {summary.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
   )
 }

@@ -16,6 +16,8 @@ Cada loja precisa ter dados cadastrais completos no sistema e um link específic
 - [x] Link público `/pre-cadastro/:storeSlug` renderiza landing page MX premium com logo/design system.
 - [x] Form público coleta nome completo, e-mail, telefone, loja, segmento, função, tempo na loja e experiência de mercado.
 - [x] Form público exige foto/captura para avatar e valida campos obrigatórios antes do envio.
+- [x] Pré-cadastro usa fluxo em etapas para reduzir fricção no mobile.
+- [x] Visual do pré-cadastro segue a landing principal MX: topbar, grid, scanline, console dark, tipografia e microinterações.
 - [x] Dados informados pelo link criam usuário/Auth pendente, vínculo de loja e senha provisória forte.
 - [x] Login pendente permanece bloqueado até aprovação do Admin MX/MX Master.
 - [x] Admin MX/MX Master recebe notificação de novo login pendente.
@@ -37,6 +39,7 @@ Cada loja precisa ter dados cadastrais completos no sistema e um link específic
 - Edge function `store-pre-registration` publicada via `npx supabase functions deploy store-pre-registration`.
 - Integração remota validada com GET para `store_slug=acertt` e POST controlado; registro temporário de validação removido via `supabase db query --linked`.
 - Iteração de aprovação: adicionada captura/anexo de foto, criação de Auth user inativo, senha provisória `Mx@123456!`, notificação para Admin MX/MX Master e edge function autenticada de aprovação/rejeição.
+- Iteração visual: pré-cadastro refeito como wizard de 3 etapas, com visual alinhado à landing principal, console escuro, stepper, transições por etapa, microinterações em botões/cartões e validação por etapa.
 
 ### File List
 
