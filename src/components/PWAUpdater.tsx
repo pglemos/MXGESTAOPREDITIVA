@@ -27,9 +27,7 @@ export function PWAUpdater() {
               },
             })
           },
-          onOfflineReady() {
-            toast.success('Pronto para uso offline', { duration: 3000 })
-          },
+          onOfflineReady() {},
           onRegisteredSW(_swUrl, registration) {
             if (!registration) return
             updateInterval = setInterval(() => {
