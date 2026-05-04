@@ -110,6 +110,22 @@ serve(async (req) => {
 
   if (membershipError) return jsonResponse({ success: false, error: membershipError.message }, 500)
 
+  if (finalRole === 'dono') {
+    const storePayload: Record<string, string> = {}
+    if (preRegistration.company_legal_name) storePayload.legal_name = preRegistration.company_legal_name
+    if (preRegistration.company_cnpj) storePayload.cnpj = preRegistration.company_cnpj
+    if (preRegistration.company_address) storePayload.address = preRegistration.company_address
+    if (preRegistration.company_administrative_phone) storePayload.administrative_phone = preRegistration.company_administrative_phone
+
+    if (Object.keys(storePayload).length) {
+      const { error: storeUpdateError } = await adminClient
+        .from('lojas')
+        .update(storePayload)
+        .eq('id', preRegistration.store_id)
+      if (storeUpdateError) return jsonResponse({ success: false, error: storeUpdateError.message }, 500)
+    }
+  }
+
   if (finalRole === 'vendedor') {
     const { error: sellerError } = await adminClient.from('vendedores_loja').upsert({
       seller_user_id: preRegistration.auth_user_id,

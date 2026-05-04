@@ -402,6 +402,19 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                         <BriefcaseBusiness size={13} className="text-brand-primary" />
                         <span>{item.segment}</span>
                       </div>
+                      {item.role === 'dono' && (
+                        <div className="mt-mx-sm rounded-mx-xl border border-brand-primary/15 bg-white p-mx-sm">
+                          <Typography variant="tiny" tone="brand" className="mb-mx-xs block font-black uppercase tracking-widest">
+                            Dados administrativos
+                          </Typography>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-xs text-mx-micro font-bold text-text-secondary">
+                            <span><b>Razão:</b> {item.company_legal_name || 'não informado'}</span>
+                            <span><b>CNPJ:</b> {item.company_cnpj || 'não informado'}</span>
+                            <span><b>Telefone:</b> {item.company_administrative_phone || 'não informado'}</span>
+                            <span><b>Endereço:</b> {item.company_address || 'não informado'}</span>
+                          </div>
+                        </div>
+                      )}
                       {item.temporary_password && (
                         <div className="mt-mx-sm inline-flex items-center gap-mx-xs rounded-mx-xl border border-brand-primary/20 bg-brand-primary/10 px-mx-sm py-mx-xs text-mx-tiny font-black text-brand-primary">
                           <KeyRound size={13} />

@@ -120,6 +120,10 @@ serve(async (req) => {
   const storeTenure = clean(payload.store_tenure, 120)
   const marketExperience = clean(payload.market_experience, 120)
   const notes = clean(payload.notes, 800)
+  const companyLegalName = clean(payload.company_legal_name, 180).toLocaleUpperCase('pt-BR')
+  const companyCnpj = clean(payload.company_cnpj, 32)
+  const companyAddress = clean(payload.company_address, 300).toLocaleUpperCase('pt-BR')
+  const companyAdministrativePhone = clean(payload.company_administrative_phone, 80)
   const avatarBase64 = clean(payload.avatar_base64, 7_200_000)
   const avatarMimeType = clean(payload.avatar_mime_type, 80)
 
@@ -141,6 +145,21 @@ serve(async (req) => {
 
   if (!allowedRoles.includes(role)) {
     return jsonResponse({ success: false, error: 'Papel inválido.' }, 400)
+  }
+
+  if (role === 'dono') {
+    if (!companyLegalName || companyLegalName.length < 2) {
+      return jsonResponse({ success: false, error: 'Informe a razão social da loja.' }, 400)
+    }
+    if (companyCnpj.replace(/\D/g, '').length !== 14) {
+      return jsonResponse({ success: false, error: 'Informe um CNPJ válido com 14 dígitos.' }, 400)
+    }
+    if (!companyAddress || companyAddress.length < 6) {
+      return jsonResponse({ success: false, error: 'Informe o endereço completo da loja.' }, 400)
+    }
+    if (companyAdministrativePhone.replace(/\D/g, '').length < 10) {
+      return jsonResponse({ success: false, error: 'Informe o telefone administrativo da loja.' }, 400)
+    }
   }
 
   if (!allowedImageTypes.includes(avatarMimeType)) {
@@ -255,6 +274,10 @@ serve(async (req) => {
       store_tenure: storeTenure,
       market_experience: marketExperience,
       notes: notes || null,
+      company_legal_name: role === 'dono' ? companyLegalName : null,
+      company_cnpj: role === 'dono' ? companyCnpj : null,
+      company_address: role === 'dono' ? companyAddress : null,
+      company_administrative_phone: role === 'dono' ? companyAdministrativePhone : null,
       auth_user_id: userId,
       avatar_url: avatarUrl,
       avatar_storage_path: avatarStoragePath,

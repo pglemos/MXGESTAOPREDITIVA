@@ -67,6 +67,7 @@ export interface Store {
     legal_name: string | null
     cnpj: string | null
     address: string | null
+    administrative_phone: string | null
     partners: StorePartner[]
     active: boolean
     source_mode: StoreSourceMode
@@ -94,6 +95,10 @@ export interface StorePreRegistration {
     store_tenure: string
     market_experience: string
     notes: string | null
+    company_legal_name: string | null
+    company_cnpj: string | null
+    company_address: string | null
+    company_administrative_phone: string | null
     avatar_url: string | null
     avatar_storage_path: string | null
     temporary_password: string | null

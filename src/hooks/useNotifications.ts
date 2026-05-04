@@ -3,6 +3,20 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { parseNotificationArray, type Notification as AppNotification } from '@/lib/schemas/notification.schema'
 
+const notificationPriorityRank: Record<string, number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+}
+
+export function sortNotificationsByPriority<T extends Pick<AppNotification, 'priority' | 'created_at'>>(notifications: T[]): T[] {
+  return [...notifications].sort((a, b) => {
+    const priorityDelta = (notificationPriorityRank[b.priority] || 0) - (notificationPriorityRank[a.priority] || 0)
+    if (priorityDelta !== 0) return priorityDelta
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+}
+
 export function useNotifications() {
   const { profile } = useAuth()
   const queryClient = useQueryClient()
@@ -23,7 +37,7 @@ export function useNotifications() {
         throw error
       }
 
-      const notificacoes = parseNotificationArray(data || [])
+      const notificacoes = sortNotificationsByPriority(parseNotificationArray(data || []))
       return { notificacoes, unreadCount: notificacoes.filter(n => !n.read).length }
     },
     enabled: !!profile,

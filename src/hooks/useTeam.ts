@@ -6,7 +6,7 @@ import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
 import type { User, Store, StoreSeller, UserRole, StorePartner } from '@/types/database'
 
-export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'legal_name' | 'cnpj' | 'address' | 'partners' | 'active'>
+export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'legal_name' | 'cnpj' | 'address' | 'administrative_phone' | 'partners' | 'active'>
 export type TeamMemberUpdateFields = Partial<Pick<User, 'name' | 'email' | 'phone' | 'active'>> & {
     role?: UserRole
     store_id?: string | null
@@ -32,6 +32,7 @@ const storeUpdateSchema = z.object({
     legal_name: z.union([z.string().trim().max(180, 'Razão social muito longa.'), z.literal(''), z.null()]).optional(),
     cnpj: z.union([z.string().trim().max(32, 'CNPJ muito longo.'), z.literal(''), z.null()]).optional(),
     address: z.union([z.string().trim().max(300, 'Endereço muito longo.'), z.literal(''), z.null()]).optional(),
+    administrative_phone: z.union([z.string().trim().max(60, 'Telefone administrativo muito longo.'), z.literal(''), z.null()]).optional(),
     partners: z.array(z.object({
         name: z.string().trim().min(1, 'Nome do sócio é obrigatório.').max(160, 'Nome do sócio muito longo.'),
         document: z.union([z.string().trim().max(60), z.literal(''), z.null()]).optional(),
@@ -411,7 +412,7 @@ export function useStores() {
         setLoading(false)
     }, [role, vinculos_loja, storeId])
 
-    const createStore = async (name: string, managerEmail?: string, details?: Partial<Pick<StoreUpdateFields, 'legal_name' | 'cnpj' | 'address' | 'partners'>>) => {
+    const createStore = async (name: string, managerEmail?: string, details?: Partial<Pick<StoreUpdateFields, 'legal_name' | 'cnpj' | 'address' | 'administrative_phone' | 'partners'>>) => {
         if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem criar lojas.' }
         const normalizedName = normalizeStoreName(name)
         const storePayload = {
@@ -420,6 +421,7 @@ export function useStores() {
             legal_name: normalizeOptionalText(details?.legal_name),
             cnpj: normalizeOptionalText(details?.cnpj),
             address: normalizeOptionalText(details?.address),
+            administrative_phone: normalizeOptionalText(details?.administrative_phone),
             partners: normalizePartners(details?.partners),
         }
         const { data: store, error } = await supabase
@@ -486,6 +488,7 @@ export function useStores() {
         if (typeof validation.data.legal_name !== 'undefined') payload.legal_name = normalizeOptionalText(validation.data.legal_name)
         if (typeof validation.data.cnpj !== 'undefined') payload.cnpj = normalizeOptionalText(validation.data.cnpj)
         if (typeof validation.data.address !== 'undefined') payload.address = normalizeOptionalText(validation.data.address)
+        if (typeof validation.data.administrative_phone !== 'undefined') payload.administrative_phone = normalizeOptionalText(validation.data.administrative_phone)
         if (typeof validation.data.partners !== 'undefined') payload.partners = normalizePartners(validation.data.partners)
         if (typeof validation.data.active !== 'undefined') payload.active = validation.data.active
 

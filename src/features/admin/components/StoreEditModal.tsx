@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Building2, Copy, Link2, Mail, MapPin, Plus, RefreshCw, Save, Trash2, UserRound } from 'lucide-react'
+import { AlertTriangle, Building2, Copy, Link2, Mail, MapPin, Phone, Plus, RefreshCw, Save, Trash2, UserRound } from 'lucide-react'
 import { Modal } from '@/components/organisms/Modal'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
@@ -24,6 +24,7 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
     legal_name: '',
     cnpj: '',
     address: '',
+    administrative_phone: '',
     partners: [],
     active: true,
   })
@@ -36,6 +37,7 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
       legal_name: store.legal_name || '',
       cnpj: store.cnpj || '',
       address: store.address || '',
+      administrative_phone: store.administrative_phone || '',
       partners: store.partners?.length ? store.partners : [{ name: '', document: '', phone: '', email: '' }],
       active: store.active,
     })
@@ -60,6 +62,7 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
       legal_name: form.legal_name || null,
       cnpj: form.cnpj || null,
       address: form.address || null,
+      administrative_phone: form.administrative_phone || null,
       partners: form.partners,
       active: form.active,
     })
@@ -166,6 +169,22 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
                 onChange={(event) => setForm((prev) => ({ ...prev, address: event.target.value.toUpperCase() }))}
                 placeholder="RUA, NÚMERO, BAIRRO, CIDADE/UF"
                 className="!pl-14 !h-14 font-bold uppercase"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-mx-xs md:col-span-2">
+            <Typography as="label" htmlFor="edit-store-administrative-phone" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+              Telefone administrativo
+            </Typography>
+            <div className="relative">
+              <Phone size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+              <Input
+                id="edit-store-administrative-phone"
+                value={form.administrative_phone || ''}
+                onChange={(event) => setForm((prev) => ({ ...prev, administrative_phone: event.target.value }))}
+                placeholder="(00) 00000-0000"
+                className="!pl-14 !h-14 font-bold"
               />
             </div>
           </div>

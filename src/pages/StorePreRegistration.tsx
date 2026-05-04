@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type React from 'react'
 import { useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, ArrowRight, Building2, Camera, Check, CheckCircle2, LockKeyhole, Mail, Phone, ShieldCheck, Upload, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, Camera, Check, CheckCircle2, FileText, LockKeyhole, Mail, MapPin, Phone, ShieldCheck, Upload, UserRound } from 'lucide-react'
 import { getSupabaseFunctionUrl } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +12,7 @@ type PublicStore = {
   legal_name?: string | null
   cnpj?: string | null
   address?: string | null
+  administrative_phone?: string | null
 }
 
 type FormState = {
@@ -23,6 +24,10 @@ type FormState = {
   store_tenure: string
   market_experience: string
   notes: string
+  company_legal_name: string
+  company_cnpj: string
+  company_address: string
+  company_administrative_phone: string
 }
 
 type PhotoState = {
@@ -43,6 +48,10 @@ const initialForm: FormState = {
   store_tenure: '',
   market_experience: '',
   notes: '',
+  company_legal_name: '',
+  company_cnpj: '',
+  company_address: '',
+  company_administrative_phone: '',
 }
 
 const roleOptions = [
@@ -74,7 +83,10 @@ export default function StorePreRegistration() {
 
   const functionUrl = useMemo(() => getSupabaseFunctionUrl('store-pre-registration'), [])
   const completion = useMemo(() => {
-    const fields = [form.full_name, form.email, form.phone, form.role, form.segment, form.store_tenure, form.market_experience, photo?.base64]
+    const ownerFields = form.role === 'dono'
+      ? [form.company_legal_name, form.company_cnpj, form.company_address, form.company_administrative_phone]
+      : []
+    const fields = [form.full_name, form.email, form.phone, form.role, form.segment, form.store_tenure, form.market_experience, photo?.base64, ...ownerFields]
     const filled = fields.filter(Boolean).length
     return Math.round((filled / fields.length) * 100)
   }, [form, photo])
@@ -122,6 +134,12 @@ export default function StorePreRegistration() {
     if (scope === 'all' || step === 2) {
       if (!form.store_tenure) nextErrors.store_tenure = 'Selecione o tempo na loja.'
       if (!form.market_experience) nextErrors.market_experience = 'Selecione a experiência de mercado.'
+      if (form.role === 'dono') {
+        if (form.company_legal_name.trim().length < 2) nextErrors.company_legal_name = 'Informe a razão social da loja.'
+        if (form.company_cnpj.replace(/\D/g, '').length !== 14) nextErrors.company_cnpj = 'Informe um CNPJ válido com 14 dígitos.'
+        if (form.company_address.trim().length < 6) nextErrors.company_address = 'Informe o endereço completo da loja.'
+        if (form.company_administrative_phone.replace(/\D/g, '').length < 10) nextErrors.company_administrative_phone = 'Informe o telefone administrativo.'
+      }
     }
 
     return nextErrors
@@ -474,6 +492,33 @@ export default function StorePreRegistration() {
                             <label className="mx-public-label">Observações</label>
                             <textarea value={form.notes} onChange={event => updateForm('notes', event.target.value)} rows={4} placeholder="Alguma informação importante para a MX validar seu cadastro?" className="mx-public-input mx-pre-textarea" />
                           </div>
+                          {form.role === 'dono' && (
+                            <div className="mx-pre-owner-block">
+                              <div className="mx-pre-owner-head">
+                                <ShieldCheck size={18} />
+                                <div>
+                                  <b>Dados administrativos da loja</b>
+                                  <span>Obrigatório para cadastro como dono ou sócio.</span>
+                                </div>
+                              </div>
+                              <div className="mx-pre-field-stack">
+                                <Field label="Razão social" icon={FileText} error={formErrors.company_legal_name}>
+                                  <input required value={form.company_legal_name} onChange={event => updateForm('company_legal_name', event.target.value.toUpperCase())} placeholder="RAZÃO SOCIAL DA LOJA" className="mx-public-input" />
+                                </Field>
+                                <div className="mx-pre-two">
+                                  <Field label="CNPJ" icon={Building2} error={formErrors.company_cnpj}>
+                                    <input required value={form.company_cnpj} onChange={event => updateForm('company_cnpj', event.target.value)} placeholder="00.000.000/0000-00" className="mx-public-input" />
+                                  </Field>
+                                  <Field label="Telefone administrativo" icon={Phone} error={formErrors.company_administrative_phone}>
+                                    <input required value={form.company_administrative_phone} onChange={event => updateForm('company_administrative_phone', event.target.value)} placeholder="(00) 00000-0000" className="mx-public-input" />
+                                  </Field>
+                                </div>
+                                <Field label="Endereço completo" icon={MapPin} error={formErrors.company_address}>
+                                  <input required value={form.company_address} onChange={event => updateForm('company_address', event.target.value.toUpperCase())} placeholder="RUA, NÚMERO, BAIRRO, CIDADE/UF" className="mx-public-input" />
+                                </Field>
+                              </div>
+                            </div>
+                          )}
                           <ReviewSummary form={form} storeName={store?.name || ''} photo={photo} />
                         </div>
                       )}
@@ -561,6 +606,14 @@ function ReviewSummary({ form, storeName, photo }: { form: FormState; storeName:
     ['Tempo na loja', form.store_tenure || 'Não informado'],
     ['Mercado', form.market_experience || 'Não informado'],
   ]
+  const ownerSummary = form.role === 'dono'
+    ? [
+        ['Razão social', form.company_legal_name || 'Não informado'],
+        ['CNPJ', form.company_cnpj || 'Não informado'],
+        ['Endereço', form.company_address || 'Não informado'],
+        ['Telefone administrativo', form.company_administrative_phone || 'Não informado'],
+      ]
+    : []
 
   return (
     <div className="mx-pre-review">
@@ -571,7 +624,7 @@ function ReviewSummary({ form, storeName, photo }: { form: FormState; storeName:
         <h3>{form.full_name || 'Nome pendente'}</h3>
         <p>{form.email || 'email pendente'} · {form.phone || 'telefone pendente'}</p>
         <dl>
-          {summary.map(([label, value]) => (
+          {[...summary, ...ownerSummary].map(([label, value]) => (
             <div key={label}>
               <dt>{label}</dt>
               <dd>{value}</dd>

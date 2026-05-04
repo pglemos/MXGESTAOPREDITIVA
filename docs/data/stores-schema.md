@@ -13,6 +13,7 @@
 | `legal_name` | `text` | `null` | Sim | Razao social cadastral da loja. |
 | `cnpj` | `text` | `null` | Sim | CNPJ cadastral da loja. |
 | `address` | `text` | `null` | Sim | Endereco completo da loja. |
+| `administrative_phone` | `text` | `null` | Sim | Telefone administrativo da loja. |
 | `partners` | `jsonb` | `[]` | Sim | Lista de socios com `name`, `document`, `phone` e `email`. |
 | `active` | `boolean` | `true` | Sim | Arquiva/restaura sem excluir historico. |
 | `created_at` | `timestamptz` | `now()` | Nao | Auditoria do registro. |
@@ -28,6 +29,7 @@ Campos liberados no admin master:
 - `legal_name`
 - `cnpj`
 - `address`
+- `administrative_phone`
 - `partners`
 - `active`
 
@@ -48,6 +50,10 @@ Campos cadastrais de loja foram adicionados pela story `OPS-20260504` para supor
 | `store_tenure` | `text` | Tempo na loja. |
 | `market_experience` | `text` | Experiencia de mercado. |
 | `notes` | `text` | Observacoes opcionais. |
+| `company_legal_name` | `text` | Razao social enviada quando a funcao e `dono`. |
+| `company_cnpj` | `text` | CNPJ enviado quando a funcao e `dono`. |
+| `company_address` | `text` | Endereco enviado quando a funcao e `dono`. |
+| `company_administrative_phone` | `text` | Telefone administrativo enviado quando a funcao e `dono`. |
 | `status` | `text` | `pending`, `reviewed`, `synced` ou `rejected`. |
 | `submitted_at` | `timestamptz` | Data/hora do envio. |
 
