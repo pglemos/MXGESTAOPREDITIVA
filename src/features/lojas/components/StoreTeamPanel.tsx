@@ -5,7 +5,7 @@ import {
     Users, UserPlus, Search, Phone, Shield, Mail, User, Trash2, Save,
     RefreshCw, X, TrendingUp, Zap,
     ShieldAlert, Clock, ShieldCheck,
-    Settings2, Power, Copy, Link2, ClipboardList, BriefcaseBusiness
+    Settings2, Power, Copy, Link2, ClipboardList, BriefcaseBusiness, Check, Ban, KeyRound
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn, slugify } from '@/lib/utils'
@@ -20,7 +20,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 import type { StorePreRegistration } from '@/types/database'
 
 type StoreTeamPanelProps = {
@@ -31,6 +31,7 @@ type StoreTeamPanelProps = {
 export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const { role } = useAuth()
   const canManageTeamMembers = isAdministradorMx(role) || role === 'dono' || role === 'gerente'
+  const canApprovePreRegistrations = isAdministradorMx(role)
   const canCreateMembers = canManageTeamMembers
   const { lojas } = useStores()
   const editableStoreRoles = useMemo(() => {
@@ -47,6 +48,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const [isRefetching, setIsRefetching] = useState(false)
   const [preRegistrations, setPreRegistrations] = useState<StorePreRegistration[]>([])
   const [loadingPreRegistrations, setLoadingPreRegistrations] = useState(false)
+  const [reviewingPreRegistrationId, setReviewingPreRegistrationId] = useState<string | null>(null)
+  const approvalFunctionUrl = useMemo(() => getSupabaseFunctionUrl('approve-store-registration'), [])
 
   const registrationLink = useMemo(() => {
     if (!storeName) return ''
@@ -57,12 +60,14 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const fetchPreRegistrations = useCallback(async () => {
     if (!storeId) return
     setLoadingPreRegistrations(true)
-    const { data, error } = await supabase
-      .from('pre_cadastros_loja')
-      .select('*')
-      .eq('store_id', storeId)
-      .order('submitted_at', { ascending: false })
-      .limit(20)
+    const { data, error } = canApprovePreRegistrations
+      ? await supabase
+        .from('pre_cadastros_loja')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('submitted_at', { ascending: false })
+        .limit(20)
+      : { data: [], error: null }
 
     if (error) {
       if (import.meta.env.DEV) console.warn('[StoreTeamPanel] pre-cadastros unavailable', error.message)
@@ -71,7 +76,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
       setPreRegistrations((data || []) as StorePreRegistration[])
     }
     setLoadingPreRegistrations(false)
-  }, [storeId])
+  }, [canApprovePreRegistrations, storeId])
 
   useEffect(() => {
     fetchPreRegistrations()
@@ -160,6 +165,44 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
       setIsRefetching(false)
     }
   }, [fetchPreRegistrations, refetch])
+
+  const handleReviewPreRegistration = useCallback(async (item: StorePreRegistration, action: 'approve' | 'reject') => {
+    if (!canApprovePreRegistrations) return
+    const confirmed = window.confirm(`${action === 'approve' ? 'Aprovar' : 'Rejeitar'} o login de ${item.full_name} como ${item.role}?`)
+    if (!confirmed) return
+
+    setReviewingPreRegistrationId(item.id)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) {
+        toast.error('Sessão expirada. Entre novamente.')
+        return
+      }
+
+      const response = await fetch(approvalFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          pre_registration_id: item.id,
+          action,
+          role: item.role,
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload.success) throw new Error(payload.error || 'Não foi possível revisar o login.')
+
+      toast.success(action === 'approve' ? 'Login aprovado e sincronizado.' : 'Login rejeitado.')
+      await Promise.all([refetch(), fetchPreRegistrations()])
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Falha ao revisar login.')
+    } finally {
+      setReviewingPreRegistrationId(null)
+    }
+  }, [approvalFunctionUrl, canApprovePreRegistrations, fetchPreRegistrations, refetch])
 
   if (!storeId) return (
     <section className="w-full rounded-mx-3xl border border-border-default bg-white p-mx-xl text-center shadow-mx-sm">
@@ -283,7 +326,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   </div>
                   <div className="min-w-0">
                     <CardTitle className="text-lg">Pré-cadastro da loja</CardTitle>
-                    <CardDescription>Link específico para dono, gerente e vendedores enviarem dados antes da sincronização.</CardDescription>
+                    <CardDescription>Link específico para equipe enviar foto, contato e hierarquia. Admin MX valida antes de liberar login.</CardDescription>
                   </div>
                 </div>
                 <Button
@@ -304,7 +347,13 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
             </CardHeader>
 
             <CardContent className="p-mx-lg">
-              {loadingPreRegistrations ? (
+              {!canApprovePreRegistrations ? (
+                <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-lg text-center">
+                  <ShieldCheck size={24} className="mx-auto text-brand-primary" />
+                  <Typography variant="caption" className="mt-mx-sm block font-black uppercase tracking-widest">Aprovação restrita ao Admin MX</Typography>
+                  <Typography variant="tiny" tone="muted" className="mt-2 block font-bold">A loja pode compartilhar o link; a fila de validação fica visível apenas para Admin MX e MX Master.</Typography>
+                </div>
+              ) : loadingPreRegistrations ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
                   <Skeleton className="h-mx-32 rounded-mx-2xl" />
                   <Skeleton className="h-mx-32 rounded-mx-2xl" />
@@ -314,11 +363,20 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   {preRegistrations.map(item => (
                     <div key={item.id} className="rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md">
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-mx-sm">
-                        <div className="min-w-0">
-                          <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{item.full_name}</Typography>
-                          <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">
-                            <span className="inline-flex items-center gap-mx-tiny"><Mail size={11} />{item.email}</span>
-                            <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} />{item.phone}</span>
+                        <div className="flex items-start gap-mx-sm min-w-0">
+                          <div className="h-mx-14 w-mx-14 overflow-hidden rounded-mx-2xl border border-border-default bg-white shrink-0">
+                            {item.avatar_url ? (
+                              <img src={item.avatar_url} alt={item.full_name} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-brand-primary"><User size={20} /></div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{item.full_name}</Typography>
+                            <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">
+                              <span className="inline-flex items-center gap-mx-tiny"><Mail size={11} />{item.email}</span>
+                              <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} />{item.phone}</span>
+                            </div>
                           </div>
                         </div>
                         <Badge variant={item.status === 'pending' ? 'warning' : item.status === 'synced' ? 'success' : 'outline'} className="font-black uppercase shrink-0">
@@ -343,10 +401,39 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                         <BriefcaseBusiness size={13} className="text-brand-primary" />
                         <span>{item.segment}</span>
                       </div>
+                      {item.temporary_password && (
+                        <div className="mt-mx-sm inline-flex items-center gap-mx-xs rounded-mx-xl border border-brand-primary/20 bg-brand-primary/10 px-mx-sm py-mx-xs text-mx-tiny font-black text-brand-primary">
+                          <KeyRound size={13} />
+                          Senha provisória: {item.temporary_password}
+                        </div>
+                      )}
                       {item.notes && (
                         <Typography variant="tiny" tone="muted" className="mt-mx-sm block font-bold leading-relaxed">
                           {item.notes}
                         </Typography>
+                      )}
+                      {item.status === 'pending' && (
+                        <div className="mt-mx-md flex flex-col sm:flex-row gap-mx-xs">
+                          <Button
+                            type="button"
+                            onClick={() => handleReviewPreRegistration(item, 'approve')}
+                            disabled={reviewingPreRegistrationId === item.id}
+                            className="h-mx-11 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano"
+                          >
+                            <Check size={15} className="mr-2" />
+                            Aprovar login
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleReviewPreRegistration(item, 'reject')}
+                            disabled={reviewingPreRegistrationId === item.id}
+                            className="h-mx-11 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano text-status-error hover:bg-status-error-surface"
+                          >
+                            <Ban size={15} className="mr-2" />
+                            Rejeitar
+                          </Button>
+                        </div>
                       )}
                     </div>
                   ))}

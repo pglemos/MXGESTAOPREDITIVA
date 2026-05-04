@@ -85,6 +85,7 @@ export interface StorePreRegistration {
     id: string
     store_id: string
     store_name_snapshot: string
+    auth_user_id: string | null
     full_name: string
     email: string
     phone: string
@@ -93,10 +94,18 @@ export interface StorePreRegistration {
     store_tenure: string
     market_experience: string
     notes: string | null
+    avatar_url: string | null
+    avatar_storage_path: string | null
+    temporary_password: string | null
     status: 'pending' | 'reviewed' | 'synced' | 'rejected'
     submitted_at: string
     reviewed_by: string | null
     reviewed_at: string | null
+    approved_by: string | null
+    approved_at: string | null
+    rejected_by: string | null
+    rejected_at: string | null
+    approval_note: string | null
 }
 
 /** Mapeamento Multi-tenant (Membership): Vincula usuários a múltiplas lojas */

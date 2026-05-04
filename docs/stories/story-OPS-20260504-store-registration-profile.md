@@ -15,8 +15,11 @@ Cada loja precisa ter dados cadastrais completos no sistema e um link específic
 - [x] Cada loja exibe link próprio de pré-cadastro baseado no slug da loja.
 - [x] Link público `/pre-cadastro/:storeSlug` renderiza landing page MX premium com logo/design system.
 - [x] Form público coleta nome completo, e-mail, telefone, loja, segmento, função, tempo na loja e experiência de mercado.
-- [x] Dados informados pelo link são persistidos como pré-cadastros pendentes, sem criar usuário automaticamente.
-- [x] Aba de equipe da loja exibe os pré-cadastros recebidos para conferência.
+- [x] Form público exige foto/captura para avatar e valida campos obrigatórios antes do envio.
+- [x] Dados informados pelo link criam usuário/Auth pendente, vínculo de loja e senha provisória forte.
+- [x] Login pendente permanece bloqueado até aprovação do Admin MX/MX Master.
+- [x] Admin MX/MX Master recebe notificação de novo login pendente.
+- [x] Aba de equipe da loja exibe pré-cadastros com foto, senha provisória e ações de aprovar/rejeitar restritas a Admin MX/MX Master.
 - [x] Gates de qualidade: `npm run lint`, `npm run typecheck`, `npm test`.
 
 ## Dev Agent Record
@@ -33,6 +36,7 @@ Cada loja precisa ter dados cadastrais completos no sistema e um link específic
 - Migration aplicada no Supabase remoto `fbhcmzzgwjdgkctlfvbo` via `npx supabase db push`.
 - Edge function `store-pre-registration` publicada via `npx supabase functions deploy store-pre-registration`.
 - Integração remota validada com GET para `store_slug=acertt` e POST controlado; registro temporário de validação removido via `supabase db query --linked`.
+- Iteração de aprovação: adicionada captura/anexo de foto, criação de Auth user inativo, senha provisória `Mx@123456!`, notificação para Admin MX/MX Master e edge function autenticada de aprovação/rejeição.
 
 ### File List
 
@@ -48,4 +52,6 @@ Cada loja precisa ter dados cadastrais completos no sistema e um link específic
 - `src/types/database.ts`
 - `supabase/config.toml`
 - `supabase/functions/store-pre-registration/index.ts`
+- `supabase/functions/approve-store-registration/index.ts`
 - `supabase/migrations/20260504100000_store_registration_profile.sql`
+- `supabase/migrations/20260504110000_store_pre_registration_approval.sql`

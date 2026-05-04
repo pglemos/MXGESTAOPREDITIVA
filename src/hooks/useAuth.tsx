@@ -245,6 +245,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 ])
                 
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+
+                if (loadedProfile?.active === false) {
+                    await supabase.auth.signOut()
+                    setSupabaseUser(null)
+                    setProfile(null)
+                    setMemberships([])
+                    setActiveStoreId(null)
+                    setFallbackStoreId(null)
+                    return
+                }
                 
                 // Ejeção Ativa (Sessões Existentes): Se o usuário perder a loja ativada enquanto logado
                 if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
@@ -299,6 +309,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             ])
             
             const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+
+            if (loadedProfile?.active === false) {
+                await supabase.auth.signOut()
+                setSupabaseUser(null)
+                setProfile(null)
+                setMemberships([])
+                return { error: 'LOGIN PENDENTE: Seu acesso foi criado e aguarda aprovação do Admin MX.' }
+            }
             
             if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
                 await supabase.auth.signOut()
