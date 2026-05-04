@@ -2,7 +2,7 @@ import { useStores, useStoresStats } from '@/hooks/useTeam'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Building2, Search, Plus, RefreshCw, X, Mail, ChevronDown } from 'lucide-react'
+import { Building2, Search, Plus, RefreshCw, X, Mail, Copy, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn, slugify } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
@@ -84,6 +84,17 @@ export default function Lojas() {
         }
     }
 
+    const getRegistrationLink = useCallback((storeName: string) => {
+        if (typeof window === 'undefined') return `/pre-cadastro/${slugify(storeName)}`
+        return `${window.location.origin}/pre-cadastro/${slugify(storeName)}`
+    }, [])
+
+    const copyRegistrationLink = useCallback(async (storeName: string) => {
+        const link = getRegistrationLink(storeName)
+        await navigator.clipboard?.writeText(link)
+        toast.success('Link de pré-cadastro copiado.')
+    }, [getRegistrationLink])
+
     const columns = useMemo<Column<any>[]>(() => [
         {
             key: 'name',
@@ -136,6 +147,19 @@ export default function Lojas() {
             }
         },
         {
+            key: 'registration',
+            header: 'PRÉ-CADASTRO',
+            desktopOnly: true,
+            render: (store) => (
+                <div className="flex items-center gap-mx-xs min-w-0">
+                    <Link2 size={14} className="text-brand-primary shrink-0" />
+                    <Typography variant="tiny" tone="muted" className="font-bold truncate max-w-mx-48">
+                        {getRegistrationLink(store.name)}
+                    </Typography>
+                </div>
+            )
+        },
+        {
             key: 'actions',
             header: 'AÇÕES',
             align: 'right',
@@ -148,6 +172,9 @@ export default function Lojas() {
                             </Button>
                             <Button asChild variant="outline" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny border-border-strong bg-white">
                                 <Link to={`/lojas/${slugify(store.name)}?tab=equipe`}>EQUIPE</Link>
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => copyRegistrationLink(store.name)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg shadow-mx-md bg-white border-border-strong" aria-label={`Copiar link de pré-cadastro de ${store.name}`}>
+                                <Copy size={16} />
                             </Button>
                             {isAdministradorMx(role) && (
                                 <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
@@ -163,7 +190,7 @@ export default function Lojas() {
                 </div>
             )
         }
-    ], [stats, role, toggleStoreStatus])
+    ], [copyRegistrationLink, getRegistrationLink, stats, role, toggleStoreStatus])
 
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">

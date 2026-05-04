@@ -1,14 +1,14 @@
 import { useTeam, useStores } from '@/hooks/useTeam'
 import { UserCreationModal } from '@/features/equipe/components/UserCreationModal'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import {
     Users, UserPlus, Search, Phone, Shield, Mail, User, Trash2, Save,
     RefreshCw, X, TrendingUp, Zap,
     ShieldAlert, Clock, ShieldCheck,
-    Settings2, Power
+    Settings2, Power, Copy, Link2, ClipboardList, BriefcaseBusiness
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { cn, getAvatarUrl } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { toast } from 'sonner'
 import { format, parseISO } from 'date-fns'
 import { Typography } from '@/components/atoms/Typography'
@@ -20,6 +20,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
+import type { StorePreRegistration } from '@/types/database'
 
 type StoreTeamPanelProps = {
   storeId: string | null
@@ -43,6 +45,37 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const [saving, setSaving] = useState(false)
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
   const [isRefetching, setIsRefetching] = useState(false)
+  const [preRegistrations, setPreRegistrations] = useState<StorePreRegistration[]>([])
+  const [loadingPreRegistrations, setLoadingPreRegistrations] = useState(false)
+
+  const registrationLink = useMemo(() => {
+    if (!storeName) return ''
+    if (typeof window === 'undefined') return `/pre-cadastro/${slugify(storeName)}`
+    return `${window.location.origin}/pre-cadastro/${slugify(storeName)}`
+  }, [storeName])
+
+  const fetchPreRegistrations = useCallback(async () => {
+    if (!storeId) return
+    setLoadingPreRegistrations(true)
+    const { data, error } = await supabase
+      .from('pre_cadastros_loja')
+      .select('*')
+      .eq('store_id', storeId)
+      .order('submitted_at', { ascending: false })
+      .limit(20)
+
+    if (error) {
+      if (import.meta.env.DEV) console.warn('[StoreTeamPanel] pre-cadastros unavailable', error.message)
+      setPreRegistrations([])
+    } else {
+      setPreRegistrations((data || []) as StorePreRegistration[])
+    }
+    setLoadingPreRegistrations(false)
+  }, [storeId])
+
+  useEffect(() => {
+    fetchPreRegistrations()
+  }, [fetchPreRegistrations])
 
   const filteredTeam = useMemo(() => {
     return (team || []).filter(m =>
@@ -122,11 +155,11 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const handleRefresh = useCallback(async () => {
     setIsRefetching(true)
     try {
-      await refetch()
+      await Promise.all([refetch(), fetchPreRegistrations()])
     } finally {
       setIsRefetching(false)
     }
-  }, [refetch])
+  }, [fetchPreRegistrations, refetch])
 
   if (!storeId) return (
     <section className="w-full rounded-mx-3xl border border-border-default bg-white p-mx-xl text-center shadow-mx-sm">
@@ -240,6 +273,92 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
               </motion.div>
             ))}
           </div>
+
+          <Card className="border border-border-default bg-white shadow-mx-lg overflow-hidden">
+            <CardHeader className="border-b border-border-default bg-surface-alt/60 p-mx-lg">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md">
+                <div className="flex items-start gap-mx-sm min-w-0">
+                  <div className="w-mx-12 h-mx-12 rounded-mx-2xl bg-brand-primary/10 border border-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                    <ClipboardList size={22} />
+                  </div>
+                  <div className="min-w-0">
+                    <CardTitle className="text-lg">Pré-cadastro da loja</CardTitle>
+                    <CardDescription>Link específico para dono, gerente e vendedores enviarem dados antes da sincronização.</CardDescription>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => registrationLink && navigator.clipboard?.writeText(registrationLink).then(() => toast.success('Link de pré-cadastro copiado.'))}
+                  className="h-mx-12 rounded-mx-xl bg-white"
+                  disabled={!registrationLink}
+                >
+                  <Copy size={16} className="mr-2" />
+                  COPIAR LINK
+                </Button>
+              </div>
+              <div className="mt-mx-md flex items-center gap-mx-xs rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-sm text-mx-tiny font-bold text-text-secondary min-w-0">
+                <Link2 size={14} className="text-brand-primary shrink-0" />
+                <span className="truncate">{registrationLink || 'Link indisponível até a loja ser identificada'}</span>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-mx-lg">
+              {loadingPreRegistrations ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
+                  <Skeleton className="h-mx-32 rounded-mx-2xl" />
+                  <Skeleton className="h-mx-32 rounded-mx-2xl" />
+                </div>
+              ) : preRegistrations.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-md">
+                  {preRegistrations.map(item => (
+                    <div key={item.id} className="rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-mx-sm">
+                        <div className="min-w-0">
+                          <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{item.full_name}</Typography>
+                          <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">
+                            <span className="inline-flex items-center gap-mx-tiny"><Mail size={11} />{item.email}</span>
+                            <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} />{item.phone}</span>
+                          </div>
+                        </div>
+                        <Badge variant={item.status === 'pending' ? 'warning' : item.status === 'synced' ? 'success' : 'outline'} className="font-black uppercase shrink-0">
+                          {item.status}
+                        </Badge>
+                      </div>
+                      <div className="mt-mx-md grid grid-cols-1 sm:grid-cols-3 gap-mx-sm text-mx-tiny font-black uppercase">
+                        <div>
+                          <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Papel</span>
+                          {item.role}
+                        </div>
+                        <div>
+                          <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Na loja</span>
+                          {item.store_tenure}
+                        </div>
+                        <div>
+                          <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Mercado</span>
+                          {item.market_experience}
+                        </div>
+                      </div>
+                      <div className="mt-mx-sm flex items-center gap-mx-xs text-mx-tiny font-bold text-text-secondary">
+                        <BriefcaseBusiness size={13} className="text-brand-primary" />
+                        <span>{item.segment}</span>
+                      </div>
+                      {item.notes && (
+                        <Typography variant="tiny" tone="muted" className="mt-mx-sm block font-bold leading-relaxed">
+                          {item.notes}
+                        </Typography>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-lg text-center">
+                  <Typography variant="caption" className="font-black uppercase tracking-widest">Nenhum pré-cadastro recebido</Typography>
+                  <Typography variant="tiny" tone="muted" className="mt-2 block font-bold">Assim que alguém preencher o link da loja, os dados aparecem aqui.</Typography>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           <div className="flex-1 min-h-0 pb-32 mt-mx-md">
             {filteredTeam.length > 0 ? (

@@ -64,10 +64,39 @@ export interface Store {
     id: string
     name: string
     manager_email: string | null
+    legal_name: string | null
+    cnpj: string | null
+    address: string | null
+    partners: StorePartner[]
     active: boolean
     source_mode: StoreSourceMode
     created_at: string
     updated_at: string
+}
+
+export interface StorePartner {
+    name: string
+    document?: string | null
+    phone?: string | null
+    email?: string | null
+}
+
+export interface StorePreRegistration {
+    id: string
+    store_id: string
+    store_name_snapshot: string
+    full_name: string
+    email: string
+    phone: string
+    role: MembershipRole
+    segment: string
+    store_tenure: string
+    market_experience: string
+    notes: string | null
+    status: 'pending' | 'reviewed' | 'synced' | 'rejected'
+    submitted_at: string
+    reviewed_by: string | null
+    reviewed_at: string | null
 }
 
 /** Mapeamento Multi-tenant (Membership): Vincula usuários a múltiplas lojas */

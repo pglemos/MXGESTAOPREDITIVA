@@ -4,9 +4,9 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
-import type { User, Store, StoreSeller, UserRole } from '@/types/database'
+import type { User, Store, StoreSeller, UserRole, StorePartner } from '@/types/database'
 
-export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'active'>
+export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'legal_name' | 'cnpj' | 'address' | 'partners' | 'active'>
 export type TeamMemberUpdateFields = Partial<Pick<User, 'name' | 'email' | 'phone' | 'active'>> & {
     role?: UserRole
     store_id?: string | null
@@ -29,8 +29,33 @@ const storeUpdateSchema = z.object({
         z.literal(''),
         z.null(),
     ]).optional(),
+    legal_name: z.union([z.string().trim().max(180, 'Razão social muito longa.'), z.literal(''), z.null()]).optional(),
+    cnpj: z.union([z.string().trim().max(32, 'CNPJ muito longo.'), z.literal(''), z.null()]).optional(),
+    address: z.union([z.string().trim().max(300, 'Endereço muito longo.'), z.literal(''), z.null()]).optional(),
+    partners: z.array(z.object({
+        name: z.string().trim().min(1, 'Nome do sócio é obrigatório.').max(160, 'Nome do sócio muito longo.'),
+        document: z.union([z.string().trim().max(60), z.literal(''), z.null()]).optional(),
+        phone: z.union([z.string().trim().max(60), z.literal(''), z.null()]).optional(),
+        email: z.union([z.string().trim().email('E-mail do sócio inválido.'), z.literal(''), z.null()]).optional(),
+    })).max(12, 'Limite de 12 sócios por loja.').optional(),
     active: z.boolean().optional(),
 }).strict()
+
+const normalizeOptionalText = (value?: string | null) => {
+    const trimmed = (value || '').trim()
+    return trimmed ? trimmed : null
+}
+
+const normalizePartners = (partners?: StorePartner[]) => {
+    return (partners || [])
+        .map(partner => ({
+            name: partner.name.trim().toLocaleUpperCase('pt-BR'),
+            document: normalizeOptionalText(partner.document),
+            phone: normalizeOptionalText(partner.phone),
+            email: normalizeOptionalText(partner.email)?.toLowerCase() || null,
+        }))
+        .filter(partner => partner.name)
+}
 
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId, role } = useAuth()
@@ -386,12 +411,20 @@ export function useStores() {
         setLoading(false)
     }, [role, vinculos_loja, storeId])
 
-    const createStore = async (name: string, managerEmail?: string) => {
+    const createStore = async (name: string, managerEmail?: string, details?: Partial<Pick<StoreUpdateFields, 'legal_name' | 'cnpj' | 'address' | 'partners'>>) => {
         if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem criar lojas.' }
         const normalizedName = normalizeStoreName(name)
+        const storePayload = {
+            name: normalizedName,
+            manager_email: managerEmail || null,
+            legal_name: normalizeOptionalText(details?.legal_name),
+            cnpj: normalizeOptionalText(details?.cnpj),
+            address: normalizeOptionalText(details?.address),
+            partners: normalizePartners(details?.partners),
+        }
         const { data: store, error } = await supabase
             .from('lojas')
-            .insert({ name: normalizedName, manager_email: managerEmail || null })
+            .insert(storePayload)
             .select('id')
             .single()
 
@@ -450,6 +483,10 @@ export function useStores() {
         if (typeof validation.data.manager_email !== 'undefined') {
             payload.manager_email = validation.data.manager_email ? validation.data.manager_email : null
         }
+        if (typeof validation.data.legal_name !== 'undefined') payload.legal_name = normalizeOptionalText(validation.data.legal_name)
+        if (typeof validation.data.cnpj !== 'undefined') payload.cnpj = normalizeOptionalText(validation.data.cnpj)
+        if (typeof validation.data.address !== 'undefined') payload.address = normalizeOptionalText(validation.data.address)
+        if (typeof validation.data.partners !== 'undefined') payload.partners = normalizePartners(validation.data.partners)
         if (typeof validation.data.active !== 'undefined') payload.active = validation.data.active
 
         const { error } = await supabase.from('lojas').update(payload).eq('id', id)

@@ -361,6 +361,125 @@ html, body {
 .text-mx-micro { font-size: 0.6rem; }
 .text-mx-tiny { font-size: 0.75rem; }
 
+.mx-public-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--color-text-tertiary);
+}
+
+.mx-public-input {
+  width: 100%;
+  min-height: 56px;
+  border-radius: var(--radius-mx-xl);
+  border: 1px solid var(--color-border-default);
+  background: #ffffff;
+  padding: 0 16px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 800;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.mx-public-input:focus {
+  border-color: rgba(34, 197, 94, 0.45);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08);
+  transform: translateY(-1px);
+}
+
+.mx-public-input::placeholder {
+  color: rgba(148, 163, 184, 0.72);
+}
+
+.mx-public-field-control > .mx-public-input {
+  padding-left: 48px;
+}
+
+.mx-pre-bg {
+  background: #070A08;
+}
+
+.mx-pre-glow {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(34, 197, 94, 0.18), transparent 38%),
+    radial-gradient(circle at 0% 90%, rgba(59, 130, 246, 0.12), transparent 34%);
+}
+
+.mx-pre-grid {
+  opacity: 0.3;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 72px 72px;
+  animation: mx-pre-grid-drift 18s linear infinite;
+}
+
+.mx-pre-logo-tile {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mx-pre-info-card {
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.mx-pre-info-card:hover {
+  border-color: rgba(34, 197, 94, 0.26);
+  background: rgba(255, 255, 255, 0.055);
+  transform: translateY(-2px);
+}
+
+.mx-pre-signal-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-mx-2xl);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
+  padding: var(--spacing-mx-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.mx-role-option {
+  min-height: 76px;
+  border-radius: var(--radius-mx-xl);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-alt);
+  color: var(--color-text-primary);
+  padding: var(--spacing-mx-sm);
+  text-align: left;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.mx-role-option span {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.mx-role-option small {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.mx-role-option-active {
+  border-color: rgba(34, 197, 94, 0.48);
+  background: rgba(34, 197, 94, 0.08);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08);
+}
+
+@keyframes mx-pre-grid-drift {
+  from { background-position: 0 0; }
+  to { background-position: 72px 72px; }
+}
+
 /* CSS FORÇADO - Sobrescrevendo tokens quebrados */
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 .gap-6 { gap: 1.5rem !important; }

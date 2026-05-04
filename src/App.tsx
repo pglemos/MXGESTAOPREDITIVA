@@ -14,6 +14,7 @@ const Login = lazy(() => import('@/pages/Login'))
 const Privacy = lazy(() => import('@/pages/Privacy'))
 const Terms = lazy(() => import('@/pages/Terms'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
+const StorePreRegistration = lazy(() => import('@/pages/StorePreRegistration'))
 
 // Vendedor
 const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
@@ -157,6 +158,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<PublicHome />} />
             <Route path="/login" element={<Suspense fallback={<Spinner />}><Login /></Suspense>} />
+            <Route path="/pre-cadastro/:storeSlug" element={<Suspense fallback={<Spinner />}><StorePreRegistration /></Suspense>} />
             <Route path="/privacy" element={<Suspense fallback={<Spinner />}><Privacy /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
