@@ -17,6 +17,7 @@ import { somarVendas, calcularProjecao, getDiasInfo, calcularAtingimento, format
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader, CardTitle } from '@/components/molecules/Card'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
@@ -33,7 +34,7 @@ type StoreMorningData = {
     totalSellers: number
     totalLeads: number
     totalVisits: number
-    sellers: { id: string; name: string; checkin_today: boolean; vnd_total: number; leads: number }[]
+    sellers: { id: string; name: string; avatar_url: string | null; checkin_today: boolean; vnd_total: number; leads: number }[]
 }
 
 export default function MorningReport() {
@@ -87,7 +88,7 @@ function AdminMorningReport() {
                     .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                     .gte('reference_date', range.start).lte('reference_date', range.end),
                 supabase.from('lancamentos_diarios').select('seller_user_id, store_id').eq('reference_date', referenceDate),
-                supabase.from('vinculos_loja').select('user_id, store_id, users:usuarios(id, name, active)'),
+                supabase.from('vinculos_loja').select('user_id, store_id, users:usuarios(id, name, avatar_url, active)'),
             ])
 
         const lojas = storesRes.data || []
@@ -101,7 +102,7 @@ function AdminMorningReport() {
         const membersByStore = new Map<string, any[]>()
         for (const m of members) {
             const arr = membersByStore.get(m.store_id) || []
-            arr.push({ id: m.user_id, name: m.users?.name || 'Unknown', store_id: m.store_id })
+            arr.push({ id: m.user_id, name: m.users?.name || 'Unknown', avatar_url: m.users?.avatar_url || null, store_id: m.store_id })
             membersByStore.set(m.store_id, arr)
         }
 
@@ -134,6 +135,7 @@ function AdminMorningReport() {
             const sellers = storeMembers.map((m: any) => ({
                 id: m.id,
                 name: m.name,
+                avatar_url: m.avatar_url,
                 checkin_today: checkedInSet.has(`${store.id}-${m.id}`),
                 vnd_total: checkinsBySeller.get(m.id) || 0,
                 leads: leadsBySeller.get(m.id) || 0,
@@ -375,9 +377,13 @@ function AdminMorningReport() {
                                                                 {store.sellers.map(seller => (
                                                                     <div key={seller.id} className={cn("flex items-center justify-between p-mx-sm rounded-mx-lg border", seller.checkin_today ? "bg-white border-border-default" : "bg-status-error-surface/50 border-status-error/20")}>
                                                                         <div className="flex items-center gap-mx-xs min-w-0">
-                                                                            <div className={cn("w-mx-8 h-mx-8 rounded-mx-lg flex items-center justify-center text-xs font-black uppercase shrink-0", seller.checkin_today ? "bg-status-success-surface text-status-success" : "bg-status-error-surface text-status-error")}>
-                                                                                {seller.name.charAt(0)}
-                                                                            </div>
+                                                                            <Avatar
+                                                                                src={seller.avatar_url || undefined}
+                                                                                alt={`Avatar de ${seller.name}`}
+                                                                                fallback={seller.name}
+                                                                                size="sm"
+                                                                                className={cn("rounded-mx-lg", seller.checkin_today ? "bg-status-success-surface text-status-success" : "bg-status-error-surface text-status-error")}
+                                                                            />
                                                                             <Typography variant="tiny" className="font-black uppercase truncate">{seller.name}</Typography>
                                                                         </div>
                                                                         <div className="flex items-center gap-mx-md shrink-0">

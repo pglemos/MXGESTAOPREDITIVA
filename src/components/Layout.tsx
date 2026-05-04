@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
+import { Avatar } from './atoms/Avatar'
 import MxLogo from '@/assets/mx-logo.png'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
@@ -226,13 +227,13 @@ export default function Layout() {
               <Typography variant="tiny" className="font-black text-text-primary tracking-tight leading-none mb-1">{profile.name}</Typography>
               <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest opacity-60">{perfilVisivel}</Typography>
             </div>
-            <div className="w-mx-10 h-mx-10 rounded-mx-md overflow-hidden shadow-mx-sm border border-border-default bg-surface-alt flex items-center justify-center text-brand-primary font-black uppercase text-sm">
-              {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                profile.name?.charAt(0)
-              )}
-            </div>
+            <Avatar
+              src={profile.avatar_url || undefined}
+              alt={`Avatar de ${profile.name}`}
+              fallback={profile.name}
+              size="md"
+              className="rounded-mx-md shadow-mx-sm"
+            />
           </button>
         </div>
       </header>

@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const TeamProgressEntrySchema = z.object({
   seller_id: z.string(),
   seller_name: z.string(),
+  avatar_url: z.string().nullable().optional(),
   watched: z.array(z.string()),
   total_trainings: z.number(),
   percentage: z.number(),

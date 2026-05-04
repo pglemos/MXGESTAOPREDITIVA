@@ -15,6 +15,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
 import { WizardPDI } from '@/features/pdi/WizardPDI'
 
@@ -130,9 +131,13 @@ export default function GerentePDI() {
                                             <div>
                                                 <header className="flex items-start justify-between mb-10 border-b border-border-default pb-6 relative z-10">
                                                     <div className="flex items-center gap-mx-sm min-w-0">
-                                                        <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-xl shadow-mx-inner group-hover:bg-brand-secondary group-hover:text-white transition-all transform group-hover:rotate-3 uppercase">
-                                                            {(p as any).seller_name?.charAt(0) || 'U'}
-                                                        </div>
+                                                        <Avatar
+                                                            src={(p as any).seller_avatar_url || undefined}
+                                                            alt={`Avatar de ${(p as any).seller_name || 'vendedor'}`}
+                                                            fallback={(p as any).seller_name || 'U'}
+                                                            size="lg"
+                                                            className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-inner group-hover:border-brand-secondary transition-all transform group-hover:rotate-3"
+                                                        />
                                                         <div className="min-w-0">
                                                             <Typography variant="h3" className="text-base uppercase tracking-tight truncate group-hover:text-brand-primary transition-colors font-black">{(p as any).seller_name}</Typography>
                                                             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">ESPECIALISTA</Typography>

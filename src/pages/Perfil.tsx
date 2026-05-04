@@ -5,11 +5,11 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
-import { cn, getAvatarUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
-import { supabase } from '@/lib/supabase'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
+import { getAvatarDisplayUrl, uploadUserAvatar } from '@/lib/avatar'
 
 export default function Perfil() {
   const { profile, role, signOut, updateProfile, changePassword } = useAuth()
@@ -42,31 +42,15 @@ export default function Perfil() {
     const file = e.target.files?.[0]
     if (!file || !profile?.id) return
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Imagem deve ter no máximo 2MB.')
-      return
-    }
-
     setUploadingAvatar(true)
     try {
-      const ext = file.name.split('.').pop()
-      const path = `avatars/${profile.id}.${ext}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('perfis_usuario')
-        .upload(path, file, { upsert: true })
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage.from('perfis_usuario').getPublicUrl(path)
-      const avatarUrl = `${publicUrl}?t=${Date.now()}`
-
+      const avatarUrl = await uploadUserAvatar(profile.id, file)
       const { error: updateError } = await updateProfile({ avatar_url: avatarUrl })
       if (updateError) throw updateError
 
       toast.success('Avatar atualizado!')
-    } catch {
-      toast.error('Falha ao enviar avatar.')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Falha ao enviar avatar.')
     } finally {
       setUploadingAvatar(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -129,7 +113,7 @@ export default function Perfil() {
               <div className="relative group/avatar inline-block">
                 <div className="w-mx-4xl h-mx-4xl rounded-mx-3xl border-8 border-white shadow-mx-xl overflow-hidden bg-surface-alt transition-transform group-hover/avatar:scale-105 duration-500">
                   <img
-                    src={profile.avatar_url || getAvatarUrl(profile.name || '', { size: 256, background: '4f46e5', color: 'fff' })}
+                    src={getAvatarDisplayUrl(profile.avatar_url, profile.name, { size: 256, background: '4f46e5', color: 'fff' })}
                     alt={`Avatar de ${profile.name}`}
                     className="w-full h-full object-cover"
                   />
@@ -143,7 +127,7 @@ export default function Perfil() {
                   {uploadingAvatar ? <RefreshCw size={24} className="animate-spin" /> : <Camera size={24} />}
                   <Typography variant="tiny" tone="white">{uploadingAvatar ? 'Enviando...' : 'ALTERAR'}</Typography>
                 </button>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" capture="user" onChange={handleAvatarUpload} className="hidden" />
               </div>
 
               <div>

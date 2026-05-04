@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Trophy, Send, Megaphone, X, PhoneForwarded, Headphones, Coffee, Inbox, Activity, Mic, Users } from 'lucide-react'
 import type { RankingEntry } from '@/types/database'
 import { motion } from 'motion/react'
+import { Avatar } from '@/components/atoms/Avatar'
 
 interface LiveFloorProps {
     ranking: RankingEntry[]
@@ -43,7 +44,7 @@ export function LiveFloor({ ranking }: LiveFloorProps) {
             duration,
             durationSeconds,
             isCritical,
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
+            avatar_url: seller.avatar_url || null,
         }
     })
 
@@ -137,7 +138,7 @@ export function LiveFloor({ ranking }: LiveFloorProps) {
                                 <div className="flex justify-between items-start mb-4 relative z-10">
                                     <div className="flex items-center gap-mx-sm">
                                         <div className="relative">
-                                            <img src={agent.avatar} alt="" className="w-mx-10 h-mx-10 rounded-xl object-cover border border-white/10" />
+                                            <Avatar src={agent.avatar_url || undefined} alt={`Avatar de ${agent.user_name}`} fallback={agent.user_name} className="w-mx-10 h-mx-10 rounded-xl border border-white/10" />
                                             <div className={`absolute -bottom-1 -right-1 w-mx-xs h-mx-xs rounded-full border-2 border-mx-black ${agent.status.type === 'available' ? 'bg-status-success' : agent.status.type === 'on_call' ? 'bg-status-error' : agent.status.type === 'chatting' ? 'bg-status-info' : 'bg-status-warning'}`}></div>
                                         </div>
                                         <div>
@@ -215,7 +216,7 @@ export function LiveFloor({ ranking }: LiveFloorProps) {
                 <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-mx-lg left-mx-lg right-mx-lg lg:left-mx-20 lg:right-mx-20 bg-mx-black/90 backdrop-blur-xl border border-white/10 shadow-mx-glow-brand text-white p-mx-md rounded-2xl flex flex-col md:flex-row items-center justify-between gap-mx-lg z-[60]">
                     <div className="flex items-center gap-mx-md min-w-mx-48">
                         <div className="relative">
-                            <img src={activeAgent.avatar} alt="" className="w-mx-14 h-mx-14 rounded-xl border border-white/20" />
+                            <Avatar src={activeAgent.avatar_url || undefined} alt={`Avatar de ${activeAgent.user_name}`} fallback={activeAgent.user_name} className="w-mx-14 h-mx-14 rounded-xl border border-white/20" />
                             <div className="absolute -top-1 -right-1 w-mx-xs h-mx-xs bg-status-error rounded-full animate-pulse shadow-lg"></div>
                         </div>
                         <div>

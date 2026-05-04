@@ -1,9 +1,8 @@
 import { useState, useRef } from 'react'
 import { Camera, RefreshCw, Save, User as UserIcon, Mail, Phone, Shield, Info, Upload } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { getAvatarUrl } from '@/lib/utils'
+import { getAvatarDisplayUrl, uploadUserAvatar } from '@/lib/avatar'
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
@@ -46,20 +45,10 @@ export function PerfilTab() {
 
     const handleAvatarUpload = async (file: File) => {
         if (!supabaseUser?.id) return
-        if (file.size > 2 * 1024 * 1024) {
-            toast.error('Avatar deve ter no máximo 2MB.')
-            return
-        }
         setUploadingAvatar(true)
         try {
-            const fileExt = file.name.split('.').pop()
-            const filePath = `avatars/${supabaseUser.id}-${Date.now()}.${fileExt}`
-            const { error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, file, { upsert: true })
-            if (uploadError) throw uploadError
-            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
-            const { error: updateError } = await updateProfile({ avatar_url: publicUrl })
+            const avatarUrl = await uploadUserAvatar(supabaseUser.id, file)
+            const { error: updateError } = await updateProfile({ avatar_url: avatarUrl })
             if (updateError) throw new Error(updateError)
             toast.success('Avatar atualizado!')
         } catch (err: any) {
@@ -76,7 +65,7 @@ export function PerfilTab() {
                     <div className="relative group">
                         <div className="w-mx-28 h-mx-28 rounded-mx-3xl bg-surface-alt border border-border-default flex items-center justify-center shadow-inner overflow-hidden">
                             <img
-                                src={profile?.avatar_url || getAvatarUrl(form.name, { background: '0D3B2E', color: '22C55E', size: 128 })}
+                                src={getAvatarDisplayUrl(profile?.avatar_url, form.name, { background: '0D3B2E', color: '22C55E', size: 128 })}
                                 alt={form.name ? `Avatar de ${form.name}` : 'Avatar'}
                                 className="w-full h-full object-cover"
                             />
@@ -93,7 +82,8 @@ export function PerfilTab() {
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept="image/*"
+                            accept="image/png,image/jpeg,image/webp"
+                            capture="user"
                             className="hidden"
                             onChange={(e) => {
                                 const file = e.target.files?.[0]

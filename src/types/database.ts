@@ -257,6 +257,7 @@ export interface CheckinAuditLog {
 export interface RankingEntry {
     user_id: string
     user_name: string
+    avatar_url?: string | null
     store_name?: string
     is_venda_loja: boolean
     vnd_total: number

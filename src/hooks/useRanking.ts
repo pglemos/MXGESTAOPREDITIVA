@@ -24,7 +24,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             return
         }
 
-        const cacheKey = `ranking_${storeId}_${startDate}_${endDate}`
+        const cacheKey = `ranking_v2_${storeId}_${startDate}_${endDate}`
         if (!forceRefresh) {
             const cached = localStorage.getItem(cacheKey)
             if (cached) {
@@ -58,14 +58,14 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         // Get active sellers by operational tenure. Fallback keeps old data readable until lojas are configured.
         const { data: tenures } = await supabase
             .from('vendedores_loja')
-            .select('seller_user_id, users:usuarios(name, is_venda_loja)')
+            .select('seller_user_id, users:usuarios(name, is_venda_loja, avatar_url)')
             .eq('store_id', storeId)
             .eq('is_active', true)
 
         const { data: fallbackMembers } = (!tenures || tenures.length === 0)
             ? await supabase
                 .from('vinculos_loja')
-                .select('user_id, users:usuarios(name, is_venda_loja)')
+                .select('user_id, users:usuarios(name, is_venda_loja, avatar_url)')
                 .eq('store_id', storeId)
                 .eq('role', 'vendedor')
             : { data: null }
@@ -86,7 +86,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         const storeGoal = rules?.monthly_goal || 0
         const includeVendaLojaInGoal = rules?.include_venda_loja_in_individual_goal || false
         
-        const aggregated = new Map<string, { leads: number; agd: number; visitas: number; vnd: number; vnd_yesterday: number; name: string; isVendaLoja: boolean }>()
+        const aggregated = new Map<string, { leads: number; agd: number; visitas: number; vnd: number; vnd_yesterday: number; name: string; avatarUrl: string | null; isVendaLoja: boolean }>()
         const realSellersCount = members.filter((m) => !(m.users as User | undefined)?.is_venda_loja).length
         const goalDivisor = realSellersCount + (includeVendaLojaInGoal ? members.filter((m) => (m.users as User | undefined)?.is_venda_loja).length : 0)
 
@@ -97,6 +97,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             aggregated.set(m.user_id, { 
                 leads: 0, agd: 0, visitas: 0, vnd: 0, vnd_yesterday: 0,
                 name: user?.name || 'Vendedor',
+                avatarUrl: user?.avatar_url || null,
                 isVendaLoja: user?.is_venda_loja || false
             })
         }
@@ -124,6 +125,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
                 return {
                     user_id: userId,
                     user_name: data.name,
+                    avatar_url: data.avatarUrl,
                     is_venda_loja: data.isVendaLoja,
                     vnd_total: data.vnd,
                     vnd_yesterday: data.vnd_yesterday,
@@ -199,7 +201,7 @@ export function useGlobalRanking() {
                 .eq('metric_scope', 'daily')
                 .gte('reference_date', startOfMonth),
             supabase.from('vendedores_loja')
-                .select('seller_user_id, store_id, users:usuarios(name, is_venda_loja), lojas:lojas(name)')
+                .select('seller_user_id, store_id, users:usuarios(name, is_venda_loja, avatar_url), lojas:lojas(name)')
                 .eq('is_active', true),
             supabase.from('regras_metas_loja')
                 .select('store_id, monthly_goal, include_venda_loja_in_individual_goal'),
@@ -229,7 +231,7 @@ export function useGlobalRanking() {
             salesTodayMap.set(c.seller_user_id, v)
         }
 
-        const agg = new Map<string, { vnd: number; vnd_yesterday: number; leads: number; agd: number; vis: number; name: string; store: string; storeId: string; isVendaLoja: boolean; checkedIn: boolean }>()
+        const agg = new Map<string, { vnd: number; vnd_yesterday: number; leads: number; agd: number; vis: number; name: string; avatarUrl: string | null; store: string; storeId: string; isVendaLoja: boolean; checkedIn: boolean }>()
         for (const m of tenures) {
             const mu = m as unknown as { users?: User; lojas?: { name: string } }
             agg.set(m.seller_user_id, {
@@ -237,6 +239,7 @@ export function useGlobalRanking() {
                 vnd_yesterday: salesTodayMap.get(m.seller_user_id) || 0,
                 leads: 0, agd: 0, vis: 0,
                 name: mu.users?.name || '',
+                avatarUrl: mu.users?.avatar_url || null,
                 store: mu.lojas?.name || '',
                 storeId: m.store_id,
                 isVendaLoja: mu.users?.is_venda_loja || false,
@@ -266,6 +269,7 @@ export function useGlobalRanking() {
                 return {
                     user_id: uid,
                     user_name: d.name,
+                    avatar_url: d.avatarUrl,
                     store_name: d.store,
                     is_venda_loja: d.isVendaLoja,
                     vnd_total: d.vnd,

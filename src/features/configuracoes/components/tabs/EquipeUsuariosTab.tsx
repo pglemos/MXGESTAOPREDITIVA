@@ -8,6 +8,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
+import { Avatar } from '@/components/atoms/Avatar'
 import { UserCreationModal } from '@/features/equipe/components/UserCreationModal'
 import { EditUserModal } from '@/features/configuracoes/components/EditUserModal'
 import type { UserRole } from '@/types/database'
@@ -143,9 +144,13 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
                             return (
                                 <div key={`${user.id}-${user.store_id || 'no-store'}`} className="flex items-center justify-between gap-mx-md p-mx-md hover:bg-surface-alt transition-colors">
                                     <div className="flex items-center gap-mx-sm flex-1 min-w-0">
-                                        <div className={`w-mx-12 h-mx-12 rounded-mx-xl flex items-center justify-center font-black text-white text-sm shrink-0 ${isInactive ? 'bg-text-tertiary' : 'bg-brand-primary'}`}>
-                                            {(user.name || '?').slice(0, 2).toUpperCase()}
-                                        </div>
+                                        <Avatar
+                                            src={user.avatar_url || undefined}
+                                            alt={`Avatar de ${user.name || 'usuário'}`}
+                                            fallback={user.name || '?'}
+                                            size="lg"
+                                            className={`rounded-mx-xl text-sm ${isInactive ? 'bg-text-tertiary text-white' : 'bg-brand-primary text-white'}`}
+                                        />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-mx-sm">
                                                 <Typography variant="caption" className="font-black uppercase tracking-tight truncate">

@@ -66,6 +66,7 @@ export interface PDISessionSummary {
     proxima_revisao_data?: string | null
     due_date?: string | null
     seller_name: string
+    seller_avatar_url?: string | null
     manager_name: string
     store_name?: string
     metas: PDIMeta360[]
@@ -133,7 +134,7 @@ async function fetchPDISessions360(params: {
             .select('*, competencia:pdi_competencias(id,nome,tipo,ordem)')
             .in('sessao_id', sessionIds)
             .order('data_conclusao', { ascending: true }),
-        userIds.length ? supabase.from('usuarios').select('id,name').in('id', userIds) : Promise.resolve({ data: [], error: null }),
+        userIds.length ? supabase.from('usuarios').select('id,name,avatar_url').in('id', userIds) : Promise.resolve({ data: [], error: null }),
         storeIds.length ? supabase.from('lojas').select('id,name').in('id', storeIds) : Promise.resolve({ data: [], error: null }),
     ])
 
@@ -184,6 +185,7 @@ async function fetchPDISessions360(params: {
     })
 
     const userNameById = new Map(((usuariosResp.data || []) as any[]).map(u => [u.id, u.name]))
+    const userAvatarById = new Map(((usuariosResp.data || []) as any[]).map(u => [u.id, u.avatar_url || null]))
     const storeNameById = new Map(((lojasResp.data || []) as any[]).map(l => [l.id, l.name]))
 
     return (sessoes as any[]).map(sessao => {
@@ -205,6 +207,7 @@ async function fetchPDISessions360(params: {
             proxima_revisao_data: sessao.proxima_revisao_data,
             due_date: sessao.proxima_revisao_data,
             seller_name: userNameById.get(sessao.colaborador_id) || 'Vendedor',
+            seller_avatar_url: userAvatarById.get(sessao.colaborador_id) || null,
             manager_name: userNameById.get(sessao.gerente_id) || 'Gestor',
             store_name: sessao.loja_id ? storeNameById.get(sessao.loja_id) : undefined,
             metas,

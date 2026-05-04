@@ -5,12 +5,13 @@ import {
     GraduationCap, Play, CheckCircle, Search, 
     Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send
 } from 'lucide-react'
-import { cn, getAvatarUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader } from '@/components/molecules/Card'
 import { toast } from 'sonner'
 
@@ -238,7 +239,7 @@ export default function GerenteTreinamentos() {
                                                 <tr key={p.seller_id} className="hover:bg-surface-alt/30 transition-colors h-mx-20 group">
                                                     <td className="pl-10 sticky left-mx-0 bg-white group-hover:bg-surface-alt/30 z-10 border-r border-border-default">
                                                         <div className="flex items-center gap-mx-sm">
-                                                            <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-surface-alt flex items-center justify-center font-black text-text-tertiary text-xs shadow-inner uppercase">{p.seller_name.charAt(0)}</div>
+                                                            <Avatar src={p.avatar_url || undefined} alt={`Avatar de ${p.seller_name}`} fallback={p.seller_name} className="w-mx-10 h-mx-10 rounded-mx-xl shadow-inner" />
                                                             <Typography variant="p" className="text-sm font-black uppercase tracking-tight truncate max-w-mx-label-lg">{p.seller_name}</Typography>
                                                         </div>
                                                     </td>
@@ -280,7 +281,7 @@ export default function GerenteTreinamentos() {
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-32 h-mx-32 bg-brand-primary/5 rounded-mx-full blur-2xl -mr-16 -mt-16" />
                                         
                                         <div className="w-mx-20 h-mx-20 rounded-mx-full border-4 border-white shadow-mx-md overflow-hidden bg-surface-alt mb-6 group-hover:scale-105 transition-transform relative z-10">
-                                            <img src={getAvatarUrl(p.seller_name, { background: '4f46e5', color: 'fff' })} alt={p.seller_name} className="w-full h-full object-cover" />
+                                            <Avatar src={p.avatar_url || undefined} alt={`Avatar de ${p.seller_name}`} fallback={p.seller_name} className="w-full h-full rounded-mx-full" />
                                         </div>
 
                                         <div className="relative z-10 w-full">

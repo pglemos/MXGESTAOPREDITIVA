@@ -16,6 +16,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
 
 // New components
@@ -287,7 +288,6 @@ function GlobalRanking() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-mx-md">
                             {displayRanking.map(seller => {
                                 const selected = battleOpponents.includes(seller.user_id)
-                                const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
                                 return (
                                     <button 
                                         key={seller.user_id}
@@ -295,7 +295,12 @@ function GlobalRanking() {
                                         className={`p-mx-md rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-mx-sm relative overflow-hidden group active:scale-95
                                             ${selected ? 'bg-mx-black border-brand-primary shadow-xl scale-105' : 'bg-white/40 border-white/40 hover:bg-white hover:border-white'}`}
                                     >
-                                        <img src={avatar} alt="" className={`w-mx-14 h-mx-14 rounded-full object-cover border-2 shadow-sm ${selected ? 'border-brand-primary' : 'border-white'}`} />
+                                        <Avatar
+                                            src={seller.avatar_url || undefined}
+                                            alt={`Avatar de ${seller.user_name}`}
+                                            fallback={seller.user_name}
+                                            className={`w-mx-14 h-mx-14 rounded-full border-2 shadow-sm ${selected ? 'border-brand-primary' : 'border-white'}`}
+                                        />
                                         <span className={`font-bold text-xs ${selected ? 'text-white' : 'text-mx-black'} truncate w-full`}>{seller.user_name}</span>
                                         <span className="text-mx-micro text-text-tertiary truncate w-full">{seller.store_name}</span>
                                     </button>
@@ -387,14 +392,18 @@ function GlobalRanking() {
                             {podiumOrder.map((seller) => {
                                 const isFirst = seller.position === 1
                                 const isSecond = seller.position === 2
-                                const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
                                 
                                 return (
                                     <div key={seller.user_id} onClick={() => setSelectedSeller(seller.user_id)} className={`flex flex-col items-center group cursor-pointer transition-transform duration-500 hover:-translate-y-2 z-10 ${isFirst ? '-mb-4 sm:-mb-0' : ''}`}>
                                         <div className="relative mb-3 flex flex-col items-center">
                                             {isFirst && <Crown className="w-mx-lg h-mx-lg text-status-warning mb-2 animate-bounce drop-shadow-lg" />}
                                             <div className={`rounded-full p-mx-tiny transition-all ${isFirst ? 'bg-gradient-to-br from-brand-primary to-status-warning shadow-mx-glow-brand' : 'bg-white shadow-xl'}`}>
-                                                <img src={avatar} alt="" className={`rounded-full object-cover border-4 border-mx-black ${isFirst ? 'w-mx-20 h-mx-20 sm:w-mx-32 sm:h-mx-32' : isSecond ? 'w-mx-20 h-mx-20 sm:w-mx-20 sm:h-mx-20' : 'w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-20'}`} />
+                                                <Avatar
+                                                    src={seller.avatar_url || undefined}
+                                                    alt={`Avatar de ${seller.user_name}`}
+                                                    fallback={seller.user_name}
+                                                    className={`rounded-full border-4 border-mx-black ${isFirst ? 'w-mx-20 h-mx-20 sm:w-mx-32 sm:h-mx-32' : isSecond ? 'w-mx-20 h-mx-20 sm:w-mx-20 sm:h-mx-20' : 'w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-20'}`}
+                                                />
                                             </div>
                                             <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-mx-micro font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-text-primary'}`}>
                                                 {isFirst ? 'Campeão' : `#${seller.position} Lugar`}
@@ -638,7 +647,6 @@ function StoreRankingView() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-mx-md">
                             {sortedRanking.map(seller => {
                                 const selected = battleOpponents.includes(seller.user_id)
-                                const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
                                 return (
                                     <button 
                                         key={seller.user_id}
@@ -646,7 +654,12 @@ function StoreRankingView() {
                                         className={`p-mx-md rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-mx-sm relative overflow-hidden group active:scale-95
                                             ${selected ? 'bg-mx-black border-brand-primary shadow-xl scale-105' : 'bg-white/40 border-white/40 hover:bg-white hover:border-white'}`}
                                     >
-                                        <img src={avatar} alt="" className={`w-mx-14 h-mx-14 rounded-full object-cover border-2 shadow-sm ${selected ? 'border-brand-primary' : 'border-white'}`} />
+                                        <Avatar
+                                            src={seller.avatar_url || undefined}
+                                            alt={`Avatar de ${seller.user_name}`}
+                                            fallback={seller.user_name}
+                                            className={`w-mx-14 h-mx-14 rounded-full border-2 shadow-sm ${selected ? 'border-brand-primary' : 'border-white'}`}
+                                        />
                                         <span className={`font-bold text-xs ${selected ? 'text-white' : 'text-mx-black'}`}>{seller.user_name}</span>
                                     </button>
                                 )
@@ -664,14 +677,18 @@ function StoreRankingView() {
                             {podiumOrder.map((seller) => {
                                 const isFirst = seller.position === 1
                                 const isSecond = seller.position === 2
-                                const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
                                 
                                 return (
                                     <div key={seller.user_id} onClick={() => setSelectedSeller(seller.user_id)} className={`flex flex-col items-center group cursor-pointer transition-transform duration-500 hover:-translate-y-2 z-10 ${isFirst ? '-mb-4 sm:-mb-0' : ''}`}>
                                         <div className="relative mb-3 flex flex-col items-center">
                                             {isFirst && <Crown className="w-mx-lg h-mx-lg text-status-warning mb-2 animate-bounce drop-shadow-lg" />}
                                             <div className={`rounded-full p-mx-tiny transition-all ${isFirst ? 'bg-gradient-to-br from-brand-primary to-status-warning shadow-mx-glow-brand' : 'bg-white shadow-xl'}`}>
-                                                <img src={avatar} alt="" className={`rounded-full object-cover border-4 border-mx-black ${isFirst ? 'w-mx-20 h-mx-20 sm:w-mx-32 sm:h-mx-32' : isSecond ? 'w-mx-20 h-mx-20 sm:w-mx-20 sm:h-mx-20' : 'w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-20'}`} />
+                                                <Avatar
+                                                    src={seller.avatar_url || undefined}
+                                                    alt={`Avatar de ${seller.user_name}`}
+                                                    fallback={seller.user_name}
+                                                    className={`rounded-full border-4 border-mx-black ${isFirst ? 'w-mx-20 h-mx-20 sm:w-mx-32 sm:h-mx-32' : isSecond ? 'w-mx-20 h-mx-20 sm:w-mx-20 sm:h-mx-20' : 'w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-20'}`}
+                                                />
                                             </div>
                                             <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-mx-micro font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-text-primary'}`}>
                                                 {isFirst ? 'Campeão' : `#${seller.position} Lugar`}

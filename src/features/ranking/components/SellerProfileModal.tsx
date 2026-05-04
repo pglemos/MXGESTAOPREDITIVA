@@ -4,6 +4,7 @@ import { X, Flame, Crown, TrendingUp, Activity, Wallet, CheckCircle2, Unlock, Lo
 import type { RankingEntry } from '@/types/database'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { Avatar } from '@/components/atoms/Avatar'
 
 interface SellerProfileModalProps {
     seller: RankingEntry
@@ -12,9 +13,6 @@ interface SellerProfileModalProps {
 
 export function SellerProfileModal({ seller, onClose }: SellerProfileModalProps) {
     const [tab, setTab] = useState<'performance' | 'commissions'>('performance')
-    
-    // Default avatar
-    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random`
     
     // Calculate "RPG Attributes" based on real stats
     // Atingimento (Meta), Volume (Leads/Visitas), Conversão (Vendas / Leads), Consistência (Ritmo)
@@ -65,7 +63,7 @@ export function SellerProfileModal({ seller, onClose }: SellerProfileModalProps)
                 <div className="w-full md:w-mx-tiny/3 bg-white/5 p-mx-xl flex flex-col items-center border-r border-white/5 relative overflow-hidden">
                     <div className="absolute top-mx-0 left-mx-0 w-full h-mx-tiny bg-gradient-to-r from-brand-primary to-transparent"></div>
                     <div className="w-mx-32 h-mx-32 rounded-full p-mx-tiny bg-gradient-to-b from-brand-primary to-transparent mb-6 relative shrink-0">
-                        <img src={avatar} alt={seller.user_name} className="w-full h-full rounded-full object-cover border-4 border-mx-black bg-surface-alt" />
+                        <Avatar src={seller.avatar_url || undefined} alt={`Avatar de ${seller.user_name}`} fallback={seller.user_name} className="w-full h-full rounded-full border-4 border-mx-black bg-surface-alt" />
                         <div className="absolute -bottom-2 -right-2 w-mx-10 h-mx-10 bg-mx-black rounded-full flex items-center justify-center border-2 border-brand-primary text-brand-primary font-black shadow-lg">
                             {seller.position}º
                         </div>

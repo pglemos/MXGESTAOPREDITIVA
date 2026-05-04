@@ -24,6 +24,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 
@@ -385,7 +386,12 @@ export default function RotinaGerente() {
                                                     <div className="flex-1 space-y-mx-md">
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center gap-mx-sm">
-                                                                <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-inner font-black text-sm uppercase">{req.seller?.name?.charAt(0) || '?'}</div>
+                                                                <Avatar
+                                                                    src={req.seller?.avatar_url || undefined}
+                                                                    alt={`Avatar de ${req.seller?.name || 'vendedor'}`}
+                                                                    fallback={req.seller?.name || '?'}
+                                                                    className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white shadow-inner"
+                                                                />
                                                                 <div>
                                                                     <Typography variant="h3" className="text-base uppercase font-black">{req.seller?.name || 'Vendedor'}</Typography>
                                                                     <Typography variant="tiny" tone="muted" className="font-black uppercase">Solicitado em {new Date(req.created_at).toLocaleDateString('pt-BR')}</Typography>

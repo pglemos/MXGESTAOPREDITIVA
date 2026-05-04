@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useGlobalRanking } from '@/hooks/useRanking'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
@@ -76,12 +77,16 @@ export default function SellerPerformance() {
             header: 'ESPECIALISTA',
             render: (r: any) => (
                 <div className="flex items-center gap-mx-sm">
-                    <div className={cn(
-                        "w-mx-8 h-mx-8 rounded-mx-lg flex items-center justify-center font-black text-xs uppercase border shrink-0",
-                        r.is_venda_loja ? "bg-brand-primary text-white border-brand-primary" : "bg-surface-alt text-text-primary border-border-default"
-                    )}>
-                        {r.user_name.charAt(0)}
-                    </div>
+                    <Avatar
+                        src={r.avatar_url || undefined}
+                        alt={`Avatar de ${r.user_name}`}
+                        fallback={r.user_name}
+                        size="sm"
+                        className={cn(
+                            "rounded-mx-lg",
+                            r.is_venda_loja ? "bg-brand-primary text-white border-brand-primary" : "bg-surface-alt text-text-primary border-border-default",
+                        )}
+                    />
                     <div className="min-w-0">
                         <Typography variant="h3" className="text-sm uppercase font-black truncate">{r.user_name}</Typography>
                         <Typography variant="tiny" tone="muted" className="text-mx-nano font-black uppercase">{r.store_name}</Typography>
@@ -138,10 +143,11 @@ export default function SellerPerformance() {
                         
                         <div className="relative mb-6">
                             <div className="w-mx-40 h-mx-40 rounded-full p-mx-tiny bg-gradient-to-br from-brand-primary to-transparent shadow-mx-glow-brand">
-                                <img 
-                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(seller.user_name)}&background=random&size=200`} 
-                                    alt="" 
-                                    className="w-full h-full rounded-full object-cover border-4 border-mx-black"
+                                <Avatar
+                                    src={seller.avatar_url || undefined}
+                                    alt={`Avatar de ${seller.user_name}`}
+                                    fallback={seller.user_name}
+                                    className="w-full h-full rounded-full border-4 border-mx-black"
                                 />
                             </div>
                             <div className="absolute -bottom-2 -right-2 w-mx-12 h-mx-12 bg-mx-black rounded-full flex items-center justify-center border-2 border-brand-primary text-brand-primary font-black text-lg shadow-xl">

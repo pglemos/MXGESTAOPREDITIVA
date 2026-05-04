@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/atoms/Skeleton'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Input } from '@/components/atoms/Input'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
@@ -470,9 +471,13 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-mx-sm min-w-0">
-                            <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-brand-primary/10 text-brand-primary border border-brand-primary/10 flex items-center justify-center font-black uppercase shrink-0">
-                              {(member.name || '?').slice(0, 2)}
-                            </div>
+                            <Avatar
+                              src={member.avatar_url || undefined}
+                              alt={`Avatar de ${member.name || 'integrante'}`}
+                              fallback={member.name || '?'}
+                              size="lg"
+                              className="rounded-mx-xl bg-brand-primary/10 text-brand-primary border-brand-primary/10"
+                            />
                             <div className="min-w-0">
                               <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{member.name}</Typography>
                               <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">

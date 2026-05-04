@@ -19,6 +19,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Modal } from '@/components/organisms/Modal'
@@ -323,9 +324,16 @@ export default function DashboardLoja() {
             header: 'ESPECIALISTA',
             render: (r) => (
                 <div className="flex items-center gap-mx-sm">
-                    <div className={cn("w-mx-8 h-mx-8 sm:w-mx-10 sm:h-mx-10 rounded-mx-lg flex items-center justify-center font-black text-xs transition-all shadow-mx-inner uppercase border shrink-0", r.is_venda_loja ? "bg-brand-primary text-white border-brand-primary" : "bg-surface-alt text-text-primary border-border-default group-hover:bg-brand-primary group-hover:text-white")}>
-                        {r.user_name.charAt(0)}
-                    </div>
+                    <Avatar
+                        src={r.avatar_url || undefined}
+                        alt={`Avatar de ${r.user_name}`}
+                        fallback={r.user_name}
+                        size="md"
+                        className={cn(
+                            "w-mx-8 h-mx-8 sm:w-mx-10 sm:h-mx-10 rounded-mx-lg shadow-mx-inner transition-all",
+                            r.is_venda_loja ? "bg-brand-primary text-white border-brand-primary" : "bg-surface-alt text-text-primary border-border-default group-hover:border-brand-primary",
+                        )}
+                    />
                     <div className="min-w-0">
                         <Typography variant="h3" className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black leading-tight whitespace-normal break-words">{r.user_name}</Typography>
                         {r.is_venda_loja && <span className="text-mx-nano font-black bg-brand-primary text-white px-1 py-0.5 rounded uppercase tracking-widest">Venda Loja</span>}

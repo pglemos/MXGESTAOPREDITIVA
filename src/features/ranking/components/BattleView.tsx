@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from 'motion/react'
 import type { RankingEntry } from '@/types/database'
+import { Avatar } from '@/components/atoms/Avatar'
 
 interface BattleViewProps {
     opponents: string[]
@@ -37,9 +38,6 @@ export function BattleView({ opponents, ranking }: BattleViewProps) {
         )
     }
 
-    const avatar1 = `https://ui-avatars.com/api/?name=${encodeURIComponent(p1.user_name)}&background=random`
-    const avatar2 = `https://ui-avatars.com/api/?name=${encodeURIComponent(p2.user_name)}&background=random`
-
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center mb-10 relative gap-mx-lg md:gap-0">
@@ -51,7 +49,7 @@ export function BattleView({ opponents, ranking }: BattleViewProps) {
                 {/* Player 1 */}
                 <div className="bg-mx-black p-mx-lg rounded-3xl border border-brand-primary/20 flex flex-col items-center w-full md:w-mx-sm/12 relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-32 h-mx-32 bg-brand-primary blur-mx-huge opacity-20 rounded-full"></div>
-                    <img src={avatar1} alt={p1.user_name} className="w-mx-20 h-mx-20 rounded-2xl border-2 border-brand-primary shadow-mx-glow-brand mb-4" />
+                    <Avatar src={p1.avatar_url || undefined} alt={`Avatar de ${p1.user_name}`} fallback={p1.user_name} className="w-mx-20 h-mx-20 rounded-2xl border-2 border-brand-primary shadow-mx-glow-brand mb-4" />
                     <h3 className="font-display font-bold text-2xl text-white text-center">{p1.user_name}</h3>
                     <p className="text-xs font-bold text-brand-primary uppercase tracking-widest text-center mt-1">{p1.store_name}</p>
                 </div>
@@ -59,7 +57,7 @@ export function BattleView({ opponents, ranking }: BattleViewProps) {
                 {/* Player 2 */}
                 <div className="bg-mx-black p-mx-lg rounded-3xl border border-status-info/20 flex flex-col items-center w-full md:w-mx-sm/12 relative overflow-hidden">
                     <div className="absolute top-mx-0 left-mx-0 w-mx-32 h-mx-32 bg-status-info blur-mx-huge opacity-20 rounded-full"></div>
-                    <img src={avatar2} alt={p2.user_name} className="w-mx-20 h-mx-20 rounded-2xl border-2 border-status-info shadow-mx-glow-brand mb-4" />
+                    <Avatar src={p2.avatar_url || undefined} alt={`Avatar de ${p2.user_name}`} fallback={p2.user_name} className="w-mx-20 h-mx-20 rounded-2xl border-2 border-status-info shadow-mx-glow-brand mb-4" />
                     <h3 className="font-display font-bold text-2xl text-white text-center">{p2.user_name}</h3>
                     <p className="text-xs font-bold text-status-info uppercase tracking-widest text-center mt-1">{p2.store_name}</p>
                 </div>
