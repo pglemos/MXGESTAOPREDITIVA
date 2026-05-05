@@ -33,6 +33,8 @@ type VisitInput = {
   target_audience?: string | null;
   product_name?: string | null;
   consultant_email?: string | null;
+  consultant_id?: string | null;
+  auxiliary_consultant_id?: string | null;
   google_event_id?: string | null;
   google_event_id_central?: string | null;
 };
@@ -50,14 +52,42 @@ type ScheduleEventInput = {
   audience_goal?: number | null;
   responsible_name?: string | null;
   responsible_email?: string | null;
+  responsible_user_id?: string | null;
   ticket_price_text?: string | null;
   visit_reason?: string | null;
   product_name?: string | null;
   google_event_id?: string | null;
+  google_event_id_personal?: string | null;
   status?: string | null;
 };
 
-function buildEventPayload(visit: VisitInput, ownerEmail?: string | null): GoogleEventInput {
+type GoogleAttendee = { email: string; displayName?: string };
+
+function normalizeAttendees(attendees: (GoogleAttendee | null | undefined)[]): GoogleAttendee[] {
+  const seen = new Set<string>();
+  const normalized: GoogleAttendee[] = [];
+  for (const attendee of attendees) {
+    const email = attendee?.email?.trim().toLowerCase();
+    if (!email || seen.has(email)) continue;
+    seen.add(email);
+    normalized.push({ email, displayName: attendee.displayName });
+  }
+  return normalized;
+}
+
+async function getAdminMasterAttendees(adminClient: any): Promise<GoogleAttendee[]> {
+  const { data, error } = await adminClient
+    .from("usuarios")
+    .select("name, email")
+    .eq("role", "administrador_geral")
+    .eq("active", true);
+  if (error) throw error;
+  return (data || [])
+    .filter((user: any) => typeof user.email === "string" && user.email.includes("@"))
+    .map((user: any) => ({ email: user.email, displayName: user.name ?? undefined }));
+}
+
+function buildEventPayload(visit: VisitInput, attendees: GoogleAttendee[] = []): GoogleEventInput {
   const start = new Date(visit.scheduled_at);
   const durationMs = Math.max(0.5, Number(visit.duration_hours ?? 3)) * 60 * 60 * 1000;
   const end = new Date(start.getTime() + durationMs);
@@ -77,7 +107,7 @@ function buildEventPayload(visit: VisitInput, ownerEmail?: string | null): Googl
     location: visit.client_address ?? undefined,
     start: { dateTime: start.toISOString(), timeZone: TIMEZONE },
     end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
-    attendees: ownerEmail ? [{ email: ownerEmail }] : undefined,
+    attendees: attendees.length > 0 ? attendees : undefined,
     reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }, { method: "email", minutes: 60 }] },
   };
 }
@@ -97,7 +127,7 @@ function getScheduleTypeLabel(type?: string | null) {
   }
 }
 
-function buildScheduleEventPayload(event: ScheduleEventInput): GoogleEventInput {
+function buildScheduleEventPayload(event: ScheduleEventInput, attendees: GoogleAttendee[] = []): GoogleEventInput {
   const start = new Date(event.starts_at);
   const durationMs = Math.max(0.5, Number(event.duration_hours ?? 1)) * 60 * 60 * 1000;
   const end = new Date(start.getTime() + durationMs);
@@ -120,15 +150,26 @@ function buildScheduleEventPayload(event: ScheduleEventInput): GoogleEventInput 
     location: event.location ?? undefined,
     start: { dateTime: start.toISOString(), timeZone: TIMEZONE },
     end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
-    attendees: event.responsible_email ? [{ email: event.responsible_email, displayName: event.responsible_name ?? undefined }] : undefined,
+    attendees: attendees.length > 0 ? attendees : undefined,
     reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }, { method: "email", minutes: 60 }] },
   };
 }
 
-async function getUserAccessToken(sessionClient: any, userId: string): Promise<{ token: string | null; tokenRowId?: string }> {
-  const { data: tokenRow, error } = await sessionClient
+type UserGoogleToken = {
+  token: string | null;
+  googleEmail?: string | null;
+  tokenRowId?: string;
+};
+
+type AdminMasterGoogleToken = UserGoogleToken & {
+  userId: string;
+  name?: string | null;
+};
+
+async function getUserAccessToken(dbClient: any, userId: string): Promise<UserGoogleToken> {
+  const { data: tokenRow, error } = await dbClient
     .from("tokens_oauth_consultoria")
-    .select("id, access_token, refresh_token, expires_at")
+    .select("id, access_token, refresh_token, expires_at, google_email")
     .eq("user_id", userId)
     .eq("provider", "google")
     .maybeSingle();
@@ -141,13 +182,105 @@ async function getUserAccessToken(sessionClient: any, userId: string): Promise<{
     const refreshTok = await decryptToken(tokenRow.refresh_token);
     const refreshed = await refreshAccessToken(refreshTok);
     const encrypted = await encryptToken(refreshed.access_token);
-    await sessionClient
+    await dbClient
       .from("tokens_oauth_consultoria")
       .update({ access_token: encrypted, expires_at: new Date(Date.now() + refreshed.expires_in * 1000).toISOString() })
       .eq("id", tokenRow.id);
     accessToken = refreshed.access_token;
   }
-  return { token: accessToken, tokenRowId: tokenRow.id };
+  return { token: accessToken, googleEmail: tokenRow.google_email ?? null, tokenRowId: tokenRow.id };
+}
+
+async function getAdminMasterPersonalTokens(adminClient: any): Promise<AdminMasterGoogleToken[]> {
+  const { data: users, error } = await adminClient
+    .from("usuarios")
+    .select("id, name")
+    .eq("role", "administrador_geral")
+    .eq("active", true);
+  if (error) throw error;
+
+  const tokens: AdminMasterGoogleToken[] = [];
+  for (const user of users || []) {
+    const userToken = await getUserAccessToken(adminClient, user.id);
+    if (!userToken.token) continue;
+    tokens.push({
+      ...userToken,
+      userId: user.id,
+      name: user.name ?? null,
+    });
+  }
+  return tokens;
+}
+
+async function mirrorToAdminMasterCalendars(
+  adminClient: any,
+  tokens: AdminMasterGoogleToken[],
+  sourceKind: "visit" | "schedule_event",
+  sourceId: string,
+  payload: GoogleEventInput,
+  action: "upsert" | "delete",
+): Promise<{ userId: string; ok: boolean; message?: string }[]> {
+  const results: { userId: string; ok: boolean; message?: string }[] = [];
+
+  for (const userToken of tokens) {
+    try {
+      const { data: mirrorRow, error: mirrorLookupError } = await adminClient
+        .from("espelhos_agenda_google_usuario")
+        .select("id, google_event_id")
+        .eq("user_id", userToken.userId)
+        .eq("source_kind", sourceKind)
+        .eq("source_id", sourceId)
+        .maybeSingle();
+      if (mirrorLookupError) throw mirrorLookupError;
+
+      if (action === "delete") {
+        if (mirrorRow?.google_event_id && userToken.token) {
+          await deleteGoogleEvent(userToken.token, "primary", mirrorRow.google_event_id);
+        }
+        await adminClient
+          .from("espelhos_agenda_google_usuario")
+          .upsert({
+            user_id: userToken.userId,
+            source_kind: sourceKind,
+            source_id: sourceId,
+            google_event_id: null,
+            synced_at: new Date().toISOString(),
+            sync_error: null,
+          }, { onConflict: "user_id,source_kind,source_id" });
+        results.push({ userId: userToken.userId, ok: true });
+        continue;
+      }
+
+      if (!userToken.token) throw new Error("Google pessoal nao conectado");
+      const googleEventId = await upsertGoogleEvent(userToken.token, "primary", payload, mirrorRow?.google_event_id ?? null);
+      await adminClient
+        .from("espelhos_agenda_google_usuario")
+        .upsert({
+          user_id: userToken.userId,
+          source_kind: sourceKind,
+          source_id: sourceId,
+          google_event_id: googleEventId,
+          synced_at: new Date().toISOString(),
+          sync_error: null,
+        }, { onConflict: "user_id,source_kind,source_id" });
+      results.push({ userId: userToken.userId, ok: true });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "mirror failed";
+      await adminClient
+        .from("espelhos_agenda_google_usuario")
+        .upsert({
+          user_id: userToken.userId,
+          source_kind: sourceKind,
+          source_id: sourceId,
+          google_event_id: null,
+          synced_at: null,
+          sync_error: message,
+        }, { onConflict: "user_id,source_kind,source_id" });
+      results.push({ userId: userToken.userId, ok: false, message });
+    }
+  }
+
+  return results;
 }
 
 Deno.serve(async (req) => {
@@ -179,6 +312,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const action: "upsert" | "delete" = body?.action === "delete" ? "delete" : "upsert";
+    const mirrorOnly = body?.mirrorOnly === true;
     const visit: VisitInput | null = body?.visit ?? null;
     const scheduleEvent: ScheduleEventInput | null = body?.event ?? body?.scheduleEvent ?? null;
     const syncKind = scheduleEvent ? "schedule_event" : "visit";
@@ -195,56 +329,116 @@ Deno.serve(async (req) => {
       requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
     );
 
-    const { token: userToken } = syncKind === "visit" && sessionClient && authUserId
-      ? await getUserAccessToken(sessionClient, authUserId)
+    const personalOwnerUserId = syncKind === "schedule_event"
+      ? scheduleEvent?.responsible_user_id ?? authUserId
+      : visit?.consultant_id ?? authUserId;
+    const personalToken: UserGoogleToken = personalOwnerUserId
+      ? await getUserAccessToken(adminClient, personalOwnerUserId)
       : { token: null };
     const centralToken = await getCentralCalendarAccessToken();
+    const adminMasterAttendees = await getAdminMasterAttendees(adminClient);
+    const adminMasterPersonalTokens = await getAdminMasterPersonalTokens(adminClient);
 
-    let personalEventId = visit?.google_event_id ?? null;
+    let personalEventId = syncKind === "schedule_event"
+      ? scheduleEvent?.google_event_id_personal ?? null
+      : visit?.google_event_id ?? null;
     let centralEventId = syncKind === "schedule_event"
       ? scheduleEvent?.google_event_id ?? null
       : visit?.google_event_id_central ?? null;
     const errors: { calendar: "personal" | "central"; message: string }[] = [];
+    let adminMasterMirrors: { userId: string; ok: boolean; message?: string }[] = [];
 
     if (action === "delete") {
-      if (userToken && personalEventId) {
+      if (!mirrorOnly && personalToken.token && personalEventId) {
         try {
-          await deleteGoogleEvent(userToken, "primary", personalEventId);
+          await deleteGoogleEvent(personalToken.token, "primary", personalEventId);
           personalEventId = null;
         } catch (e) {
           errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "delete failed" });
         }
       }
-      if (centralToken && centralEventId) {
+      if (!mirrorOnly && centralToken && centralEventId) {
         try {
           await deleteGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralEventId);
           centralEventId = null;
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "delete failed" });
         }
-      } else if (!centralToken && centralEventId) {
+      } else if (!mirrorOnly && !centralToken && centralEventId) {
         errors.push({ calendar: "central", message: "Agenda Central MX nao conectada" });
       }
+
+      const mirrorPayload = syncKind === "schedule_event" && scheduleEvent
+        ? buildScheduleEventPayload(scheduleEvent)
+        : visit
+        ? buildEventPayload(visit)
+        : null;
+      if (mirrorPayload) {
+        adminMasterMirrors = await mirrorToAdminMasterCalendars(
+          adminClient,
+          adminMasterPersonalTokens,
+          syncKind,
+          syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id,
+          mirrorPayload,
+          "delete",
+        );
+      }
     } else {
-      if (syncKind === "visit" && visit && userToken) {
+      if (!mirrorOnly && syncKind === "visit" && visit && personalToken.token) {
         try {
-          const userPayload = buildEventPayload(visit, visit.consultant_email);
-          personalEventId = await upsertGoogleEvent(userToken, "primary", userPayload, personalEventId);
+          const userPayload = buildEventPayload(visit);
+          personalEventId = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
         } catch (e) {
           errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "upsert failed" });
         }
       }
-      if (centralToken) {
+      if (!mirrorOnly && syncKind === "schedule_event" && scheduleEvent && personalToken.token) {
         try {
+          const userPayload = buildScheduleEventPayload(scheduleEvent);
+          personalEventId = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
+        } catch (e) {
+          errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "upsert failed" });
+        }
+      }
+      if (!mirrorOnly && centralToken) {
+        try {
+          const centralAttendees = scheduleEvent
+            ? normalizeAttendees([
+              ...adminMasterAttendees,
+              {
+                email: personalToken.googleEmail ?? scheduleEvent.responsible_email ?? "",
+                displayName: scheduleEvent.responsible_name ?? undefined,
+              },
+            ])
+            : normalizeAttendees([
+              ...adminMasterAttendees,
+              { email: personalToken.googleEmail ?? visit?.consultant_email ?? CENTRAL_CALENDAR_EMAIL },
+            ]);
           const centralPayload = scheduleEvent
-            ? buildScheduleEventPayload(scheduleEvent)
-            : buildEventPayload(visit!, CENTRAL_CALENDAR_EMAIL);
+            ? buildScheduleEventPayload(scheduleEvent, centralAttendees)
+            : buildEventPayload(visit!, centralAttendees);
           centralEventId = await upsertGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralPayload, centralEventId);
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "upsert failed" });
         }
-      } else {
+      } else if (!mirrorOnly) {
         errors.push({ calendar: "central", message: "Agenda Central MX nao conectada" });
+      }
+
+      const mirrorPayload = syncKind === "schedule_event" && scheduleEvent
+        ? buildScheduleEventPayload(scheduleEvent)
+        : visit
+        ? buildEventPayload(visit)
+        : null;
+      if (mirrorPayload) {
+        adminMasterMirrors = await mirrorToAdminMasterCalendars(
+          adminClient,
+          adminMasterPersonalTokens,
+          syncKind,
+          syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id,
+          mirrorPayload,
+          "upsert",
+        );
       }
     }
 
@@ -254,6 +448,7 @@ Deno.serve(async (req) => {
         .from("eventos_agenda_consultoria")
         .update({
           google_event_id: centralEventId,
+          google_event_id_personal: personalEventId,
           google_synced_at: centralError ? null : new Date().toISOString(),
           google_sync_error: centralError?.message ?? null,
         })
@@ -290,8 +485,10 @@ Deno.serve(async (req) => {
         personalEventId,
         centralEventId,
         errors,
-        userConnected: Boolean(userToken),
+        userConnected: Boolean(personalToken.token),
+        personalOwnerUserId,
         centralConnected: Boolean(centralToken),
+        adminMasterMirrors,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

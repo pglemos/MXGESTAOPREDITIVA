@@ -54,6 +54,13 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Filtro de período passou a controlar a grade visual da agenda: `Hoje` renderiza 1 dia, `Semana` e `Próx. Semana` renderizam 7 dias, `Mês`/`Todos` renderizam a grade mensal; validado por Chrome MCP.
 - [x] Agenda passou a salvar e exibir Motivo da visita, Alvo e Produto em criação/edição/visualização de visita e evento/aula; campos validados em Chrome MCP mobile sem overflow.
 - [x] Gates pós-auditoria: `npm run lint`, `npm test` e `npm run build`.
+- [x] Follow-up 2026-05-05: verificado no Supabase remoto que a Agenda Central MX segue conectada, mas `José Roberto <joseroberto20161@gmail.com>` e `Synvollt <synvollt@gmail.com>` ainda não possuem token Google pessoal.
+- [x] Follow-up 2026-05-05: sync pessoal passou a usar o usuário responsável/consultor do agendamento, e não apenas o admin autenticado que criou/editou a agenda.
+- [x] Follow-up 2026-05-05: migration remota aplicada, Edge Functions `google-oauth-handler`, `google-calendar-sync` e `google-calendar-merged` redeployadas, e frontend publicado em produção Vercel.
+- [x] Follow-up 2026-05-05: Synvollt validado em produção; Google OAuth abriu a verificação em duas etapas e o sistema salvou token pessoal para `synvollt@gmail.com`.
+- [x] Follow-up 2026-05-05: criada tabela de espelhos por admin master e `google-calendar-sync` passou a replicar eventos da Agenda Central MX na agenda pessoal dos admins MX conectados.
+- [x] Follow-up 2026-05-05: backfill Synvollt processou 53 eventos futuros, com 53 espelhos sincronizados e 0 erros; `google-calendar-merged` retornou `personalConnected: true`, `centralConnected: true`, `personalGoogleEmail: synvollt@gmail.com`, 59 eventos centrais e 53 pessoais no recorte ampliado.
+- [x] Gates follow-up 2026-05-05: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
 - [ ] Verificação final de acesso aos dados Google: pendente de URL de vídeo YouTube demonstrando o uso do escopo `calendar.events`.
 
 ### Google Calendar Central
@@ -139,3 +146,5 @@ Resultado: 35/35 rotas com `overflow = 0`, sem erro fatal de renderização.
 - `supabase/migrations/20260430000000_visits_google_central.sql`
 - `supabase/migrations/20260430001000_google_oauth_state_purpose.sql`
 - `supabase/migrations/20260501000000_agenda_visit_metadata.sql`
+- `supabase/migrations/20260505090000_google_calendar_token_email.sql`
+- `supabase/migrations/20260505102000_google_calendar_user_mirrors.sql`

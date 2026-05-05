@@ -152,8 +152,8 @@ Deno.serve(async (req) => {
     if (tokens.error) throw new Error(tokens.error_description || tokens.error);
 
     const purpose = stateRow.purpose === "central" ? "central" : "personal";
+    const googleEmail = await fetchGoogleEmail(tokens.access_token);
     if (purpose === "central") {
-      const googleEmail = await fetchGoogleEmail(tokens.access_token);
       const expectedEmail = (Deno.env.get("GOOGLE_CENTRAL_CALENDAR_EMAIL") || "gestao@mxconsultoria.com.br").toLowerCase();
       if ((googleEmail || "").toLowerCase() !== expectedEmail) {
         throw new Error(`A Agenda Central MX deve ser conectada com ${expectedEmail}`);
@@ -178,6 +178,7 @@ Deno.serve(async (req) => {
       access_token: encryptedAccessToken,
       expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
       scopes: tokens.scope?.split(" ").filter(Boolean) ?? [],
+      google_email: googleEmail,
     } as const;
 
     if (existingToken) {

@@ -17,6 +17,8 @@ type MergedResponse = {
   events: GoogleCalendarEvent[]
   personalConnected: boolean
   centralConnected: boolean
+  personalGoogleEmail?: string | null
+  centralGoogleEmail?: string | null
   personalError?: string | null
   centralError?: string | null
 }
@@ -62,6 +64,8 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
   const [events, setEvents] = useState<GoogleCalendarEvent[]>([])
   const [personalConnected, setPersonalConnected] = useState(false)
   const [centralConnected, setCentralConnected] = useState(false)
+  const [personalGoogleEmail, setPersonalGoogleEmail] = useState<string | null>(null)
+  const [centralGoogleEmail, setCentralGoogleEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -74,6 +78,8 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
         setEvents([])
         setPersonalConnected(false)
         setCentralConnected(false)
+        setPersonalGoogleEmail(null)
+        setCentralGoogleEmail(null)
         return
       }
       const { data, error: invokeError } = await supabase.functions.invoke<MergedResponse>('google-calendar-merged', {
@@ -88,6 +94,8 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
       setEvents(data.events || [])
       setPersonalConnected(data.personalConnected)
       setCentralConnected(data.centralConnected)
+      setPersonalGoogleEmail(data.personalGoogleEmail ?? null)
+      setCentralGoogleEmail(data.centralGoogleEmail ?? null)
     } catch (err) {
       setError(getGoogleCalendarErrorMessage(err, 'Falha ao consultar Google Calendar'))
     } finally {
@@ -154,6 +162,8 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
     events,
     personalConnected,
     centralConnected,
+    personalGoogleEmail,
+    centralGoogleEmail,
     loading,
     error,
     refetch: fetchMerged,

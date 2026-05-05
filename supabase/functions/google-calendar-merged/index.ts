@@ -8,6 +8,7 @@ import {
   googleApiRequest,
   getCentralCalendarAccessToken,
   CENTRAL_CALENDAR_ID,
+  CENTRAL_CALENDAR_EMAIL,
 } from "../_shared/google.ts";
 
 async function fetchEvents(accessToken: string, calendarId: string, timeMin: string, timeMax: string, maxResults = 50) {
@@ -50,7 +51,7 @@ Deno.serve(async (req) => {
     let personalError: string | null = null;
     const { data: tokenRow } = await sessionClient
       .from("tokens_oauth_consultoria")
-      .select("id, access_token, refresh_token, expires_at")
+      .select("id, access_token, refresh_token, expires_at, google_email")
       .eq("user_id", authData.user.id)
       .eq("provider", "google")
       .maybeSingle();
@@ -104,6 +105,8 @@ Deno.serve(async (req) => {
         events: merged,
         personalConnected,
         centralConnected,
+        personalGoogleEmail: tokenRow?.google_email ?? null,
+        centralGoogleEmail: centralConnected ? CENTRAL_CALENDAR_EMAIL : null,
         personalError,
         centralError,
       }),

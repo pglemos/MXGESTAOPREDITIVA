@@ -12,7 +12,18 @@ interface Props {
 }
 
 export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
-  const { personalConnected, centralConnected, loading, error, refetch, connectPersonal, connectCentral, events } = useGoogleCalendar({ autoFetch: true })
+  const {
+    personalConnected,
+    centralConnected,
+    personalGoogleEmail,
+    centralGoogleEmail,
+    loading,
+    error,
+    refetch,
+    connectPersonal,
+    connectCentral,
+    events,
+  } = useGoogleCalendar({ autoFetch: true })
 
   const upcoming = events.slice(0, compact ? 3 : 6)
 
@@ -48,7 +59,14 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
               : <AlertCircle size={16} className="text-text-tertiary" />}
           </div>
           {personalConnected ? (
-            <Badge variant="success" className="text-mx-nano">Conectada</Badge>
+            <div className="flex flex-col gap-mx-tiny">
+              <Badge variant="success" className="text-mx-nano">Conectada</Badge>
+              {personalGoogleEmail && (
+                <Typography variant="tiny" tone="muted" className="truncate text-mx-tiny">
+                  {personalGoogleEmail}
+                </Typography>
+              )}
+            </div>
           ) : (
             <Button size="sm" variant="outline" onClick={() => connectPersonal(clientId)} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
               <LinkIcon size={14} />
@@ -73,7 +91,7 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
               : <AlertCircle size={16} className="text-status-warning" />}
           </div>
           {centralConnected ? (
-            <Badge variant="brand" className="text-mx-nano">gestao@mxconsultoria.com.br</Badge>
+            <Badge variant="brand" className="text-mx-nano">{centralGoogleEmail || 'gestao@mxconsultoria.com.br'}</Badge>
           ) : (
             <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
               <LinkIcon size={14} />
@@ -87,6 +105,12 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
       {error && (
         <div className="p-mx-sm rounded-mx-md bg-status-error-surface border border-status-error/20 text-status-error text-mx-tiny font-bold">
           {error}
+        </div>
+      )}
+
+      {!compact && centralConnected && !personalConnected && (
+        <div className="p-mx-sm rounded-mx-md bg-mx-indigo-50 border border-mx-indigo-100 text-text-secondary text-mx-tiny font-bold leading-relaxed">
+          A Agenda Central MX está conectada. Para receber os compromissos na própria conta Google, cada admin MX precisa entrar no sistema com seu usuário e conectar a agenda pessoal.
         </div>
       )}
 

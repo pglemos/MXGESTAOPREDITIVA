@@ -53,6 +53,8 @@ async function syncVisitToGoogle(
       .select(`
         id,
         client_id,
+        consultant_id,
+        auxiliary_consultant_id,
         scheduled_at,
         duration_hours,
         modality,
@@ -83,6 +85,8 @@ async function syncVisitToGoogle(
       target_audience: visit.target_audience ?? null,
       product_name: visit.product_name ?? null,
       consultant_email: visit.consultant?.email ?? null,
+      consultant_id: visit.consultant_id ?? null,
+      auxiliary_consultant_id: visit.auxiliary_consultant_id ?? null,
       google_event_id: visit.google_event_id ?? null,
       google_event_id_central: visit.google_event_id_central ?? null,
     }
@@ -113,10 +117,12 @@ async function syncScheduleEventToGoogle(
         target_audience,
         audience_goal,
         responsible_name,
+        responsible_user_id,
         ticket_price_text,
         visit_reason,
         product_name,
         google_event_id,
+        google_event_id_personal,
         status,
         responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(email)
       `)
@@ -136,11 +142,13 @@ async function syncScheduleEventToGoogle(
       target_audience: event.target_audience ?? null,
       audience_goal: event.audience_goal ?? null,
       responsible_name: event.responsible_name ?? null,
+      responsible_user_id: event.responsible_user_id ?? null,
       responsible_email: event.responsible?.email ?? null,
       ticket_price_text: event.ticket_price_text ?? null,
       visit_reason: event.visit_reason ?? null,
       product_name: event.product_name ?? null,
       google_event_id: event.google_event_id ?? null,
+      google_event_id_personal: event.google_event_id_personal ?? null,
       status: event.status,
     }
     const { data, error } = await supabase.functions.invoke<CalendarSyncResult>('google-calendar-sync', {
@@ -178,6 +186,7 @@ export type AgendaScheduleEvent = {
   visit_reason: string | null
   product_name: string | null
   google_event_id: string | null
+  google_event_id_personal?: string | null
   status: 'agendado' | 'cancelado' | 'concluido'
   source_sheet: string | null
   created_at: string

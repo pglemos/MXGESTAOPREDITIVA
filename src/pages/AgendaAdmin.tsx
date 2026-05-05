@@ -27,6 +27,7 @@ import { EmptyState } from '@/components/atoms/EmptyState'
 import { Select } from '@/components/atoms/Select'
 import { DatePicker } from '@/components/atoms/DatePicker'
 import { AGENDA_TARGET_OPTIONS, VISIT_REASON_OPTIONS } from '@/features/agenda/constants'
+import { GoogleCalendarStatus } from '@/features/agenda/components/GoogleCalendarStatus'
 import type { AgendaScheduleEvent, AgendaVisit } from '@/hooks/useAgendaAdmin'
 
 type DateFilter = 'hoje' | 'semana' | 'proxima_semana' | 'mes' | 'todos'
@@ -758,6 +759,8 @@ export default function AgendaAdmin() {
         </div>
 
         <div className="xl:sticky xl:top-mx-0 xl:self-start space-y-mx-lg">
+          <GoogleCalendarStatus compact />
+
           <Card className="border-none shadow-mx-md bg-white overflow-hidden">
             <div className="p-mx-md border-b border-border-default flex items-center justify-between">
               <Typography variant="caption" className="font-black uppercase tracking-widest">
