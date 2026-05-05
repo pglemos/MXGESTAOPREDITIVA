@@ -54,7 +54,11 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       supabase.from('unidades_cliente_consultoria').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('contatos_cliente_consultoria').select('*').eq('client_id', clientId).order('is_primary', { ascending: false }).order('name', { ascending: true }),
       supabase.from('atribuicoes_consultoria').select('*, user:usuarios(id,name,email,role)').eq('client_id', clientId).order('created_at', { ascending: true }),
-      supabase.from('visitas_consultoria').select('*, consultant:usuarios(name,email), auxiliary_consultant:usuarios(name,email)').eq('client_id', clientId).order('visit_number', { ascending: true }),
+      supabase
+        .from('visitas_consultoria')
+        .select('*, consultant:usuarios!visitas_consultoria_consultor_id_fkey(name,email), auxiliary_consultant:usuarios!visitas_consultoria_consultor_auxiliar_id_fkey(name,email)')
+        .eq('client_id', clientId)
+        .order('visit_number', { ascending: true }),
       supabase.from('financeiro_consultoria').select('*').eq('client_id', clientId).order('reference_date', { ascending: false }),
       supabase.from('modulos_cliente_consultoria').select('*').eq('client_id', clientId).order('module_key', { ascending: true }),
       supabase.from('usuarios').select('id,name,email,role').eq('active', true).order('name', { ascending: true }),

@@ -41,6 +41,8 @@ O fluxo em `/consultoria/clientes/:slug/visitas/1..7` estava confuso para o prog
 - [x] Rodar `npm test`.
 - [x] Rodar `npm run build`.
 - [x] Validar visitas 5, 6 e 7 no navegador local.
+- [x] Corrigir botao de resumo da visita para usar o rascunho digitado como fonte da mensagem de grupo.
+- [x] Validar a visita 3 via Chrome MCP, incluindo console limpo e requests da rota sem erro.
 
 ## Debug Log
 
@@ -50,6 +52,9 @@ O fluxo em `/consultoria/clientes/:slug/visitas/1..7` estava confuso para o prog
 - Mobile validado em viewport `390x844`; o bloco de ações passou a caber em duas colunas.
 - Consolidação posterior: motor autônomo PMR, seed, importação de cronograma, agenda e execução de visitas foram travados no fluxo canônico 1-7.
 - `pmr_9` foi tratado como legado: clientes passam para `pmr_7`, programa/etapas ficam inativos e visitas históricas já existentes são preservadas fora do fluxo operacional.
+- Ajuste posterior: o botao de resumo do Relato Executivo agora transforma o rascunho digitado pelo consultor em mensagem pronta para grupo, mantendo fallback por checklist apenas quando o campo estiver vazio.
+- Chrome MCP validado em `http://localhost:3001/consultoria/clientes/ged-veiculos/visitas/3`: login admin, geracao do resumo a partir do texto digitado, clique repetido sem misturar secoes, console sem mensagens e requests principais `200`.
+- Durante a validacao Chrome MCP foi corrigido o select ambiguo de `visitas_consultoria` com `usuarios` usando FKs explicitas e foram adicionados `id/name/aria-label` aos campos de texto da visita.
 
 ## File List
 
@@ -64,6 +69,8 @@ O fluxo em `/consultoria/clientes/:slug/visitas/1..7` estava confuso para o prog
 - `src/lib/consultoria/pmr-engine.ts`
 - `src/lib/consultoria/pmr-engine.test.ts`
 - `src/pages/ConsultoriaVisitaExecucao.tsx`
+- `src/lib/consultoria/visit-report-draft.ts`
+- `src/lib/consultoria/visit-report-draft.test.ts`
 - `src/pages/AgendaAdmin.tsx`
 - `scripts/import_cronograma_2026_mx.ts`
 - `scripts/seed_pmr_methodology.ts`

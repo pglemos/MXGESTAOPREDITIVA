@@ -33,6 +33,7 @@ import {
   VisitChecklist
 } from '@/features/consultoria/components/VisitExecutionViews'
 import { VisitReportTemplate } from '@/features/consultoria/components/VisitReportTemplate'
+import { formatVisitDraftForGroup } from '@/lib/consultoria/visit-report-draft'
 
 import { VisitActionQuickAdd } from '@/features/consultoria/components/VisitActionQuickAdd'
 
@@ -266,24 +267,20 @@ export default function ConsultoriaVisitaExecucao() {
     const completedTasks = checklist.filter(t => t.completed).map(t => t.task)
     const pendingTasks = checklist.filter(t => !t.completed).map(t => t.task)
 
-    let summary = `Durante a Visita ${visitNum}, focamos em: ${step?.objective}.\n\n`
-
-    if (completedTasks.length > 0) {
-      summary += `✅ PONTOS CONCLUÍDOS:\n- ${completedTasks.join('\n- ')}\n\n`
-    }
-
-    if (pendingTasks.length > 0) {
-      summary += `⚠️ PONTOS PENDENTES:\n- ${pendingTasks.join('\n- ')}\n\n`
-    }
-
-    if (visitNum === 1) {
-      summary += `📊 DIAGNÓSTICO QUANTITATIVO:\nLoja operando com estoque de ${headerBase.estoque_disponivel} carros e volume de leads de ${headerBase.leads_mes}/mês. Identificamos oportunidade de melhoria no CPL.`
-    } else {
-      summary += `🎯 EVOLUÇÃO:\nRitmo de vendas atual em ${headerBase.projecao} unidades vs meta de ${headerBase.meta_mensal}.`
-    }
+    const summary = formatVisitDraftForGroup({
+      draft: executiveSummary,
+      clientName: client?.name,
+      visitNumber: visitNum,
+      objective: step?.objective,
+      visitDate: headerBase.visit_date,
+      completedTasks,
+      pendingTasks,
+      feedbackClient,
+      nextCycleGoal
+    })
 
     setExecutiveSummary(summary)
-    toast.success('Rascunho inteligente gerado!')
+    toast.success(executiveSummary.trim() ? 'Resumo pronto para enviar no grupo!' : 'Modelo de resumo gerado para preencher.')
   }
 
   const generateReportText = () => {
@@ -442,12 +439,15 @@ Gerado via MX PERFORMANCE`
                   <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><FileText size={20} /></div>
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Relato Executivo (CRM)</Typography>
                 </div>
-                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-mx-tiny tracking-mx-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} icon={<Sparkles size={14} />}>GERAR RASCUNHO AI</Button>
+                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-mx-tiny tracking-mx-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} icon={<Sparkles size={14} />}>RESUMIR PARA GRUPO</Button>
               </div>
               <Textarea
+                id="visit-executive-summary"
+                name="executive_summary"
+                aria-label="Relato executivo da visita"
                 value={executiveSummary}
                 onChange={(e) => setExecutiveSummary(e.target.value)}
-                placeholder="Insira o diagnóstico profundo, as decisões tomadas e os planos de ação acordados..."
+                placeholder="Insira o rascunho da visita. Depois clique em RESUMIR PARA GRUPO para deixar a mensagem pronta para enviar..."
                 className="min-h-mx-64 text-sm bg-surface-alt/20 border-border-default focus:border-brand-primary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all mb-mx-md font-medium leading-relaxed relative z-10"
               />
               <div className="relative z-10">
@@ -465,6 +465,9 @@ Gerado via MX PERFORMANCE`
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Devolutiva ao Cliente</Typography>
                 </div>
                 <Textarea
+                  id="visit-feedback-client"
+                  name="feedback_client"
+                  aria-label="Devolutiva ao cliente"
                   value={feedbackClient}
                   onChange={(e) => setFeedbackClient(e.target.value)}
                   placeholder="Pontos de atenção emergenciais..."
@@ -481,6 +484,9 @@ Gerado via MX PERFORMANCE`
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest text-mx-orange-600">Objetivo Próximo Ciclo</Typography>
                 </div>
                 <Textarea
+                  id="visit-next-cycle-goal"
+                  name="next_cycle_goal"
+                  aria-label="Objetivo do próximo ciclo"
                   value={nextCycleGoal}
                   onChange={(e) => setNextCycleGoal(e.target.value)}
                   placeholder="O que deve ser o foco da loja até a próxima visita da consultoria?"
@@ -513,7 +519,7 @@ Gerado via MX PERFORMANCE`
           <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white">
             <div className="flex items-center justify-between mb-mx-md">
                <Typography variant="tiny" tone="muted" className="tracking-mx-widest text-mx-micro uppercase font-black">Evidências ({attachments.length})</Typography>
-               <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*,application/pdf" />
+               <input id="visit-evidence-upload" name="visit_evidence_upload" type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*,application/pdf" />
                <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={isUploading} className="h-mx-10 font-black uppercase text-xs tracking-widest px-mx-md shadow-mx-sm" icon={<Plus size={14} />}>ADICIONAR</Button>
             </div>
 
