@@ -57,12 +57,12 @@ export function VisitCard({
 
   return (
     <Card className={cn(
-      'p-mx-md border-none shadow-mx-md bg-white hover:shadow-mx-xl transition-all group',
+      'p-mx-md border-none shadow-mx-md bg-white hover:shadow-mx-xl transition-all group overflow-hidden',
       isExpired && 'border-l-4 border-l-status-warning',
       visit.status === 'em_andamento' && 'border-l-4 border-l-status-info',
       className,
     )}>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-mx-md">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-mx-md min-w-0">
         <Link
           to={linkTo}
           className="flex items-center gap-mx-md min-w-0 flex-1 cursor-pointer"
@@ -77,50 +77,54 @@ export function VisitCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-mx-xs mb-1">
+            <div className="flex items-center gap-mx-xs mb-1 min-w-0">
               <Building2 size={14} className="text-brand-primary shrink-0" />
               <Typography variant="h3" className="text-sm leading-tight break-words sm:truncate">{visit.client_name}</Typography>
             </div>
-            <div className="flex items-center gap-mx-sm text-text-tertiary">
-              <div className="flex items-center gap-mx-xs">
-                <Clock size={12} />
+            <div className="flex flex-wrap items-center gap-x-mx-sm gap-y-mx-xs text-text-tertiary">
+              <div className="flex items-center gap-mx-xs min-w-0">
+                <Clock size={12} className="shrink-0" />
                 <Typography variant="tiny">
                   {format(scheduledDate, 'HH:mm')} - {visit.duration_hours}h
                 </Typography>
               </div>
               {visit.modality && (
-                <div className="flex items-center gap-mx-xs">
-                  <MapPin size={12} />
-                  <Typography variant="tiny">{visit.modality}</Typography>
+                <div className="flex items-center gap-mx-xs min-w-0">
+                  <MapPin size={12} className="shrink-0" />
+                  <Typography variant="tiny" className="truncate">{visit.modality}</Typography>
                 </div>
               )}
             </div>
             {(visit.visit_reason || visit.target_audience || visit.product_name) && (
               <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
                 {visit.visit_reason && (
-                  <Badge variant="outline" className="max-w-full text-mx-nano uppercase tracking-widest">
-                    <span className="truncate">{visit.visit_reason}</span>
+                  <Badge variant="outline" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                    <span className="block max-w-full truncate">{visit.visit_reason}</span>
                   </Badge>
                 )}
                 {visit.target_audience && (
-                  <Badge variant="ghost" className="text-mx-nano uppercase tracking-widest">{visit.target_audience}</Badge>
+                  <Badge variant="ghost" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                    <span className="block max-w-full truncate">{visit.target_audience}</span>
+                  </Badge>
                 )}
                 {visit.product_name && (
-                  <Badge variant="brand" className="text-mx-nano uppercase tracking-widest">{visit.product_name}</Badge>
+                  <Badge variant="brand" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                    <span className="block max-w-full truncate">{visit.product_name}</span>
+                  </Badge>
                 )}
               </div>
             )}
           </div>
         </Link>
 
-        <div className="flex items-center gap-mx-sm sm:gap-mx-md">
+        <div className="flex w-full flex-wrap items-center justify-between gap-mx-sm sm:w-auto sm:justify-start sm:gap-mx-md min-w-0">
           {visit.objective && (
             <Typography variant="tiny" tone="muted" className="hidden lg:block max-w-48 truncate">
               {visit.objective}
             </Typography>
           )}
 
-          <div className="flex flex-col items-end gap-mx-xs">
+          <div className="flex flex-col items-end gap-mx-xs shrink-0">
             {getVisitStatusBadge(visit.status)}
             <div className="flex items-center gap-mx-xs">
               <Typography variant="tiny" tone="muted">
@@ -136,7 +140,7 @@ export function VisitCard({
             </div>
           )}
 
-          <div className="flex items-center gap-mx-xs">
+          <div className="flex items-center gap-mx-xs shrink-0">
             {onEdit && visit.status !== 'concluida' && (
               <Button variant="ghost" size="sm" className="text-brand-primary" onClick={() => onEdit(visit.id)} aria-label={`Editar visita de ${visit.client_name}`}>
                 <Pencil size={14} />

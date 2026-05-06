@@ -10,23 +10,11 @@ import {
   CENTRAL_CALENDAR_ID,
   CENTRAL_CALENDAR_EMAIL,
 } from "../_shared/google.ts";
-
-const DEFAULT_ADMIN_MASTER_EMAILS = ["danieljsvendas@gmail.com"];
-
-function getAdminMasterEmails(): Set<string> {
-  const configured = (Deno.env.get("GOOGLE_CALENDAR_ADMIN_MASTER_EMAILS") || "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-  return new Set(configured.length > 0 ? configured : DEFAULT_ADMIN_MASTER_EMAILS);
-}
-
-function isAdminMasterMx(profile?: { role?: string | null; email?: string | null; name?: string | null } | null): boolean {
-  if (profile?.role !== "administrador_geral") return false;
-  const email = profile.email?.trim().toLowerCase();
-  if (email && getAdminMasterEmails().has(email)) return true;
-  return (profile.name || "").trim().toLowerCase().startsWith("daniel");
-}
+import {
+  centralEventMatchesUser,
+  collectUserCalendarEmails,
+  isAdminMasterMx,
+} from "../_shared/google_calendar_privacy.ts";
 
 async function fetchEvents(accessToken: string, calendarId: string, timeMin: string, timeMax: string, maxResults = 50) {
   const res = await googleApiRequest(
@@ -39,6 +27,28 @@ async function fetchEvents(accessToken: string, calendarId: string, timeMin: str
   }
   const data = await res.json();
   return data.items || [];
+}
+
+async function fetchAllowedCentralEventIds(sessionClient: any): Promise<Set<string>> {
+  const allowedIds = new Set<string>();
+
+  const { data: visits } = await sessionClient
+    .from("visitas_consultoria")
+    .select("google_event_id_central")
+    .not("google_event_id_central", "is", null);
+  for (const visit of visits || []) {
+    if (visit.google_event_id_central) allowedIds.add(visit.google_event_id_central);
+  }
+
+  const { data: scheduleEvents } = await sessionClient
+    .from("eventos_agenda_consultoria")
+    .select("google_event_id")
+    .not("google_event_id", "is", null);
+  for (const event of scheduleEvents || []) {
+    if (event.google_event_id) allowedIds.add(event.google_event_id);
+  }
+
+  return allowedIds;
 }
 
 Deno.serve(async (req) => {
@@ -68,7 +78,7 @@ Deno.serve(async (req) => {
       .select("role, email, name")
       .eq("id", authData.user.id)
       .maybeSingle();
-    const canReadCentral = wantsCentral && isAdminMasterMx(userProfile);
+    const canReadAllCentral = isAdminMasterMx(userProfile, Deno.env.get("GOOGLE_CALENDAR_ADMIN_MASTER_EMAILS"));
 
     // Personal token
     let personalEvents: any[] = [];
@@ -107,10 +117,21 @@ Deno.serve(async (req) => {
     let centralConnected = false;
     let centralError: string | null = null;
     const centralToken = await getCentralCalendarAccessToken();
-    if (canReadCentral && centralToken) {
+    if (wantsCentral && centralToken) {
       centralConnected = true;
       try {
-        centralEvents = await fetchEvents(centralToken, CENTRAL_CALENDAR_ID, timeMin, timeMax, maxResults);
+        const fetchedCentralEvents = await fetchEvents(centralToken, CENTRAL_CALENDAR_ID, timeMin, timeMax, maxResults);
+        if (canReadAllCentral) {
+          centralEvents = fetchedCentralEvents;
+        } else {
+          const allowedGoogleEventIds = await fetchAllowedCentralEventIds(sessionClient);
+          const userEmails = collectUserCalendarEmails(userProfile, tokenRow?.google_email ?? null);
+          centralEvents = fetchedCentralEvents.filter((event: any) => centralEventMatchesUser(event, {
+            userId: authData.user.id,
+            userEmails,
+            allowedGoogleEventIds,
+          }));
+        }
       } catch (e) {
         centralError = e instanceof Error ? e.message : "central fetch failed";
       }

@@ -146,6 +146,10 @@ export type GoogleEventInput = {
   start: { dateTime: string; timeZone?: string };
   end: { dateTime: string; timeZone?: string };
   attendees?: { email: string; displayName?: string }[];
+  extendedProperties?: {
+    private?: Record<string, string>;
+    shared?: Record<string, string>;
+  };
   reminders?: { useDefault?: boolean; overrides?: { method: string; minutes: number }[] };
 };
 

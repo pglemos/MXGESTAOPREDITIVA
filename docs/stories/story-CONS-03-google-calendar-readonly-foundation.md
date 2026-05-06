@@ -92,6 +92,7 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 - `src/hooks/useGoogleCalendar.ts`
 - `src/lib/agenda/admin-master.ts`
 - `src/lib/agenda/admin-master.test.ts`
+- `src/lib/agenda/google-calendar-privacy.test.ts`
 - `src/components/molecules/PageHeader.tsx`
 - `src/components/organisms/VisitCard.tsx`
 - `src/features/agenda/components/GoogleCalendarStatus.tsx`
@@ -104,6 +105,8 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 - `supabase/functions/google-calendar-events/index.ts`
 - `supabase/functions/google-calendar-merged/index.ts`
 - `supabase/functions/google-calendar-sync/index.ts`
+- `supabase/functions/_shared/google.ts`
+- `supabase/functions/_shared/google_calendar_privacy.ts`
 - `supabase/migrations/20260413120000_consulting_google_calendar.sql`
 - `supabase/migrations/20260414103000_consulting_google_calendar_hardening.sql`
 - `supabase/migrations/20260506100000_agenda_consultoria_admin_master_scope.sql`
@@ -119,5 +122,6 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 - O proximo passo, se esta story fechar bem, e decidir entre:
   - agenda operacional interna (`consulting_calendar_events`)
   - ou sincronizacao incremental mais robusta
-- Ajuste de privacidade de agenda em 2026-05-06: somente Daniel/admin master MX ve todas as agendas; consultores e admins nao master veem apenas itens vinculados a eles. A Agenda Central MX deixou de aparecer para consultor comum no card Google Calendar.
+- Ajuste de privacidade de agenda em 2026-05-06: somente Daniel/admin master MX ve todas as agendas; consultores e admins nao master veem apenas itens vinculados a eles. A Agenda Central MX fica oculta como conexao administrativa para consultor comum, mas eventos centrais vinculados ao consultor continuam aparecendo para ele no painel e sao sincronizados para a agenda Google pessoal conectada.
+- Ajuste complementar de 2026-05-06: `google-calendar-merged` filtra eventos da Agenda Central por vinculo com usuario comum (id de evento CRM, participante Google ou metadata `mx_related_user_ids`); `google-calendar-sync` espelha eventos para consultores relacionados com token pessoal, incluindo consultor auxiliar; `google-oauth-handler` faz backfill de eventos futuros ao conectar a agenda pessoal.
 - Validacoes de 2026-05-06: `npm run lint`, `npm test`, `npm run build`, Playwright `src/test/agenda-filters.playwright.ts` em `chromium` e `mobile-chrome`, e inspeção MCP/Chrome mobile sem overflow horizontal/clipping relevante.

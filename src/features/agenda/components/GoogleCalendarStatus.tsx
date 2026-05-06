@@ -27,11 +27,9 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
     connectPersonal,
     connectCentral,
     events,
-  } = useGoogleCalendar({ autoFetch: true, includeCentral: canViewCentralAgenda })
+  } = useGoogleCalendar({ autoFetch: true, includeCentral: true })
 
-  const upcoming = events
-    .filter((event) => canViewCentralAgenda || event._source !== 'central')
-    .slice(0, compact ? 3 : 6)
+  const upcoming = events.slice(0, compact ? 3 : 6)
 
   return (
     <Card className="p-mx-lg border-none shadow-mx-md bg-white space-y-mx-md">

@@ -802,7 +802,7 @@ export default function AgendaAdmin() {
                         to={`/consultoria/clientes/${visit.client_slug}/visitas/${visit.visit_number}`}
                         className="block"
                       >
-                        <div className="p-mx-sm rounded-mx-lg border border-border-default hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group">
+                        <div className="p-mx-sm rounded-mx-lg border border-border-default hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group overflow-hidden">
                           <div className="flex items-center gap-mx-xs mb-1">
                             <div className={cn('w-2 h-2 rounded-mx-full', getVisitDotColor(visit.status))} />
                             <Typography variant="tiny" className="font-black">
@@ -810,12 +810,12 @@ export default function AgendaAdmin() {
                             </Typography>
                             <Typography variant="tiny" tone="muted">• {visit.duration_hours}h</Typography>
                           </div>
-                          <div className="flex items-center gap-mx-xs mb-1">
+                          <div className="flex items-center gap-mx-xs mb-1 min-w-0">
                             <Building2 size={12} className="text-brand-primary shrink-0" />
                             <Typography variant="tiny" className="font-bold truncate">{visit.client_name}</Typography>
                           </div>
                           {visit.consultant && (
-                            <div className="flex items-center gap-mx-xs">
+                            <div className="flex items-center gap-mx-xs min-w-0">
                               <User size={10} className="text-text-tertiary shrink-0" />
                               <Typography variant="tiny" tone="muted" className="truncate">{visit.consultant.name}</Typography>
                             </div>
@@ -823,15 +823,19 @@ export default function AgendaAdmin() {
                           {(visit.visit_reason || visit.target_audience || visit.product_name) && (
                             <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
                               {visit.visit_reason && (
-                                <Badge variant="outline" className="max-w-full text-mx-nano uppercase tracking-widest">
-                                  <span className="truncate">{visit.visit_reason}</span>
+                                <Badge variant="outline" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                                  <span className="block max-w-full truncate">{visit.visit_reason}</span>
                                 </Badge>
                               )}
                               {visit.target_audience && (
-                                <Badge variant="ghost" className="text-mx-nano uppercase tracking-widest">{visit.target_audience}</Badge>
+                                <Badge variant="ghost" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                                  <span className="block max-w-full truncate">{visit.target_audience}</span>
+                                </Badge>
                               )}
                               {visit.product_name && (
-                                <Badge variant="brand" className="text-mx-nano uppercase tracking-widest">{visit.product_name}</Badge>
+                                <Badge variant="brand" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                                  <span className="block max-w-full truncate">{visit.product_name}</span>
+                                </Badge>
                               )}
                             </div>
                           )}
@@ -850,7 +854,7 @@ export default function AgendaAdmin() {
                         key={event.id}
                         type="button"
                         onClick={() => handleOpenEditEvent(event)}
-                        className="w-full text-left p-mx-sm rounded-mx-lg border border-border-default hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
+                        className="w-full text-left p-mx-sm rounded-mx-lg border border-border-default hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group overflow-hidden"
                       >
                         <div className="flex items-center gap-mx-xs mb-1">
                           <CalendarDays size={12} className="text-brand-primary shrink-0" />
@@ -864,15 +868,19 @@ export default function AgendaAdmin() {
                         {(event.visit_reason || event.target_audience || event.product_name) && (
                           <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
                             {event.visit_reason && (
-                              <Badge variant="outline" className="max-w-full text-mx-nano uppercase tracking-widest">
-                                <span className="truncate">{event.visit_reason}</span>
+                              <Badge variant="outline" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                                <span className="block max-w-full truncate">{event.visit_reason}</span>
                               </Badge>
                             )}
                             {event.target_audience && (
-                              <Badge variant="ghost" className="text-mx-nano uppercase tracking-widest">{event.target_audience}</Badge>
+                              <Badge variant="ghost" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                                <span className="block max-w-full truncate">{event.target_audience}</span>
+                              </Badge>
                             )}
                             {event.product_name && (
-                              <Badge variant="brand" className="text-mx-nano uppercase tracking-widest">{event.product_name}</Badge>
+                              <Badge variant="brand" className="max-w-full overflow-hidden text-mx-nano uppercase tracking-widest">
+                                <span className="block max-w-full truncate">{event.product_name}</span>
+                              </Badge>
                             )}
                           </div>
                         )}

@@ -50,6 +50,136 @@ async function fetchGoogleEmail(accessToken: string): Promise<string | null> {
   return typeof data.email === "string" ? data.email : null;
 }
 
+async function invokeCalendarSync(body: Record<string, unknown>): Promise<boolean> {
+  const response = await fetch(`${requireEnv("SUPABASE_URL", SUPABASE_URL)}/functions/v1/google-calendar-sync`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY)}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  return response.ok;
+}
+
+async function backfillPersonalCalendar(adminClient: any, userId: string): Promise<{ visits: number; events: number; failed: number }> {
+  const now = new Date().toISOString();
+  let visitsSynced = 0;
+  let eventsSynced = 0;
+  let failed = 0;
+
+  const { data: visits, error: visitsError } = await adminClient
+    .from("visitas_consultoria")
+    .select(`
+      id,
+      client_id,
+      consultant_id,
+      auxiliary_consultant_id,
+      scheduled_at,
+      duration_hours,
+      modality,
+      status,
+      objective,
+      visit_reason,
+      target_audience,
+      product_name,
+      google_event_id,
+      google_event_id_central,
+      consultant:usuarios!visitas_consultoria_consultor_id_fkey(email),
+      client:clientes_consultoria!client_id(name)
+    `)
+    .or(`consultant_id.eq.${userId},auxiliary_consultant_id.eq.${userId}`)
+    .gte("scheduled_at", now)
+    .limit(50);
+  if (visitsError) throw visitsError;
+
+  for (const visit of visits || []) {
+    const ok = await invokeCalendarSync({
+      action: "upsert",
+      visit: {
+        id: visit.id,
+        client_id: visit.client_id,
+        client_name: visit.client?.name ?? null,
+        client_address: null,
+        scheduled_at: visit.scheduled_at,
+        duration_hours: visit.duration_hours,
+        modality: visit.modality,
+        status: visit.status,
+        objective: visit.objective,
+        visit_reason: visit.visit_reason ?? null,
+        target_audience: visit.target_audience ?? null,
+        product_name: visit.product_name ?? null,
+        consultant_email: visit.consultant?.email ?? null,
+        consultant_id: visit.consultant_id ?? null,
+        auxiliary_consultant_id: visit.auxiliary_consultant_id ?? null,
+        google_event_id: visit.google_event_id ?? null,
+        google_event_id_central: visit.google_event_id_central ?? null,
+      },
+    });
+    if (ok) visitsSynced += 1;
+    else failed += 1;
+  }
+
+  const { data: events, error: eventsError } = await adminClient
+    .from("eventos_agenda_consultoria")
+    .select(`
+      id,
+      event_type,
+      title,
+      topic,
+      starts_at,
+      duration_hours,
+      modality,
+      location,
+      target_audience,
+      audience_goal,
+      responsible_name,
+      responsible_user_id,
+      ticket_price_text,
+      visit_reason,
+      product_name,
+      google_event_id,
+      google_event_id_personal,
+      status,
+      responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(email)
+    `)
+    .eq("responsible_user_id", userId)
+    .gte("starts_at", now)
+    .limit(50);
+  if (eventsError) throw eventsError;
+
+  for (const event of events || []) {
+    const ok = await invokeCalendarSync({
+      action: "upsert",
+      event: {
+        id: event.id,
+        event_type: event.event_type,
+        title: event.title,
+        topic: event.topic ?? null,
+        starts_at: event.starts_at,
+        duration_hours: event.duration_hours,
+        modality: event.modality,
+        location: event.location ?? null,
+        target_audience: event.target_audience ?? null,
+        audience_goal: event.audience_goal ?? null,
+        responsible_name: event.responsible_name ?? null,
+        responsible_user_id: event.responsible_user_id ?? null,
+        responsible_email: event.responsible?.email ?? null,
+        ticket_price_text: event.ticket_price_text ?? null,
+        visit_reason: event.visit_reason ?? null,
+        product_name: event.product_name ?? null,
+        google_event_id: event.google_event_id ?? null,
+        google_event_id_personal: event.google_event_id_personal ?? null,
+        status: event.status,
+      },
+    });
+    if (ok) eventsSynced += 1;
+    else failed += 1;
+  }
+
+  return { visits: visitsSynced, events: eventsSynced, failed };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -229,6 +359,12 @@ Deno.serve(async (req) => {
       } else {
         const { error: insertSettingsError } = await adminClient.from("configuracoes_calendario_consultoria").insert(settingsPayload);
         if (insertSettingsError) throw insertSettingsError;
+      }
+
+      try {
+        await backfillPersonalCalendar(adminClient, stateRow.user_id);
+      } catch (error) {
+        console.warn("Google Calendar personal backfill failed", error instanceof Error ? error.message : error);
       }
     }
 
