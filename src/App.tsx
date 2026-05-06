@@ -6,6 +6,7 @@ import { MotionConfig } from 'motion/react'
 import Layout from '@/components/Layout'
 import LegacyModuleShell from '@/components/LegacyModuleShell'
 import { slugify } from '@/lib/utils'
+import { canAccessPath } from '@/lib/auth/routeAccess'
 
 // Pages — Lazy loaded
 const OAuthHome = lazy(() => import('@/pages/OAuthHome'))
@@ -106,7 +107,7 @@ const withLegacyShell = (node: React.ReactNode) => (
 )
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading, initialized, supabaseUser } = useAuth()
+  const { profile, loading, initialized, supabaseUser, role } = useAuth()
   const location = useLocation()
   
   // Debug log for auth state
@@ -118,6 +119,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!profile) {
     if (import.meta.env.DEV) console.warn('Audit Warn [ProtectedRoute]: No profile found, redirecting to login.')
     return <Navigate to="/login" state={{ from: location }} replace />
+  }
+  if (!role) {
+    if (import.meta.env.DEV) console.warn('Audit Warn [ProtectedRoute]: Invalid role, redirecting to login.')
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+  if (!canAccessPath(location.pathname, role)) {
+    if (import.meta.env.DEV) console.warn('Audit Warn [ProtectedRoute]: Role denied for route.', { role, pathname: location.pathname })
+    return <RoleRedirect />
   }
   return <>{children}</>
 }
@@ -170,10 +179,10 @@ export default function App() {
               <RoleSwitch vendedor={<VendedorHome />} gerente={<VendedorHome />} dono={<VendedorHome />} admin={<Navigate to="/painel" replace />} />
             </Suspense>} />
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Checkin />} gerente={<Checkin />} dono={<Checkin />} admin={<Navigate to="/painel" replace />} />
+              <RoleSwitch vendedor={<Checkin />} gerente={<Checkin />} dono={<Checkin />} admin={<Checkin />} />
             </Suspense>} />
             <Route path="historico" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Historico />} gerente={<Historico />} dono={<Historico />} admin={<Navigate to="/painel" replace />} />
+              <RoleSwitch vendedor={<Historico />} gerente={<Historico />} dono={<Historico />} admin={<Historico />} />
             </Suspense>} />
             <Route path="ranking" element={<Navigate to="/classificacao" replace />} />
             <Route path="classificacao" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
@@ -252,7 +261,7 @@ function RoleSwitch({
   admin?: React.ReactNode
 }) {
   const { role } = useAuth()
-  if (isPerfilInternoMx(role)) return <>{admin}</>
+  if (isPerfilInternoMx(role)) return <>{admin ?? <RoleRedirect />}</>
   if (role === 'dono') return <>{dono}</>
   if (role === 'gerente') return <>{gerente}</>
   return <>{vendedor}</>

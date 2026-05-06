@@ -26,12 +26,12 @@ import { Textarea } from '@/components/atoms/Textarea'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { Modal } from '@/components/organisms/Modal'
-import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import type { DigitalProduct, UserRole } from '@/types/database'
 
-type ProductAudience = 'vendedor' | 'gerente' | 'dono'
+type ProductAudience = UserRole
 type ProductStatus = 'ativo' | 'rascunho' | 'arquivado'
 
 type ProductForm = {
@@ -52,10 +52,14 @@ type ProductRecord = DigitalProduct & {
 }
 
 const PRODUCT_AUDIENCES: Array<{ key: ProductAudience; label: string; description: string }> = [
-  { key: 'vendedor', label: 'Vendedores', description: 'Aparece para vendedores' },
+  { key: 'administrador_geral', label: 'Admin Master', description: 'Aparece para administradores master' },
+  { key: 'administrador_mx', label: 'Admin MX', description: 'Aparece para administradores MX' },
+  { key: 'consultor_mx', label: 'Consultores', description: 'Aparece para consultores MX' },
+  { key: 'dono', label: 'Donos', description: 'Aparece para proprietários' },
   { key: 'gerente', label: 'Gerentes', description: 'Aparece para gerentes' },
-  { key: 'dono', label: 'Dono', description: 'Aparece para proprietários' },
+  { key: 'vendedor', label: 'Vendedores', description: 'Aparece para vendedores' },
 ]
+const DEFAULT_PRODUCT_AUDIENCES: ProductAudience[] = PRODUCT_AUDIENCES.map(item => item.key)
 
 const PRODUCT_CATEGORIES = ['Operacional', 'Treinamento', 'Consultoria', 'Gestão', 'Comercial', 'Financeiro'] as const
 const PRODUCT_STATUSES: ProductStatus[] = ['ativo', 'rascunho', 'arquivado']
@@ -65,7 +69,7 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
     description: 'Produto base para agenda e acompanhamento de consultoria MX.',
     link: '/produtos',
     category: 'Consultoria',
-    target_roles: ['vendedor', 'gerente', 'dono'],
+    target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
     sort_order: 10,
   },
@@ -74,7 +78,7 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
     description: 'Produto premium para agenda e acompanhamento de consultoria MX.',
     link: '/produtos',
     category: 'Consultoria',
-    target_roles: ['vendedor', 'gerente', 'dono'],
+    target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
     sort_order: 20,
   },
@@ -83,7 +87,7 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
     description: 'Produto de renovação PMR para agenda e rotinas comerciais.',
     link: '/produtos',
     category: 'Gestão',
-    target_roles: ['vendedor', 'gerente', 'dono'],
+    target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
     sort_order: 30,
   },
@@ -92,7 +96,7 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
     description: 'Produto PMR presencial para agenda e execução de consultoria.',
     link: '/produtos',
     category: 'Gestão',
-    target_roles: ['vendedor', 'gerente', 'dono'],
+    target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
     sort_order: 40,
   },
@@ -101,7 +105,7 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
     description: 'Produto PMR online para agenda e acompanhamento remoto.',
     link: '/produtos',
     category: 'Gestão',
-    target_roles: ['vendedor', 'gerente', 'dono'],
+    target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
     sort_order: 50,
   },
@@ -110,7 +114,7 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
     description: 'Produto de mentoria para desenvolvimento comercial e acompanhamento.',
     link: '/produtos',
     category: 'Treinamento',
-    target_roles: ['vendedor', 'gerente', 'dono'],
+    target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
     sort_order: 60,
   },
@@ -121,7 +125,7 @@ const defaultForm: ProductForm = {
   description: '',
   link: '',
   category: 'Operacional',
-  target_roles: ['vendedor', 'gerente', 'dono'],
+  target_roles: DEFAULT_PRODUCT_AUDIENCES,
   status: 'ativo',
   sort_order: '0',
 }
@@ -129,9 +133,9 @@ const defaultForm: ProductForm = {
 const productSchema = z.object({
   name: z.string().trim().min(3, 'Nome muito curto'),
   description: z.string().trim().min(5, 'Descrição necessária'),
-  link: z.string().trim().url('URL inválida'),
+  link: z.string().trim().url('URL inválida').refine(isSafeProductUrl, 'Use uma URL HTTPS externa ou uma URL do próprio sistema.'),
   category: z.string().trim().min(2, 'Categoria obrigatória'),
-  target_roles: z.array(z.enum(['vendedor', 'gerente', 'dono'])).min(1, 'Selecione ao menos um público'),
+  target_roles: z.array(z.enum(['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente', 'vendedor'])).min(1, 'Selecione ao menos um público'),
   status: z.enum(['ativo', 'rascunho', 'arquivado']),
   sort_order: z.coerce.number().int().min(0).max(999),
 })
@@ -140,21 +144,30 @@ function normalizeProduct(product: ProductRecord): ProductRecord {
   return {
     ...product,
     category: product.category || 'Operacional',
-    target_roles: product.target_roles?.length ? product.target_roles : ['vendedor', 'gerente', 'dono'],
+    target_roles: product.target_roles?.length ? product.target_roles : DEFAULT_PRODUCT_AUDIENCES,
     status: product.status || 'ativo',
     sort_order: product.sort_order ?? 0,
   }
 }
 
+function isSafeProductUrl(rawUrl: string) {
+  try {
+    const url = new URL(rawUrl)
+    if (url.protocol === 'https:') return true
+    if (typeof window !== 'undefined' && url.origin === window.location.origin) return true
+    return false
+  } catch {
+    return false
+  }
+}
+
 function getAudienceForRole(role: UserRole | null): ProductAudience | null {
-  if (role === 'vendedor' || role === 'gerente' || role === 'dono') return role
-  return null
+  return PRODUCT_AUDIENCES.some((item) => item.key === role) ? role : null
 }
 
 function isVisibleForRole(product: ProductRecord, role: UserRole | null, canManage: boolean) {
   if (canManage) return true
   if (product.status !== 'ativo') return false
-  if (isPerfilInternoMx(role)) return true
 
   const audience = getAudienceForRole(role)
   if (!audience) return false
@@ -178,7 +191,7 @@ function toForm(product: ProductRecord): ProductForm {
     description: normalized.description || '',
     link: normalized.link || '',
     category: normalized.category || 'Operacional',
-    target_roles: normalized.target_roles || ['vendedor', 'gerente', 'dono'],
+    target_roles: normalized.target_roles || DEFAULT_PRODUCT_AUDIENCES,
     status: normalized.status || 'ativo',
     sort_order: String(normalized.sort_order ?? 0),
   }
@@ -387,7 +400,7 @@ export default function ProdutosDigitais() {
             </Typography>
           </div>
           <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">
-            CATÁLOGO POR PÚBLICO • VENDEDORES, GERENTES E DONOS
+            CATÁLOGO POR PÚBLICO • ADMIN, CONSULTORES, DONOS, GERENTES E VENDEDORES
           </Typography>
         </div>
 
@@ -736,7 +749,7 @@ export default function ProdutosDigitais() {
               <div className="flex items-center gap-mx-sm">
                 <Archive size={18} className="text-status-warning" />
                 <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-secondary">
-                  Produto arquivado não aparece para vendedores, gerentes ou donos.
+                  Produto arquivado não aparece para públicos operacionais nem internos.
                 </Typography>
               </div>
             </Card>

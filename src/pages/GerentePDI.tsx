@@ -42,7 +42,7 @@ export default function GerentePDI() {
 
     const filteredPDIs = useMemo(() => {
         const term = searchTerm.toLowerCase()
-        return pdis.filter((p: any) =>
+        return pdis.filter(p =>
             (p.meta_6m || '').toLowerCase().includes(term) ||
             (p.meta_12m || '').toLowerCase().includes(term) ||
             (p.meta_24m || '').toLowerCase().includes(term) ||
@@ -132,14 +132,14 @@ export default function GerentePDI() {
                                                 <header className="flex items-start justify-between mb-10 border-b border-border-default pb-6 relative z-10">
                                                     <div className="flex items-center gap-mx-sm min-w-0">
                                                         <Avatar
-                                                            src={(p as any).seller_avatar_url || undefined}
-                                                            alt={`Avatar de ${(p as any).seller_name || 'vendedor'}`}
-                                                            fallback={(p as any).seller_name || 'U'}
+                                                            src={p.seller_avatar_url || undefined}
+                                                            alt={`Avatar de ${p.seller_name || 'vendedor'}`}
+                                                            fallback={p.seller_name || 'U'}
                                                             size="lg"
                                                             className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-inner group-hover:border-brand-secondary transition-all transform group-hover:rotate-3"
                                                         />
                                                         <div className="min-w-0">
-                                                            <Typography variant="h3" className="text-base uppercase tracking-tight truncate group-hover:text-brand-primary transition-colors font-black">{(p as any).seller_name}</Typography>
+                                                            <Typography variant="h3" className="text-base uppercase tracking-tight truncate group-hover:text-brand-primary transition-colors font-black">{p.seller_name}</Typography>
                                                             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">ESPECIALISTA</Typography>
                                                         </div>
                                                     </div>
@@ -149,7 +149,7 @@ export default function GerentePDI() {
                                                 <div className="space-y-mx-lg relative z-10">
                                                     <div className="space-y-mx-xs">
                                                         <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest mb-2 block">Objetivo 06 Meses</Typography>
-                                                        <Typography variant="h2" className="text-xl leading-snug line-clamp-2 uppercase tracking-tighter font-black">"{(p as any).meta_6m || 'N/A'}"</Typography>
+                                                        <Typography variant="h2" className="text-xl leading-snug line-clamp-2 uppercase tracking-tighter font-black">"{p.meta_6m || 'N/A'}"</Typography>
                                                     </div>
                                                 </div>
                                             </div>

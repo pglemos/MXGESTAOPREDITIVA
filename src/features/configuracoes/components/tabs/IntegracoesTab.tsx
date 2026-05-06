@@ -41,9 +41,9 @@ export function IntegracoesTab() {
                 />
                 <IntegrationCard
                     icon={<Zap size={22} />}
-                    title="AI Diagnostics"
-                    desc="Diagnósticos preditivos por IA da rede MX"
-                    badge="IA"
+                    title="Auditoria de Funil"
+                    desc="Diagnóstico heurístico da rede com benchmarks MX"
+                    badge="MX"
                     route="/auditoria"
                 />
                 <IntegrationCard

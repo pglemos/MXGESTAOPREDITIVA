@@ -11,8 +11,41 @@ export type ViewportName = keyof typeof VIEWPORTS;
 const AUTH_EMAIL =
   process.env.E2E_AUTH_EMAIL || 'admin@mxgestaopreditiva.com.br';
 const AUTH_PASSWORD = process.env.E2E_AUTH_PASSWORD || 'Mx#2026!';
+const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile';
+const VISUAL_STORE_ID = '11111111-1111-4111-8111-111111111111';
+const VISUAL_USER_ID = '22222222-2222-4222-8222-222222222222';
 
-export async function authenticate(page: Page): Promise<void> {
+type VisualAuthRole = 'admin_master' | 'dono' | 'gerente' | 'vendedor';
+
+interface AuthenticateOptions {
+  role?: VisualAuthRole;
+}
+
+export async function authenticate(page: Page, options: AuthenticateOptions = {}): Promise<void> {
+  const role = options.role || 'admin_master';
+
+  if (role !== 'admin_master') {
+    await page.addInitScript(
+      ({ storageKey, authRole, storeId, userId }) => {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            id: userId,
+            name: authRole === 'vendedor' ? 'Visual Vendedor' : 'Visual Usuario',
+            email: `visual-${authRole}@mxgestaopreditiva.com.br`,
+            role: authRole,
+            store_id: storeId,
+            created_at: '2026-05-06T12:00:00.000Z',
+          }),
+        );
+      },
+      { storageKey: DEV_BYPASS_STORAGE_KEY, authRole: role, storeId: VISUAL_STORE_ID, userId: VISUAL_USER_ID },
+    );
+    await page.goto('/home');
+    await waitForStable(page);
+    return;
+  }
+
   if (!AUTH_PASSWORD) {
     throw new Error(
       'E2E_AUTH_PASSWORD env var is required for authenticated visual tests. ' +

@@ -17,29 +17,11 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
     const startDate = filters?.startDate || defaultStartOfMonth
     const endDate = filters?.endDate || defaultEndOfMonth
 
-    const fetchRanking = useCallback(async (forceRefresh = false) => {
+    const fetchRanking = useCallback(async () => {
         if (!storeId) {
             setRanking([])
             setLoading(false)
             return
-        }
-
-        const cacheKey = `ranking_v2_${storeId}_${startDate}_${endDate}`
-        if (!forceRefresh) {
-            const cached = localStorage.getItem(cacheKey)
-            if (cached) {
-                try {
-                    const { data, timestamp } = JSON.parse(cached)
-                    const isExpired = Date.now() - timestamp > 5 * 60 * 1000 // 5 minutos
-                    if (!isExpired) {
-                        setRanking(data)
-                        setLoading(false)
-                        return
-                    }
-                } catch (e) {
-                    console.error('Falha ao ler cache do ranking:', e)
-                }
-            }
         }
 
         setLoading(true)
@@ -167,21 +149,14 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             })
 
         setRanking(entries)
-        
-        // Cache local (5 minutos)
-        localStorage.setItem(cacheKey, JSON.stringify({
-            data: entries,
-            timestamp: Date.now()
-        }))
-
         setLoading(false)
     }, [storeId, startDate, endDate])
 
     useEffect(() => { fetchRanking() }, [fetchRanking])
-    return { 
-        ranking, 
-        loading, 
-        refetch: (force = true) => fetchRanking(force) 
+    return {
+        ranking,
+        loading,
+        refetch: fetchRanking
     }
 }
 

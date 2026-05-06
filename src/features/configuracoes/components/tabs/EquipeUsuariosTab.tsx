@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Plus, Search, Trash2, Edit3, RefreshCw, Users, ShieldCheck, ShieldAlert, Building2, Mail } from 'lucide-react'
-import { useTeam, useStores } from '@/hooks/useTeam'
+import { useTeam, useStores, type TeamMember } from '@/hooks/useTeam'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { Card } from '@/components/molecules/Card'
@@ -43,7 +43,7 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
     const { lojas } = useStores()
 
     const [showCreate, setShowCreate] = useState(false)
-    const [editingUser, setEditingUser] = useState<any>(null)
+    const [editingUser, setEditingUser] = useState<TeamMember | null>(null)
     const [filter, setFilter] = useState('')
     const [roleFilter, setRoleFilter] = useState<string>('')
 
@@ -65,7 +65,7 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
         })
     }, [sellers, filter, roleFilter])
 
-    const handleDelete = async (user: any) => {
+    const handleDelete = async (user: TeamMember) => {
         const confirmed = window.confirm(`Remover ${user.name} da equipe? Esta ação desativa o vínculo. O histórico é preservado.`)
         if (!confirmed) return
         const { error } = await deleteTeamMember(user.id, user.store_id)
@@ -163,9 +163,9 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
                                                 <span className="flex items-center gap-mx-tiny text-mx-micro font-bold text-text-tertiary">
                                                     <Mail size={11} />{user.email}
                                                 </span>
-                                                {(user as any).store_name && (
+                                                {user.store_name && (
                                                     <span className="flex items-center gap-mx-tiny text-mx-micro font-bold text-text-tertiary">
-                                                        <Building2 size={11} />{(user as any).store_name}
+                                                        <Building2 size={11} />{user.store_name}
                                                     </span>
                                                 )}
                                             </div>

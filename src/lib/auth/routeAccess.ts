@@ -1,0 +1,71 @@
+import type { UserRole } from '@/types/database'
+import { USER_ROLES } from './roles'
+
+type RouteRule = {
+  pattern: string
+  roles: readonly UserRole[]
+}
+
+const INTERNAL_ROLES = ['administrador_geral', 'administrador_mx', 'consultor_mx'] as const satisfies readonly UserRole[]
+const MANAGEMENT_ROLES = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente'] as const satisfies readonly UserRole[]
+const INTERNAL_AND_OWNER = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono'] as const satisfies readonly UserRole[]
+const INTERNAL_AND_LEADERS = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente'] as const satisfies readonly UserRole[]
+
+export const ROUTE_ACCESS_RULES = [
+  { pattern: '/painel', roles: INTERNAL_ROLES },
+  { pattern: '/agenda', roles: INTERNAL_ROLES },
+  { pattern: '/consultoria/*', roles: INTERNAL_ROLES },
+  { pattern: '/configuracoes/consultoria-pmr', roles: INTERNAL_ROLES },
+  { pattern: '/configuracoes/reprocessamento', roles: INTERNAL_ROLES },
+  { pattern: '/lojas/:storeSlug', roles: INTERNAL_AND_LEADERS },
+  { pattern: '/lojas', roles: INTERNAL_AND_OWNER },
+  { pattern: '/rotina', roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'gerente'] },
+  { pattern: '/configuracoes/operacional', roles: INTERNAL_AND_OWNER },
+  { pattern: '/relatorio-matinal', roles: INTERNAL_AND_LEADERS },
+  { pattern: '/relatorios/performance-vendas', roles: INTERNAL_AND_LEADERS },
+  { pattern: '/relatorios/performance-vendedor', roles: MANAGEMENT_ROLES },
+  { pattern: '/auditoria', roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono'] },
+  { pattern: '/home', roles: USER_ROLES },
+  { pattern: '/lancamento-diario', roles: USER_ROLES },
+  { pattern: '/historico', roles: USER_ROLES },
+  { pattern: '/classificacao', roles: USER_ROLES },
+  { pattern: '/treinamentos', roles: USER_ROLES },
+  { pattern: '/devolutivas', roles: USER_ROLES },
+  { pattern: '/notificacoes', roles: USER_ROLES },
+  { pattern: '/perfil', roles: USER_ROLES },
+  { pattern: '/pdi/:id/print', roles: USER_ROLES },
+  { pattern: '/pdi', roles: USER_ROLES },
+  { pattern: '/produtos', roles: USER_ROLES },
+  { pattern: '/configuracoes', roles: USER_ROLES },
+] as const satisfies readonly RouteRule[]
+
+function normalizePath(pathname: string) {
+  const path = pathname.split('?')[0]?.split('#')[0] || '/'
+  if (path.length > 1 && path.endsWith('/')) return path.slice(0, -1)
+  return path
+}
+
+function matchesPattern(pathname: string, pattern: string) {
+  const path = normalizePath(pathname)
+  if (pattern.endsWith('/*')) {
+    const prefix = pattern.slice(0, -2)
+    return path === prefix || path.startsWith(`${prefix}/`)
+  }
+
+  const pathParts = path.split('/').filter(Boolean)
+  const patternParts = pattern.split('/').filter(Boolean)
+  if (pathParts.length !== patternParts.length) return false
+
+  return patternParts.every((part, index) => part.startsWith(':') || part === pathParts[index])
+}
+
+export function getRouteAccessRule(pathname: string): RouteRule | null {
+  return ROUTE_ACCESS_RULES.find(rule => matchesPattern(pathname, rule.pattern)) || null
+}
+
+export function canAccessPath(pathname: string, role: UserRole | null | undefined): boolean {
+  if (!role) return false
+  const rule = getRouteAccessRule(pathname)
+  if (!rule) return true
+  return rule.roles.includes(role)
+}

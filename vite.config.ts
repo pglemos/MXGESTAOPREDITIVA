@@ -36,6 +36,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: ['**/vendor-pdf*.js', '**/vendor-charts*.js', '**/vendor-export*.js'],
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/auth/],
@@ -85,6 +86,7 @@ export default defineConfig({
           'vendor-ui': ['lucide-react', 'motion', 'sonner'],
           'vendor-charts': ['recharts'],
           'vendor-export': ['xlsx'],
+          'vendor-pdf': ['html2pdf.js', 'jspdf'],
           'vendor-supabase': ['@supabase/supabase-js'],
         },
       },

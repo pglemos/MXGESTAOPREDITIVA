@@ -21,6 +21,7 @@ import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader, CardTitle } from '@/components/molecules/Card'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
+import type { DailyCheckin, Store } from '@/types/database'
 
 type StoreMorningData = {
     store_id: string
@@ -36,6 +37,34 @@ type StoreMorningData = {
     totalVisits: number
     sellers: { id: string; name: string; avatar_url: string | null; checkin_today: boolean; vnd_total: number; leads: number }[]
 }
+
+type AdminStoreRow = Pick<Store, 'id' | 'name'>
+type MorningGoalRow = {
+    store_id: string
+    monthly_goal: number | null
+}
+type MorningCheckinRow = Pick<DailyCheckin,
+    'seller_user_id'
+    | 'store_id'
+    | 'reference_date'
+    | 'leads_prev_day'
+    | 'vnd_porta_prev_day'
+    | 'vnd_cart_prev_day'
+    | 'vnd_net_prev_day'
+    | 'visit_prev_day'
+>
+type MorningPresenceRow = Pick<DailyCheckin, 'seller_user_id' | 'store_id'>
+type MorningMemberRow = {
+    user_id: string
+    store_id: string
+    users: {
+        id: string
+        name: string
+        avatar_url: string | null
+        active: boolean
+    } | null
+}
+type MorningSeller = StoreMorningData['sellers'][number]
 
 export default function MorningReport() {
     const { profile, storeId, vinculos_loja, role } = useAuth()
@@ -91,35 +120,42 @@ function AdminMorningReport() {
                 supabase.from('vinculos_loja').select('user_id, store_id, users:usuarios(id, name, avatar_url, active)'),
             ])
 
-        const lojas = storesRes.data || []
-        const metas = goalsRes.data || []
-        const checkins = checkinsRes.data || []
-        const todayCheckins = todayCheckinsRes.data || []
-        const members = ((membershipsRes.data || []) as any[]).filter(m => m.users?.active)
+        const lojas = (storesRes.data || []) as AdminStoreRow[]
+        const metas = (goalsRes.data || []) as MorningGoalRow[]
+        const checkins = (checkinsRes.data || []) as MorningCheckinRow[]
+        const todayCheckins = (todayCheckinsRes.data || []) as MorningPresenceRow[]
+        const members = ((membershipsRes.data || []) as unknown as MorningMemberRow[]).filter(m => m.users?.active)
 
-        const goalMap = new Map(metas.map((g: any) => [g.store_id, g.monthly_goal || 0]))
-        const checkedInSet = new Set(todayCheckins.map((c: any) => `${c.store_id}-${c.seller_user_id}`))
-        const membersByStore = new Map<string, any[]>()
+        const goalMap = new Map(metas.map(g => [g.store_id, Number(g.monthly_goal || 0)]))
+        const checkedInSet = new Set(todayCheckins.map(c => `${c.store_id}-${c.seller_user_id}`))
+        const membersByStore = new Map<string, MorningSeller[]>()
         for (const m of members) {
             const arr = membersByStore.get(m.store_id) || []
-            arr.push({ id: m.user_id, name: m.users?.name || 'Unknown', avatar_url: m.users?.avatar_url || null, store_id: m.store_id })
+            arr.push({
+                id: m.user_id,
+                name: m.users?.name || 'Unknown',
+                avatar_url: m.users?.avatar_url || null,
+                checkin_today: false,
+                vnd_total: 0,
+                leads: 0,
+            })
             membersByStore.set(m.store_id, arr)
         }
 
-        const checkinsByStore = new Map<string, any[]>()
+        const checkinsByStore = new Map<string, MorningCheckinRow[]>()
         for (const c of checkins) {
             const arr = checkinsByStore.get(c.store_id) || []
             arr.push(c)
             checkinsByStore.set(c.store_id, arr)
         }
 
-        const computed: StoreMorningData[] = lojas.map((store: any) => {
+        const computed: StoreMorningData[] = lojas.map((store) => {
             const storeCheckins = checkinsByStore.get(store.id) || []
             const storeMembers = membersByStore.get(store.id) || []
             const storeGoal = goalMap.get(store.id) || 0
-            const sales = storeCheckins.reduce((s: number, c: any) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
-            const leads = storeCheckins.reduce((s: number, c: any) => s + (c.leads_prev_day || 0), 0)
-            const visits = storeCheckins.reduce((s: number, c: any) => s + (c.visit_prev_day || 0), 0)
+            const sales = storeCheckins.reduce((s, c) => s + (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0), 0)
+            const leads = storeCheckins.reduce((s, c) => s + (c.leads_prev_day || 0), 0)
+            const visits = storeCheckins.reduce((s, c) => s + (c.visit_prev_day || 0), 0)
             const projection = calcularProjecao(sales, daysInfo.decorridos, daysInfo.total)
             const reaching = calcularAtingimento(sales, storeGoal)
 
@@ -132,7 +168,7 @@ function AdminMorningReport() {
                 leadsBySeller.set(c.seller_user_id, (leadsBySeller.get(c.seller_user_id) || 0) + (c.leads_prev_day || 0))
             }
 
-            const sellers = storeMembers.map((m: any) => ({
+            const sellers = storeMembers.map((m) => ({
                 id: m.id,
                 name: m.name,
                 avatar_url: m.avatar_url,
@@ -158,8 +194,8 @@ function AdminMorningReport() {
         })
 
         setStoreData(computed)
-        } catch (err) {
-            console.error('[AdminMorningReport] fetchData failed:', err)
+        } catch {
+            toast.error('Falha ao carregar relatório matinal da rede.')
         } finally {
             setLoading(false)
         }

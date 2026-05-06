@@ -12,6 +12,20 @@ import { DataGrid, type Column } from '@/components/organisms/DataGrid'
 import { Badge } from '@/components/atoms/Badge'
 import { useConsultingClients, useConsultingClientMetrics } from '@/hooks/useConsultingClients'
 import { DEFAULT_CONSULTING_MODULES } from '@/hooks/useConsultingModules'
+import type { ConsultingClient } from '@/lib/schemas/consulting-client.schema'
+
+type ConsultingClientForm = {
+  name: string
+  legal_name: string
+  cnpj: string
+  product_name: string
+  notes: string
+  enabled_modules: string[]
+}
+
+function getDefaultEnabledModules() {
+  return DEFAULT_CONSULTING_MODULES.filter(m => m.enabled).map(m => m.module_key)
+}
 
 export default function ConsultoriaClientes() {
   const navigate = useNavigate()
@@ -20,20 +34,13 @@ export default function ConsultoriaClientes() {
   const [searchTerm, setSearchTerm] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState<{
-    name: string
-    legal_name: string
-    cnpj: string
-    product_name: string
-    notes: string
-    enabled_modules: string[]
-  }>({
+  const [form, setForm] = useState<ConsultingClientForm>({
     name: '',
     legal_name: '',
     cnpj: '',
     product_name: '',
     notes: '',
-    enabled_modules: DEFAULT_CONSULTING_MODULES.filter((m: any) => m.enabled).map((m: any) => m.module_key),
+    enabled_modules: getDefaultEnabledModules(),
   })
 
   const filteredClients = useMemo(() => {
@@ -66,7 +73,7 @@ export default function ConsultoriaClientes() {
     toast.success('Cliente da consultoria criado.')
     setForm({ 
         name: '', legal_name: '', cnpj: '', product_name: '', notes: '', 
-        enabled_modules: DEFAULT_CONSULTING_MODULES.filter((m: any) => m.enabled).map((m: any) => m.module_key) 
+        enabled_modules: getDefaultEnabledModules(),
     })
     setShowCreate(false)
   }
@@ -81,7 +88,7 @@ export default function ConsultoriaClientes() {
     })
   }
 
-  const columns = useMemo<Column<any>[]>(() => [
+  const columns = useMemo<Column<ConsultingClient>[]>(() => [
     {
       key: 'name',
       header: 'CLIENTE',
@@ -305,7 +312,7 @@ export default function ConsultoriaClientes() {
                 Diferente do 'Produto Comercial', esses são os recursos habilitados no painel.
               </Typography>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-mx-xs">
-                {DEFAULT_CONSULTING_MODULES.map((mod: any) => {
+                {DEFAULT_CONSULTING_MODULES.map((mod) => {
                   const isEnabled = form.enabled_modules.includes(mod.module_key)
                   return (
                     <label key={mod.module_key} className={`flex items-start gap-mx-xs p-mx-sm rounded-mx-xl border transition-colors cursor-pointer ${isEnabled ? 'bg-mx-indigo-50 border-brand-primary' : 'bg-surface-alt border-border-default hover:bg-white'}`}>

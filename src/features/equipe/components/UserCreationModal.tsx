@@ -8,6 +8,8 @@ import { toast } from 'sonner'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
+import type { RegisterUserInput } from '@/hooks/useTeam'
+import type { Store, UserRole } from '@/types/database'
 
 const papeisInternosMx = ['administrador_geral', 'administrador_mx', 'consultor_mx']
 const todayISO = () => new Date().toISOString().slice(0, 10)
@@ -24,15 +26,29 @@ interface UserCreationModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  registerUser: (data: any) => Promise<{ success?: boolean; error?: string }>
+  registerUser: (data: RegisterUserInput) => Promise<{ success?: boolean; error?: string }>
   storeId?: string
-  lojas?: any[]
+  lojas?: Store[]
+}
+
+type UserCreationForm = {
+  name: string
+  email: string
+  password: string
+  role: UserRole
+  store_id: string
+  phone: string
+  started_at: string
+  ended_at: string
+  is_active: boolean
+  closing_month_grace: boolean
+  is_venda_loja: boolean
 }
 
 export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, storeId: initialStoreId, lojas }: UserCreationModalProps) {
   const { role: currentUserRole } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserCreationForm>({
     name: '',
     email: '',
     password: '',
@@ -217,7 +233,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                               id="new-user-role"
                               name="role"
                               value={formData.role} 
-                              onChange={e => setFormData({...formData, role: e.target.value})}
+                              onChange={e => setFormData({...formData, role: e.target.value as UserRole})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-black uppercase tracking-mx-widest text-mx-nano focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all appearance-none cursor-pointer"
                             >
                               {allowedRoles.map(role => (

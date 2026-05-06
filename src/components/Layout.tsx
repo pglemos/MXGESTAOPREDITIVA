@@ -177,6 +177,20 @@ export default function Layout() {
 
   if (!profile || !role) return null
 
+  const handleGlobalSearch = () => {
+    const searchInput = document.querySelector<HTMLInputElement>(
+      'input[type="search"], input[placeholder*="BUSCAR"], input[placeholder*="LOCALIZAR"]',
+    )
+    if (searchInput) {
+      searchInput.focus()
+      searchInput.select()
+      return
+    }
+
+    if (isPerfilInternoMx(role) || role === 'dono') navigate('/lojas')
+    else navigate('/classificacao')
+  }
+
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
       {profile?.must_change_password && <ForcePasswordChange />}
@@ -204,10 +218,10 @@ export default function Layout() {
 
         <div className="flex items-center gap-mx-md justify-end">
           <div className="hidden sm:flex items-center gap-mx-xs">
-            <button type="button" aria-label="Pesquisar no sistema" className="w-mx-10 h-mx-10 bg-surface-alt rounded-mx-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
+            <button type="button" aria-label="Pesquisar no sistema" onClick={handleGlobalSearch} className="w-mx-10 h-mx-10 bg-surface-alt rounded-mx-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
               <Search size={18} aria-hidden="true" />
             </button>
-            <button type="button" aria-label={`Abrir notificações. ${unreadCount} não lidas.`} className="relative w-mx-10 h-mx-10 bg-surface-alt rounded-mx-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
+            <button type="button" aria-label={`Abrir notificações. ${unreadCount} não lidas.`} onClick={() => navigate('/notificacoes')} className="relative w-mx-10 h-mx-10 bg-surface-alt rounded-mx-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
               <Bell size={18} aria-hidden="true" />
               {unreadCount > 0 && (
                 <span className="absolute top-mx-0 right-mx-0 w-3.5 h-3.5 rounded-mx-full bg-brand-primary border-2 border-white flex items-center justify-center text-mx-micro font-black text-white" aria-hidden="true">

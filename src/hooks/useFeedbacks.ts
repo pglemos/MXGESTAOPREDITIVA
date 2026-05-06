@@ -87,7 +87,18 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
 
   const acknowledgeMut = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('devolutivas').update({ acknowledged: true, acknowledged_at: new Date().toISOString() }).eq('id', id)
+      const target = devolutivas?.find(item => item.id === id)
+      if (role !== 'vendedor' || !target || target.seller_id !== profile?.id) {
+        return { error: 'Apenas o vendedor destinatário pode confirmar ciência da devolutiva.' }
+      }
+
+      const { error } = await supabase
+        .from('devolutivas')
+        .update({ acknowledged: true, acknowledged_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('seller_id', profile.id)
+
+      return { error: error?.message || null }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devolutivas'] })

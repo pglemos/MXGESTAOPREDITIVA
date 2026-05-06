@@ -8,7 +8,7 @@ import {
     Settings2, Power, Copy, Link2, ClipboardList, BriefcaseBusiness, Check, Ban, KeyRound
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { cn, slugify } from '@/lib/utils'
+import { cn, getPreRegistrationLink } from '@/lib/utils'
 import { toast } from 'sonner'
 import { format, parseISO } from 'date-fns'
 import { Typography } from '@/components/atoms/Typography'
@@ -54,8 +54,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
   const registrationLink = useMemo(() => {
     if (!storeName) return ''
-    if (typeof window === 'undefined') return `/pre-cadastro/${slugify(storeName)}`
-    return `${window.location.origin}/pre-cadastro/${slugify(storeName)}`
+    return getPreRegistrationLink(storeName)
   }, [storeName])
 
   const fetchPreRegistrations = useCallback(async () => {
@@ -134,7 +133,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const handleDeleteMember = async (member: any) => {
     if (!canManageTeamMembers) return
     const memberStoreId = member.store_id || storeId
-    const confirmed = window.confirm(`Excluir ${member.name} da equipe${memberStoreId ? ' desta loja' : ''}? O usuário será desativado se não tiver outro vínculo.`)
+    const confirmed = window.confirm(`Remover ${member.name} da equipe${memberStoreId ? ' desta loja' : ''}? O login não será desativado automaticamente.`)
     if (!confirmed) return
 
     setSaving(true)

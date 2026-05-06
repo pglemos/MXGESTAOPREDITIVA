@@ -27,6 +27,11 @@ export interface DataGridProps<T> {
   stickyHeader?: boolean
 }
 
+function getCellValue<T>(item: T, key: string): ReactNode {
+  if (!item || typeof item !== 'object' || !(key in item)) return null
+  return (item as Record<string, ReactNode>)[key]
+}
+
 function DataGridInner<T extends { id: string | number }>({
   columns,
   data,
@@ -103,7 +108,7 @@ function DataGridInner<T extends { id: string | number }>({
                         col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'
                       )}
                     >
-                      {col.render ? col.render(item, idx) : (item as any)[col.key]}
+                      {col.render ? col.render(item, idx) : getCellValue(item, col.key)}
                     </td>
                   ))}
                 </motion.tr>
@@ -142,7 +147,7 @@ function DataGridInner<T extends { id: string | number }>({
                         "text-sm font-bold",
                         cIdx === 0 && "text-lg font-black uppercase tracking-tight"
                       )}>
-                        {col.render ? col.render(item, idx) : (item as any)[col.key]}
+                        {col.render ? col.render(item, idx) : getCellValue(item, col.key)}
                       </div>
                     </div>
                   ))}

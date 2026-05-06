@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useGlobalRanking } from '@/hooks/useRanking'
+import type { RankingEntry } from '@/types/database'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
@@ -20,6 +21,8 @@ import {
 } from 'recharts'
 import { cn } from '@/lib/utils'
 import { motion } from 'motion/react'
+
+type SellerRankingRow = RankingEntry & { id: string }
 
 export default function SellerPerformance() {
     const [searchParams] = useSearchParams()
@@ -57,13 +60,13 @@ export default function SellerPerformance() {
         ]
     }, [seller])
 
-    const columns = useMemo<Column<any>[]>(() => [
+    const columns = useMemo<Column<SellerRankingRow>[]>(() => [
         {
             key: 'position',
             header: '#',
             width: '60px',
             align: 'center',
-            render: (_: any, index: number) => (
+            render: (_row, index) => (
                 <span className={cn(
                     "font-black tabular-nums",
                     index === 0 ? "text-status-warning" : "text-text-tertiary"
@@ -75,7 +78,7 @@ export default function SellerPerformance() {
         {
             key: 'user_name',
             header: 'ESPECIALISTA',
-            render: (r: any) => (
+            render: (r) => (
                 <div className="flex items-center gap-mx-sm">
                     <Avatar
                         src={r.avatar_url || undefined}
@@ -94,13 +97,13 @@ export default function SellerPerformance() {
                 </div>
             )
         },
-        { key: 'vnd_total', header: 'VENDAS', align: 'center', render: (r: any) => <span className="font-black text-lg font-mono-numbers">{r.vnd_total}</span> },
-        { key: 'atingimento', header: '% META', align: 'center', render: (r: any) => <Badge variant={r.atingimento >= 100 ? 'success' : 'outline'} className="font-mono-numbers font-black">{r.atingimento}%</Badge> },
+        { key: 'vnd_total', header: 'VENDAS', align: 'center', render: (r) => <span className="font-black text-lg font-mono-numbers">{r.vnd_total}</span> },
+        { key: 'atingimento', header: '% META', align: 'center', render: (r) => <Badge variant={r.atingimento >= 100 ? 'success' : 'outline'} className="font-mono-numbers font-black">{r.atingimento}%</Badge> },
         {
             key: 'actions',
             header: '',
             align: 'right',
-            render: (r: any) => (
+            render: (r) => (
                 <Button size="icon" variant="ghost" onClick={() => navigate(`/relatorios/performance-vendedor?id=${r.user_id}`)} className="text-text-tertiary hover:text-brand-primary">
                     <TrendingUp size={18} />
                 </Button>
@@ -114,6 +117,33 @@ export default function SellerPerformance() {
             <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Performance...</Typography>
         </div>
     )
+
+    if (sellerId && !seller) {
+        return (
+            <main className="p-mx-md sm:p-mx-lg lg:p-mx-xl mx-auto space-y-mx-lg" style={{ maxWidth: '960px' }}>
+                <Card className="p-mx-xl border-none shadow-mx-xl bg-white text-center space-y-mx-lg">
+                    <div className="w-mx-20 h-mx-20 rounded-mx-2xl bg-surface-alt border border-border-default flex items-center justify-center mx-auto text-text-tertiary">
+                        <Search size={34} />
+                    </div>
+                    <div className="space-y-mx-xs">
+                        <Typography variant="h2" className="uppercase tracking-tight">Vendedor não localizado</Typography>
+                        <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
+                            O identificador informado não está disponível no ranking consolidado atual.
+                        </Typography>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-mx-sm">
+                        <Button variant="outline" onClick={() => navigate('/relatorios/performance-vendedor')} className="h-mx-xl rounded-mx-full font-black uppercase tracking-widest">
+                            Ver lista de vendedores
+                        </Button>
+                        <Button onClick={handleRefresh} disabled={isRefetching} className="h-mx-xl rounded-mx-full font-black uppercase tracking-widest">
+                            {isRefetching ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <RefreshCw size={16} className="mr-2" />}
+                            Atualizar dados
+                        </Button>
+                    </div>
+                </Card>
+            </main>
+        )
+    }
 
     if (sellerId && seller) {
         return (

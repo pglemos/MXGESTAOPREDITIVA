@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePDI_MX } from '@/hooks/usePDI_MX'
+import type { PDIAvaliacao360, PDIMeta360, PDIPlanoAcao360, PDIPrintBundle } from '@/hooks/usePDI_MX'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
 import { Target, History, Printer, ChevronLeft, Sparkles, User, Calendar, Award } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
@@ -10,7 +11,7 @@ export default function PDIPrint() {
     const { id } = useParams()
     const navigate = useNavigate()
     const { fetchPrintBundle, loading } = usePDI_MX()
-    const [bundle, setBundle] = useState<any>(null)
+    const [bundle, setBundle] = useState<PDIPrintBundle | null>(null)
     const [error, setError] = useState(false)
     const printRef = useRef<HTMLDivElement>(null)
 
@@ -18,8 +19,7 @@ export default function PDIPrint() {
         if (id) {
             fetchPrintBundle(id).then(data => {
                 setBundle(data)
-            }).catch(err => {
-                console.error(err)
+            }).catch(() => {
                 setError(true)
             })
         }
@@ -47,16 +47,16 @@ export default function PDIPrint() {
     const gerenteNome = bundle.sessao.gerente_nome || bundle.sessao.manager_name || bundle.sessao.gerente_id
     const lojaNome = bundle.sessao.loja_nome || bundle.sessao.store_name
 
-    const radarData = (bundle.avaliacoes || []).map((av: any) => ({
+    const radarData = bundle.avaliacoes.map((av: PDIAvaliacao360) => ({
         subject: av.competencia,
         A: av.nota,
         alvo: av.alvo,
         fullMark: av.alvo
     }))
 
-    const metas6 = (bundle.metas || []).filter((m: any) => m.prazo === '6_meses')
-    const metas12 = (bundle.metas || []).filter((m: any) => m.prazo === '12_meses')
-    const metas24 = (bundle.metas || []).filter((m: any) => m.prazo === '24_meses')
+    const metas6 = bundle.metas.filter((m: PDIMeta360) => m.prazo === '6_meses')
+    const metas12 = bundle.metas.filter((m: PDIMeta360) => m.prazo === '12_meses')
+    const metas24 = bundle.metas.filter((m: PDIMeta360) => m.prazo === '24_meses')
 
     return (
         <div className="min-h-screen bg-mx-indigo-50 font-sans print:bg-white flex flex-col items-center py-10 print:py-0 overflow-x-hidden">
@@ -107,7 +107,7 @@ export default function PDIPrint() {
                         <div>
                             <Typography variant="h3" className="uppercase font-black tracking-widest text-brand-secondary border-l-4 border-brand-primary pl-4 mb-4">Metas de Curto Prazo (6 Meses)</Typography>
                             <ul className="space-y-mx-xs pl-8 list-none">
-                                {metas6.map((m: any, i: number) => (
+                                {metas6.map((m, i) => (
                                     <li key={i} className="text-sm font-bold uppercase relative before:content-[''] before:absolute before:-left-5 before:top-1.5 before:w-2 before:h-2 before:bg-brand-primary before:rounded-full">
                                         <span className="text-brand-primary text-xs mr-2">[{m.tipo}]</span> {m.descricao}
                                     </li>
@@ -117,7 +117,7 @@ export default function PDIPrint() {
                         <div>
                             <Typography variant="h3" className="uppercase font-black tracking-widest text-brand-secondary border-l-4 border-brand-primary pl-4 mb-4">Metas de Médio Prazo (12 Meses)</Typography>
                             <ul className="space-y-mx-xs pl-8 list-none">
-                                {metas12.map((m: any, i: number) => (
+                                {metas12.map((m, i) => (
                                     <li key={i} className="text-sm font-bold uppercase relative before:content-[''] before:absolute before:-left-5 before:top-1.5 before:w-2 before:h-2 before:bg-brand-primary before:rounded-full">
                                         <span className="text-brand-primary text-xs mr-2">[{m.tipo}]</span> {m.descricao}
                                     </li>
@@ -127,7 +127,7 @@ export default function PDIPrint() {
                         <div>
                             <Typography variant="h3" className="uppercase font-black tracking-widest text-brand-secondary border-l-4 border-brand-primary pl-4 mb-4">Metas de Longo Prazo (24 Meses)</Typography>
                             <ul className="space-y-mx-xs pl-8 list-none">
-                                {metas24.map((m: any, i: number) => (
+                                {metas24.map((m, i) => (
                                     <li key={i} className="text-sm font-bold uppercase relative before:content-[''] before:absolute before:-left-5 before:top-1.5 before:w-2 before:h-2 before:bg-brand-primary before:rounded-full">
                                         <span className="text-brand-primary text-xs mr-2">[{m.tipo}]</span> {m.descricao}
                                     </li>
@@ -164,7 +164,7 @@ export default function PDIPrint() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {(bundle.avaliacoes || []).map((av: any, i: number) => (
+                                    {bundle.avaliacoes.map((av, i) => (
                                         <tr key={i} className="border-b border-border-default">
                                             <td className="py-2 px-3">{av.competencia}</td>
                                             <td className="py-2 px-3 text-center text-brand-primary">{av.nota}</td>
@@ -192,7 +192,7 @@ export default function PDIPrint() {
 
                     <div className="mt-auto">
                         <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-error mb-4">Top 5 Maiores Lacunas (Gaps) Identificadas</Typography>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">                            {(bundle.top_5_gaps || []).map((gap: any, i: number) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">                            {bundle.top_5_gaps.map((gap, i) => (
                                 <div key={i} className="bg-status-error-surface p-mx-sm border-l-4 border-status-error flex justify-between items-center">
                                     <Typography variant="p" className="text-xs font-bold uppercase">{gap.competencia}</Typography>
                                     <Typography variant="h3" tone="error" className="text-lg">-{gap.gap}</Typography>
@@ -222,7 +222,7 @@ export default function PDIPrint() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {(bundle.plano_acao || []).map((acao: any, i: number) => (
+                                {bundle.plano_acao.map((acao: PDIPlanoAcao360, i: number) => (
                                     <tr key={i} className="border-b-2 border-border-default">
                                         <td className="py-4 px-4 font-bold uppercase text-text-secondary">{acao.competencia}</td>
                                         <td className="py-4 px-4 font-bold text-text-primary">{acao.descricao_acao}</td>

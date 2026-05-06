@@ -18,9 +18,9 @@ export function useBroadcasts() {
         .order('created_at', { ascending: false })
 
       if (!error && data) {
-        const unique = new Map()
+        const unique = new Map<string, AppNotification>()
         data.forEach(n => {
-          if (!unique.has(n.broadcast_id)) unique.set(n.broadcast_id, n)
+          if (n.broadcast_id && !unique.has(n.broadcast_id)) unique.set(n.broadcast_id, n as AppNotification)
         })
         return Array.from(unique.values()) as AppNotification[]
       }

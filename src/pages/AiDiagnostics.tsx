@@ -1,28 +1,38 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Terminal as TerminalIcon, ShieldCheck, Zap, Activity, RefreshCw, AlertTriangle, TrendingUp, Search, Quote } from 'lucide-react'
+import { Terminal as TerminalIcon, ShieldCheck, Zap, TrendingUp, Quote } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { Card } from '@/components/molecules/Card'
 import { useCheckins } from '@/hooks/useCheckins'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
+import type { DailyCheckin } from '@/types/database'
 
 interface AuditLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
+
+const ADMIN_AUDIT_LIMIT = 1000
+const ADMIN_AUDIT_DAYS = 90
+
+function daysAgoISO(days: number) {
+    const date = new Date()
+    date.setDate(date.getDate() - days)
+    return date.toISOString().slice(0, 10)
+}
 
 export default function AiDiagnostics() {
     const { role } = useAuth()
     const { checkins: storeCheckins } = useCheckins()
-    const [adminCheckins, setAdminCheckins] = useState<any[]>([])
+    const [adminCheckins, setAdminCheckins] = useState<DailyCheckin[]>([])
     const [isScanning, setIsScanning] = useState(false)
     const [logs, setLogs] = useState<AuditLog[]>([])
     const [summary, setSummary] = useState<{ diagnostic: string; action: string } | null>(null)
     const terminalEndRef = useRef<HTMLDivElement>(null)
 
-    const checkins = isPerfilInternoMx(role) ? adminCheckins : storeCheckins
+    const checkins: DailyCheckin[] = isPerfilInternoMx(role) ? adminCheckins : storeCheckins
 
     useEffect(() => {
         if (!isPerfilInternoMx(role)) return
@@ -30,9 +40,10 @@ export default function AiDiagnostics() {
             const { data } = await supabase.from('lancamentos_diarios')
                 .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                 .eq('metric_scope', 'daily')
+                .gte('reference_date', daysAgoISO(ADMIN_AUDIT_DAYS))
                 .order('reference_date', { ascending: false })
-                .limit(5000)
-            setAdminCheckins(data || [])
+                .limit(ADMIN_AUDIT_LIMIT)
+            setAdminCheckins((data || []) as DailyCheckin[])
         }
         fetchAll()
     }, [role])
@@ -41,32 +52,33 @@ export default function AiDiagnostics() {
         setLogs(prev => [...prev, { type, msg: `[${new Date().toLocaleTimeString('pt-BR')}] ${msg}` }])
     }, [])
 
-    const handleScan = useCallback(async () => {
-        if (isScanning) return
+    const runScan = useCallback(() => {
+        const startedAt = performance.now()
         setIsScanning(true); setLogs([]); setSummary(null)
-        addLog('Iniciando Auditoria Forense v4.0...', 'info')
-        await new Promise(r => setTimeout(r, 800))
-        addLog('Conectando ao banco de dados Supabase...', 'info')
-        await new Promise(r => setTimeout(r, 600))
-        addLog('Conexão estabelecida. Protocolo SSL verificado.', 'success')
-        addLog(`Escaneando ${checkins.length} registros de lançamento diário${isPerfilInternoMx(role) ? ' (REDE COMPLETA)' : ''}...`, 'info')
-        await new Promise(r => setTimeout(r, 1000))
-        addLog('Executando heurística de conversão (MX 20/60/33)...', 'warning')
+        addLog('Iniciando auditoria operacional MX.', 'info')
+        addLog(`Base carregada: ${checkins.length} lançamentos diários reais${isPerfilInternoMx(role) ? ` dos últimos ${ADMIN_AUDIT_DAYS} dias` : ''}.`, 'success')
+        addLog('Calculando funil e benchmarks MX 20/60/33 no navegador.', 'info')
         const funnel = calcularFunil(checkins); const diagnosis = gerarDiagnosticoMX(funnel)
-        await new Promise(r => setTimeout(r, 1000))
+        addLog(`Totais: ${funnel.leads} leads, ${funnel.agd_total} agendamentos, ${funnel.visitas} visitas, ${funnel.vnd_total} vendas.`, 'info')
+        addLog(`Conversões: ${funnel.tx_lead_agd}% lead→agd, ${funnel.tx_agd_visita}% agd→visita, ${funnel.tx_visita_vnd}% visita→venda.`, diagnosis.gargalo ? 'warning' : 'success')
         setSummary({ diagnostic: diagnosis.diagnostico, action: diagnosis.sugestao })
-        addLog('Processamento finalizado. Sistema em standby.', 'success')
+        addLog(`Auditoria concluída em ${Math.max(1, Math.round(performance.now() - startedAt))}ms.`, 'success')
         setIsScanning(false)
-    }, [isScanning, checkins, addLog])
+    }, [checkins, addLog, role])
 
-    useEffect(() => { handleScan() }, [handleScan])
+    const handleScan = useCallback(() => {
+        if (isScanning) return
+        runScan()
+    }, [isScanning, runScan])
+
+    useEffect(() => { runScan() }, [runScan])
     useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [logs])
 
     if (!isPerfilInternoMx(role) && role !== 'dono') return (
         <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-brand-secondary" id="main-content">
             <ShieldCheck size={48} className="text-white/20 mb-6" aria-hidden="true" />
             <Typography variant="h2" tone="white" className="uppercase tracking-tighter">Acesso Restrito</Typography>
-            <Typography variant="caption" tone="white" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Motor de inteligência exclusivo para escalão administrativo.</Typography>
+            <Typography variant="caption" tone="white" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Auditoria operacional disponível para Admin MX e Dono.</Typography>
         </main>
     )
 
@@ -80,7 +92,7 @@ export default function AiDiagnostics() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-glow-brand animate-pulse" aria-hidden="true" />
                         <Typography variant="h1" tone="white">Auditoria <Typography as="span" className="text-brand-primary/80">Forense</Typography></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">DEEP LEARNING ENGINE v4.0{isPerfilInternoMx(role) ? ' • REDE COMPLETA' : ''}</Typography>
+                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">MOTOR HEURÍSTICO MX 20/60/33{isPerfilInternoMx(role) ? ` • ${ADMIN_AUDIT_DAYS} DIAS` : ''}</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-mx-md shrink-0 w-full sm:w-auto">
@@ -107,7 +119,7 @@ export default function AiDiagnostics() {
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="flex items-center gap-mx-sm">
                                 <TerminalIcon size={18} className="text-brand-primary/80" aria-hidden="true" />
-                                <Typography variant="caption" tone="white" className="font-black tracking-widest uppercase">Console de Auditoria Real-Time</Typography>
+                                <Typography variant="caption" tone="white" className="font-black tracking-widest uppercase">Console de Auditoria Operacional</Typography>
                             </div>
                             <div className="flex gap-1.5" aria-hidden="true">
                                 <div className="w-2.5 h-2.5 rounded-mx-full bg-status-error opacity-30" />

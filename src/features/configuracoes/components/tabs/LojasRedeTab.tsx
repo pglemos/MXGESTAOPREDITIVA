@@ -11,6 +11,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { StoreEditModal } from '@/features/admin/components/StoreEditModal'
 import { CreateStoreModal } from '@/features/configuracoes/components/CreateStoreModal'
 import type { Store } from '@/types/database'
+import type { StoreUpdateFields } from '@/hooks/useTeam'
 import type { TabContext } from '@/features/configuracoes/types'
 
 export function LojasRedeTab({ isReadOnly }: TabContext) {
@@ -32,7 +33,7 @@ export function LojasRedeTab({ isReadOnly }: TabContext) {
         )
     }, [lojas, filter, showInactive])
 
-    const handleEditSubmit = async (id: string, updates: any) => {
+    const handleEditSubmit = async (id: string, updates: Partial<StoreUpdateFields>) => {
         setSavingEdit(true)
         const { error } = await updateStore(id, updates)
         setSavingEdit(false)
@@ -40,11 +41,11 @@ export function LojasRedeTab({ isReadOnly }: TabContext) {
     }
 
     const handleDelete = async (store: Store) => {
-        const confirmed = window.confirm(`Excluir permanentemente a loja ${store.name}? Esta ação NÃO pode ser desfeita. Considere apenas desativar.`)
+        const confirmed = window.confirm(`Arquivar a loja ${store.name}? A loja ficará inativa, mas o histórico será preservado.`)
         if (!confirmed) return
         const { error } = await deleteStore(store.id)
         if (error) toast.error(error)
-        else toast.success('Loja excluída.')
+        else toast.success('Loja arquivada.')
     }
 
     const handleToggle = async (store: Store) => {

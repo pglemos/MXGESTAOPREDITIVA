@@ -14,15 +14,15 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
     return (
       <div ref={ref} className={cn("space-y-mx-sm", className)} {...props}>
         {breadcrumb && <div>{breadcrumb}</div>}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-mx-md">
-          <div className="space-y-mx-tiny min-w-0">
+        <div className="flex flex-col 2xl:flex-row 2xl:items-start 2xl:justify-between gap-mx-md">
+          <div className="space-y-mx-tiny min-w-0 flex-1">
             <Typography variant="h1" className="leading-tight break-words">{title}</Typography>
             {description && (
               <Typography variant="caption" tone="muted">{description}</Typography>
             )}
           </div>
           {actions && (
-            <div className="flex items-center gap-mx-xs shrink-0 w-full lg:w-auto">
+            <div className="flex min-w-0 flex-wrap items-center gap-mx-xs w-full 2xl:w-auto 2xl:justify-end">
               {actions}
             </div>
           )}

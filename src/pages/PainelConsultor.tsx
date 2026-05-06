@@ -20,8 +20,13 @@ import { format, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, parseI
 import { ptBR } from 'date-fns/locale'
 import { getOperationalStatus, getDiasInfo, calcularProjecao } from '@/lib/calculations'
 import { PageHeader } from '@/components/molecules/PageHeader'
+import type { DailyCheckin, Store as StoreRecord } from '@/types/database'
 
 type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; ritmo: number; efficiency: number; sellers: number; checkedInToday: number; disciplinePct: number }
+type NetworkCheckinRow = Pick<DailyCheckin, 'store_id' | 'reference_date' | 'leads_prev_day' | 'agd_cart_today' | 'agd_net_today' | 'visit_prev_day' | 'vnd_porta_prev_day' | 'vnd_cart_prev_day' | 'vnd_net_prev_day'>
+type StoreListRow = Pick<StoreRecord, 'id' | 'name'>
+type ActiveSellerRow = { store_id: string }
+type TodayCheckinRow = Pick<DailyCheckin, 'store_id' | 'seller_user_id'>
 
 type SortConfig = {
     key: keyof StoreDiagnostic;
@@ -61,10 +66,14 @@ export default function PainelConsultor() {
         setIsTriggering(type)
         try {
             const { data: { session } } = await originalSupabase.auth.getSession()
+            if (!session?.access_token) {
+                toast.error('Sessão expirada. Entre novamente.')
+                return
+            }
             const response = await fetch(getSupabaseFunctionUrl(`relatorio-${type}`), {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${session?.access_token}`,
+                    'Authorization': `Bearer ${session.access_token}`,
                     'Content-Type': 'application/json'
                 }
             })
@@ -112,33 +121,36 @@ export default function PainelConsultor() {
             yesterdayDate.setDate(yesterdayDate.getDate() - 1)
             const yesterday = yesterdayDate.toISOString().split('T')[0]
 
-            let allCheckins: any[] = [];
+            let allCheckins: NetworkCheckinRow[] = [];
             let from = 0;
             while (true) {
                 const { data, error } = await originalSupabase.from('lancamentos_diarios')
-                    .select('*')
+                    .select('store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, visit_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
                     .gte('reference_date', range.start)
                     .lte('reference_date', range.end)
                     .range(from, from + 999);
                 
                 if (error) throw error;
                 if (!data || data.length === 0) break;
-                allCheckins = allCheckins.concat(data);
+                allCheckins = allCheckins.concat(data as NetworkCheckinRow[]);
                 if (data.length < 1000) break;
                 from += 1000;
             }
 
             const [
-                { data: allStores },
-                { data: sellers },
-                { data: todayCheckins },
+                { data: allStoresRaw },
+                { data: sellersRaw },
+                { data: todayCheckinsRaw },
             ] = await Promise.all([
                 originalSupabase.from('lojas').select('id, name'),
-                originalSupabase.from('vendedores_loja').select('*').eq('is_active', true),
+                originalSupabase.from('vendedores_loja').select('store_id').eq('is_active', true),
                 originalSupabase.from('lancamentos_diarios').select('store_id, seller_user_id').eq('reference_date', yesterday),
             ])
+            const allStores = (allStoresRaw || []) as StoreListRow[]
+            const sellers = (sellersRaw || []) as ActiveSellerRow[]
+            const todayCheckins = (todayCheckinsRaw || []) as TodayCheckinRow[]
 
-            const salesMap: Record<string, any> = {}
+            const salesMap: Record<string, { total: number; leads: number; agd: number; vis: number }> = {}
             for (const checkin of allCheckins) {
                 const sid = checkin.store_id
                 if (!salesMap[sid]) salesMap[sid] = { total: 0, leads: 0, agd: 0, vis: 0 }

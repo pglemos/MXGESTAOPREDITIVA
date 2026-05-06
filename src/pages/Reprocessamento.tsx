@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { format, parseISO } from 'date-fns'
 import { validateLegacyCSV, ValidationResult } from '@/lib/migration-validator'
-import { DataGrid, Column } from '@/components/organisms/DataGrid'
+import { DataGrid, type Column } from '@/components/organisms/DataGrid'
 
 interface ImportLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
 type ImportHistoryStatus = 'pending' | 'processing' | 'completed' | 'failed'
@@ -28,6 +28,11 @@ interface ImportHistory {
     records_processed?: number | null
     records_failed?: number | null
     status: ImportHistoryStatus
+}
+
+type ImportHistoryRow = Omit<ImportHistory, 'store_name' | 'status'> & {
+    status: string
+    store: { name: string } | null
 }
 
 const statusMeta: Record<ImportHistoryStatus, { label: string; variant: 'success' | 'danger' | 'warning' | 'info' }> = {
@@ -70,10 +75,10 @@ export default function Reprocessamento() {
             return
         }
 
-        setHistory((data || []).map(h => ({
+        setHistory(((data || []) as unknown as ImportHistoryRow[]).map(h => ({
             ...h,
             status: h.status as ImportHistoryStatus,
-            store_name: (h as any).store?.name,
+            store_name: h.store?.name,
         })))
     }, [])
 
@@ -180,8 +185,8 @@ export default function Reprocessamento() {
             
             toast.success('Dados integrados!')
             await fetchHistory()
-        } catch (err: any) {
-            const message = err?.message || 'Erro inesperado no reprocessamento.'
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Erro inesperado no reprocessamento.'
             if (openedLogId) {
                 await supabase
                     .from('logs_reprocessamento')

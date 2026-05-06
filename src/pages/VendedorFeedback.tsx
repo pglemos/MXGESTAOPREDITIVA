@@ -30,8 +30,12 @@ export default function VendedorFeedback() {
 
     const handleAcknowledge = async (id: string) => {
         setIsAcknowledging(id)
-        await acknowledge(id)
+        const result = await acknowledge(id)
         setIsAcknowledging(null)
+        if (result?.error) {
+            toast.error(result.error)
+            return
+        }
         toast.success('Ciência registrada com sucesso!')
     }
 

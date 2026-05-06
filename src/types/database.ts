@@ -478,7 +478,7 @@ export interface DigitalProduct {
     description: string
     link: string
     category?: string
-    target_roles?: Array<'vendedor' | 'gerente' | 'dono'>
+    target_roles?: UserRole[]
     status?: 'ativo' | 'rascunho' | 'arquivado'
     sort_order?: number
     created_at?: string

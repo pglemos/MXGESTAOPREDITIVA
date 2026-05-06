@@ -1,5 +1,3 @@
-import html2pdf from 'html2pdf.js'
-
 type Html2PdfOptions = {
   margin?: number | [number, number, number, number]
   filename: string
@@ -70,6 +68,7 @@ async function createTextFallbackPdf(element: HTMLElement, filename: string): Pr
 }
 
 export async function downloadHtmlAsPdf(element: HTMLElement, options: Html2PdfOptions) {
+  const { default: html2pdf } = await import('html2pdf.js')
   const htmlRender = html2pdf()
     .set(options)
     .from(element)

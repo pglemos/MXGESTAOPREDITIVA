@@ -83,6 +83,74 @@ export interface PDISessionSummary {
     action_5?: string
 }
 
+export interface PDIPrintBundle {
+    sessao: PDISessionSummary & {
+        colaborador_nome?: string | null
+        gerente_nome?: string | null
+        loja_nome?: string | null
+    }
+    metas: PDIMeta360[]
+    avaliacoes: PDIAvaliacao360[]
+    plano_acao: PDIPlanoAcao360[]
+    top_5_gaps: PDIAvaliacao360[]
+}
+
+type PDISessionRow = {
+    id: string
+    colaborador_id: string
+    gerente_id: string
+    loja_id: string | null
+    cargo_id?: string | null
+    status: string
+    created_at: string
+    updated_at?: string | null
+    data_realizacao?: string | null
+    proxima_revisao_data?: string | null
+}
+
+type PDICompetenciaRelation = {
+    id: string
+    nome: string
+    tipo?: string | null
+    ordem?: number | null
+} | null
+
+type PDIMetaRow = PDIMeta360 & {
+    sessao_id: string
+}
+
+type PDIAvaliacaoRow = {
+    id: string
+    sessao_id: string
+    competencia_id: string
+    competencia: PDICompetenciaRelation
+    nota_atribuida: number
+    alvo: number
+}
+
+type PDIPlanoAcaoRow = {
+    id: string
+    sessao_id: string
+    competencia_id: string
+    competencia: PDICompetenciaRelation
+    descricao_acao: string
+    data_conclusao: string
+    impacto: string
+    custo: string
+    status?: string | null
+}
+
+type PDIUserIdentityRow = {
+    id: string
+    name: string
+    avatar_url: string | null
+}
+
+type PDIStoreIdentityRow = {
+    id: string
+    name: string
+}
+
 function joinMetas(metas: PDIMeta360[], prazo: string) {
     return metas
         .filter(m => m.prazo === prazo)
@@ -119,9 +187,10 @@ async function fetchPDISessions360(params: {
     if (sessoesError) throw sessoesError
     if (!sessoes?.length) return [] as PDISessionSummary[]
 
-    const sessionIds = sessoes.map((s: any) => s.id)
-    const userIds = Array.from(new Set(sessoes.flatMap((s: any) => [s.colaborador_id, s.gerente_id]).filter(Boolean)))
-    const storeIds = Array.from(new Set(sessoes.map((s: any) => s.loja_id).filter(Boolean)))
+    const sessionRows = sessoes as PDISessionRow[]
+    const sessionIds = sessionRows.map(s => s.id)
+    const userIds = Array.from(new Set(sessionRows.flatMap(s => [s.colaborador_id, s.gerente_id]).filter((id): id is string => Boolean(id))))
+    const storeIds = Array.from(new Set(sessionRows.map(s => s.loja_id).filter((id): id is string => Boolean(id))))
 
     const [metasResp, avaliacoesResp, planoResp, usuariosResp, lojasResp] = await Promise.all([
         supabase.from('pdi_metas').select('*').in('sessao_id', sessionIds).order('created_at', { ascending: true }),
@@ -145,21 +214,21 @@ async function fetchPDISessions360(params: {
     if (lojasResp.error) throw lojasResp.error
 
     const metasBySession = new Map<string, PDIMeta360[]>()
-    ;((metasResp.data || []) as any[]).forEach(meta => {
+    ;((metasResp.data || []) as PDIMetaRow[]).forEach(meta => {
         const list = metasBySession.get(meta.sessao_id) || []
         list.push(meta)
         metasBySession.set(meta.sessao_id, list)
     })
 
     const avaliacoesBySession = new Map<string, PDIAvaliacao360[]>()
-    ;((avaliacoesResp.data || []) as any[]).forEach(av => {
+    ;((avaliacoesResp.data || []) as unknown as PDIAvaliacaoRow[]).forEach(av => {
         const list = avaliacoesBySession.get(av.sessao_id) || []
         list.push({
             id: av.id,
             sessao_id: av.sessao_id,
             competencia_id: av.competencia_id,
             competencia: av.competencia?.nome || 'Competencia',
-            tipo: av.competencia?.tipo,
+            tipo: av.competencia?.tipo ?? undefined,
             nota: av.nota_atribuida,
             alvo: av.alvo,
             gap: av.alvo - av.nota_atribuida,
@@ -168,7 +237,7 @@ async function fetchPDISessions360(params: {
     })
 
     const planoBySession = new Map<string, PDIPlanoAcao360[]>()
-    ;((planoResp.data || []) as any[]).forEach(acao => {
+    ;((planoResp.data || []) as unknown as PDIPlanoAcaoRow[]).forEach(acao => {
         const list = planoBySession.get(acao.sessao_id) || []
         list.push({
             id: acao.id,
@@ -179,16 +248,16 @@ async function fetchPDISessions360(params: {
             data_conclusao: acao.data_conclusao,
             impacto: acao.impacto,
             custo: acao.custo,
-            status: acao.status,
+            status: acao.status ?? undefined,
         })
         planoBySession.set(acao.sessao_id, list)
     })
 
-    const userNameById = new Map(((usuariosResp.data || []) as any[]).map(u => [u.id, u.name]))
-    const userAvatarById = new Map(((usuariosResp.data || []) as any[]).map(u => [u.id, u.avatar_url || null]))
-    const storeNameById = new Map(((lojasResp.data || []) as any[]).map(l => [l.id, l.name]))
+    const userNameById = new Map(((usuariosResp.data || []) as PDIUserIdentityRow[]).map(u => [u.id, u.name]))
+    const userAvatarById = new Map(((usuariosResp.data || []) as PDIUserIdentityRow[]).map(u => [u.id, u.avatar_url || null]))
+    const storeNameById = new Map(((lojasResp.data || []) as PDIStoreIdentityRow[]).map(l => [l.id, l.name]))
 
-    return (sessoes as any[]).map(sessao => {
+    return sessionRows.map(sessao => {
         const metas = metasBySession.get(sessao.id) || []
         const avaliacoes = avaliacoesBySession.get(sessao.id) || []
         const plano = planoBySession.get(sessao.id) || []
@@ -254,7 +323,7 @@ export function usePDI_MX() {
     const fetchSuggestedActions = useCallback(async (competenciaId: string) => {
         const { data, error } = await supabase.rpc('get_suggested_actions', { p_competencia_id: competenciaId })
         if (error) {
-            console.error(error)
+            setError(error.message)
             return []
         }
         return data as PDISuggestedAction[]
@@ -274,7 +343,7 @@ export function usePDI_MX() {
         const { data, error } = await supabase.rpc('get_pdi_print_bundle', { p_sessao_id: sessaoId })
         setLoading(false)
         if (error) throw error
-        return data
+        return data as PDIPrintBundle | null
     }, [])
 
     return {

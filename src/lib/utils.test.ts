@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { cn, slugify, toCamelCase, toSnakeCase } from './utils'
+import { cn, getPreRegistrationLink, slugify, toCamelCase, toSnakeCase } from './utils'
 
 describe('cn utility', () => {
   it('should merge class names correctly', () => {
@@ -46,6 +46,14 @@ describe('slugify utility', () => {
 
   it('should collapse separators and trim generated slugs', () => {
     expect(slugify('  InvestCar MG / RJ  ')).toBe('investcar-mg-rj')
+  })
+})
+
+describe('public link utilities', () => {
+  it('should generate absolute pre-registration links with normalized store slugs', () => {
+    const link = getPreRegistrationLink('PISCAR VEÍCULOS')
+    expect(link).toEndWith('/pre-cadastro/piscar-veiculos')
+    expect(link.startsWith('http')).toBe(true)
   })
 })
 

@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Building2, Search, Plus, RefreshCw, X, Mail, Copy, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { cn, slugify } from '@/lib/utils'
+import { cn, getPreRegistrationLink, slugify } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
@@ -14,6 +14,7 @@ import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Link } from 'react-router-dom'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
+import type { Store } from '@/types/database'
 
 export default function Lojas() {
     const { lojas, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus } = useStores()
@@ -85,8 +86,7 @@ export default function Lojas() {
     }
 
     const getRegistrationLink = useCallback((storeName: string) => {
-        if (typeof window === 'undefined') return `/pre-cadastro/${slugify(storeName)}`
-        return `${window.location.origin}/pre-cadastro/${slugify(storeName)}`
+        return getPreRegistrationLink(storeName)
     }, [])
 
     const copyRegistrationLink = useCallback(async (storeName: string) => {
@@ -95,7 +95,7 @@ export default function Lojas() {
         toast.success('Link de pré-cadastro copiado.')
     }, [getRegistrationLink])
 
-    const columns = useMemo<Column<any>[]>(() => [
+    const columns = useMemo<Column<Store>[]>(() => [
         {
             key: 'name',
             header: 'UNIDADE',

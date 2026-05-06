@@ -8,30 +8,74 @@ export const CHECKIN_DEADLINE_MINUTES = 9 * 60 + 30
 export const CHECKIN_EDIT_LIMIT_MINUTES = 9 * 60 + 45
 export const CHECKIN_DEADLINE_LABEL = '09:30'
 export const CHECKIN_EDIT_LIMIT_LABEL = '09:45'
+const MX_TIMEZONE = 'America/Sao_Paulo'
 
-function minutesSinceStartOfDay(date: Date) {
-    return date.getHours() * 60 + date.getMinutes()
+function getSaoPauloParts(date: Date) {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: MX_TIMEZONE,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+    }).formatToParts(date)
+
+    const byType = new Map(parts.map(part => [part.type, part.value]))
+    return {
+        year: Number(byType.get('year')),
+        month: Number(byType.get('month')),
+        day: Number(byType.get('day')),
+        hour: Number(byType.get('hour')),
+        minute: Number(byType.get('minute')),
+    }
+}
+
+function formatDateParts(year: number, month: number, day: number) {
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function minutesSinceSaoPauloStartOfDay(date: Date) {
+    const parts = getSaoPauloParts(date)
+    return parts.hour * 60 + parts.minute
 }
 
 // Regra MX: envio acontece hoje, mas a produção declarada se refere sempre ao dia anterior.
 export function calculateReferenceDate(baseDate = new Date()): string {
-    const refDate = new Date(baseDate)
-    refDate.setDate(baseDate.getDate() - 1)
-    return refDate.toISOString().split('T')[0]
+    const parts = getSaoPauloParts(baseDate)
+    const saoPauloCalendarDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day))
+    saoPauloCalendarDate.setUTCDate(saoPauloCalendarDate.getUTCDate() - 1)
+    return saoPauloCalendarDate.toISOString().split('T')[0]
 }
 
 export function isCheckinLate(baseDate = new Date()): boolean {
-    return minutesSinceStartOfDay(baseDate) > CHECKIN_DEADLINE_MINUTES
+    return minutesSinceSaoPauloStartOfDay(baseDate) > CHECKIN_DEADLINE_MINUTES
 }
 
 export function canEditCurrentCheckin(baseDate = new Date()): boolean {
-    return minutesSinceStartOfDay(baseDate) <= CHECKIN_EDIT_LIMIT_MINUTES
+    return minutesSinceSaoPauloStartOfDay(baseDate) <= CHECKIN_EDIT_LIMIT_MINUTES
 }
 
 export function getCheckinEditLockedAt(baseDate = new Date()): string {
-    const refDate = new Date(baseDate)
-    refDate.setHours(9, 45, 0, 0)
-    return refDate.toISOString()
+    const parts = getSaoPauloParts(baseDate)
+    const lockDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 12, 45, 0, 0))
+    return lockDate.toISOString()
+}
+
+export function validateCheckinSubmissionDate(finalDate: string, officialReferenceDate: string, scope: CheckinScope): string | null {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(finalDate)) {
+        return 'Data de referência inválida.'
+    }
+
+    if (finalDate > officialReferenceDate) {
+        return 'Lançamentos não podem usar data futura ou o dia corrente.'
+    }
+
+    if (scope === 'daily' && finalDate !== officialReferenceDate) {
+        return 'Registro diário aceita somente a referência oficial. Use ajuste técnico para datas retroativas.'
+    }
+
+    return null
 }
 
 export function useCheckins(storeIdOverride?: string) {
@@ -105,6 +149,9 @@ export function useCheckins(storeIdOverride?: string) {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
         
         const finalDate = customDate || formData.reference_date || referenceDate
+        const dateError = validateCheckinSubmissionDate(finalDate, referenceDate, scope)
+        if (dateError) return { error: dateError }
+
         const isDaily = scope === 'daily' && finalDate === referenceDate
 
         if (isDaily && todayCheckin && !canEditCurrentCheckin()) {

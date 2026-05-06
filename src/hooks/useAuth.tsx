@@ -2,9 +2,13 @@ import { useState, useEffect, useCallback, createContext, useContext, useRef, ty
 import { supabase } from '@/lib/supabase'
 import type { User as AppUser, UserRole, Membership, Store } from '@/types/database'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { isAdministradorMx, isPerfilInternoMx, normalizeRole } from '@/lib/auth/roles'
+
+export { isAdministradorMx, isPerfilInternoMx, normalizeRole } from '@/lib/auth/roles'
 
 type StoreMembership = Membership & { store: Store }
 const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
+const DEV_BYPASS_ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 
 interface AuthState {
     initialized: boolean
@@ -40,30 +44,20 @@ const AuthContext = createContext<AuthState>({
     changePassword: async () => ({ error: 'Not initialized' })
 })
 
-export function isPerfilInternoMx(role: UserRole | string | null | undefined): boolean {
-    return role === 'administrador_geral' || role === 'administrador_mx' || role === 'consultor_mx'
-}
-
-export function isAdministradorMx(role: UserRole | string | null | undefined): boolean {
-    return role === 'administrador_geral' || role === 'administrador_mx'
-}
-
-function normalizeRole(rawRole: string | null | undefined): UserRole {
-    const role = (rawRole || '').toLowerCase().trim()
-    if (role === 'administrador_geral' || role === 'admin_master') return 'administrador_geral'
-    if (role === 'administrador_mx' || role === 'admin') return 'administrador_mx'
-    if (role === 'consultor_mx' || role === 'consultor') return 'consultor_mx'
-    if (role === 'dono' || role === 'owner') return 'dono'
-    if (role === 'gerente' || role === 'manager') return 'gerente'
-    return 'vendedor'
-}
-
 function isTransientFetchError(error: { message?: string } | null) {
     return error?.message?.includes('Failed to fetch') || false
 }
 
+function isDevBypassAllowed() {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return false
+    return DEV_BYPASS_ALLOWED_HOSTS.has(window.location.hostname)
+}
+
 function readDevBypassProfile(): AppUser | null {
-    if (!import.meta.env.DEV || typeof window === 'undefined') return null
+    if (!isDevBypassAllowed()) {
+        if (typeof window !== 'undefined') window.localStorage.removeItem(DEV_BYPASS_STORAGE_KEY)
+        return null
+    }
 
     try {
         const raw = window.localStorage.getItem(DEV_BYPASS_STORAGE_KEY)
@@ -72,11 +66,14 @@ function readDevBypassProfile(): AppUser | null {
         const parsed = JSON.parse(raw) as Partial<AppUser>
         if (!parsed.id || !parsed.email) return null
 
+        const role = normalizeRole(parsed.role)
+        if (!role) return null
+
         return {
             id: parsed.id,
             name: parsed.name || 'Admin MX',
             email: parsed.email,
-            role: normalizeRole(parsed.role),
+            role,
             avatar_url: null,
             is_venda_loja: false,
             active: true,
@@ -95,7 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<AppUser | null>(null)
     const [vinculos_loja, setMemberships] = useState<StoreMembership[]>([])
     const [activeStoreId, setActiveStoreId] = useState<string | null>(null)
-    const [fallbackStoreId, setFallbackStoreId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [initialized, setInitialized] = useState(false)
     const authBootstrapCompleteRef = useRef(false)
@@ -134,24 +130,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return result
     }, [])
 
-    const fetchFallbackStoreId = useCallback(async () => {
-        const { data, error } = await supabase
-            .from('lojas')
-            .select('id')
-            .eq('active', true)
-            .order('name')
-            .limit(1)
-            .maybeSingle()
-            
-        if (error && !isTransientFetchError(error)) {
-            console.error('Audit Error [useAuth]: fetchFallbackStoreId fail ->', error.message)
-        }
-        
-        const storeId = data?.id || null
-        setFallbackStoreId(storeId)
-        return storeId
-    }, [])
-
     useEffect(() => {
         let mounted = true;
 
@@ -167,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setProfile(devProfile)
                 setMemberships([])
                 setActiveStoreId(null)
-                setFallbackStoreId(null)
                 lastLoadedUserIdRef.current = devProfile.id
                 authBootstrapCompleteRef.current = true
                 setInitialized(true)
@@ -204,7 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setProfile(null);
                     setMemberships([]);
                     setActiveStoreId(null);
-                    setFallbackStoreId(null);
                     setLoading(false);
                     lastLoadedUserIdRef.current = null;
                 }
@@ -244,7 +220,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     fetchMemberships(userId)
                 ])
                 
-                const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+                const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : null
+
+                if (!currentRole) {
+                    await supabase.auth.signOut()
+                    setSupabaseUser(null)
+                    setProfile(null)
+                    setMemberships([])
+                    setActiveStoreId(null)
+                    return
+                }
 
                 if (loadedProfile?.active === false) {
                     await supabase.auth.signOut()
@@ -252,7 +237,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setProfile(null)
                     setMemberships([])
                     setActiveStoreId(null)
-                    setFallbackStoreId(null)
                     return
                 }
                 
@@ -265,11 +249,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     return // Aborta o carregamento
                 }
 
-                if (!loadedMemberships.length && isPerfilInternoMx(currentRole)) {
-                    await fetchFallbackStoreId()
-                } else {
-                    setFallbackStoreId(null)
-                }
+                if (!loadedMemberships.length && isPerfilInternoMx(currentRole)) setActiveStoreId(null)
                 lastLoadedUserIdRef.current = userId
             } catch (err) {
                 console.error("Audit Error [useAuth]: loadUserData fail ->", err)
@@ -291,13 +271,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             mounted = false;
             if (timeoutId) clearTimeout(timeoutId)
         }
-    }, [supabaseUser, initialized, fetchProfile, fetchMemberships, fetchFallbackStoreId])
+    }, [supabaseUser, initialized, fetchProfile, fetchMemberships])
 
     const signIn = async (email: string, password: string) => {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         
         if (error) {
-            return { error: error.message }
+            return { error: 'E-mail ou senha inválidos.' }
         }
 
         if (data?.user) {
@@ -308,7 +288,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 fetchMemberships(data.user.id)
             ])
             
-            const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : 'vendedor'
+            const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : null
+
+            if (!currentRole) {
+                await supabase.auth.signOut()
+                setSupabaseUser(null)
+                setProfile(null)
+                setMemberships([])
+                return { error: 'ACESSO BLOQUEADO: Perfil operacional inválido.' }
+            }
 
             if (loadedProfile?.active === false) {
                 await supabase.auth.signOut()
@@ -373,12 +361,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null)
         setMemberships([])
         setActiveStoreId(null)
-        setFallbackStoreId(null)
     }
 
     const role = profile ? normalizeRole(profile.role) : null
     const membership = vinculos_loja.find(m => m.store_id === activeStoreId) || vinculos_loja[0] || null
-    const storeId = activeStoreId || membership?.store_id || fallbackStoreId || null
+    const storeId = activeStoreId || membership?.store_id || (!isPerfilInternoMx(role) ? profile?.store_id : null) || null
 
     return (
         <AuthContext.Provider value={{

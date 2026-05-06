@@ -111,8 +111,8 @@ export function SistemaMxTab() {
                 />
                 <CriticalOpCard
                     icon={<Cpu size={22} />}
-                    label="AI Diagnostics"
-                    desc="Diagnósticos preditivos da IA MX"
+                    label="Auditoria de Funil"
+                    desc="Diagnóstico heurístico MX 20/60/33"
                     route="/auditoria"
                     severity="info"
                 />

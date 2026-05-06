@@ -18,9 +18,55 @@ export type TeamMemberUpdateFields = Partial<Pick<User, 'name' | 'email' | 'phon
     is_venda_loja?: boolean
 }
 
+export type TeamMember = User & {
+    checkin_today: boolean
+    started_at?: string
+    ended_at?: string
+    is_active?: boolean
+    closing_month_grace?: boolean
+    store_name?: string
+}
+
+type TeamMembershipRow = {
+    user_id: string
+    store_id: string
+    role: UserRole
+    users: User | null
+    store?: { name?: string | null } | null
+}
+
+type SellerTenureRow = {
+    seller_user_id: string
+    store_id: string
+    started_at?: string | null
+    ended_at?: string | null
+    is_active?: boolean | null
+    closing_month_grace?: boolean | null
+}
+
+export interface RegisterUserInput {
+    email: string
+    password?: string
+    name: string
+    role: UserRole
+    store_id?: string
+    phone?: string
+    started_at?: string
+    ended_at?: string | null
+    is_active?: boolean
+    closing_month_grace?: boolean
+    is_venda_loja?: boolean
+}
+
+function hasStoreTeamUser(row: TeamMembershipRow): row is TeamMembershipRow & { users: User } {
+    return Boolean(row.users && isStoreTeamRole(row.role || row.users.role))
+}
+
 const normalizeStoreName = (name: string) => name.trim().toLocaleUpperCase('pt-BR')
 const isInternalRole = (role?: string | null) => role === 'administrador_geral' || role === 'administrador_mx' || role === 'consultor_mx'
+const isStoreTeamRole = (role?: string | null) => role === 'dono' || role === 'gerente' || role === 'vendedor'
 const todayISO = () => new Date().toISOString().slice(0, 10)
+const DEFAULT_INITIAL_MONTHLY_GOAL = 1
 
 const storeUpdateSchema = z.object({
     name: z.string().trim().min(2, 'Nome da loja deve ter pelo menos 2 caracteres.').max(120, 'Nome da loja muito longo.').optional(),
@@ -61,7 +107,7 @@ const normalizePartners = (partners?: StorePartner[]) => {
 export function useTeam(storeIdOverride?: string) {
     const { storeId: authStoreId, role } = useAuth()
     const storeId = storeIdOverride || authStoreId
-    const [sellers, setSellers] = useState<(User & { checkin_today: boolean; started_at?: string; ended_at?: string; is_active?: boolean; closing_month_grace?: boolean; store_name?: string })[]>([])
+    const [sellers, setSellers] = useState<TeamMember[]>([])
     const [loading, setLoading] = useState(true)
 
     const referenceDate = calculateReferenceDate()
@@ -70,9 +116,15 @@ export function useTeam(storeIdOverride?: string) {
         setLoading(true)
 
         try {
-            let teamData: any[] = []
-            let tenureMap = new Map()
-            let checkedIn = new Set()
+            let teamData: TeamMembershipRow[] = []
+            let tenureMap = new Map<string, SellerTenureRow>()
+            let checkedIn = new Set<string>()
+            const isGlobalView = !storeId || storeId === 'all'
+
+            if (isGlobalView && !isAdministradorMx(role)) {
+                setSellers([])
+                return
+            }
 
             // 1. Fetch Users & Memberships
             if (storeId && storeId !== 'all') {
@@ -80,51 +132,36 @@ export function useTeam(storeIdOverride?: string) {
                     .from('vinculos_loja')
                     .select('user_id, store_id, role, users:usuarios(*), store:lojas(name)')
                     .eq('store_id', storeId)
-                teamData = members || []
+                teamData = (members || []) as unknown as TeamMembershipRow[]
             } else {
-                // Global view for Admins
+                // Global view for Admins: only store-linked operational roles belong in this team list.
                 const { data: members } = await supabase
                     .from('vinculos_loja')
                     .select('user_id, store_id, role, users:usuarios(*), store:lojas(name)')
-                
-                // Also get users WITHOUT vinculos_loja (like some Donos or Admins)
-                const { data: allUsers } = await supabase
-                    .from('usuarios')
-                    .select('*')
-                
-                // Map to handle users with multiple lojas or no lojas
-                const userMap = new Map()
-                
-                // Process vinculos_loja first
-                ;(members || []).forEach((m: any) => {
-                    if (!userMap.has(m.user_id)) {
-                        userMap.set(m.user_id, {
-                            ...m.users,
-                            role: m.role,
-                            store_id: m.store_id,
-                            store_name: m.store?.name || 'MULTI-LOJA'
-                        })
-                    } else {
-                        // Concatenate store names for global view
-                        const existing = userMap.get(m.user_id)
-                        if (!existing.store_name.includes(m.store?.name)) {
-                            existing.store_name += `, ${m.store?.name}`
+
+                const userMap = new Map<string, TeamMembershipRow>()
+
+                ;((members || []) as unknown as TeamMembershipRow[])
+                    .filter(hasStoreTeamUser)
+                    .forEach((m) => {
+                        if (!userMap.has(m.user_id)) {
+                            userMap.set(m.user_id, {
+                                user_id: m.user_id,
+                                store_id: m.store_id,
+                                role: m.role,
+                                users: m.users,
+                                store: { name: m.store?.name || 'MULTI-LOJA' },
+                            })
+                        } else {
+                            const existing = userMap.get(m.user_id)
+                            const storeName = m.store?.name
+                            if (existing?.store?.name && storeName && !existing.store.name.includes(storeName)) {
+                                existing.store.name += `, ${storeName}`
+                            }
                         }
-                    }
-                })
+                    })
 
-                // Add users who have no membership record
-                ;(allUsers || []).forEach((u: any) => {
-                    if (!userMap.has(u.id)) {
-                        userMap.set(u.id, {
-                            ...u,
-                            role: u.role,
-                            store_name: 'SEM LOJA'
-                        })
-                    }
-                })
-
-                teamData = Array.from(userMap.values()).map(u => ({ users: u, role: u.role, store: { name: u.store_name } }))
+                teamData = Array.from(userMap.values())
             }
 
             // 2. Fetch Tenures (Vigência)
@@ -133,7 +170,7 @@ export function useTeam(storeIdOverride?: string) {
                 tenuresQuery = tenuresQuery.eq('store_id', storeId)
             }
             const { data: tenures } = await tenuresQuery
-            tenureMap = new Map((tenures || []).map(t => [`${t.store_id}:${t.seller_user_id}`, t]))
+            tenureMap = new Map(((tenures || []) as SellerTenureRow[]).map(t => [`${t.store_id}:${t.seller_user_id}`, t]))
 
             // 3. Fetch Checkins
             let checkinsQuery = supabase.from('lancamentos_diarios').select('seller_user_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
@@ -144,18 +181,18 @@ export function useTeam(storeIdOverride?: string) {
             checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
 
             // 4. Assemble Final Team
-            setSellers(teamData.map((m: any) => {
+            setSellers(teamData.filter(hasStoreTeamUser).map((m) => {
                 const u = m.users
-                const memberStoreId = m.store_id || u.store_id
+                const memberStoreId = m.store_id || u?.store_id
                 const tenure = tenureMap.get(`${memberStoreId}:${u.id}`)
                 return {
                     ...u,
-                    role: m.role || u.role, 
+                    role: m.role || u.role,
                     store_id: memberStoreId,
-                    store_name: m.store?.name,
+                    store_name: m.store?.name || undefined,
                     checkin_today: checkedIn.has(u.id),
-                    started_at: tenure?.started_at,
-                    ended_at: tenure?.ended_at,
+                    started_at: tenure?.started_at ?? undefined,
+                    ended_at: tenure?.ended_at ?? undefined,
                     is_active: tenure?.is_active ?? u?.active ?? true,
                     closing_month_grace: tenure?.closing_month_grace ?? false,
                 }
@@ -166,12 +203,20 @@ export function useTeam(storeIdOverride?: string) {
         } finally {
             setLoading(false)
         }
-    }, [storeId, referenceDate])
+    }, [storeId, referenceDate, role])
 
     const updateVigencia = async (userId: string, data: Record<string, unknown>) => {
-        if (!storeId) return { error: 'Loja não identificada' }
+        if (!isAdministradorMx(role) && role !== 'dono' && role !== 'gerente') {
+            return { error: 'Apenas gestores da loja podem alterar vigência.' }
+        }
+        const scopedStoreId = storeId && storeId !== 'all' ? storeId : null
+        if (!scopedStoreId) return { error: 'Selecione uma loja para alterar a vigência.' }
+        const target = sellers.find(member => member.id === userId)
+        if (target && target.role !== 'vendedor') {
+            return { error: 'Vigência operacional só pode ser alterada para vendedores.' }
+        }
         const { error } = await supabase.from('vendedores_loja').upsert({
-            store_id: storeId,
+            store_id: scopedStoreId,
             seller_user_id: userId,
             ...data
         }, { onConflict: 'store_id, seller_user_id' })
@@ -270,6 +315,7 @@ export function useTeam(storeIdOverride?: string) {
         if (!isAdministradorMx(role)) {
             if (role !== 'dono' && role !== 'gerente') return { error: 'Apenas gestores da loja podem excluir integrantes.' }
             const scopedStoreId = targetStoreId || (storeId && storeId !== 'all' ? storeId : null)
+            if (!scopedStoreId) return { error: 'Selecione a loja do integrante.' }
             const { data, error } = await supabase.functions.invoke('manage-store-team', {
                 body: {
                     action: 'delete',
@@ -287,80 +333,31 @@ export function useTeam(storeIdOverride?: string) {
         const scopedStoreId = targetStoreId || (storeId && storeId !== 'all' ? storeId : null)
         const endedAt = todayISO()
 
-        if (scopedStoreId) {
-            const { error: tenureError } = await supabase
-                .from('vendedores_loja')
-                .update({ is_active: false, ended_at: endedAt })
-                .eq('store_id', scopedStoreId)
-                .eq('seller_user_id', userId)
-            if (tenureError) return { error: tenureError.message }
+        if (!scopedStoreId) return { error: 'Selecione a loja do integrante.' }
 
-            const { error: membershipError } = await supabase
-                .from('vinculos_loja')
-                .delete()
-                .eq('store_id', scopedStoreId)
-                .eq('user_id', userId)
-            if (membershipError) return { error: membershipError.message }
+        const { error: tenureError } = await supabase
+            .from('vendedores_loja')
+            .update({ is_active: false, ended_at: endedAt })
+            .eq('store_id', scopedStoreId)
+            .eq('seller_user_id', userId)
+        if (tenureError) return { error: tenureError.message }
 
-            const { data: remainingMemberships, error: remainingError } = await supabase
-                .from('vinculos_loja')
-                .select('id')
-                .eq('user_id', userId)
-                .limit(1)
-            if (remainingError) return { error: remainingError.message }
-
-            if (!remainingMemberships?.length) {
-                const { error: userError } = await supabase.from('usuarios').update({ active: false }).eq('id', userId)
-                if (userError) return { error: userError.message }
-            }
-        } else {
-            const { error: tenureError } = await supabase
-                .from('vendedores_loja')
-                .update({ is_active: false, ended_at: endedAt })
-                .eq('seller_user_id', userId)
-            if (tenureError) return { error: tenureError.message }
-
-            const { error: membershipError } = await supabase.from('vinculos_loja').delete().eq('user_id', userId)
-            if (membershipError) return { error: membershipError.message }
-
-            const { error: userError } = await supabase.from('usuarios').update({ active: false }).eq('id', userId)
-            if (userError) return { error: userError.message }
-        }
+        const { error: membershipError } = await supabase
+            .from('vinculos_loja')
+            .delete()
+            .eq('store_id', scopedStoreId)
+            .eq('user_id', userId)
+        if (membershipError) return { error: membershipError.message }
 
         await fetchTeam()
         return { error: null }
     }
 
-    const registerUser = async (userData: { 
-        email: string; 
-        password?: string; 
-        name: string; 
-        role: string; 
-        store_id: string;
-        phone?: string;
-        started_at?: string;
-        ended_at?: string | null;
-        is_active?: boolean;
-        closing_month_grace?: boolean;
-        is_venda_loja?: boolean;
-    }) => {
+    const registerUser = async (userData: RegisterUserInput) => {
         const { data, error } = await supabase.functions.invoke('register-user', {
             body: userData
         })
         if (!error && data?.success) {
-            if (data.user_id && userData.role === 'vendedor' && userData.store_id && isAdministradorMx(role)) {
-                const { error: tenureError } = await supabase
-                    .from('vendedores_loja')
-                    .upsert({
-                        store_id: userData.store_id,
-                        seller_user_id: data.user_id,
-                        started_at: userData.started_at || todayISO(),
-                        ended_at: userData.ended_at || null,
-                        is_active: userData.is_active ?? true,
-                        closing_month_grace: userData.closing_month_grace ?? false,
-                    }, { onConflict: 'store_id,seller_user_id' })
-                if (tenureError) return { error: tenureError.message }
-            }
             await fetchTeam()
             return { success: true }
         }
@@ -445,7 +442,7 @@ export function useStores() {
                 }, { onConflict: 'store_id' }),
                 supabase.from('regras_metas_loja').upsert({
                     store_id: store.id,
-                    monthly_goal: 0,
+                    monthly_goal: DEFAULT_INITIAL_MONTHLY_GOAL,
                     individual_goal_mode: 'even',
                     include_venda_loja_in_store_total: true,
                     include_venda_loja_in_individual_goal: false,
@@ -521,8 +518,8 @@ export function useStores() {
     }
 
     const deleteStore = async (id: string) => {
-        if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem excluir lojas.' }
-        const { error } = await supabase.from('lojas').delete().eq('id', id)
+        if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem arquivar lojas.' }
+        const { error } = await supabase.from('lojas').update({ active: false }).eq('id', id)
         if (error) return { error: error.message }
         await fetchStores()
         return { error: null }
@@ -541,10 +538,15 @@ export function useMemberships() {
 
     const fetch = useCallback(async () => {
         setLoading(true)
+        if (!isAdministradorMx(role)) {
+            setMemberships([])
+            setLoading(false)
+            return
+        }
         const { data } = await supabase.from('vinculos_loja').select('*, store:lojas(name)')
         if (data) setMemberships(data)
         setLoading(false)
-    }, [])
+    }, [role])
 
     useEffect(() => { fetch() }, [fetch])
     return { vinculos_loja, loading, refetch: fetch }
@@ -668,10 +670,11 @@ export function useAllSellers() {
 
         const storeMap = new Map((lojas || []).map(s => [s.id, s.name]))
         if (tenures) {
-            setSellers(tenures
-                .filter(t => (t as any).users?.role === 'vendedor')
+            const typedTenures = tenures as unknown as Array<{ store_id: string; users?: User | null }>
+            setSellers(typedTenures
+                .filter(t => t.users?.role === 'vendedor')
                 .map(t => ({
-                    ...(t as any).users as User,
+                    ...t.users as User,
                     store_id: t.store_id,
                     store_name: storeMap.get(t.store_id) || '',
                 }))

@@ -7,7 +7,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import type { Store } from '@/types/database'
 import type { StoreUpdateFields } from '@/hooks/useTeam'
-import { slugify } from '@/lib/utils'
+import { getPreRegistrationLink } from '@/lib/utils'
 
 interface StoreEditModalProps {
   open: boolean
@@ -43,9 +43,7 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
     })
   }, [store])
 
-  const registrationLink = store && typeof window !== 'undefined'
-    ? `${window.location.origin}/pre-cadastro/${slugify(store.name)}`
-    : ''
+  const registrationLink = store ? getPreRegistrationLink(store.name) : ''
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

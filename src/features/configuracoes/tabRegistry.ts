@@ -40,7 +40,7 @@ export const TAB_REGISTRY: ConfigTabDefinition[] = [
     {
         key: 'seguranca',
         label: 'Segurança',
-        description: 'Senha, sessões e 2FA',
+        description: 'Senha e sessões',
         icon: Lock,
         component: SegurancaTab,
         roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente', 'vendedor'],

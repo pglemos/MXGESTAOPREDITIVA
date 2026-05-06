@@ -7,6 +7,12 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { type Notification as AppNotification } from '@/lib/schemas/notification.schema'
+
+type BroadcastDisplay = AppNotification & {
+    titulo?: string | null
+    mensagem?: string | null
+}
 
 export function BroadcastsTab() {
     const { broadcasts, loading, refetch } = useBroadcasts()
@@ -55,7 +61,7 @@ export function BroadcastsTab() {
                     </div>
                 ) : (
                     <div className="divide-y divide-border-default">
-                        {broadcasts.slice(0, 10).map((b: any) => (
+                        {broadcasts.slice(0, 10).map((b: BroadcastDisplay) => (
                             <div key={b.broadcast_id || b.id} className="p-mx-md hover:bg-surface-alt transition-colors">
                                 <div className="flex items-start justify-between gap-mx-sm">
                                     <div className="flex-1 min-w-0">

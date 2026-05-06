@@ -40,6 +40,22 @@ export function getAvatarUrl(name: string, options?: { size?: number; background
     return `https://ui-avatars.com/api/?${params.toString()}`
 }
 
+export function getPublicAppOrigin(): string {
+    const configured = (import.meta.env.VITE_PUBLIC_APP_URL || import.meta.env.VITE_APP_URL || '').trim()
+    if (configured) {
+        try {
+            return new URL(configured).origin
+        } catch {
+            // Invalid local config should not break rendering public links.
+        }
+    }
+
+    if (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null') {
+        return window.location.origin
+    }
+    return 'https://mxperformance.vercel.app'
+}
+
 export function slugify(text: string): string {
   return text
     .toString()
@@ -51,4 +67,8 @@ export function slugify(text: string): string {
     .replace(/[^\w-]+/g, '') 
     .replace(/\-\-+/g, '-')   
     .replace(/^-+|-+$/g, '')
+}
+
+export function getPreRegistrationLink(storeName: string): string {
+    return `${getPublicAppOrigin()}/pre-cadastro/${slugify(storeName)}`
 }

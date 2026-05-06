@@ -25,18 +25,18 @@ export default function VendedorPDI() {
         toast.success('Plano de evolução sincronizado!')
     }, [refetch])
 
-    const activePDI = useMemo(() => pdis.find((p: any) => p.status !== 'concluido') || pdis[0], [pdis])
+    const activePDI = useMemo(() => pdis.find(p => p.status !== 'concluido') || pdis[0], [pdis])
 
     const radarData = useMemo(() => {
         if (!activePDI) return []
-        return ((activePDI as any).avaliacoes || []).map((av: any) => ({
+        return activePDI.avaliacoes.map(av => ({
             subject: av.competencia,
             A: av.nota,
         }))
     }, [activePDI])
 
     const metasByPrazo = useMemo(() => {
-        const metas = ((activePDI as any)?.metas || []) as any[]
+        const metas = activePDI?.metas || []
         return {
             '6_meses': metas.filter(m => m.prazo === '6_meses'),
             '12_meses': metas.filter(m => m.prazo === '12_meses'),
@@ -44,7 +44,13 @@ export default function VendedorPDI() {
         }
     }, [activePDI])
 
-    const actionPlan = useMemo(() => ((activePDI as any)?.plano_acao || []) as any[], [activePDI])
+    const actionPlan = useMemo(() => activePDI?.plano_acao || [], [activePDI])
+
+    const pdiMilestones = useMemo(() => [
+        { label: '6 meses', metas: metasByPrazo['6_meses'] },
+        { label: '12 meses', metas: metasByPrazo['12_meses'] },
+        { label: '24 meses', metas: metasByPrazo['24_meses'] },
+    ], [metasByPrazo])
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-white">
@@ -97,28 +103,24 @@ export default function VendedorPDI() {
                                         </div>
                                     </div>
                                     <Typography variant="h1" className="text-3xl md:text-4xl leading-tight">
-                                        "{(activePDI as any).meta_6m || 'Metas em definicao'}"
+                                        "{activePDI.meta_6m || 'Metas em definicao'}"
                                     </Typography>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg pt-8">
                                         <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
                                             <Typography variant="caption" tone="muted" className="mb-2 block">12 Meses</Typography>
-                                            <Typography variant="h3" className="text-base">{(activePDI as any).meta_12m || 'Definir na próxima revisão'}</Typography>
+                                            <Typography variant="h3" className="text-base">{activePDI.meta_12m || 'Definir na próxima revisão'}</Typography>
                                         </div>
                                         <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
                                             <Typography variant="caption" tone="muted" className="mb-2 block">24 Meses</Typography>
-                                            <Typography variant="h3" className="text-base">{(activePDI as any).meta_24m || 'Plano em expansão'}</Typography>
+                                            <Typography variant="h3" className="text-base">{activePDI.meta_24m || 'Plano em expansão'}</Typography>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md pt-2">
-                                        {[
-                                            ['6 meses', metasByPrazo['6_meses']],
-                                            ['12 meses', metasByPrazo['12_meses']],
-                                            ['24 meses', metasByPrazo['24_meses']],
-                                        ].map(([label, metas]) => (
-                                            <div key={label as string} className="bg-white border border-border-default rounded-mx-xl p-mx-sm shadow-sm">
-                                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest mb-2 block">{label as string}</Typography>
+                                        {pdiMilestones.map(({ label, metas }) => (
+                                            <div key={label} className="bg-white border border-border-default rounded-mx-xl p-mx-sm shadow-sm">
+                                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest mb-2 block">{label}</Typography>
                                                 <ul className="space-y-mx-xs">
-                                                    {(metas as any[]).map((meta, idx) => (
+                                                    {metas.map((meta, idx) => (
                                                         <li key={`${meta.prazo}-${idx}`} className="text-xs font-bold uppercase text-text-secondary">
                                                             <span className="text-brand-primary">[{meta.tipo}]</span> {meta.descricao}
                                                         </li>

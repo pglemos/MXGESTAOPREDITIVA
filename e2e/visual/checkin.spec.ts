@@ -3,7 +3,7 @@ import { authenticate, waitForStable } from './helpers';
 
 test.describe('Checkin Page - Visual Regression', () => {
   test.beforeEach(async ({ page }) => {
-    await authenticate(page);
+    await authenticate(page, { role: 'vendedor' });
     await page.goto('/lancamento-diario');
     await waitForStable(page);
   });

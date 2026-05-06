@@ -166,14 +166,14 @@ export function SegurancaTab() {
                     </div>
                     <div>
                         <Typography variant="h3" className="uppercase tracking-tight">Autenticação em Dois Fatores</Typography>
-                        <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">2FA via TOTP / SMS</Typography>
+                        <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Recurso não habilitado</Typography>
                     </div>
                 </header>
                 <div className="flex items-center justify-between">
                     <Typography variant="caption" tone="muted" className="font-bold leading-relaxed">
-                        2FA está em desenvolvimento. Em breve você poderá ativar autenticação por aplicativo (Google Authenticator, Authy).
+                        2FA ainda não está disponível neste ambiente. A segurança ativa hoje é feita por senha forte, troca obrigatória e encerramento global de sessões.
                     </Typography>
-                    <Badge variant="outline" className="font-black uppercase shrink-0">Em breve</Badge>
+                    <Badge variant="outline" className="font-black uppercase shrink-0">Indisponível</Badge>
                 </div>
             </Card>
         </div>

@@ -1,6 +1,5 @@
-// deno-lint-ignore-file no-explicit-any
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from '../_shared/cors.ts'
 
 interface RegisterUserPayload {
@@ -32,6 +31,24 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
+}
+
+async function rollbackCreatedUser(adminClient: SupabaseClient, userId: string) {
+  const rollbackErrors: string[] = []
+
+  const steps = [
+    () => adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId),
+    () => adminClient.from('vinculos_loja').delete().eq('user_id', userId),
+    () => adminClient.from('usuarios').delete().eq('id', userId),
+    () => adminClient.auth.admin.deleteUser(userId),
+  ]
+
+  for (const step of steps) {
+    const { error } = await step()
+    if (error) rollbackErrors.push(error.message)
+  }
+
+  return rollbackErrors
 }
 
 serve(async (req) => {
@@ -111,6 +128,19 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: `Caller role "${callerRole}" cannot create role "${role}"` }, 403)
   }
 
+  if (['dono', 'gerente'].includes(callerRole)) {
+    const { data: callerMembership, error: callerMembershipError } = await adminClient
+      .from('vinculos_loja')
+      .select('role')
+      .eq('user_id', caller.user.id)
+      .eq('store_id', store_id)
+      .maybeSingle()
+
+    if (callerMembershipError || !callerMembership || callerMembership.role !== callerRole) {
+      return jsonResponse({ success: false, error: 'Caller cannot create users outside their own store scope' }, 403)
+    }
+  }
+
   const { data: created, error: createError } = await adminClient.auth.admin.createUser({
     email: email.trim().toLowerCase(),
     password,
@@ -147,6 +177,7 @@ serve(async (req) => {
     )
 
   if (profileError) {
+    await rollbackCreatedUser(adminClient, newUserId)
     return jsonResponse({ success: false, error: `User created but profile insert failed: ${profileError.message}` }, 500)
   }
 
@@ -160,6 +191,7 @@ serve(async (req) => {
       )
 
     if (membershipError) {
+      await rollbackCreatedUser(adminClient, newUserId)
       return jsonResponse({ success: false, error: `Profile created but membership insert failed: ${membershipError.message}` }, 500)
     }
     membershipCreated = true
@@ -180,6 +212,7 @@ serve(async (req) => {
         )
 
       if (tenureError) {
+        await rollbackCreatedUser(adminClient, newUserId)
         return jsonResponse({ success: false, error: `Profile created but seller tenure insert failed: ${tenureError.message}` }, 500)
       }
     }

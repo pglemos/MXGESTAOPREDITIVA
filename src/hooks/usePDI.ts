@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
-import type { PDIFormData } from '@/types/database'
+import type { PDIFormData, PDIStatus } from '@/types/database'
 import { parsePDIArray, parsePDIReviewArray, type PDI, type PDIReview } from '@/lib/schemas/pdi.schema'
 
 interface PDIReviewCreateDTO {
@@ -12,6 +12,7 @@ interface PDIReviewCreateDTO {
 }
 
 const ALLOWED_REVIEW_KEYS = new Set<string>(['notes', 'rating', 'pdi_id', 'reviewer_id'])
+const ALLOWED_PDI_STATUSES: readonly PDIStatus[] = ['aberto', 'em_andamento', 'concluido']
 
 function sanitizeReviewPayload(data: Record<string, unknown>): PDIReviewCreateDTO {
   const sanitized: PDIReviewCreateDTO = {}
@@ -19,6 +20,16 @@ function sanitizeReviewPayload(data: Record<string, unknown>): PDIReviewCreateDT
     if (key in data) (sanitized as Record<string, unknown>)[key] = data[key]
   }
   return sanitized
+}
+
+function validateReviewPayload(data: PDIReviewCreateDTO): string | null {
+  if (data.notes !== undefined && (typeof data.notes !== 'string' || data.notes.trim().length > 2000)) {
+    return 'Notas da revisão inválidas.'
+  }
+  if (data.rating !== undefined && (!Number.isInteger(data.rating) || data.rating < 0 || data.rating > 10)) {
+    return 'Nota da revisão deve ser um número inteiro entre 0 e 10.'
+  }
+  return null
 }
 
 export function usePDIs(storeIdOverride?: string) {
@@ -81,24 +92,47 @@ export function usePDIs(storeIdOverride?: string) {
 
   const acknowledgeMut = useMutation({
     mutationFn: async ({ id, type }: { id: string; type: 'seller' | 'manager' }) => {
+      const target = pdis?.find(item => item.id === id)
+      if (!profile || !target) return { error: 'PDI não encontrado para confirmação.' }
+      if (type === 'seller' && target.seller_id !== profile.id) {
+        return { error: 'Apenas o vendedor destinatário pode assinar este PDI.' }
+      }
+      if (type === 'manager' && !isPerfilInternoMx(role) && role !== 'gerente') {
+        return { error: 'Apenas gestor ou equipe MX pode assinar este PDI.' }
+      }
+
       const field = type === 'seller' ? 'seller_acknowledged_at' : 'manager_acknowledged_at'
-      await supabase.from('pdis').update({ 
+      let query = supabase.from('pdis').update({
         [field]: new Date().toISOString(),
         acknowledged: type === 'seller' ? true : undefined
       }).eq('id', id)
+
+      if (type === 'seller') query = query.eq('seller_id', profile.id)
+      if (type === 'manager' && !isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
+
+      const { error } = await query
+      return { error: error?.message || null }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pdis'] })
+    onSuccess: (result) => {
+      if (!result.error) queryClient.invalidateQueries({ queryKey: ['pdis'] })
     },
   })
 
   const updateStatusMut = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      if (!isPerfilInternoMx(role) && role !== 'gerente') return
-      await supabase.from('pdis').update({ status }).eq('id', id)
+    mutationFn: async ({ id, status }: { id: string; status: PDIStatus }) => {
+      const target = pdis?.find(item => item.id === id)
+      if (!profile || !target) return { error: 'PDI não encontrado para atualização.' }
+      if (!ALLOWED_PDI_STATUSES.includes(status)) return { error: 'Status de PDI inválido.' }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não alterar status.' }
+
+      let query = supabase.from('pdis').update({ status }).eq('id', id)
+      if (!isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
+
+      const { error } = await query
+      return { error: error?.message || null }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pdis'] })
+    onSuccess: (result) => {
+      if (!result?.error) queryClient.invalidateQueries({ queryKey: ['pdis'] })
     },
   })
 
@@ -116,14 +150,21 @@ export function usePDIs(storeIdOverride?: string) {
 
   const createReviewMut = useMutation({
     mutationFn: async ({ pdiId, data }: { pdiId: string; data: Record<string, unknown> }) => {
-      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: new Error('Seu papel permite acompanhar PDIs, mas não revisar.') }
+      const target = pdis?.find(item => item.id === pdiId)
+      if (!profile || !target) return { error: 'PDI não encontrado para revisão.' }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não revisar.' }
       const sanitized = sanitizeReviewPayload(data)
-      const { error } = await supabase.from('pdi_reviews').insert({ pdi_id: pdiId, ...sanitized })
-      return { error }
+      const validationError = validateReviewPayload(sanitized)
+      if (validationError) return { error: validationError }
+
+      const { error } = await supabase.from('pdi_reviews').insert({ ...sanitized, pdi_id: pdiId, reviewer_id: profile.id })
+      return { error: error?.message || null }
     },
-    onSuccess: (_result, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['pdis'] })
-      queryClient.invalidateQueries({ queryKey: ['pdi-reviews', variables.pdiId] })
+    onSuccess: (result, variables) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: ['pdis'] })
+        queryClient.invalidateQueries({ queryKey: ['pdi-reviews', variables.pdiId] })
+      }
     },
   })
 
@@ -132,7 +173,7 @@ export function usePDIs(storeIdOverride?: string) {
     usePDIReviews,
     loading,
     createPDI: (data: PDIFormData) => createPDIMut.mutateAsync(data),
-    updateStatus: (id: string, status: string) => updateStatusMut.mutateAsync({ id, status }),
+    updateStatus: (id: string, status: PDIStatus) => updateStatusMut.mutateAsync({ id, status }),
     acknowledge: (id: string, type: 'seller' | 'manager') => acknowledgeMut.mutateAsync({ id, type }),
     createReview: (pdiId: string, data: Record<string, unknown>) => createReviewMut.mutateAsync({ pdiId, data }),
     fetchReviews,

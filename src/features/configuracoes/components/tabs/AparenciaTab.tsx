@@ -5,12 +5,17 @@ import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { toast } from 'sonner'
+import { useAuth } from '@/hooks/useAuth'
 
 type Theme = 'light' | 'dark' | 'system'
 type Density = 'comfortable' | 'compact'
 
 const THEME_KEY = 'mx_theme_preference'
 const DENSITY_KEY = 'mx_density_preference'
+
+function scopedPreferenceKey(key: string, userId?: string | null) {
+    return userId ? `${key}:${userId}` : `${key}:anon`
+}
 
 function applyThemeClass(t: Theme) {
     if (typeof window === 'undefined') return
@@ -24,13 +29,17 @@ function applyDensityClass(d: Density) {
 }
 
 export function AparenciaTab() {
+    const { profile } = useAuth()
     const [theme, setTheme] = useState<Theme>('light')
     const [density, setDensity] = useState<Density>('comfortable')
+    const themeKey = scopedPreferenceKey(THEME_KEY, profile?.id)
+    const densityKey = scopedPreferenceKey(DENSITY_KEY, profile?.id)
 
     useEffect(() => {
-        const saved = (typeof window !== 'undefined' ? localStorage.getItem(THEME_KEY) : null) as Theme | null
+        if (typeof window === 'undefined') return
+        const saved = (localStorage.getItem(themeKey) || localStorage.getItem(THEME_KEY)) as Theme | null
         const nextTheme = saved || 'light'
-        const savedDensity = (typeof window !== 'undefined' ? localStorage.getItem(DENSITY_KEY) : null) as Density | null
+        const savedDensity = (localStorage.getItem(densityKey) || localStorage.getItem(DENSITY_KEY)) as Density | null
         const nextDensity = savedDensity || 'comfortable'
         setTheme(nextTheme)
         setDensity(nextDensity)
@@ -39,16 +48,17 @@ export function AparenciaTab() {
 
         const media = window.matchMedia('(prefers-color-scheme: dark)')
         const handleSystemThemeChange = () => {
-            const current = (localStorage.getItem(THEME_KEY) || 'light') as Theme
+            const current = (localStorage.getItem(themeKey) || 'light') as Theme
             if (current === 'system') applyThemeClass('system')
         }
         media.addEventListener('change', handleSystemThemeChange)
         return () => media.removeEventListener('change', handleSystemThemeChange)
-    }, [])
+    }, [densityKey, themeKey])
 
     const applyTheme = (t: Theme) => {
         setTheme(t)
-        localStorage.setItem(THEME_KEY, t)
+        localStorage.setItem(themeKey, t)
+        localStorage.removeItem(THEME_KEY)
         applyThemeClass(t)
         if (t === 'dark') {
             toast.success('Modo escuro ativado.')
@@ -61,7 +71,8 @@ export function AparenciaTab() {
 
     const applyDensity = (d: Density) => {
         setDensity(d)
-        localStorage.setItem(DENSITY_KEY, d)
+        localStorage.setItem(densityKey, d)
+        localStorage.removeItem(DENSITY_KEY)
         applyDensityClass(d)
         toast.success(d === 'compact' ? 'Densidade compacta ativada.' : 'Densidade confortável ativada.')
     }

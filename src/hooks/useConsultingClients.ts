@@ -39,6 +39,14 @@ type CreateConsultingClientInput = {
   enabled_modules?: string[]
 }
 
+type ConsultingVisitSummaryRow = Pick<ConsultingVisit, 'visit_number' | 'status' | 'created_at'> & {
+  effective_visit_date?: string | null
+}
+
+type ConsultingClientWithVisits = ConsultingClient & {
+  visitas_consultoria?: ConsultingVisitSummaryRow[] | null
+}
+
 export function useConsultingClients() {
   const { supabaseUser, role } = useAuth()
   const [clients, setClients] = useState<ConsultingClient[]>([])
@@ -67,11 +75,12 @@ export function useConsultingClients() {
       setClients([])
     } else {
       try {
-        const clientsWithLastVisit = (data || []).map(client => {
+        const clientRows = (data || []) as unknown as ConsultingClientWithVisits[]
+        const clientsWithLastVisit = clientRows.map(client => {
           const finishedVisits = (client.visitas_consultoria || [])
-            .filter((v: any) => v.visit_number >= 1 && v.visit_number <= 7)
-            .filter((v: any) => v.status === 'concluida')
-            .sort((a: any, b: any) => new Date(b.effective_visit_date || b.created_at).getTime() - new Date(a.effective_visit_date || a.created_at).getTime())
+            .filter(v => v.visit_number >= 1 && v.visit_number <= 7)
+            .filter(v => v.status === 'concluida')
+            .sort((a, b) => new Date(b.effective_visit_date || b.created_at).getTime() - new Date(a.effective_visit_date || a.created_at).getTime())
           
           const lastVisit = finishedVisits[0]
           return {
@@ -80,8 +89,8 @@ export function useConsultingClients() {
           }
         })
         setClients(parseConsultingClientArray(clientsWithLastVisit))
-      } catch (parseErr) {
-        console.error('[useConsultingClients] Zod parse failed:', parseErr)
+      } catch {
+        setError('Dados de clientes da consultoria fora do contrato esperado.')
         setClients((data || []) as ConsultingClient[])
       }
     }
@@ -235,7 +244,8 @@ export function useConsultingClientDetail(clientId?: string) {
           units: parseConsultingClientUnitArray(unitsRes.data || []),
           contacts: parseConsultingClientContactArray(contactsRes.data || []),
           assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
-          visits: (visitsRes.data || []).filter((visit: any) => visit.visit_number >= 1 && visit.visit_number <= 7) as any[],
+          visits: ((visitsRes.data || []) as unknown as ConsultingVisit[])
+            .filter(visit => visit.visit_number >= 1 && visit.visit_number <= 7),
           financials: parseConsultingFinancialArray(financialsRes.data || []),
           modules: parseConsultingClientModuleArray(modulesRes.data || []),
         } as ConsultingClientDetail

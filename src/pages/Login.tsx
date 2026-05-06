@@ -30,12 +30,8 @@ export default function Login() {
     const [lockoutUntil, setLockoutUntil] = useState(0)
 
     useEffect(() => {
-        const lastEmail = localStorage.getItem('mx_last_email')
-        if (lastEmail) {
-            setEmail(lastEmail)
-            setIsHydrated(true)
-            setTimeout(() => passwordRef.current?.focus(), 200)
-        }
+        localStorage.removeItem('mx_last_email')
+        setIsHydrated(true)
     }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -78,9 +74,8 @@ export default function Login() {
             }
             setLoginAttempts(0)
             setLockoutUntil(0)
-            localStorage.setItem('mx_last_email', email)
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro inesperado ao realizar login.')
+        } catch {
+            setError('Erro inesperado ao realizar login.')
             setLoading(false)
         }
     }
