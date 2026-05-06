@@ -192,6 +192,7 @@ export default function AgendaAdmin() {
     updateScheduleEvent,
     deleteScheduleEvent,
     getNextVisitNumber,
+    canViewAllAgendas,
   } = useAgendaAdmin()
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -328,7 +329,7 @@ export default function AgendaAdmin() {
       scheduled_time: '09:00',
       duration_hours: '3',
       modality: 'Presencial',
-      consultant_id: '',
+      consultant_id: canViewAllAgendas ? '' : consultants[0]?.id || '',
       auxiliary_consultant_id: '',
       visit_reason: '',
       target_audience: '',
@@ -375,8 +376,8 @@ export default function AgendaAdmin() {
       location: 'ZOOM',
       target_audience: '',
       audience_goal: '',
-      responsible_user_id: '',
-      responsible_name: '',
+      responsible_user_id: canViewAllAgendas ? '' : consultants[0]?.id || '',
+      responsible_name: canViewAllAgendas ? '' : consultants[0]?.name || '',
       ticket_price_text: '',
       visit_reason: '',
       product_name: '',
@@ -620,22 +621,24 @@ export default function AgendaAdmin() {
               </button>
             ))}
           </FilterBar>
-          <FilterBar label="Consultor" icon={<User size={16} className="text-brand-primary" />}>
-            <div className="w-full sm:w-mx-64">
-              <Select
-                id="agenda-consultant-filter"
-                value={consultantFilter}
-                onChange={(event) => setConsultantFilter(event.target.value)}
-                className="!h-mx-10 !py-1.5 text-xs uppercase tracking-widest"
-                aria-label="Filtrar por consultor"
-              >
-                <option value="todos">Todos</option>
-                {consultants.map((consultant) => (
-                  <option key={consultant.id} value={consultant.id}>{consultant.name}</option>
-                ))}
-              </Select>
-            </div>
-          </FilterBar>
+          {canViewAllAgendas && (
+            <FilterBar label="Consultor" icon={<User size={16} className="text-brand-primary" />}>
+              <div className="w-full sm:w-mx-64">
+                <Select
+                  id="agenda-consultant-filter"
+                  value={consultantFilter}
+                  onChange={(event) => setConsultantFilter(event.target.value)}
+                  className="!h-mx-10 !py-1.5 text-xs uppercase tracking-widest"
+                  aria-label="Filtrar por consultor"
+                >
+                  <option value="todos">Todos</option>
+                  {consultants.map((consultant) => (
+                    <option key={consultant.id} value={consultant.id}>{consultant.name}</option>
+                  ))}
+                </Select>
+              </div>
+            </FilterBar>
+          )}
           <FilterBar label="Status" icon={<Filter size={16} className="text-brand-primary" />}>
             {statusFilters.map((f) => (
               <button

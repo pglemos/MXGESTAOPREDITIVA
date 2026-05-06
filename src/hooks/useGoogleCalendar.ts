@@ -60,7 +60,7 @@ export type SyncableVisit = {
   google_event_id_central?: string | null
 }
 
-export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; maxResults?: number; autoFetch?: boolean }) {
+export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; maxResults?: number; autoFetch?: boolean; includeCentral?: boolean }) {
   const [events, setEvents] = useState<GoogleCalendarEvent[]>([])
   const [personalConnected, setPersonalConnected] = useState(false)
   const [centralConnected, setCentralConnected] = useState(false)
@@ -87,6 +87,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
           timeMin: opts?.timeMin,
           timeMax: opts?.timeMax,
           maxResults: opts?.maxResults ?? 100,
+          includeCentral: opts?.includeCentral ?? true,
         },
       })
       if (invokeError) throw invokeError
@@ -101,7 +102,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
     } finally {
       setLoading(false)
     }
-  }, [opts?.timeMin, opts?.timeMax, opts?.maxResults])
+  }, [opts?.timeMin, opts?.timeMax, opts?.maxResults, opts?.includeCentral])
 
   useEffect(() => {
     if (opts?.autoFetch !== false) fetchMerged()

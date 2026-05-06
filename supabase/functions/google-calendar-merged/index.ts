@@ -11,6 +11,23 @@ import {
   CENTRAL_CALENDAR_EMAIL,
 } from "../_shared/google.ts";
 
+const DEFAULT_ADMIN_MASTER_EMAILS = ["danieljsvendas@gmail.com"];
+
+function getAdminMasterEmails(): Set<string> {
+  const configured = (Deno.env.get("GOOGLE_CALENDAR_ADMIN_MASTER_EMAILS") || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  return new Set(configured.length > 0 ? configured : DEFAULT_ADMIN_MASTER_EMAILS);
+}
+
+function isAdminMasterMx(profile?: { role?: string | null; email?: string | null; name?: string | null } | null): boolean {
+  if (profile?.role !== "administrador_geral") return false;
+  const email = profile.email?.trim().toLowerCase();
+  if (email && getAdminMasterEmails().has(email)) return true;
+  return (profile.name || "").trim().toLowerCase().startsWith("daniel");
+}
+
 async function fetchEvents(accessToken: string, calendarId: string, timeMin: string, timeMax: string, maxResults = 50) {
   const res = await googleApiRequest(
     accessToken,
@@ -44,6 +61,14 @@ Deno.serve(async (req) => {
     const timeMin = body?.timeMin ?? new Date().toISOString();
     const timeMax = body?.timeMax ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     const maxResults = Math.min(250, Math.max(1, Number(body?.maxResults ?? 50)));
+    const wantsCentral = body?.includeCentral !== false;
+
+    const { data: userProfile } = await sessionClient
+      .from("usuarios")
+      .select("role, email, name")
+      .eq("id", authData.user.id)
+      .maybeSingle();
+    const canReadCentral = wantsCentral && isAdminMasterMx(userProfile);
 
     // Personal token
     let personalEvents: any[] = [];
@@ -82,7 +107,7 @@ Deno.serve(async (req) => {
     let centralConnected = false;
     let centralError: string | null = null;
     const centralToken = await getCentralCalendarAccessToken();
-    if (centralToken) {
+    if (canReadCentral && centralToken) {
       centralConnected = true;
       try {
         centralEvents = await fetchEvents(centralToken, CENTRAL_CALENDAR_ID, timeMin, timeMax, maxResults);

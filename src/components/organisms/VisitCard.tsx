@@ -79,7 +79,7 @@ export function VisitCard({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-mx-xs mb-1">
               <Building2 size={14} className="text-brand-primary shrink-0" />
-              <Typography variant="h3" className="text-sm truncate">{visit.client_name}</Typography>
+              <Typography variant="h3" className="text-sm leading-tight break-words sm:truncate">{visit.client_name}</Typography>
             </div>
             <div className="flex items-center gap-mx-sm text-text-tertiary">
               <div className="flex items-center gap-mx-xs">

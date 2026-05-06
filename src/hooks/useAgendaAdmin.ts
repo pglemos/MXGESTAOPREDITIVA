@@ -13,6 +13,7 @@ import {
 } from 'date-fns'
 import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { isAdminMasterMxProfile } from '@/lib/agenda/admin-master'
 import type { ConsultingVisit } from '@/features/consultoria/types'
 
 type CalendarSyncResult = {
@@ -189,6 +190,7 @@ export type AgendaScheduleEvent = {
   google_event_id_personal?: string | null
   status: 'agendado' | 'cancelado' | 'concluido'
   source_sheet: string | null
+  created_by?: string | null
   created_at: string
   updated_at: string
   responsible?: { name: string; email: string } | null
@@ -296,7 +298,8 @@ export type ScheduleEventInput = {
 }
 
 export function useAgendaAdmin() {
-  const { supabaseUser, role } = useAuth()
+  const { supabaseUser, role, profile } = useAuth()
+  const canViewAllAgendas = isAdminMasterMxProfile(profile, import.meta.env.VITE_MX_ADMIN_MASTER_EMAILS)
   const [visits, setVisits] = useState<AgendaVisit[]>([])
   const [scheduleEvents, setScheduleEvents] = useState<AgendaScheduleEvent[]>([])
   const [clients, setClients] = useState<AgendaClient[]>([])
@@ -360,7 +363,13 @@ export function useAgendaAdmin() {
       setError(visitsRes.error.message)
       setVisits([])
     } else {
-      const mapped = (visitsRes.data || []).map((v: any) => ({
+      const scopedVisits = canViewAllAgendas
+        ? (visitsRes.data || [])
+        : (visitsRes.data || []).filter((v: any) => (
+          v.consultant_id === supabaseUser.id ||
+          v.auxiliary_consultant_id === supabaseUser.id
+        ))
+      const mapped = scopedVisits.map((v: any) => ({
         ...v,
         client_name: v.client?.name || 'Desconhecido',
         client_slug: v.client?.slug || v.client_id || 'cliente',
@@ -374,11 +383,20 @@ export function useAgendaAdmin() {
       setError((current) => current || eventsRes.error.message)
       setScheduleEvents([])
     } else {
-      setScheduleEvents((eventsRes.data || []) as AgendaScheduleEvent[])
+      const scopedEvents = canViewAllAgendas
+        ? (eventsRes.data || [])
+        : (eventsRes.data || []).filter((event: AgendaScheduleEvent) => (
+          event.responsible_user_id === supabaseUser.id ||
+          (!event.responsible_user_id && event.created_by === supabaseUser.id)
+        ))
+      setScheduleEvents(scopedEvents as AgendaScheduleEvent[])
     }
 
     setClients((clientsRes.data || []) as AgendaClient[])
-    setConsultants((usersRes.data || []) as AgendaConsultant[])
+    const loadedConsultants = (usersRes.data || []) as AgendaConsultant[]
+    setConsultants(canViewAllAgendas
+      ? loadedConsultants
+      : loadedConsultants.filter((consultant) => consultant.id === supabaseUser.id))
 
     if (productsRes.error) {
       setProducts([])
@@ -388,11 +406,7 @@ export function useAgendaAdmin() {
         .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)))
     }
     setLoading(false)
-  }, [supabaseUser, role])
-
-  useEffect(() => {
-    fetchVisits()
-  }, [fetchVisits])
+  }, [supabaseUser, role, canViewAllAgendas])
 
   const syncSearchParams = useCallback((updates: Partial<Record<UrlFilterKey, string>>) => {
     if (typeof window === 'undefined') return
@@ -405,6 +419,17 @@ export function useAgendaAdmin() {
     const nextUrl = `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`
     window.history.replaceState(null, '', nextUrl)
   }, [])
+
+  useEffect(() => {
+    fetchVisits()
+  }, [fetchVisits])
+
+  useEffect(() => {
+    if (!canViewAllAgendas && consultantFilter !== 'todos') {
+      setConsultantFilterState('todos')
+      syncSearchParams({ consultant: 'todos' })
+    }
+  }, [canViewAllAgendas, consultantFilter, syncSearchParams])
 
   const setDateFilter = useCallback((value: DateFilter) => {
     if (value !== 'todos') {
@@ -421,9 +446,10 @@ export function useAgendaAdmin() {
   }, [syncSearchParams])
 
   const setConsultantFilter = useCallback((value: string) => {
-    setConsultantFilterState(value)
-    syncSearchParams({ consultant: value })
-  }, [syncSearchParams])
+    const nextValue = canViewAllAgendas ? value : 'todos'
+    setConsultantFilterState(nextValue)
+    syncSearchParams({ consultant: nextValue })
+  }, [canViewAllAgendas, syncSearchParams])
 
   const clearFilters = useCallback(() => {
     setDateFilterState('todos')
@@ -440,6 +466,9 @@ export function useAgendaAdmin() {
       return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
     }
 
+    const consultantId = canViewAllAgendas ? input.consultant_id : supabaseUser.id
+    const auxiliaryConsultantId = canViewAllAgendas ? input.auxiliary_consultant_id : null
+
     const { data: insertedVisit, error: insertError } = await supabase
       .from('visitas_consultoria')
       .insert({
@@ -448,8 +477,8 @@ export function useAgendaAdmin() {
         scheduled_at: input.scheduled_at,
         duration_hours: input.duration_hours,
         modality: input.modality,
-        consultant_id: input.consultant_id || null,
-        auxiliary_consultant_id: input.auxiliary_consultant_id || null,
+        consultant_id: consultantId || null,
+        auxiliary_consultant_id: auxiliaryConsultantId || null,
         objective: input.objective || null,
         visit_reason: input.visit_reason || null,
         target_audience: input.target_audience || null,
@@ -473,7 +502,7 @@ export function useAgendaAdmin() {
     }
     await fetchVisits()
     return { error: null }
-  }, [supabaseUser, role, fetchVisits])
+  }, [supabaseUser, role, fetchVisits, canViewAllAgendas])
 
   const updateVisitStatus = useCallback(async (visitId: string, status: string) => {
     if (!supabaseUser || !isPerfilInternoMx(role)) {
@@ -503,6 +532,9 @@ export function useAgendaAdmin() {
       return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
     }
 
+    const consultantId = canViewAllAgendas ? input.consultant_id : supabaseUser.id
+    const auxiliaryConsultantId = canViewAllAgendas ? input.auxiliary_consultant_id : null
+
     const { error: updateError } = await supabase
       .from('visitas_consultoria')
       .update({
@@ -511,8 +543,8 @@ export function useAgendaAdmin() {
         scheduled_at: input.scheduled_at,
         duration_hours: input.duration_hours,
         modality: input.modality,
-        consultant_id: input.consultant_id || null,
-        auxiliary_consultant_id: input.auxiliary_consultant_id || null,
+        consultant_id: consultantId || null,
+        auxiliary_consultant_id: auxiliaryConsultantId || null,
         objective: input.objective || null,
         visit_reason: input.visit_reason || null,
         target_audience: input.target_audience || null,
@@ -527,7 +559,7 @@ export function useAgendaAdmin() {
     const syncError = getCentralSyncError(syncResult)
     await fetchVisits()
     return { error: syncError }
-  }, [supabaseUser, role, fetchVisits])
+  }, [supabaseUser, role, fetchVisits, canViewAllAgendas])
 
   const deleteVisit = useCallback(async (visitId: string) => {
     if (!supabaseUser || !isPerfilInternoMx(role)) {
@@ -556,11 +588,18 @@ export function useAgendaAdmin() {
       return { error: 'Apenas perfis MX podem criar eventos e aulas.' }
     }
 
+    const eventInput = {
+      ...input,
+      responsible_user_id: canViewAllAgendas
+        ? input.responsible_user_id
+        : input.responsible_user_id || supabaseUser.id,
+    }
+
     const { data: insertedEvent, error: insertError } = await supabase
       .from('eventos_agenda_consultoria')
       .insert({
-        ...input,
-        status: input.status || 'agendado',
+        ...eventInput,
+        status: eventInput.status || 'agendado',
         created_by: supabaseUser.id,
       })
       .select('id')
@@ -577,18 +616,25 @@ export function useAgendaAdmin() {
     }
     await fetchVisits()
     return { error: null }
-  }, [fetchVisits, role, supabaseUser])
+  }, [fetchVisits, role, supabaseUser, canViewAllAgendas])
 
   const updateScheduleEvent = useCallback(async (eventId: string, input: ScheduleEventInput) => {
     if (!supabaseUser || !isPerfilInternoMx(role)) {
       return { error: 'Apenas perfis MX podem editar eventos e aulas.' }
     }
 
+    const eventInput = {
+      ...input,
+      responsible_user_id: canViewAllAgendas
+        ? input.responsible_user_id
+        : input.responsible_user_id || supabaseUser.id,
+    }
+
     const { error: updateError } = await supabase
       .from('eventos_agenda_consultoria')
       .update({
-        ...input,
-        status: input.status || 'agendado',
+        ...eventInput,
+        status: eventInput.status || 'agendado',
       })
       .eq('id', eventId)
 
@@ -597,7 +643,7 @@ export function useAgendaAdmin() {
     const syncError = getCentralSyncError(syncResult)
     await fetchVisits()
     return { error: syncError }
-  }, [fetchVisits, role, supabaseUser])
+  }, [fetchVisits, role, supabaseUser, canViewAllAgendas])
 
   const deleteScheduleEvent = useCallback(async (eventId: string) => {
     if (!supabaseUser || !isPerfilInternoMx(role)) {
@@ -798,6 +844,7 @@ export function useAgendaAdmin() {
     clients,
     consultants,
     products,
+    canViewAllAgendas,
     metrics,
     loading,
     error,

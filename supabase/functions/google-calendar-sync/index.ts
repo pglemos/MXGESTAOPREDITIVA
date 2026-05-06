@@ -18,6 +18,7 @@ import {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const TIMEZONE = "America/Sao_Paulo";
+const DEFAULT_ADMIN_MASTER_EMAILS = ["danieljsvendas@gmail.com"];
 
 type VisitInput = {
   id: string;
@@ -63,6 +64,19 @@ type ScheduleEventInput = {
 
 type GoogleAttendee = { email: string; displayName?: string };
 
+function getAdminMasterEmails(): Set<string> {
+  const configured = (Deno.env.get("GOOGLE_CALENDAR_ADMIN_MASTER_EMAILS") || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  return new Set(configured.length > 0 ? configured : DEFAULT_ADMIN_MASTER_EMAILS);
+}
+
+function isAdminMasterEmail(email?: string | null): boolean {
+  const normalized = email?.trim().toLowerCase();
+  return Boolean(normalized && getAdminMasterEmails().has(normalized));
+}
+
 function normalizeAttendees(attendees: (GoogleAttendee | null | undefined)[]): GoogleAttendee[] {
   const seen = new Set<string>();
   const normalized: GoogleAttendee[] = [];
@@ -73,18 +87,6 @@ function normalizeAttendees(attendees: (GoogleAttendee | null | undefined)[]): G
     normalized.push({ email, displayName: attendee.displayName });
   }
   return normalized;
-}
-
-async function getAdminMasterAttendees(adminClient: any): Promise<GoogleAttendee[]> {
-  const { data, error } = await adminClient
-    .from("usuarios")
-    .select("name, email")
-    .eq("role", "administrador_geral")
-    .eq("active", true);
-  if (error) throw error;
-  return (data || [])
-    .filter((user: any) => typeof user.email === "string" && user.email.includes("@"))
-    .map((user: any) => ({ email: user.email, displayName: user.name ?? undefined }));
 }
 
 function buildEventPayload(visit: VisitInput, attendees: GoogleAttendee[] = []): GoogleEventInput {
@@ -194,7 +196,7 @@ async function getUserAccessToken(dbClient: any, userId: string): Promise<UserGo
 async function getAdminMasterPersonalTokens(adminClient: any): Promise<AdminMasterGoogleToken[]> {
   const { data: users, error } = await adminClient
     .from("usuarios")
-    .select("id, name")
+    .select("id, name, email")
     .eq("role", "administrador_geral")
     .eq("active", true);
   if (error) throw error;
@@ -203,6 +205,7 @@ async function getAdminMasterPersonalTokens(adminClient: any): Promise<AdminMast
   for (const user of users || []) {
     const userToken = await getUserAccessToken(adminClient, user.id);
     if (!userToken.token) continue;
+    if (!isAdminMasterEmail(userToken.googleEmail) && !isAdminMasterEmail(user.email)) continue;
     tokens.push({
       ...userToken,
       userId: user.id,
@@ -219,10 +222,12 @@ async function mirrorToAdminMasterCalendars(
   sourceId: string,
   payload: GoogleEventInput,
   action: "upsert" | "delete",
+  excludedUserId?: string | null,
 ): Promise<{ userId: string; ok: boolean; message?: string }[]> {
   const results: { userId: string; ok: boolean; message?: string }[] = [];
 
   for (const userToken of tokens) {
+    if (excludedUserId && userToken.userId === excludedUserId) continue;
     try {
       const { data: mirrorRow, error: mirrorLookupError } = await adminClient
         .from("espelhos_agenda_google_usuario")
@@ -336,7 +341,6 @@ Deno.serve(async (req) => {
       ? await getUserAccessToken(adminClient, personalOwnerUserId)
       : { token: null };
     const centralToken = await getCentralCalendarAccessToken();
-    const adminMasterAttendees = await getAdminMasterAttendees(adminClient);
     const adminMasterPersonalTokens = await getAdminMasterPersonalTokens(adminClient);
 
     let personalEventId = syncKind === "schedule_event"
@@ -381,6 +385,7 @@ Deno.serve(async (req) => {
           syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id,
           mirrorPayload,
           "delete",
+          personalOwnerUserId,
         );
       }
     } else {
@@ -404,14 +409,12 @@ Deno.serve(async (req) => {
         try {
           const centralAttendees = scheduleEvent
             ? normalizeAttendees([
-              ...adminMasterAttendees,
               {
                 email: personalToken.googleEmail ?? scheduleEvent.responsible_email ?? "",
                 displayName: scheduleEvent.responsible_name ?? undefined,
               },
             ])
             : normalizeAttendees([
-              ...adminMasterAttendees,
               { email: personalToken.googleEmail ?? visit?.consultant_email ?? CENTRAL_CALENDAR_EMAIL },
             ]);
           const centralPayload = scheduleEvent
@@ -438,6 +441,7 @@ Deno.serve(async (req) => {
           syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id,
           mirrorPayload,
           "upsert",
+          personalOwnerUserId,
         );
       }
     }

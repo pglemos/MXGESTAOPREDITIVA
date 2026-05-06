@@ -41,9 +41,9 @@ test.describe('Agenda admin filters', () => {
     }
   })
 
-  test('filters by MX admin consultant and date windows: today, week, next week, month, all', async ({ page }, testInfo) => {
+  test('Daniel admin master filters all consultants and date windows: today, week, next week, month, all', async ({ page }, testInfo) => {
     const suffix = `${testInfo.project.name}-${Date.now()}`
-    const loginAdmin = await createE2EAdminUser({ prefix: `agenda-login-${suffix}`, name: 'Agenda Login Admin' })
+    const loginAdmin = await createE2EAdminUser({ prefix: `agenda-login-${suffix}`, name: 'Daniel Admin Master' })
     const consultantA = await createE2EAdminUser({ prefix: `agenda-a-${suffix}`, name: `Agenda Consultor A ${suffix}`, role: 'consultor_mx' })
     const consultantB = await createE2EAdminUser({ prefix: `agenda-b-${suffix}`, name: `Agenda Consultor B ${suffix}`, role: 'consultor_mx' })
     users.push(loginAdmin, consultantA, consultantB)
@@ -97,5 +97,30 @@ test.describe('Agenda admin filters', () => {
     await expect(page).toHaveURL(/range=semana/)
     await page.getByRole('button', { name: /^Mês$/ }).click()
     await expect(page).toHaveURL(/range=mes/)
+  })
+
+  test('consultant cannot see another consultant agenda even with consultant query param', async ({ page }, testInfo) => {
+    const suffix = `${testInfo.project.name}-${Date.now()}`
+    const admin = await createE2EAdminUser({ prefix: `agenda-admin-${suffix}`, name: 'Daniel Admin Master' })
+    const consultantA = await createE2EAdminUser({ prefix: `agenda-own-${suffix}`, name: `Agenda Consultor Proprio ${suffix}`, role: 'consultor_mx' })
+    const consultantB = await createE2EAdminUser({ prefix: `agenda-other-${suffix}`, name: `Agenda Consultor Outro ${suffix}`, role: 'consultor_mx' })
+    users.push(admin, consultantA, consultantB)
+
+    const ownClient = await createE2EConsultingClient({ name: `E2E Agenda Minha ${suffix}`, createdBy: admin.id })
+    const otherClient = await createE2EConsultingClient({ name: `E2E Agenda Alheia ${suffix}`, createdBy: admin.id })
+    clientIds.push(ownClient.id, otherClient.id)
+
+    const now = new Date()
+    await createE2EConsultingVisit({ clientId: ownClient.id, consultantId: consultantA.id, scheduledAt: withHour(now, 10), visitNumber: 1 })
+    await createE2EConsultingVisit({ clientId: otherClient.id, consultantId: consultantB.id, scheduledAt: withHour(now, 11), visitNumber: 1 })
+
+    await login(page, consultantA.email, consultantA.password)
+    await page.goto(`/agenda?range=todos&consultant=${consultantB.id}`)
+
+    await expect(page.getByText('Agenda MX')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('#agenda-consultant-filter')).toHaveCount(0)
+    await expect(page).not.toHaveURL(/consultant=/)
+    await expectVisitListed(page, ownClient.name)
+    await expectVisitNotListed(page, otherClient.name)
   })
 })

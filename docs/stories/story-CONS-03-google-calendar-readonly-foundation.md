@@ -71,7 +71,7 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 
 - [x] `npm run lint`
 - [x] `npm run typecheck`
-- [ ] `npm test`
+- [x] `npm test`
 - [x] `npm run build`
 - [ ] Validar que `/consultoria/clientes/:clientId` continua carregando sem Google conectado.
 - [ ] Validar que o login principal do sistema continua funcionando.
@@ -88,12 +88,25 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 
 - `docs/stories/story-CONS-03-google-calendar-readonly-foundation.md`
 - `src/hooks/useConsultingAgenda.ts`
+- `src/hooks/useAgendaAdmin.ts`
+- `src/hooks/useGoogleCalendar.ts`
+- `src/lib/agenda/admin-master.ts`
+- `src/lib/agenda/admin-master.test.ts`
+- `src/components/molecules/PageHeader.tsx`
+- `src/components/organisms/VisitCard.tsx`
+- `src/features/agenda/components/GoogleCalendarStatus.tsx`
 - `src/features/consultoria/components/GoogleCalendarView.tsx`
 - `src/pages/ConsultoriaClienteDetalhe.tsx`
+- `src/pages/AgendaAdmin.tsx`
+- `src/test/agenda-filters.playwright.ts`
+- `src/test/e2e-helpers/supabase-admin.ts`
 - `supabase/functions/google-oauth-handler/index.ts`
 - `supabase/functions/google-calendar-events/index.ts`
+- `supabase/functions/google-calendar-merged/index.ts`
+- `supabase/functions/google-calendar-sync/index.ts`
 - `supabase/migrations/20260413120000_consulting_google_calendar.sql`
 - `supabase/migrations/20260414103000_consulting_google_calendar_hardening.sql`
+- `supabase/migrations/20260506100000_agenda_consultoria_admin_master_scope.sql`
 
 ## 9. Notes
 
@@ -106,3 +119,5 @@ para visualizar compromissos vinculados ao meu contexto operacional sem depender
 - O proximo passo, se esta story fechar bem, e decidir entre:
   - agenda operacional interna (`consulting_calendar_events`)
   - ou sincronizacao incremental mais robusta
+- Ajuste de privacidade de agenda em 2026-05-06: somente Daniel/admin master MX ve todas as agendas; consultores e admins nao master veem apenas itens vinculados a eles. A Agenda Central MX deixou de aparecer para consultor comum no card Google Calendar.
+- Validacoes de 2026-05-06: `npm run lint`, `npm test`, `npm run build`, Playwright `src/test/agenda-filters.playwright.ts` em `chromium` e `mobile-chrome`, e inspeção MCP/Chrome mobile sem overflow horizontal/clipping relevante.

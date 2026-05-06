@@ -31,6 +31,7 @@ export function getSupabaseAdmin() {
 
 export async function createE2EAdminUser(options?: {
   prefix?: string
+  email?: string
   name?: string
   password?: string
   mustChangePassword?: boolean
@@ -38,7 +39,7 @@ export async function createE2EAdminUser(options?: {
 }) {
   const admin = getSupabaseAdmin()
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  const email = `${options?.prefix || 'e2e-admin'}-${suffix}@mxperformance.test`
+  const email = options?.email || `${options?.prefix || 'e2e-admin'}-${suffix}@mxperformance.test`
   const password = options?.password || E2E_DEFAULT_PASSWORD
   const mustChangePassword = options?.mustChangePassword ?? false
   const name = options?.name || 'E2E Admin'
@@ -114,6 +115,15 @@ export async function createE2EConsultingVisit(options: {
   objective?: string
 }) {
   const admin = getSupabaseAdmin()
+  await admin
+    .from('atribuicoes_consultoria')
+    .upsert({
+      client_id: options.clientId,
+      user_id: options.consultantId,
+      assignment_role: 'responsavel',
+      active: true,
+    }, { onConflict: 'client_id,user_id' })
+
   const { data, error } = await admin
     .from('visitas_consultoria')
     .insert({
@@ -137,6 +147,7 @@ export async function createE2EConsultingVisit(options: {
 export async function deleteE2EConsultingData(clientIds: string[]) {
   if (!clientIds.length) return
   const admin = getSupabaseAdmin()
+  await admin.from('atribuicoes_consultoria').delete().in('client_id', clientIds)
   await admin.from('visitas_consultoria').delete().in('client_id', clientIds)
   await admin.from('clientes_consultoria').delete().in('id', clientIds)
 }

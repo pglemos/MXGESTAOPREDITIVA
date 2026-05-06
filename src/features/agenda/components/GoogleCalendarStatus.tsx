@@ -4,6 +4,8 @@ import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
+import { useAuth } from '@/hooks/useAuth'
+import { isAdminMasterMxProfile } from '@/lib/agenda/admin-master'
 import { motion } from 'motion/react'
 
 interface Props {
@@ -12,6 +14,8 @@ interface Props {
 }
 
 export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
+  const { profile } = useAuth()
+  const canViewCentralAgenda = isAdminMasterMxProfile(profile, import.meta.env.VITE_MX_ADMIN_MASTER_EMAILS)
   const {
     personalConnected,
     centralConnected,
@@ -23,9 +27,11 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
     connectPersonal,
     connectCentral,
     events,
-  } = useGoogleCalendar({ autoFetch: true })
+  } = useGoogleCalendar({ autoFetch: true, includeCentral: canViewCentralAgenda })
 
-  const upcoming = events.slice(0, compact ? 3 : 6)
+  const upcoming = events
+    .filter((event) => canViewCentralAgenda || event._source !== 'central')
+    .slice(0, compact ? 3 : 6)
 
   return (
     <Card className="p-mx-lg border-none shadow-mx-md bg-white space-y-mx-md">
@@ -46,7 +52,7 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
         </Button>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-sm">
+      <div className={`grid grid-cols-1 gap-mx-sm ${canViewCentralAgenda ? 'sm:grid-cols-2' : ''}`}>
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -76,30 +82,32 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
           )}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className={`p-mx-sm rounded-mx-lg border ${centralConnected ? 'bg-mx-green-50 border-mx-green-200' : 'bg-surface-alt border-border-default'}`}
-        >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary flex items-center gap-mx-xs">
-              <Building2 size={12} /> Agenda Central MX
-            </span>
-            {centralConnected
-              ? <CheckCircle2 size={16} className="text-status-success" />
-              : <AlertCircle size={16} className="text-status-warning" />}
-          </div>
-          {centralConnected ? (
-            <Badge variant="brand" className="text-mx-nano">{centralGoogleEmail || 'gestao@mxconsultoria.com.br'}</Badge>
-          ) : (
-            <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
-              <LinkIcon size={14} />
-              <span className="sm:hidden">Conectar central</span>
-              <span className="hidden sm:inline">Conectar Agenda Central</span>
-            </Button>
-          )}
-        </motion.div>
+        {canViewCentralAgenda && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className={`p-mx-sm rounded-mx-lg border ${centralConnected ? 'bg-mx-green-50 border-mx-green-200' : 'bg-surface-alt border-border-default'}`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary flex items-center gap-mx-xs">
+                <Building2 size={12} /> Agenda Central MX
+              </span>
+              {centralConnected
+                ? <CheckCircle2 size={16} className="text-status-success" />
+                : <AlertCircle size={16} className="text-status-warning" />}
+            </div>
+            {centralConnected ? (
+              <Badge variant="brand" className="text-mx-nano">{centralGoogleEmail || 'gestao@mxconsultoria.com.br'}</Badge>
+            ) : (
+              <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
+                <LinkIcon size={14} />
+                <span className="sm:hidden">Conectar central</span>
+                <span className="hidden sm:inline">Conectar Agenda Central</span>
+              </Button>
+            )}
+          </motion.div>
+        )}
       </div>
 
       {error && (
@@ -108,7 +116,7 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
         </div>
       )}
 
-      {!compact && centralConnected && !personalConnected && (
+      {!compact && canViewCentralAgenda && centralConnected && !personalConnected && (
         <div className="p-mx-sm rounded-mx-md bg-mx-indigo-50 border border-mx-indigo-100 text-text-secondary text-mx-tiny font-bold leading-relaxed">
           A Agenda Central MX está conectada. Para receber os compromissos na própria conta Google, cada admin MX precisa entrar no sistema com seu usuário e conectar a agenda pessoal.
         </div>

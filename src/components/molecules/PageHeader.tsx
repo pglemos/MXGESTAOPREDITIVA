@@ -16,7 +16,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
         {breadcrumb && <div>{breadcrumb}</div>}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-mx-md">
           <div className="space-y-mx-tiny min-w-0">
-            <Typography variant="h1">{title}</Typography>
+            <Typography variant="h1" className="leading-tight break-words">{title}</Typography>
             {description && (
               <Typography variant="caption" tone="muted">{description}</Typography>
             )}
