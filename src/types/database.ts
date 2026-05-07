@@ -189,8 +189,8 @@ export interface Feedback {
     attention_points: string
     action: string
     notes: string | null
-    team_avg_json: Record<string, any>
-    diagnostic_json: Record<string, any>
+    team_avg_json: Record<string, unknown>
+    diagnostic_json: Record<string, unknown>
     commitment_suggested: number
     acknowledged: boolean
     acknowledged_at: string | null

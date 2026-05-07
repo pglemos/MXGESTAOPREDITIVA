@@ -18,6 +18,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
+import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 
 // New components
 import { LiveFloor } from '@/features/ranking/components/LiveFloor'
@@ -533,9 +534,9 @@ function StoreRankingView() {
     }, [refetchRanking, fetchCheckins, fetchMetaRules])
 
     const storeSales = useStoreSales({
-        checkins: checkins as any,
+        checkins,
         ranking: ranking,
-        rules: metaRules as any
+        rules: buildStoreSalesRules({ monthlyGoal: metaRules?.monthly_goal || 0, metaRules })
     })
 
     const sortedRanking = useMemo(() => {

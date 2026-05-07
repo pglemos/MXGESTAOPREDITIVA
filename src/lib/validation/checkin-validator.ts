@@ -1,4 +1,4 @@
-import { DailyCheckin } from '@/types/database';
+import type { DailyCheckin } from '@/types/database';
 
 /**
  * Validates raw data against the canonical Checkin model requirements.
@@ -11,7 +11,7 @@ export interface ValidationResult {
     errors?: string[];
 }
 
-export function validateCheckinPayload(raw: Record<string, any>): ValidationResult {
+export function validateCheckinPayload(raw: Record<string, unknown>): ValidationResult {
     const errors: string[] = [];
 
     // Mapping and validating mandatory fields

@@ -10,6 +10,18 @@ import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import type { TabContext } from '@/features/configuracoes/types'
+import type { StoreMetaRules } from '@/types/database'
+
+type IndividualGoalMode = StoreMetaRules['individual_goal_mode']
+
+const INDIVIDUAL_GOAL_OPTIONS: Array<{ value: IndividualGoalMode; label: string }> = [
+    { value: 'even', label: 'Distribuída igualmente' },
+    { value: 'proportional', label: 'Proporcional ao histórico' },
+]
+
+function isIndividualGoalMode(value: string): value is IndividualGoalMode {
+    return INDIVIDUAL_GOAL_OPTIONS.some(option => option.value === value)
+}
 
 const fieldId = (prefix: string, label: string) =>
     `${prefix}-${label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`
@@ -198,12 +210,11 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                             <SelectField
                                 label="Modo de meta individual"
                                 value={metaRules?.individual_goal_mode || 'even'}
-                                onChange={v => updateMetaRules({ individual_goal_mode: v as any })}
+                                onChange={v => {
+                                    if (isIndividualGoalMode(v)) updateMetaRules({ individual_goal_mode: v })
+                                }}
                                 disabled={isReadOnly}
-                                options={[
-                                    { value: 'even', label: 'Distribuída igualmente' },
-                                    { value: 'proportional', label: 'Proporcional ao histórico' },
-                                ]}
+                                options={INDIVIDUAL_GOAL_OPTIONS}
                             />
                             <NumberField
                                 label="Benchmark Lead → Agendamento (%)"

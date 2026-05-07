@@ -13,7 +13,7 @@ export interface ValidationResult {
         storesFound: string[]
         sellersFound: string[]
     }
-    records: any[]
+    records: Record<string, string>[]
 }
 
 export function validateLegacyCSV(text: string): ValidationResult {
@@ -71,7 +71,7 @@ export function validateLegacyCSV(text: string): ValidationResult {
             continue
         }
 
-        const record: any = {}
+        const record: Record<string, string> = {}
         Object.entries(idxMap).forEach(([key, idx]) => {
             if (idx !== -1) record[key.toUpperCase()] = values[idx]
         })

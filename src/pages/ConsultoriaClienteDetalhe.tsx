@@ -13,7 +13,8 @@ import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { 
   ConsultingClientDetail, 
   ConsultingVisit, 
-  ConsultingAssignableUser 
+  ConsultingAssignableUser,
+  VisitOneQuantData,
 } from '@/features/consultoria/types'
 import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySlug'
 import { useConsultingModules } from '@/hooks/useConsultingModules'
@@ -55,10 +56,18 @@ const TABS: TabNavItem<Tab>[] = [
   { key: 'files',      label: 'Arquivos' },
 ]
 
+function isVisitOneQuantData(value: unknown): value is VisitOneQuantData {
+  if (typeof value !== 'object' || value === null) return false
+  const candidate = value as Partial<VisitOneQuantData>
+  return Array.isArray(candidate.sales) && Boolean(candidate.marketing) && Boolean(candidate.stock)
+}
+
 function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
-  const initialData = client.visits?.find((v: any) => v.visit_number === 1)?.quant_data as any
+  const initialQuantData = client.visits?.find((v) => v.visit_number === 1)?.quant_data
+  const initialData = isVisitOneQuantData(initialQuantData) ? initialQuantData : null
   const financials = [...(client.financials || [])].sort((a, b) => new Date(a.reference_date).getTime() - new Date(b.reference_date).getTime())
   const currentData = financials.length > 0 ? financials[financials.length - 1] : null
+  const initialAverageSales = (initialData?.sales.reduce((acc, c) => acc + (c.value || 0), 0) || 0) / 3
   
   const handleDownloadROI = async () => {
     const element = document.getElementById('roi-report-content')
@@ -78,7 +87,7 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
   }
 
   const chartData = financials.map(f => {
-    const inv = (client.inventory_snapshots || []).find((s: any) => s.reference_month === f.reference_date.substring(0, 7))
+    const inv = (client.inventory_snapshots || []).find((s) => s.reference_month === f.reference_date.substring(0, 7))
     return {
       mes: format(new Date(f.reference_date), 'MMM', { locale: ptBR }).toUpperCase(),
       vendas: f.volume_vendas || 0,
@@ -89,9 +98,9 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
   })
 
   const before = {
-    sales: (initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) || 0,
+    sales: initialAverageSales,
     leads: initialData?.marketing?.leads || 0,
-    conversion: (initialData?.marketing?.leads || 0) > 0 ? ((initialData?.sales?.reduce((acc: number, c: any) => acc + (c.value || 0), 0) / 3) / (initialData?.marketing?.leads || 1)) * 100 : 0
+    conversion: (initialData?.marketing?.leads || 0) > 0 ? (initialAverageSales / (initialData?.marketing?.leads || 1)) * 100 : 0
   }
 
   const after = {
@@ -228,14 +237,14 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500 pb-mx-xl">
       {pdis.length === 0 && <Card className="p-mx-lg border-dashed text-center opacity-50 md:col-span-2 rounded-mx-2xl"><Typography variant="p">Nenhum PDI registrado para esta loja.</Typography></Card>}
       {pdis.map((pdi) => {
-        const canSellerSign = profile?.id === pdi.seller_id && !(pdi as any).seller_acknowledged_at
-        const canManagerSign = (isPerfilInternoMx(role) || role === 'gerente') && !(pdi as any).manager_acknowledged_at
+        const canSellerSign = profile?.id === pdi.seller_id && !pdi.seller_acknowledged_at
+        const canManagerSign = (isPerfilInternoMx(role) || role === 'gerente') && !pdi.manager_acknowledged_at
         
         return (
           <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-2xl">
             <div className="flex justify-between items-start mb-mx-md">
               <div>
-                <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{(pdi as any).seller_name || 'Vendedor'}</Typography>
+                <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{pdi.seller_name || 'Vendedor'}</Typography>
                 <Typography variant="tiny" tone="muted">Plano criado em {format(new Date(pdi.created_at), 'dd/MM/yyyy')}</Typography>
               </div>
               <Badge variant={pdi.status === 'ativo' ? 'success' : 'outline'}>{pdi.status.toUpperCase()}</Badge>
@@ -260,7 +269,7 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
 
             <div className="pt-mx-md border-t border-border-subtle grid grid-cols-2 gap-mx-md">
                <div className="space-y-mx-xs">
-                 {(pdi as any).seller_acknowledged_at ? (
+                 {pdi.seller_acknowledged_at ? (
                    <div className="flex items-center gap-mx-xs text-status-success">
                      <ShieldCheck className="w-mx-4 h-mx-4" />
                      <Typography variant="tiny" className="font-black uppercase tracking-widest text-mx-micro">Vendedor OK</Typography>
@@ -273,7 +282,7 @@ function ConsultingPDIsView({ storeId }: { storeId: string }) {
                </div>
 
                <div className="space-y-mx-xs">
-                 {(pdi as any).manager_acknowledged_at ? (
+                 {pdi.manager_acknowledged_at ? (
                    <div className="flex items-center gap-mx-xs text-status-success">
                      <ShieldCheck className="w-mx-4 h-mx-4" />
                      <Typography variant="tiny" className="font-black uppercase tracking-widest text-mx-micro">Gestor OK</Typography>
@@ -439,4 +448,3 @@ export default function ConsultoriaClienteDetalhe() {
     </main>
   )
 }
-

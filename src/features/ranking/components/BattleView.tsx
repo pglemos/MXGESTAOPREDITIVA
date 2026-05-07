@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'motion/react'
+import type { ReactNode } from 'react'
 import type { RankingEntry } from '@/types/database'
 import { Avatar } from '@/components/atoms/Avatar'
 
@@ -17,7 +18,7 @@ export function BattleView({ opponents, ranking }: BattleViewProps) {
 
     if (!p1 || !p2) return <div className="text-center p-mx-xl text-text-tertiary font-bold uppercase tracking-widest">Selecione combatentes</div>
 
-    const ComparisonRow = ({ label, v1, v2, format = (v: any) => v }: { label: string, v1: number, v2: number, format?: (v:any) => string }) => {
+    const ComparisonRow = ({ label, v1, v2, format = (v: number) => v }: { label: string, v1: number, v2: number, format?: (v: number) => ReactNode }) => {
         const total = v1 + v2
         const p1Pct = total === 0 ? 50 : (v1 / total) * 100
         const winner = v1 > v2 ? 'p1' : v2 > v1 ? 'p2' : 'draw'

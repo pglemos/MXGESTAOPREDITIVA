@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/atoms/Skeleton'
 import { Link } from 'react-router-dom'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 import type { Store } from '@/types/database'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 export default function Lojas() {
     const { lojas, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus } = useStores()
@@ -94,6 +95,20 @@ export default function Lojas() {
         await navigator.clipboard?.writeText(link)
         toast.success('Link de pré-cadastro copiado.')
     }, [getRegistrationLink])
+
+    const handleArchiveStore = useCallback((store: Store) => {
+        requestToastConfirmation({
+            key: `archive-store:${store.id}`,
+            title: `Desativar ${store.name}?`,
+            description: 'A unidade ficará inativa, mas o histórico será preservado.',
+            label: 'Desativar',
+            onConfirm: async () => {
+                const { error } = await toggleStoreStatus(store.id, false)
+                if (error) toast.error(error)
+                else toast.success('Unidade desativada.')
+            },
+        })
+    }, [toggleStoreStatus])
 
     const columns = useMemo<Column<Store>[]>(() => [
         {
@@ -177,7 +192,7 @@ export default function Lojas() {
                                 <Copy size={16} />
                             </Button>
                             {isAdministradorMx(role) && (
-                                <Button variant="ghost" size="icon" onClick={() => { if(confirm('Desativar unidade?')) toggleStoreStatus(store.id, false) }} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
+                                <Button variant="ghost" size="icon" onClick={() => handleArchiveStore(store)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
                                     <X size={16} />
                                 </Button>
                             )}
@@ -190,7 +205,7 @@ export default function Lojas() {
                 </div>
             )
         }
-    ], [copyRegistrationLink, getRegistrationLink, stats, role, toggleStoreStatus])
+    ], [copyRegistrationLink, getRegistrationLink, handleArchiveStore, stats, role, toggleStoreStatus])
 
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">

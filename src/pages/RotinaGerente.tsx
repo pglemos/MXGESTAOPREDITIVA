@@ -27,12 +27,18 @@ import { Textarea } from '@/components/atoms/Textarea'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
+import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useStoreMetaRules } from '@/hooks/useGoals'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
+import type { CheckinCorrectionRequest } from '@/types/database'
 
 type RoutineTab = 'diario' | 'semanal' | 'mensal' | 'ajustes'
+type PendingCorrectionRequest = CheckinCorrectionRequest & {
+    seller?: { name?: string | null; avatar_url?: string | null } | null
+}
+type MetricTone = 'success' | 'warning' | 'info' | 'error' | 'brand'
 
 export default function RotinaGerente() {
     const [tab, setTab] = useState<RoutineTab>('diario')
@@ -107,7 +113,7 @@ export default function RotinaGerente() {
         }
     }, [effectiveStoreId, membership?.store_id, handleRefresh])
 
-    const [pendingRequests, setPendingRequests] = useState<any[]>([])
+    const [pendingRequests, setPendingRequests] = useState<PendingCorrectionRequest[]>([])
     const rotinaTabs = useMemo(() => [
         { key: 'diario'  as const, label: 'Diário',  icon: Zap },
         { key: 'semanal' as const, label: 'Semanal', icon: BarChart3 },
@@ -125,9 +131,9 @@ export default function RotinaGerente() {
     const expectedAttainment = useMemo(() => (diasInfo.decorridos / diasInfo.total) * 100, [diasInfo])
 
     const storeSales = useStoreSales({
-        checkins: checkins as any,
+        checkins,
         ranking: ranking,
-        rules: metaRules || { monthly_goal: storeGoal?.target || 0 } as any
+        rules: buildStoreSalesRules({ storeId: effectiveStoreId || membership?.store_id, monthlyGoal: storeGoal?.target || 0, metaRules })
     })
 
     const referenceDate = calculateReferenceDate()
@@ -141,7 +147,7 @@ export default function RotinaGerente() {
         fetchPendingRequests().then(setPendingRequests)
     }, [fetchPendingRequests])
 
-    const handleApproveCorrection = async (req: any) => {
+    const handleApproveCorrection = async (req: PendingCorrectionRequest) => {
         const { error } = await approveRequest(req)
         if (error) toast.error(error)
         else {
@@ -416,24 +422,24 @@ export default function RotinaGerente() {
                                                                 { 
                                                                     l: 'L', 
                                                                     v: req.requested_values.leads_prev_day ?? req.requested_values.leads, 
-                                                                    t: 'brand' 
+                                                                    t: 'brand' as MetricTone
                                                                 },
                                                                 { 
                                                                     l: 'V', 
                                                                     v: req.requested_values.visit_prev_day ?? req.requested_values.visitas, 
-                                                                    t: 'warning' 
+                                                                    t: 'warning' as MetricTone
                                                                 },
                                                                 { 
                                                                     l: 'VND', 
                                                                     v: (req.requested_values.vnd_porta_prev_day ?? req.requested_values.vnd_porta ?? 0) + 
                                                                        (req.requested_values.vnd_cart_prev_day ?? req.requested_values.vnd_cart ?? 0) + 
                                                                        (req.requested_values.vnd_net_prev_day ?? req.requested_values.vnd_net ?? 0), 
-                                                                    t: 'success' 
+                                                                    t: 'success' as MetricTone
                                                                 }
                                                             ].map(val => (
                                                                 <div key={val.l} className="bg-white p-mx-sm rounded-mx-xl border border-border-default shadow-sm text-center">
                                                                     <Typography variant="tiny" tone="muted" className="font-black block">{val.l}</Typography>
-                                                                    <Typography variant="h3" tone={val.t as any} className="text-xl tabular-nums font-black">{val.v}</Typography>
+                                                                    <Typography variant="h3" tone={val.t} className="text-xl tabular-nums font-black">{val.v}</Typography>
                                                                 </div>
                                                             ))}
                                                         </div>

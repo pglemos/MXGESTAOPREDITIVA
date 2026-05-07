@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { usePDI_MX } from '@/hooks/usePDI_MX'
+import { usePDI_MX, type PDISuggestedAction } from '@/hooks/usePDI_MX'
 import { useTeam } from '@/hooks/useTeam'
 import { useAuth } from '@/hooks/useAuth'
 import { X, Target, LayoutDashboard, Zap, ChevronLeft, ChevronRight, CheckCircle2, Sparkles, AlertCircle } from 'lucide-react'
@@ -20,7 +20,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
     
     const [currentStep, setCurrentStep] = useState(0)
     const [saving, setSaving] = useState(false)
-    const [suggestedActions, setSuggestedActions] = useState<Record<string, any[]>>({})
+    const [suggestedActions, setSuggestedActions] = useState<Record<string, PDISuggestedAction[]>>({})
     const [preChecklist, setPreChecklist] = useState({
         conversaIndividual: false,
         localReservado: false,
@@ -233,8 +233,8 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
             const sessionId = await saveSessionBundle(payload)
             toast.success('Sessão de PDI concluída com sucesso! O bundle foi gerado.')
             onSuccess(String(sessionId || ''))
-        } catch (err: any) {
-            toast.error(err.message || 'Erro ao salvar PDI')
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Erro ao salvar PDI')
         } finally {
             setSaving(false)
         }

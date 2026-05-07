@@ -28,11 +28,15 @@ import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 import { supabase } from '@/lib/supabase'
-import type { ProjectionMode, StoreSourceMode } from '@/types/database'
+import type { ProjectionMode, RankingEntry, StoreSourceMode } from '@/types/database'
 import { StoreGoalsPanel } from '@/features/lojas/components/StoreGoalsPanel'
 import { StoreTeamPanel } from '@/features/lojas/components/StoreTeamPanel'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
+import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 
 type DashboardTab = 'performance' | 'metas' | 'equipe'
+type ChannelTone = 'success' | 'info' | 'brand'
+type StoreRankingEntry = RankingEntry & { id: string }
 
 const joinRecipients = (value?: string[] | null) => value?.join(', ') || ''
 const splitRecipients = (value: string) => value.split(',').map(email => email.trim()).filter(Boolean)
@@ -237,18 +241,19 @@ export default function DashboardLoja() {
             if (!acc[c.seller_user_id]) acc[c.seller_user_id] = []
             acc[c.seller_user_id].push(c)
             return acc
-        }, {} as Record<string, any[]>)
+        }, {} as Record<string, typeof checkins>)
 
         return {
-            checkins: checkins as any,
+            checkins,
             ranking: (sellers || []).map(s => {
                 const sellerCheckins = checkinsBySeller[s.id] || []
                 return {
                     id: s.id,
                     user_id: s.id,
                     user_name: s.name,
+                    avatar_url: s.avatar_url,
                     is_venda_loja: s.is_venda_loja || false,
-                    vnd_total: somarVendas(sellerCheckins as any),
+                    vnd_total: somarVendas(sellerCheckins),
                     leads: sellerCheckins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
                     agd_total: sellerCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0),
                     visitas: sellerCheckins.reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
@@ -260,12 +265,12 @@ export default function DashboardLoja() {
                     status: { label: '', color: '' },
                     gap: 0,
                     position: 0,
-                    checkin_today: (sellers || []).find(sel => sel.id === s.id)?.checkin_today
+                    checked_in: s.checkin_today,
                 }
             }),
-            rules: { monthly_goal: effectiveMonthlyGoal } as any
+            rules: buildStoreSalesRules({ storeId: selectedStoreId, monthlyGoal: effectiveMonthlyGoal, metaRules: operationalMetaRules }),
         }
-    }, [checkins, sellers, effectiveMonthlyGoal])
+    }, [checkins, effectiveMonthlyGoal, operationalMetaRules, selectedStoreId, sellers])
 
     const storeSales = useStoreSales(storeSalesParams)
     const { financials, computeDRE: computeDREFn } = useDRE(undefined, selectedStoreId || undefined)
@@ -296,7 +301,7 @@ export default function DashboardLoja() {
         }
     }, [storeSales, sellers, selectedStore, effectiveMonthlyGoal])
 
-    const funilData = useMemo(() => calcularFunil(checkins as any), [checkins])
+    const funilData = useMemo(() => calcularFunil(checkins), [checkins])
     const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
 
     const mixCanais = useMemo(() => {
@@ -306,13 +311,13 @@ export default function DashboardLoja() {
         const digital = (checkins || []).reduce((acc, c) => acc + (c.vnd_net_prev_day || 0), 0)
         
         return [
-            { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: Math.round((porta / total) * 100), tone: 'success' },
-            { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: Math.round((carteira / total) * 100), tone: 'info' },
-            { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: Math.round((digital / total) * 100), tone: 'brand' },
+            { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: Math.round((porta / total) * 100), tone: 'success' as ChannelTone },
+            { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: Math.round((carteira / total) * 100), tone: 'info' as ChannelTone },
+            { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: Math.round((digital / total) * 100), tone: 'brand' as ChannelTone },
         ]
     }, [checkins, metrics.totalSales])
 
-    const columns = useMemo<Column<any>[]>(() => [
+    const columns = useMemo<Column<StoreRankingEntry>[]>(() => [
         {
             key: 'position',
             header: 'POS',
@@ -363,7 +368,9 @@ export default function DashboardLoja() {
     ], [])
 
     const filteredRanking = useMemo(() => {
-        return metrics.ranking.filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
+        return metrics.ranking
+            .map((ranking): StoreRankingEntry => ({ ...ranking, id: ranking.user_id }))
+            .filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
     }, [metrics.ranking, sellerSearch])
 
     useEffect(() => {
@@ -436,10 +443,8 @@ export default function DashboardLoja() {
         }
     }
 
-    const handleDeleteStore = async () => {
+    const executeDeleteStore = async () => {
         if (!selectedStoreId || !selectedStore) return
-        const confirmed = window.confirm(`Excluir definitivamente a loja ${selectedStore.name}? Esta ação depende das regras do banco e pode ser bloqueada se houver dados vinculados.`)
-        if (!confirmed) return
 
         setDeletingStore(true)
         try {
@@ -453,6 +458,17 @@ export default function DashboardLoja() {
         } finally {
             setDeletingStore(false)
         }
+    }
+
+    const handleDeleteStore = () => {
+        if (!selectedStoreId || !selectedStore) return
+        requestToastConfirmation({
+            key: `delete-store-dashboard:${selectedStoreId}`,
+            title: `Excluir ${selectedStore.name}?`,
+            description: 'A ação depende das regras do banco e pode ser bloqueada se houver dados vinculados.',
+            label: 'Excluir',
+            onConfirm: executeDeleteStore,
+        })
     }
 
     const handleSettingsSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -878,7 +894,7 @@ export default function DashboardLoja() {
                                 <div key={ch.label} className="space-y-mx-xs">
                                     <div className="flex justify-between items-end">
                                         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">{ch.label}</Typography>
-                                        <Typography variant="mono" tone={ch.tone as any} className="text-sm font-black">{ch.pct}%</Typography>
+                                        <Typography variant="mono" tone={ch.tone} className="text-sm font-black">{ch.pct}%</Typography>
                                     </div>
                                     <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-0.5"><motion.div initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5 }} className={cn("h-full rounded-full", ch.color)} /></div>
                                 </div>

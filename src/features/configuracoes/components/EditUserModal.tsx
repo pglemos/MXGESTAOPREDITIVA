@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { User, UserRole, Store } from '@/types/database'
 import type { TeamMemberUpdateFields } from '@/hooks/useTeam'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
     { value: 'administrador_geral', label: 'Admin Master MX' },
@@ -59,10 +60,8 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
         }
     }
 
-    const handleResetPassword = async () => {
+    const executeResetPassword = async () => {
         if (!user) return
-        const confirmed = window.confirm(`Forçar troca de senha de ${user.name}? O usuário será obrigado a definir nova senha no próximo login.`)
-        if (!confirmed) return
         setResetting(true)
         const { error } = await supabase
             .from('usuarios')
@@ -73,15 +72,35 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
         else toast.success('Próximo login exigirá nova senha.')
     }
 
-    const handleSendMagicLink = async () => {
+    const handleResetPassword = () => {
         if (!user) return
-        const confirmed = window.confirm(`Enviar link de redefinição de senha para ${user.email}?`)
-        if (!confirmed) return
+        requestToastConfirmation({
+            key: `force-password-change:${user.id}`,
+            title: `Forçar troca de senha de ${user.name}?`,
+            description: 'O usuário será obrigado a definir nova senha no próximo login.',
+            label: 'Forçar',
+            onConfirm: executeResetPassword,
+        })
+    }
+
+    const executeSendMagicLink = async () => {
+        if (!user) return
         const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
             redirectTo: `${window.location.origin}/login`,
         })
         if (error) toast.error(error.message)
         else toast.success(`E-mail de redefinição enviado para ${user.email}`)
+    }
+
+    const handleSendMagicLink = () => {
+        if (!user) return
+        requestToastConfirmation({
+            key: `send-password-reset:${user.id}`,
+            title: `Enviar redefinição para ${user.email}?`,
+            description: 'O usuário receberá um link de redefinição de senha por e-mail.',
+            label: 'Enviar',
+            onConfirm: executeSendMagicLink,
+        })
     }
 
     const isInternal = INTERNAL_ROLES.includes(form.role as UserRole)

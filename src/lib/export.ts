@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx'
  * Utilitário de exportação de alto desempenho para MX Performance.
  * Centraliza a lógica de geração de Excel para evitar redundância e lentidão no browser.
  */
-export function exportToExcel(data: any[], filename: string, sheetName: string = 'Dados') {
+export function exportToExcel(data: Record<string, unknown>[], filename: string, sheetName: string = 'Dados') {
   try {
     const ws = XLSX.utils.json_to_sheet(data)
     const wb = XLSX.utils.book_new()

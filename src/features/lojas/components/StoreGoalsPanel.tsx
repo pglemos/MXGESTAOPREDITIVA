@@ -7,6 +7,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { useStoreGoal, useStoreMetaRules } from '@/hooks/useGoals'
 import { cn } from '@/lib/utils'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 type StoreBenchmarks = {
   lead_to_agend: number
@@ -71,10 +72,8 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
     }
   }
 
-  const handleDelete = async () => {
+  const executeDelete = async () => {
     if (!storeId || !canManageGoals) return
-    const confirmed = window.confirm('Excluir a configuração de metas desta loja? A loja voltará aos padrões até uma nova configuração ser salva.')
-    if (!confirmed) return
 
     setDeleting(true)
     try {
@@ -91,6 +90,17 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
     } finally {
       setDeleting(false)
     }
+  }
+
+  const handleDelete = () => {
+    if (!storeId || !canManageGoals) return
+    requestToastConfirmation({
+      key: `delete-store-goals:${storeId}`,
+      title: `Excluir metas de ${storeName || 'loja'}?`,
+      description: 'A loja voltará aos padrões até uma nova configuração ser salva.',
+      label: 'Excluir',
+      onConfirm: executeDelete,
+    })
   }
 
   const updateBenchmark = (field: keyof StoreBenchmarks, value: string) => {

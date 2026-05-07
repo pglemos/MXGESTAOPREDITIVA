@@ -29,6 +29,7 @@ import { Modal } from '@/components/organisms/Modal'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 import type { DigitalProduct, UserRole } from '@/types/database'
 
 type ProductAudience = UserRole
@@ -332,13 +333,11 @@ export default function ProdutosDigitais() {
     fetchProducts()
   }
 
-  const handleDelete = async (product: ProductRecord) => {
+  const executeDelete = async (product: ProductRecord) => {
     if (!canManage) {
       toast.error('Permissão negada.')
       return
     }
-    const confirmed = window.confirm(`Excluir o produto "${product.name}"?`)
-    if (!confirmed) return
 
     const { error } = await supabase.from('produtos_digitais').delete().eq('id', product.id)
     if (error) {
@@ -347,6 +346,16 @@ export default function ProdutosDigitais() {
     }
     toast.success('Produto excluído.')
     fetchProducts()
+  }
+
+  const handleDelete = (product: ProductRecord) => {
+    requestToastConfirmation({
+      key: `delete-product:${product.id}`,
+      title: `Excluir "${product.name}"?`,
+      description: 'O produto será removido do catálogo digital.',
+      label: 'Excluir',
+      onConfirm: () => executeDelete(product),
+    })
   }
 
   const filteredProducts = useMemo(() => {

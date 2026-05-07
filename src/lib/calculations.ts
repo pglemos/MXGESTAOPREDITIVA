@@ -238,9 +238,29 @@ export function somarVendasPorCanal(checkins: DailyCheckin[]) {
     }
 }
 
+type MorningReportMetrics = {
+    reaching: number
+    teamGoal: number
+    currentSales: number
+    projection: number
+    gap: number
+    vnd_total?: number
+    leads?: number
+    visitas?: number
+    agd_total?: number
+    pendingSellers?: string[]
+}
+
+type MorningReportRankingRow = {
+    user_name: string
+    vnd_total: number
+    agd_total: number
+}
+
 /** Formata o texto do WhatsApp para o Matinal Oficial */
-export function formatWhatsAppMorningReport(storeName: string, dateLabel: string, metrics: any, ranking: any[]): string {
+export function formatWhatsAppMorningReport(storeName: string, dateLabel: string, metrics: MorningReportMetrics, ranking: MorningReportRankingRow[]): string {
     const statusEmoji = metrics.reaching >= 100 ? '✅' : metrics.reaching >= 70 ? '⚠️' : '🚨';
+    const pendingSellers = metrics.pendingSellers || [];
     
     return `*📊 MATINAL OFICIAL MX — ${storeName.toUpperCase()}*
 *Ref:* ${dateLabel}
@@ -254,17 +274,29 @@ export function formatWhatsAppMorningReport(storeName: string, dateLabel: string
 *📊 GRADE OPERACIONAL:*
 ${ranking.map(r => `• ${r.user_name}: ${r.vnd_total}v | ${r.agd_total} agd`).join('\n')}
 
-${metrics.pendingSellers?.length > 0 ? `*⚠️ SEM REGISTRO HOJE:* \n${metrics.pendingSellers.join(', ')}` : '*✅ Time 100% ativo hoje.*'}
+${pendingSellers.length > 0 ? `*⚠️ SEM REGISTRO HOJE:* \n${pendingSellers.join(', ')}` : '*✅ Time 100% ativo hoje.*'}
 
 *FOCO DO DIA:* Validar agenda digital D-0.
 _Sistema Automático MX_`
 }
 
+type StructuredFeedbackMetrics = {
+    vnd_total?: number
+    agd_total?: number
+    visitas?: number
+    leads?: number
+}
+
+type StructuredFeedbackDiagnostic = {
+    diagnostico?: string
+    sugestao?: string
+}
+
 /** Formata o feedback estruturado para envio via WhatsApp */
 export function formatStructuredWhatsAppFeedback(data: {
     sellerName?: string;
-    metrics: any;
-    diagnostic?: any;
+    metrics: StructuredFeedbackMetrics;
+    diagnostic?: StructuredFeedbackDiagnostic;
     actions?: string[];
     periodLabel?: string;
     dateLabel?: string;

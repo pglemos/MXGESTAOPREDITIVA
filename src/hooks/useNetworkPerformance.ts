@@ -118,12 +118,19 @@ function percent(part: number, total: number) {
   return round1((part / total) * 100)
 }
 
-async function fetchAllRows<T extends Record<string, unknown>>(table: string, select: string, configure?: (query: any) => any): Promise<T[]> {
+type SupabaseRowsQuery = {
+  eq(column: string, value: unknown): SupabaseRowsQuery
+  gte(column: string, value: unknown): SupabaseRowsQuery
+  lte(column: string, value: unknown): SupabaseRowsQuery
+  range(from: number, to: number): PromiseLike<{ data: unknown[] | null; error: unknown }>
+}
+
+async function fetchAllRows<T extends Record<string, unknown>>(table: string, select: string, configure?: (query: SupabaseRowsQuery) => SupabaseRowsQuery): Promise<T[]> {
   const rows: T[] = []
   let from = 0
 
   while (true) {
-    let query = supabase.from(table).select(select)
+    let query = supabase.from(table).select(select) as unknown as SupabaseRowsQuery
     if (configure) query = configure(query)
 
     const { data, error } = await query.range(from, from + 999)

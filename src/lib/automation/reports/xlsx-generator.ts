@@ -1,8 +1,32 @@
-import { DailyCheckin, RankingEntry } from '@/types/database';
-import { calcularFunil, MX_BENCHMARKS } from '@/lib/calculations';
+import { MX_BENCHMARKS } from '@/lib/calculations';
 import ExcelJS from 'exceljs';
 
-export async function generateMorningReportXlsx(storeName: string, dateLabel: string, ranking: RankingEntry[]): Promise<Buffer> {
+export type MorningReportXlsxRow = {
+    user_id?: string;
+    user_name: string;
+    leads?: number;
+    agd_total?: number;
+    visitas?: number;
+    vnd_total?: number;
+    vnd_yesterday?: number;
+    atingimento?: number;
+};
+
+type FeedbackXlsxData = {
+    leads: number;
+    agend: number;
+    visitas: number;
+    vendas: number;
+    meta: number;
+    gargalo: string;
+};
+
+async function writeWorkbookBuffer(workbook: ExcelJS.Workbook): Promise<Buffer> {
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+}
+
+export async function generateMorningReportXlsx(storeName: string, dateLabel: string, ranking: MorningReportXlsxRow[]): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Painel Visual');
     
@@ -74,10 +98,10 @@ export async function generateMorningReportXlsx(storeName: string, dateLabel: st
     // Ajustar larguras
     worksheet.columns.forEach(col => { col.width = 20; });
 
-    return await workbook.xlsx.writeBuffer() as any;
+    return writeWorkbookBuffer(workbook);
 }
 
-export async function generateFeedbackXlsx(sellerName: string, data: any): Promise<Buffer> {
+export async function generateFeedbackXlsx(sellerName: string, data: FeedbackXlsxData): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Devolutiva Individual');
 
@@ -132,5 +156,5 @@ export async function generateFeedbackXlsx(sellerName: string, data: any): Promi
 
     worksheet.columns.forEach(col => col.width = 25);
 
-    return await workbook.xlsx.writeBuffer() as any;
+    return writeWorkbookBuffer(workbook);
 }

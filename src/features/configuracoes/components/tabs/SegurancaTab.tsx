@@ -9,6 +9,7 @@ import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 export function SegurancaTab() {
     const { changePassword, signOut, profile } = useAuth()
@@ -30,12 +31,20 @@ export function SegurancaTab() {
         }
     }
 
-    const handleForceLogoutAll = async () => {
-        const confirmed = window.confirm('Encerrar TODAS as sessões ativas (incluindo esta)? Você precisará fazer login novamente.')
-        if (!confirmed) return
-        await supabase.auth.signOut({ scope: 'global' as any })
+    const executeForceLogoutAll = async () => {
+        await supabase.auth.signOut({ scope: 'global' })
         await signOut()
         toast.success('Todas as sessões foram encerradas.')
+    }
+
+    const handleForceLogoutAll = () => {
+        requestToastConfirmation({
+            key: `force-logout-all:${profile?.id || 'current'}`,
+            title: 'Encerrar todas as sessões ativas?',
+            description: 'Esta sessão também será encerrada e será necessário fazer login novamente.',
+            label: 'Encerrar',
+            onConfirm: executeForceLogoutAll,
+        })
     }
 
     return (

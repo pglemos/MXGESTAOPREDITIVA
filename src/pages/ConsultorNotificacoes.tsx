@@ -14,6 +14,9 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
+type NotificationTargetRole = 'todos' | 'dono' | 'gerente' | 'vendedor'
+const NOTIFICATION_TARGET_ROLES: NotificationTargetRole[] = ['todos', 'dono', 'gerente', 'vendedor']
+
 export default function ConsultorNotificacoes() {
     const { sendNotification } = useNotifications()
     const { broadcasts, loading, refetch } = useSystemBroadcasts()
@@ -24,7 +27,7 @@ export default function ConsultorNotificacoes() {
         message: '', 
         target_type: 'all' as 'all' | 'store', 
         target_store_id: '',
-        target_role: 'todos' as 'todos' | 'dono' | 'gerente' | 'vendedor'
+        target_role: 'todos' as NotificationTargetRole
     })
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
@@ -142,8 +145,8 @@ export default function ConsultorNotificacoes() {
                                         <div className="space-y-mx-sm">
                                             <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nível Hierárquico</Typography>
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-mx-xs">
-                                                {['todos', 'dono', 'gerente', 'vendedor'].map(role => (
-                                                    <Button key={role} type="button" variant={form.target_role === role ? 'secondary' : 'outline'} onClick={() => setForm(p => ({ ...p, target_role: role as any }))} className="h-mx-10 rounded-mx-xl text-mx-micro font-black uppercase px-0">{role}</Button>
+                                                {NOTIFICATION_TARGET_ROLES.map(role => (
+                                                    <Button key={role} type="button" variant={form.target_role === role ? 'secondary' : 'outline'} onClick={() => setForm(p => ({ ...p, target_role: role }))} className="h-mx-10 rounded-mx-xl text-mx-micro font-black uppercase px-0">{role}</Button>
                                                 ))}
                                             </div>
                                         </div>

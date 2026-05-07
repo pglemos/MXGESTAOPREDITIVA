@@ -18,6 +18,10 @@ const ROLE_LABELS: Record<string, string> = {
     vendedor: 'VENDEDOR',
 }
 
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : 'Falha ao enviar avatar.'
+}
+
 export function PerfilTab() {
     const { profile, role, updateProfile, supabaseUser } = useAuth()
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -51,8 +55,8 @@ export function PerfilTab() {
             const { error: updateError } = await updateProfile({ avatar_url: avatarUrl })
             if (updateError) throw new Error(updateError)
             toast.success('Avatar atualizado!')
-        } catch (err: any) {
-            toast.error(err.message || 'Falha ao enviar avatar.')
+        } catch (err) {
+            toast.error(getErrorMessage(err))
         } finally {
             setUploadingAvatar(false)
         }

@@ -7,7 +7,19 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, '&#39;')
 }
 
-export const getWeeklyFeedbackEmailTemplate = (storeName: string, dateRange: string, feedbackData: any[]) => {
+export type WeeklyFeedbackEmailRow = {
+  seller_id?: string
+  seller_name?: string
+  name?: string
+  whatsapp_text?: string
+  feedbackText?: string
+  message?: string
+  vnd?: number
+  sales?: number
+  leads?: number
+}
+
+export const getWeeklyFeedbackEmailTemplate = (storeName: string, dateRange: string, feedbackData: WeeklyFeedbackEmailRow[]) => {
   const totalSales = feedbackData.reduce((sum, item) => sum + Number(item.vnd ?? item.sales ?? 0), 0)
   const totalLeads = feedbackData.reduce((sum, item) => sum + Number(item.leads ?? 0), 0)
   const blocks = feedbackData.map((feedback) => {

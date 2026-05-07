@@ -76,7 +76,7 @@ export default function Historico() {
             visit_prev_day: formData.visitas
         }
 
-        const { error } = await requestCorrection(selectedCheckin.id, updatePayload as any, correctionReason)
+        const { error } = await requestCorrection(selectedCheckin.id, updatePayload, correctionReason)
         
         if (error) {
             toast.error(error)

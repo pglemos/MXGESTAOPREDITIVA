@@ -3,7 +3,7 @@ declare module 'html2pdf.js' {
     margin?: number | [number, number, number, number]
     filename?: string
     image?: { type?: 'jpeg' | 'png' | 'webp'; quality?: number }
-    html2canvas?: any
+    html2canvas?: Record<string, unknown>
     jsPDF?: { unit?: string; format?: string; orientation?: string }
   }
 
@@ -12,8 +12,8 @@ declare module 'html2pdf.js' {
     from: (element: HTMLElement) => Html2Pdf
     toPdf: () => Html2Pdf
     save: () => Promise<void>
-    output: (type: string, options?: any) => Promise<any>
-    outputPdf: (type: string, options?: any) => Promise<any>
+    output: (type: string, options?: Record<string, unknown>) => Promise<unknown>
+    outputPdf: (type: 'blob', options?: Record<string, unknown>) => Promise<Blob>
   }
 
   function html2pdf(): Html2Pdf

@@ -5,30 +5,36 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
-export function toCamelCase(obj: any): any {
+type JsonLikeObject = Record<string, unknown>
+
+function isPlainObject(value: unknown): value is JsonLikeObject {
+    return value !== null && typeof value === 'object' && value.constructor === Object
+}
+
+export function toCamelCase<T>(obj: T): unknown {
     if (Array.isArray(obj)) {
         return obj.map(v => toCamelCase(v))
-    } else if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
-        return Object.keys(obj).reduce((result, key) => {
+    } else if (isPlainObject(obj)) {
+        return Object.keys(obj).reduce<JsonLikeObject>((result, key) => {
             const camelKey = key.replace(/([-_][a-z])/g, group =>
                 group.toUpperCase().replace('-', '').replace('_', '')
             )
             result[camelKey] = toCamelCase(obj[key])
             return result
-        }, {} as any)
+        }, {})
     }
     return obj
 }
 
-export function toSnakeCase(obj: any): any {
+export function toSnakeCase<T>(obj: T): unknown {
     if (Array.isArray(obj)) {
         return obj.map(v => toSnakeCase(v))
-    } else if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
-        return Object.keys(obj).reduce((result, key) => {
+    } else if (isPlainObject(obj)) {
+        return Object.keys(obj).reduce<JsonLikeObject>((result, key) => {
             const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
             result[snakeKey] = toSnakeCase(obj[key])
             return result
-        }, {} as any)
+        }, {})
     }
     return obj
 }

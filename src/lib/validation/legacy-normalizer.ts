@@ -1,10 +1,7 @@
-import { DailyCheckin } from '@/types/database';
-import { validateCheckinPayload } from './checkin-validator';
-
 /**
  * Maps legacy headers to canonical fields and normalizes data.
  */
-export function normalizeLegacyData(raw: Record<string, string>): Record<string, any> {
+export function normalizeLegacyData(raw: Record<string, string>): Record<string, string> {
     const mapping: Record<string, string> = {
         'LEADS': 'LEADS',
         'VENDAS PORTA': 'VND_PORTA',
@@ -15,7 +12,7 @@ export function normalizeLegacyData(raw: Record<string, string>): Record<string,
         'VISITAS': 'VISITA'
     };
 
-    const normalized: Record<string, any> = {};
+    const normalized: Record<string, string> = {};
     
     // Fuzzy matching headers
     for (const [key, value] of Object.entries(raw)) {

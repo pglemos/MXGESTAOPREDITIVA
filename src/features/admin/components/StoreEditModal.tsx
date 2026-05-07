@@ -8,6 +8,7 @@ import { Badge } from '@/components/atoms/Badge'
 import type { Store } from '@/types/database'
 import type { StoreUpdateFields } from '@/hooks/useTeam'
 import { getPreRegistrationLink } from '@/lib/utils'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 interface StoreEditModalProps {
   open: boolean
@@ -45,14 +46,8 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
 
   const registrationLink = store ? getPreRegistrationLink(store.name) : ''
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const submitStoreUpdate = async () => {
     if (!store) return
-
-    if (store.active && !form.active) {
-      const confirmed = window.confirm('Arquivar esta loja? Gerentes e vendedores podem perder visibilidade operacional.')
-      if (!confirmed) return
-    }
 
     await onSubmit(store.id, {
       name: form.name,
@@ -64,6 +59,24 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
       partners: form.partners,
       active: form.active,
     })
+  }
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!store) return
+
+    if (store.active && !form.active) {
+      requestToastConfirmation({
+        key: `archive-store-modal:${store.id}`,
+        title: `Arquivar ${store.name}?`,
+        description: 'Gerentes e vendedores podem perder visibilidade operacional.',
+        label: 'Arquivar',
+        onConfirm: submitStoreUpdate,
+      })
+      return
+    }
+
+    await submitStoreUpdate()
   }
 
   return (

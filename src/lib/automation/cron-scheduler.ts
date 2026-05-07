@@ -2,10 +2,22 @@ import { supabase } from '@/lib/supabase';
 import { calcularFunil, somarVendas, calcularProjecao, calcularAtingimento, getDiasInfo } from '../calculations';
 import { getMatinalEmailTemplate } from './email/templates/matinal';
 import { sendEmailReport } from './email/sender';
-import { generateMorningReportXlsx } from './reports/xlsx-generator';
+import { generateMorningReportXlsx, type MorningReportXlsxRow } from './reports/xlsx-generator';
 import { calculateReferenceDate } from '@/hooks/useCheckins';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import type { DailyCheckin } from '@/types/database';
+
+type NamedUserRelation = { name?: string | null } | { name?: string | null }[] | null | undefined;
+
+function getRelationUserName(users: NamedUserRelation, fallback = 'Vendedor') {
+    const user = Array.isArray(users) ? users[0] : users;
+    return user?.name || fallback;
+}
+
+function firstRelation<T>(value: T | T[] | null | undefined): T | null {
+    return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
 
 export async function runMatinalWorkflow() {
     console.log('🚀 Iniciando Ciclo Matinal MX (v2)...');
@@ -42,23 +54,24 @@ export async function runMatinalWorkflow() {
 
         if (!members) continue;
 
-        const ranking: any[] = [];
+        const ranking: MorningReportXlsxRow[] = [];
         const pendingSellers: string[] = [];
 
         for (const member of members) {
-            const sellerCheckins = monthCheckins.filter(c => c.seller_user_id === member.user_id);
+            const sellerCheckins = (monthCheckins as DailyCheckin[]).filter(c => c.seller_user_id === member.user_id);
             const yesterdayCheckin = sellerCheckins.find(c => c.reference_date === referenceDate);
+            const sellerName = getRelationUserName(member.users);
             
             if (!yesterdayCheckin) {
-                pendingSellers.push((member.users as any)?.name || 'Vendedor');
+                pendingSellers.push(sellerName);
             }
 
-            const sellerFunnel = calcularFunil(sellerCheckins as any);
-            const totalSales = somarVendas(sellerCheckins as any);
+            const sellerFunnel = calcularFunil(sellerCheckins);
+            const totalSales = somarVendas(sellerCheckins);
 
             ranking.push({
                 user_id: member.user_id,
-                user_name: (member.users as any)?.name,
+                user_name: sellerName,
                 leads: sellerFunnel.leads,
                 agd_total: sellerFunnel.agd_total,
                 visitas: sellerFunnel.visitas,
@@ -68,8 +81,10 @@ export async function runMatinalWorkflow() {
             });
         }
 
-        const storeSales = somarVendas(monthCheckins as any);
-        const storeGoal = store.regras_metas_loja?.monthly_goal || 0;
+        const storeSales = somarVendas(monthCheckins as DailyCheckin[]);
+        const metaRules = firstRelation(store.regras_metas_loja);
+        const deliveryRules = firstRelation(store.regras_entrega_loja);
+        const storeGoal = metaRules?.monthly_goal || 0;
         
         const metrics = {
             currentSales: storeSales,
@@ -81,7 +96,7 @@ export async function runMatinalWorkflow() {
         };
 
         // 4. Gerar XLSX e Enviar E-mail
-        const recipients = store.regras_entrega_loja?.matinal_recipients;
+        const recipients = deliveryRules?.matinal_recipients;
 
         if (recipients && recipients.length > 0) {
             try {

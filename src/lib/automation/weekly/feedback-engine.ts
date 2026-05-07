@@ -1,9 +1,21 @@
 import { supabase } from '@/lib/supabase';
 import { calcularFunil, gerarDiagnosticoMX, formatStructuredWhatsAppFeedback } from '../../calculations';
-import { getWeeklyFeedbackEmailTemplate } from '../email/templates/weekly-feedback';
+import { getWeeklyFeedbackEmailTemplate, type WeeklyFeedbackEmailRow } from '../email/templates/weekly-feedback';
 import { sendEmailReport } from '../email/sender';
 import { startOfWeek, subWeeks, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import type { DailyCheckin } from '@/types/database';
+
+type NamedUserRelation = { name?: string | null } | { name?: string | null }[] | null | undefined;
+
+function getRelationUserName(users: NamedUserRelation, fallback = 'Vendedor') {
+    const user = Array.isArray(users) ? users[0] : users;
+    return user?.name || fallback;
+}
+
+function firstRelation<T>(value: T | T[] | null | undefined): T | null {
+    return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
 
 export async function runWeeklyFeedbackWorkflow() {
     console.log('🚀 Iniciando Ciclo de Devolutiva Semanal MX...');
@@ -52,16 +64,17 @@ export async function runWeeklyFeedbackWorkflow() {
 
         if (!members) continue;
 
-        const feedbackData: any[] = [];
+        const feedbackData: WeeklyFeedbackEmailRow[] = [];
 
         for (const member of members) {
-            const sellerCheckins = checkins.filter(c => c.seller_user_id === member.user_id);
-            const funnel = calcularFunil(sellerCheckins as any);
+            const sellerCheckins = (checkins as DailyCheckin[]).filter(c => c.seller_user_id === member.user_id);
+            const funnel = calcularFunil(sellerCheckins);
             const diag = gerarDiagnosticoMX(funnel);
+            const sellerName = getRelationUserName(member.users);
             
             // Gerar texto do WhatsApp seguindo o novo padrão
             const whatsappText = formatStructuredWhatsAppFeedback({
-                sellerName: (member.users as any)?.name || 'Vendedor',
+                sellerName,
                 metrics: funnel,
                 diagnostic: diag,
                 actions: [diag.sugestao],
@@ -70,13 +83,16 @@ export async function runWeeklyFeedbackWorkflow() {
 
             feedbackData.push({
                 seller_id: member.user_id,
-                seller_name: (member.users as any)?.name || 'Vendedor',
+                seller_name: sellerName,
+                leads: funnel.leads,
+                vnd: funnel.vnd_total,
                 whatsapp_text: whatsappText
             });
         }
 
         // 5. Enviar E-mail Consolidado para o Gerente/Dono
-        const recipients = store.regras_entrega_loja?.weekly_recipients;
+        const deliveryRules = firstRelation(store.regras_entrega_loja);
+        const recipients = deliveryRules?.weekly_recipients;
         
         if (recipients && recipients.length > 0) {
             try {

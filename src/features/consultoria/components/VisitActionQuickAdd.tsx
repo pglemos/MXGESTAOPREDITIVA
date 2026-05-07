@@ -8,6 +8,10 @@ import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { useConsultingActionPlan } from '@/hooks/useConsultingActionPlan'
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Falha ao criar tarefa.'
+}
+
 export function VisitActionQuickAdd({ clientId, visitNumber }: { clientId: string, visitNumber: number }) {
   const { createItem } = useConsultingActionPlan(clientId)
   const [isOpen, setIsOpen] = useState(false)
@@ -34,8 +38,8 @@ export function VisitActionQuickAdd({ clientId, visitNumber }: { clientId: strin
       toast.success('Ação adicionada ao Plano de Ação!')
       setForm({ action: '', owner_name: '', due_date: new Date().toISOString().split('T')[0] })
       setIsOpen(false)
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     } finally {
       setSubmitting(false)
     }

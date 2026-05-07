@@ -11,7 +11,34 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, '&#39;')
 }
 
-export const getMatinalEmailTemplate = (storeName: string, dateLabel: string, metrics: any, ranking: any[]) => {
+type MatinalMetrics = {
+  currentSales?: number
+  totalSales?: number
+  teamGoal?: number
+  storeGoal?: number
+  projection?: number
+  gap?: number
+  reaching?: number
+  pendingSellers?: string[]
+}
+
+type MatinalRankingRow = {
+  user_name?: string
+  name?: string
+  leads?: number
+  agd_total?: number
+  agd?: number
+  agd_cart_today?: number
+  agd_net_today?: number
+  vnd_yesterday?: number
+  vnd_ontem?: number
+  vndYesterday?: number
+  vnd_total?: number
+  vt?: number
+  total_mes?: number
+}
+
+export const getMatinalEmailTemplate = (storeName: string, dateLabel: string, metrics: MatinalMetrics, ranking: MatinalRankingRow[]) => {
   const currentSales = Number(metrics.currentSales ?? metrics.totalSales ?? 0)
   const teamGoal = Number(metrics.teamGoal ?? metrics.storeGoal ?? 0)
   const projection = Number(metrics.projection ?? 0)

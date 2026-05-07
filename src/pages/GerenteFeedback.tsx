@@ -20,7 +20,22 @@ import { format, subWeeks, startOfWeek, endOfWeek, parseISO, isSameWeek } from '
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { calcularFunil, formatStructuredWhatsAppFeedback } from '@/lib/calculations'
-import type { FeedbackFormData } from '@/types/database'
+import type { DailyCheckin, FeedbackFormData, WeeklyFeedbackReport } from '@/types/database'
+import type { Feedback } from '@/lib/schemas/feedback.schema'
+
+type FeedbackListItem = Feedback & {
+    seller_name?: string
+    manager_name?: string
+}
+
+function getFeedbackSellerName(feedback: FeedbackListItem): string {
+    return feedback.seller_name || 'Especialista'
+}
+
+function getWeeklyAverageSales(report: Pick<WeeklyFeedbackReport, 'team_avg_json'>): number {
+    const value = report.team_avg_json?.vnd
+    return typeof value === 'number' ? value : 0
+}
 
 function getPreviousWeekRange() {
     const now = new Date()
@@ -79,7 +94,7 @@ function AdminFeedback() {
 
     const filteredFeedbacks = useMemo(() => {
         return devolutivas.filter(f =>
-            (f as any).seller_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            getFeedbackSellerName(f).toLowerCase().includes(searchTerm.toLowerCase()) ||
             f.week_reference.includes(searchTerm)
         )
     }, [devolutivas, searchTerm])
@@ -109,7 +124,7 @@ function AdminFeedback() {
             .gte('reference_date', previousWeek.startKey)
             .lte('reference_date', previousWeek.endKey)
 
-        const funnel = calcularFunil((weekCheckins || []) as any)
+        const funnel = calcularFunil((weekCheckins || []) as DailyCheckin[])
         setFormData(f => ({
             ...f,
             seller_id: sellerId,
@@ -157,9 +172,9 @@ function AdminFeedback() {
         }
     }
 
-    const handleShareWhatsApp = (f: any) => {
+    const handleShareWhatsApp = (f: FeedbackListItem) => {
         const text = formatStructuredWhatsAppFeedback({
-            sellerName: f.seller_name || 'Especialista',
+            sellerName: getFeedbackSellerName(f),
             metrics: { vnd_total: f.vnd_week, agd_total: f.agd_week, visitas: f.visit_week, leads: f.leads_week },
             diagnostic: { diagnostico: f.attention_points, sugestao: f.action },
             actions: [f.action],
@@ -320,16 +335,18 @@ function AdminFeedback() {
                 {activeTab === 'individual' ? (
                     <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
                         <AnimatePresence mode="popLayout">
-                            {filteredFeedbacks.map((f, i) => (
+                            {filteredFeedbacks.map((f, i) => {
+                                const sellerName = getFeedbackSellerName(f)
+                                return (
                                 <motion.li key={f.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
                                     <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <article>
                                             <header className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">
                                                 <div className="flex items-center gap-mx-sm">
-                                                    <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{(f as any).seller_name?.substring(0, 2)}</div>
+                                                    <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{sellerName.substring(0, 2)}</div>
                                                     <div>
-                                                        <Typography variant="h3" className="text-base font-black uppercase tracking-tight">{(f as any).seller_name}</Typography>
+                                                        <Typography variant="h3" className="text-base font-black uppercase tracking-tight">{sellerName}</Typography>
                                                         <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
                                                     </div>
                                                 </div>
@@ -352,7 +369,7 @@ function AdminFeedback() {
                                         </footer>
                                     </Card>
                                 </motion.li>
-                            ))}
+                            )})}
                         </AnimatePresence>
                     </ul>
                 ) : (
@@ -378,7 +395,7 @@ function AdminFeedback() {
                                             </div>
                                             <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
                                                 <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black">MÉDIA</Typography>
-                                                <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers tabular-nums font-black">{(report.team_avg_json as any)?.vnd || 0}v</Typography>
+                                                <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers tabular-nums font-black">{getWeeklyAverageSales(report)}v</Typography>
                                             </div>
                                         </div>
                                     </article>
@@ -419,7 +436,7 @@ function StoreFeedback() {
             c.seller_user_id === sellerId &&
             isSameWeek(parseISO(c.reference_date), previousWeek.start, { weekStartsOn: 1 })
         )
-        const funnel = calcularFunil(weekCheckins as any)
+        const funnel = calcularFunil(weekCheckins)
         setFormData(f => ({
             ...f, seller_id: sellerId,
             leads_week: funnel.leads, agd_week: funnel.agd_total,
@@ -438,9 +455,9 @@ function StoreFeedback() {
         else { toast.success('Mentoria registrada!'); setShowForm(false); refetchFeedbacks() }
     }
 
-    const handleShareWhatsApp = (f: any) => {
+    const handleShareWhatsApp = (f: FeedbackListItem) => {
         const text = formatStructuredWhatsAppFeedback({
-            sellerName: f.seller_name || 'Especialista',
+            sellerName: getFeedbackSellerName(f),
             metrics: { vnd_total: f.vnd_week, agd_total: f.agd_week, visitas: f.visit_week, leads: f.leads_week },
             diagnostic: { diagnostico: f.attention_points, sugestao: f.action },
             actions: [f.action],
@@ -456,7 +473,7 @@ function StoreFeedback() {
 
     const filteredFeedbacks = useMemo(() => {
         return devolutivas.filter(f =>
-            (f as any).seller_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            getFeedbackSellerName(f).toLowerCase().includes(searchTerm.toLowerCase()) ||
             f.week_reference.includes(searchTerm)
         )
     }, [devolutivas, searchTerm])
@@ -608,16 +625,18 @@ function StoreFeedback() {
                 {activeTab === 'individual' ? (
                     <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
                         <AnimatePresence mode="popLayout">
-                            {filteredFeedbacks.map((f, i) => (
+                            {filteredFeedbacks.map((f, i) => {
+                                const sellerName = getFeedbackSellerName(f)
+                                return (
                                 <motion.li key={f.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
                                     <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <article>
                                             <header className="flex items-start justify-between mb-8 border-b border-border-default pb-6 relative z-10">
                                                 <div className="flex items-center gap-mx-sm">
-                                                    <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{(f as any).seller_name?.substring(0, 2)}</div>
+                                                    <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{sellerName.substring(0, 2)}</div>
                                                     <div>
-                                                        <Typography variant="h3" className="text-base font-black uppercase tracking-tight">{(f as any).seller_name}</Typography>
+                                                        <Typography variant="h3" className="text-base font-black uppercase tracking-tight">{sellerName}</Typography>
                                                         <Typography variant="tiny" tone="muted" className="font-black uppercase">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
                                                     </div>
                                                 </div>
@@ -635,7 +654,7 @@ function StoreFeedback() {
                                         </footer>
                                     </Card>
                                 </motion.li>
-                            ))}
+                            )})}
                         </AnimatePresence>
                     </ul>
                 ) : (
@@ -660,7 +679,7 @@ function StoreFeedback() {
                                         </div>
                                         <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
                                             <Typography variant="tiny" tone="muted" className="text-mx-micro mb-2 block uppercase tracking-widest font-black">MÉDIA</Typography>
-                                            <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers font-black">{(report.team_avg_json as any)?.vnd || 0}v</Typography>
+                                            <Typography variant="h2" tone="brand" className="text-2xl font-mono-numbers font-black">{getWeeklyAverageSales(report)}v</Typography>
                                         </div>
                                     </div>
                                 </Card>

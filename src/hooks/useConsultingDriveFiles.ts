@@ -19,16 +19,29 @@ type DriveResponse = {
   code?: string
 }
 
+type CodedError = Error & { code?: string }
+
+function getErrorCode(err: unknown): string | undefined {
+  return err instanceof Error && 'code' in err && typeof err.code === 'string' ? err.code : undefined
+}
+
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) return err.message
-  if (typeof err === 'object' && err && 'message' in err && typeof (err as any).message === 'string') return (err as any).message
+  if (typeof err === 'object' && err && 'message' in err) {
+    const message = err.message
+    if (typeof message === 'string') return message
+  }
   return fallback
 }
 
 function getDriveError(data: DriveResponse, fallback: string) {
-  const err = new Error(data.error || fallback) as Error & { code?: string }
+  const err = new Error(data.error || fallback) as CodedError
   err.code = data.code
   return err
+}
+
+function needsDriveReconnect(err: unknown, message: string): boolean {
+  return getErrorCode(err) === 'DRIVE_NOT_CONNECTED' || message.includes('Reconecte a conta central')
 }
 
 export function useConsultingDriveFiles(clientId?: string | null) {
@@ -73,7 +86,7 @@ export function useConsultingDriveFiles(clientId?: string | null) {
     } catch (err) {
       const message = getErrorMessage(err, 'Falha ao listar arquivos')
       setError(message)
-      setNeedsReconnect((err as any)?.code === 'DRIVE_NOT_CONNECTED' || message.includes('Reconecte a conta central'))
+      setNeedsReconnect(needsDriveReconnect(err, message))
       setFiles([])
     } finally {
       setLoading(false)
@@ -92,7 +105,7 @@ export function useConsultingDriveFiles(clientId?: string | null) {
     } catch (err) {
       const message = getErrorMessage(err, 'Falha ao preparar pasta')
       setError(message)
-      setNeedsReconnect((err as any)?.code === 'DRIVE_NOT_CONNECTED' || message.includes('Reconecte a conta central'))
+      setNeedsReconnect(needsDriveReconnect(err, message))
       return null
     } finally {
       setLoading(false)
@@ -125,7 +138,7 @@ export function useConsultingDriveFiles(clientId?: string | null) {
     } catch (err) {
       const message = getErrorMessage(err, 'Falha ao enviar arquivos')
       setError(message)
-      setNeedsReconnect((err as any)?.code === 'DRIVE_NOT_CONNECTED' || message.includes('Reconecte a conta central'))
+      setNeedsReconnect(needsDriveReconnect(err, message))
     } finally {
       setUploading(false)
     }
@@ -141,7 +154,7 @@ export function useConsultingDriveFiles(clientId?: string | null) {
     } catch (err) {
       const message = getErrorMessage(err, 'Falha ao remover arquivo')
       setError(message)
-      setNeedsReconnect((err as any)?.code === 'DRIVE_NOT_CONNECTED' || message.includes('Reconecte a conta central'))
+      setNeedsReconnect(needsDriveReconnect(err, message))
     } finally {
       setLoading(false)
     }

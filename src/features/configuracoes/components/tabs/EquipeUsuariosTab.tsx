@@ -13,6 +13,7 @@ import { UserCreationModal } from '@/features/equipe/components/UserCreationModa
 import { EditUserModal } from '@/features/configuracoes/components/EditUserModal'
 import type { UserRole } from '@/types/database'
 import type { TabContext } from '@/features/configuracoes/types'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 const ROLE_LABEL: Record<string, string> = {
     administrador_geral: 'Admin Master',
@@ -65,12 +66,20 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
         })
     }, [sellers, filter, roleFilter])
 
-    const handleDelete = async (user: TeamMember) => {
-        const confirmed = window.confirm(`Remover ${user.name} da equipe? Esta ação desativa o vínculo. O histórico é preservado.`)
-        if (!confirmed) return
+    const executeDelete = async (user: TeamMember) => {
         const { error } = await deleteTeamMember(user.id, user.store_id)
         if (error) toast.error(error)
         else toast.success(`${user.name} removido da equipe.`)
+    }
+
+    const handleDelete = (user: TeamMember) => {
+        requestToastConfirmation({
+            key: `remove-team-user:${user.id}:${user.store_id || 'global'}`,
+            title: `Remover ${user.name} da equipe?`,
+            description: 'Esta ação desativa o vínculo. O histórico é preservado.',
+            label: 'Remover',
+            onConfirm: () => executeDelete(user),
+        })
     }
 
     const stats = useMemo(() => ({

@@ -7,6 +7,15 @@ import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { useNetworkHierarchy } from '@/hooks/useNetworkHierarchy'
 import { toast } from 'sonner'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
+
+type NetworkMember = {
+  id: string
+  name?: string
+  role: string
+  avatar_url?: string | null
+  checkin_today: boolean
+}
 
 export function AdminNetworkView() {
   const { networkData, loading, updateRole, removeMember } = useNetworkHierarchy()
@@ -28,8 +37,7 @@ export function AdminNetworkView() {
     setProcessing(null)
   }
 
-  const handleRemove = async (userId: string, storeId: string) => {
-    if (!confirm('Tem certeza que deseja remover este membro da unidade?')) return
+  const executeRemove = async (userId: string, storeId: string) => {
     setProcessing(`${userId}-${storeId}`)
     const { error } = await removeMember(userId, storeId)
     if (error) toast.error('Erro ao remover')
@@ -37,11 +45,22 @@ export function AdminNetworkView() {
     setProcessing(null)
   }
 
+  const handleRemove = (member: NetworkMember, storeId: string) => {
+    requestToastConfirmation({
+      key: `network-remove:${member.id}:${storeId}`,
+      title: `Remover ${member.name || 'membro'} da unidade?`,
+      description: 'O vínculo com esta unidade será removido.',
+      label: 'Remover',
+      onConfirm: () => executeRemove(member.id, storeId),
+    })
+  }
+
   return (
     <div className="space-y-mx-md">
       {networkData.map((store) => {
         const isExpanded = expandedStoreId === store.store_id
-        const operacionais = store.members.filter((m: any) => m.checkin_today).length
+        const members = store.members as NetworkMember[]
+        const operacionais = members.filter((m) => m.checkin_today).length
         const total = store.members.length
 
         return (
@@ -78,7 +97,7 @@ export function AdminNetworkView() {
                   className="border-t border-border-default bg-surface-alt/30"
                 >
                   <div className="p-mx-sm sm:p-mx-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-sm">
-                    {store.members.map((member: any) => (
+                    {members.map((member) => (
                       <div key={member.id} className="bg-white p-mx-sm rounded-mx-lg border border-border-default flex flex-col gap-mx-sm shadow-sm relative overflow-hidden group">
                         <div className="flex items-center gap-mx-sm relative z-10">
                           <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt flex items-center justify-center border border-border-default overflow-hidden shrink-0">
@@ -102,7 +121,7 @@ export function AdminNetworkView() {
                           <Button 
                             variant="danger" size="sm" className="px-3 h-mx-lg sm:h-mx-10 bg-status-error-surface text-status-error border-status-error/20 hover:bg-status-error hover:text-white"
                             disabled={!!processing}
-                            onClick={(e) => { e.stopPropagation(); handleRemove(member.id, store.store_id) }}
+                            onClick={(e) => { e.stopPropagation(); handleRemove(member, store.store_id) }}
                           >
                             <Trash2 size={14} />
                           </Button>

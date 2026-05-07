@@ -13,6 +13,7 @@ import { CreateStoreModal } from '@/features/configuracoes/components/CreateStor
 import type { Store } from '@/types/database'
 import type { StoreUpdateFields } from '@/hooks/useTeam'
 import type { TabContext } from '@/features/configuracoes/types'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 export function LojasRedeTab({ isReadOnly }: TabContext) {
     const { role } = useAuth()
@@ -40,12 +41,20 @@ export function LojasRedeTab({ isReadOnly }: TabContext) {
         if (!error) setEditing(null)
     }
 
-    const handleDelete = async (store: Store) => {
-        const confirmed = window.confirm(`Arquivar a loja ${store.name}? A loja ficará inativa, mas o histórico será preservado.`)
-        if (!confirmed) return
+    const executeDelete = async (store: Store) => {
         const { error } = await deleteStore(store.id)
         if (error) toast.error(error)
         else toast.success('Loja arquivada.')
+    }
+
+    const handleDelete = (store: Store) => {
+        requestToastConfirmation({
+            key: `archive-store-settings:${store.id}`,
+            title: `Arquivar ${store.name}?`,
+            description: 'A loja ficará inativa, mas o histórico será preservado.',
+            label: 'Arquivar',
+            onConfirm: () => executeDelete(store),
+        })
     }
 
     const handleToggle = async (store: Store) => {
