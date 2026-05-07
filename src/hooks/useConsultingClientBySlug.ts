@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
-import type { ConsultingClientDetail } from '@/features/consultoria/types'
+import type {
+  ConsultingAssignableUser,
+  ConsultingClientDetail,
+  ConsultingInventorySnapshot,
+  ConsultingVisit,
+  ConsultingVisitAttachment,
+  VisitOneQuantData,
+} from '@/features/consultoria/types'
 import {
   parseConsultingClientUnitArray,
   parseConsultingClientContactArray,
@@ -12,10 +19,32 @@ import {
   type ConsultingClient,
 } from '@/lib/schemas/consulting-client.schema'
 
+type VisitRowIdentity = {
+  id: string
+  visit_number: number
+}
+
+type VisitEvidenceRow = {
+  id: string
+  visita_id: string
+  nome_arquivo: string | null
+  tipo: string | null
+  caminho_storage: string
+  content_type: string
+  tamanho_bytes: number | null
+  created_at: string
+}
+
+function normalizeVisitQuantData(value: unknown): ConsultingVisit['quant_data'] {
+  if (typeof value === 'undefined' || value === null) return value
+  if (typeof value === 'object') return value as VisitOneQuantData | Record<string, unknown>
+  return null
+}
+
 export function useConsultingClientDetailBySlug(slug?: string) {
   const { supabaseUser, role, profile } = useAuth()
   const [client, setClient] = useState<ConsultingClientDetail | null>(null)
-  const [assignableUsers, setAssignableUsers] = useState<any[]>([])
+  const [assignableUsers, setAssignableUsers] = useState<ConsultingAssignableUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const canManage = isAdministradorMx(role)
@@ -65,17 +94,17 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       supabase.from('snapshots_estoque_consultoria').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
     ])
 
-    const visitRows = (visitsRes.data || []).filter((visit: any) => visit.visit_number >= 1 && visit.visit_number <= 7)
-    const visitIds = visitRows.map((v: any) => v.id).filter(Boolean)
+    const visitRows = ((visitsRes.data || []) as VisitRowIdentity[]).filter((visit) => visit.visit_number >= 1 && visit.visit_number <= 7)
+    const visitIds = visitRows.map((visit) => visit.id).filter(Boolean)
     const { data: evidenceRows } = visitIds.length
       ? await supabase.from('evidencias_visita').select('*').in('visita_id', visitIds)
-      : { data: [] as any[] }
-    const evidenceByVisit = new Map<string, any[]>()
-    for (const evidence of evidenceRows || []) {
+      : { data: [] as VisitEvidenceRow[] }
+    const evidenceByVisit = new Map<string, ConsultingVisitAttachment[]>()
+    for (const evidence of (evidenceRows || []) as VisitEvidenceRow[]) {
       const list = evidenceByVisit.get(evidence.visita_id) || []
       list.push({
         id: evidence.id,
-        filename: evidence.nome_arquivo || evidence.tipo,
+        filename: evidence.nome_arquivo || evidence.tipo || 'evidencia',
         storage_path: evidence.caminho_storage,
         content_type: evidence.content_type,
         size_bytes: evidence.tamanho_bytes || 0,
@@ -83,8 +112,9 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       })
       evidenceByVisit.set(evidence.visita_id, list)
     }
-    const visitsWithEvidence = parseConsultingVisitArray(visitRows).map((visit) => ({
+    const visitsWithEvidence: ConsultingVisit[] = parseConsultingVisitArray(visitRows).map((visit) => ({
       ...visit,
+      quant_data: normalizeVisitQuantData(visit.quant_data),
       attachments: evidenceByVisit.get(visit.id) || [],
     }))
 
@@ -99,11 +129,11 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       visits: visitsWithEvidence,
       financials: parseConsultingFinancialArray(financialsRes.data || []),
       modules: parseConsultingClientModuleArray(modulesRes.data || []),
-      inventory_snapshots: (inventoryRes.data || []) as any[],
+      inventory_snapshots: (inventoryRes.data || []) as ConsultingInventorySnapshot[],
     }
 
     setClient(detail)
-    setAssignableUsers(usersRes.data || [])
+    setAssignableUsers((usersRes.data || []) as ConsultingAssignableUser[])
     setLoading(false)
   }, [slug, supabaseUser])
 

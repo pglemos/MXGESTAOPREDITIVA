@@ -15,7 +15,7 @@ interface AuditEntry {
     action: string
     actor_email?: string | null
     target?: string | null
-    metadata?: any
+    metadata?: Record<string, unknown> | null
 }
 
 interface StoreAuditRow {

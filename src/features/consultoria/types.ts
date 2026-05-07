@@ -73,6 +73,43 @@ export interface ConsultingVisitAttachment {
   uploaded_at: string
 }
 
+export interface VisitHeaderBaseData {
+  meta_mensal: string
+  projecao: string
+  leads_mes: string
+  estoque_disponivel: string
+  consultant_name: string
+  visit_date: string
+  tempo: string
+  alvo: string
+}
+
+export interface VisitOneSalesPoint {
+  month: string
+  value: number
+}
+
+export interface VisitOneMarketingOrigin {
+  name: string
+  value: number
+}
+
+export interface VisitOneQuantData {
+  sales: VisitOneSalesPoint[]
+  marketing: {
+    investment: number
+    leads: number
+    origin: VisitOneMarketingOrigin[]
+  }
+  stock: {
+    qty: number
+    avg_price: number
+    fipe_delta: number
+    mileage: number
+    total_inv: number
+  }
+}
+
 export interface ConsultingVisit {
   id: string
   client_id: string
@@ -100,7 +137,7 @@ export interface ConsultingVisit {
   acknowledged_at?: string | null
   acknowledged_by?: string | null
   next_cycle_goal?: string | null
-  quant_data?: any
+  quant_data?: VisitOneQuantData | Record<string, unknown> | null
   attachments?: ConsultingVisitAttachment[]
   created_at: string
   updated_at: string

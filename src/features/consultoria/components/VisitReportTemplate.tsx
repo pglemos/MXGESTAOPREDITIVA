@@ -1,5 +1,5 @@
 import React from 'react'
-import { ConsultingClientDetail, ConsultingVisit } from '@/features/consultoria/types'
+import type { ConsultingClientDetail, ConsultingVisit, VisitHeaderBaseData, VisitOneQuantData } from '@/features/consultoria/types'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
@@ -10,14 +10,14 @@ const STORAGE_URL = 'https://fbhcmzzgwjdgkctlfvbo.supabase.co/storage/v1/object/
 interface Props {
   client: ConsultingClientDetail
   visit: ConsultingVisit
-  headerBase: any
-  quantData?: any
+  headerBase: VisitHeaderBaseData
+  quantData?: VisitOneQuantData
 }
 
 export function VisitReportTemplate({ client, visit, headerBase, quantData }: Props) {
   const visitDateRaw = headerBase.visit_date || visit.scheduled_at || new Date().toISOString()
   const visitDate = new Date(visitDateRaw)
-  const attachments = (visit as any).attachments || []
+  const attachments = visit.attachments || []
   
   const formattedDate = !isNaN(visitDate.getTime()) 
     ? format(visitDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
@@ -110,7 +110,7 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
           <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Objetivo do Próximo Ciclo (30 dias)</h3>
         </div>
         <div style={{ padding: '24px', border: `1px solid #FED7AA`, borderRadius: '16px', backgroundColor: '#FFF7ED', fontSize: '14px', fontWeight: 'bold', lineHeight: '1.6', color: '#000000' }}>
-          {(visit as any).next_cycle_goal || 'A ser definido na próxima auditoria.'}
+          {visit.next_cycle_goal || 'A ser definido na próxima auditoria.'}
         </div>
       </section>
 
@@ -122,7 +122,7 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
             <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Evidências da Visita</h3>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {attachments.map((att: any) => (
+            {attachments.map((att) => (
               <div key={att.id} style={{ border: `1px solid ${colors.border}`, borderRadius: '12px', overflow: 'hidden', backgroundColor: '#F3F4F6' }}>
                 <img 
                   src={`${STORAGE_URL}${att.storage_path}`} 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Bell, Mail, Smartphone, Save, RefreshCw, Calendar, BarChart3, GraduationCap, Trophy, Megaphone, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, type ReactNode } from 'react'
+import { Bell, Mail, Smartphone, Save, RefreshCw, Calendar, BarChart3, GraduationCap, Trophy, Megaphone, AlertTriangle, type LucideIcon } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -12,7 +12,7 @@ const CHANNEL_DEFINITIONS: Array<{
     key: keyof NotificationPreferences
     label: string
     desc: string
-    icon: any
+    icon: LucideIcon
     section: 'canal' | 'topico'
 }> = [
     { key: 'push', label: 'Notificações Push', desc: 'Alertas em tempo real no navegador e app', icon: Smartphone, section: 'canal' },
@@ -132,7 +132,7 @@ export function NotificacoesTab() {
 }
 
 function PrefRow({ icon, label, desc, checked, onToggle }: {
-    icon: React.ReactNode
+    icon: ReactNode
     label: string
     desc: string
     checked: boolean

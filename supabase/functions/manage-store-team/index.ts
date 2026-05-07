@@ -1,10 +1,43 @@
-// deno-lint-ignore-file no-explicit-any
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const internalRoles = ['administrador_geral', 'administrador_mx', 'consultor_mx']
 const storeRoles = ['dono', 'gerente', 'vendedor']
+const adminRoles = ['administrador_geral', 'administrador_mx']
+type StoreRole = 'dono' | 'gerente' | 'vendedor'
+type CallerRole = 'administrador_geral' | 'administrador_mx' | 'dono' | 'gerente'
+type TeamAction = 'update' | 'delete'
+
+type TeamUpdates = {
+  role?: StoreRole
+  name?: string
+  email?: string
+  phone?: string | null
+  active?: boolean
+  is_venda_loja?: boolean
+  started_at?: string
+  ended_at?: string | null
+  is_active?: boolean
+  closing_month_grace?: boolean
+}
+
+type TeamPayload = {
+  action?: TeamAction
+  user_id?: string
+  store_id?: string
+  previous_store_id?: string
+  updates?: TeamUpdates
+}
+
+type UserProfileRow = {
+  role: string
+  active: boolean
+}
+
+type StoreMembershipRow = {
+  role: StoreRole
+}
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -45,16 +78,20 @@ serve(async (req) => {
 
   const { data: callerProfile } = await adminClient
     .from('usuarios')
-    .select('role')
+    .select('role, active')
     .eq('id', caller.user.id)
     .maybeSingle()
 
   const callerRole = (callerProfile?.role || '').toLowerCase()
+  if (!callerProfile?.active) {
+    return jsonResponse({ success: false, error: 'Inactive user' }, 403)
+  }
+
   if (!['administrador_geral', 'administrador_mx', 'dono', 'gerente'].includes(callerRole)) {
     return jsonResponse({ success: false, error: 'Insufficient privileges' }, 403)
   }
 
-  let payload: any
+  let payload: TeamPayload
   try {
     payload = await req.json()
   } catch {
@@ -69,7 +106,8 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: 'Missing required fields (action, user_id, store_id)' }, 400)
   }
 
-  const isAdmin = callerRole === 'administrador_geral' || callerRole === 'administrador_mx'
+  const isAdmin = adminRoles.includes(callerRole)
+  const typedCallerRole = callerRole as CallerRole
   if (!isAdmin) {
     const { data: managerMembership } = await adminClient
       .from('vinculos_loja')
@@ -81,6 +119,64 @@ serve(async (req) => {
 
     if (!managerMembership) {
       return jsonResponse({ success: false, error: 'Caller cannot manage this store' }, 403)
+    }
+
+    if (previousStoreId && previousStoreId !== targetStoreId) {
+      const { data: previousManagerMembership } = await adminClient
+        .from('vinculos_loja')
+        .select('role')
+        .eq('user_id', caller.user.id)
+        .eq('store_id', previousStoreId)
+        .in('role', ['dono', 'gerente'])
+        .maybeSingle()
+
+      if (!previousManagerMembership) {
+        return jsonResponse({ success: false, error: 'Caller cannot manage previous store' }, 403)
+      }
+    }
+  }
+
+  if (!isAdmin && userId === caller.user.id) {
+    return jsonResponse({ success: false, error: 'Store managers cannot alter their own team access' }, 403)
+  }
+
+  const { data: targetProfile, error: targetProfileError } = await adminClient
+    .from('usuarios')
+    .select('role, active')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (targetProfileError) return jsonResponse({ success: false, error: targetProfileError.message }, 500)
+  if (!targetProfile) return jsonResponse({ success: false, error: 'Target user not found' }, 404)
+
+  const { data: targetMembership } = await adminClient
+    .from('vinculos_loja')
+    .select('role')
+    .eq('user_id', userId)
+    .eq('store_id', targetStoreId)
+    .maybeSingle()
+
+  let previousMembership: StoreMembershipRow | null = null
+  if (previousStoreId) {
+    const { data } = await adminClient
+      .from('vinculos_loja')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('store_id', previousStoreId)
+      .maybeSingle()
+    previousMembership = data as StoreMembershipRow | null
+  }
+
+  const targetCurrentRole = (previousMembership?.role || (targetMembership as StoreMembershipRow | null)?.role || targetProfile.role || '').toLowerCase()
+  if (!isAdmin) {
+    if (internalRoles.includes(targetCurrentRole)) {
+      return jsonResponse({ success: false, error: 'Internal MX users can only be managed by admin' }, 403)
+    }
+    if (typedCallerRole === 'gerente' && targetCurrentRole !== 'vendedor') {
+      return jsonResponse({ success: false, error: 'Gerente can manage only vendedores' }, 403)
+    }
+    if (typedCallerRole === 'dono' && targetCurrentRole === 'dono') {
+      return jsonResponse({ success: false, error: 'Dono cannot alter another dono' }, 403)
     }
   }
 
@@ -117,7 +213,11 @@ serve(async (req) => {
 
   const updates = payload.updates || {}
   const nextRole = updates.role || 'vendedor'
-  if (!storeRoles.includes(nextRole) || (!isAdmin && callerRole === 'gerente' && nextRole !== 'vendedor')) {
+  if (internalRoles.includes(nextRole)) {
+    return jsonResponse({ success: false, error: 'Internal MX roles are not valid store team roles' }, 400)
+  }
+
+  if (!storeRoles.includes(nextRole) || (!isAdmin && typedCallerRole === 'gerente' && nextRole !== 'vendedor') || (!isAdmin && typedCallerRole === 'dono' && nextRole === 'dono')) {
     return jsonResponse({ success: false, error: `Caller role "${callerRole}" cannot set role "${nextRole}"` }, 403)
   }
 
@@ -172,10 +272,6 @@ serve(async (req) => {
       .update({ is_active: false, ended_at: updates.ended_at || todayISO() })
       .eq('store_id', targetStoreId)
       .eq('seller_user_id', userId)
-  }
-
-  if (internalRoles.includes(nextRole)) {
-    return jsonResponse({ success: false, error: 'Internal MX roles are not valid store team roles' }, 400)
   }
 
   return jsonResponse({ success: true })

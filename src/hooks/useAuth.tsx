@@ -7,6 +7,7 @@ import { isAdministradorMx, isPerfilInternoMx, normalizeRole } from '@/lib/auth/
 export { isAdministradorMx, isPerfilInternoMx, normalizeRole } from '@/lib/auth/roles'
 
 type StoreMembership = Membership & { store: Store }
+type StoreMembershipRow = Membership & { store: Store | null }
 const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
 const DEV_BYPASS_ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 
@@ -120,7 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // Isolamento de Estado (Soft Delete): Lojas inativas não são exibidas na rede
-        const result = (data || []).filter((m: any) => m.store?.active) as StoreMembership[]
+        const result = ((data || []) as StoreMembershipRow[])
+            .filter((membership): membership is StoreMembership => Boolean(membership.store?.active))
 
         setMemberships(result)
         setActiveStoreId(current => {
@@ -195,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         let mounted = true;
-        let timeoutId: any;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
         async function loadUserData(userId: string) {
             if (devBypassRef.current) {
@@ -255,7 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.error("Audit Error [useAuth]: loadUserData fail ->", err)
             } finally {
                 if (mounted) {
-                    clearTimeout(timeoutId)
+                    if (timeoutId) clearTimeout(timeoutId)
                     setLoading(false)
                 }
             }

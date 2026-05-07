@@ -11,11 +11,13 @@ import {
     ArrowLeft, Target, TrendingUp, Info, RefreshCw, Trash2,
     X, History, CalendarDays, ShieldCheck, Smartphone, UserCheck
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import type { DailyCheckin } from '@/types/database'
 
 const ZERO_REASONS = ['Folga', 'Treinamento', 'Feriado', 'Dia administrativo', 'Outro']
 const MAX_INPUT_VALUE = 999 
@@ -48,7 +50,7 @@ export default function Checkin() {
     })
 
     const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate, fetchCheckinByDate } = useCheckins()
-    const [historicalCheckin, setHistoricalCheckin] = useState<any>(null)
+    const [historicalCheckin, setHistoricalCheckin] = useState<DailyCheckin | null>(null)
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [customReferenceDate, setCustomReferenceDate] = useState('')
 
@@ -103,7 +105,7 @@ export default function Checkin() {
 
     const now = new Date(); const isLate = isCheckinLate(now); const canEditExisting = canEditCurrentCheckin(now)
     const allZero = useMemo(() => form.leads === 0 && totals.agd_total === 0 && form.visitas === 0 && totals.vnd_total === 0, [form.leads, totals])
-    const funnelError = useMemo(() => { try { return validarFunil(form) } catch (e) { return "Erro de validação" } }, [form])
+    const funnelError = useMemo(() => { try { return validarFunil(form) } catch { return "Erro de validação" } }, [form])
 
     const updateField = (field: keyof CheckinForm, value: number | string) => {
         setForm(prev => ({ ...prev, [field]: typeof value === 'number' ? Math.min(MAX_INPUT_VALUE, Math.max(0, value)) : value }))
@@ -134,7 +136,7 @@ export default function Checkin() {
     const todayDisplay = new Date(referenceDate + 'T12:00:00')
     const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
-    const NumberInput = ({ label, icon: Icon, field, tone }: { label: string; icon: any; field: keyof CheckinForm; tone: 'brand' | 'success' | 'warning' | 'info' | 'error' }) => (
+    const NumberInput = ({ label, icon: Icon, field, tone }: { label: string; icon: LucideIcon; field: keyof CheckinForm; tone: 'brand' | 'success' | 'warning' | 'info' | 'error' }) => (
         <Card className={cn(
             "flex flex-col gap-mx-md p-mx-lg border shadow-mx-sm transition-all group/input hover:shadow-mx-lg sm:flex-row sm:items-center sm:justify-between bg-white",
             changedFields.has(field) ? "border-brand-primary/20" : "border-border-default"

@@ -27,7 +27,7 @@ export const ConsultingVisitSchema = z.object({
   acknowledged_at: z.string().nullable().optional(),
   acknowledged_by: z.string().uuid().nullable().optional(),
   next_cycle_goal: z.string().nullable().optional(),
-  quant_data: z.any().optional(),
+  quant_data: z.unknown().optional().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
 })

@@ -9,6 +9,11 @@ export const CHECKIN_EDIT_LIMIT_MINUTES = 9 * 60 + 45
 export const CHECKIN_DEADLINE_LABEL = '09:30'
 export const CHECKIN_EDIT_LIMIT_LABEL = '09:45'
 const MX_TIMEZONE = 'America/Sao_Paulo'
+const CHECKIN_SELECT = 'id, seller_user_id, store_id, reference_date, submitted_at, metric_scope, submission_status, is_venda_loja, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, zero_reason, note, submitted_late, edit_locked_at, created_by, updated_at'
+
+function withCheckinTotals(checkin: DailyCheckin): CheckinWithTotals {
+    return { ...checkin, ...calcularTotais(checkin) }
+}
 
 function getSaoPauloParts(date: Date) {
     const parts = new Intl.DateTimeFormat('en-CA', {
@@ -97,7 +102,7 @@ export function useCheckins(storeIdOverride?: string) {
 
         // Otimização: Selecionar apenas colunas de métricas e identificação
         let query = supabase.from('lancamentos_diarios')
-            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+            .select(CHECKIN_SELECT)
             .eq('store_id', storeId)
             .order('reference_date', { ascending: false })
 
@@ -107,8 +112,7 @@ export function useCheckins(storeIdOverride?: string) {
 
         const { data, error } = await query
         if (!error && data) {
-            const withTotals = data.map(c => ({ ...c, ...calcularTotais(c as any) }))
-            setCheckins(withTotals as any)
+            setCheckins((data as DailyCheckin[]).map(withCheckinTotals))
         }
         setLoading(false)
     }, [storeId])
@@ -120,14 +124,14 @@ export function useCheckins(storeIdOverride?: string) {
         }
         const { data } = await supabase
             .from('lancamentos_diarios')
-            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+            .select(CHECKIN_SELECT)
             .eq('seller_user_id', profile.id)
             .eq('store_id', storeId)
             .eq('reference_date', referenceDate)
             .eq('metric_scope', 'daily')
             .maybeSingle()
         
-        if (data) setTodayCheckin({ ...data, ...calcularTotais(data as any) } as any)
+        if (data) setTodayCheckin(withCheckinTotals(data as DailyCheckin))
         else setTodayCheckin(null)
     }, [profile, storeId, referenceDate])
 
@@ -142,7 +146,7 @@ export function useCheckins(storeIdOverride?: string) {
             .eq('metric_scope', scope)
             .maybeSingle()
         
-        return data ? { ...data, ...calcularTotais(data) } : null
+        return data ? withCheckinTotals(data as DailyCheckin) : null
     }, [profile, storeId])
 
     const saveCheckin = async (formData: CheckinFormData, scope: CheckinScope = 'daily', customDate?: string): Promise<{ error: string | null }> => {
@@ -250,7 +254,7 @@ export function useCheckinsByDateRange(storeId: string | null, startDate: string
         setLoading(true)
         const { data, error } = await supabase
             .from('lancamentos_diarios')
-            .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+            .select(CHECKIN_SELECT)
             .eq('store_id', storeId)
             .eq('metric_scope', 'daily')
             .gte('reference_date', startDate)
@@ -258,7 +262,7 @@ export function useCheckinsByDateRange(storeId: string | null, startDate: string
             .order('reference_date', { ascending: false })
 
         if (!error && data) {
-            setCheckins(data.map(c => ({ ...c, ...calcularTotais(c as any) })) as any)
+            setCheckins((data as DailyCheckin[]).map(withCheckinTotals))
         }
         setLoading(false)
     }, [storeId, startDate, endDate])

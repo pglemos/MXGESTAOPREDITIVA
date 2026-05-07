@@ -7,6 +7,7 @@ import {
   Users, Target, Award, Zap, ShieldAlert,
   ArrowRight, MousePointer2, LayoutDashboard
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card, CardContent } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
@@ -22,20 +23,26 @@ import {
 } from 'recharts'
 import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
 import type { PmrFormField } from '@/lib/schemas/consulting-client.schema'
+import type { VisitOneQuantData } from '@/features/consultoria/types'
 import { cn } from '@/lib/utils'
 
-export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: { clientId: string, clientSlug: string, data: any, onChange: (d: any) => void }) {
-  const [tab, setTab] = useState<'dashboards' | 'benchmark' | 'entrevistas'>('dashboards')
+type VisitOneTab = 'dashboards' | 'benchmark' | 'entrevistas'
+type VisitOneStockKey = keyof VisitOneQuantData['stock']
+
+const VISIT_ONE_TABS: Array<{ id: VisitOneTab; label: string; icon: LucideIcon }> = [
+  { id: 'dashboards', label: 'DASHBOARDS BI', icon: LayoutDashboard },
+  { id: 'benchmark', label: 'COMPARATIVO MERCADO', icon: Globe },
+  { id: 'entrevistas', label: 'ENTREVISTAS PMR', icon: Users },
+]
+
+export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: { clientId: string, clientSlug: string, data: VisitOneQuantData, onChange: (d: VisitOneQuantData) => void }) {
+  const [tab, setTab] = useState<VisitOneTab>('dashboards')
 
   return (
     <div className="space-y-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Navegação de Contexto */}
       <div className="flex bg-white/50 backdrop-blur-sm p-mx-xs rounded-mx-xl border border-border-default shadow-mx-inner">
-        {[
-          { id: 'dashboards', label: 'DASHBOARDS BI', icon: LayoutDashboard },
-          { id: 'benchmark', label: 'COMPARATIVO MERCADO', icon: Globe },
-          { id: 'entrevistas', label: 'ENTREVISTAS PMR', icon: Users }
-        ].map((t: any) => (
+        {VISIT_ONE_TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -57,16 +64,16 @@ export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: {
   )
 }
 
-function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) => void }) {
+function VisitOneDashboards({ data, onChange }: { data: VisitOneQuantData, onChange: (d: VisitOneQuantData) => void }) {
   const COLORS = ['#0D3B2E', '#22C55E', '#FACC15', '#6B7280']
 
   const handleSalesChange = (index: number, value: number) => {
-    const newSales = [...(data.sales || [])]
+    const newSales = [...data.sales]
     newSales[index] = { ...newSales[index], value }
     onChange({ ...data, sales: newSales })
   }
 
-  const totalSales = (data.sales || []).reduce((acc: number, s: any) => acc + (s.value || 0), 0)
+  const totalSales = data.sales.reduce((acc, s) => acc + (s.value || 0), 0)
   const cpl = data.marketing?.leads > 0 ? (data.marketing.investment / data.marketing.leads).toFixed(2) : '0,00'
 
   return (
@@ -86,7 +93,7 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md mb-mx-lg">
-             {(data.sales || []).map((s: any, i: number) => (
+             {data.sales.map((s, i) => (
                 <div key={s.month} className="space-y-mx-xs">
                    <Typography variant="tiny" className="font-black text-text-tertiary">{s.month.toUpperCase()}</Typography>
                    <Input
@@ -162,14 +169,14 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
                 <ResponsiveContainer width={56} height={56}>
                    <RePie>
                       <Pie data={data.marketing?.origin} innerRadius={20} outerRadius={28} paddingAngle={5} dataKey="value">
-                         {data.marketing?.origin?.map((_: any, index: number) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                         {data.marketing.origin.map((_, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                       </Pie>
                    </RePie>
                 </ResponsiveContainer>
              </div>
           </div>
           <div className="mt-mx-md grid grid-cols-4 gap-mx-xs">
-             {data.marketing?.origin?.map((o: any, i: number) => (
+             {data.marketing.origin.map((o, i) => (
                 <div key={o.name} className="text-center">
                    <div className="w-mx-2 h-mx-2 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                    <Typography variant="tiny" className="text-mx-micro font-black uppercase opacity-60">{o.name}</Typography>
@@ -194,13 +201,13 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-mx-md">
-             {[
+             {([
                { k: 'qty', l: 'QTD (UN)', p: 'Ex: 45' },
                { k: 'avg_price', l: 'TICKET (R$)', p: 'Ex: 65000' },
                { k: 'fipe_delta', l: 'FIPE (+/-)', p: 'Ex: -2000' },
                { k: 'mileage', l: 'KM MÉDIA', p: 'Ex: 65000' },
                { k: 'total_inv', l: 'INVESTIMENTO (R$)', p: 'Ex: 2.5M' }
-             ].map(f => (
+             ] satisfies Array<{ k: VisitOneStockKey; l: string; p: string }>).map(f => (
                 <div key={f.k} className="space-y-mx-xs">
                    <Typography variant="tiny" className="font-black text-text-tertiary uppercase tracking-mx-widest text-mx-tiny">{f.l}</Typography>
                    <Input
@@ -220,7 +227,7 @@ function VisitOneDashboards({ data, onChange }: { data: any, onChange: (d: any) 
   )
 }
 
-function VisitOneBenchmark({ data }: { data: any }) {
+function VisitOneBenchmark({ data }: { data: VisitOneQuantData }) {
   return (
     <Card className="p-mx-20 text-center bg-white border border-border-default rounded-mx-2xl border-dashed relative overflow-hidden group">
        <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 via-transparent to-brand-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />

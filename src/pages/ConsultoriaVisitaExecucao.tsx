@@ -34,8 +34,35 @@ import {
 } from '@/features/consultoria/components/VisitExecutionViews'
 import { VisitReportTemplate } from '@/features/consultoria/components/VisitReportTemplate'
 import { formatVisitDraftForGroup } from '@/lib/consultoria/visit-report-draft'
+import type { ConsultingVisit, ConsultingVisitAttachment, VisitHeaderBaseData, VisitOneQuantData } from '@/features/consultoria/types'
 
 import { VisitActionQuickAdd } from '@/features/consultoria/components/VisitActionQuickAdd'
+
+const DEFAULT_VISIT_ONE_QUANT_DATA: VisitOneQuantData = {
+  sales: [ { month: 'Jan', value: 0 }, { month: 'Fev', value: 0 }, { month: 'Mar', value: 0 } ],
+  marketing: { investment: 0, leads: 0, origin: [ { name: 'Porta', value: 0 }, { name: 'Internet', value: 0 }, { name: 'Carteira', value: 0 }, { name: 'Indicação', value: 0 } ] },
+  stock: { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 },
+}
+
+type ChecklistItem = { task: string; completed: boolean }
+type VisitDraftPayload = Partial<ConsultingVisit> & {
+  consultant_name_manual?: string
+  effective_visit_date?: string
+}
+
+function getErrorMessage(err: unknown) {
+  return err instanceof Error ? err.message : 'Operação não concluída.'
+}
+
+function isChecklistItem(item: unknown): item is ChecklistItem {
+  return typeof item === 'object' && item !== null && 'task' in item
+}
+
+function isVisitOneQuantData(value: unknown): value is VisitOneQuantData {
+  if (typeof value !== 'object' || value === null) return false
+  const candidate = value as Partial<VisitOneQuantData>
+  return Array.isArray(candidate.sales) && Boolean(candidate.marketing) && Boolean(candidate.stock)
+}
 
 export default function ConsultoriaVisitaExecucao() {
   const { clientSlug, visitNumber } = useParams<{ clientSlug: string, visitNumber: string }>()
@@ -66,49 +93,45 @@ export default function ConsultoriaVisitaExecucao() {
     navigate(`/consultoria/clientes/${client.slug}/visitas/${normalizedVisit}`, { replace: true })
   }, [client?.slug, navigate, visitNum])
 
-  const [checklist, setChecklist] = useState<Array<{ task: string, completed: boolean }>>([])
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [executiveSummary, setExecutiveSummary] = useState('')
   const [feedbackClient, setFeedbackClient] = useState('')
   const [nextCycleGoal, setNextCycleGoal] = useState('')
-  const [attachments, setAttachments] = useState<any[]>([])
+  const [attachments, setAttachments] = useState<ConsultingVisitAttachment[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
 
-  const [headerBase, setHeaderBase] = useState({
+  const [headerBase, setHeaderBase] = useState<VisitHeaderBaseData>({
     meta_mensal: '', projecao: '', leads_mes: '', estoque_disponivel: '',
     consultant_name: '', visit_date: new Date().toISOString().split('T')[0],
     tempo: '1 DIA', alvo: 'Todos'
   })
 
-  const [quantData, setQuantData] = useState<any>({
-    sales: [ { month: 'Jan', value: 0 }, { month: 'Fev', value: 0 }, { month: 'Mar', value: 0 } ],
-    marketing: { investment: 0, leads: 0, origin: [ { name: 'Porta', value: 0 }, { name: 'Internet', value: 0 }, { name: 'Carteira', value: 0 }, { name: 'Indicação', value: 0 } ] },
-    stock: { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
-  })
+  const [quantData, setQuantData] = useState<VisitOneQuantData>(DEFAULT_VISIT_ONE_QUANT_DATA)
 
   useEffect(() => {
     if (visit) {
       setChecklist(visit.checklist_data || [])
       setExecutiveSummary(visit.executive_summary || '')
       setFeedbackClient(visit.feedback_client || '')
-      setNextCycleGoal((visit as any).next_cycle_goal || '')
+      setNextCycleGoal(visit.next_cycle_goal || '')
       setAttachments(visit.attachments || [])
       setHeaderBase({
-        meta_mensal: (visit as any).meta_mensal || '',
-        projecao: (visit as any).projecao || '',
-        leads_mes: (visit as any).leads_mes || '',
-        estoque_disponivel: (visit as any).estoque_disponivel || '',
-        consultant_name: (visit as any).consultant_name_manual || profile?.name || '',
-        visit_date: (visit as any).effective_visit_date || new Date().toISOString().split('T')[0],
+        meta_mensal: visit.meta_mensal || '',
+        projecao: visit.projecao || '',
+        leads_mes: visit.leads_mes || '',
+        estoque_disponivel: visit.estoque_disponivel || '',
+        consultant_name: (visit as VisitDraftPayload).consultant_name_manual || profile?.name || '',
+        visit_date: (visit as VisitDraftPayload).effective_visit_date || new Date().toISOString().split('T')[0],
         tempo: step?.duration || '1 DIA',
         alvo: step?.target || 'Todos'
       })
-      if ((visit as any).quant_data) setQuantData((visit as any).quant_data)
+      if (isVisitOneQuantData(visit.quant_data)) setQuantData(visit.quant_data)
     } else if (step) {
       setChecklist((step.checklist_template || []).map(item => ({
-        task: typeof item === 'string' ? item : (item as any).task,
-        completed: (item as any).completed || false
+        task: typeof item === 'string' ? item : isChecklistItem(item) ? item.task : '',
+        completed: isChecklistItem(item) ? item.completed : false
       })))
       setHeaderBase(prev => ({ ...prev, consultant_name: profile?.name || '', tempo: step.duration || '1 DIA', alvo: step.target || 'Todos' }))
     }
@@ -143,16 +166,26 @@ export default function ConsultoriaVisitaExecucao() {
         if (evidenceError) throw evidenceError
       }
       toast.success('Evidências anexadas!'); refetch()
-    } catch (err: any) { toast.error(err.message) } finally { setIsUploading(false) }
+    } catch (err) { toast.error(getErrorMessage(err)) } finally { setIsUploading(false) }
   }
 
-  const handleDeleteAttachment = async (file: any) => {
-    if(!confirm('Excluir evidência?')) return
+  const executeDeleteAttachment = async (file: ConsultingVisitAttachment) => {
     try {
       await supabase.storage.from('evidencias-consultoria').remove([file.storage_path])
       await supabase.from('evidencias_visita').delete().eq('id', file.id)
       toast.success('Evidência removida!'); refetch()
-    } catch (err: any) { toast.error(err.message) }
+    } catch (err) { toast.error(getErrorMessage(err)) }
+  }
+
+  const handleDeleteAttachment = (file: ConsultingVisitAttachment) => {
+    toast.warning('Excluir evidência da visita?', {
+      description: file.filename,
+      duration: 12000,
+      action: {
+        label: 'Excluir',
+        onClick: () => void executeDeleteAttachment(file),
+      },
+    })
   }
 
   const handleToggleCheck = (index: number) => {
@@ -182,7 +215,7 @@ export default function ConsultoriaVisitaExecucao() {
 
     setIsSaving(true)
     try {
-      const payload: any = {
+      const payload: VisitDraftPayload = {
         client_id: clientId, visit_number: visitNum, checklist_data: checklist,
         executive_summary: executiveSummary, feedback_client: feedbackClient,
         status: 'em_andamento',
@@ -202,7 +235,7 @@ export default function ConsultoriaVisitaExecucao() {
       savedVisitId = savedVisit?.id || savedVisitId
 
       if (error && (error.code === 'PGRST204' || error.message.includes('consultant_name_manual'))) {
-        console.warn('Schema mismatch detected, retrying without extended fields...')
+        if (import.meta.env.DEV) console.warn('Schema mismatch detected, retrying without extended fields...')
         const legacyPayload = { ...payload }
         delete legacyPayload.consultant_name_manual
         delete legacyPayload.effective_visit_date
@@ -229,9 +262,9 @@ export default function ConsultoriaVisitaExecucao() {
 
       toast.success(complete ? 'Etapa Concluída com Sucesso!' : 'Progresso salvo'); refetch()
       if (complete) navigate(`/consultoria/clientes/${client?.slug}`)
-    } catch (err: any) {
-      console.error(err)
-      toast.error('Erro ao salvar: ' + err.message)
+    } catch (err) {
+      if (import.meta.env.DEV) console.error(err)
+      toast.error('Erro ao salvar: ' + getErrorMessage(err))
     } finally { setIsSaving(false) }
   }
 
@@ -256,11 +289,11 @@ export default function ConsultoriaVisitaExecucao() {
           body: { visitId: visit.id }
         })
       } catch (e) {
-        console.warn('Silent fail on email trigger:', e)
+        if (import.meta.env.DEV) console.warn('Silent fail on email trigger:', e)
       }
 
       refetch()
-    } catch (err: any) { toast.error(err.message) }
+    } catch (err) { toast.error(getErrorMessage(err)) }
   }
 
   const handleGenerateAISummary = () => {
@@ -288,7 +321,7 @@ export default function ConsultoriaVisitaExecucao() {
     const safeMarketing = quantData?.marketing || { investment: 0, leads: 0, origin: [] }
     const safeStock = quantData?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
 
-    const totalSales = safeSales.reduce((acc: number, s: any) => acc + (s.value || 0), 0)
+    const totalSales = safeSales.reduce((acc, s) => acc + (s.value || 0), 0)
     const cpl = safeMarketing.leads > 0 ? (safeMarketing.investment / safeMarketing.leads).toFixed(2) : '0.00'
 
     return `📍 RELATÓRIO DE VISITA ${visitNum}: ${step?.objective?.toUpperCase()}
@@ -349,7 +382,30 @@ Gerado via MX PERFORMANCE`
          <div id="report-template-render">
             <VisitReportTemplate
               client={client}
-              visit={visit ? { ...visit, next_cycle_goal: nextCycleGoal, attachments } as any : { visit_number: visitNum, next_cycle_goal: nextCycleGoal, attachments } as any}
+              visit={visit ? { ...visit, next_cycle_goal: nextCycleGoal, attachments } : {
+                id: '',
+                client_id: clientId || '',
+                visit_number: visitNum,
+                scheduled_at: new Date().toISOString(),
+                duration_hours: 1,
+                modality: 'Online',
+                status: 'em_andamento',
+                consultant_id: profile?.id || null,
+                auxiliary_consultant_id: null,
+                objective: step?.objective || null,
+                checklist_data: checklist,
+                feedback_client: feedbackClient,
+                executive_summary: executiveSummary,
+                google_event_id: null,
+                meta_mensal: headerBase.meta_mensal,
+                projecao: headerBase.projecao,
+                leads_mes: headerBase.leads_mes,
+                estoque_disponivel: headerBase.estoque_disponivel,
+                next_cycle_goal: nextCycleGoal,
+                attachments,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }}
               headerBase={headerBase}
               quantData={quantData}
             />
@@ -572,13 +628,13 @@ Gerado via MX PERFORMANCE`
 
                {visit?.status === 'concluida' && (
                  <Button
-                   className={cn("w-full shadow-mx-md font-black h-mx-11 uppercase tracking-widest text-xs", (visit as any).acknowledged_at ? "bg-status-success/10 text-status-success border-status-success/20 hover:bg-status-success/20" : "")}
+                   className={cn("w-full shadow-mx-md font-black h-mx-11 uppercase tracking-widest text-xs", visit.acknowledged_at ? "bg-status-success/10 text-status-success border-status-success/20 hover:bg-status-success/20" : "")}
                    variant="outline"
-                   icon={(visit as any).acknowledged_at ? <ShieldCheck size={14} /> : <Award size={14} />}
+                   icon={visit.acknowledged_at ? <ShieldCheck size={14} /> : <Award size={14} />}
                    onClick={handleAcknowledge}
-                   disabled={!!(visit as any).acknowledged_at}
+                   disabled={!!visit.acknowledged_at}
                  >
-                   {(visit as any).acknowledged_at ? 'VISITA ASSINADA' : 'ASSINAR VISITA'}
+                   {visit.acknowledged_at ? 'VISITA ASSINADA' : 'ASSINAR VISITA'}
                  </Button>
                )}
              </div>

@@ -26,6 +26,20 @@ type CalendarSyncResult = {
   centralConnected: boolean
 }
 
+type VisitCalendarRow = ConsultingVisit & {
+  client?: {
+    name?: string | null
+    slug?: string | null
+    status?: string | null
+    modality?: string | null
+  } | null
+  consultant?: { email?: string | null } | null
+}
+
+type ScheduleEventCalendarRow = AgendaScheduleEvent & {
+  responsible?: { name?: string | null; email?: string | null } | null
+}
+
 const SAO_PAULO_OFFSET = '-03:00'
 
 export function buildSaoPauloDateTime(date: string, time: string) {
@@ -70,7 +84,7 @@ async function syncVisitToGoogle(
         client:clientes_consultoria!client_id(name)
       `)
       .eq('id', visitId)
-      .maybeSingle() as { data: any }
+      .maybeSingle() as { data: VisitCalendarRow | null }
     if (!visit) return null
     const payload = {
       id: visit.id,
@@ -128,7 +142,7 @@ async function syncScheduleEventToGoogle(
         responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(email)
       `)
       .eq('id', eventId)
-      .maybeSingle() as { data: any }
+      .maybeSingle() as { data: ScheduleEventCalendarRow | null }
     if (!event) return null
 
     const payload = {
@@ -327,22 +341,31 @@ export function useAgendaAdmin() {
     setLoading(true)
     setError(null)
 
-    const [visitsRes, eventsRes, clientsRes, usersRes, productsRes] = await Promise.all([
-      supabase
-        .from('visitas_consultoria')
-        .select(`
+    let visitsQuery = supabase
+      .from('visitas_consultoria')
+      .select(`
           *,
           consultant:usuarios!visitas_consultoria_consultor_id_fkey(name, email),
           auxiliary_consultant:usuarios!visitas_consultoria_consultor_auxiliar_id_fkey(name, email),
           client:clientes_consultoria!client_id(name, slug, status, modality)
         `)
-        .gte('visit_number', 1)
-        .lte('visit_number', 7)
-        .order('scheduled_at', { ascending: true }),
-      supabase
-        .from('eventos_agenda_consultoria')
-        .select('*, responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(name, email)')
-        .order('starts_at', { ascending: true }),
+      .gte('visit_number', 1)
+      .lte('visit_number', 7)
+      .order('scheduled_at', { ascending: true })
+
+    let eventsQuery = supabase
+      .from('eventos_agenda_consultoria')
+      .select('*, responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(name, email)')
+      .order('starts_at', { ascending: true })
+
+    if (!canViewAllAgendas) {
+      visitsQuery = visitsQuery.or(`consultant_id.eq.${supabaseUser.id},auxiliary_consultant_id.eq.${supabaseUser.id}`)
+      eventsQuery = eventsQuery.or(`responsible_user_id.eq.${supabaseUser.id},and(responsible_user_id.is.null,created_by.eq.${supabaseUser.id})`)
+    }
+
+    const [visitsRes, eventsRes, clientsRes, usersRes, productsRes] = await Promise.all([
+      visitsQuery,
+      eventsQuery,
       supabase
         .from('clientes_consultoria')
         .select('id, name, slug, status, current_visit_step')
@@ -363,33 +386,23 @@ export function useAgendaAdmin() {
       setError(visitsRes.error.message)
       setVisits([])
     } else {
-      const scopedVisits = canViewAllAgendas
-        ? (visitsRes.data || [])
-        : (visitsRes.data || []).filter((v: any) => (
-          v.consultant_id === supabaseUser.id ||
-          v.auxiliary_consultant_id === supabaseUser.id
-        ))
-      const mapped = scopedVisits.map((v: any) => ({
+      const visitRows = (visitsRes.data || []) as VisitCalendarRow[]
+      const mapped = visitRows.map((v): AgendaVisit => ({
         ...v,
         client_name: v.client?.name || 'Desconhecido',
         client_slug: v.client?.slug || v.client_id || 'cliente',
         client_status: v.client?.status || 'ativo',
         client_modality: v.client?.modality || null,
       }))
-      setVisits(mapped as AgendaVisit[])
+      setVisits(mapped)
     }
 
     if (eventsRes.error) {
       setError((current) => current || eventsRes.error.message)
       setScheduleEvents([])
     } else {
-      const scopedEvents = canViewAllAgendas
-        ? (eventsRes.data || [])
-        : (eventsRes.data || []).filter((event: AgendaScheduleEvent) => (
-          event.responsible_user_id === supabaseUser.id ||
-          (!event.responsible_user_id && event.created_by === supabaseUser.id)
-        ))
-      setScheduleEvents(scopedEvents as AgendaScheduleEvent[])
+      const eventRows = (eventsRes.data || []) as AgendaScheduleEvent[]
+      setScheduleEvents(eventRows)
     }
 
     setClients((clientsRes.data || []) as AgendaClient[])

@@ -1,6 +1,6 @@
-import { useTeam, useStores } from '@/hooks/useTeam'
+import { useTeam, useStores, type TeamMember } from '@/hooks/useTeam'
 import { UserCreationModal } from '@/features/equipe/components/UserCreationModal'
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import {
     Users, UserPlus, Search, Phone, Shield, Mail, User, Trash2, Save,
     RefreshCw, X, TrendingUp, Zap,
@@ -22,12 +22,19 @@ import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
-import type { StorePreRegistration } from '@/types/database'
+import type { MembershipRole, StorePreRegistration } from '@/types/database'
 
 type StoreTeamPanelProps = {
   storeId: string | null
   storeName?: string
 }
+
+type EditableTeamMember = TeamMember & {
+  previous_store_id?: string | null
+}
+
+const getDeleteMemberConfirmationKey = (member: TeamMember | EditableTeamMember) => `delete-member:${member.id}:${member.store_id || 'sem-loja'}`
+const getPreRegistrationConfirmationKey = (item: StorePreRegistration) => `pre-registration:${item.id}`
 
 export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const { role } = useAuth()
@@ -35,7 +42,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const canApprovePreRegistrations = isAdministradorMx(role)
   const canCreateMembers = canManageTeamMembers
   const { lojas } = useStores()
-  const editableStoreRoles = useMemo(() => {
+  const editableStoreRoles = useMemo<MembershipRole[]>(() => {
     if (role === 'gerente') return ['vendedor']
     if (role === 'dono') return ['gerente', 'vendedor']
     return ['dono', 'gerente', 'vendedor']
@@ -43,13 +50,15 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
   const { team, loading, refetch, updateTeamMember, deleteTeamMember, registerUser } = useTeam(storeId || undefined)
   const [searchTerm, setSearchTerm] = useState('')
-  const [editingMember, setEditingMember] = useState<any>(null)
+  const [editingMember, setEditingMember] = useState<EditableTeamMember | null>(null)
   const [saving, setSaving] = useState(false)
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
   const [isRefetching, setIsRefetching] = useState(false)
   const [preRegistrations, setPreRegistrations] = useState<StorePreRegistration[]>([])
   const [loadingPreRegistrations, setLoadingPreRegistrations] = useState(false)
   const [reviewingPreRegistrationId, setReviewingPreRegistrationId] = useState<string | null>(null)
+  const [pendingConfirmations, setPendingConfirmations] = useState<Set<string>>(() => new Set())
+  const confirmationTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const approvalFunctionUrl = useMemo(() => getSupabaseFunctionUrl('approve-store-registration'), [])
 
   const registrationLink = useMemo(() => {
@@ -81,6 +90,52 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   useEffect(() => {
     fetchPreRegistrations()
   }, [fetchPreRegistrations])
+
+  useEffect(() => {
+    return () => {
+      for (const timer of confirmationTimersRef.current.values()) clearTimeout(timer)
+      confirmationTimersRef.current.clear()
+    }
+  }, [])
+
+  const clearPendingConfirmation = useCallback((key: string) => {
+    const timer = confirmationTimersRef.current.get(key)
+    if (timer) clearTimeout(timer)
+    confirmationTimersRef.current.delete(key)
+    setPendingConfirmations((current) => {
+      const next = new Set(current)
+      next.delete(key)
+      return next
+    })
+  }, [])
+
+  const requestConfirmation = useCallback((input: {
+    key: string
+    title: string
+    description: string
+    label: string
+    onConfirm: () => void
+  }) => {
+    if (pendingConfirmations.has(input.key)) {
+      toast.info('Confirmação já aberta para este item.')
+      return
+    }
+
+    setPendingConfirmations((current) => new Set(current).add(input.key))
+    const timer = setTimeout(() => clearPendingConfirmation(input.key), 13000)
+    confirmationTimersRef.current.set(input.key, timer)
+    toast.warning(input.title, {
+      description: input.description,
+      duration: 12000,
+      action: {
+        label: input.label,
+        onClick: () => {
+          clearPendingConfirmation(input.key)
+          input.onConfirm()
+        },
+      },
+    })
+  }, [clearPendingConfirmation, pendingConfirmations])
 
   const filteredTeam = useMemo(() => {
     return (team || []).filter(m =>
@@ -130,11 +185,9 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     if (error) toast.error(error); else { toast.success('Integrante atualizado!'); setEditingMember(null); refetch() }
   }
 
-  const handleDeleteMember = async (member: any) => {
+  const executeDeleteMember = useCallback(async (member: TeamMember | EditableTeamMember) => {
     if (!canManageTeamMembers) return
     const memberStoreId = member.store_id || storeId
-    const confirmed = window.confirm(`Remover ${member.name} da equipe${memberStoreId ? ' desta loja' : ''}? O login não será desativado automaticamente.`)
-    if (!confirmed) return
 
     setSaving(true)
     try {
@@ -149,9 +202,21 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     } finally {
       setSaving(false)
     }
-  }
+  }, [canManageTeamMembers, deleteTeamMember, refetch, storeId])
 
-  const getVigenciaStatus = (m: any) => {
+  const handleDeleteMember = useCallback((member: TeamMember | EditableTeamMember) => {
+    if (!canManageTeamMembers) return
+    const memberStoreId = member.store_id || storeId
+    requestConfirmation({
+      key: getDeleteMemberConfirmationKey(member),
+      title: `Remover ${member.name} da equipe?`,
+      description: `${memberStoreId ? 'O vínculo desta loja será encerrado.' : 'O vínculo selecionado será encerrado.'} O login não será desativado automaticamente.`,
+      label: 'Remover',
+      onConfirm: () => void executeDeleteMember(member),
+    })
+  }, [canManageTeamMembers, executeDeleteMember, requestConfirmation, storeId])
+
+  const getVigenciaStatus = (m: TeamMember) => {
     if (!m.is_active) return { label: 'INATIVO', variant: 'outline' as const, color: 'text-text-tertiary border-border-default bg-surface-alt' }
     if (m.ended_at && new Date(m.ended_at) < new Date()) return { label: 'ENCERRADO', variant: 'danger' as const, color: 'text-status-error border-status-error/10 bg-status-error-surface' }
     return { label: 'ATIVO', variant: 'success' as const, color: 'text-status-success border-status-success/10 bg-status-success-surface' }
@@ -166,10 +231,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     }
   }, [fetchPreRegistrations, refetch])
 
-  const handleReviewPreRegistration = useCallback(async (item: StorePreRegistration, action: 'approve' | 'reject') => {
+  const executeReviewPreRegistration = useCallback(async (item: StorePreRegistration, action: 'approve' | 'reject') => {
     if (!canApprovePreRegistrations) return
-    const confirmed = window.confirm(`${action === 'approve' ? 'Aprovar' : 'Rejeitar'} o login de ${item.full_name} como ${item.role}?`)
-    if (!confirmed) return
 
     setReviewingPreRegistrationId(item.id)
     try {
@@ -203,6 +266,17 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
       setReviewingPreRegistrationId(null)
     }
   }, [approvalFunctionUrl, canApprovePreRegistrations, fetchPreRegistrations, refetch])
+
+  const handleReviewPreRegistration = useCallback((item: StorePreRegistration, action: 'approve' | 'reject') => {
+    if (!canApprovePreRegistrations) return
+    requestConfirmation({
+      key: getPreRegistrationConfirmationKey(item),
+      title: `${action === 'approve' ? 'Aprovar' : 'Rejeitar'} login de ${item.full_name}?`,
+      description: `Solicitação de ${item.role} para ${item.store_name_snapshot}.`,
+      label: action === 'approve' ? 'Aprovar' : 'Rejeitar',
+      onConfirm: () => void executeReviewPreRegistration(item, action),
+    })
+  }, [canApprovePreRegistrations, executeReviewPreRegistration, requestConfirmation])
 
   if (!storeId) return (
     <section className="w-full rounded-mx-3xl border border-border-default bg-white p-mx-xl text-center shadow-mx-sm">
@@ -430,7 +504,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                           <Button
                             type="button"
                             onClick={() => handleReviewPreRegistration(item, 'approve')}
-                            disabled={reviewingPreRegistrationId === item.id}
+                            disabled={reviewingPreRegistrationId === item.id || pendingConfirmations.has(getPreRegistrationConfirmationKey(item))}
                             className="h-mx-11 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano"
                           >
                             <Check size={15} className="mr-2" />
@@ -440,7 +514,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             type="button"
                             variant="outline"
                             onClick={() => handleReviewPreRegistration(item, 'reject')}
-                            disabled={reviewingPreRegistrationId === item.id}
+                            disabled={reviewingPreRegistrationId === item.id || pendingConfirmations.has(getPreRegistrationConfirmationKey(item))}
                             className="h-mx-11 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano text-status-error hover:bg-status-error-surface"
                           >
                             <Ban size={15} className="mr-2" />
@@ -532,7 +606,14 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             </Button>
                           )}
                           {canManageTeamMembers && (
-                            <Button variant="outline" size="icon" onClick={() => handleDeleteMember(member)} className="h-mx-10 w-mx-10 rounded-mx-xl text-status-error hover:bg-status-error-surface" aria-label={`Excluir ${member.name}`}>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleDeleteMember(member)}
+                              disabled={pendingConfirmations.has(getDeleteMemberConfirmationKey(member))}
+                              className="h-mx-10 w-mx-10 rounded-mx-xl text-status-error hover:bg-status-error-surface"
+                              aria-label={`Excluir ${member.name}`}
+                            >
                               <Trash2 size={16} />
                             </Button>
                           )}
@@ -645,7 +726,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Papel na loja</Typography>
                             <select
                               value={editingMember.role || 'vendedor'}
-                              onChange={e => setEditingMember({ ...editingMember, role: e.target.value })}
+                              onChange={e => setEditingMember({ ...editingMember, role: e.target.value as MembershipRole })}
                               className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase focus:outline-none focus:border-brand-primary transition-all"
                             >
                               {editableStoreRoles.map(option => (
@@ -740,7 +821,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                           <Button
                             type="button"
                             variant="danger"
-                            disabled={saving}
+                            disabled={saving || pendingConfirmations.has(getDeleteMemberConfirmationKey(editingMember))}
                             onClick={() => handleDeleteMember(editingMember)}
                             className="h-mx-16 sm:w-mx-40 rounded-mx-2xl font-black uppercase tracking-mx-wide text-xs shadow-mx-lg"
                           >

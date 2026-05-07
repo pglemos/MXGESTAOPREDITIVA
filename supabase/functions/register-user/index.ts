@@ -88,11 +88,15 @@ serve(async (req) => {
 
   const { data: callerProfile } = await adminClient
     .from('usuarios')
-    .select('role')
+    .select('role, active')
     .eq('id', caller.user.id)
     .maybeSingle()
 
   const callerRole = (callerProfile?.role || '').toLowerCase()
+  if (!callerProfile?.active) {
+    return jsonResponse({ success: false, error: 'Inactive user' }, 403)
+  }
+
   if (!['administrador_geral', 'administrador_mx', 'dono', 'gerente'].includes(callerRole)) {
     return jsonResponse({ success: false, error: 'Insufficient privileges' }, 403)
   }

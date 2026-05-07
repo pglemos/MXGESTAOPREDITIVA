@@ -24,6 +24,16 @@
 
 ---
 
+## Rodada Brownfield Multi-Role — 2026-05-07
+
+**Epic operacional:** [EPIC-OPS-20260507-MULTI-ROLE-HARDENING](./epics/epic-ops-20260507-multi-role-hardening.md)
+**Story ativa:** [Story OPS-20260507 - Hardening Multi-Role Residual em Modo Yolo](./story-OPS-20260507-multi-role-hardening-yolo.md)
+**Status:** Em execucao
+
+Escopo derivado da auditoria multi-role de vendedor, gerente, dono e admin: reduzir `any`/casts amplos, confirmar matriz de permissao, endurecer hooks criticos, revisar UX de acoes destrutivas, preservar credenciais existentes e registrar gates.
+
+---
+
 ## Stories
 
 ### Sprint 1 — P1 (Estabilização Crítica)

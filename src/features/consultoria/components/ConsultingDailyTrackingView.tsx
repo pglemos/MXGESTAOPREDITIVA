@@ -5,6 +5,7 @@ import { useCheckins } from '@/hooks/useCheckins'
 import { DataGrid, type Column } from '@/components/organisms/DataGrid'
 import { Calendar, Phone, Users, CheckCircle2, TrendingUp } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
+import type { CheckinWithTotals } from '@/types/database'
 
 interface Props {
   clientId: string
@@ -14,7 +15,7 @@ interface Props {
 export function ConsultingDailyTrackingView({ clientId, storeId }: Props) {
   const { checkins, loading } = useCheckins(storeId || undefined)
 
-  const columns = useMemo<Column<any>[]>(() => [
+  const columns = useMemo<Column<CheckinWithTotals>[]>(() => [
     {
       key: 'reference_date',
       header: 'DATA',
