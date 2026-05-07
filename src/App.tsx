@@ -176,13 +176,13 @@ export default function App() {
 
             {/* Vendedor */}
             <Route path="home" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorHome />} gerente={<VendedorHome />} dono={<VendedorHome />} admin={<Navigate to="/painel" replace />} />
+              <RoleSwitch vendedor={<VendedorHome />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<Navigate to="/painel" replace />} />
             </Suspense>} />
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Checkin />} gerente={<Checkin />} dono={<Checkin />} admin={<Checkin />} />
+              <RoleSwitch vendedor={<Checkin />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
             <Route path="historico" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Historico />} gerente={<Historico />} dono={<Historico />} admin={<Historico />} />
+              <RoleSwitch vendedor={<Historico />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
             <Route path="ranking" element={<Navigate to="/classificacao" replace />} />
             <Route path="classificacao" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />

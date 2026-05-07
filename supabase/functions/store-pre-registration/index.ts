@@ -5,7 +5,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 const allowedRoles = ['dono', 'gerente', 'vendedor']
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp']
-const temporaryPassword = 'Mx@123456!'
+const passwordChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*'
 
 function slugify(text: string) {
   return text
@@ -52,6 +52,12 @@ function decodeBase64Image(base64: string) {
     bytes[index] = binary.charCodeAt(index)
   }
   return bytes
+}
+
+function generateTemporaryPassword(length = 18) {
+  const bytes = new Uint8Array(length)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (byte) => passwordChars[byte % passwordChars.length]).join('')
 }
 
 async function cleanupPendingUser(adminClient: any, userId: string, storeId: string, avatarStoragePath: string | null) {
@@ -194,6 +200,8 @@ serve(async (req) => {
     }, 409)
   }
 
+  const temporaryPassword = generateTemporaryPassword()
+
   const { data: createdUser, error: createUserError } = await adminClient.auth.admin.createUser({
     email,
     password: temporaryPassword,
@@ -281,7 +289,7 @@ serve(async (req) => {
       auth_user_id: userId,
       avatar_url: avatarUrl,
       avatar_storage_path: avatarStoragePath,
-      temporary_password: temporaryPassword,
+      temporary_password: null,
       ip_address: clientIp(req),
       user_agent: req.headers.get('user-agent') || null,
     })

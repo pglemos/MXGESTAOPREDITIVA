@@ -139,7 +139,7 @@ export function useCheckins(storeIdOverride?: string) {
         if (!profile || !storeId) return null
         const { data } = await supabase
             .from('lancamentos_diarios')
-            .select('*')
+            .select(CHECKIN_SELECT)
             .eq('seller_user_id', profile.id)
             .eq('store_id', storeId)
             .eq('reference_date', date)
@@ -228,12 +228,12 @@ export function useMyCheckins() {
             return
         }
         setLoading(true)
-        let query = supabase.from('lancamentos_diarios').select('*')
+        let query = supabase.from('lancamentos_diarios').select(CHECKIN_SELECT)
             .eq('seller_user_id', profile.id).eq('store_id', storeId).order('reference_date', { ascending: false })
         if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
         if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
         const { data } = await query
-        if (data) setCheckins(data.map(c => ({ ...c, ...calcularTotais(c) })))
+        if (data) setCheckins((data as DailyCheckin[]).map(withCheckinTotals))
         setLoading(false)
     }, [profile, storeId])
 

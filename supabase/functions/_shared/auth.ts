@@ -58,11 +58,14 @@ export async function requireAuthenticatedRole(req: Request, allowedRoles: MxRol
   });
   const { data: profile, error: profileError } = await adminClient
     .from("usuarios")
-    .select("role")
+    .select("role, active")
     .eq("id", authData.user.id)
     .maybeSingle();
   if (profileError || !profile?.role) {
     return { response: jsonResponse({ success: false, error: "Profile not found" }, 403) };
+  }
+  if (profile.active === false) {
+    return { response: jsonResponse({ success: false, error: "Inactive user" }, 403) };
   }
 
   const role = profile.role as MxRole;

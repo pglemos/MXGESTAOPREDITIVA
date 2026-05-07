@@ -4,6 +4,21 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const allowedRoles = ['dono', 'gerente', 'vendedor']
+const PRE_REGISTRATION_SELECT = [
+  'id',
+  'status',
+  'auth_user_id',
+  'store_id',
+  'full_name',
+  'email',
+  'phone',
+  'role',
+  'avatar_url',
+  'company_legal_name',
+  'company_cnpj',
+  'company_address',
+  'company_administrative_phone',
+].join(', ')
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -63,7 +78,7 @@ serve(async (req) => {
 
   const { data: preRegistration, error: preRegistrationError } = await adminClient
     .from('pre_cadastros_loja')
-    .select('*')
+    .select(PRE_REGISTRATION_SELECT)
     .eq('id', preRegistrationId)
     .maybeSingle()
 

@@ -10,6 +10,8 @@ type StoreMembership = Membership & { store: Store }
 type StoreMembershipRow = Membership & { store: Store | null }
 const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
 const DEV_BYPASS_ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
+const PROFILE_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, store_id, must_change_password, notification_preferences'
+const MEMBERSHIP_SELECT = 'id, user_id, store_id, role, created_at, store:lojas(id, name, manager_email, legal_name, cnpj, address, administrative_phone, partners, active, source_mode, created_at, updated_at)'
 
 interface AuthState {
     initialized: boolean
@@ -100,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const devBypassRef = useRef(false)
 
     const fetchProfile = useCallback(async (userId: string): Promise<AppUser | null> => {
-        const { data, error } = await supabase.from('usuarios').select('*').eq('id', userId).maybeSingle()
+        const { data, error } = await supabase.from('usuarios').select(PROFILE_SELECT).eq('id', userId).maybeSingle()
         if (error && !isTransientFetchError(error)) {
             console.error('Audit Error [useAuth]: fetchProfile fail ->', error.message)
         }
@@ -112,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const fetchMemberships = useCallback(async (userId: string): Promise<StoreMembership[]> => {
         const { data, error } = await supabase
             .from('vinculos_loja')
-            .select('*, store:lojas(*)')
+            .select(MEMBERSHIP_SELECT)
             .eq('user_id', userId)
             .order('created_at', { ascending: true })
         
@@ -121,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // Isolamento de Estado (Soft Delete): Lojas inativas não são exibidas na rede
-        const result = ((data || []) as StoreMembershipRow[])
+        const result = ((data || []) as unknown as StoreMembershipRow[])
             .filter((membership): membership is StoreMembership => Boolean(membership.store?.active))
 
         setMemberships(result)

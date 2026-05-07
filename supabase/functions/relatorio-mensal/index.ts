@@ -10,6 +10,8 @@ import { uploadDocumentToStore } from "../_shared/drive-upload.ts";
 
 const supabase = createServiceClient();
 const resend = createResendClient();
+const STORE_REPORT_SELECT = "id, name, active, legal_name, cnpj, address, administrative_phone";
+const CHECKIN_REPORT_SELECT = "seller_user_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, agd_cart_prev_day, agd_net_prev_day, visit_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day";
 
 type SellerMonthlyRow = {
   uid: string;
@@ -34,7 +36,7 @@ Deno.serve(async (req: Request) => {
     const body = await parseReportBody(req);
     const dates = getSaoPauloMonthlyWindow();
 
-    let storesQuery = supabase.from("lojas").select("*").eq("active", true).order("name");
+    let storesQuery = supabase.from("lojas").select(STORE_REPORT_SELECT).eq("active", true).order("name");
     if (body.store_id) storesQuery = storesQuery.eq("id", body.store_id);
 
     const { data: lojas, error: storesError } = await storesQuery;
@@ -147,7 +149,7 @@ async function buildMonthlyPayload(store: any, dates: ReturnType<typeof getSaoPa
     supabase.from("regras_entrega_loja").select("monthly_recipients").eq("store_id", store.id).maybeSingle(),
     supabase.from("vendedores_loja").select("seller_user_id, is_active, users:usuarios(name, is_venda_loja)").eq("store_id", store.id).eq("is_active", true),
     supabase.from("vinculos_loja").select("user_id, users:usuarios(name, is_venda_loja)").eq("store_id", store.id).eq("role", "vendedor"),
-    supabase.from("lancamentos_diarios").select("*").eq("store_id", store.id).gte("reference_date", dates.start).lte("reference_date", dates.end),
+    supabase.from("lancamentos_diarios").select(CHECKIN_REPORT_SELECT).eq("store_id", store.id).gte("reference_date", dates.start).lte("reference_date", dates.end),
     supabase.from("regras_metas_loja").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
   ]);
 

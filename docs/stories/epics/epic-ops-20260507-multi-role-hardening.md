@@ -30,6 +30,24 @@ Reduzir os riscos residuais encontrados apos o hardening inicial de permissao, a
 
 ## Stories Planejadas
 
+### Story 7: Segundo Passe Yolo de Rotas e Edge Reports
+
+**Criterios de Aceitacao:**
+
+- [ ] Orquestrar @aiox-master com @qa, @dev e agentes de suporte em nova rodada yolo.
+- [ ] Fechar residuos confirmaveis de rota multi-role para fluxo operacional de vendedor.
+- [ ] Reduzir consultas amplas em Edge Functions de relatorio/aprovacao tocadas.
+- [ ] Registrar gates, residuos, file list e achados por papel.
+
+### Story 6: Workflow Yolo Multiagente de Hardening Total
+
+**Criterios de Aceitacao:**
+
+- [x] Orquestrar @aiox-master com @qa, @dev e agentes de suporte.
+- [x] Corrigir itens confirmaveis da auditoria multi-role sem trocar credenciais.
+- [x] Preservar autoridade @devops para push/PR/release.
+- [x] Registrar gates, residuos, file list e achados por papel.
+
 ### Story 1: Correcoes Residual Type Safety UI/Config
 
 **Criterios de Aceitacao:**
@@ -92,4 +110,3 @@ Reduzir os riscos residuais encontrados apos o hardening inicial de permissao, a
 | Alteracao em rotas quebrar E2E multi-role | Rodar smoke/navegacao Chromium e testes de matriz |
 | Tipagem revelar contratos inconsistentes | Corrigir por bordas pequenas, preservando schema atual |
 | Scripts com service role serem alterados acidentalmente | Nao editar `.env*` nem rotacionar secrets; revisar diff antes de gates |
-

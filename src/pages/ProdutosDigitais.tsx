@@ -218,7 +218,7 @@ export default function ProdutosDigitais() {
     try {
       const response = await supabase
         .from('produtos_digitais')
-        .select('*')
+        .select('id, name, description, link, category, target_roles, status, sort_order, created_at, updated_at')
         .order('created_at', { ascending: false })
 
       if (response.error) {
@@ -333,28 +333,31 @@ export default function ProdutosDigitais() {
     fetchProducts()
   }
 
-  const executeDelete = async (product: ProductRecord) => {
+  const executeArchive = async (product: ProductRecord) => {
     if (!canManage) {
       toast.error('Permissão negada.')
       return
     }
 
-    const { error } = await supabase.from('produtos_digitais').delete().eq('id', product.id)
+    const { error } = await supabase
+      .from('produtos_digitais')
+      .update({ status: 'arquivado' satisfies ProductStatus })
+      .eq('id', product.id)
     if (error) {
       toast.error(error.message)
       return
     }
-    toast.success('Produto excluído.')
+    toast.success('Produto arquivado.')
     fetchProducts()
   }
 
   const handleDelete = (product: ProductRecord) => {
     requestToastConfirmation({
-      key: `delete-product:${product.id}`,
-      title: `Excluir "${product.name}"?`,
-      description: 'O produto será removido do catálogo digital.',
-      label: 'Excluir',
-      onConfirm: () => executeDelete(product),
+      key: `archive-product:${product.id}`,
+      title: `Arquivar "${product.name}"?`,
+      description: 'O produto sairá do catálogo operacional sem apagar o histórico.',
+      label: 'Arquivar',
+      onConfirm: () => executeArchive(product),
     })
   }
 
@@ -768,7 +771,7 @@ export default function ProdutosDigitais() {
             <div className="flex items-start gap-mx-sm">
               <ShieldCheck size={18} className="mt-0.5 shrink-0 text-brand-primary" />
               <Typography variant="tiny" tone="muted" className="uppercase tracking-widest">
-                Administrador MX e Admin Master podem criar, editar, excluir, arquivar e alterar o público de exibição.
+                Administrador MX e Admin Master podem criar, editar, arquivar e alterar o público de exibição.
               </Typography>
             </div>
           </Card>

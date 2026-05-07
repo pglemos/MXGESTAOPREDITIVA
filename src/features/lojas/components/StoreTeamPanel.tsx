@@ -5,7 +5,7 @@ import {
     Users, UserPlus, Search, Phone, Shield, Mail, User, Trash2, Save,
     RefreshCw, X, TrendingUp, Zap,
     ShieldAlert, Clock, ShieldCheck,
-    Settings2, Power, Copy, Link2, ClipboardList, BriefcaseBusiness, Check, Ban, KeyRound
+    Settings2, Power, Copy, Link2, ClipboardList, BriefcaseBusiness, Check, Ban
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn, getPreRegistrationLink } from '@/lib/utils'
@@ -72,7 +72,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     const { data, error } = canApprovePreRegistrations
       ? await supabase
         .from('pre_cadastros_loja')
-        .select('*')
+        .select('id, store_id, store_name_snapshot, auth_user_id, full_name, email, phone, role, segment, store_tenure, market_experience, notes, company_legal_name, company_cnpj, company_address, company_administrative_phone, avatar_url, avatar_storage_path, status, submitted_at, reviewed_by, reviewed_at, approved_by, approved_at, rejected_by, rejected_at, approval_note')
         .eq('store_id', storeId)
         .order('submitted_at', { ascending: false })
         .limit(20)
@@ -486,12 +486,6 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             <span><b>Telefone:</b> {item.company_administrative_phone || 'não informado'}</span>
                             <span><b>Endereço:</b> {item.company_address || 'não informado'}</span>
                           </div>
-                        </div>
-                      )}
-                      {item.temporary_password && (
-                        <div className="mt-mx-sm inline-flex items-center gap-mx-xs rounded-mx-xl border border-brand-primary/20 bg-brand-primary/10 px-mx-sm py-mx-xs text-mx-tiny font-black text-brand-primary">
-                          <KeyRound size={13} />
-                          Senha provisória: {item.temporary_password}
                         </div>
                       )}
                       {item.notes && (
