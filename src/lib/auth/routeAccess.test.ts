@@ -11,6 +11,14 @@ describe('route access matrix', () => {
     }
   })
 
+  it('keeps simulation routes routable after a role switch is activated', () => {
+    for (const role of ['administrador_mx', 'vendedor', 'gerente', 'dono'] as const) {
+      expect(canAccessPath('/simulacao/vendedor', role)).toBe(true)
+      expect(canAccessPath('/simulacao/gerente', role)).toBe(true)
+      expect(canAccessPath('/simulacao/dono', role)).toBe(true)
+    }
+  })
+
   it('allows gerente to access a scoped store dashboard but not the store index', () => {
     expect(canAccessPath('/lojas/acertt', 'gerente')).toBe(true)
     expect(canAccessPath('/lojas/acertt?tab=equipe', 'gerente')).toBe(true)

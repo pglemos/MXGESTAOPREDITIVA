@@ -13,6 +13,7 @@ const INTERNAL_AND_LEADERS = ['administrador_geral', 'administrador_mx', 'consul
 
 export const ROUTE_ACCESS_RULES = [
   { pattern: '/painel', roles: INTERNAL_ROLES },
+  { pattern: '/simulacao/*', roles: USER_ROLES },
   { pattern: '/agenda', roles: INTERNAL_ROLES },
   { pattern: '/consultoria/*', roles: INTERNAL_ROLES },
   { pattern: '/configuracoes/consultoria-pmr', roles: INTERNAL_ROLES },

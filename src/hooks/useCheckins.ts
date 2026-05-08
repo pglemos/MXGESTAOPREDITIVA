@@ -9,10 +9,11 @@ export const CHECKIN_EDIT_LIMIT_MINUTES = 9 * 60 + 45
 export const CHECKIN_DEADLINE_LABEL = '09:30'
 export const CHECKIN_EDIT_LIMIT_LABEL = '09:45'
 const MX_TIMEZONE = 'America/Sao_Paulo'
-const CHECKIN_SELECT = 'id, seller_user_id, store_id, reference_date, submitted_at, metric_scope, submission_status, is_venda_loja, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, zero_reason, note, submitted_late, edit_locked_at, created_by, updated_at'
+const CHECKIN_SELECT = 'id, seller_user_id, store_id, reference_date, submitted_at, metric_scope, submission_status, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, zero_reason, note, submitted_late, edit_locked_at, created_by, updated_at'
 
 function withCheckinTotals(checkin: DailyCheckin): CheckinWithTotals {
-    return { ...checkin, ...calcularTotais(checkin) }
+    const normalized = { ...checkin, is_venda_loja: checkin.is_venda_loja ?? false }
+    return { ...normalized, ...calcularTotais(normalized) }
 }
 
 function getSaoPauloParts(date: Date) {

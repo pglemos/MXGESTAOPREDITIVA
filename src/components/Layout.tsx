@@ -10,6 +10,7 @@ import {
   LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
   BriefcaseBusiness,
   CalendarDays,
+  MonitorPlay,
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
@@ -22,6 +23,18 @@ type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
 const STORE_DASHBOARD_PATH = '__STORE_DASHBOARD__'
 const STORE_TEAM_PATH = '__STORE_TEAM__'
+const simulacaoItems: NavCategory = {
+  category: 'Simulação', icon: <MonitorPlay size={22} />,
+  items: [
+    { label: 'Vendedor', path: '/simulacao/vendedor', icon: <User size={16} /> },
+    { label: 'Gerente', path: '/simulacao/gerente', icon: <ShieldCheckIcon /> },
+    { label: 'Dono', path: '/simulacao/dono', icon: <Building2 size={16} /> },
+  ]
+}
+
+function ShieldCheckIcon() {
+  return <CheckSquare size={16} />
+}
 
 const rotulosPerfil: Record<string, string> = {
   administrador_geral: 'Administrador geral',
@@ -43,6 +56,7 @@ const navegacaoInternaMx: NavCategory[] = [
         { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
       ]
     },
+    simulacaoItems,
     {
       category: 'Rituais MX', icon: <Target size={22} />,
       items: [
@@ -129,7 +143,7 @@ const navConfig: Record<string, NavCategory[]> = {
 }
 
 export default function Layout() {
-  const { profile, role, signOut, membership } = useAuth()
+  const { profile, role, signOut, membership, isSimulating, simulationRole, stopSimulation, baseProfile } = useAuth()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const location = useLocation()
@@ -164,6 +178,7 @@ export default function Layout() {
   }, [role, storeDashboardPath, storeTeamPath])
   const activeCategoryData = categories.find(c => c.category === activeCategory) || categories[0]
   const perfilVisivel = role ? rotulosPerfil[role] || 'Perfil autorizado' : 'Perfil autorizado'
+  const perfilBaseVisivel = baseProfile?.name || 'Admin MX'
 
   useEffect(() => {
     if (!categories.length) return
@@ -251,6 +266,31 @@ export default function Layout() {
           </button>
         </div>
       </header>
+
+      {isSimulating && (
+        <section className="bg-mx-black text-white px-mx-lg py-3 border-b border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-mx-sm" aria-label="Simulação ativa">
+          <div className="flex items-center gap-mx-sm min-w-0">
+            <div className="w-mx-9 h-mx-9 rounded-mx-lg bg-brand-primary flex items-center justify-center shrink-0">
+              <MonitorPlay size={18} aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <Typography variant="tiny" tone="white" className="font-black uppercase tracking-mx-widest leading-none">
+                Simulação {simulationRole ? rotulosPerfil[simulationRole] : 'MX'} ativa
+              </Typography>
+              <Typography variant="tiny" tone="white" className="opacity-60 font-bold truncate">
+                Admin: {perfilBaseVisivel} • Loja: {membership?.store?.name || 'Sandbox MX'} • Usuário: {profile.name}
+              </Typography>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={stopSimulation}
+            className="h-mx-10 px-5 rounded-mx-xl bg-white text-mx-black text-mx-tiny font-black uppercase tracking-mx-widest hover:bg-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20"
+          >
+            Voltar Admin MX
+          </button>
+        </section>
+      )}
 
       <div className="flex flex-1 p-mx-sm md:p-mx-md gap-mx-md relative">
 

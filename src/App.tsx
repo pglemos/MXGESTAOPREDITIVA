@@ -55,6 +55,7 @@ const ConsultoriaClientes = lazy(() => import('@/pages/ConsultoriaClientes'))
 const ConsultoriaClienteDetalhe = lazy(() => import('@/pages/ConsultoriaClienteDetalhe'))
 const ConsultoriaVisitaExecucao = lazy(() => import('@/pages/ConsultoriaVisitaExecucao'))
 const AgendaAdmin = lazy(() => import('@/pages/AgendaAdmin'))
+const Simulacao = lazy(() => import('@/pages/Simulacao'))
 
 const Spinner = () => (
   <div className="flex flex-col items-center gap-mx-md">
@@ -212,6 +213,8 @@ export default function App() {
             {/* Admin Core */}
             <Route path="painel" element={<Suspense fallback={<Spinner />}><PainelConsultor /></Suspense>} />
             <Route path="lojas" element={<Suspense fallback={<Spinner />}><Lojas /></Suspense>} />
+            <Route path="simulacao" element={<Suspense fallback={<Spinner />}><Simulacao /></Suspense>} />
+            <Route path="simulacao/:simulationRole" element={<Suspense fallback={<Spinner />}><Simulacao /></Suspense>} />
             
             {/* Agenda Admin */}
             <Route path="agenda" element={<Suspense fallback={<Spinner />}><AgendaAdmin /></Suspense>} />
