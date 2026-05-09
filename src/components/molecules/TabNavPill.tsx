@@ -29,7 +29,7 @@ export function TabNavPill<T extends string = string>({
   return (
     <nav
       className={cn(
-        'flex bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm gap-mx-tiny',
+        'grid w-full max-w-full [grid-template-columns:repeat(auto-fit,minmax(6.75rem,1fr))] bg-white p-mx-tiny rounded-mx-2xl border border-border-default shadow-mx-sm gap-mx-tiny sm:flex sm:w-auto sm:flex-nowrap sm:rounded-mx-full',
         className
       )}
       role="tablist"
@@ -44,7 +44,7 @@ export function TabNavPill<T extends string = string>({
           role="tab"
           aria-selected={activeTab === key}
           className={cn(
-            'relative h-mx-10 px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny',
+            'relative h-mx-10 w-full px-3 sm:w-auto sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny shrink-0',
             buttonClassName
           )}
         >

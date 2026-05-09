@@ -50,6 +50,14 @@
 
   /* Spacing Matrix */
   --spacing-mx-0: 0;
+  --spacing-mx-px: 1px;
+  --spacing-mx-1: 0.25rem;
+  --spacing-mx-2: 0.5rem;
+  --spacing-mx-4: 1rem;
+  --spacing-mx-5: 1.25rem;
+  --spacing-mx-6: 1.5rem;
+  --spacing-mx-8: 2rem;
+  --spacing-mx-9: 2.25rem;
   --spacing-mx-tiny: 0.25rem;
   --spacing-mx-xs: 0.5rem;
   --spacing-mx-sm: 1rem;
@@ -61,18 +69,49 @@
   --spacing-mx-4xl: 8rem;
   --spacing-mx-5xl: 12rem;
   --spacing-mx-10: 2.5rem;
+  --spacing-mx-11: 2.75rem;
+  --spacing-mx-12: 3rem;
   --spacing-mx-14: 3.5rem;
+  --spacing-mx-16: 4rem;
   --spacing-mx-20: 5rem;
+  --spacing-mx-24: 6rem;
+  --spacing-mx-28: 7rem;
+  --spacing-mx-32: 8rem;
+  --spacing-mx-36: 9rem;
+  --spacing-mx-40: 10rem;
   --spacing-mx-48: 12rem;
   --spacing-mx-64: 16rem;
+  --spacing-mx-80: 20rem;
   --spacing-mx-96: 24rem;
+  --spacing-mx-aside: 22rem;
+  --spacing-mx-card-sm: 12rem;
+  --spacing-mx-card-md: 16rem;
+  --spacing-mx-card-lg: 20rem;
+  --spacing-mx-section-sm: 32rem;
+  --spacing-mx-section-lg: 48rem;
+  --spacing-mx-elite-canvas: 96rem;
+
+  /* Container aliases used by legacy modules */
+  --container-mx-20: 5rem;
+  --container-mx-40: 10rem;
+  --container-mx-48: 12rem;
+  --container-mx-64: 16rem;
+  --container-mx-80: 20rem;
+  --container-mx-2xl: 42rem;
+  --container-mx-4xl: 56rem;
+  --container-mx-6xl: 72rem;
+  --container-mx-label-lg: 120px;
+  --container-mx-sidebar-expanded: 280px;
+  --container-mx-elite-canvas: 96rem;
 
   /* Shadow Matrix */
   --shadow-mx-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-mx-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-mx-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --shadow-mx-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-mx-2xl: 0 25px 50px -12px rgba(15, 23, 42, 0.18);
   --shadow-mx-elite: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-glass: 0 8px 32px rgba(15, 23, 42, 0.08);
 
   /* Custom Utilities */
   /* Typography Scale Expansion */
@@ -101,6 +140,7 @@
 
   /* Semantic Glows */
   --shadow-mx-glow-brand: 0 0 20px rgba(34, 197, 94, 0.3);
+  --shadow-mx-glow-brand-sm: 0 0 12px rgba(34, 197, 94, 0.25);
   --shadow-mx-glow-white: 0 0 20px rgba(255, 255, 255, 0.5);
 
   /* Effects */
@@ -158,6 +198,17 @@
   --color-mx-orange-800: #9a3412;
   --color-mx-orange-900: #7c2d12;
   --color-mx-orange-950: #431407;
+
+  --color-mx-amber-100: #fef3c7;
+  --color-mx-amber-300: #fcd34d;
+  --color-mx-amber-400: #fbbf24;
+  --color-mx-emerald-100: #d1fae5;
+  --color-mx-rose-100: #ffe4e6;
+  --color-electric-blue: #3b82f6;
+  --color-mars-orange: #f97316;
+
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --animate-slide-up: slide-up 0.32s ease-out both;
 }
 
 /* Mobile / PWA hardening — safe-area, tap highlight, scroll behavior */
@@ -259,6 +310,17 @@ html, body {
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes accordion-down {

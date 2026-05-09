@@ -559,8 +559,8 @@ export default function DashboardLoja() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-md md:gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-mx-xs text-center lg:text-left">
+            <header className="flex flex-col xl:flex-row xl:items-end justify-between gap-mx-md md:gap-mx-lg border-b border-border-default pb-10 shrink-0">
+                <div className="flex flex-col gap-mx-xs text-center xl:text-left min-w-0">
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-mx-tiny">Status de Unidade</Typography>                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         {(isPerfilInternoMx(role) || role === 'dono') ? (
@@ -584,12 +584,12 @@ export default function DashboardLoja() {
                                 <ChevronDown size={24} className="absolute right-mx-0 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
                             </div>
                         ) : (
-                            <Typography variant="h1" className="text-3xl sm:text-5xl font-black uppercase tracking-tighter">{metrics.storeName}</Typography>
+                            <Typography variant="h1" className="text-3xl sm:text-5xl font-black uppercase tracking-tighter break-words">{metrics.storeName}</Typography>
                         )}
                     </div>
                 </div>
 
-	                <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
+	                <div className="flex flex-wrap items-center justify-center xl:justify-end gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
 	                    <TabNavPill tabs={LOJA_TABS} activeTab={activeTab} onTabChange={handleTabChange} className="max-w-full overflow-x-auto" buttonClassName="h-mx-8 sm:h-mx-10 px-4 sm:px-6 shrink-0" aria-label="Abas da loja" />
 
 	                    {activeTab === 'performance' && (

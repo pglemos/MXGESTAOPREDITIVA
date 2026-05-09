@@ -276,17 +276,17 @@ export default function RotinaGerente() {
                                                 onClick={() => step.set(!step.done)}
                                                 className={cn("p-mx-lg cursor-pointer group transition-all border-2", step.done ? "bg-status-success-surface/30 border-status-success/20" : "bg-surface-alt border-transparent hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-lg")}
                                             >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-mx-md">
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-mx-md">
+                                                    <div className="flex items-start sm:items-center gap-mx-md min-w-0">
                                                         <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center border shadow-mx-inner transition-all", step.done ? "bg-white text-status-success border-status-success/30" : "bg-white text-text-tertiary border-border-default group-hover:scale-110")}>
                                                             {step.done ? <CheckCircle2 size={24} strokeWidth={2} /> : <Typography variant="h3" className="text-base leading-none">{step.idx}</Typography>}
                                                         </div>
-                                                        <div>
+                                                        <div className="min-w-0">
                                                             <Typography variant="h3" className={cn("text-base uppercase tracking-tight", step.done && "text-status-success")}>{step.label}</Typography>
                                                             <Typography variant="tiny" tone="muted" className="italic mt-1 opacity-60 font-black">"{step.desc}"</Typography>
                                                         </div>
                                                     </div>
-                                                    {!step.done && <Button variant="outline" size="sm" className="rounded-mx-full px-6 h-mx-10 font-black text-tiny uppercase tracking-widest bg-white shadow-sm">Concluir</Button>}
+                                                    {!step.done && <Button variant="outline" size="sm" className="w-full sm:w-auto rounded-mx-full px-6 h-mx-10 font-black text-tiny uppercase tracking-widest bg-white shadow-sm">Concluir</Button>}
                                                 </div>
                                             </Card>
                                         ))}

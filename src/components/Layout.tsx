@@ -268,7 +268,7 @@ export default function Layout() {
       </header>
 
       {isSimulating && (
-        <section className="bg-mx-black text-white px-mx-lg py-3 border-b border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-mx-sm" aria-label="Simulação ativa">
+        <section className="bg-mx-black text-white px-mx-md sm:px-mx-lg py-3 border-b border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-mx-sm max-w-full overflow-hidden" aria-label="Simulação ativa">
           <div className="flex items-center gap-mx-sm min-w-0">
             <div className="w-mx-9 h-mx-9 rounded-mx-lg bg-brand-primary flex items-center justify-center shrink-0">
               <MonitorPlay size={18} aria-hidden="true" />
@@ -277,7 +277,7 @@ export default function Layout() {
               <Typography variant="tiny" tone="white" className="font-black uppercase tracking-mx-widest leading-none">
                 Simulação {simulationRole ? rotulosPerfil[simulationRole] : 'MX'} ativa
               </Typography>
-              <Typography variant="tiny" tone="white" className="opacity-60 font-bold truncate">
+              <Typography variant="tiny" tone="white" className="block max-w-full min-w-0 opacity-60 font-bold truncate">
                 Admin: {perfilBaseVisivel} • Loja: {membership?.store?.name || 'Sandbox MX'} • Usuário: {profile.name}
               </Typography>
             </div>

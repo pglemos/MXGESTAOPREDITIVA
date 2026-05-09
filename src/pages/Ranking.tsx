@@ -165,7 +165,7 @@ function GlobalRanking() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="flex w-full sm:w-auto overflow-x-auto no-scrollbar bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4">
+                    <div className="grid grid-cols-2 sm:flex w-full sm:w-auto bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4 gap-mx-xs">
                         <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Classificação
                         </button>
@@ -413,7 +413,13 @@ function GlobalRanking() {
                                         <div className={`w-mx-20 sm:w-mx-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
                                             ${isFirst ? 'h-mx-64 bg-gradient-to-b from-brand-primary/80 to-brand-primary/5' : isSecond ? 'h-mx-48 bg-gradient-to-b from-border-strong/80 to-surface-alt/10' : 'h-mx-32 bg-gradient-to-b from-amber-700/60 to-amber-900/10'}`}>
                                             <div className={`font-display font-black text-2xl sm:text-3xl mb-1 drop-shadow-sm ${isFirst ? 'text-mx-black' : 'text-text-primary'}`}>{seller.atingimento}%</div>
-                                            <div className={`text-mx-nano sm:text-mx-micro uppercase font-bold tracking-widest ${isFirst ? 'text-brand-secondary' : 'text-text-tertiary'}`}>ATINGIMENTO</div>
+                                            <div className={cn(
+                                                "text-mx-nano sm:text-mx-micro uppercase font-bold tracking-wide sm:tracking-widest max-w-full text-center",
+                                                isFirst ? 'text-brand-secondary' : 'text-text-tertiary'
+                                            )}>
+                                                <span className="sm:hidden">ATG</span>
+                                                <span className="hidden sm:inline">ATINGIMENTO</span>
+                                            </div>
                                         </div>
                                     </div>
                                 )
@@ -433,11 +439,11 @@ function GlobalRanking() {
                                             onClick={() => setSelectedSeller(r.user_id)} className="cursor-pointer hover:scale-[1.01] transition-transform"
                                         >
                                             <Card className={cn(
-                                                "p-mx-lg md:p-mx-xl flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
+                                                "p-mx-lg md:p-mx-xl w-full max-w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
                                                 isTop1 ? "bg-brand-secondary text-white shadow-mx-xl ring-2 ring-mx-amber-400 ring-offset-4" :
                                                 isMe ? "bg-mx-indigo-50 border-2 border-brand-primary shadow-mx-sm" : "bg-white"
                                             )}>
-                                                <div className="flex items-center gap-mx-lg flex-1 min-w-0">
+                                                <div className="flex items-start sm:items-center gap-mx-md sm:gap-mx-lg flex-1 min-w-0 max-w-full">
                                                     <div className={cn(
                                                         "w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-header rounded-mx-2xl border-4 flex items-center justify-center font-black text-xl sm:text-3xl shadow-mx-lg shrink-0",
                                                         isTop1 ? "bg-mx-amber-400 border-mx-amber-300 text-mx-black rotate-3 scale-110" : "bg-surface-alt border-white text-text-primary"
@@ -445,8 +451,8 @@ function GlobalRanking() {
                                                         {isTop1 ? <Crown size={32} fill="currentColor" /> : <span>#{r.position}</span>}
                                                     </div>
                                                     <div className="min-w-0 flex-1 space-y-mx-xs">
-                                                        <div className="flex items-center gap-mx-sm">
-                                                            <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
+                                                        <div className="flex flex-wrap items-center gap-mx-xs sm:gap-mx-sm min-w-0">
+                                                            <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="min-w-0 max-w-full truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
                                                             {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md px-3 text-mx-nano sm:text-xs">LÍDER</Badge>}
                                                             {r.atingimento >= 100 && !isTop1 && <Badge variant="danger" className="px-3 text-mx-nano sm:text-xs"><Flame size={12} className="mr-1 inline-block"/> ON FIRE</Badge>}
                                                             {isMe && !isTop1 && <Badge variant="brand" className="px-3 text-mx-nano sm:text-xs">VOCÊ</Badge>}
@@ -575,7 +581,7 @@ function StoreRankingView() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="flex w-full sm:w-auto overflow-x-auto no-scrollbar bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4">
+                    <div className="grid grid-cols-2 sm:flex w-full sm:w-auto bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4 gap-mx-xs">
                         <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Classificação
                         </button>
@@ -698,7 +704,13 @@ function StoreRankingView() {
                                         <div className={`w-mx-20 sm:w-mx-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
                                             ${isFirst ? 'h-mx-64 bg-gradient-to-b from-brand-primary/80 to-brand-primary/5' : isSecond ? 'h-mx-48 bg-gradient-to-b from-border-strong/80 to-surface-alt/10' : 'h-mx-32 bg-gradient-to-b from-amber-700/60 to-amber-900/10'}`}>
                                             <div className={`font-display font-black text-2xl sm:text-3xl mb-1 drop-shadow-sm ${isFirst ? 'text-mx-black' : 'text-text-primary'}`}>{seller.atingimento}%</div>
-                                            <div className={`text-mx-nano sm:text-mx-micro uppercase font-bold tracking-widest ${isFirst ? 'text-brand-secondary' : 'text-text-tertiary'}`}>ATINGIMENTO</div>
+                                            <div className={cn(
+                                                "text-mx-nano sm:text-mx-micro uppercase font-bold tracking-wide sm:tracking-widest max-w-full text-center",
+                                                isFirst ? 'text-brand-secondary' : 'text-text-tertiary'
+                                            )}>
+                                                <span className="sm:hidden">ATG</span>
+                                                <span className="hidden sm:inline">ATINGIMENTO</span>
+                                            </div>
                                         </div>
                                     </div>
                                 )
@@ -723,11 +735,11 @@ function StoreRankingView() {
                                             onClick={() => setSelectedSeller(r.user_id)} className="cursor-pointer hover:scale-[1.01] transition-transform"
                                         >
                                             <Card className={cn(
-                                                "p-mx-lg md:p-mx-xl flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
+                                                "p-mx-lg md:p-mx-xl w-full max-w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
                                                 isTop1 ? "bg-brand-secondary text-white shadow-mx-xl ring-2 ring-mx-amber-400 ring-offset-4" :
                                                 isMe ? "bg-mx-indigo-50 border-2 border-brand-primary shadow-mx-sm" : "bg-white"
                                             )}>
-                                                <div className="flex items-center gap-mx-lg flex-1 min-w-0">
+                                                <div className="flex items-start sm:items-center gap-mx-md sm:gap-mx-lg flex-1 min-w-0 max-w-full">
                                                     <div className={cn(
                                                         "w-mx-14 h-mx-14 sm:w-mx-20 sm:h-mx-header rounded-mx-2xl border-4 flex items-center justify-center font-black text-xl sm:text-3xl shadow-mx-lg shrink-0",
                                                         isTop1 ? "bg-mx-amber-400 border-mx-amber-300 text-mx-black rotate-3 scale-110" : "bg-surface-alt border-white text-text-primary"
@@ -735,8 +747,8 @@ function StoreRankingView() {
                                                         {isTop1 ? <Crown size={32} fill="currentColor" /> : <span>#{r.position}</span>}
                                                     </div>
                                                     <div className="min-w-0 flex-1 space-y-mx-xs">
-                                                        <div className="flex items-center gap-mx-sm">
-                                                            <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
+                                                        <div className="flex flex-wrap items-center gap-mx-xs sm:gap-mx-sm min-w-0">
+                                                            <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="min-w-0 max-w-full truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
                                                             {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md px-3 text-mx-nano sm:text-xs">LÍDER</Badge>}
                                                             {r.atingimento >= 100 && !isTop1 && <Badge variant="danger" className="px-3 text-mx-nano sm:text-xs"><Flame size={12} className="mr-1 inline-block"/> ON FIRE</Badge>}
                                                             {isMe && !isTop1 && <Badge variant="brand" className="px-3 text-mx-nano sm:text-xs">VOCÊ</Badge>}

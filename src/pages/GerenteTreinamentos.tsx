@@ -134,8 +134,8 @@ export default function GerenteTreinamentos() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-mx-tiny">
+            <header className="flex flex-col xl:flex-row xl:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+                <div className="flex flex-col gap-mx-tiny min-w-0">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
                         <Typography variant="h1">Academy <span className="text-mx-green-700">Gerencial</span></Typography>
@@ -143,7 +143,7 @@ export default function GerenteTreinamentos() {
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Mapeamento de Competências & Absorção MX</Typography>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
+                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
                     <TabNavPill
                         tabs={[
                             { key: 'equipe' as const, label: 'Equipe',    icon: Users },
@@ -153,11 +153,11 @@ export default function GerenteTreinamentos() {
                         activeTab={tab}
                         onTabChange={setTab}
                     />
-                    <div className="flex items-center gap-mx-sm">
+                    <div className="flex items-center gap-mx-sm w-full sm:w-auto">
                         <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                         </Button>
-                        <div className="relative group">
+                        <div className="relative group flex-1 sm:flex-none">
                             <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                             <Input 
                                 placeholder="BUSCAR CONTEÚDO..." value={searchTerm}
