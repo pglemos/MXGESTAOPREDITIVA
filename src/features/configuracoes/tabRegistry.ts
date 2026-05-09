@@ -82,7 +82,7 @@ export const TAB_REGISTRY: ConfigTabDefinition[] = [
         icon: SlidersHorizontal,
         component: OperacionalLojaTab,
         roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono'],
-        readOnlyRoles: ['consultor_mx'],
+        readOnlyRoles: ['consultor_mx', 'dono'],
         section: 'gestao',
     },
     {

@@ -21,7 +21,7 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/lojas/:storeSlug', roles: INTERNAL_AND_LEADERS },
   { pattern: '/lojas', roles: INTERNAL_AND_OWNER },
   { pattern: '/rotina', roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'gerente'] },
-  { pattern: '/configuracoes/operacional', roles: INTERNAL_AND_OWNER },
+  { pattern: '/configuracoes/operacional', roles: INTERNAL_ROLES },
   { pattern: '/relatorio-matinal', roles: INTERNAL_AND_LEADERS },
   { pattern: '/relatorios/performance-vendas', roles: INTERNAL_AND_LEADERS },
   { pattern: '/relatorios/performance-vendedor', roles: MANAGEMENT_ROLES },

@@ -74,11 +74,11 @@ export default function AiDiagnostics() {
     useEffect(() => { runScan() }, [runScan])
     useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [logs])
 
-    if (!isPerfilInternoMx(role) && role !== 'dono') return (
+    if (!isPerfilInternoMx(role) && role !== 'gerente') return (
         <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-brand-secondary" id="main-content">
             <ShieldCheck size={48} className="text-white/20 mb-6" aria-hidden="true" />
             <Typography variant="h2" tone="white" className="uppercase tracking-tighter">Acesso Restrito</Typography>
-            <Typography variant="caption" tone="white" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Auditoria operacional disponível para Admin MX e Dono.</Typography>
+            <Typography variant="caption" tone="white" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Auditoria operacional disponível para Admin MX e Gerente.</Typography>
         </main>
     )
 

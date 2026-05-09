@@ -316,6 +316,7 @@ Deno.serve(async (req) => {
         access_token: tokenPayload.access_token,
         expires_at: tokenPayload.expires_at,
         scopes: tokenPayload.scopes,
+        google_email: tokenPayload.google_email,
       };
       if (encryptedRefreshToken) updatePayload.refresh_token = encryptedRefreshToken;
       const { error: updateError } = await adminClient.from("tokens_oauth_consultoria").update(updatePayload).eq("id", existingToken.id);

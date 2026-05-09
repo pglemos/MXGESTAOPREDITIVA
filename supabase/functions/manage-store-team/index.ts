@@ -155,6 +155,15 @@ serve(async (req) => {
     .eq('user_id', userId)
     .eq('store_id', targetStoreId)
     .maybeSingle()
+  const targetMembershipRow = targetMembership as StoreMembershipRow | null
+
+  if (!isAdmin && !targetMembershipRow) {
+    return jsonResponse({ success: false, error: 'Target user is not a member of this managed store' }, 403)
+  }
+
+  if (!isAdmin && previousStoreId && previousStoreId !== targetStoreId) {
+    return jsonResponse({ success: false, error: 'Store managers cannot move users between stores' }, 403)
+  }
 
   let previousMembership: StoreMembershipRow | null = null
   if (previousStoreId) {
@@ -167,7 +176,7 @@ serve(async (req) => {
     previousMembership = data as StoreMembershipRow | null
   }
 
-  const targetCurrentRole = (previousMembership?.role || (targetMembership as StoreMembershipRow | null)?.role || targetProfile.role || '').toLowerCase()
+  const targetCurrentRole = (previousMembership?.role || targetMembershipRow?.role || targetProfile.role || '').toLowerCase()
   if (!isAdmin) {
     if (internalRoles.includes(targetCurrentRole)) {
       return jsonResponse({ success: false, error: 'Internal MX users can only be managed by admin' }, 403)

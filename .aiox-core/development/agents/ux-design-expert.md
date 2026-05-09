@@ -248,28 +248,30 @@ dependencies:
     - execute-checklist.md
 
   templates:
-    - ../../product/templates/front-end-spec-tmpl.yaml
-    - ../../product/templates/tokens-schema-tmpl.yaml
-    - ../../product/templates/component-react-tmpl.tsx
-    - ../../product/templates/state-persistence-tmpl.yaml
-    - ../../product/templates/shock-report-tmpl.html
-    - ../../product/templates/migration-strategy-tmpl.md
-    - ../../product/templates/token-exports-css-tmpl.css
-    - ../../product/templates/token-exports-tailwind-tmpl.js
-    - ../../product/templates/ds-artifact-analysis.md
+    - front-end-spec-tmpl.yaml
+    - tokens-schema-tmpl.yaml
+    - component-react-tmpl.tsx
+    - state-persistence-tmpl.yaml
+    - shock-report-tmpl.html
+    - migration-strategy-tmpl.md
+    - token-exports-css-tmpl.css
+    - token-exports-tailwind-tmpl.js
+    - ds-artifact-analysis.md
 
   checklists:
-    - ../../product/checklists/pattern-audit-checklist.md
-    - ../../product/checklists/component-quality-checklist.md
-    - ../../product/checklists/accessibility-wcag-checklist.md
-    - ../../product/checklists/migration-readiness-checklist.md
-    - ../../data/technical-preferences.md
-    - ../../product/data/atomic-design-principles.md
-    - ../../product/data/design-token-best-practices.md
-    - ../../product/data/consolidation-algorithms.md
-    - ../../product/data/roi-calculation-guide.md
-    - ../../product/data/integration-patterns.md
-    - ../../product/data/wcag-compliance-guide.md
+    - pattern-audit-checklist.md
+    - component-quality-checklist.md
+    - accessibility-wcag-checklist.md
+    - migration-readiness-checklist.md
+
+  data:
+    - technical-preferences.md
+    - atomic-design-principles.md
+    - design-token-best-practices.md
+    - consolidation-algorithms.md
+    - roi-calculation-guide.md
+    - integration-patterns.md
+    - wcag-compliance-guide.md
 
   tools:
     - 21st-dev-magic # UI component generation and design system
@@ -292,7 +294,7 @@ workflow:
         output: 'tokens.yaml, design system structure, migration plan'
 
       phase_4_build:
-        commands: ['*build {atom}', '*compose {molecule}', '*extend {variant}']
+        commands: ['*build {component}', '*compose {molecule}', '*extend {component}']
         output: 'Production-ready components (TypeScript, tests, docs)'
 
       phase_5_quality:

@@ -418,10 +418,11 @@ async function authenticate(req: Request) {
   );
   const { data: profile, error: profileError } = await adminClient
     .from("usuarios")
-    .select("role")
+    .select("role, active")
     .eq("id", authData.user.id)
     .single();
   if (profileError) throw toError(profileError);
+  if (!profile?.active) throw new Error("Usuário inativo");
   if (!INTERNAL_ROLES.has(profile?.role)) {
     return {
       error: jsonResponse(
@@ -430,7 +431,7 @@ async function authenticate(req: Request) {
       ),
     };
   }
-  return { sessionClient, adminClient, userId: authData.user.id };
+  return { sessionClient, adminClient, userId: authData.user.id, role: profile.role as string };
 }
 
 async function getClient(adminClient: ReturnType<typeof createClient>, clientId: string): Promise<ConsultingClientRow> {
@@ -442,6 +443,19 @@ async function getClient(adminClient: ReturnType<typeof createClient>, clientId:
   if (error) throw toError(error);
   if (!data) throw new Error("Cliente da consultoria não encontrado");
   return data as ConsultingClientRow;
+}
+
+async function assertClientAccess(sessionClient: ReturnType<typeof createClient>, role: string, clientId: string): Promise<void> {
+  if (role === "administrador_geral" || role === "administrador_mx") return;
+
+  const { data, error } = await sessionClient
+    .from("clientes_consultoria")
+    .select("id")
+    .eq("id", clientId)
+    .maybeSingle();
+
+  if (error) throw toError(error);
+  if (!data) throw new Error("Cliente da consultoria fora do escopo da sessão");
 }
 
 Deno.serve(async (req) => {
@@ -474,18 +488,14 @@ Deno.serve(async (req) => {
       deleteFileId = typeof body?.fileId === "string" ? body.fileId : null;
     }
 
-    // setup_all accepts service role JWT directly (for automated/CLI invocations)
+    // setup_all accepts only the real service role bearer (for automated/CLI invocations)
     const authHeader = req.headers.get("Authorization") || "";
-    const isServiceRole = (() => {
-      try {
-        const token = authHeader.replace(/^Bearer\s+/i, "");
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        return payload?.role === "service_role";
-      } catch { return false; }
-    })();
+    const isServiceRole = authHeader === `Bearer ${requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY)}`;
 
     let adminClient: ReturnType<typeof createClient>;
+    let sessionClient: ReturnType<typeof createClient> | null = null;
     let userId: string;
+    let role: string | null = null;
 
     if (action === "setup_all" && isServiceRole) {
       adminClient = createClient(
@@ -499,7 +509,13 @@ Deno.serve(async (req) => {
       const auth = await authenticate(req);
       if ("error" in auth) return auth.error;
       adminClient = auth.adminClient;
+      sessionClient = auth.sessionClient;
       userId = auth.userId;
+      role = auth.role;
+    }
+
+    if (action !== "setup_all" && sessionClient && role) {
+      await assertClientAccess(sessionClient, role, clientId);
     }
 
     const accessToken = await getCentralDriveAccessToken();

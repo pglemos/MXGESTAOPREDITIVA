@@ -65,6 +65,112 @@ type ScheduleEventInput = {
 
 type GoogleAttendee = { email: string; displayName?: string };
 
+const VISIT_SYNC_SELECT = [
+  "id",
+  "client_id",
+  "scheduled_at",
+  "duration_hours",
+  "modality",
+  "status",
+  "objective",
+  "visit_reason",
+  "target_audience",
+  "product_name",
+  "consultant_id",
+  "auxiliary_consultant_id",
+  "google_event_id",
+  "google_event_id_central",
+  "client:clientes_consultoria!client_id(name)",
+].join(",");
+
+const SCHEDULE_EVENT_SYNC_SELECT = [
+  "id",
+  "event_type",
+  "title",
+  "topic",
+  "starts_at",
+  "duration_hours",
+  "modality",
+  "location",
+  "target_audience",
+  "audience_goal",
+  "responsible_name",
+  "responsible_email",
+  "responsible_user_id",
+  "ticket_price_text",
+  "visit_reason",
+  "product_name",
+  "google_event_id",
+  "google_event_id_personal",
+  "status",
+].join(",");
+
+function relationName(row: any, relation: string): string | null {
+  const value = row?.[relation];
+  if (Array.isArray(value)) return value[0]?.name ?? null;
+  return value?.name ?? null;
+}
+
+async function loadAuthorizedVisit(sessionClient: any, visitId: string): Promise<VisitInput> {
+  const { data, error } = await sessionClient
+    .from("visitas_consultoria")
+    .select(VISIT_SYNC_SELECT)
+    .eq("id", visitId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Acesso negado a esta visita de consultoria");
+
+  return {
+    id: data.id,
+    client_id: data.client_id ?? null,
+    client_name: relationName(data, "client"),
+    scheduled_at: data.scheduled_at,
+    duration_hours: data.duration_hours ?? null,
+    modality: data.modality ?? null,
+    status: data.status ?? null,
+    objective: data.objective ?? null,
+    visit_reason: data.visit_reason ?? null,
+    target_audience: data.target_audience ?? null,
+    product_name: data.product_name ?? null,
+    consultant_id: data.consultant_id ?? null,
+    auxiliary_consultant_id: data.auxiliary_consultant_id ?? null,
+    google_event_id: data.google_event_id ?? null,
+    google_event_id_central: data.google_event_id_central ?? null,
+  };
+}
+
+async function loadAuthorizedScheduleEvent(sessionClient: any, eventId: string): Promise<ScheduleEventInput> {
+  const { data, error } = await sessionClient
+    .from("eventos_agenda_consultoria")
+    .select(SCHEDULE_EVENT_SYNC_SELECT)
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Acesso negado a este evento de agenda");
+
+  return {
+    id: data.id,
+    event_type: data.event_type ?? null,
+    title: data.title,
+    topic: data.topic ?? null,
+    starts_at: data.starts_at,
+    duration_hours: data.duration_hours ?? null,
+    modality: data.modality ?? null,
+    location: data.location ?? null,
+    target_audience: data.target_audience ?? null,
+    audience_goal: data.audience_goal ?? null,
+    responsible_name: data.responsible_name ?? null,
+    responsible_email: data.responsible_email ?? null,
+    responsible_user_id: data.responsible_user_id ?? null,
+    ticket_price_text: data.ticket_price_text ?? null,
+    visit_reason: data.visit_reason ?? null,
+    product_name: data.product_name ?? null,
+    google_event_id: data.google_event_id ?? null,
+    google_event_id_personal: data.google_event_id_personal ?? null,
+    status: data.status ?? null,
+  };
+}
+
 function getAdminMasterEmails(): Set<string> {
   const configured = (Deno.env.get("GOOGLE_CALENDAR_ADMIN_MASTER_EMAILS") || "")
     .split(",")
@@ -379,8 +485,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const action: "upsert" | "delete" = body?.action === "delete" ? "delete" : "upsert";
     const mirrorOnly = body?.mirrorOnly === true;
-    const visit: VisitInput | null = body?.visit ?? null;
-    const scheduleEvent: ScheduleEventInput | null = body?.event ?? body?.scheduleEvent ?? null;
+    let visit: VisitInput | null = body?.visit ?? null;
+    let scheduleEvent: ScheduleEventInput | null = body?.event ?? body?.scheduleEvent ?? null;
     const syncKind = scheduleEvent ? "schedule_event" : "visit";
 
     if (syncKind === "visit" && (!visit?.id || !visit?.scheduled_at)) {
@@ -388,6 +494,14 @@ Deno.serve(async (req) => {
     }
     if (syncKind === "schedule_event" && (!scheduleEvent?.id || !scheduleEvent?.starts_at || !scheduleEvent?.title)) {
       return new Response(JSON.stringify({ error: "event.id, event.title and event.starts_at are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (!isServiceRoleCall && sessionClient) {
+      if (syncKind === "visit" && visit?.id) {
+        visit = await loadAuthorizedVisit(sessionClient, visit.id);
+      } else if (syncKind === "schedule_event" && scheduleEvent?.id) {
+        scheduleEvent = await loadAuthorizedScheduleEvent(sessionClient, scheduleEvent.id);
+      }
     }
 
     const adminClient = createClient(

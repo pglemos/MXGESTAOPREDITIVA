@@ -88,7 +88,7 @@ serve(async (req) => {
 
     const { data: stores, error } = await adminClient
       .from('lojas')
-      .select('id, name, active, legal_name, cnpj, address')
+      .select('id, name, active')
       .eq('active', true)
 
     if (error) return jsonResponse({ success: false, error: error.message }, 500)
@@ -101,9 +101,6 @@ serve(async (req) => {
       store: {
         id: store.id,
         name: store.name,
-        legal_name: store.legal_name,
-        cnpj: store.cnpj,
-        address: store.address,
       },
     })
   }
@@ -329,7 +326,6 @@ serve(async (req) => {
     success: true,
     pre_registration_id: preRegistration.id,
     login_email: email,
-    temporary_password: temporaryPassword,
     status: 'pending_approval',
   })
 })

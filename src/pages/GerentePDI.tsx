@@ -33,7 +33,7 @@ export default function GerentePDI() {
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
-    const canManagePDI = isPerfilInternoMx(role) || role === 'gerente' || role === 'dono'
+    const canManagePDI = isPerfilInternoMx(role) || role === 'gerente'
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch(); setIsRefetching(false)

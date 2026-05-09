@@ -258,7 +258,13 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
       const payload = await response.json()
       if (!response.ok || !payload.success) throw new Error(payload.error || 'Não foi possível revisar o login.')
 
-      toast.success(action === 'approve' ? 'Login aprovado e sincronizado.' : 'Login rejeitado.')
+      const temporaryPassword = typeof payload.temporary_password === 'string' ? payload.temporary_password : ''
+      toast.success(
+        action === 'approve' && temporaryPassword
+          ? `Login aprovado. Senha temporária: ${temporaryPassword}`
+          : action === 'approve' ? 'Login aprovado e sincronizado.' : 'Login rejeitado.',
+        action === 'approve' && temporaryPassword ? { duration: 15000 } : undefined,
+      )
       await Promise.all([refetch(), fetchPreRegistrations()])
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Falha ao revisar login.')

@@ -6,8 +6,23 @@ dotenv.config({ path: resolve(process.cwd(), '.env') })
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const apply = process.argv.includes('--apply')
+const newPassword = process.env.MX_RESET_PASSWORD
 
-const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
+if (!apply) {
+    console.log('DRY-RUN: nenhuma senha sera alterada. Reexecute com --apply e MX_RESET_PASSWORD definido para aplicar.')
+    process.exit(0)
+}
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error('VITE_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY sao obrigatorios.')
+}
+
+if (!newPassword || newPassword.length < 10) {
+    throw new Error('MX_RESET_PASSWORD deve ser definido com pelo menos 10 caracteres.')
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
 
 const LOGINS = [
     'admin@mxgestaopreditiva.com.br',
@@ -15,8 +30,6 @@ const LOGINS = [
     'gerente@mxgestaopreditiva.com.br',
     'vendedor@mxgestaopreditiva.com.br'
 ]
-const NEW_PASSWORD = 'Mx#2026!'
-
 async function resetPasswords() {
     console.log('--- Resetting Passwords ---')
 
@@ -31,15 +44,15 @@ async function resetPasswords() {
             if (user) {
                 console.log(`Resetting ${email}...`)
                 const { error } = await supabase.auth.admin.updateUserById(user.id, {
-                    password: NEW_PASSWORD
+                    password: newPassword
                 })
                 if (error) console.error(`Error resetting ${email}:`, error.message)
                 else console.log(`Successfully reset ${email}`)
             } else {
                 console.warn(`${email} not found.`)
             }
-        } catch (err: any) {
-            console.error(`Fatal error for ${email}:`, err.message)
+        } catch (err) {
+            console.error(`Fatal error for ${email}:`, err instanceof Error ? err.message : err)
         }
     }
 }

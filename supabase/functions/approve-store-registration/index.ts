@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const allowedRoles = ['dono', 'gerente', 'vendedor']
+const passwordChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*'
 const PRE_REGISTRATION_SELECT = [
   'id',
   'status',
@@ -29,6 +30,12 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
 
 function clean(value: unknown, max = 240) {
   return String(value || '').trim().slice(0, max)
+}
+
+function generateTemporaryPassword(length = 18) {
+  const bytes = new Uint8Array(length)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (byte) => passwordChars[byte % passwordChars.length]).join('')
 }
 
 serve(async (req) => {
@@ -104,6 +111,21 @@ serve(async (req) => {
     return jsonResponse({ success: true, status: 'rejected' })
   }
 
+  const temporaryPassword = generateTemporaryPassword()
+  const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(preRegistration.auth_user_id, {
+    password: temporaryPassword,
+    user_metadata: {
+      name: preRegistration.full_name,
+      role: finalRole,
+      phone: preRegistration.phone,
+      avatar_url: preRegistration.avatar_url,
+      must_change_password: true,
+      store_id: preRegistration.store_id,
+    },
+  })
+
+  if (authUpdateError) return jsonResponse({ success: false, error: authUpdateError.message }, 500)
+
   const { error: userError } = await adminClient.from('usuarios').update({
     name: preRegistration.full_name,
     email: preRegistration.email,
@@ -154,17 +176,6 @@ serve(async (req) => {
     await adminClient.from('vendedores_loja').delete().eq('seller_user_id', preRegistration.auth_user_id).eq('store_id', preRegistration.store_id)
   }
 
-  await adminClient.auth.admin.updateUserById(preRegistration.auth_user_id, {
-    user_metadata: {
-      name: preRegistration.full_name,
-      role: finalRole,
-      phone: preRegistration.phone,
-      avatar_url: preRegistration.avatar_url,
-      must_change_password: true,
-      store_id: preRegistration.store_id,
-    },
-  })
-
   const { error: updateError } = await adminClient.from('pre_cadastros_loja').update({
     role: finalRole,
     status: 'synced',
@@ -177,5 +188,5 @@ serve(async (req) => {
 
   if (updateError) return jsonResponse({ success: false, error: updateError.message }, 500)
 
-  return jsonResponse({ success: true, status: 'synced', role: finalRole })
+  return jsonResponse({ success: true, status: 'synced', role: finalRole, login_email: preRegistration.email, temporary_password: temporaryPassword })
 })

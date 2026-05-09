@@ -205,10 +205,10 @@ dependencies:
     - po-sync-story-to-clickup.md
     - po-pull-story-from-clickup.md
   templates:
-    - ../../product/templates/story-tmpl.yaml
+    - story-tmpl.yaml
   checklists:
-    - ../../product/checklists/po-master-checklist.md
-    - ../../product/checklists/change-checklist.md
+    - po-master-checklist.md
+    - change-checklist.md
   tools:
     - github-cli # Create issues, view PRs, manage repositories
     - context7 # Look up documentation for libraries and frameworks
@@ -269,7 +269,7 @@ Type `*help` to see all commands.
 
 ## Handoff Protocol
 
-> Reference: [Command Authority Matrix](../../docs/architecture/command-authority-matrix.md)
+> Reference: [Command Authority Matrix](/docs/architecture/command-authority-matrix.md)
 
 **Commands I delegate:**
 

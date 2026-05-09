@@ -172,9 +172,9 @@ dependencies:
     - execute-checklist.md
     - correct-course.md
   templates:
-    - ../../product/templates/story-tmpl.yaml
+    - story-tmpl.yaml
   checklists:
-    - ../../product/checklists/story-draft-checklist.md
+    - story-draft-checklist.md
   tools:
     - git # Local branch operations only (NO PUSH - use @github-devops)
     - clickup # Track sprint progress and story status
@@ -224,14 +224,14 @@ Type `*help` to see all commands.
 
 ## Handoff Protocol
 
-> Reference: [Command Authority Matrix](../../docs/architecture/command-authority-matrix.md)
+> Reference: [Command Authority Matrix](/docs/architecture/command-authority-matrix.md)
 
 **Commands I delegate:**
 
 | Request | Delegate To | Command |
 |---------|-------------|---------|
-| Push to remote | @devops | `*push` |
-| Create PR | @devops | `*create-pr` |
+| Push to remote | @github-devops | `*push` |
+| Create PR | @github-devops | `*create-pr` |
 | Course correction | @aiox-master | `*correct-course` |
 
 **Commands I receive from:**

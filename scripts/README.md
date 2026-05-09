@@ -55,9 +55,9 @@ Todos os scripts operacionais do projeto. Execute com `tsx` (`.ts`) ou `node` (`
 | `repair_sql.ts` | Reparo direto via SQL (Postgres) | `tsx scripts/repair_sql.ts` | cleanup |
 | `repair_system.ts` | Reparo de sistema auth + tabela users | `tsx scripts/repair_system.ts` | cleanup |
 | `reset_admin_password.mjs` | Reset de senha do admin via service role | `node scripts/reset_admin_password.mjs` | util |
-| `reset_admin_single.ts` | Reset de senha do admin único | `tsx scripts/reset_admin_single.ts` | util |
-| `reset_passwords.ts` | Reset de senhas dos 4 usuários padrão | `tsx scripts/reset_passwords.ts` | util |
-| `reset_passwords_v2.ts` | Reset de senhas v2 com busca individual | `tsx scripts/reset_passwords_v2.ts` | util |
+| `reset_admin_single.ts` | Reset de senha do admin único com dry-run padrão | `MX_RESET_PASSWORD='<senha>' tsx scripts/reset_admin_single.ts --apply` | util |
+| `reset_passwords.ts` | Reset de senhas dos 4 usuários padrão com dry-run padrão | `MX_RESET_PASSWORD='<senha>' tsx scripts/reset_passwords.ts --apply` | util |
+| `reset_passwords_v2.ts` | Reset de senhas v2 com busca individual e dry-run padrão | `MX_RESET_PASSWORD='<senha>' tsx scripts/reset_passwords_v2.ts --apply` | util |
 | `restore_all_sellers.mjs` | Restauração de todos os vendedores do CSV | `node scripts/restore_all_sellers.mjs` | seed |
 | `restore_truth_final.mjs` | Restauração final da source of truth | `node scripts/restore_truth_final.mjs` | seed |
 | `run_fix_rls.ts` | Execução de migration SQL de fix RLS | `tsx scripts/run_fix_rls.ts` | migration |

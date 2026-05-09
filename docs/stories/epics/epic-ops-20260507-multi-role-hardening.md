@@ -30,14 +30,42 @@ Reduzir os riscos residuais encontrados apos o hardening inicial de permissao, a
 
 ## Stories Planejadas
 
-### Story 7: Segundo Passe Yolo de Rotas e Edge Reports
+### Story 10: Quinto Passe Yolo de Senha de Pre-Cadastro
 
 **Criterios de Aceitacao:**
 
-- [ ] Orquestrar @aiox-master com @qa, @dev e agentes de suporte em nova rodada yolo.
-- [ ] Fechar residuos confirmaveis de rota multi-role para fluxo operacional de vendedor.
-- [ ] Reduzir consultas amplas em Edge Functions de relatorio/aprovacao tocadas.
+- [ ] Continuar a rodada yolo de forma autonoma com @aiox-master.
+- [ ] Remover entrega de senha temporaria ao solicitante publico antes da aprovacao.
+- [ ] Gerar/retornar senha temporaria somente no ato de aprovacao Admin MX.
 - [ ] Registrar gates, residuos, file list e achados por papel.
+
+### Story 9: Quarto Passe Yolo de OAuth e Scripts Destrutivos
+
+**Criterios de Aceitacao:**
+
+- [x] Continuar a rodada yolo de forma autonoma com @aiox-master.
+- [x] Corrigir reconnect OAuth para atualizar `google_email` em token existente.
+- [x] Conter scripts destrutivos de reset de senha com `--apply` e senha vinda de ambiente.
+- [x] Registrar gates, residuos, file list e achados por papel.
+
+### Story 8: Terceiro Passe Yolo de Acesso Google e Pre-Cadastro
+
+**Criterios de Aceitacao:**
+
+- [x] Orquestrar @aiox-master com @qa, @dev e agentes de suporte em nova rodada yolo.
+- [x] Validar escopo por sessao antes de Edge Functions Google usarem service role.
+- [x] Reduzir dados publicos expostos no GET de pre-cadastro.
+- [x] Registrar gates, residuos, file list e achados por papel.
+
+### Story 7: Segundo Passe Yolo de Rotas, RLS e Edge Reports
+
+**Criterios de Aceitacao:**
+
+- [x] Orquestrar @aiox-master com @qa, @dev e agentes de suporte em nova rodada yolo.
+- [x] Fechar residuos confirmaveis de rota multi-role para fluxo operacional de vendedor.
+- [x] Corrigir P0/P1 locais de RLS `usuarios`/`lancamentos_diarios` e endpoint `manage-store-team`.
+- [x] Reduzir consultas amplas em Edge Functions de relatorio/aprovacao tocadas.
+- [x] Registrar gates, residuos, file list e achados por papel.
 
 ### Story 6: Workflow Yolo Multiagente de Hardening Total
 

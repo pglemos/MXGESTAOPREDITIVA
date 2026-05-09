@@ -3,7 +3,7 @@ import { canAccessPath, getRouteAccessRule } from './routeAccess'
 
 describe('route access matrix', () => {
   it('keeps admin-only modules closed to store roles', () => {
-    for (const route of ['/painel', '/agenda', '/consultoria/clientes', '/configuracoes/reprocessamento']) {
+    for (const route of ['/painel', '/agenda', '/consultoria/clientes', '/configuracoes/operacional', '/configuracoes/reprocessamento']) {
       expect(canAccessPath(route, 'administrador_geral')).toBe(true)
       expect(canAccessPath(route, 'vendedor')).toBe(false)
       expect(canAccessPath(route, 'gerente')).toBe(false)

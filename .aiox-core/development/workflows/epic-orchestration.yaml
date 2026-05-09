@@ -97,6 +97,94 @@ workflow:
       in_wave: auto_go           # Don't pause between parallel stories
       between_waves: interactive  # Pause for human decision between waves
 
+  sequence:
+    - step: preflight
+      id: preflight
+      phase: 1
+      agent: pm
+      action: validate_epic_execution_plan
+      creates:
+        - epic_execution_context
+      notes: |
+        Validate the project-specific execution plan before starting waves:
+        - Confirm epicId, storyBasePath, waves, and gate agents are defined
+        - Confirm stories are grouped by dependency order
+        - Confirm worktree isolation and concurrency limits
+      next: prepare_wave
+
+    - step: prepare_wave
+      id: prepare_wave
+      phase: 2
+      agent: devops
+      action: prepare_wave_worktrees
+      requires:
+        - epic_execution_context
+      creates:
+        - wave_execution_context
+      notes: |
+        Prepare branch/worktree isolation for the current wave using the
+        configured concurrency and worktree isolation policy.
+      next: execute_wave_stories
+
+    - step: execute_wave_stories
+      id: execute_wave_stories
+      phase: 3
+      agent: aiox-master
+      action: run_development_cycle_for_each_story
+      requires:
+        - wave_execution_context
+      creates:
+        - story_execution_results
+      parallel: true
+      workflow: development-cycle
+      notes: |
+        Run the development-cycle workflow for each story in the wave.
+        Story-level validation, implementation, self-healing, quality gate,
+        and push happen inside development-cycle.
+      next: wave_gate
+
+    - step: wave_gate
+      id: wave_gate
+      phase: 4
+      agent: qa
+      action: review_wave_integration
+      requires:
+        - story_execution_results
+      creates:
+        - wave_gate_report
+      notes: |
+        Review only cross-story integration risks. Per-story QA is handled
+        inside development-cycle.
+      next: merge_wave
+
+    - step: merge_wave
+      id: merge_wave
+      phase: 5
+      agent: devops
+      action: merge_wave_branches
+      requires:
+        - wave_gate_report
+      creates:
+        - merged_wave_result
+      condition: gate_approved
+      notes: |
+        Merge wave branches in the project execution plan order, run the
+        integrated test suite, tag the wave, and clean up worktrees.
+      next: checkpoint
+
+    - step: checkpoint
+      id: checkpoint
+      phase: 6
+      agent: po
+      action: decide_next_wave
+      requires:
+        - merged_wave_result
+      elicit: true
+      notes: |
+        Decide whether to continue to the next wave, pause, review the wave
+        summary, or abort the epic.
+      next: prepare_wave
+
   # ═══════════════════════════════════════════════════════════════════════════════════
   #                              WAVE EXECUTION PATTERN
   # ═══════════════════════════════════════════════════════════════════════════════════

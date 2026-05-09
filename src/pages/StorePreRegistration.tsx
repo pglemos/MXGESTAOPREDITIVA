@@ -78,7 +78,7 @@ export default function StorePreRegistration() {
   const [success, setSuccess] = useState(false)
   const [photo, setPhoto] = useState<PhotoState | null>(null)
   const [formErrors, setFormErrors] = useState<FormErrors>({})
-  const [provisionalLogin, setProvisionalLogin] = useState<{ email: string; password: string | null } | null>(null)
+  const [provisionalLogin, setProvisionalLogin] = useState<{ email: string } | null>(null)
   const [step, setStep] = useState(0)
 
   const functionUrl = useMemo(() => getSupabaseFunctionUrl('store-pre-registration'), [])
@@ -214,11 +214,8 @@ export default function StorePreRegistration() {
       })
       const payload = await response.json()
       if (!response.ok || !payload.success) throw new Error(payload.error || 'Falha ao enviar cadastro.')
-      const temporaryPassword = typeof payload.temporary_password === 'string' && payload.temporary_password.length > 0
-        ? payload.temporary_password
-        : null
       setSuccess(true)
-      setProvisionalLogin({ email: payload.login_email || form.email, password: temporaryPassword })
+      setProvisionalLogin({ email: payload.login_email || form.email })
       setForm(initialForm)
       setPhoto(null)
       setStep(0)
@@ -361,7 +358,6 @@ export default function StorePreRegistration() {
                     <div className="mx-pre-login-box">
                       <small>Login provisório após aprovação</small>
                       <p>{provisionalLogin.email}</p>
-                      {provisionalLogin.password && <b>{provisionalLogin.password}</b>}
                     </div>
                   )}
                   <button

@@ -13,7 +13,7 @@ IDE-FILE-RESOLUTION:
   - type=folder (tasks|templates|checklists|data|utils|etc...), name=file-name
   - Example: create-doc.md → .aiox-core/development/tasks/create-doc.md
   - IMPORTANT: Only load these files when user requests specific command execution
-REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "design schema"→create-schema, "run migration"→apply-migration, "check security"→rls-audit), ALWAYS ask for clarification if no clear match.
+REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "design schema"→create-schema, "run migration"→apply-migration, "check security"→security-audit), ALWAYS ask for clarification if no clear match.
 activation-instructions:
   - STEP 1: Read THIS ENTIRE FILE - it contains your complete persona definition
   - STEP 2: Adopt the persona defined in the 'agent' and 'persona' sections below
@@ -30,7 +30,7 @@ activation-instructions:
          - Append: "Story: {active story from docs/stories/}" if detected + "Branch: `{branch from gitStatus}`" if not main/master
       3. Show: "📊 **Project Status:**" as natural language narrative from gitStatus in system prompt:
          - Branch name, modified file count, current story reference, last commit message
-      4. Show: "**Available Commands:**" — list commands from the 'commands' section above that have 'key' in their visibility array
+      4. Show: "**Available Commands:**" — list Core Commands first; if commands use visibility metadata, prioritize entries with `key`
       5. Show: "Type `*guide` for comprehensive usage instructions."
       5.5. Check `.aiox/handoffs/` for most recent unconsumed handoff artifact (YAML with consumed != true).
            If found: read `from_agent` and `last_command` from artifact, look up position in `.aiox-core/data/workflow-chains.yaml` matching from_agent + last_command, and show: "💡 **Suggested:** `*{next_command} {args}`"
@@ -205,38 +205,38 @@ dependencies:
 
   templates:
     # Architecture documentation templates
-    - ../../product/templates/schema-design-tmpl.yaml
-    - ../../product/templates/rls-policies-tmpl.yaml
-    - ../../product/templates/migration-plan-tmpl.yaml
-    - ../../product/templates/index-strategy-tmpl.yaml
+    - schema-design-tmpl.yaml
+    - rls-policies-tmpl.yaml
+    - migration-plan-tmpl.yaml
+    - index-strategy-tmpl.yaml
 
     # Operations templates
-    - ../../product/templates/tmpl-migration-script.sql
-    - ../../product/templates/tmpl-rollback-script.sql
-    - ../../product/templates/tmpl-smoke-test.sql
+    - tmpl-migration-script.sql
+    - tmpl-rollback-script.sql
+    - tmpl-smoke-test.sql
 
     # RLS policy templates
-    - ../../product/templates/tmpl-rls-kiss-policy.sql
-    - ../../product/templates/tmpl-rls-granular-policies.sql
+    - tmpl-rls-kiss-policy.sql
+    - tmpl-rls-granular-policies.sql
 
     # Data operations templates
-    - ../../product/templates/tmpl-staging-copy-merge.sql
-    - ../../product/templates/tmpl-seed-data.sql
+    - tmpl-staging-copy-merge.sql
+    - tmpl-seed-data.sql
 
     # Documentation templates
-    - ../../product/templates/tmpl-comment-on-examples.sql
+    - tmpl-comment-on-examples.sql
 
   checklists:
-    - ../../product/checklists/dba-predeploy-checklist.md
-    - ../../product/checklists/dba-rollback-checklist.md
-    - ../../product/checklists/database-design-checklist.md
+    - dba-predeploy-checklist.md
+    - dba-rollback-checklist.md
+    - database-design-checklist.md
 
   data:
-    - ../../product/data/database-best-practices.md
-    - ../../product/data/supabase-patterns.md
-    - ../../product/data/postgres-tuning-guide.md
-    - ../../product/data/rls-security-patterns.md
-    - ../../product/data/migration-safety-guide.md
+    - database-best-practices.md
+    - supabase-patterns.md
+    - postgres-tuning-guide.md
+    - rls-security-patterns.md
+    - migration-safety-guide.md
 
   tools:
     - supabase-cli
@@ -259,8 +259,8 @@ usage_tips:
   - 'Before any migration: `*snapshot baseline` to create rollback point'
   - 'Test migrations: `*dry-run path/to/migration.sql` before applying'
   - 'Apply migration: `*apply-migration path/to/migration.sql`'
-  - 'Security audit: `*rls-audit` to check RLS coverage'
-  - 'Performance analysis: `*explain SELECT * FROM...` or `*analyze-hotpaths`'
+  - 'Security audit: `*security-audit rls` to check RLS coverage'
+  - 'Performance analysis: `*analyze-performance query SELECT * FROM...` or `*analyze-performance hotpaths`'
   - 'Bootstrap new project: `*bootstrap` to create supabase/ structure'
 
 coderabbit_integration:
