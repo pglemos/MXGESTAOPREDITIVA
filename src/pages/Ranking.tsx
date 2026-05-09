@@ -427,7 +427,7 @@ function GlobalRanking() {
                         </div>
 
                         {/* LIST */}
-                        <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none">
+                        <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none w-full max-w-full">
                             <AnimatePresence mode="popLayout">
                                 {displayRanking.map((r, i) => {
                                     const isMe = r.user_id === profile?.id
@@ -436,7 +436,7 @@ function GlobalRanking() {
 
                                     return (
                                         <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}
-                                            onClick={() => setSelectedSeller(r.user_id)} className="cursor-pointer hover:scale-[1.01] transition-transform"
+                                            onClick={() => setSelectedSeller(r.user_id)} className="w-full max-w-full min-w-0 cursor-pointer sm:hover:scale-[1.01] transition-transform"
                                         >
                                             <Card className={cn(
                                                 "p-mx-lg md:p-mx-xl w-full max-w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
@@ -479,7 +479,7 @@ function GlobalRanking() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between sm:justify-end gap-mx-lg lg:gap-mx-10 shrink-0 mt-6 lg:mt-0 border-t lg:border-none border-current border-opacity-10 pt-6 lg:pt-0">
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-mx-md lg:gap-mx-10 shrink-0 mt-6 lg:mt-0 border-t lg:border-none border-current border-opacity-10 pt-6 lg:pt-0 w-full lg:w-auto max-w-full">
                                                     <div className="text-left lg:text-right">
                                                         <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-micro mb-1">Atingimento</Typography>
                                                         <div className="flex items-center gap-mx-sm">
@@ -494,7 +494,7 @@ function GlobalRanking() {
                                                     </div>
                                                     <button 
                                                       onClick={(e) => { e.stopPropagation(); toggleOpponent(r.user_id); setViewMode('battle') }}
-                                                      className={`ml-4 p-mx-sm rounded-xl transition-all border group/btn hover:scale-110 active:scale-95 ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
+                                                      className={`ml-0 sm:ml-4 p-mx-sm rounded-xl transition-all border group/btn sm:hover:scale-110 active:scale-95 w-full sm:w-auto flex items-center justify-center ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
                                                       title="Desafiar para X1"
                                                     >
                                                         <Swords className="w-mx-sm h-mx-sm" />
@@ -723,7 +723,7 @@ function StoreRankingView() {
                             <Input placeholder="LOCALIZAR VENDEDOR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="!pl-11 !h-mx-14 !text-mx-tiny uppercase tracking-widest font-black" />
                         </div>
 
-                        <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none">
+                        <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none w-full max-w-full">
                             <AnimatePresence mode="popLayout">
                                 {sortedRanking.map((r, i) => {
                                     const isMe = r.user_id === profile?.id
@@ -732,7 +732,7 @@ function StoreRankingView() {
 
                                     return (
                                         <motion.li key={r.user_id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}
-                                            onClick={() => setSelectedSeller(r.user_id)} className="cursor-pointer hover:scale-[1.01] transition-transform"
+                                            onClick={() => setSelectedSeller(r.user_id)} className="w-full max-w-full min-w-0 cursor-pointer sm:hover:scale-[1.01] transition-transform"
                                         >
                                             <Card className={cn(
                                                 "p-mx-lg md:p-mx-xl w-full max-w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",
@@ -771,7 +771,7 @@ function StoreRankingView() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between sm:justify-end gap-mx-lg lg:gap-mx-10 shrink-0 mt-6 lg:mt-0 border-t lg:border-none border-current border-opacity-10 pt-6 lg:pt-0">
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-mx-md lg:gap-mx-10 shrink-0 mt-6 lg:mt-0 border-t lg:border-none border-current border-opacity-10 pt-6 lg:pt-0 w-full lg:w-auto max-w-full">
                                                     <div className="text-left lg:text-right">
                                                         <Typography variant="caption" tone={isTop1 ? 'white' : 'muted'} className="uppercase tracking-widest font-black text-mx-micro mb-1">Atingimento</Typography>
                                                         <div className="flex items-center gap-mx-sm">
@@ -786,7 +786,7 @@ function StoreRankingView() {
                                                     </div>
                                                     <button 
                                                       onClick={(e) => { e.stopPropagation(); toggleOpponent(r.user_id); setViewMode('battle') }}
-                                                      className={`ml-4 p-mx-sm rounded-xl transition-all border group/btn hover:scale-110 active:scale-95 ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
+                                                      className={`ml-0 sm:ml-4 p-mx-sm rounded-xl transition-all border group/btn sm:hover:scale-110 active:scale-95 w-full sm:w-auto flex items-center justify-center ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
                                                       title="Desafiar para X1"
                                                     >
                                                         <Swords className="w-mx-sm h-mx-sm" />

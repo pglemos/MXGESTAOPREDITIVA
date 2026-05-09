@@ -183,17 +183,17 @@ export default function VendedorHome() {
                 <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="shrink-0">
                     <Button 
                         asChild
-                        className="w-full h-auto p-mx-lg md:p-mx-xl bg-brand-primary border-none rounded-mx-4xl text-left shadow-mx-xl group relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg"
+                        className="w-full h-auto min-w-0 p-mx-lg md:p-mx-xl bg-brand-primary border-none rounded-mx-4xl text-left shadow-mx-xl group relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg"
                     >
                         <Link to="/lancamento-diario">
                             <div className="absolute top-mx-0 right-mx-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10">
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10 min-w-0 max-w-full">
                                 <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-white/10 flex items-center justify-center border-4 border-white/10 shadow-mx-xl group-hover:rotate-12 transition-transform shrink-0 mx-auto lg:mx-0">
                                     <Zap size={40} className="text-white fill-white/20" />
                                 </div>
-                                <div className="max-w-2xl space-y-mx-xs text-center lg:text-left">
-                                    <Typography variant="h1" tone="white" className="text-3xl sm:text-5xl tracking-tighter uppercase leading-none font-black">Lançamento Diário Pendente</Typography>
-                                    <Typography variant="p" tone="white" className="text-sm sm:text-lg opacity-80 font-bold uppercase tracking-tight">Sua produção ainda não foi indexada no terminal.</Typography>
+                                <div className="max-w-full sm:max-w-2xl min-w-0 space-y-mx-xs text-center lg:text-left">
+                                    <Typography variant="h1" tone="white" className="text-2xl sm:text-5xl uppercase leading-tight sm:leading-none font-black whitespace-normal break-words">Lançamento Diário Pendente</Typography>
+                                    <Typography variant="p" tone="white" className="text-sm sm:text-lg opacity-80 font-bold uppercase tracking-tight whitespace-normal break-words">Sua produção ainda não foi indexada no terminal.</Typography>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between sm:justify-end gap-mx-md relative z-10 group/btn mt-6 lg:mt-0 w-full lg:w-auto">

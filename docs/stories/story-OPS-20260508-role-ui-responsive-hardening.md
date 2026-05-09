@@ -49,6 +49,7 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `npm test`
 - `npm run build`
 - Auditoria Playwright responsiva nas rotas de vendedor, gerente e dono em `1366x768` e `390x844`.
+- Segunda auditoria Playwright responsiva completa após o commit inicial, com foco em componentes ainda quebrados.
 
 ## Dev Agent Record
 
@@ -59,6 +60,8 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - Chrome DevTools MCP validou login, abertura do menu `Simulação`, entrada em `Vendedor`, viewport mobile sem overflow horizontal e console sem erros.
 - Audit inicial identificou overflow no banner de simulação mobile, aside do check-in sem token de largura, header de Dashboard Loja em 1366px, tabs mobile em Gerente Treinamentos/Dashboard Loja, ranking mobile e botões da Rotina Gerente.
 - Audit final severo: 62 verificações em rotas de vendedor, gerente e dono nos viewports desktop e mobile, `issueCount: 0`.
+- Segunda passada encontrou 5 pontos residuais: CTA de devolutivas no desktop, card de lançamento pendente no mobile e ações/listas do ranking no mobile.
+- Segunda passada corrigida e revalidada: 62 verificações em rotas de vendedor, gerente e dono nos viewports desktop e mobile, `issueCount: 0`.
 - `npm run lint`: passou após correção dos tokens `gap-mx-xs`.
 - `npm run typecheck`: passou.
 - `npm test`: passou, 228 testes.
@@ -71,6 +74,8 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `src/components/Layout.tsx`
 - `src/components/molecules/TabNavPill.tsx`
 - `src/pages/DashboardLoja.tsx`
+- `src/pages/GerenteFeedback.tsx`
 - `src/pages/GerenteTreinamentos.tsx`
 - `src/pages/Ranking.tsx`
 - `src/pages/RotinaGerente.tsx`
+- `src/pages/VendedorHome.tsx`

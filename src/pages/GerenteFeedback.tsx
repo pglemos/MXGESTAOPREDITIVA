@@ -206,16 +206,16 @@ function AdminFeedback() {
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-lg bg-surface-alt">
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-mx-tiny">
+            <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
+                <div className="flex flex-col gap-mx-tiny min-w-0 max-w-full">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Gestão de <span className="text-mx-green-700">Devolutivas</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">ADMIN — VISÃO DA REDE • METODOLOGIA MX</Typography>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <TabNavPill tabs={FEEDBACK_TABS} activeTab={activeTab} onTabChange={setActiveTab} buttonClassName="h-mx-9 px-6" className="mr-2" />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
+                    <TabNavPill tabs={FEEDBACK_TABS} activeTab={activeTab} onTabChange={setActiveTab} buttonClassName="h-mx-9 px-6" className="w-full sm:w-auto xl:mr-2" />
                     <div className="relative group w-full sm:w-mx-sidebar-expanded">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                         <Input placeholder="BUSCAR MENTORIA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
@@ -225,7 +225,7 @@ function AdminFeedback() {
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     {activeTab === 'individual' && (
-                        <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary font-black uppercase text-xs tracking-widest">
+                        <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary font-black uppercase text-xs tracking-widest w-full sm:w-auto">
                             <Plus size={18} className="mr-2" /> NOVO FEEDBACK
                         </Button>
                     )}
@@ -506,16 +506,16 @@ function StoreFeedback() {
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg overflow-y-auto no-scrollbar relative p-mx-lg bg-surface-alt">
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-mx-tiny">
+            <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
+                <div className="flex flex-col gap-mx-tiny min-w-0 max-w-full">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
                         <Typography variant="h1">Gestão de <span className="text-mx-green-700">Devolutivas</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Rotina Semanal Mandatória • Metodologia MX</Typography>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <nav className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm mr-2" role="tablist">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
+                    <nav className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm xl:mr-2" role="tablist">
                         <Button variant={activeTab === 'individual' ? 'secondary' : 'ghost'} size="sm" onClick={() => setActiveTab('individual')}
                             className="h-mx-9 rounded-mx-full px-6 text-mx-tiny font-black uppercase" role="tab" aria-selected={activeTab === 'individual'}>Individual</Button>
                         <Button variant={activeTab === 'weekly' ? 'secondary' : 'ghost'} size="sm" onClick={() => setActiveTab('weekly')}
@@ -530,7 +530,7 @@ function StoreFeedback() {
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     {activeTab === 'individual' && canCreateFeedback && (
-                        <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary font-black uppercase text-xs tracking-widest">
+                        <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary font-black uppercase text-xs tracking-widest w-full sm:w-auto">
                             <Plus size={18} className="mr-2" /> NOVO FEEDBACK
                         </Button>
                     )}
