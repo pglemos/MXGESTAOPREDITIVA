@@ -1,4 +1,7 @@
-export const DEFAULT_ADMIN_MASTER_EMAILS = ["danieljsvendas@gmail.com"];
+export const DEFAULT_ADMIN_MASTER_EMAILS = [
+  "danieljsvendas@gmail.com",
+  "joseroberto20161@gmail.com",
+];
 
 export type AgendaUserProfile = {
   role?: string | null;
@@ -28,7 +31,7 @@ export function parseAdminMasterEmails(rawEmails?: string | null): Set<string> {
     .split(",")
     .map(normalizeEmail)
     .filter((email): email is string => Boolean(email));
-  return new Set(configured.length > 0 ? configured : DEFAULT_ADMIN_MASTER_EMAILS);
+  return new Set([...DEFAULT_ADMIN_MASTER_EMAILS, ...configured]);
 }
 
 export function isAdminMasterMx(

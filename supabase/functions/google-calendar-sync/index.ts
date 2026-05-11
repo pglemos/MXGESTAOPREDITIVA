@@ -19,7 +19,10 @@ import { buildRelatedUserIds } from "../_shared/google_calendar_privacy.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const TIMEZONE = "America/Sao_Paulo";
-const DEFAULT_ADMIN_MASTER_EMAILS = ["danieljsvendas@gmail.com"];
+const DEFAULT_ADMIN_MASTER_EMAILS = [
+  "danieljsvendas@gmail.com",
+  "joseroberto20161@gmail.com",
+];
 
 type VisitInput = {
   id: string;
@@ -176,7 +179,7 @@ function getAdminMasterEmails(): Set<string> {
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
-  return new Set(configured.length > 0 ? configured : DEFAULT_ADMIN_MASTER_EMAILS);
+  return new Set([...DEFAULT_ADMIN_MASTER_EMAILS, ...configured]);
 }
 
 function isAdminMasterEmail(email?: string | null): boolean {

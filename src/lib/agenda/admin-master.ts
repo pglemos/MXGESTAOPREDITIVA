@@ -1,4 +1,7 @@
-const DEFAULT_ADMIN_MASTER_EMAILS = ['danieljsvendas@gmail.com']
+const DEFAULT_ADMIN_MASTER_EMAILS = [
+  'danieljsvendas@gmail.com',
+  'joseroberto20161@gmail.com',
+]
 
 export type AdminMasterProfile = {
   email?: string | null
@@ -12,7 +15,7 @@ export function parseAdminMasterEmails(rawEmails?: string | null): string[] {
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean)
 
-  return configured.length > 0 ? configured : DEFAULT_ADMIN_MASTER_EMAILS
+  return Array.from(new Set([...DEFAULT_ADMIN_MASTER_EMAILS, ...configured]))
 }
 
 export function isAdminMasterMxProfile(
