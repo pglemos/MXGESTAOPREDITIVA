@@ -7,10 +7,14 @@ import {
 
 describe('google calendar privacy helpers', () => {
   test('allows default Admin Master MX users to read every central calendar event', () => {
-    expect(isAdminMasterMx({ role: 'administrador_geral', email: 'danieljsvendas@gmail.com', name: 'Daniel' })).toBe(true)
+    expect(isAdminMasterMx({ role: 'administrador_geral', email: 'gestao@mxconsultoria.com.br', name: 'Daniel' })).toBe(true)
     expect(isAdminMasterMx({ role: 'administrador_geral', email: 'joseroberto20161@gmail.com', name: 'José Roberto' })).toBe(true)
+    expect(isAdminMasterMx({ role: 'administrador_geral', email: 'marianedcs@gmail.com', name: 'Mariane' })).toBe(true)
+    expect(isAdminMasterMx({ role: 'administrador_geral', email: 'gedson.freire.localiza@gmail.com', name: 'Gedson' })).toBe(true)
+    expect(isAdminMasterMx({ role: 'administrador_geral', email: 'synvollt@gmail.com', name: 'SynVolt' })).toBe(true)
+    expect(isAdminMasterMx({ role: 'administrador_geral', email: 'camarajoaoaugusto@gmail.com', name: 'João' })).toBe(true)
     expect(isAdminMasterMx({ role: 'administrador_geral', email: 'outro@mx.com', name: 'Outro Admin' })).toBe(false)
-    expect(isAdminMasterMx({ role: 'consultor_mx', email: 'danieljsvendas@gmail.com', name: 'Daniel' })).toBe(false)
+    expect(isAdminMasterMx({ role: 'consultor_mx', email: 'gestao@mxconsultoria.com.br', name: 'Daniel' })).toBe(false)
   })
 
   test('matches central events by Google attendee email', () => {

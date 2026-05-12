@@ -22,7 +22,7 @@ const TIMEZONE = "America/Sao_Paulo";
 // Full system visibility is handled by google_calendar_privacy.ts/RLS.
 // Personal mirrors are narrower: global mirrors go only to this allowlist,
 // while consultants/responsibles still receive events directly related to them.
-const DEFAULT_PERSONAL_MIRROR_ADMIN_EMAILS = ["danieljsvendas@gmail.com"];
+const DEFAULT_PERSONAL_MIRROR_ADMIN_EMAILS = ["gestao@mxconsultoria.com.br"];
 
 type VisitInput = {
   id: string;

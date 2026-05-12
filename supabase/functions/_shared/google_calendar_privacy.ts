@@ -1,6 +1,10 @@
 export const DEFAULT_ADMIN_MASTER_EMAILS = [
-  "danieljsvendas@gmail.com",
+  "gestao@mxconsultoria.com.br",
   "joseroberto20161@gmail.com",
+  "marianedcs@gmail.com",
+  "gedson.freire.localiza@gmail.com",
+  "synvollt@gmail.com",
+  "camarajoaoaugusto@gmail.com",
 ];
 
 export type AgendaUserProfile = {
@@ -41,7 +45,7 @@ export function isAdminMasterMx(
   if (profile?.role !== "administrador_geral") return false;
   const email = normalizeEmail(profile.email);
   if (email && parseAdminMasterEmails(rawEmails).has(email)) return true;
-  return (profile.name || "").trim().toLowerCase().startsWith("daniel");
+  return false;
 }
 
 export function collectUserCalendarEmails(

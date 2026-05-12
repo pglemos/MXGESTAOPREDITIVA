@@ -1,6 +1,10 @@
 const DEFAULT_ADMIN_MASTER_EMAILS = [
-  'danieljsvendas@gmail.com',
+  'gestao@mxconsultoria.com.br',
   'joseroberto20161@gmail.com',
+  'marianedcs@gmail.com',
+  'gedson.freire.localiza@gmail.com',
+  'synvollt@gmail.com',
+  'camarajoaoaugusto@gmail.com',
 ]
 
 export type AdminMasterProfile = {
@@ -27,5 +31,5 @@ export function isAdminMasterMxProfile(
   const email = profile.email?.trim().toLowerCase()
   if (email && parseAdminMasterEmails(rawEmails).includes(email)) return true
 
-  return (profile.name || '').trim().toLowerCase().startsWith('daniel')
+  return false
 }
