@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+async function clearPreRegistrationCaches() {
+  const registrations = await navigator.serviceWorker.getRegistrations()
+  await Promise.all(registrations.map(registration => registration.unregister()))
+
+  if ('caches' in window) {
+    const cacheNames = await caches.keys()
+    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)))
+  }
+}
+
 export function PWAUpdater() {
   const [registered, setRegistered] = useState(false)
 
@@ -8,6 +18,10 @@ export function PWAUpdater() {
     if (registered) return
     if (typeof window === 'undefined') return
     if (!('serviceWorker' in navigator)) return
+    if (window.location.pathname.startsWith('/pre-cadastro')) {
+      clearPreRegistrationCaches().catch(() => {})
+      return
+    }
 
     let cancelled = false
     let updateInterval: ReturnType<typeof setInterval> | null = null

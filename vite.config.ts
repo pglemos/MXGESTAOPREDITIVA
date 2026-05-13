@@ -35,11 +35,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
         globIgnores: ['**/vendor-pdf*.js', '**/vendor-charts*.js', '**/vendor-export*.js'],
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/auth/],
+        navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/pre-cadastro(?:\/|$)/],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
