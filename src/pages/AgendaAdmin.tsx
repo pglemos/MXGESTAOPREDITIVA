@@ -26,7 +26,7 @@ import { PageHeader } from '@/components/molecules/PageHeader'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { Select } from '@/components/atoms/Select'
 import { DatePicker } from '@/components/atoms/DatePicker'
-import { AGENDA_TARGET_OPTIONS, VISIT_REASON_OPTIONS } from '@/features/agenda/constants'
+import { mergeAgendaOptionLabels, useAgendaOptions } from '@/hooks/useAgendaOptions'
 import { GoogleCalendarStatus } from '@/features/agenda/components/GoogleCalendarStatus'
 import type { AgendaScheduleEvent, AgendaVisit } from '@/hooks/useAgendaAdmin'
 
@@ -161,6 +161,10 @@ function ScheduleEventCard({
 
 export default function AgendaAdmin() {
   const {
+    visitReasonOptions: agendaVisitReasonOptions,
+    targetAudienceOptions: agendaTargetAudienceOptions,
+  } = useAgendaOptions()
+  const {
     visits,
     clients,
     consultants,
@@ -282,6 +286,16 @@ export default function AgendaAdmin() {
     if (eventForm.product_name) names.add(eventForm.product_name)
     return Array.from(names).sort((a, b) => a.localeCompare(b, 'pt-BR'))
   }, [eventForm.product_name, products, scheduleForm.product_name])
+
+  const visitReasonSelectOptions = useMemo(
+    () => mergeAgendaOptionLabels(agendaVisitReasonOptions, scheduleForm.visit_reason, eventForm.visit_reason),
+    [agendaVisitReasonOptions, eventForm.visit_reason, scheduleForm.visit_reason],
+  )
+
+  const targetAudienceSelectOptions = useMemo(
+    () => mergeAgendaOptionLabels(agendaTargetAudienceOptions, scheduleForm.target_audience, eventForm.target_audience),
+    [agendaTargetAudienceOptions, eventForm.target_audience, scheduleForm.target_audience],
+  )
 
   const groupedVisits = useMemo(() => {
     const groups: Record<string, { date: Date; label: string; visits: typeof visits; events: typeof scheduleEvents }> = {}
@@ -1038,7 +1052,7 @@ export default function AgendaAdmin() {
               onChange={(e) => setScheduleForm((prev) => ({ ...prev, visit_reason: e.target.value }))}
             >
               <option value="">Selecionar motivo...</option>
-              {VISIT_REASON_OPTIONS.map((reason) => (
+              {visitReasonSelectOptions.map((reason) => (
                 <option key={reason} value={reason}>{reason}</option>
               ))}
             </Select>
@@ -1052,7 +1066,7 @@ export default function AgendaAdmin() {
               onChange={(e) => setScheduleForm((prev) => ({ ...prev, target_audience: e.target.value }))}
             >
               <option value="">Selecionar alvo...</option>
-              {AGENDA_TARGET_OPTIONS.map((target) => (
+              {targetAudienceSelectOptions.map((target) => (
                 <option key={target} value={target}>{target}</option>
               ))}
             </Select>
@@ -1161,7 +1175,7 @@ export default function AgendaAdmin() {
               onChange={(e) => setEventForm((prev) => ({ ...prev, visit_reason: e.target.value }))}
             >
               <option value="">Selecionar motivo...</option>
-              {VISIT_REASON_OPTIONS.map((reason) => (
+              {visitReasonSelectOptions.map((reason) => (
                 <option key={reason} value={reason}>{reason}</option>
               ))}
             </Select>
@@ -1236,7 +1250,7 @@ export default function AgendaAdmin() {
               onChange={(e) => setEventForm((prev) => ({ ...prev, target_audience: e.target.value }))}
             >
               <option value="">Selecionar alvo...</option>
-              {AGENDA_TARGET_OPTIONS.map((target) => (
+              {targetAudienceSelectOptions.map((target) => (
                 <option key={target} value={target}>{target}</option>
               ))}
             </Select>

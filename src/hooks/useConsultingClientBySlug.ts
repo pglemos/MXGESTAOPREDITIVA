@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
+import { getCentralSyncError, syncVisitToGoogle } from '@/hooks/useAgendaAdmin'
 import type {
   ConsultingAssignableUser,
   ConsultingClientDetail,
@@ -284,6 +285,70 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     return { error: null }
   }, [canManage, fetchClient, supabaseUser])
 
+  const upsertVisit = useCallback(async (input: {
+    id?: string
+    visit_number: number
+    scheduled_at: string
+    duration_hours: number
+    modality: string
+    status?: ConsultingVisit['status']
+    consultant_id?: string | null
+    auxiliary_consultant_id?: string | null
+    objective?: string | null
+    visit_reason?: string | null
+    target_audience?: string | null
+    product_name?: string | null
+  }) => {
+    if (!supabaseUser || !clientId || !canManage) {
+      return { error: 'Apenas administradores MX podem criar visitas manualmente.' }
+    }
+    if (!Number.isInteger(input.visit_number) || input.visit_number < 1 || input.visit_number > 7) {
+      return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
+    }
+
+    const payload = {
+      client_id: clientId,
+      visit_number: input.visit_number,
+      scheduled_at: input.scheduled_at,
+      duration_hours: input.duration_hours,
+      modality: input.modality,
+      status: input.status || 'agendada',
+      consultant_id: input.consultant_id || null,
+      auxiliary_consultant_id: input.auxiliary_consultant_id || null,
+      objective: input.objective?.trim() || null,
+      visit_reason: input.visit_reason || null,
+      target_audience: input.target_audience || null,
+      product_name: input.product_name || null,
+    }
+
+    let visitId = input.id
+    if (visitId) {
+      const { error: updateError } = await supabase
+        .from('visitas_consultoria')
+        .update(payload)
+        .eq('id', visitId)
+      if (updateError) return { error: updateError.message }
+    } else {
+      const { data: insertedVisit, error: insertError } = await supabase
+        .from('visitas_consultoria')
+        .insert(payload)
+        .select('id')
+        .single()
+      if (insertError) return { error: insertError.message }
+      visitId = insertedVisit?.id
+    }
+
+    if (visitId) {
+      const syncResult = await syncVisitToGoogle(visitId, 'upsert')
+      const syncError = getCentralSyncError(syncResult)
+      await fetchClient()
+      return { error: syncError }
+    }
+
+    await fetchClient()
+    return { error: null }
+  }, [canManage, clientId, fetchClient, supabaseUser])
+
   useEffect(() => {
     fetchClient()
   }, [fetchClient])
@@ -300,6 +365,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     upsertAssignment,
     toggleAssignment,
     upsertFinancial,
-    deleteFinancial
+    deleteFinancial,
+    upsertVisit,
   }
 }

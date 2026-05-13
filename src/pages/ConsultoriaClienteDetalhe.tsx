@@ -20,9 +20,12 @@ import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySl
 import { useConsultingModules } from '@/hooks/useConsultingModules'
 import { useConsultingMethodology } from '@/hooks/useConsultingClients'
 import { usePDIs } from '@/hooks/useData'
+import { buildSaoPauloDateTime } from '@/hooks/useAgendaAdmin'
+import { mergeAgendaOptionLabels, useAgendaOptions } from '@/hooks/useAgendaOptions'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Button } from '@/components/atoms/Button'
+import { DatePicker } from '@/components/atoms/DatePicker'
 import { Card } from '@/components/molecules/Card'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
@@ -42,6 +45,22 @@ import { Select } from '@/components/atoms/Select'
 import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
 
 type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis' | 'files'
+
+type VisitManualForm = {
+  visit_id: string
+  visit_number: string
+  status: ConsultingVisit['status']
+  scheduled_at: string
+  scheduled_time: string
+  duration_hours: string
+  modality: string
+  consultant_id: string
+  auxiliary_consultant_id: string
+  visit_reason: string
+  target_audience: string
+  product_name: string
+  objective: string
+}
 
 const TABS: TabNavItem<Tab>[] = [
   { key: 'overview',   label: 'Visão Geral' },
@@ -305,11 +324,14 @@ export default function ConsultoriaClienteDetalhe() {
   const { clientSlug } = useParams<{ clientSlug: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { profile } = useAuth()
   
   const {
     client,
+    assignableUsers,
     loading,
     error,
+    canManage,
     refetch,
     createUnit,
     createContact,
@@ -317,7 +339,12 @@ export default function ConsultoriaClienteDetalhe() {
     toggleAssignment,
     upsertFinancial,
     deleteFinancial,
+    upsertVisit,
   } = useConsultingClientDetailBySlug(clientSlug)
+  const {
+    visitReasonOptions: agendaVisitReasonOptions,
+    targetAudienceOptions: agendaTargetAudienceOptions,
+  } = useAgendaOptions()
   
   const clientId = client?.id
   const resolvedStoreId = client?.primary_store_id || client?.store_id || ''
@@ -329,6 +356,137 @@ export default function ConsultoriaClienteDetalhe() {
 
   const { steps: methodologySteps } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [showVisitModal, setShowVisitModal] = useState(false)
+  const [visitSubmitting, setVisitSubmitting] = useState(false)
+  const [visitForm, setVisitForm] = useState<VisitManualForm>({
+    visit_id: '',
+    visit_number: '1',
+    status: 'agendada',
+    scheduled_at: format(new Date(), 'yyyy-MM-dd'),
+    scheduled_time: '09:00',
+    duration_hours: '3',
+    modality: 'Presencial',
+    consultant_id: '',
+    auxiliary_consultant_id: '',
+    visit_reason: '',
+    target_audience: '',
+    product_name: '',
+    objective: '',
+  })
+
+  const internalUsers = useMemo(
+    () => assignableUsers.filter((user) => isPerfilInternoMx(user.role)),
+    [assignableUsers],
+  )
+
+  const productSelectOptions = useMemo(() => {
+    const values = [
+      client?.product_name,
+      ...(client?.visits || []).map((visit) => visit.product_name),
+    ].filter(Boolean) as string[]
+    return Array.from(new Set(values))
+  }, [client?.product_name, client?.visits])
+
+  const visitReasonSelectOptions = useMemo(
+    () => mergeAgendaOptionLabels(agendaVisitReasonOptions, visitForm.visit_reason),
+    [agendaVisitReasonOptions, visitForm.visit_reason],
+  )
+
+  const targetAudienceSelectOptions = useMemo(
+    () => mergeAgendaOptionLabels(agendaTargetAudienceOptions, visitForm.target_audience),
+    [agendaTargetAudienceOptions, visitForm.target_audience],
+  )
+
+  const openVisitModal = (visitNumber?: number) => {
+    if (!client) return
+    const fallbackVisitNumber = visitNumber
+      || methodologySteps.find((step) => !client.visits?.some((visit) => visit.visit_number === step.visit_number))?.visit_number
+      || methodologySteps[0]?.visit_number
+      || 1
+    const existingVisit = client.visits?.find((visit) => visit.visit_number === fallbackVisitNumber)
+    const step = methodologySteps.find((item) => item.visit_number === fallbackVisitNumber)
+    const scheduled = existingVisit?.scheduled_at ? new Date(existingVisit.scheduled_at) : new Date()
+
+    setVisitForm({
+      visit_id: existingVisit?.id || '',
+      visit_number: String(fallbackVisitNumber),
+      status: existingVisit?.status || 'agendada',
+      scheduled_at: format(scheduled, 'yyyy-MM-dd'),
+      scheduled_time: format(scheduled, 'HH:mm'),
+      duration_hours: String(existingVisit?.duration_hours || 3),
+      modality: existingVisit?.modality || client.modality || 'Presencial',
+      consultant_id: existingVisit?.consultant_id || profile?.id || '',
+      auxiliary_consultant_id: existingVisit?.auxiliary_consultant_id || '',
+      visit_reason: existingVisit?.visit_reason || '',
+      target_audience: existingVisit?.target_audience || step?.target || '',
+      product_name: existingVisit?.product_name || client.product_name || '',
+      objective: existingVisit?.objective || step?.objective || '',
+    })
+    setShowVisitModal(true)
+  }
+
+  const handleVisitNumberChange = (visitNumberValue: string) => {
+    if (!client) return
+    const visitNumber = Number(visitNumberValue)
+    const existingVisit = client.visits?.find((visit) => visit.visit_number === visitNumber)
+    const step = methodologySteps.find((item) => item.visit_number === visitNumber)
+    const scheduled = existingVisit?.scheduled_at ? new Date(existingVisit.scheduled_at) : new Date()
+
+    setVisitForm((prev) => ({
+      ...prev,
+      visit_id: existingVisit?.id || '',
+      visit_number: visitNumberValue,
+      status: existingVisit?.status || 'agendada',
+      scheduled_at: existingVisit ? format(scheduled, 'yyyy-MM-dd') : prev.scheduled_at,
+      scheduled_time: existingVisit ? format(scheduled, 'HH:mm') : prev.scheduled_time,
+      duration_hours: String(existingVisit?.duration_hours || prev.duration_hours || 3),
+      modality: existingVisit?.modality || prev.modality || client.modality || 'Presencial',
+      consultant_id: existingVisit?.consultant_id || prev.consultant_id,
+      auxiliary_consultant_id: existingVisit?.auxiliary_consultant_id || '',
+      visit_reason: existingVisit?.visit_reason || prev.visit_reason,
+      target_audience: existingVisit?.target_audience || step?.target || prev.target_audience,
+      product_name: existingVisit?.product_name || prev.product_name,
+      objective: existingVisit?.objective || step?.objective || prev.objective,
+    }))
+  }
+
+  const handleSubmitManualVisit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    const visitNumber = Number(visitForm.visit_number)
+    if (!Number.isInteger(visitNumber) || visitNumber < 1 || visitNumber > 7) {
+      toast.error('Selecione uma visita entre V1 e V7.')
+      return
+    }
+    if (!visitForm.scheduled_at || !visitForm.scheduled_time) {
+      toast.error('Informe data e horário da visita.')
+      return
+    }
+
+    setVisitSubmitting(true)
+    const { error: visitError } = await upsertVisit({
+      id: visitForm.visit_id || undefined,
+      visit_number: visitNumber,
+      status: visitForm.status,
+      scheduled_at: buildSaoPauloDateTime(visitForm.scheduled_at, visitForm.scheduled_time),
+      duration_hours: Number(visitForm.duration_hours) || 3,
+      modality: visitForm.modality,
+      consultant_id: visitForm.consultant_id || null,
+      auxiliary_consultant_id: visitForm.auxiliary_consultant_id || null,
+      visit_reason: visitForm.visit_reason || null,
+      target_audience: visitForm.target_audience || null,
+      product_name: visitForm.product_name || null,
+      objective: visitForm.objective || null,
+    })
+    setVisitSubmitting(false)
+
+    if (visitError) {
+      toast.error(visitError)
+      return
+    }
+
+    toast.success(visitForm.visit_id ? `Visita V${visitNumber} atualizada.` : `Visita V${visitNumber} criada manualmente.`)
+    setShowVisitModal(false)
+  }
 
   useEffect(() => {
     const tab = searchParams.get('tab') as Tab
@@ -391,11 +549,27 @@ export default function ConsultoriaClienteDetalhe() {
       }
       case 'visits': return (
         <div className="space-y-mx-lg">
+          {canManage && (
+            <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <Typography variant="h3" className="uppercase font-black tracking-widest">Agenda manual do cliente</Typography>
+                <Typography variant="tiny" tone="muted">Crie ou ajuste diretamente qualquer visita V1 a V7.</Typography>
+              </div>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => openVisitModal()}
+                icon={<Plus className="w-mx-4 h-mx-4" />}
+              >
+                CRIAR VISITA MANUAL
+              </Button>
+            </div>
+          )}
           {methodologySteps.map((step) => {
              const v = client.visits?.find(v => v.visit_number === step.visit_number)
              return (
-               <Link key={step.id} to={`/consultoria/clientes/${clientSlug}/visitas/${step.visit_number}`} className="block">
-                 <Card className="p-mx-lg bg-white border border-border-default shadow-mx-sm hover:border-brand-primary transition-all flex justify-between items-center rounded-mx-2xl">
+               <Card key={step.id} className="p-mx-lg bg-white border border-border-default shadow-mx-sm hover:border-brand-primary transition-all rounded-mx-2xl">
+                 <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-center gap-mx-md">
                        <div className="w-mx-12 h-mx-12 rounded-mx-full bg-surface-alt flex items-center justify-center font-black">V{step.visit_number}</div>
                        <div>
@@ -403,9 +577,19 @@ export default function ConsultoriaClienteDetalhe() {
                           <Typography variant="tiny" tone="muted" className="font-bold">{step.target} • {step.duration}</Typography>
                        </div>
                     </div>
-                    <Badge variant={v?.status === 'concluida' ? 'success' : 'outline'}>{v?.status?.toUpperCase() || 'PENDENTE'}</Badge>
-                 </Card>
-               </Link>
+                    <div className="flex flex-wrap items-center gap-mx-sm lg:justify-end">
+                      <Badge variant={v?.status === 'concluida' ? 'success' : 'outline'}>{v?.status?.toUpperCase() || 'PENDENTE'}</Badge>
+                      {canManage && (
+                        <Button type="button" variant="secondary" size="sm" onClick={() => openVisitModal(step.visit_number)}>
+                          {v ? 'EDITAR' : 'CRIAR'}
+                        </Button>
+                      )}
+                      <Button asChild variant="ghost" size="sm">
+                        <Link to={`/consultoria/clientes/${clientSlug}/visitas/${step.visit_number}`}>ABRIR</Link>
+                      </Button>
+                    </div>
+                 </div>
+               </Card>
              )
           })}
         </div>
@@ -445,6 +629,169 @@ export default function ConsultoriaClienteDetalhe() {
       <TabNav tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
       {renderTabContent()}
+
+      <Modal
+        open={showVisitModal}
+        onClose={() => setShowVisitModal(false)}
+        title={visitForm.visit_id ? 'Editar visita manual' : 'Criar visita manual'}
+        description="Admin master MX pode selecionar qualquer etapa V1 a V7 para este cliente"
+        size="xl"
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setShowVisitModal(false)}>CANCELAR</Button>
+            <Button type="submit" form="client-manual-visit-form" disabled={visitSubmitting} className="bg-brand-secondary">
+              {visitSubmitting ? 'SALVANDO...' : visitForm.visit_id ? 'SALVAR VISITA' : 'CRIAR VISITA'}
+            </Button>
+          </>
+        }
+      >
+        <form id="client-manual-visit-form" onSubmit={handleSubmitManualVisit} className="space-y-mx-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+            <Select
+              id="client-visit-number"
+              label="Visita *"
+              value={visitForm.visit_number}
+              onChange={(event) => handleVisitNumberChange(event.target.value)}
+            >
+              {methodologySteps.map((step) => {
+                const existingVisit = client.visits?.find((visit) => visit.visit_number === step.visit_number)
+                return (
+                  <option key={step.id} value={step.visit_number}>
+                    V{step.visit_number} - {existingVisit ? 'editar agendada' : 'criar manual'}
+                  </option>
+                )
+              })}
+            </Select>
+            <Select
+              id="client-visit-status"
+              label="Status"
+              value={visitForm.status}
+              onChange={(event) => setVisitForm((prev) => ({ ...prev, status: event.target.value as ConsultingVisit['status'] }))}
+            >
+              <option value="agendada">Agendada</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="concluida">Concluída</option>
+              <option value="cancelada">Cancelada</option>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+            <div className="space-y-mx-xs">
+              <Typography as="label" htmlFor="client-visit-date" variant="caption" className="font-black uppercase tracking-widest">Data *</Typography>
+              <DatePicker
+                id="client-visit-date"
+                value={visitForm.scheduled_at}
+                onChange={(event) => setVisitForm((prev) => ({ ...prev, scheduled_at: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-mx-xs">
+              <Typography as="label" htmlFor="client-visit-time" variant="caption" className="font-black uppercase tracking-widest">Horário *</Typography>
+              <Input
+                id="client-visit-time"
+                type="time"
+                value={visitForm.scheduled_time}
+                onChange={(event) => setVisitForm((prev) => ({ ...prev, scheduled_time: event.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+            <div className="space-y-mx-xs">
+              <Typography as="label" htmlFor="client-visit-duration" variant="caption" className="font-black uppercase tracking-widest">Duração (horas)</Typography>
+              <Input
+                id="client-visit-duration"
+                type="number"
+                min="1"
+                max="12"
+                value={visitForm.duration_hours}
+                onChange={(event) => setVisitForm((prev) => ({ ...prev, duration_hours: event.target.value }))}
+              />
+            </div>
+            <Select
+              id="client-visit-modality"
+              label="Modalidade"
+              value={visitForm.modality}
+              onChange={(event) => setVisitForm((prev) => ({ ...prev, modality: event.target.value }))}
+            >
+              <option value="Presencial">Presencial</option>
+              <option value="Online">Online</option>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+            <Select
+              id="client-visit-consultant"
+              label="Consultor responsável"
+              value={visitForm.consultant_id}
+              onChange={(event) => setVisitForm((prev) => ({ ...prev, consultant_id: event.target.value }))}
+            >
+              <option value="">Sem consultor...</option>
+              {internalUsers.map((user) => (
+                <option key={user.id} value={user.id}>{user.name}</option>
+              ))}
+            </Select>
+            <Select
+              id="client-visit-aux"
+              label="Consultor auxiliar"
+              value={visitForm.auxiliary_consultant_id}
+              onChange={(event) => setVisitForm((prev) => ({ ...prev, auxiliary_consultant_id: event.target.value }))}
+            >
+              <option value="">Sem auxiliar...</option>
+              {internalUsers.filter((user) => user.id !== visitForm.consultant_id).map((user) => (
+                <option key={user.id} value={user.id}>{user.name}</option>
+              ))}
+            </Select>
+          </div>
+
+          <Select
+            id="client-visit-reason"
+            label="Motivo da visita"
+            value={visitForm.visit_reason}
+            onChange={(event) => setVisitForm((prev) => ({ ...prev, visit_reason: event.target.value }))}
+          >
+            <option value="">Selecionar motivo...</option>
+            {visitReasonSelectOptions.map((reason) => (
+              <option key={reason} value={reason}>{reason}</option>
+            ))}
+          </Select>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+            <Select
+              id="client-visit-target"
+              label="Alvo"
+              value={visitForm.target_audience}
+              onChange={(event) => setVisitForm((prev) => ({ ...prev, target_audience: event.target.value }))}
+            >
+              <option value="">Selecionar alvo...</option>
+              {targetAudienceSelectOptions.map((target) => (
+                <option key={target} value={target}>{target}</option>
+              ))}
+            </Select>
+            <Select
+              id="client-visit-product"
+              label="Produto"
+              value={visitForm.product_name}
+              onChange={(event) => setVisitForm((prev) => ({ ...prev, product_name: event.target.value }))}
+            >
+              <option value="">Selecionar produto...</option>
+              {productSelectOptions.map((product) => (
+                <option key={product} value={product}>{product}</option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="space-y-mx-xs">
+            <Typography as="label" htmlFor="client-visit-objective" variant="caption" className="font-black uppercase tracking-widest">Objetivo da visita</Typography>
+            <Textarea
+              id="client-visit-objective"
+              value={visitForm.objective}
+              onChange={(event) => setVisitForm((prev) => ({ ...prev, objective: event.target.value }))}
+              placeholder="Descreva o objetivo principal desta visita..."
+              className="min-h-mx-24"
+            />
+          </div>
+        </form>
+      </Modal>
     </main>
   )
 }

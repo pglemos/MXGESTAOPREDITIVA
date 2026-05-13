@@ -1,21 +1,54 @@
 import { useState } from 'react'
-import { Package, GraduationCap, TrendingUp, ExternalLink, FolderTree } from 'lucide-react'
+import { Package, GraduationCap, TrendingUp, ExternalLink, FolderTree, ListChecks } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { cn } from '@/lib/utils'
+import { AgendaOptionsCatalog } from '@/features/configuracoes/components/AgendaOptionsCatalog'
+import type { TabContext } from '@/features/configuracoes/types'
 
 const SUBTABS = [
+    { key: 'agenda', label: 'Assuntos Agenda', icon: ListChecks, route: null, desc: 'Assuntos, motivos e alvos usados nas reuniões da agenda' },
     { key: 'produtos', label: 'Produtos Digitais', icon: Package, route: '/produtos', desc: 'Catálogo de produtos digitais da rede MX' },
     { key: 'treinamentos', label: 'Treinamentos', icon: GraduationCap, route: '/treinamentos', desc: 'Trilha de treinamentos por audiência' },
     { key: 'pdi', label: 'Níveis PDI por Cargo', icon: TrendingUp, route: '/devolutivas', desc: 'Definições de PDI por hierarquia (vendedor/gerente/dono)' },
 ] as const
 
-export function CatalogosTab() {
-    const [active, setActive] = useState<typeof SUBTABS[number]['key']>('produtos')
+export function CatalogosTab({ isReadOnly }: TabContext) {
+    const [active, setActive] = useState<typeof SUBTABS[number]['key']>('agenda')
     const current = SUBTABS.find(s => s.key === active)!
     const Icon = current.icon
+
+    if (active === 'agenda') {
+        return (
+            <div className="space-y-mx-lg">
+                <Card className="p-mx-xs border-none shadow-mx-md bg-white">
+                    <div className="flex flex-wrap gap-mx-tiny">
+                        {SUBTABS.map(tab => {
+                            const TabIcon = tab.icon
+                            const isActive = tab.key === active
+                            return (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => setActive(tab.key)}
+                                    className={cn(
+                                        "flex-1 min-w-[140px] flex items-center justify-center gap-mx-sm h-mx-xl px-4 rounded-mx-xl font-black uppercase text-xs tracking-widest transition-all",
+                                        isActive
+                                            ? "bg-brand-primary text-white shadow-mx-sm"
+                                            : "bg-transparent text-text-tertiary hover:bg-surface-alt"
+                                    )}
+                                >
+                                    <TabIcon size={14} /> {tab.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </Card>
+                <AgendaOptionsCatalog isReadOnly={isReadOnly} />
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-mx-lg">
@@ -62,7 +95,7 @@ export function CatalogosTab() {
 
                 <div className="mt-mx-md">
                     <Button asChild className="h-mx-xl px-8 rounded-mx-full font-black uppercase tracking-widest">
-                        <a href={current.route}>
+                        <a href={current.route || '#'}>
                             Abrir gestão completa <ExternalLink size={14} className="ml-2" />
                         </a>
                     </Button>

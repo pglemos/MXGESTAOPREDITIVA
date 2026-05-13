@@ -46,7 +46,7 @@ export function buildSaoPauloDateTime(date: string, time: string) {
   return `${date}T${time}:00${SAO_PAULO_OFFSET}`
 }
 
-function getCentralSyncError(result: CalendarSyncResult | null) {
+export function getCentralSyncError(result: CalendarSyncResult | null) {
   if (!result) return 'Agendamento salvo no sistema, mas não foi possível confirmar a sincronização com a Agenda Central MX.'
   const centralError = result.errors.find((item) => item.calendar === 'central')
   if (centralError) return `Agendamento salvo no sistema, mas não sincronizou com a Agenda Central MX: ${centralError.message}`
@@ -58,7 +58,7 @@ function validPmrVisitNumber(visitNumber: number) {
   return Number.isInteger(visitNumber) && visitNumber >= 1 && visitNumber <= 7
 }
 
-async function syncVisitToGoogle(
+export async function syncVisitToGoogle(
   visitId: string,
   action: 'upsert' | 'delete' = 'upsert',
 ): Promise<CalendarSyncResult | null> {
