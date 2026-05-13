@@ -67,6 +67,20 @@ const steps = [
   { id: 1, label: 'Vínculo', helper: 'Loja, função e segmento' },
   { id: 2, label: 'Experiência', helper: 'Tempo, mercado e revisão' },
 ] as const
+const storeFetchAttempts = 3
+const storeFetchRetryDelayMs = 450
+
+function wait(ms: number) {
+  return new Promise(resolve => window.setTimeout(resolve, ms))
+}
+
+function publicStoreFetchErrorMessage(error: Error) {
+  if (error.message === 'Failed to fetch') {
+    return 'Não foi possível conectar ao cadastro da loja. Tente novamente.'
+  }
+
+  return error.message || 'Não foi possível carregar esta loja.'
+}
 
 export default function StorePreRegistration() {
   const { storeSlug } = useParams()
@@ -80,6 +94,7 @@ export default function StorePreRegistration() {
   const [formErrors, setFormErrors] = useState<FormErrors>({})
   const [provisionalLogin, setProvisionalLogin] = useState<{ email: string } | null>(null)
   const [step, setStep] = useState(0)
+  const [reloadKey, setReloadKey] = useState(0)
 
   const functionUrl = useMemo(() => getSupabaseFunctionUrl('store-pre-registration'), [])
   const completion = useMemo(() => {
@@ -94,23 +109,50 @@ export default function StorePreRegistration() {
   const stepProgress = useMemo(() => Math.round(((step + 1) / steps.length) * 100), [step])
 
   useEffect(() => {
+    let cancelled = false
+
     const fetchStore = async () => {
       setLoading(true)
       setError(null)
-      try {
-        const response = await fetch(`${functionUrl}?store_slug=${encodeURIComponent(storeSlug || '')}`)
-        const payload = await response.json()
-        if (!response.ok || !payload.success) throw new Error(payload.error || 'Loja não localizada.')
-        setStore(payload.store)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Não foi possível carregar esta loja.')
-      } finally {
+      setStore(null)
+
+      if (!storeSlug) {
+        setError('Link da loja inválido.')
         setLoading(false)
+        return
+      }
+
+      let lastError = new Error('Não foi possível carregar esta loja.')
+
+      try {
+        for (let attempt = 1; attempt <= storeFetchAttempts; attempt += 1) {
+          try {
+            const response = await fetch(`${functionUrl}?store_slug=${encodeURIComponent(storeSlug)}`, {
+              cache: 'no-store',
+              headers: { Accept: 'application/json' },
+            })
+            const payload = await response.json()
+            if (!response.ok || !payload.success) throw new Error(payload.error || 'Loja não localizada.')
+            if (!cancelled) setStore(payload.store)
+            return
+          } catch (err) {
+            lastError = err instanceof Error ? err : new Error('Não foi possível carregar esta loja.')
+            if (attempt < storeFetchAttempts) await wait(storeFetchRetryDelayMs * attempt)
+          }
+        }
+
+        if (!cancelled) setError(publicStoreFetchErrorMessage(lastError))
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
 
     fetchStore()
-  }, [functionUrl, storeSlug])
+
+    return () => {
+      cancelled = true
+    }
+  }, [functionUrl, reloadKey, storeSlug])
 
   const updateForm = (field: keyof FormState, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -372,6 +414,13 @@ export default function StorePreRegistration() {
                   <Building2 size={42} className="text-text-tertiary" />
                   <h2>Link indisponível</h2>
                   <p>{error}</p>
+                  <button
+                    type="button"
+                    onClick={() => setReloadKey(current => current + 1)}
+                    className="mx-pre-btn primary"
+                  >
+                    Tentar novamente
+                  </button>
                 </div>
               ) : (
                 <motion.form
