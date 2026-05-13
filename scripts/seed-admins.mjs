@@ -27,9 +27,12 @@ const sb = createClient(SUPABASE_URL, SERVICE_KEY, {
 })
 
 const ADMINS = [
-  { name: 'Gedson Freire', email: 'gedson.freire.localiza@gmail.com', role: 'administrador_mx' },
-  { name: 'João Augusto Câmara', email: 'camarajoaoaugusto@gmail.com', role: 'administrador_mx' },
-  { name: 'Mariane', email: 'marianedcs@gmail.com', role: 'administrador_mx' },
+  { name: 'Daniel', email: 'gestao@mxconsultoria.com.br', role: 'administrador_geral' },
+  { name: 'José', email: 'joseroberto20161@gmail.com', role: 'administrador_geral' },
+  { name: 'Mariane', email: 'marianedcs@gmail.com', role: 'administrador_geral' },
+  { name: 'Gedson', email: 'gedson.freire.localiza@gmail.com', role: 'administrador_geral' },
+  { name: 'SynVolt', email: 'synvollt@gmail.com', role: 'administrador_geral' },
+  { name: 'João', email: 'camarajoaoaugusto@gmail.com', role: 'administrador_geral' },
 ]
 
 const DEFAULT_PASSWORD = 'Mx@2026*'

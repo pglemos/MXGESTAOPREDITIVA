@@ -21,14 +21,28 @@ const STORE_ALIASES = ['MX CONSULTORIA', 'MX PERFORMANCE', 'LOJA TESTE AIOX', 'L
 const PASSWORD = 'Mx#2026!'
 const STARTED_AT = '2026-05-01'
 
-const SANDBOX_USERS = [
-  { email: 'administrador.geral@mxgestaopreditiva.com.br', name: 'Administrador Geral MX', role: 'administrador_geral', membershipRole: null },
-  { email: 'admin@mxgestaopreditiva.com.br', name: 'Admin MX', role: 'administrador_mx', membershipRole: null },
-  { email: 'consultor.mx@mxgestaopreditiva.com.br', name: 'Consultor MX', role: 'consultor_mx', membershipRole: null },
+const ADMIN_MASTER_MX_USERS = [
+  { email: 'gestao@mxconsultoria.com.br', name: 'Daniel', role: 'administrador_geral', membershipRole: null },
+  { email: 'joseroberto20161@gmail.com', name: 'José', role: 'administrador_geral', membershipRole: null },
+  { email: 'marianedcs@gmail.com', name: 'Mariane', role: 'administrador_geral', membershipRole: null },
+  { email: 'gedson.freire.localiza@gmail.com', name: 'Gedson', role: 'administrador_geral', membershipRole: null },
+  { email: 'synvollt@gmail.com', name: 'SynVolt', role: 'administrador_geral', membershipRole: null },
+  { email: 'camarajoaoaugusto@gmail.com', name: 'João', role: 'administrador_geral', membershipRole: null },
+] as const
+
+const STORE_USERS = [
   { email: 'dono@mxgestaopreditiva.com.br', name: 'Dono MX Consultoria', role: 'dono', membershipRole: 'dono' },
   { email: 'gerente@mxgestaopreditiva.com.br', name: 'Gerente MX Consultoria', role: 'gerente', membershipRole: 'gerente' },
   { email: 'vendedor@mxgestaopreditiva.com.br', name: 'Vendedor MX Consultoria 1', role: 'vendedor', membershipRole: 'vendedor' },
   { email: 'vendedor2@mxgestaopreditiva.com.br', name: 'Vendedor MX Consultoria 2', role: 'vendedor', membershipRole: 'vendedor' },
+] as const
+
+const SANDBOX_USERS = [...ADMIN_MASTER_MX_USERS, ...STORE_USERS] as const
+
+const LEGACY_INTERNAL_TEST_EMAILS = [
+  'administrador.geral@mxgestaopreditiva.com.br',
+  'admin@mxgestaopreditiva.com.br',
+  'consultor.mx@mxgestaopreditiva.com.br',
 ] as const
 
 type SandboxUser = (typeof SANDBOX_USERS)[number]
@@ -144,13 +158,11 @@ async function ensureAuthUser(authUsers: User[], userInfo: SandboxUser) {
   if (existing) {
     const { error } = await supabase.auth.admin.updateUserById(existing.id, {
       email,
-      password: PASSWORD,
       email_confirm: true,
       user_metadata: {
         ...(existing.user_metadata || {}),
         name: userInfo.name,
         role: userInfo.role,
-        must_change_password: false,
       },
     })
     if (error) throw new Error(`update auth ${email}: ${error.message}`)
@@ -328,6 +340,17 @@ async function ensureStoreRules(storeId: string) {
   if (benchmarksError) throw new Error(`upsert benchmarks_loja: ${benchmarksError.message}`)
 }
 
+async function deactivateLegacyInternalTestUsers() {
+  if (!APPLY) return
+
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ active: false, updated_at: new Date().toISOString() })
+    .in('email', LEGACY_INTERNAL_TEST_EMAILS)
+
+  if (error) throw new Error(`desativar usuarios internos legados: ${error.message}`)
+}
+
 async function main() {
   console.log(`Modo: ${APPLY ? 'APLICAR' : 'DRY-RUN'}\n`)
 
@@ -360,14 +383,19 @@ async function main() {
 
   await resetStoreMemberships(store.id, provisionedUsers)
   await ensureStoreRules(store.id)
+  await deactivateLegacyInternalTestUsers()
 
-  console.log('\nUsuarios sandbox:')
+  console.log('\nUsuarios provisionados:')
   console.table(provisionedUsers.map((user) => ({
     email: user.email,
     role: user.role,
     loja: user.membershipRole ? STORE_NAME : 'perfil interno MX',
     action: user.action,
   })))
+  if (APPLY) {
+    console.log('\nUsuarios internos legados desativados:')
+    for (const email of LEGACY_INTERNAL_TEST_EMAILS) console.log(`- ${email}`)
+  }
   console.log(`\nSenha padrao: ${PASSWORD}`)
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Provisiona os 4 colaboradores admin da equipe MX.
+ * Provisiona os Admin Master MX oficiais.
  *
  * Pré-requisito: rodar `tsx scripts/audit_mx_team_access.ts` antes
  * e revisar o relatório em docs/audit/.
@@ -10,9 +10,10 @@
  *
  * Variáveis: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *
- * - Cada colaborador é criado com role=admin e senha 123456.
- * - must_change_password = true (forçará troca no primeiro login).
- * - Admins MX não recebem membership inicial, porque `memberships.role`
+ * - Cada colaborador novo é criado com role=administrador_geral e senha 123456.
+ * - Contas existentes mantêm senha atual.
+ * - must_change_password = true apenas para conta nova.
+ * - Admins Master MX não recebem vínculo inicial, porque `vinculos_loja.role`
  *   aceita apenas dono/gerente/vendedor.
  */
 import { createClient } from '@supabase/supabase-js'
@@ -23,11 +24,17 @@ import { config as loadEnv } from 'dotenv'
 loadEnv()
 
 const MX_COLLABORATORS = [
-  { name: 'Daniel', email: 'danieljsvendas@gmail.com' },
-  { name: 'Gedson', email: 'gedson.freire.localiza@gmail.com' },
-  { name: 'João', email: 'camarajoaoaugusto@gmail.com' },
+  { name: 'Daniel', email: 'gestao@mxconsultoria.com.br' },
+  { name: 'José', email: 'joseroberto20161@gmail.com' },
   { name: 'Mariane', email: 'marianedcs@gmail.com' },
+  { name: 'Gedson', email: 'gedson.freire.localiza@gmail.com' },
+  { name: 'SynVolt', email: 'synvollt@gmail.com' },
+  { name: 'João', email: 'camarajoaoaugusto@gmail.com' },
 ] as const
+
+const ADMIN_MASTER_EMAILS = MX_COLLABORATORS.map((user) => user.email)
+const INTERNAL_MX_ROLES = ['administrador_geral', 'administrador_mx', 'consultor_mx'] as const
+const ADMIN_MASTER_EMAILS_FILTER = `(${ADMIN_MASTER_EMAILS.map((email) => `"${email}"`).join(',')})`
 
 const APPLY = process.argv.includes('--apply')
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
@@ -59,7 +66,7 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
 
   if (existing) {
     const { data: profile } = await supabase
-      .from('users')
+      .from('usuarios')
       .select('id, role')
       .eq('id', existing.id)
       .maybeSingle()
@@ -69,27 +76,25 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
         name,
         email: lower,
         action: 'updated_role',
-        detail: `[DRY-RUN] garantiria role "${profile?.role || '?'}" → "admin", senha=${DEFAULT_PASSWORD}, must_change_password=true`,
+        detail: `[DRY-RUN] garantiria role "${profile?.role || '?'}" → "administrador_geral", mantendo senha atual`,
         user_id: existing.id,
       }
     }
 
     const { error: authError } = await supabase.auth.admin.updateUserById(existing.id, {
-      password: DEFAULT_PASSWORD,
       user_metadata: {
         ...(existing.user_metadata || {}),
         name,
-        role: 'admin',
-        must_change_password: true,
+        role: 'administrador_geral',
       },
     })
 
     if (authError) return { name, email: lower, action: 'error', detail: `auth: ${authError.message}`, user_id: existing.id }
 
     const { error } = await supabase
-      .from('users')
+      .from('usuarios')
       .upsert(
-        { id: existing.id, email: lower, name, role: 'admin', active: true, must_change_password: true },
+        { id: existing.id, email: lower, name, role: 'administrador_geral', active: true },
         { onConflict: 'id' },
       )
 
@@ -98,7 +103,7 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
       name,
       email: lower,
       action: 'updated_role',
-      detail: `admin garantido; senha temporária ${DEFAULT_PASSWORD}; must_change_password=true`,
+      detail: 'administrador_geral garantido; senha atual preservada',
       user_id: existing.id,
     }
   }
@@ -108,7 +113,7 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
       name,
       email: lower,
       action: 'created',
-      detail: `[DRY-RUN] criaria usuário com password=${DEFAULT_PASSWORD}, role=admin, must_change_password=true`,
+      detail: `[DRY-RUN] criaria usuário com password=${DEFAULT_PASSWORD}, role=administrador_geral, must_change_password=true`,
       user_id: null,
     }
   }
@@ -117,7 +122,7 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
     email: lower,
     password: DEFAULT_PASSWORD,
     email_confirm: true,
-    user_metadata: { name, role: 'admin', must_change_password: true },
+    user_metadata: { name, role: 'administrador_geral', must_change_password: true },
   })
   if (createErr || !created?.user) {
     return { name, email: lower, action: 'error', detail: createErr?.message || 'createUser falhou', user_id: null }
@@ -126,9 +131,9 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
   const userId = created.user.id
 
   const { error: profileErr } = await supabase
-    .from('users')
+    .from('usuarios')
     .upsert(
-      { id: userId, email: lower, name, role: 'admin', active: true, must_change_password: true },
+      { id: userId, email: lower, name, role: 'administrador_geral', active: true, must_change_password: true },
       { onConflict: 'id' },
     )
   if (profileErr) return { name, email: lower, action: 'error', detail: `profile: ${profileErr.message}`, user_id: userId }
@@ -142,9 +147,25 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
   }
 }
 
+async function deactivateUnexpectedInternalUsers() {
+  if (!APPLY) {
+    console.log('\n[DRY-RUN] desativaria perfis internos MX fora da lista oficial de Admin Master')
+    return
+  }
+
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ active: false, updated_at: new Date().toISOString() })
+    .in('role', INTERNAL_MX_ROLES)
+    .not('email', 'in', ADMIN_MASTER_EMAILS_FILTER)
+
+  if (error) throw error
+  console.log('\n✓ Perfis internos MX fora da lista oficial foram desativados')
+}
+
 async function main() {
   console.log(`Modo: ${APPLY ? 'APLICAR' : 'DRY-RUN (use --apply para escrever)'}\n`)
-  console.log('Membership inicial: não aplicável para role=admin\n')
+  console.log('Vínculo inicial: não aplicável para role=administrador_geral\n')
 
   const results: ProvisionResult[] = []
   for (const c of MX_COLLABORATORS) {
@@ -152,6 +173,7 @@ async function main() {
     results.push(r)
     console.log(`[${r.action.padEnd(13)}] ${r.name.padEnd(10)} ${r.email.padEnd(36)} → ${r.detail}`)
   }
+  await deactivateUnexpectedInternalUsers()
 
   const date = new Date().toISOString().slice(0, 10)
   const outDir = join(process.cwd(), 'docs', 'audit')
@@ -162,7 +184,7 @@ async function main() {
 
 **Data:** ${date}
 **Script:** scripts/provision_mx_team.ts
-**Membership inicial:** não aplicável para role=admin
+**Vínculo inicial:** não aplicável para role=administrador_geral
 
 | Nome | Email | Ação | User ID | Detalhe |
 |------|-------|------|---------|---------|

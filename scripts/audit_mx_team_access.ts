@@ -20,10 +20,12 @@ import { config as loadEnv } from 'dotenv'
 loadEnv()
 
 const MX_COLLABORATORS = [
-  { name: 'Daniel', email: 'danieljsvendas@gmail.com' },
-  { name: 'Gedson', email: 'gedson.freire.localiza@gmail.com' },
-  { name: 'João', email: 'camarajoaoaugusto@gmail.com' },
+  { name: 'Daniel', email: 'gestao@mxconsultoria.com.br' },
+  { name: 'José', email: 'joseroberto20161@gmail.com' },
   { name: 'Mariane', email: 'marianedcs@gmail.com' },
+  { name: 'Gedson', email: 'gedson.freire.localiza@gmail.com' },
+  { name: 'SynVolt', email: 'synvollt@gmail.com' },
+  { name: 'João', email: 'camarajoaoaugusto@gmail.com' },
 ] as const
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
@@ -65,7 +67,7 @@ async function auditOne(email: string, name: string): Promise<AuditRow> {
 
   if (authUser?.id) {
     const { data: profile } = await supabase
-      .from('users')
+      .from('usuarios')
       .select('id, email, name, role, must_change_password, active')
       .eq('id', authUser.id)
       .maybeSingle()
@@ -78,7 +80,7 @@ async function auditOne(email: string, name: string): Promise<AuditRow> {
     memberships = ms || []
   } else {
     const { data: profile } = await supabase
-      .from('users')
+      .from('usuarios')
       .select('id, email, name, role, must_change_password, active')
       .ilike('email', lower)
       .maybeSingle()
@@ -94,10 +96,10 @@ async function auditOne(email: string, name: string): Promise<AuditRow> {
   }
 
   const recommendation = (() => {
-    if (!authUser && !publicProfile) return 'PROVISIONAR (novo usuário com role admin + senha 123456)'
-    if (authUser && publicProfile?.role === 'admin') return 'JÁ EXISTE COMO ADMIN — somente revisar memberships'
-    if (authUser && publicProfile && publicProfile.role !== 'admin') {
-      return `ATUALIZAR ROLE de "${publicProfile.role}" → "admin" (decisão manual do PO antes de aplicar)`
+    if (!authUser && !publicProfile) return 'PROVISIONAR (novo usuário com role administrador_geral + senha 123456)'
+    if (authUser && publicProfile?.role === 'administrador_geral') return 'JÁ EXISTE COMO ADMIN MASTER — somente revisar vínculos se necessário'
+    if (authUser && publicProfile && publicProfile.role !== 'administrador_geral') {
+      return `ATUALIZAR ROLE de "${publicProfile.role}" → "administrador_geral" (decisão manual do PO antes de aplicar)`
     }
     if (authUser && !publicProfile) return 'CONTA AUTH ÓRFÃ — criar profile em public.users + atribuir role admin'
     return 'CASO INESPERADO — auditar manualmente'
@@ -157,7 +159,7 @@ ${rows
 ${
   allReady
     ? '1. Compartilhar credenciais usando `docs/templates/welcome-message-mx-admin.md`.\n2. Cada colaborador faz login com `123456` e troca a senha no primeiro acesso.'
-    : '1. PO revisa este relatório.\n2. Para cada linha "PROVISIONAR": rodar a edge function `register-user` com role=admin e password=123456.\n3. Para cada linha "ATUALIZAR ROLE": confirmar com PO antes de aplicar UPDATE.\n4. Auditoria final: rodar este script novamente após provisionamento e arquivar.'
+    : '1. PO revisa este relatório.\n2. Para cada linha "PROVISIONAR": rodar `tsx scripts/provision_mx_team.ts --apply`.\n3. Para cada linha "ATUALIZAR ROLE": confirmar com PO antes de aplicar UPDATE.\n4. Auditoria final: rodar este script novamente após provisionamento e arquivar.'
 }
 
 ---
