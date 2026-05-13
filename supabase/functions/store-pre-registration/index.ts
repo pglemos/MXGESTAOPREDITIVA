@@ -129,8 +129,9 @@ serve(async (req) => {
   const companyAdministrativePhone = clean(payload.company_administrative_phone, 80)
   const avatarBase64 = clean(payload.avatar_base64, 7_200_000)
   const avatarMimeType = clean(payload.avatar_mime_type, 80)
+  const hasAvatar = Boolean(avatarBase64 || avatarMimeType)
 
-  if (!storeId || !fullName || !email || !phone || !role || !segment || !storeTenure || !marketExperience || !avatarBase64 || !avatarMimeType) {
+  if (!storeId || !fullName || !email || !phone || !role || !segment || !storeTenure || !marketExperience) {
     return jsonResponse({ success: false, error: 'Preencha todos os campos obrigatórios.' }, 400)
   }
 
@@ -165,11 +166,15 @@ serve(async (req) => {
     }
   }
 
-  if (!allowedImageTypes.includes(avatarMimeType)) {
+  if (hasAvatar && (!avatarBase64 || !avatarMimeType)) {
+    return jsonResponse({ success: false, error: 'Envie a foto novamente ou continue sem foto.' }, 400)
+  }
+
+  if (hasAvatar && !allowedImageTypes.includes(avatarMimeType)) {
     return jsonResponse({ success: false, error: 'Envie uma foto JPG, PNG ou WEBP.' }, 400)
   }
 
-  if (avatarBase64.length > 7_000_000) {
+  if (hasAvatar && avatarBase64.length > 7_000_000) {
     return jsonResponse({ success: false, error: 'A foto deve ter no máximo 5MB.' }, 400)
   }
 
@@ -220,22 +225,24 @@ serve(async (req) => {
   let avatarUrl: string | null = null
   let avatarStoragePath: string | null = null
 
-  try {
-    const imageBytes = decodeBase64Image(avatarBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, ''))
-    avatarStoragePath = `pre-cadastros/${store.id}/${userId}.${imageExtension(avatarMimeType)}`
-    const { error: uploadError } = await adminClient.storage
-      .from('pre-cadastro-avatares')
-      .upload(avatarStoragePath, imageBytes, {
-        contentType: avatarMimeType,
-        upsert: true,
-      })
+  if (hasAvatar) {
+    try {
+      const imageBytes = decodeBase64Image(avatarBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, ''))
+      avatarStoragePath = `pre-cadastros/${store.id}/${userId}.${imageExtension(avatarMimeType)}`
+      const { error: uploadError } = await adminClient.storage
+        .from('pre-cadastro-avatares')
+        .upload(avatarStoragePath, imageBytes, {
+          contentType: avatarMimeType,
+          upsert: true,
+        })
 
-    if (uploadError) throw uploadError
-    const { data: publicUrlData } = adminClient.storage.from('pre-cadastro-avatares').getPublicUrl(avatarStoragePath)
-    avatarUrl = publicUrlData.publicUrl
-  } catch (err) {
-    await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath)
-    return jsonResponse({ success: false, error: err instanceof Error ? err.message : 'Não foi possível salvar a foto.' }, 500)
+      if (uploadError) throw uploadError
+      const { data: publicUrlData } = adminClient.storage.from('pre-cadastro-avatares').getPublicUrl(avatarStoragePath)
+      avatarUrl = publicUrlData.publicUrl
+    } catch (err) {
+      await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath)
+      return jsonResponse({ success: false, error: err instanceof Error ? err.message : 'Não foi possível salvar a foto.' }, 500)
+    }
   }
 
   const { error: profileError } = await adminClient.from('usuarios').upsert({

@@ -63,7 +63,7 @@ const roleOptions = [
 const tenureOptions = ['Menos de 3 meses', '3 a 6 meses', '6 meses a 1 ano', '1 a 2 anos', 'Mais de 2 anos']
 const marketOptions = ['Primeira experiência', 'Menos de 1 ano', '1 a 3 anos', '3 a 5 anos', 'Mais de 5 anos']
 const steps = [
-  { id: 0, label: 'Identidade', helper: 'Foto, nome e contato' },
+  { id: 0, label: 'Identidade', helper: 'Nome, contato e foto opcional' },
   { id: 1, label: 'Vínculo', helper: 'Loja, função e segmento' },
   { id: 2, label: 'Experiência', helper: 'Tempo, mercado e revisão' },
 ] as const
@@ -86,10 +86,10 @@ export default function StorePreRegistration() {
     const ownerFields = form.role === 'dono'
       ? [form.company_legal_name, form.company_cnpj, form.company_address, form.company_administrative_phone]
       : []
-    const fields = [form.full_name, form.email, form.phone, form.role, form.segment, form.store_tenure, form.market_experience, photo?.base64, ...ownerFields]
+    const fields = [form.full_name, form.email, form.phone, form.role, form.segment, form.store_tenure, form.market_experience, ...ownerFields]
     const filled = fields.filter(Boolean).length
     return Math.round((filled / fields.length) * 100)
-  }, [form, photo])
+  }, [form])
 
   const stepProgress = useMemo(() => Math.round(((step + 1) / steps.length) * 100), [step])
 
@@ -121,7 +121,6 @@ export default function StorePreRegistration() {
     const nextErrors: FormErrors = {}
 
     if (scope === 'all' || step === 0) {
-      if (!photo?.base64) nextErrors.photo = 'Envie ou tire uma foto para criar o avatar.'
       if (form.full_name.trim().split(/\s+/).length < 2) nextErrors.full_name = 'Informe nome e sobrenome.'
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) nextErrors.email = 'Informe um e-mail válido.'
       if (form.phone.replace(/\D/g, '').length < 10) nextErrors.phone = 'Informe um telefone válido.'
@@ -273,7 +272,7 @@ export default function StorePreRegistration() {
             Seu acesso entra na <em>Malha MX</em>.
           </h1>
           <p>
-            Um cadastro curto, em etapas, para validar foto, contato e hierarquia antes do login ser liberado pelo Admin MX.
+            Um cadastro curto, em etapas, para validar contato e hierarquia antes do login ser liberado pelo Admin MX.
           </p>
 
           <div className="mx-pre-proof">
@@ -394,7 +393,7 @@ export default function StorePreRegistration() {
                       {step === 0 && (
                         <div className="mx-pre-identity-grid">
                           <div>
-                            <label className="mx-public-label">Foto para avatar</label>
+                            <label className="mx-public-label">Foto para avatar (opcional)</label>
                             <motion.div
                               whileHover={{ y: -2 }}
                               className={cn('mx-photo-stage', formErrors.photo && 'is-invalid')}
@@ -404,7 +403,7 @@ export default function StorePreRegistration() {
                               ) : (
                                 <div>
                                   <Camera size={34} />
-                                  <span>Foto obrigatória</span>
+                                  <span>Foto opcional</span>
                                 </div>
                               )}
                             </motion.div>
