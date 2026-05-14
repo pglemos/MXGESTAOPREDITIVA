@@ -101,8 +101,9 @@ export default function Notificacoes() {
   useEffect(() => {
     if (!profile?.id || !isAdminMx) return
 
+    const channelInstanceId = `${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`
     const channel = supabase
-      .channel(`pre-cadastros-approvals:${profile.id}`)
+      .channel(`pre-cadastros-approvals:${channelInstanceId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pre_cadastros_loja' }, () => {
         void refetchPreRegistrations()
         void fetchNotifications()
