@@ -68,6 +68,11 @@ O sistema já possui OAuth Google central para Calendar com tokens criptografado
 - Após push/deploy em produção, a migration remota continuou bloqueada por ausência de `SUPABASE_DB_PASSWORD`. A Edge Function foi endurecida para operar com Drive mesmo antes das tabelas novas existirem, usando busca/criação determinística da pasta e pulando apenas o cache/auditoria até a migration ser aplicada.
 - Smoke de navegador em produção identificou mensagem genérica para erro 409 da Edge Function. O hook passou a chamar `google-drive-files` via `fetch` autenticado para preservar o payload e exibir a mensagem real de reconexão do Drive.
 - Smoke final em produção passou em `https://mxperformance.vercel.app/consultoria/clientes/acertt?tab=files` com usuário E2E temporário interno MX: aba Arquivos renderizada, aviso de reconexão exibido e usuário removido ao final.
+- Correção pós-smoke: pastas, subpastas e arquivos do Google Drive agora recebem permissão automática de leitura para usuários internos MX ativos, evitando "Acesso negado" ao abrir anexos pelo Drive.
+- A mesma liberação foi aplicada ao helper de documentos gerados automaticamente (`drive-upload.ts`), cobrindo relatórios e feedbacks anexados por automações.
+- O escopo central do Google Drive foi ampliado de `drive.file` para `drive` para permitir liberação de acessos em anexos já existentes.
+- `setup_all` foi endurecido para aceitar `service_role` pelo JWT validado pela Supabase e para reaplicar permissões por cliente quando possível.
+- Tentativa de reprocessamento em lote encontrou limite de recurso do worker em uma única execução; o ajuste foi movido para execuções por cliente, mas os arquivos já existentes seguem dependendo da reconexão da conta central com o novo escopo.
 
 ### File List
 
@@ -75,6 +80,7 @@ O sistema já possui OAuth Google central para Calendar com tokens criptografado
 - `docs/stories/story-OPS-20260503-google-drive-lojas.md`
 - `supabase/migrations/20260503100000_google_drive_lojas.sql`
 - `supabase/functions/_shared/google.ts`
+- `supabase/functions/_shared/drive-upload.ts`
 - `supabase/functions/google-oauth-handler/index.ts`
 - `supabase/functions/google-drive-files/index.ts`
 - `src/hooks/useConsultingDriveFiles.ts`

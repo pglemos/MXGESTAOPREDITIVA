@@ -4,6 +4,7 @@ import { getCentralDriveAccessToken } from "./google.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const INTERNAL_ROLES = ["administrador_geral", "administrador_mx", "consultor_mx"];
 
 export type DriveDocTipo = "pdi" | "feedback" | "relatorios" | "plano_acao" | "dre_financeiro" | "visitas";
 
@@ -54,6 +55,81 @@ async function driveUploadMultipart(
   };
 }
 
+function normalizeEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  return email;
+}
+
+async function getMxDriveShareEmails(adminClient: ReturnType<typeof createClient>): Promise<string[]> {
+  const { data, error } = await adminClient
+    .from("usuarios")
+    .select("email")
+    .eq("active", true)
+    .in("role", INTERNAL_ROLES);
+
+  if (error) throw error;
+
+  const envEmails = (Deno.env.get("GOOGLE_DRIVE_SHARE_EMAILS") || "")
+    .split(",")
+    .map(normalizeEmail)
+    .filter((email): email is string => Boolean(email));
+
+  return Array.from(new Set([
+    ...envEmails,
+    ...(data || []).map((row: { email?: string | null }) => normalizeEmail(row.email)).filter((email): email is string => Boolean(email)),
+  ]));
+}
+
+async function grantDriveReaderPermission(accessToken: string, fileId: string, emailAddress: string): Promise<void> {
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}/permissions?sendNotificationEmail=false&supportsAllDrives=true`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        type: "user",
+        role: "reader",
+        emailAddress,
+      }),
+    },
+  );
+
+  if (res.ok) return;
+
+  const data = await res.json().catch(() => ({}));
+  const reason = data?.error?.errors?.[0]?.reason;
+  const message = String(data?.error?.message || "");
+  const lowerMessage = message.toLowerCase();
+  if (
+    res.status === 409 ||
+    reason === "alreadyExists" ||
+    reason === "cannotShareWithOwner" ||
+    lowerMessage.includes("already exists") ||
+    lowerMessage.includes("owner")
+  ) return;
+  throw new Error(data?.error?.message || `Falha ao liberar acesso no Drive (${res.status})`);
+}
+
+async function ensureMxDriveAccess(
+  adminClient: ReturnType<typeof createClient>,
+  accessToken: string,
+  fileId: string,
+): Promise<void> {
+  const emails = await getMxDriveShareEmails(adminClient);
+  if (emails.length === 0) return;
+
+  const results = await Promise.allSettled(
+    emails.map((email) => grantDriveReaderPermission(accessToken, fileId, email)),
+  );
+  const rejected = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
+  if (rejected) throw rejected.reason;
+}
+
 /**
  * Uploads a document to the correct Drive subfolder of a consultoria client.
  * Finds the client by storeId (primary_store_id), then looks up the subfolder for the given tipo.
@@ -89,13 +165,15 @@ export async function uploadDocumentToStore(
     if (!accessToken) return null;
 
     const bytes = content instanceof ArrayBuffer ? new Uint8Array(content) : content;
-    return await driveUploadMultipart(
+    const uploaded = await driveUploadMultipart(
       accessToken,
       subfolder.google_drive_folder_id,
       fileName,
       bytes,
       mimeType,
     );
+    if (uploaded) await ensureMxDriveAccess(adminClient, accessToken, uploaded.fileId);
+    return uploaded;
   } catch {
     return null;
   }
@@ -127,13 +205,15 @@ export async function uploadDocumentToClient(
     if (!accessToken) return null;
 
     const bytes = content instanceof ArrayBuffer ? new Uint8Array(content) : content;
-    return await driveUploadMultipart(
+    const uploaded = await driveUploadMultipart(
       accessToken,
       subfolder.google_drive_folder_id,
       fileName,
       bytes,
       mimeType,
     );
+    if (uploaded) await ensureMxDriveAccess(adminClient, accessToken, uploaded.fileId);
+    return uploaded;
   } catch {
     return null;
   }

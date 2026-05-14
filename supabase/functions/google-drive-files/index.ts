@@ -58,6 +58,10 @@ type DriveFile = {
 
 type DriveFolder = { id: string; name: string; webViewLink: string };
 
+type DriveShareTarget = {
+  emailAddress: string;
+};
+
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -79,6 +83,25 @@ function parseUuid(value: unknown, label: string): string {
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!uuidPattern.test(normalized)) throw new Error(`${label} inválido`);
   return normalized;
+}
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(normalized.length + (4 - normalized.length % 4) % 4, "=");
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function isServiceRoleBearer(authHeader: string): boolean {
+  const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY);
+  if (authHeader === `Bearer ${serviceRoleKey}`) return true;
+  if (!authHeader.startsWith("Bearer ")) return false;
+  return decodeJwtPayload(authHeader.slice("Bearer ".length))?.role === "service_role";
 }
 
 function normalizeFolderName(value: string): string {
@@ -111,6 +134,90 @@ async function driveJson(accessToken: string, path: string, init: RequestInit = 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error?.message || `Google Drive API error (${res.status})`);
   return data;
+}
+
+function normalizeEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  return email;
+}
+
+async function getMxDriveShareTargets(adminClient: ReturnType<typeof createClient>): Promise<DriveShareTarget[]> {
+  const { data, error } = await adminClient
+    .from("usuarios")
+    .select("email")
+    .eq("active", true)
+    .in("role", Array.from(INTERNAL_ROLES));
+
+  if (error) throw toError(error);
+
+  const envEmails = (Deno.env.get("GOOGLE_DRIVE_SHARE_EMAILS") || "")
+    .split(",")
+    .map(normalizeEmail)
+    .filter((email): email is string => Boolean(email));
+
+  const emails = new Set<string>([
+    ...envEmails,
+    ...(data || []).map((row: { email?: string | null }) => normalizeEmail(row.email)).filter((email): email is string => Boolean(email)),
+  ]);
+
+  return Array.from(emails).map((emailAddress) => ({ emailAddress }));
+}
+
+async function grantDriveReaderPermission(
+  accessToken: string,
+  fileId: string,
+  target: DriveShareTarget,
+): Promise<void> {
+  const res = await googleApiRequest(
+    accessToken,
+    `/drive/v3/files/${encodeURIComponent(fileId)}/permissions?sendNotificationEmail=false&supportsAllDrives=true`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        type: "user",
+        role: "reader",
+        emailAddress: target.emailAddress,
+      }),
+    },
+  );
+
+  if (res.ok) return;
+
+  const data = await res.json().catch(() => ({}));
+  const reason = data?.error?.errors?.[0]?.reason;
+  const message = String(data?.error?.message || "");
+  const lowerMessage = message.toLowerCase();
+  if (
+    res.status === 409 ||
+    reason === "alreadyExists" ||
+    reason === "cannotShareWithOwner" ||
+    lowerMessage.includes("already exists") ||
+    lowerMessage.includes("owner")
+  ) return;
+  throw new Error(data?.error?.message || `Falha ao liberar acesso no Drive (${res.status})`);
+}
+
+async function ensureMxDriveAccess(
+  adminClient: ReturnType<typeof createClient>,
+  accessToken: string,
+  fileIds: string[],
+): Promise<void> {
+  const uniqueFileIds = Array.from(new Set(fileIds.filter(Boolean)));
+  if (uniqueFileIds.length === 0) return;
+
+  const targets = await getMxDriveShareTargets(adminClient);
+  if (targets.length === 0) return;
+
+  const results = await Promise.allSettled(
+    uniqueFileIds.flatMap((fileId) =>
+      targets.map((target) => grantDriveReaderPermission(accessToken, fileId, target)),
+    ),
+  );
+
+  const rejected = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
+  if (rejected) throw toError(rejected.reason);
 }
 
 async function createDriveFolder(accessToken: string, name: string, parentId?: string): Promise<DriveFolder> {
@@ -250,12 +357,15 @@ async function ensureSubfolders(
 
   for (const { tipo, name } of SUBFOLDER_TYPES) {
     if (existingMap.has(tipo)) {
-      result[tipo] = folderUrl(existingMap.get(tipo)!);
+      const existingFolderId = existingMap.get(tipo)!;
+      await ensureMxDriveAccess(adminClient, accessToken, [existingFolderId]);
+      result[tipo] = folderUrl(existingFolderId);
       continue;
     }
 
     const found = await findDriveFolder(accessToken, name, folder.google_drive_folder_id);
     const driveFolder = found ?? await createDriveFolder(accessToken, name, folder.google_drive_folder_id);
+    await ensureMxDriveAccess(adminClient, accessToken, [driveFolder.id]);
 
     await (async () => {
       await adminClient.from("subpastas_drive_consultoria").upsert({
@@ -290,6 +400,10 @@ async function ensureClientFolder(
   const cacheAvailable = !isMissingTableError(existingError);
   if (existingError && cacheAvailable) throw toError(existingError);
   if (existing?.google_drive_folder_id) {
+    await ensureMxDriveAccess(adminClient, accessToken, [
+      existing.parent_folder_id,
+      existing.google_drive_folder_id,
+    ]);
     // Ensure config_drive_central knows the root folder (non-blocking)
     if (existing.parent_folder_id) {
       (async () => {
@@ -306,6 +420,7 @@ async function ensureClientFolder(
   const folderName = normalizeFolderName(`${client.name} - ${client.slug || client.id.slice(0, 8)}`);
   const driveFolder = await findDriveFolder(accessToken, folderName, root.id) ??
     await createDriveFolder(accessToken, folderName, root.id);
+  await ensureMxDriveAccess(adminClient, accessToken, [root.id, driveFolder.id]);
   const storeId = client.primary_store_id || null;
 
   if (!cacheAvailable) {
@@ -490,14 +605,14 @@ Deno.serve(async (req) => {
 
     // setup_all accepts only the real service role bearer (for automated/CLI invocations)
     const authHeader = req.headers.get("Authorization") || "";
-    const isServiceRole = authHeader === `Bearer ${requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY)}`;
+    const isServiceRole = isServiceRoleBearer(authHeader);
 
     let adminClient: ReturnType<typeof createClient>;
     let sessionClient: ReturnType<typeof createClient> | null = null;
     let userId: string;
     let role: string | null = null;
 
-    if (action === "setup_all" && isServiceRole) {
+    if (isServiceRole) {
       adminClient = createClient(
         requireEnv("SUPABASE_URL", SUPABASE_URL),
         requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
@@ -526,7 +641,7 @@ Deno.serve(async (req) => {
       }, 409);
     }
 
-    // ── setup_all: create Drive folders for ALL active clients without one ──────
+    // ── setup_all: ensure Drive folders, subfolders and MX access for all clients ──
     if (action === "setup_all") {
       const { data: allClients } = await adminClient
         .from("clientes_consultoria")
@@ -537,17 +652,25 @@ Deno.serve(async (req) => {
         .eq("status", "active");
       const existingSet = new Set((existingFolders || []).map((f: { client_id: string }) => f.client_id));
       const pending = (allClients || []).filter((c: { id: string }) => !existingSet.has(c.id));
-      const results: Array<{ clientId: string; name: string; ok: boolean; error?: string }> = [];
-      for (const c of pending as ConsultingClientRow[]) {
+      const results: Array<{ clientId: string; name: string; ok: boolean; created: boolean; error?: string }> = [];
+      for (const c of allClients as ConsultingClientRow[]) {
         try {
           const f = await ensureClientFolder(adminClient, accessToken, c, userId);
           await ensureSubfolders(adminClient, accessToken, f, userId);
-          results.push({ clientId: c.id, name: c.name, ok: true });
+          results.push({ clientId: c.id, name: c.name, ok: true, created: !existingSet.has(c.id) });
         } catch (err) {
-          results.push({ clientId: c.id, name: c.name, ok: false, error: toError(err).message });
+          results.push({ clientId: c.id, name: c.name, ok: false, created: !existingSet.has(c.id), error: toError(err).message });
         }
       }
-      return jsonResponse({ ok: true, created: results.filter(r => r.ok).length, total: (allClients || []).length, existing: existingSet.size, pending: pending.length, results });
+      return jsonResponse({
+        ok: true,
+        ensured: results.filter(r => r.ok).length,
+        created: results.filter(r => r.ok && r.created).length,
+        total: (allClients || []).length,
+        existing: existingSet.size,
+        pending: pending.length,
+        results,
+      });
     }
 
     // ── setup_client: create Drive folder + subfolders for one client ─────────
@@ -657,6 +780,7 @@ Deno.serve(async (req) => {
     const uploaded: DriveFile[] = [];
     for (const file of files) {
       const driveFile = await uploadDriveFile(accessToken, folder.google_drive_folder_id, file);
+      await ensureMxDriveAccess(adminClient, accessToken, [driveFile.id]);
       uploaded.push(driveFile);
       if (folder.cache_available === false) continue;
       const { error: upsertError } = await adminClient
