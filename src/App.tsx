@@ -194,7 +194,7 @@ export default function App() {
               <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} dono={<GerenteFeedback />} admin={<GerenteFeedback />} />
             </Suspense>} />
             <Route path="notificacoes" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} dono={<Notificacoes />} admin={<ConsultorNotificacoes />} />
+              <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} dono={<Notificacoes />} admin={<Notificacoes />} />
             </Suspense>} />
             <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
 

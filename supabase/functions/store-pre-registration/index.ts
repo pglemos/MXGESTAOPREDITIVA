@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const allowedRoles = ['dono', 'gerente', 'vendedor']
+const protectedExistingRoles = ['administrador_geral', 'administrador_mx', 'consultor_mx']
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp']
 const passwordChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*'
 
@@ -60,12 +61,39 @@ function generateTemporaryPassword(length = 18) {
   return Array.from(bytes, (byte) => passwordChars[byte % passwordChars.length]).join('')
 }
 
-async function cleanupPendingUser(adminClient: any, userId: string, storeId: string, avatarStoragePath: string | null) {
-  await adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId).eq('store_id', storeId)
-  await adminClient.from('vinculos_loja').delete().eq('user_id', userId).eq('store_id', storeId)
-  await adminClient.from('usuarios').delete().eq('id', userId)
+async function findAuthUserByEmail(adminClient: any, email: string) {
+  let page = 1
+  const perPage = 1000
+
+  while (page < 50) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage })
+    if (error) throw error
+
+    const users = data?.users || []
+    const found = users.find((user: any) => normalizeEmail(user.email) === email)
+    if (found) return found
+    if (users.length < perPage) return null
+
+    page += 1
+  }
+
+  return null
+}
+
+async function cleanupPendingUser(
+  adminClient: any,
+  userId: string,
+  storeId: string,
+  avatarStoragePath: string | null,
+  deleteCreatedAuthUser = true,
+) {
+  if (deleteCreatedAuthUser) {
+    await adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId).eq('store_id', storeId)
+    await adminClient.from('vinculos_loja').delete().eq('user_id', userId).eq('store_id', storeId)
+    await adminClient.from('usuarios').delete().eq('id', userId)
+  }
   if (avatarStoragePath) await adminClient.storage.from('pre-cadastro-avatares').remove([avatarStoragePath])
-  await adminClient.auth.admin.deleteUser(userId)
+  if (deleteCreatedAuthUser) await adminClient.auth.admin.deleteUser(userId)
 }
 
 serve(async (req) => {
@@ -190,38 +218,86 @@ serve(async (req) => {
 
   const { data: existingUser, error: existingUserError } = await adminClient
     .from('usuarios')
-    .select('id, active')
+    .select('id, active, role')
     .eq('email', email)
     .maybeSingle()
 
   if (existingUserError) return jsonResponse({ success: false, error: existingUserError.message }, 500)
-  if (existingUser) {
+
+  if (existingUser && protectedExistingRoles.includes(existingUser.role)) {
     return jsonResponse({
       success: false,
-      error: existingUser.active ? 'Este e-mail já possui login ativo no sistema.' : 'Este e-mail já possui login pendente de aprovação.',
+      error: 'Este e-mail pertence a um perfil interno da MX e não pode ser sobrescrito pelo pré-cadastro da loja.',
     }, 409)
   }
 
-  const temporaryPassword = generateTemporaryPassword()
-
-  const { data: createdUser, error: createUserError } = await adminClient.auth.admin.createUser({
-    email,
-    password: temporaryPassword,
-    email_confirm: true,
-    user_metadata: {
-      name: fullName,
-      role,
-      phone,
-      store_id: store.id,
-      must_change_password: true,
-    },
-  })
-
-  if (createUserError || !createdUser.user) {
-    return jsonResponse({ success: false, error: createUserError?.message || 'Não foi possível criar o login provisório.' }, 500)
+  let existingAuthUser: any = null
+  try {
+    existingAuthUser = await findAuthUserByEmail(adminClient, email)
+  } catch (err) {
+    return jsonResponse({ success: false, error: err instanceof Error ? err.message : 'Não foi possível validar o e-mail no Auth.' }, 500)
   }
 
-  const userId = createdUser.user.id
+  const existingAuthRole = clean(existingAuthUser?.user_metadata?.role, 80)
+  if (!existingUser && existingAuthUser && protectedExistingRoles.includes(existingAuthRole)) {
+    return jsonResponse({
+      success: false,
+      error: 'Este e-mail pertence a um perfil interno da MX e não pode ser sobrescrito pelo pré-cadastro da loja.',
+    }, 409)
+  }
+
+  if (existingUser && existingAuthUser && existingUser.id !== existingAuthUser.id) {
+    return jsonResponse({
+      success: false,
+      error: 'Este e-mail possui registros divergentes no sistema. Solicite ajuste do Admin MX antes de refazer o cadastro.',
+    }, 409)
+  }
+
+  if (existingUser && !existingAuthUser) {
+    return jsonResponse({
+      success: false,
+      error: 'Este e-mail já existe no perfil, mas o login não foi localizado. Solicite ajuste do Admin MX antes de refazer o cadastro.',
+    }, 409)
+  }
+
+  let userId = existingUser?.id || existingAuthUser?.id || ''
+  const isReusingExistingUser = Boolean(userId)
+  let createdAuthUser = false
+
+  const userMetadata = {
+    ...(existingAuthUser?.user_metadata || {}),
+    name: fullName,
+    role,
+    phone,
+    store_id: store.id,
+    must_change_password: true,
+  }
+
+  if (isReusingExistingUser) {
+    const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(userId, {
+      email,
+      email_confirm: true,
+      user_metadata: userMetadata,
+    })
+
+    if (updateAuthError) return jsonResponse({ success: false, error: updateAuthError.message }, 500)
+  } else {
+    const temporaryPassword = generateTemporaryPassword()
+    const { data: createdUser, error: createUserError } = await adminClient.auth.admin.createUser({
+      email,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: userMetadata,
+    })
+
+    if (createUserError || !createdUser.user) {
+      return jsonResponse({ success: false, error: createUserError?.message || 'Não foi possível criar o login provisório.' }, 500)
+    }
+
+    userId = createdUser.user.id
+    createdAuthUser = true
+  }
+
   let avatarUrl: string | null = null
   let avatarStoragePath: string | null = null
 
@@ -240,7 +316,7 @@ serve(async (req) => {
       const { data: publicUrlData } = adminClient.storage.from('pre-cadastro-avatares').getPublicUrl(avatarStoragePath)
       avatarUrl = publicUrlData.publicUrl
     } catch (err) {
-      await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath)
+      await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath, createdAuthUser)
       return jsonResponse({ success: false, error: err instanceof Error ? err.message : 'Não foi possível salvar a foto.' }, 500)
     }
   }
@@ -258,7 +334,7 @@ serve(async (req) => {
   }, { onConflict: 'id' })
 
   if (profileError) {
-    await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath)
+    await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath, createdAuthUser)
     return jsonResponse({ success: false, error: profileError.message }, 500)
   }
 
@@ -269,7 +345,7 @@ serve(async (req) => {
   }, { onConflict: 'user_id,store_id' })
 
   if (membershipError) {
-    await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath)
+    await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath, createdAuthUser)
     return jsonResponse({ success: false, error: membershipError.message }, 500)
   }
 
@@ -301,9 +377,21 @@ serve(async (req) => {
     .single()
 
   if (insertError) {
-    await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath)
+    await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath, createdAuthUser)
     return jsonResponse({ success: false, error: insertError.message }, 500)
   }
+
+  await adminClient
+    .from('pre_cadastros_loja')
+    .update({
+      status: 'rejected',
+      reviewed_at: new Date().toISOString(),
+      rejected_at: new Date().toISOString(),
+      approval_note: 'Substituído por novo pré-cadastro com o mesmo e-mail.',
+    })
+    .eq('auth_user_id', userId)
+    .eq('status', 'pending')
+    .neq('id', preRegistration.id)
 
   const { data: admins } = await adminClient
     .from('usuarios')
@@ -313,7 +401,7 @@ serve(async (req) => {
 
   if (admins?.length) {
     const senderId = admins[0].id
-    const link = `/lojas/${slugify(store.name)}?tab=equipe`
+    const link = `/notificacoes?preRegistrationId=${preRegistration.id}`
     await adminClient.from('notificacoes').insert(admins.map((admin: { id: string }) => ({
       recipient_id: admin.id,
       sender_id: senderId,

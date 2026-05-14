@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { 
   Bell, CheckCircle2, Clock, AlertTriangle, X, Search, RefreshCw, 
   MoreVertical, Trash2, ChevronRight, MessageSquare, Megaphone, 
-  Zap, Filter, CheckCheck, TrendingUp, History, Smartphone, ShieldCheck
+  Zap, Filter, CheckCheck, TrendingUp, History, Smartphone, ShieldCheck, UserRound
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
@@ -15,13 +16,126 @@ import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import { useNotifications } from '@/hooks/useData'
 import { format } from 'date-fns'
+import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
+import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
+import type { StorePreRegistration } from '@/types/database'
+
+const preRegistrationSelect = [
+  'id',
+  'store_id',
+  'store_name_snapshot',
+  'auth_user_id',
+  'full_name',
+  'email',
+  'phone',
+  'role',
+  'segment',
+  'store_tenure',
+  'market_experience',
+  'notes',
+  'company_legal_name',
+  'company_cnpj',
+  'company_address',
+  'company_administrative_phone',
+  'avatar_url',
+  'avatar_storage_path',
+  'status',
+  'submitted_at',
+  'reviewed_by',
+  'reviewed_at',
+  'approved_by',
+  'approved_at',
+  'rejected_by',
+  'rejected_at',
+  'approval_note',
+].join(', ')
+
+function getPreRegistrationIdFromLink(link?: string | null) {
+  if (!link) return null
+
+  try {
+    const url = new URL(link, 'https://mx.local')
+    return url.searchParams.get('preRegistrationId') || url.searchParams.get('pre_registration_id')
+  } catch {
+    return null
+  }
+}
 
 export default function Notificacoes() {
-  const { notificacoes, markRead, markAllAsRead, deleteNotification, unreadCount, fetchNotifications } = useNotifications()
+  const { profile, role } = useAuth()
+  const isAdminMx = isAdministradorMx(role)
+  const {
+    notificacoes,
+    markRead,
+    markUnread,
+    markAllAsRead,
+    deleteNotification,
+    unreadCount,
+    fetchNotifications,
+  } = useNotifications()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<string | null>(null)
   const [isRefetching, setIsRefetching] = useState(false)
+  const [reviewingPreRegistrationId, setReviewingPreRegistrationId] = useState<string | null>(null)
   const navigate = useNavigate()
+  const approvalFunctionUrl = useMemo(() => getSupabaseFunctionUrl('approve-store-registration'), [])
+
+  const { data: pendingPreRegistrations = [], refetch: refetchPreRegistrations } = useQuery({
+    queryKey: ['pre-cadastro-approvals', profile?.id],
+    queryFn: async () => {
+      if (!isAdminMx) return [] as StorePreRegistration[]
+
+      const { data, error } = await supabase
+        .from('pre_cadastros_loja')
+        .select(preRegistrationSelect)
+        .eq('status', 'pending')
+        .order('submitted_at', { ascending: false })
+        .limit(80)
+
+      if (error) throw error
+      return (data || []) as unknown as StorePreRegistration[]
+    },
+    enabled: !!profile?.id && isAdminMx,
+  })
+
+  useEffect(() => {
+    if (!profile?.id || !isAdminMx) return
+
+    const channel = supabase
+      .channel(`pre-cadastros-approvals:${profile.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pre_cadastros_loja' }, () => {
+        void refetchPreRegistrations()
+        void fetchNotifications()
+      })
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [fetchNotifications, isAdminMx, profile?.id, refetchPreRegistrations])
+
+  const pendingPreRegistrationsById = useMemo(() => {
+    return new Map(pendingPreRegistrations.map(item => [item.id, item]))
+  }, [pendingPreRegistrations])
+
+  const isApprovalNotification = useCallback((notification: { type: string; title: string }) => {
+    return notification.type === 'approval' || notification.title.toLowerCase().includes('login pendente')
+  }, [])
+
+  const getApprovalForNotification = useCallback((notification: { link?: string | null; store_id?: string | null; message: string; type: string; title: string }) => {
+    if (!isApprovalNotification(notification)) return null
+
+    const idFromLink = getPreRegistrationIdFromLink(notification.link)
+    if (idFromLink && pendingPreRegistrationsById.has(idFromLink)) {
+      return pendingPreRegistrationsById.get(idFromLink) || null
+    }
+
+    const normalizedMessage = notification.message.toLocaleLowerCase('pt-BR')
+    return pendingPreRegistrations.find(item =>
+      item.store_id === notification.store_id &&
+      normalizedMessage.includes(item.full_name.toLocaleLowerCase('pt-BR')),
+    ) || null
+  }, [isApprovalNotification, pendingPreRegistrations, pendingPreRegistrationsById])
 
   const filtered = useMemo(() => {
     return (notificacoes || []).filter(n => {
@@ -51,12 +165,57 @@ export default function Notificacoes() {
   }, [filtered])
 
   const handleRefresh = useCallback(async () => {
-    setIsRefetching(true); await fetchNotifications(); setIsRefetching(false)
+    setIsRefetching(true)
+    await Promise.all([fetchNotifications(), refetchPreRegistrations()])
+    setIsRefetching(false)
     toast.success('Central sincronizada!')
-  }, [fetchNotifications])
+  }, [fetchNotifications, refetchPreRegistrations])
+
+  const handleReviewPreRegistration = useCallback(async (item: StorePreRegistration, action: 'approve' | 'reject', notificationId?: string) => {
+    if (!isAdminMx) return
+    const label = action === 'approve' ? 'aprovar' : 'rejeitar'
+    if (!window.confirm(`Confirmar ${label} login de ${item.full_name}?`)) return
+
+    setReviewingPreRegistrationId(item.id)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Sessão expirada. Entre novamente.')
+
+      const response = await fetch(approvalFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          pre_registration_id: item.id,
+          action,
+          role: item.role,
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload.success) throw new Error(payload.error || 'Não foi possível revisar o login.')
+
+      if (notificationId) await markRead(notificationId)
+      const temporaryPassword = typeof payload.temporary_password === 'string' ? payload.temporary_password : ''
+      toast.success(
+        action === 'approve' && temporaryPassword
+          ? `Login aprovado. Senha temporária: ${temporaryPassword}`
+          : action === 'approve' ? 'Login aprovado e sincronizado.' : 'Login rejeitado.',
+        action === 'approve' && temporaryPassword ? { duration: 15000 } : undefined,
+      )
+      await Promise.all([fetchNotifications(), refetchPreRegistrations()])
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Falha ao revisar login.')
+    } finally {
+      setReviewingPreRegistrationId(null)
+    }
+  }, [approvalFunctionUrl, fetchNotifications, isAdminMx, markRead, refetchPreRegistrations])
 
   const getTypeIcon = (type: string) => {
     switch (type) {
+      case 'approval': return <ShieldCheck size={20} className="text-brand-primary" />
       case 'discipline': return <AlertTriangle size={20} className="text-status-error" />
       case 'performance': return <TrendingUp size={20} className="text-status-success" />
       case 'alert': return <Clock size={20} className="text-status-warning" />
@@ -118,10 +277,17 @@ export default function Notificacoes() {
                       <Typography variant="caption" tone="muted" className="font-black tracking-widest uppercase whitespace-nowrap">{group}</Typography>
                       <div className="h-px flex-1 bg-border-default opacity-50" />
                     </div>
-                    {list.map((n, i) => (
+                    {list.map((n) => {
+                      const approval = getApprovalForNotification(n)
+                      const approvalNotification = isApprovalNotification(n)
+
+                      return (
                       <motion.article 
                         key={n.id} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} 
-                        onClick={() => { markRead(n.id); if (n.link) navigate(n.link) }}
+                        onClick={() => {
+                          markRead(n.id)
+                          if (n.link && !approvalNotification) navigate(n.link)
+                        }}
                         className={cn(
                           "p-mx-lg rounded-mx-3xl border transition-all relative group/item flex flex-col sm:flex-row gap-mx-lg cursor-pointer", 
                           n.read ? "bg-surface-alt/30 border-border-default opacity-60" : "bg-white border-brand-primary/20 shadow-mx-lg",
@@ -143,8 +309,102 @@ export default function Notificacoes() {
                             <Typography variant="mono" tone="muted" className="text-mx-tiny sm:text-xs font-black uppercase tracking-widest shrink-0">{format(new Date(n.created_at), 'HH:mm')}</Typography>
                           </header>
                           <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed italic line-clamp-2 uppercase tracking-tight opacity-60">"{n.message}"</Typography>
+                          {approval && (
+                            <div
+                              className="mt-mx-md rounded-mx-2xl border border-brand-primary/15 bg-white p-mx-md shadow-mx-sm"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-mx-sm">
+                                <div className="flex items-start gap-mx-sm min-w-0">
+                                  <div className="h-mx-14 w-mx-14 overflow-hidden rounded-mx-2xl border border-border-default bg-surface-alt shrink-0">
+                                    {approval.avatar_url ? (
+                                      <img src={approval.avatar_url} alt={approval.full_name} className="h-full w-full object-cover" />
+                                    ) : (
+                                      <div className="h-full w-full flex items-center justify-center text-brand-primary"><UserRound size={20} /></div>
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{approval.full_name}</Typography>
+                                    <Typography variant="tiny" tone="muted" className="mt-1 block font-bold break-all">
+                                      {approval.email} · {approval.phone}
+                                    </Typography>
+                                  </div>
+                                </div>
+                                <Badge variant="warning" className="font-black uppercase shrink-0">Pendente</Badge>
+                              </div>
+                              <div className="mt-mx-md grid grid-cols-1 sm:grid-cols-4 gap-mx-sm text-mx-tiny font-black uppercase">
+                                <div>
+                                  <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Loja</span>
+                                  {approval.store_name_snapshot}
+                                </div>
+                                <div>
+                                  <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Função</span>
+                                  {approval.role}
+                                </div>
+                                <div>
+                                  <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Na loja</span>
+                                  {approval.store_tenure}
+                                </div>
+                                <div>
+                                  <span className="block text-mx-nano text-text-tertiary tracking-mx-widest">Mercado</span>
+                                  {approval.market_experience}
+                                </div>
+                              </div>
+                              {approval.role === 'dono' && (
+                                <div className="mt-mx-sm rounded-mx-xl border border-brand-primary/15 bg-surface-alt p-mx-sm">
+                                  <Typography variant="tiny" tone="brand" className="mb-mx-xs block font-black uppercase tracking-widest">
+                                    Dados administrativos
+                                  </Typography>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-xs text-mx-micro font-bold text-text-secondary">
+                                    <span><b>Razão:</b> {approval.company_legal_name || 'não informado'}</span>
+                                    <span><b>CNPJ:</b> {approval.company_cnpj || 'não informado'}</span>
+                                    <span><b>Telefone:</b> {approval.company_administrative_phone || 'não informado'}</span>
+                                    <span><b>Endereço:</b> {approval.company_address || 'não informado'}</span>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="mt-mx-md flex flex-col sm:flex-row gap-mx-xs">
+                                <Button
+                                  type="button"
+                                  onClick={() => void handleReviewPreRegistration(approval, 'approve', n.id)}
+                                  disabled={reviewingPreRegistrationId === approval.id}
+                                  className="h-mx-11 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano"
+                                >
+                                  <CheckCircle2 size={15} className="mr-2" />
+                                  Aprovar login
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => void handleReviewPreRegistration(approval, 'reject', n.id)}
+                                  disabled={reviewingPreRegistrationId === approval.id}
+                                  className="h-mx-11 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano text-status-error hover:bg-status-error-surface"
+                                >
+                                  <X size={15} className="mr-2" />
+                                  Rejeitar
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                           <footer className="flex flex-wrap items-center gap-mx-md mt-6">
-                            {n.link && <Typography variant="caption" tone="brand" className="text-xs font-black uppercase tracking-widest flex items-center gap-mx-xs group-hover/item:translate-x-1 transition-transform">Ação Imediata <ChevronRight size={12} strokeWidth={3} /></Typography>}
+                            {n.link && !approvalNotification && <Typography variant="caption" tone="brand" className="text-xs font-black uppercase tracking-widest flex items-center gap-mx-xs group-hover/item:translate-x-1 transition-transform">Ação Imediata <ChevronRight size={12} strokeWidth={3} /></Typography>}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (n.read) {
+                                  markUnread(n.id)
+                                  toast.success('Alerta marcado como não lido.')
+                                } else {
+                                  markRead(n.id)
+                                  toast.success('Alerta marcado como lido.')
+                                }
+                              }}
+                              className="text-xs font-black text-text-tertiary hover:text-brand-primary uppercase tracking-widest p-mx-0 h-auto hover:bg-transparent"
+                            >
+                              {n.read ? 'Marcar não lida' : 'Marcar lida'}
+                            </Button>
                             <Button 
                               variant="ghost" size="sm" 
                               onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); toast.success('Alerta removido!') }} 
@@ -156,7 +416,8 @@ export default function Notificacoes() {
                         </div>
                         {!n.read && <div className="absolute right-mx-lg top-mx-sm sm:top-1/2 sm:-translate-y-1/2 w-2.5 h-2.5 rounded-mx-full bg-brand-primary shadow-mx-md animate-pulse" />}
                       </motion.article>
-                    ))}
+                      )
+                    })}
                   </div>
                 ))}
               </AnimatePresence>
@@ -182,6 +443,7 @@ export default function Notificacoes() {
 
             <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-mx-xs" role="navigation" aria-label="Filtros de notificação">
               {[
+                { label: 'Cadastros', type: 'approval', icon: ShieldCheck, tone: 'brand' },
                 { label: 'Lançamentos', type: 'discipline', icon: Smartphone, tone: 'error' },
                 { label: 'Feedbacks', type: 'performance', icon: TrendingUp, tone: 'success' },
                 { label: 'PDI', type: 'alert', icon: History, tone: 'warning' },

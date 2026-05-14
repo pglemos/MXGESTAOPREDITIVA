@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -43,10 +44,39 @@ export function useNotifications() {
     enabled: !!profile,
   })
 
+  useEffect(() => {
+    if (!profile?.id) return
+
+    const channel = supabase
+      .channel(`notificacoes:${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notificacoes', filter: `recipient_id=eq.${profile.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['notificacoes', profile.id] })
+        },
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  }, [profile?.id, queryClient])
+
   const markReadMut = useMutation({
     mutationFn: async (notificationId: string) => {
       if (!profile) return
       await supabase.from('notificacoes').update({ read: true }).eq('id', notificationId).eq('recipient_id', profile.id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
+    },
+  })
+
+  const markUnreadMut = useMutation({
+    mutationFn: async (notificationId: string) => {
+      if (!profile) return
+      await supabase.from('notificacoes').update({ read: false }).eq('id', notificationId).eq('recipient_id', profile.id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
@@ -106,6 +136,7 @@ export function useNotifications() {
     unreadCount: data?.unreadCount || 0,
     loading,
     markRead: (id: string) => markReadMut.mutateAsync(id),
+    markUnread: (id: string) => markUnreadMut.mutateAsync(id),
     markAllAsRead: () => markAllAsReadMut.mutateAsync(),
     deleteNotification: (id: string) => deleteNotificationMut.mutateAsync(id),
     sendNotification: (input: Parameters<typeof sendNotificationMut.mutateAsync>[0]) => sendNotificationMut.mutateAsync(input),
