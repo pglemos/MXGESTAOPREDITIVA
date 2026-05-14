@@ -71,6 +71,14 @@ const storeFetchAttempts = 3
 const storeFetchRetryDelayMs = 450
 const storeFetchTimeoutMs = 12_000
 
+function getStorePreRegistrationUrl() {
+  if (typeof window !== 'undefined' && !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)) {
+    return new URL('/api/store-pre-registration', window.location.origin).toString()
+  }
+
+  return getSupabaseFunctionUrl('store-pre-registration')
+}
+
 function wait(ms: number) {
   return new Promise(resolve => window.setTimeout(resolve, ms))
 }
@@ -123,7 +131,7 @@ export default function StorePreRegistration() {
   const [step, setStep] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
 
-  const functionUrl = useMemo(() => getSupabaseFunctionUrl('store-pre-registration'), [])
+  const functionUrl = useMemo(() => getStorePreRegistrationUrl(), [])
   const completion = useMemo(() => {
     const ownerFields = form.role === 'dono'
       ? [form.company_legal_name, form.company_cnpj, form.company_address, form.company_administrative_phone]
