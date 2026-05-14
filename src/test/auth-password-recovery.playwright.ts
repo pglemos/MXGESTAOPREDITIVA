@@ -73,6 +73,17 @@ test.describe('Password recovery login flow', () => {
     await expect(page.getByText(/Não foi possível enviar/i)).toHaveCount(0)
   })
 
+  test('login network failure shows authentication connectivity message', async ({ page }) => {
+    await page.route('**/auth/v1/token?grant_type=password', async route => {
+      await route.abort('namenotresolved')
+    })
+
+    await login(page, 'marianedcs@gmail.com', '123456')
+
+    await expect(page.getByText(/Não foi possível conectar ao servidor de autenticação/i)).toBeVisible()
+    await expect(page.getByText(/E-mail ou senha inválidos/i)).toHaveCount(0)
+  })
+
   test('recovery link lets a user set a new password and clears must_change_password', async ({ page }, testInfo) => {
     user = await createE2EAdminUser({
       prefix: `password-recovery-${testInfo.project.name}`,

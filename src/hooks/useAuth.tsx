@@ -21,6 +21,7 @@ const SIMULATION_ROLE_LABELS: Record<SimulationRole, string> = {
     gerente: 'Gerente',
     vendedor: 'Vendedor',
 }
+const AUTH_NETWORK_ERROR_MESSAGE = 'Não foi possível conectar ao servidor de autenticação. Verifique sua conexão ou tente novamente em alguns minutos.'
 
 interface AuthState {
     initialized: boolean
@@ -72,8 +73,14 @@ const AuthContext = createContext<AuthState>({
     changePassword: async () => ({ error: 'Not initialized' })
 })
 
-function isTransientFetchError(error: { message?: string } | null) {
-    return error?.message?.includes('Failed to fetch') || false
+function isTransientFetchError(error: unknown) {
+    if (!error || typeof error !== 'object' || !('message' in error)) return false
+    const message = String((error as { message?: unknown }).message || '').toLowerCase()
+    return message.includes('failed to fetch') ||
+        message.includes('networkerror') ||
+        message.includes('load failed') ||
+        message.includes('name_not_resolved') ||
+        message.includes('err_name_not_resolved')
 }
 
 function isDevBypassAllowed() {
@@ -425,9 +432,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [canSimulate, loading, profile, simulationRole, stopSimulation])
 
     const signIn = async (email: string, password: string) => {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        let data: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>['data']
+        let error: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>['error']
+
+        try {
+            const response = await supabase.auth.signInWithPassword({ email, password })
+            data = response.data
+            error = response.error
+        } catch (err) {
+            if (isTransientFetchError(err)) {
+                return { error: AUTH_NETWORK_ERROR_MESSAGE }
+            }
+            return { error: 'Erro inesperado ao realizar login.' }
+        }
         
         if (error) {
+            if (isTransientFetchError(error)) {
+                return { error: AUTH_NETWORK_ERROR_MESSAGE }
+            }
             return { error: 'E-mail ou senha inválidos.' }
         }
 

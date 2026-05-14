@@ -126,7 +126,7 @@ export default function Login() {
             setLoginAttempts(0)
             setLockoutUntil(0)
         } catch {
-            setError('Erro inesperado ao realizar login.')
+            setError('Não foi possível concluir o login agora. Verifique sua conexão e tente novamente.')
             setLoading(false)
         }
     }
