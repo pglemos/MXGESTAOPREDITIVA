@@ -406,7 +406,7 @@ serve(async (req) => {
       recipient_id: admin.id,
       sender_id: senderId,
       store_id: store.id,
-      target_type: 'admin',
+      target_type: 'store',
       target_store_id: store.id,
       title: 'Novo login pendente',
       message: `${fullName} solicitou acesso como ${role} na loja ${store.name}. Valide a hierarquia antes de liberar.`,
