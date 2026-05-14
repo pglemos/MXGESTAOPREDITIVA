@@ -21,6 +21,7 @@ type CalendarSyncResult = {
   kind?: 'visit' | 'schedule_event'
   personalEventId: string | null
   centralEventId: string | null
+  googleMeetLink?: string | null
   errors: { calendar: 'personal' | 'central'; message: string }[]
   userConnected: boolean
   centralConnected: boolean
@@ -80,6 +81,7 @@ export async function syncVisitToGoogle(
         product_name,
         google_event_id,
         google_event_id_central,
+        google_meet_link,
         consultant:usuarios!visitas_consultoria_consultor_id_fkey(email),
         client:clientes_consultoria!client_id(name)
       `)
@@ -104,6 +106,7 @@ export async function syncVisitToGoogle(
       auxiliary_consultant_id: visit.auxiliary_consultant_id ?? null,
       google_event_id: visit.google_event_id ?? null,
       google_event_id_central: visit.google_event_id_central ?? null,
+      google_meet_link: visit.google_meet_link ?? null,
     }
     const { data, error } = await supabase.functions.invoke<CalendarSyncResult>('google-calendar-sync', { body: { action, visit: payload } })
     if (error) throw error
@@ -138,6 +141,7 @@ async function syncScheduleEventToGoogle(
         product_name,
         google_event_id,
         google_event_id_personal,
+        google_meet_link,
         status,
         responsible:usuarios!eventos_agenda_consultoria_responsavel_usuario_id_fkey(email)
       `)
@@ -164,6 +168,7 @@ async function syncScheduleEventToGoogle(
       product_name: event.product_name ?? null,
       google_event_id: event.google_event_id ?? null,
       google_event_id_personal: event.google_event_id_personal ?? null,
+      google_meet_link: event.google_meet_link ?? null,
       status: event.status,
     }
     const { data, error } = await supabase.functions.invoke<CalendarSyncResult>('google-calendar-sync', {
@@ -202,6 +207,7 @@ export type AgendaScheduleEvent = {
   product_name: string | null
   google_event_id: string | null
   google_event_id_personal?: string | null
+  google_meet_link?: string | null
   status: 'agendado' | 'cancelado' | 'concluido'
   source_sheet: string | null
   created_by?: string | null

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { format, parseISO, isToday, isPast } from 'date-fns'
-import { Building2, Clock, MapPin, Play, X, Trash2, ChevronRight, User, Pencil } from 'lucide-react'
+import { Building2, Clock, MapPin, Play, X, Trash2, ChevronRight, User, Pencil, Video } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
@@ -19,6 +19,7 @@ export interface VisitCardData {
   visit_reason?: string | null
   target_audience?: string | null
   product_name?: string | null
+  google_meet_link?: string | null
   status: string
   consultant?: { name: string } | null
 }
@@ -155,6 +156,19 @@ export function VisitCard({
               <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onCancel(visit.id)} aria-label={`Cancelar visita de ${visit.client_name}`}>
                 <X size={14} />
               </Button>
+            )}
+            {visit.google_meet_link && (
+              <a
+                href={visit.google_meet_link}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-mx-9 items-center justify-center gap-mx-xs rounded-mx-sm px-3 text-brand-primary hover:bg-surface-alt transition-all"
+                aria-label={`Abrir Google Meet da visita de ${visit.client_name}`}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Video size={14} aria-hidden="true" />
+                <span className="text-mx-micro font-black uppercase tracking-widest">Meet</span>
+              </a>
             )}
             {visit.status === 'cancelada' && onDelete && (
               <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onDelete(visit.id)} aria-label={`Excluir visita de ${visit.client_name}`}>

@@ -42,6 +42,7 @@ type VisitInput = {
   auxiliary_consultant_id?: string | null;
   google_event_id?: string | null;
   google_event_id_central?: string | null;
+  google_meet_link?: string | null;
 };
 
 type ScheduleEventInput = {
@@ -63,6 +64,7 @@ type ScheduleEventInput = {
   product_name?: string | null;
   google_event_id?: string | null;
   google_event_id_personal?: string | null;
+  google_meet_link?: string | null;
   status?: string | null;
 };
 
@@ -83,6 +85,7 @@ const VISIT_SYNC_SELECT = [
   "auxiliary_consultant_id",
   "google_event_id",
   "google_event_id_central",
+  "google_meet_link",
   "client:clientes_consultoria!client_id(name)",
 ].join(",");
 
@@ -98,13 +101,13 @@ const SCHEDULE_EVENT_SYNC_SELECT = [
   "target_audience",
   "audience_goal",
   "responsible_name",
-  "responsible_email",
   "responsible_user_id",
   "ticket_price_text",
   "visit_reason",
   "product_name",
   "google_event_id",
   "google_event_id_personal",
+  "google_meet_link",
   "status",
 ].join(",");
 
@@ -139,6 +142,7 @@ async function loadAuthorizedVisit(sessionClient: any, visitId: string): Promise
     auxiliary_consultant_id: data.auxiliary_consultant_id ?? null,
     google_event_id: data.google_event_id ?? null,
     google_event_id_central: data.google_event_id_central ?? null,
+    google_meet_link: data.google_meet_link ?? null,
   };
 }
 
@@ -163,13 +167,13 @@ async function loadAuthorizedScheduleEvent(sessionClient: any, eventId: string):
     target_audience: data.target_audience ?? null,
     audience_goal: data.audience_goal ?? null,
     responsible_name: data.responsible_name ?? null,
-    responsible_email: data.responsible_email ?? null,
     responsible_user_id: data.responsible_user_id ?? null,
     ticket_price_text: data.ticket_price_text ?? null,
     visit_reason: data.visit_reason ?? null,
     product_name: data.product_name ?? null,
     google_event_id: data.google_event_id ?? null,
     google_event_id_personal: data.google_event_id_personal ?? null,
+    google_meet_link: data.google_meet_link ?? null,
     status: data.status ?? null,
   };
 }
@@ -199,6 +203,28 @@ function normalizeAttendees(attendees: (GoogleAttendee | null | undefined)[]): G
   return normalized;
 }
 
+function isOnlineModality(value?: string | null): boolean {
+  return value?.trim().toLowerCase() === "online";
+}
+
+function shouldCreateMeetForVisit(visit: VisitInput): boolean {
+  return isOnlineModality(visit.modality);
+}
+
+function shouldCreateMeetForScheduleEvent(event: ScheduleEventInput): boolean {
+  return event.event_type === "evento_online" || isOnlineModality(event.modality);
+}
+
+function buildMeetConferenceData(sourceKind: "visit" | "schedule_event", sourceId: string): GoogleEventInput["conferenceData"] {
+  const requestKind = sourceKind === "schedule_event" ? "schedule-event" : "visit";
+  return {
+    createRequest: {
+      requestId: `mx-${requestKind}-${sourceId}`,
+      conferenceSolutionKey: { type: "hangoutsMeet" },
+    },
+  };
+}
+
 function buildEventPayload(visit: VisitInput, attendees: GoogleAttendee[] = []): GoogleEventInput {
   const start = new Date(visit.scheduled_at);
   const durationMs = Math.max(0.5, Number(visit.duration_hours ?? 3)) * 60 * 60 * 1000;
@@ -220,6 +246,7 @@ function buildEventPayload(visit: VisitInput, attendees: GoogleAttendee[] = []):
     start: { dateTime: start.toISOString(), timeZone: TIMEZONE },
     end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
     attendees: attendees.length > 0 ? attendees : undefined,
+    conferenceData: shouldCreateMeetForVisit(visit) ? buildMeetConferenceData("visit", visit.id) : undefined,
     extendedProperties: {
       private: {
         mx_source_kind: "visit",
@@ -270,6 +297,7 @@ function buildScheduleEventPayload(event: ScheduleEventInput, attendees: GoogleA
     start: { dateTime: start.toISOString(), timeZone: TIMEZONE },
     end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
     attendees: attendees.length > 0 ? attendees : undefined,
+    conferenceData: shouldCreateMeetForScheduleEvent(event) ? buildMeetConferenceData("schedule_event", event.id) : undefined,
     extendedProperties: {
       private: {
         mx_source_kind: "schedule_event",
@@ -427,14 +455,14 @@ async function mirrorToUserCalendars(
       }
 
       if (!userToken.token) throw new Error("Google pessoal nao conectado");
-      const googleEventId = await upsertGoogleEvent(userToken.token, "primary", payload, mirrorRow?.google_event_id ?? null);
+      const googleEvent = await upsertGoogleEvent(userToken.token, "primary", payload, mirrorRow?.google_event_id ?? null);
       await adminClient
         .from("espelhos_agenda_google_usuario")
         .upsert({
           user_id: userToken.userId,
           source_kind: sourceKind,
           source_id: sourceId,
-          google_event_id: googleEventId,
+          google_event_id: googleEvent.id,
           synced_at: new Date().toISOString(),
           sync_error: null,
         }, { onConflict: "user_id,source_kind,source_id" });
@@ -532,6 +560,14 @@ Deno.serve(async (req) => {
     let centralEventId = syncKind === "schedule_event"
       ? scheduleEvent?.google_event_id ?? null
       : visit?.google_event_id_central ?? null;
+    const shouldHaveMeet = syncKind === "schedule_event" && scheduleEvent
+      ? shouldCreateMeetForScheduleEvent(scheduleEvent)
+      : visit
+      ? shouldCreateMeetForVisit(visit)
+      : false;
+    let googleMeetLink = shouldHaveMeet
+      ? (syncKind === "schedule_event" ? scheduleEvent?.google_meet_link ?? null : visit?.google_meet_link ?? null)
+      : null;
     const errors: { calendar: "personal" | "central"; message: string }[] = [];
     let userMirrors: { userId: string; ok: boolean; message?: string }[] = [];
 
@@ -540,6 +576,7 @@ Deno.serve(async (req) => {
         try {
           await deleteGoogleEvent(personalToken.token, "primary", personalEventId);
           personalEventId = null;
+          googleMeetLink = null;
         } catch (e) {
           errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "delete failed" });
         }
@@ -548,6 +585,7 @@ Deno.serve(async (req) => {
         try {
           await deleteGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralEventId);
           centralEventId = null;
+          googleMeetLink = null;
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "delete failed" });
         }
@@ -575,7 +613,9 @@ Deno.serve(async (req) => {
       if (!mirrorOnly && syncKind === "visit" && visit && personalToken.token) {
         try {
           const userPayload = buildEventPayload(visit);
-          personalEventId = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
+          const personalEvent = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
+          personalEventId = personalEvent.id;
+          googleMeetLink = personalEvent.meetLink ?? googleMeetLink;
         } catch (e) {
           errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "upsert failed" });
         }
@@ -583,7 +623,9 @@ Deno.serve(async (req) => {
       if (!mirrorOnly && syncKind === "schedule_event" && scheduleEvent && personalToken.token) {
         try {
           const userPayload = buildScheduleEventPayload(scheduleEvent);
-          personalEventId = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
+          const personalEvent = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
+          personalEventId = personalEvent.id;
+          googleMeetLink = personalEvent.meetLink ?? googleMeetLink;
         } catch (e) {
           errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "upsert failed" });
         }
@@ -603,7 +645,9 @@ Deno.serve(async (req) => {
           const centralPayload = scheduleEvent
             ? buildScheduleEventPayload(scheduleEvent, centralAttendees)
             : buildEventPayload(visit!, centralAttendees);
-          centralEventId = await upsertGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralPayload, centralEventId);
+          const centralEvent = await upsertGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralPayload, centralEventId);
+          centralEventId = centralEvent.id;
+          googleMeetLink = centralEvent.meetLink ?? googleMeetLink;
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "upsert failed" });
         }
@@ -636,6 +680,7 @@ Deno.serve(async (req) => {
         .update({
           google_event_id: centralEventId,
           google_event_id_personal: personalEventId,
+          google_meet_link: googleMeetLink,
           google_synced_at: centralError ? null : new Date().toISOString(),
           google_sync_error: centralError?.message ?? null,
         })
@@ -653,6 +698,7 @@ Deno.serve(async (req) => {
         .update({
           google_event_id: personalEventId,
           google_event_id_central: centralEventId,
+          google_meet_link: googleMeetLink,
           google_synced_at: centralError ? null : new Date().toISOString(),
         })
         .eq("id", visit.id);
@@ -671,6 +717,7 @@ Deno.serve(async (req) => {
         kind: syncKind,
         personalEventId,
         centralEventId,
+        googleMeetLink,
         errors,
         userConnected: Boolean(personalToken.token),
         personalOwnerUserId,

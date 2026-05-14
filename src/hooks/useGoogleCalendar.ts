@@ -58,6 +58,7 @@ export type SyncableVisit = {
   consultant_email?: string | null
   google_event_id?: string | null
   google_event_id_central?: string | null
+  google_meet_link?: string | null
 }
 
 export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; maxResults?: number; autoFetch?: boolean; includeCentral?: boolean }) {

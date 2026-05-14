@@ -146,6 +146,12 @@ export type GoogleEventInput = {
   start: { dateTime: string; timeZone?: string };
   end: { dateTime: string; timeZone?: string };
   attendees?: { email: string; displayName?: string }[];
+  conferenceData?: {
+    createRequest?: {
+      requestId: string;
+      conferenceSolutionKey: { type: "hangoutsMeet" };
+    };
+  };
   extendedProperties?: {
     private?: Record<string, string>;
     shared?: Record<string, string>;
@@ -153,22 +159,59 @@ export type GoogleEventInput = {
   reminders?: { useDefault?: boolean; overrides?: { method: string; minutes: number }[] };
 };
 
+export type GoogleEventResult = {
+  id: string;
+  htmlLink?: string | null;
+  meetLink?: string | null;
+};
+
+function extractMeetLink(data: any): string | null {
+  if (typeof data?.hangoutLink === "string" && data.hangoutLink) return data.hangoutLink;
+  const entryPoints = Array.isArray(data?.conferenceData?.entryPoints) ? data.conferenceData.entryPoints : [];
+  const videoEntry = entryPoints.find((entry: any) => entry?.entryPointType === "video" && typeof entry?.uri === "string");
+  return videoEntry?.uri ?? null;
+}
+
+async function waitForMeetLink(accessToken: string, calendarId: string, eventId: string): Promise<string | null> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const res = await googleApiRequest(
+      accessToken,
+      `/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?conferenceDataVersion=1`,
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const meetLink = extractMeetLink(data);
+    if (meetLink) return meetLink;
+  }
+  return null;
+}
+
 export async function upsertGoogleEvent(
   accessToken: string,
   calendarId: string,
   payload: GoogleEventInput,
   existingEventId?: string | null,
-): Promise<string> {
-  const path = existingEventId
+): Promise<GoogleEventResult> {
+  const basePath = existingEventId
     ? `/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(existingEventId)}`
     : `/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+  const path = payload.conferenceData ? `${basePath}?conferenceDataVersion=1` : basePath;
   const method = existingEventId ? "PATCH" : "POST";
   const res = await googleApiRequest(accessToken, path, { method, body: JSON.stringify(payload) });
   const data = await res.json();
+  if (existingEventId && (res.status === 404 || res.status === 410)) {
+    return upsertGoogleEvent(accessToken, calendarId, payload, null);
+  }
   if (!res.ok) {
     throw new Error(data?.error?.message || `Google API error (${res.status})`);
   }
-  return data.id as string;
+  const meetLink = extractMeetLink(data) ?? (payload.conferenceData ? await waitForMeetLink(accessToken, calendarId, data.id) : null);
+  return {
+    id: data.id as string,
+    htmlLink: data.htmlLink ?? null,
+    meetLink,
+  };
 }
 
 export async function deleteGoogleEvent(

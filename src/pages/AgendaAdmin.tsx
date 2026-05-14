@@ -4,7 +4,7 @@ import {
   CalendarDays, Clock, MapPin, RefreshCw, Filter,
   Building2, User, ChevronRight, Calendar,
   X, Plus, Trash2,
-  Pencil,
+  Pencil, Video,
 } from 'lucide-react'
 import { addWeeks, endOfWeek, format, parseISO, isToday, isTomorrow, isSameDay, startOfWeek } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -123,6 +123,19 @@ function ScheduleEventCard({
                   <User size={12} />
                   <Typography variant="tiny">{event.responsible_name}</Typography>
                 </div>
+              )}
+              {event.google_meet_link && (
+                <a
+                  href={event.google_meet_link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-mx-xs text-brand-primary hover:text-brand-secondary"
+                  aria-label={`Abrir Google Meet de ${event.title}`}
+                  onClick={(clickEvent) => clickEvent.stopPropagation()}
+                >
+                  <Video size={12} />
+                  <Typography variant="tiny">Google Meet</Typography>
+                </a>
               )}
             </div>
             {event.topic && (

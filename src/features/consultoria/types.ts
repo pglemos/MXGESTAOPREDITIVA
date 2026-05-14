@@ -129,6 +129,7 @@ export interface ConsultingVisit {
   executive_summary: string | null
   google_event_id: string | null
   google_event_id_central?: string | null
+  google_meet_link?: string | null
   google_synced_at?: string | null
   meta_mensal: string | null
   projecao: string | null

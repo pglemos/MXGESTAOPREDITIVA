@@ -54,6 +54,17 @@ describe("VisitCard", () => {
     expect(visitLink).toBeDefined();
   });
 
+  test("renders Google Meet link when present", () => {
+    renderWithRouter(
+      <VisitCard
+        visit={{ ...mockVisit, modality: "Online", google_meet_link: "https://meet.google.com/abc-defg-hij" }}
+        linkTo="/visits/1"
+      />,
+    );
+    const meetLink = screen.getByRole("link", { name: "Abrir Google Meet da visita de Acme Corp" });
+    expect(meetLink.getAttribute("href")).toBe("https://meet.google.com/abc-defg-hij");
+  });
+
   test("renders cancelled status", () => {
     const cancelledVisit = { ...mockVisit, status: "cancelada" };
     renderWithRouter(<VisitCard visit={cancelledVisit} linkTo="/visits/1" />);
