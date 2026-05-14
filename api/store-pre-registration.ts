@@ -52,7 +52,7 @@ async function proxyStorePreRegistration(request: Request) {
 
   const incomingUrl = new URL(request.url)
   const upstreamUrl = new URL(`${supabaseUrl}/functions/v1/${functionName}`)
-  incomingUrl.searchParams.forEach((value, key) => upstreamUrl.searchParams.set(key, value))
+  incomingUrl.searchParams.forEach((value: string, key: string) => upstreamUrl.searchParams.set(key, value))
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
