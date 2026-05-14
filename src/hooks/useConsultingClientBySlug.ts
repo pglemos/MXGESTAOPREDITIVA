@@ -19,6 +19,7 @@ import {
   parseConsultingVisitArray,
   type ConsultingClient,
 } from '@/lib/schemas/consulting-client.schema'
+import { validateLegacyVisitCompletionInput } from '@/lib/consultoria/legacy-visit-completion'
 
 type VisitRowIdentity = {
   id: string
@@ -349,6 +350,30 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     return { error: null }
   }, [canManage, clientId, fetchClient, supabaseUser])
 
+  const completeLegacyVisits = useCallback(async (input: {
+    visitNumbers: number[]
+    summary: string
+    effectiveVisitDate: string
+  }) => {
+    if (!supabaseUser || !clientId || !canManage) {
+      return { error: 'Apenas administradores MX podem concluir visitas legadas.' }
+    }
+
+    const validationError = validateLegacyVisitCompletionInput(input)
+    if (validationError) return { error: validationError }
+
+    const { error: rpcError } = await supabase.rpc('concluir_visitas_legadas_consultoria', {
+      p_cliente_id: clientId,
+      p_visit_numbers: input.visitNumbers,
+      p_resumo_geral: input.summary.trim(),
+      p_effective_visit_date: input.effectiveVisitDate,
+    })
+
+    if (rpcError) return { error: rpcError.message }
+    await fetchClient()
+    return { error: null }
+  }, [canManage, clientId, fetchClient, supabaseUser])
+
   useEffect(() => {
     fetchClient()
   }, [fetchClient])
@@ -367,5 +392,6 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     upsertFinancial,
     deleteFinancial,
     upsertVisit,
+    completeLegacyVisits,
   }
 }

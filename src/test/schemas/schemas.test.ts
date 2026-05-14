@@ -302,6 +302,17 @@ describe("ConsultingClientSchema", () => {
     expect(result.modality).toBe("Presencial");
   });
 
+  it("parses ConsultingClient legacy migration metadata", () => {
+    const result = ConsultingClientSchema.parse({
+      ...validClient,
+      legacy_migration_summary: "Visitas migradas com anexos gerais.",
+      legacy_migrated_at: "2026-05-14T10:00:00Z",
+      legacy_migrated_by: UUID,
+    });
+    expect(result.legacy_migration_summary).toBe("Visitas migradas com anexos gerais.");
+    expect(result.legacy_migrated_by).toBe(UUID);
+  });
+
   it("rejects invalid ConsultingClient", () => {
     expect(() => parseConsultingClient({})).toThrow();
   });

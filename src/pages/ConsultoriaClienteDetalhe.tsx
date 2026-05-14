@@ -22,6 +22,11 @@ import { useConsultingMethodology } from '@/hooks/useConsultingClients'
 import { usePDIs } from '@/hooks/useData'
 import { buildSaoPauloDateTime } from '@/hooks/useAgendaAdmin'
 import { mergeAgendaOptionLabels, useAgendaOptions } from '@/hooks/useAgendaOptions'
+import {
+  getRecommendedLegacyVisitSelection,
+  LEGACY_PMR_VISITS,
+  validateLegacyVisitCompletionInput,
+} from '@/lib/consultoria/legacy-visit-completion'
 import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Button } from '@/components/atoms/Button'
@@ -340,6 +345,7 @@ export default function ConsultoriaClienteDetalhe() {
     upsertFinancial,
     deleteFinancial,
     upsertVisit,
+    completeLegacyVisits,
   } = useConsultingClientDetailBySlug(clientSlug)
   const {
     visitReasonOptions: agendaVisitReasonOptions,
@@ -357,7 +363,12 @@ export default function ConsultoriaClienteDetalhe() {
   const { steps: methodologySteps } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [showVisitModal, setShowVisitModal] = useState(false)
+  const [showLegacyCompletionModal, setShowLegacyCompletionModal] = useState(false)
   const [visitSubmitting, setVisitSubmitting] = useState(false)
+  const [legacyCompletionSubmitting, setLegacyCompletionSubmitting] = useState(false)
+  const [legacyVisitNumbers, setLegacyVisitNumbers] = useState<number[]>([...LEGACY_PMR_VISITS])
+  const [legacySummary, setLegacySummary] = useState('')
+  const [legacyEffectiveDate, setLegacyEffectiveDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [visitForm, setVisitForm] = useState<VisitManualForm>({
     visit_id: '',
     visit_number: '1',
@@ -488,6 +499,50 @@ export default function ConsultoriaClienteDetalhe() {
     setShowVisitModal(false)
   }
 
+  const openLegacyCompletionModal = () => {
+    if (!client) return
+    setLegacyVisitNumbers(getRecommendedLegacyVisitSelection(client.visits || []))
+    setLegacySummary(client.legacy_migration_summary || '')
+    setLegacyEffectiveDate(format(new Date(), 'yyyy-MM-dd'))
+    setShowLegacyCompletionModal(true)
+  }
+
+  const toggleLegacyVisit = (visitNumber: number) => {
+    setLegacyVisitNumbers((current) => {
+      if (current.includes(visitNumber)) return current.filter((item) => item !== visitNumber)
+      return [...current, visitNumber].sort((a, b) => a - b)
+    })
+  }
+
+  const handleSubmitLegacyCompletion = async (event: React.FormEvent) => {
+    event.preventDefault()
+    const validationError = validateLegacyVisitCompletionInput({
+      visitNumbers: legacyVisitNumbers,
+      summary: legacySummary,
+      effectiveVisitDate: legacyEffectiveDate,
+    })
+    if (validationError) {
+      toast.error(validationError)
+      return
+    }
+
+    setLegacyCompletionSubmitting(true)
+    const { error: completionError } = await completeLegacyVisits({
+      visitNumbers: legacyVisitNumbers,
+      summary: legacySummary,
+      effectiveVisitDate: legacyEffectiveDate,
+    })
+    setLegacyCompletionSubmitting(false)
+
+    if (completionError) {
+      toast.error(completionError)
+      return
+    }
+
+    toast.success('Visitas legadas concluídas.')
+    setShowLegacyCompletionModal(false)
+  }
+
   useEffect(() => {
     const tab = searchParams.get('tab') as Tab
     if (tab && TABS.some(t => t.key === tab)) {
@@ -555,14 +610,24 @@ export default function ConsultoriaClienteDetalhe() {
                 <Typography variant="h3" className="uppercase font-black tracking-widest">Agenda manual do cliente</Typography>
                 <Typography variant="tiny" tone="muted">Crie ou ajuste diretamente qualquer visita V1 a V7.</Typography>
               </div>
-              <Button
-                type="button"
-                variant="primary"
-                onClick={() => openVisitModal()}
-                icon={<Plus className="w-mx-4 h-mx-4" />}
-              >
-                CRIAR VISITA MANUAL
-              </Button>
+              <div className="flex flex-wrap gap-mx-xs">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={openLegacyCompletionModal}
+                  icon={<ShieldCheck className="w-mx-4 h-mx-4" />}
+                >
+                  CONCLUIR VISITAS JÁ REALIZADAS
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => openVisitModal()}
+                  icon={<Plus className="w-mx-4 h-mx-4" />}
+                >
+                  CRIAR VISITA MANUAL
+                </Button>
+              </div>
             </div>
           )}
           {methodologySteps.map((step) => {
@@ -629,6 +694,92 @@ export default function ConsultoriaClienteDetalhe() {
       <TabNav tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
       {renderTabContent()}
+
+      <Modal
+        open={showLegacyCompletionModal}
+        onClose={() => setShowLegacyCompletionModal(false)}
+        title="Concluir visitas já realizadas"
+        description="Migração administrativa para lojas que já avançaram na metodologia PMR"
+        size="xl"
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setShowLegacyCompletionModal(false)}>CANCELAR</Button>
+            <Button type="submit" form="legacy-visit-completion-form" loading={legacyCompletionSubmitting} className="bg-brand-primary">
+              CONCLUIR SELECIONADAS
+            </Button>
+          </>
+        }
+      >
+        <form id="legacy-visit-completion-form" onSubmit={handleSubmitLegacyCompletion} className="space-y-mx-lg">
+          <div className="space-y-mx-sm">
+            <div className="flex flex-wrap items-center justify-between gap-mx-sm">
+              <Typography variant="caption" className="font-black uppercase tracking-widest">Visitas concluídas fora do sistema</Typography>
+              <div className="flex flex-wrap gap-mx-xs">
+                <Button type="button" variant="outline" size="xs" onClick={() => setLegacyVisitNumbers([...LEGACY_PMR_VISITS])}>
+                  V1,V2,V3,V5,V6,V7
+                </Button>
+                <Button type="button" variant="outline" size="xs" onClick={() => setLegacyVisitNumbers(getRecommendedLegacyVisitSelection(client?.visits || []))}>
+                  PENDENTES
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-mx-sm">
+              {methodologySteps.map((step) => {
+                const visit = client?.visits?.find((item) => item.visit_number === step.visit_number)
+                const selected = legacyVisitNumbers.includes(step.visit_number)
+                return (
+                  <label
+                    key={step.id}
+                    className={`flex cursor-pointer items-center gap-mx-xs rounded-mx-xl border p-mx-sm transition-colors ${selected ? 'border-brand-primary bg-brand-primary/10' : 'border-border-default bg-white'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() => toggleLegacyVisit(step.visit_number)}
+                      className="h-mx-sm w-mx-sm accent-brand-primary"
+                    />
+                    <span className="min-w-0">
+                      <Typography variant="p" className="text-sm font-black">V{step.visit_number}</Typography>
+                      <Typography variant="tiny" tone={visit?.status === 'concluida' ? 'success' : 'muted'} className="font-bold uppercase">
+                        {visit?.status === 'concluida' ? 'Concluída' : 'Pendente'}
+                      </Typography>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+            <div className="space-y-mx-xs">
+              <Typography as="label" htmlFor="legacy-effective-date" variant="caption" className="font-black uppercase tracking-widest">Data de referência *</Typography>
+              <DatePicker
+                id="legacy-effective-date"
+                value={legacyEffectiveDate}
+                onChange={(event) => setLegacyEffectiveDate(event.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-mx-xs">
+            <Typography as="label" htmlFor="legacy-summary" variant="caption" className="font-black uppercase tracking-widest">Resumo geral da migração *</Typography>
+            <Textarea
+              id="legacy-summary"
+              value={legacySummary}
+              onChange={(event) => setLegacySummary(event.target.value)}
+              placeholder="Registre o que já foi realizado nas visitas concluídas e onde os documentos gerais foram anexados."
+              className="min-h-mx-40"
+            />
+          </div>
+        </form>
+
+        {clientId && (
+          <div className="space-y-mx-xs mt-mx-lg">
+            <Typography variant="caption" className="font-black uppercase tracking-widest">Anexos gerais do cliente</Typography>
+            <ConsultingDriveFilesView clientId={clientId} />
+          </div>
+        )}
+      </Modal>
 
       <Modal
         open={showVisitModal}

@@ -12,6 +12,9 @@ export interface ConsultingClient {
   program_template_key?: string
   store_id: string | null
   primary_store_id: string | null
+  legacy_migration_summary?: string | null
+  legacy_migrated_at?: string | null
+  legacy_migrated_by?: string | null
   created_by: string | null
   last_visit_at?: string | null
   created_at: string
