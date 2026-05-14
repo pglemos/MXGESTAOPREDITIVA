@@ -23,7 +23,6 @@ type FormState = {
   segment: string
   store_tenure: string
   market_experience: string
-  notes: string
   company_legal_name: string
   company_cnpj: string
   company_address: string
@@ -47,7 +46,6 @@ const initialForm: FormState = {
   segment: 'Automotivo',
   store_tenure: '',
   market_experience: '',
-  notes: '',
   company_legal_name: '',
   company_cnpj: '',
   company_address: '',
@@ -564,10 +562,6 @@ export default function StorePreRegistration() {
                               </select>
                               {formErrors.market_experience && <FieldError>{formErrors.market_experience}</FieldError>}
                             </div>
-                          </div>
-                          <div>
-                            <label className="mx-public-label">Observações</label>
-                            <textarea value={form.notes} onChange={event => updateForm('notes', event.target.value)} rows={4} placeholder="Alguma informação importante para a MX validar seu cadastro?" className="mx-public-input mx-pre-textarea" />
                           </div>
                           {form.role === 'dono' && (
                             <div className="mx-pre-owner-block">

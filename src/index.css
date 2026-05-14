@@ -1167,12 +1167,6 @@ html, body {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
-.mx-pre-textarea {
-  min-height: 112px;
-  resize: none;
-  padding-top: 15px;
-}
-
 .mx-pre-review {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
