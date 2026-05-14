@@ -341,10 +341,10 @@ export default function StorePreRegistration() {
             <b>{loading ? 'Sincronizando loja' : store?.name || 'Link da loja'}</b>
           </div>
           <h1>
-            Seu acesso entra na <em>Malha MX</em>.
+            Seu acesso entra no <em>ambiente MX.</em>
           </h1>
           <p>
-            Um cadastro curto, em etapas, para validar contato e hierarquia antes do login ser liberado pelo Admin MX.
+            Faça seu cadastro para ter acesso ao sistema de Consultoria. Leva apenas 1 minuto.
           </p>
 
           <div className="mx-pre-proof">

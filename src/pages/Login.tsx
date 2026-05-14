@@ -2,26 +2,46 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { motion } from 'motion/react'
-import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap, Eye, EyeOff } from 'lucide-react'
+import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap, Eye, EyeOff, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
 import { FormField } from '@/components/molecules/FormField'
 import MxLogo from '@/assets/mx-logo.png'
+import { supabase } from '@/lib/supabase'
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
+
+type LoginMode = 'login' | 'forgot' | 'recovery'
+
+function getInitialMode(): LoginMode {
+    if (typeof window === 'undefined') return 'login'
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('recovery') === '1') return 'recovery'
+    if (window.location.hash.includes('type=recovery') || window.location.hash.includes('access_token=')) return 'recovery'
+    return 'login'
+}
+
+function isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
 
 export default function Login() {
     const { signIn, profile, loading: authLoading } = useAuth()
     const navigate = useNavigate()
+    const [mode, setMode] = useState<LoginMode>(() => getInitialMode())
 
     useEffect(() => {
-        if (profile) {
+        if (profile && mode !== 'recovery') {
             navigate('/', { replace: true })
         }
-    }, [profile, navigate])
+    }, [profile, mode, navigate])
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const passwordRef = React.useRef<HTMLInputElement>(null)
     const [error, setError] = useState('')
+    const [success, setSuccess] = useState('')
     const [loading, setLoading] = useState(false)
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
     const [isHydrated, setIsHydrated] = useState(false)
@@ -33,6 +53,37 @@ export default function Login() {
         localStorage.removeItem('mx_last_email')
         setIsHydrated(true)
     }, [])
+
+    useEffect(() => {
+        if (mode !== 'recovery') return
+
+        let mounted = true
+        const timeoutId = window.setTimeout(async () => {
+            const { data } = await supabase.auth.getSession()
+            if (mounted && !data.session) {
+                setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+            }
+        }, 1200)
+
+        return () => {
+            mounted = false
+            window.clearTimeout(timeoutId)
+        }
+    }, [mode])
+
+    const resetFeedback = () => {
+        setError('')
+        setSuccess('')
+        setFieldErrors({})
+    }
+
+    const switchMode = (nextMode: LoginMode) => {
+        resetFeedback()
+        setMode(nextMode)
+        if (nextMode !== 'recovery' && typeof window !== 'undefined') {
+            window.history.replaceState(null, '', '/login')
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -78,6 +129,85 @@ export default function Login() {
             setError('Erro inesperado ao realizar login.')
             setLoading(false)
         }
+    }
+
+    const handleForgotSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (loading) return
+
+        const newFieldErrors: Record<string, string> = {}
+        if (!email.trim()) newFieldErrors.email = 'E-mail e obrigatorio'
+        else if (!isValidEmail(email)) newFieldErrors.email = 'Informe um e-mail valido'
+        if (Object.keys(newFieldErrors).length > 0) {
+            setFieldErrors(newFieldErrors)
+            return
+        }
+
+        setLoading(true)
+        resetFeedback()
+        const redirectTo = `${window.location.origin}/login?recovery=1`
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo })
+        setLoading(false)
+
+        if (resetError) {
+            setError('Não foi possível enviar o link agora. Tente novamente em alguns minutos.')
+            return
+        }
+
+        setSuccess('Se o e-mail estiver autorizado, enviaremos um link para redefinir a senha.')
+    }
+
+    const handleRecoverySubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (loading) return
+
+        const newFieldErrors: Record<string, string> = {}
+        if (!newPassword.trim()) newFieldErrors.newPassword = 'Nova senha e obrigatoria'
+        else if (!isStrongPassword(newPassword)) newFieldErrors.newPassword = PASSWORD_POLICY_MESSAGE
+        if (!confirmPassword.trim()) newFieldErrors.confirmPassword = 'Confirme a nova senha'
+        else if (newPassword !== confirmPassword) newFieldErrors.confirmPassword = 'As senhas nao coincidem'
+        if (Object.keys(newFieldErrors).length > 0) {
+            setFieldErrors(newFieldErrors)
+            return
+        }
+
+        setLoading(true)
+        resetFeedback()
+
+        const { data: sessionData } = await supabase.auth.getSession()
+        const userId = sessionData.session?.user.id
+        if (!userId) {
+            setLoading(false)
+            setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+            return
+        }
+
+        const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+        if (updateError) {
+            setLoading(false)
+            setError(updateError.message)
+            return
+        }
+
+        const { error: profileError } = await supabase
+            .from('usuarios')
+            .update({ must_change_password: false })
+            .eq('id', userId)
+
+        await supabase.auth.signOut()
+        setLoading(false)
+
+        if (profileError) {
+            setError(profileError.message)
+            return
+        }
+
+        setNewPassword('')
+        setConfirmPassword('')
+        setPassword('')
+        setMode('login')
+        window.history.replaceState(null, '', '/login')
+        setSuccess('Senha redefinida com sucesso. Entre com a nova senha.')
     }
 
     if (authLoading && !profile) {
@@ -169,55 +299,122 @@ export default function Login() {
                     className="w-full max-w-sm"
                 >
                     <div className="mb-10">
-                        <h2 className="text-2xl font-black text-text-primary tracking-tight mb-2">Acessar sistema</h2>
-                        <p className="text-text-tertiary text-sm">Entre com suas credenciais para continuar</p>
+                        <h2 className="text-2xl font-black text-text-primary tracking-tight mb-2">
+                            {mode === 'login' && 'Acessar sistema'}
+                            {mode === 'forgot' && 'Recuperar acesso'}
+                            {mode === 'recovery' && 'Definir nova senha'}
+                        </h2>
+                        <p className="text-text-tertiary text-sm">
+                            {mode === 'login' && 'Entre com suas credenciais para continuar'}
+                            {mode === 'forgot' && 'Informe seu e-mail para receber o link seguro'}
+                            {mode === 'recovery' && 'Crie uma nova senha para finalizar a recuperação'}
+                        </p>
                     </div>
 
-                    <form key={isHydrated ? 'hydrated' : 'initial'} onSubmit={handleSubmit} noValidate className="flex flex-col" style={{ gap: '1.25rem' }}>
-                        <FormField
-                            id="login-email"
-                            label="E-mail"
-                            type="email"
-                            value={email}
-                            onChange={e => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })) }}
-                            placeholder="seu@email.com.br"
-                            required
-                            autoFocus={!email}
-                            autoComplete="email"
-                            icon={<Mail size={18} />}
-                            error={fieldErrors.email}
-                        />
+                    <form
+                        key={`${isHydrated ? 'hydrated' : 'initial'}-${mode}`}
+                        onSubmit={mode === 'login' ? handleSubmit : mode === 'forgot' ? handleForgotSubmit : handleRecoverySubmit}
+                        noValidate
+                        className="flex flex-col"
+                        style={{ gap: '1.25rem' }}
+                    >
+                        {mode !== 'recovery' && (
+                            <FormField
+                                id="login-email"
+                                label="E-mail"
+                                type="email"
+                                value={email}
+                                onChange={e => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })) }}
+                                placeholder="seu@email.com.br"
+                                required
+                                autoFocus={!email}
+                                autoComplete="email"
+                                icon={<Mail size={18} />}
+                                error={fieldErrors.email}
+                            />
+                        )}
 
-                        <FormField
-                            id="login-password"
-                            label="Senha"
-                            type={showPassword ? 'text' : 'password'}
-                            ref={passwordRef}
-                            value={password}
-                            onChange={e => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' })) }}
-                            placeholder="Digite sua senha"
-                            required
-                            autoComplete="current-password"
-                            icon={<Lock size={18} />}
-                            error={fieldErrors.password}
-                            rightAdornment={
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(v => !v)}
-                                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                                    aria-pressed={showPassword}
-                                    className="w-mx-lg h-mx-lg p-mx-tiny rounded-mx-md text-text-tertiary hover:text-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 transition-colors"
-                                    tabIndex={-1}
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            }
-                        />
+                        {mode === 'login' && (
+                            <FormField
+                                id="login-password"
+                                label="Senha"
+                                type={showPassword ? 'text' : 'password'}
+                                ref={passwordRef}
+                                value={password}
+                                onChange={e => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' })) }}
+                                placeholder="Digite sua senha"
+                                required
+                                autoComplete="current-password"
+                                icon={<Lock size={18} />}
+                                error={fieldErrors.password}
+                                rightAdornment={
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(v => !v)}
+                                        aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                                        aria-pressed={showPassword}
+                                        className="w-mx-lg h-mx-lg p-mx-tiny rounded-mx-md text-text-tertiary hover:text-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 transition-colors"
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                }
+                            />
+                        )}
+
+                        {mode === 'recovery' && (
+                            <>
+                                <FormField
+                                    id="recovery-password"
+                                    label="Nova senha"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={newPassword}
+                                    onChange={e => { setNewPassword(e.target.value); if (fieldErrors.newPassword) setFieldErrors(prev => ({ ...prev, newPassword: '' })) }}
+                                    placeholder="Mínimo 10, Aa1#"
+                                    required
+                                    autoFocus
+                                    autoComplete="new-password"
+                                    icon={<KeyRound size={18} />}
+                                    error={fieldErrors.newPassword}
+                                    rightAdornment={
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(v => !v)}
+                                            aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                                            aria-pressed={showPassword}
+                                            className="w-mx-lg h-mx-lg p-mx-tiny rounded-mx-md text-text-tertiary hover:text-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 transition-colors"
+                                            tabIndex={-1}
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    }
+                                />
+                                <FormField
+                                    id="recovery-password-confirm"
+                                    label="Confirmar senha"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={confirmPassword}
+                                    onChange={e => { setConfirmPassword(e.target.value); if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: '' })) }}
+                                    placeholder="Repita a nova senha"
+                                    required
+                                    autoComplete="new-password"
+                                    icon={<Lock size={18} />}
+                                    error={fieldErrors.confirmPassword}
+                                />
+                            </>
+                        )}
 
                         {error && (
                             <div className="flex items-center px-4 py-3 bg-status-error-surface border border-status-error/20 rounded-xl" style={{ gap: '0.75rem' }}>
                                 <AlertCircle size={16} className="text-status-error shrink-0" />
                                 <span className="text-status-error text-sm font-medium">{error}</span>
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="flex items-center px-4 py-3 bg-status-success/10 border border-status-success/20 rounded-xl" style={{ gap: '0.75rem' }}>
+                                <CheckCircle2 size={16} className="text-status-success shrink-0" />
+                                <span className="text-status-success text-sm font-medium">{success}</span>
                             </div>
                         )}
 
@@ -229,10 +426,38 @@ export default function Login() {
                         >
                             {loading ? (
                                 <RefreshCw size={18} className="animate-spin" />
+                            ) : mode === 'forgot' ? (
+                                <>ENVIAR LINK<Mail size={18} /></>
+                            ) : mode === 'recovery' ? (
+                                <>SALVAR SENHA<KeyRound size={18} /></>
                             ) : (
                                 <>ENTRAR<ArrowRight size={18} /></>
                             )}
                         </button>
+
+                        {mode === 'login' && (
+                            <button
+                                type="button"
+                                onClick={() => switchMode('forgot')}
+                                className="h-mx-11 rounded-xl border border-border-default bg-white text-text-secondary hover:text-brand-primary hover:border-brand-primary/30 hover:bg-surface-alt font-black text-xs uppercase tracking-widest transition-colors flex items-center justify-center"
+                                style={{ gap: '0.5rem' }}
+                            >
+                                <KeyRound size={16} />
+                                Esqueci minha senha
+                            </button>
+                        )}
+
+                        {mode !== 'login' && (
+                            <button
+                                type="button"
+                                onClick={() => switchMode('login')}
+                                className="h-mx-11 rounded-xl border border-border-default bg-white text-text-secondary hover:text-brand-primary hover:border-brand-primary/30 hover:bg-surface-alt font-black text-xs uppercase tracking-widest transition-colors flex items-center justify-center"
+                                style={{ gap: '0.5rem' }}
+                            >
+                                <ArrowLeft size={16} />
+                                Voltar ao login
+                            </button>
+                        )}
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-border-default text-center">

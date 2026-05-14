@@ -12,6 +12,7 @@ export interface E2EUser {
 }
 
 let cachedAdmin: SupabaseClient | null = null
+let cachedAnon: SupabaseClient | null = null
 
 export function getSupabaseAdmin() {
   if (cachedAdmin) return cachedAdmin
@@ -27,6 +28,22 @@ export function getSupabaseAdmin() {
     auth: { autoRefreshToken: false, persistSession: false },
   })
   return cachedAdmin
+}
+
+export function getSupabaseAnon() {
+  if (cachedAnon) return cachedAnon
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !anonKey) {
+    throw new Error('SUPABASE_URL/VITE_SUPABASE_URL and SUPABASE_ANON_KEY/VITE_SUPABASE_ANON_KEY are required for E2E setup.')
+  }
+
+  cachedAnon = createClient(supabaseUrl, anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+  return cachedAnon
 }
 
 export async function createE2EAdminUser(options?: {
@@ -168,6 +185,47 @@ export async function getMustChangePassword(userId: string) {
 
   if (error) throw new Error(error.message)
   return data?.must_change_password ?? null
+}
+
+export async function createPasswordRecoveryLink(email: string, redirectTo: string) {
+  const admin = getSupabaseAdmin()
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: { redirectTo },
+  })
+
+  if (error) throw new Error(`Failed to generate recovery link: ${error.message}`)
+
+  const properties = data.properties as { action_link?: string } | null
+  if (!properties?.action_link) throw new Error('Supabase did not return a recovery action link.')
+  return properties.action_link
+}
+
+export async function createPasswordRecoverySession(email: string) {
+  const admin = getSupabaseAdmin()
+  const anon = getSupabaseAnon()
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+  })
+
+  if (error) throw new Error(`Failed to generate recovery link: ${error.message}`)
+  if (!data.properties?.hashed_token) throw new Error('Supabase did not return a recovery token hash.')
+
+  const { data: verified, error: verifyError } = await anon.auth.verifyOtp({
+    type: 'recovery',
+    token_hash: data.properties.hashed_token,
+  })
+
+  if (verifyError) throw new Error(`Failed to verify recovery token: ${verifyError.message}`)
+  if (!verified.session) throw new Error('Supabase recovery verification did not return a session.')
+
+  return {
+    accessToken: verified.session.access_token,
+    refreshToken: verified.session.refresh_token,
+    expiresIn: verified.session.expires_in,
+  }
 }
 
 export async function getFirstRankingStoreName() {
