@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import {
   createE2EAdminUser,
   createPasswordRecoverySession,
+  createPasswordRecoveryLink,
   deleteE2EUser,
   E2E_DEFAULT_PASSWORD,
   getMustChangePassword,
@@ -82,6 +83,19 @@ test.describe('Password recovery login flow', () => {
 
     await expect(page.getByText(/Não foi possível conectar ao servidor de autenticação/i)).toBeVisible()
     await expect(page.getByText(/E-mail ou senha inválidos/i)).toHaveCount(0)
+  })
+
+  test('generated recovery link points to the login recovery route', async () => {
+    const link = await createPasswordRecoveryLink(
+      'marianedcs@gmail.com',
+      'https://mxperformance.vercel.app/login?recovery=1',
+    )
+
+    const url = new URL(link)
+    expect(url.origin).toBe('https://fbhcmzzgwjdgkctlfvbo.supabase.co')
+    expect(url.pathname).toBe('/auth/v1/verify')
+    expect(url.searchParams.get('type')).toBe('recovery')
+    expect(url.searchParams.get('redirect_to')).toBe('https://mxperformance.vercel.app/login?recovery=1')
   })
 
   test('recovery link lets a user set a new password and clears must_change_password', async ({ page }, testInfo) => {
