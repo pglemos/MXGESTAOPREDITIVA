@@ -52,6 +52,27 @@ test.describe('Password recovery login flow', () => {
     await expect(page.getByText(/Se o e-mail estiver autorizado/i)).toBeVisible()
   })
 
+  test('forgot password request handles Supabase resend rate limit as a neutral state', async ({ page }) => {
+    await page.route('**/auth/v1/recover*', async route => {
+      await route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          code: 'over_email_send_rate_limit',
+          message: 'For security purposes, you can only request this after 57 seconds.',
+        }),
+      })
+    })
+
+    await page.goto('/login')
+    await page.getByRole('button', { name: /Esqueci minha senha/i }).click()
+    await page.fill('input[type="email"]', 'marianedcs@gmail.com')
+    await page.getByRole('button', { name: /Enviar link/i }).click()
+
+    await expect(page.getByText(/Já existe um link recente/i)).toBeVisible()
+    await expect(page.getByText(/Não foi possível enviar/i)).toHaveCount(0)
+  })
+
   test('recovery link lets a user set a new password and clears must_change_password', async ({ page }, testInfo) => {
     user = await createE2EAdminUser({
       prefix: `password-recovery-${testInfo.project.name}`,

@@ -150,6 +150,11 @@ export default function Login() {
         setLoading(false)
 
         if (resetError) {
+            const resetErrorMessage = resetError.message.toLowerCase()
+            if (resetError.code === 'over_email_send_rate_limit' || resetError.status === 429 || resetErrorMessage.includes('only request this after')) {
+                setSuccess('Já existe um link recente para este e-mail. Aguarde alguns instantes antes de solicitar novamente.')
+                return
+            }
             setError('Não foi possível enviar o link agora. Tente novamente em alguns minutos.')
             return
         }
