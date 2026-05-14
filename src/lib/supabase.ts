@@ -20,6 +20,21 @@ export function getSupabaseUrl(): string {
     return supabaseUrl
 }
 
+export function getSupabaseAnonKey(): string {
+    return supabaseAnonKey
+}
+
+export function getSupabaseFunctionHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+    const headers: Record<string, string> = { Accept: 'application/json', ...extraHeaders }
+
+    if (supabaseAnonKey) {
+        headers.apikey = supabaseAnonKey
+        headers.Authorization = `Bearer ${supabaseAnonKey}`
+    }
+
+    return headers
+}
+
 export function getSupabaseFunctionUrl(functionName: string): string {
     if (!supabaseUrl) {
         throw new Error('Supabase URL missing. Check your .env file.')

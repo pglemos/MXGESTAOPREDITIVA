@@ -9,6 +9,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      // Remove the legacy app-wide service worker so public customer links never open stale builds.
+      selfDestroying: true,
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'mx-logo.png'],
       manifest: {

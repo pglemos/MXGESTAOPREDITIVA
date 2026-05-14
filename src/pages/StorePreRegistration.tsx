@@ -3,7 +3,7 @@ import type React from 'react'
 import { useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Building2, Camera, Check, CheckCircle2, FileText, LockKeyhole, Mail, MapPin, Phone, ShieldCheck, Upload, UserRound } from 'lucide-react'
-import { getSupabaseFunctionUrl } from '@/lib/supabase'
+import { getSupabaseFunctionHeaders, getSupabaseFunctionUrl } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
 type PublicStore = {
@@ -69,17 +69,44 @@ const steps = [
 ] as const
 const storeFetchAttempts = 3
 const storeFetchRetryDelayMs = 450
+const storeFetchTimeoutMs = 12_000
 
 function wait(ms: number) {
   return new Promise(resolve => window.setTimeout(resolve, ms))
 }
 
 function publicStoreFetchErrorMessage(error: Error) {
-  if (error.message === 'Failed to fetch') {
+  if (error.name === 'AbortError') {
+    return 'A conexão demorou mais que o esperado. Tente novamente.'
+  }
+
+  if (error.message === 'Failed to fetch' || error.message === 'Network request failed') {
     return 'Não foi possível conectar ao cadastro da loja. Tente novamente.'
   }
 
   return error.message || 'Não foi possível carregar esta loja.'
+}
+
+async function fetchPublicStore(functionUrl: string, storeSlug: string, attempt: number) {
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), storeFetchTimeoutMs)
+  const url = new URL(functionUrl)
+  url.searchParams.set('store_slug', storeSlug)
+  url.searchParams.set('attempt', String(attempt))
+  url.searchParams.set('ts', String(Date.now()))
+
+  try {
+    const response = await fetch(url.toString(), {
+      cache: 'no-store',
+      headers: getSupabaseFunctionHeaders(),
+      signal: controller.signal,
+    })
+    const payload = await response.json().catch(() => null)
+    if (!response.ok || !payload?.success) throw new Error(payload?.error || 'Loja não localizada.')
+    return payload.store as PublicStore
+  } finally {
+    window.clearTimeout(timeout)
+  }
 }
 
 export default function StorePreRegistration() {
@@ -127,13 +154,8 @@ export default function StorePreRegistration() {
       try {
         for (let attempt = 1; attempt <= storeFetchAttempts; attempt += 1) {
           try {
-            const response = await fetch(`${functionUrl}?store_slug=${encodeURIComponent(storeSlug)}`, {
-              cache: 'no-store',
-              headers: { Accept: 'application/json' },
-            })
-            const payload = await response.json()
-            if (!response.ok || !payload.success) throw new Error(payload.error || 'Loja não localizada.')
-            if (!cancelled) setStore(payload.store)
+            const publicStore = await fetchPublicStore(functionUrl, storeSlug, attempt)
+            if (!cancelled) setStore(publicStore)
             return
           } catch (err) {
             lastError = err instanceof Error ? err : new Error('Não foi possível carregar esta loja.')
@@ -244,7 +266,7 @@ export default function StorePreRegistration() {
     try {
       const response = await fetch(functionUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getSupabaseFunctionHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           store_id: store.id,
           ...form,

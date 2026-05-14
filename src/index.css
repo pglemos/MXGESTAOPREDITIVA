@@ -1478,12 +1478,20 @@ html, body {
   }
 
   .mx-pre-btn {
-    flex: 1;
     padding: 0 12px;
+  }
+
+  .mx-pre-actions .mx-pre-btn {
+    flex: 1;
   }
 
   .mx-pre-btn.primary {
     min-width: 0;
+  }
+
+  .mx-pre-state .mx-pre-btn {
+    flex: 0 0 auto;
+    width: min(100%, 260px);
   }
 }
 
