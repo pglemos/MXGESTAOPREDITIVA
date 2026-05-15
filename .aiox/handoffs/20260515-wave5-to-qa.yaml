@@ -1,0 +1,22 @@
+handoffId: 20260515-wave5-to-qa
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@qa'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 5
+  title: Personalizacao por loja e app readiness
+inputs:
+  - docs/app-readiness/apple-google-submission-checklist.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-qa-test-plan.md
+  - docs/stories/story-APP-30-app-readiness-mobile-pwa.md
+  - docs/stories/story-APP-31-checklist-submissao-apple-google.md
+tasks:
+  - Define mobile role regression matrix.
+  - Validate PWA installability and critical flows.
+  - Require evidence before any store submission.
+outputs:
+  - QA readiness gate.
+  - Mobile regression notes.

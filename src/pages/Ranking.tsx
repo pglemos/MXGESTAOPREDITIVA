@@ -21,7 +21,6 @@ import { Card } from '@/components/molecules/Card'
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 
 // New components
-import { LiveFloor } from '@/features/ranking/components/LiveFloor'
 import { BattleView } from '@/features/ranking/components/BattleView'
 import { StoreBattleView } from '@/features/ranking/components/StoreBattleView'
 import { SellerProfileModal } from '@/features/ranking/components/SellerProfileModal'
@@ -42,7 +41,7 @@ function GlobalRanking() {
     const [isRefetching, setIsRefetching] = useState(false)
     const [filterStore, setFilterStore] = useState<string>('all')
     const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
-    const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'live' | 'store-arena'>('leaderboard')
+    const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'store-arena'>('leaderboard')
     const [battleOpponents, setBattleOpponents] = useState<string[]>([])
     const [storeOpponents, setStoreOpponents] = useState<string[]>([])
     const [hideStoreNames, setHideStoreNames] = useState(() => {
@@ -165,12 +164,9 @@ function GlobalRanking() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="grid grid-cols-2 sm:flex w-full sm:w-auto bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4 gap-mx-xs">
+                    <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs">
                         <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Classificação
-                        </button>
-                        <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                        <div className="w-mx-xs h-mx-xs rounded-full bg-status-success animate-pulse" /> Live Floor
                         </button>
                         <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
@@ -264,8 +260,6 @@ function GlobalRanking() {
             </div>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-                {viewMode === 'live' && <LiveFloor ranking={displayRanking} />}
-
                 {viewMode === 'battle' && (
                     <div className="animate-slide-up">
                         {battleOpponents.length < 2 && (
@@ -527,7 +521,7 @@ function StoreRankingView() {
     const { checkins, loading: checkinsLoading, fetchCheckins } = useCheckins()
     const { metaRules, fetchMetaRules } = useStoreMetaRules()
     
-    const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'live'>('leaderboard')
+    const [viewMode, setViewMode] = useState<'leaderboard' | 'battle'>('leaderboard')
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
@@ -581,12 +575,9 @@ function StoreRankingView() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="grid grid-cols-2 sm:flex w-full sm:w-auto bg-white/40 p-1.5 rounded-2xl border border-white/60 shadow-glass backdrop-blur-md mr-0 sm:mr-4 gap-mx-xs">
+                    <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs">
                         <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Classificação
-                        </button>
-                        <button onClick={() => setViewMode('live')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'live' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <div className="w-mx-xs h-mx-xs rounded-full bg-status-success animate-pulse" /> Live Floor
                         </button>
                         <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
@@ -629,8 +620,6 @@ function StoreRankingView() {
             </div>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-                {viewMode === 'live' && <LiveFloor ranking={sortedRanking} />}
-
                 {viewMode === 'battle' && (
                     <div className="animate-slide-up">
                         {battleOpponents.length < 2 && (

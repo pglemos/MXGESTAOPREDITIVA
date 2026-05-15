@@ -76,6 +76,15 @@ const PMR_STEPS = [
     duration: '3 horas',
     evidence_required: 'Plano de ação atualizado',
     checklist_template: ['Analisar resultado do trimestre', 'Apresentar os pontos positivos e a melhorar', 'Solicitar feedback', 'Revisar processos críticos implementados', 'Criar plano de ação dos próximos 3 meses', 'Apresentar o modelo de acompanhamento online']
+  },
+  {
+    visit_number: 8,
+    program_key: 'pmr_7',
+    objective: 'Acompanhamento Mensal',
+    target: 'Proprietário e Gerente',
+    duration: '3 horas',
+    evidence_required: 'Resumo executivo do período, pendências revisadas e próximas ações registradas',
+    checklist_template: ['Revisar indicadores do período selecionado', 'Revisar pendências do plano de ação', 'Registrar pontos positivos do mês', 'Registrar pontos a melhorar', 'Definir próximas ações e responsáveis', 'Confirmar próxima data de acompanhamento']
   }
 ]
 
@@ -84,7 +93,7 @@ async function seed() {
 
   await supabase.from('programas_visita_consultoria').upsert({
     program_key: 'pmr_7',
-    name: 'PMR - 7 Visitas',
+    name: 'PMR - 7 Visitas + Acompanhamento Mensal',
     total_visits: 7,
     active: true,
   }, { onConflict: 'program_key' })

@@ -31,8 +31,8 @@ export default defineConfig({
           { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
         ],
         shortcuts: [
-          { name: 'Lançamento Diário', short_name: 'Lançamento', url: '/checkin', description: 'Registrar lançamento diário' },
-          { name: 'Ranking', short_name: 'Ranking', url: '/ranking', description: 'Ver ranking ao vivo' },
+          { name: 'Lançamento Diário', short_name: 'Lançamento', url: '/lancamento-diario', description: 'Registrar lançamento diário' },
+          { name: 'Classificação', short_name: 'Classificação', url: '/classificacao', description: 'Ver classificação ao vivo' },
           { name: 'Home', short_name: 'Home', url: '/home', description: 'Tela inicial' },
         ],
       },

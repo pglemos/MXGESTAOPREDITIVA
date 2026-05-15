@@ -4,6 +4,7 @@ import type {
   ConsultingMarketingMonthly,
   ConsultingMetricCatalogItem,
   ConsultingMetricResult,
+  ConsultingMetricTarget,
   ConsultingParameterValue,
   PmrFormResponse,
 } from '@/lib/schemas/consulting-client.schema'
@@ -38,6 +39,7 @@ export type PmrFinancialRow = {
   volume_vendas?: number | null
   volume_leads?: number | null
   volume_agendamentos?: number | null
+  volume_visitas?: number | null
   capital_proprio?: number | null
   net_profit?: number | null
 }
@@ -49,6 +51,10 @@ export type PmrMetricView = {
   value_type: ConsultingMetricCatalogItem['value_type']
   direction: ConsultingMetricCatalogItem['direction']
   latest_result: number | null
+  target_value: number | null
+  achievement_rate: number | null
+  previous_year_result: number | null
+  yoy_delta: number | null
   market_average: number | null
   best_practice: number | null
   status: PmrMetricStatus
@@ -281,6 +287,8 @@ export function derivePmrMetricResults(input: {
 
   const sellers = new Set(salesRows.map((row) => String(row.seller_name || '').trim()).filter(Boolean))
   const salesCount = salesRows.length || marketingSales || numberValue(financialRow?.volume_vendas)
+  const appointments = numberValue(financialRow?.volume_agendamentos)
+  const visits = numberValue(financialRow?.volume_visitas)
   const internetSalesFromEntries = salesRows.filter((row) => isInternetSource(row.channel) || isInternetSource(row.media)).length
   const internetSales = internetSalesFromEntries || marketingSales
   const doorSales = salesRows.filter((row) => isDoorFlow(row.channel) || isDoorFlow(row.media)).length
@@ -291,12 +299,16 @@ export function derivePmrMetricResults(input: {
   const otherSales = Math.max(0, salesRows.length - classifiedSales)
 
   if (leads) setIfMeaningful(results, buildResult(input.clientId, 'leads_received', referenceDate, leads, { from: 'marketing_mensal_consultoria', rows: marketingRows.length }, source))
+  if (appointments) setIfMeaningful(results, buildResult(input.clientId, 'appointments', referenceDate, appointments, { from: 'financeiro_consultoria.volume_agendamentos' }, 'dre'))
+  if (visits) setIfMeaningful(results, buildResult(input.clientId, 'visits', referenceDate, visits, { from: 'financeiro_consultoria.volume_visitas' }, 'dre'))
   if (marketingInvestment) setIfMeaningful(results, buildResult(input.clientId, 'internet_investment', referenceDate, marketingInvestment, { from: 'marketing_mensal_consultoria.investment' }, source))
   if (internetSales) setIfMeaningful(results, buildResult(input.clientId, 'sales_internet', referenceDate, internetSales, { from: 'marketing/sales_entries' }, source))
   if (marketingInvestment && internetSales) {
     setIfMeaningful(results, buildResult(input.clientId, 'internet_cost_per_sale', referenceDate, marketingInvestment / internetSales, { from: 'internet_investment/sales_internet' }, source))
   }
   if (salesCount) setIfMeaningful(results, buildResult(input.clientId, 'sales_total', referenceDate, salesCount, { from: salesRows.length ? 'entradas_vendas_consultoria' : 'marketing_mensal_consultoria' }, source))
+  if (appointments && visits) setIfMeaningful(results, buildResult(input.clientId, 'appointment_to_visit_rate', referenceDate, visits / appointments, { from: 'visits/appointments' }, 'dre'))
+  if (visits && salesCount) setIfMeaningful(results, buildResult(input.clientId, 'visit_to_sale_rate', referenceDate, salesCount / visits, { from: 'sales_total/visits' }, 'dre'))
   if (sellers.size) setIfMeaningful(results, buildResult(input.clientId, 'seller_count', referenceDate, sellers.size, { from: 'distinct seller_name' }, source))
   if (salesCount && sellers.size) {
     setIfMeaningful(results, buildResult(input.clientId, 'avg_sales_per_seller', referenceDate, salesCount / sellers.size, { from: 'sales_total/seller_count' }, source))
@@ -380,25 +392,38 @@ export function classifyPmrMetric(result: number | null | undefined, direction?:
 export function buildPmrMetricViews(input: {
   catalog: ConsultingMetricCatalogItem[]
   latestResults: Map<string, ConsultingMetricResult>
+  targetByMetric?: Map<string, ConsultingMetricTarget>
+  previousYearByMetric?: Map<string, ConsultingMetricResult>
   parameterByMetric: Map<string, ConsultingParameterValue>
+  includeEmpty?: boolean
 }) {
   return input.catalog
     .map((metric) => {
       const result = input.latestResults.get(metric.metric_key)
+      const target = input.targetByMetric?.get(metric.metric_key)
+      const previous = input.previousYearByMetric?.get(metric.metric_key)
       const params = input.parameterByMetric.get(metric.metric_key)
+      const latestResult = result?.result_value ?? null
+      const targetValue = target?.target_value ?? params?.target_default ?? null
+      const achievementRate = latestResult != null && targetValue ? latestResult / targetValue : null
+      const previousYearResult = previous?.result_value ?? null
       return {
         metric_key: metric.metric_key,
         label: metric.label,
         area: metric.area,
         value_type: metric.value_type,
         direction: metric.direction,
-        latest_result: result?.result_value ?? null,
+        latest_result: latestResult,
+        target_value: targetValue,
+        achievement_rate: achievementRate,
+        previous_year_result: previousYearResult,
+        yoy_delta: latestResult != null && previousYearResult ? (latestResult - previousYearResult) / previousYearResult : null,
         market_average: params?.market_average ?? null,
         best_practice: params?.best_practice ?? null,
         status: classifyPmrMetric(result?.result_value, metric.direction, params?.green_threshold, params?.yellow_threshold),
       }
     })
-    .filter((row) => row.latest_result != null || row.market_average != null || row.best_practice != null)
+    .filter((row) => input.includeEmpty || row.latest_result != null || row.market_average != null || row.best_practice != null)
 }
 
 function statusWord(status: PmrMetricStatus) {

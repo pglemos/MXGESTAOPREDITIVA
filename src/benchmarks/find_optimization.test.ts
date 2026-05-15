@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 
 const QUICK_ACTIONS = [
   { label: 'Tentei Contato', icon: 'PhoneCall', tone: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
@@ -9,41 +9,56 @@ const QUICK_ACTIONS = [
   { label: 'Perdido', icon: 'XCircle', tone: 'text-rose-600 bg-rose-50 border-rose-100' },
 ]
 
-const ITERATIONS = 1_000_000;
 const targetLabel = 'Proposta'; // Near the end, to make the find do some work
 
-test('Benchmark: Duplicate find vs Single find', () => {
-  // Scenario 1: Unoptimized (Duplicate find)
-  const startUnoptimized = performance.now();
-  for (let i = 0; i < ITERATIONS; i++) {
-    const obj = {
-      icon: QUICK_ACTIONS.find(a => a.label === targetLabel)?.icon || 'FileText',
-      color: QUICK_ACTIONS.find(a => a.label === targetLabel)?.tone || 'bg-gray-50',
-    };
-  }
-  const endUnoptimized = performance.now();
-  const timeUnoptimized = endUnoptimized - startUnoptimized;
+const findAction = (onVisit: () => void) => {
+  return QUICK_ACTIONS.find(action => {
+    onVisit();
+    return action.label === targetLabel;
+  });
+};
 
-  // Scenario 2: Optimized (Single find)
-  const startOptimized = performance.now();
-  for (let i = 0; i < ITERATIONS; i++) {
-    const action = QUICK_ACTIONS.find(a => a.label === targetLabel);
-    const obj = {
+test('Optimization: Duplicate find vs Single find', () => {
+  let unoptimizedVisits = 0;
+  const unoptimized = {
+    icon: findAction(() => {
+      unoptimizedVisits += 1;
+    })?.icon || 'FileText',
+    color: findAction(() => {
+      unoptimizedVisits += 1;
+    })?.tone || 'bg-gray-50',
+  };
+
+  let optimizedVisits = 0;
+  const action = findAction(() => {
+    optimizedVisits += 1;
+  });
+  const optimized = {
+    icon: action?.icon || 'FileText',
+    color: action?.tone || 'bg-gray-50',
+  };
+
+  expect(optimized).toEqual(unoptimized);
+  expect(optimizedVisits).toBeGreaterThan(0);
+  expect(unoptimizedVisits).toBe(optimizedVisits * 2);
+});
+
+test('Optimization: fallback stays equivalent when action is missing', () => {
+  const missingLabel = 'Acao inexistente';
+
+  const duplicateFind = () => ({
+    icon: QUICK_ACTIONS.find(action => action.label === missingLabel)?.icon || 'FileText',
+    color: QUICK_ACTIONS.find(action => action.label === missingLabel)?.tone || 'bg-gray-50',
+  });
+
+  const singleFind = () => {
+    const action = QUICK_ACTIONS.find(action => action.label === missingLabel);
+
+    return {
       icon: action?.icon || 'FileText',
       color: action?.tone || 'bg-gray-50',
     };
   }
-  const endOptimized = performance.now();
-  const timeOptimized = endOptimized - startOptimized;
 
-  console.log(`\n--- BENCHMARK RESULTS (${ITERATIONS} iterations) ---`);
-  console.log(`Unoptimized (2 finds): ${timeUnoptimized.toFixed(2)} ms`);
-  console.log(`Optimized (1 find):    ${timeOptimized.toFixed(2)} ms`);
-  console.log(`Improvement:           ${((timeUnoptimized - timeOptimized) / timeUnoptimized * 100).toFixed(2)}% faster`);
-  console.log(`Speedup multiplier:    ${(timeUnoptimized / timeOptimized).toFixed(2)}x`);
-  console.log(`------------------------------------------------\n`);
-
-  // It's technically possible for unoptimized to occasionally match or barely beat optimized due to JIT and small array size
-  // but logically optimized is O(N) vs 2*O(N).
-  expect(timeOptimized).toBeLessThanOrEqual(timeUnoptimized * 1.5); // Allow some JIT variance, but optimized should generally be faster
+  expect(singleFind()).toEqual(duplicateFind());
 });

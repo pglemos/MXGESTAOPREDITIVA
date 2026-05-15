@@ -1,0 +1,23 @@
+handoffId: 20260515-wave4-to-architect
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@architect'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 4
+  title: Desenvolvimento de pessoas
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-architecture-notes.md
+  - docs/stories/story-DEV-26-trilha-novo-colaborador.md
+  - docs/stories/story-DEV-27-feedback-pdi-recomendacao-conteudo.md
+  - docs/stories/story-training-notifications-12/spec/spec.md
+  - docs/stories/story-pdi-complete-09/spec/spec.md
+  - docs/stories/story-structured-feedback-08/spec/spec.md
+tasks:
+  - Define contract for onboarding trail assignment and completion.
+  - Confirm deterministic recommendation model from feedback/PDI to content.
+  - Check conflict with existing notification and training contracts.
+outputs:
+  - Architecture notes for Wave 4.
+  - Implementation risks and dependencies.

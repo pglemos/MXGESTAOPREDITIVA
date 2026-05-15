@@ -1,0 +1,21 @@
+handoffId: 20260515-wave4-to-data-engineer
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@data-engineer'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 4
+  title: Desenvolvimento de pessoas
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-data-rls-notes.md
+  - docs/stories/story-DEV-25-biblioteca-conteudo-temas-avaliacao.md
+  - docs/stories/story-DEV-26-trilha-novo-colaborador.md
+  - docs/stories/story-DEV-27-feedback-pdi-recomendacao-conteudo.md
+tasks:
+  - Map existing training tables and RLS.
+  - Propose minimal schema for content themes, ratings, suggestions and trail assignments.
+  - Validate access boundaries for vendedor, gerente, dono, admin and admin master.
+outputs:
+  - Data/RLS note for Wave 4.
+  - Migration plan if schema changes are needed.

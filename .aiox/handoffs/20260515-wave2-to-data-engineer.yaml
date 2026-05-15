@@ -1,0 +1,23 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "data-engineer"
+  story_context:
+    story_id: "CONS-18"
+    story_path: "docs/stories/story-CONS-18-planejamento-estrategico-planejado-realizado.md"
+    story_status: "Draft"
+    current_task: "Classify indicator sources and planned vs realized model"
+    branch: "main"
+  decisions:
+    - "Use existing PMR catalog, targets and results before adding schema."
+    - "Previous-year comparison is optional and should not block rendering."
+    - "Trade-in volume is explicitly requested but source is unconfirmed."
+  files_modified:
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-indicators-mvp.md"
+    - "docs/stories/story-CONS-18-planejamento-estrategico-planejado-realizado.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-implementation.yaml"
+  blockers:
+    - "Need PM/PO approval of indicator MVP before schema changes."
+  next_action: "Mark each indicator as existing, derived or missing; propose minimal migration only for missing MVP data."
+

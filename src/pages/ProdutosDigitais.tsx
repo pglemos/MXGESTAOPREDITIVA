@@ -3,17 +3,13 @@ import { toast } from 'sonner'
 import {
   Archive,
   Edit3,
-  ExternalLink,
-  Globe,
   Package,
   Plus,
   RefreshCw,
   Search,
   ShieldCheck,
-  Smartphone,
   Trash2,
   Users,
-  X,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { z } from 'zod'
@@ -28,7 +24,7 @@ import { Card } from '@/components/molecules/Card'
 import { Modal } from '@/components/organisms/Modal'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
-import { cn } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 import type { DigitalProduct, UserRole } from '@/types/database'
 
@@ -38,7 +34,6 @@ type ProductStatus = 'ativo' | 'rascunho' | 'arquivado'
 type ProductForm = {
   name: string
   description: string
-  link: string
   category: string
   target_roles: ProductAudience[]
   status: ProductStatus
@@ -68,7 +63,6 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
   {
     name: 'PPA',
     description: 'Produto base para agenda e acompanhamento de consultoria MX.',
-    link: '/produtos',
     category: 'Consultoria',
     target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
@@ -77,7 +71,6 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
   {
     name: 'PPA PREMIUM',
     description: 'Produto premium para agenda e acompanhamento de consultoria MX.',
-    link: '/produtos',
     category: 'Consultoria',
     target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
@@ -86,7 +79,6 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
   {
     name: 'PMR RENOVAÇÃO',
     description: 'Produto de renovação PMR para agenda e rotinas comerciais.',
-    link: '/produtos',
     category: 'Gestão',
     target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
@@ -95,7 +87,6 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
   {
     name: 'PMR PRESENCIAL',
     description: 'Produto PMR presencial para agenda e execução de consultoria.',
-    link: '/produtos',
     category: 'Gestão',
     target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
@@ -104,7 +95,6 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
   {
     name: 'PMR ONLINE',
     description: 'Produto PMR online para agenda e acompanhamento remoto.',
-    link: '/produtos',
     category: 'Gestão',
     target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
@@ -113,7 +103,6 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
   {
     name: 'MENTORIA',
     description: 'Produto de mentoria para desenvolvimento comercial e acompanhamento.',
-    link: '/produtos',
     category: 'Treinamento',
     target_roles: DEFAULT_PRODUCT_AUDIENCES,
     status: 'ativo',
@@ -124,7 +113,6 @@ const PRODUCT_DEFAULT_CATALOG: Array<Omit<ProductForm, 'sort_order'> & { sort_or
 const defaultForm: ProductForm = {
   name: '',
   description: '',
-  link: '',
   category: 'Operacional',
   target_roles: DEFAULT_PRODUCT_AUDIENCES,
   status: 'ativo',
@@ -134,7 +122,6 @@ const defaultForm: ProductForm = {
 const productSchema = z.object({
   name: z.string().trim().min(3, 'Nome muito curto'),
   description: z.string().trim().min(5, 'Descrição necessária'),
-  link: z.string().trim().url('URL inválida').refine(isSafeProductUrl, 'Use uma URL HTTPS externa ou uma URL do próprio sistema.'),
   category: z.string().trim().min(2, 'Categoria obrigatória'),
   target_roles: z.array(z.enum(['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente', 'vendedor'])).min(1, 'Selecione ao menos um público'),
   status: z.enum(['ativo', 'rascunho', 'arquivado']),
@@ -151,15 +138,9 @@ function normalizeProduct(product: ProductRecord): ProductRecord {
   }
 }
 
-function isSafeProductUrl(rawUrl: string) {
-  try {
-    const url = new URL(rawUrl)
-    if (url.protocol === 'https:') return true
-    if (typeof window !== 'undefined' && url.origin === window.location.origin) return true
-    return false
-  } catch {
-    return false
-  }
+function buildInternalProductLink(productName: string) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mxperformance.vercel.app'
+  return `${origin}/produtos?produto=${slugify(productName)}`
 }
 
 function getAudienceForRole(role: UserRole | null): ProductAudience | null {
@@ -190,7 +171,6 @@ function toForm(product: ProductRecord): ProductForm {
   return {
     name: normalized.name || '',
     description: normalized.description || '',
-    link: normalized.link || '',
     category: normalized.category || 'Operacional',
     target_roles: normalized.target_roles || DEFAULT_PRODUCT_AUDIENCES,
     status: normalized.status || 'ativo',
@@ -251,10 +231,9 @@ export default function ProdutosDigitais() {
       return
     }
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mxperformance.vercel.app'
     const payload = missingProducts.map((product) => ({
       ...product,
-      link: new URL(product.link, origin).toString(),
+      link: buildInternalProductLink(product.name),
     }))
 
     setCreatingDefaults(true)
@@ -308,7 +287,7 @@ export default function ProdutosDigitais() {
     const payload = {
       name: result.data.name,
       description: result.data.description,
-      link: result.data.link,
+      link: buildInternalProductLink(result.data.name),
       category: result.data.category,
       target_roles: result.data.target_roles,
       status: result.data.status,
@@ -373,7 +352,6 @@ export default function ProdutosDigitais() {
           product.name,
           product.description,
           product.category,
-          product.link,
           ...(product.target_roles || []),
         ].some((value) => String(value || '').toLowerCase().includes(term))
       })
@@ -583,27 +561,13 @@ export default function ProdutosDigitais() {
 
                       <footer className="mt-auto flex flex-col gap-mx-sm border-t border-border-default pt-mx-md">
                         <div className="flex items-center justify-between">
-                          <div className="flex gap-mx-xs">
-                            <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-tertiary" aria-hidden="true">
-                              <Smartphone size={14} />
-                            </div>
-                            <div className="w-mx-lg h-mx-lg rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-tertiary" aria-hidden="true">
-                              <Globe size={14} />
-                            </div>
-                          </div>
+                          <Badge variant="ghost" className="px-0 text-mx-micro">Produto interno</Badge>
                           <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">
                             Ordem {product.sort_order ?? 0}
                           </Typography>
                         </div>
 
                         <div className="grid grid-cols-1 gap-mx-xs">
-                          <Button
-                            variant="outline"
-                            className="w-full rounded-mx-xl text-mx-micro font-black uppercase tracking-widest"
-                            onClick={() => window.open(product.link, '_blank', 'noopener,noreferrer')}
-                          >
-                            ACESSAR PRODUTO <ExternalLink size={14} className="ml-2" />
-                          </Button>
                           {canManage && (
                             <div className="grid grid-cols-2 gap-mx-xs">
                               <Button variant="ghost" size="sm" onClick={() => openEditForm(product)} className="text-brand-primary">
@@ -632,7 +596,7 @@ export default function ProdutosDigitais() {
           setEditingProduct(null)
         }}
         title={editingProduct ? 'Editar Produto Digital' : 'Novo Produto Digital'}
-        description="Defina acesso, público e dados comerciais do produto"
+        description="Defina o produto interno, público e dados comerciais"
         size="2xl"
         footer={
           <>
@@ -649,7 +613,7 @@ export default function ProdutosDigitais() {
         }
       >
         <form id="digital-product-form" onSubmit={handleSubmit} className="space-y-mx-lg">
-          <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-mx-md">
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="product-name" variant="caption" className="font-black uppercase tracking-widest">
                 Nome do produto *
@@ -659,18 +623,6 @@ export default function ProdutosDigitais() {
                 value={form.name}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
                 placeholder="Ex: Método Vendedor Profissional"
-                required
-              />
-            </div>
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="product-link" variant="caption" className="font-black uppercase tracking-widest">
-                Link do produto *
-              </Typography>
-              <Input
-                id="product-link"
-                value={form.link}
-                onChange={(event) => setForm((current) => ({ ...current, link: event.target.value }))}
-                placeholder="https://..."
                 required
               />
             </div>

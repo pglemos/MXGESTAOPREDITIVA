@@ -1,0 +1,43 @@
+handoffId: 20260515-specialist-gates-to-release-readiness
+createdAt: '2026-05-15T16:13:37-03:00'
+from: '@aiox-master'
+to:
+  - '@qa'
+  - '@data-engineer'
+  - '@devops'
+  - '@pm'
+status: completed
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  workflow: story-development-cycle
+  currentPhase: release_readiness
+  gate: PASS
+summary:
+  completed:
+    - QA gate artifact updated to PASS with authenticated role smoke.
+    - PO accepted MVP and partial-MVP boundaries.
+    - Data/RLS predeploy review updated to PASS with positive and negative RLS smoke.
+    - Remote Supabase migrations applied through 20260515162000.
+    - DevOps pre-push report created; push held for staging scope review.
+  releaseHolds:
+    - Staging scope review in dirty worktree.
+    - CodeRabbit/PR review evidence.
+    - PWA/wrapper/native decision before real store submission.
+inputs:
+  - docs/qa/gates/epic-mx-cons-dev-20260515.yml
+  - docs/qa/reports/epic-mx-cons-dev-20260515-qa-review.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/po-acceptance-note.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/data-rls-predeploy-review.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/devops-prepush-report.md
+requiredNextActions:
+  - owner: '@devops'
+    action: 'Review staging scope, rerun gates after staging, commit and create draft PR.'
+  - owner: '@qa'
+    action: 'Review draft PR evidence and rerun role smoke if staged code changes.'
+  - owner: '@pm'
+    action: 'Decide publication path and demo account requirements before real Apple/Google submission.'
+outputs:
+  - QA gate PASS.
+  - Data/RLS smoke evidence PASS.
+  - Draft PR readiness pending DevOps staging scope review.
+  - Publication decision pending PM/DevOps.

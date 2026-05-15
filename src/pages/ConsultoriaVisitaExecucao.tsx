@@ -16,6 +16,8 @@ import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Textarea } from '@/components/atoms/Textarea'
+import { DatePicker } from '@/components/atoms/DatePicker'
+import { Select } from '@/components/atoms/Select'
 import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySlug'
 import { useConsultingMethodology } from '@/hooks/useConsultingClients'
 import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
@@ -23,6 +25,13 @@ import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
+import { getPmrVisitDisplayLabel, isPmrSchedulableVisitNumber } from '@/lib/consultoria/pmr-visit-rules'
+import {
+  getVisitAnalysisPeriodFromPreset,
+  isValidVisitAnalysisPeriod,
+  VISIT_ANALYSIS_PERIOD_PRESETS,
+  type VisitAnalysisPeriodPreset,
+} from '@/lib/consultoria/visit-analysis-period'
 import { Modal } from '@/components/organisms/Modal'
 
 import { VisitHeaderBase } from '@/features/consultoria/components/VisitHeaderBase'
@@ -30,10 +39,12 @@ import { VisitOneHighFidelity } from '@/features/consultoria/components/VisitOne
 import {
   VisitTwoExecution, VisitThreeExecution, VisitFourExecution,
   VisitFiveExecution, VisitSixExecution, VisitSevenExecution,
+  VisitEightExecution,
   VisitChecklist
 } from '@/features/consultoria/components/VisitExecutionViews'
 import { VisitReportTemplate } from '@/features/consultoria/components/VisitReportTemplate'
 import { formatVisitDraftForGroup } from '@/lib/consultoria/visit-report-draft'
+import { buildExecutiveVisitReport } from '@/lib/consultoria/executive-visit-report'
 import type { ConsultingVisit, ConsultingVisitAttachment, VisitHeaderBaseData, VisitOneQuantData } from '@/features/consultoria/types'
 
 import { VisitActionQuickAdd } from '@/features/consultoria/components/VisitActionQuickAdd'
@@ -49,6 +60,16 @@ type VisitDraftPayload = Partial<ConsultingVisit> & {
   consultant_name_manual?: string
   effective_visit_date?: string
 }
+
+const VISIT_FLOW_STEPS = [
+  'Contexto',
+  'Periodo',
+  'Metodologia',
+  'Registros',
+  'Evidencias',
+  'Resumo',
+  'Finalizacao',
+]
 
 function getErrorMessage(err: unknown) {
   return err instanceof Error ? err.message : 'Operação não concluída.'
@@ -87,9 +108,9 @@ export default function ConsultoriaVisitaExecucao() {
   }, [client, clientSlug, visitNumber])
 
   useEffect(() => {
-    if (!client?.slug || (visitNum >= 1 && visitNum <= 7)) return
-    const normalizedVisit = visitNum < 1 ? 1 : 7
-    toast.info('PMR agora opera com visitas de 1 a 7. Redirecionando para a etapa válida.')
+    if (!client?.slug || isPmrSchedulableVisitNumber(visitNum)) return
+    const normalizedVisit = visitNum < 1 ? 1 : 8
+    toast.info('PMR opera com visitas de 1 a 7 e acompanhamento mensal. Redirecionando para a etapa válida.')
     navigate(`/consultoria/clientes/${client.slug}/visitas/${normalizedVisit}`, { replace: true })
   }, [client?.slug, navigate, visitNum])
 
@@ -101,12 +122,29 @@ export default function ConsultoriaVisitaExecucao() {
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
+  const [analysisPeriodPreset, setAnalysisPeriodPreset] = useState<VisitAnalysisPeriodPreset>('custom')
+  const [analysisPeriodStart, setAnalysisPeriodStart] = useState('')
+  const [analysisPeriodEnd, setAnalysisPeriodEnd] = useState('')
 
   const [headerBase, setHeaderBase] = useState<VisitHeaderBaseData>({
     meta_mensal: '', projecao: '', leads_mes: '', estoque_disponivel: '',
     consultant_name: '', visit_date: new Date().toISOString().split('T')[0],
     tempo: '1 DIA', alvo: 'Todos'
   })
+
+  useEffect(() => {
+    setAnalysisPeriodPreset((visit?.analysis_period_preset as VisitAnalysisPeriodPreset | null) || 'custom')
+    setAnalysisPeriodStart(visit?.analysis_period_start || '')
+    setAnalysisPeriodEnd(visit?.analysis_period_end || '')
+  }, [visit?.analysis_period_end, visit?.analysis_period_preset, visit?.analysis_period_start])
+
+  const handleAnalysisPeriodPresetChange = (preset: VisitAnalysisPeriodPreset) => {
+    setAnalysisPeriodPreset(preset)
+    if (preset === 'custom') return
+    const period = getVisitAnalysisPeriodFromPreset(preset)
+    setAnalysisPeriodStart(period.start)
+    setAnalysisPeriodEnd(period.end)
+  }
 
   const [quantData, setQuantData] = useState<VisitOneQuantData>(DEFAULT_VISIT_ONE_QUANT_DATA)
 
@@ -200,8 +238,12 @@ export default function ConsultoriaVisitaExecucao() {
 
   const handleSave = async (complete: boolean = false) => {
     if (!clientId || !visitNum) return
-    if (visitNum < 1 || visitNum > 7) {
-      toast.error('O PMR trabalha apenas com visitas de 1 a 7.')
+    if (!isPmrSchedulableVisitNumber(visitNum)) {
+      toast.error('O PMR trabalha com visitas de 1 a 7 e acompanhamento mensal.')
+      return
+    }
+    if (!isValidVisitAnalysisPeriod(analysisPeriodStart, analysisPeriodEnd)) {
+      toast.error('Informe um período de análise válido.')
       return
     }
 
@@ -221,6 +263,9 @@ export default function ConsultoriaVisitaExecucao() {
         status: 'em_andamento',
         meta_mensal: headerBase.meta_mensal, projecao: headerBase.projecao,
         leads_mes: headerBase.leads_mes, estoque_disponivel: headerBase.estoque_disponivel,
+        analysis_period_start: analysisPeriodStart || null,
+        analysis_period_end: analysisPeriodEnd || null,
+        analysis_period_preset: analysisPeriodStart && analysisPeriodEnd ? analysisPeriodPreset : null,
         consultant_name_manual: headerBase.consultant_name,
         effective_visit_date: headerBase.visit_date, quant_data: quantData,
         next_cycle_goal: nextCycleGoal
@@ -242,6 +287,9 @@ export default function ConsultoriaVisitaExecucao() {
         delete legacyPayload.acknowledged_at
         delete legacyPayload.acknowledged_by
         delete legacyPayload.next_cycle_goal
+        delete legacyPayload.analysis_period_start
+        delete legacyPayload.analysis_period_end
+        delete legacyPayload.analysis_period_preset
 
         const { data: retryVisit, error: retryError } = await supabase
           .from('visitas_consultoria')
@@ -317,37 +365,25 @@ export default function ConsultoriaVisitaExecucao() {
   }
 
   const generateReportText = () => {
-    const safeSales = quantData?.sales || []
-    const safeMarketing = quantData?.marketing || { investment: 0, leads: 0, origin: [] }
-    const safeStock = quantData?.stock || { qty: 0, avg_price: 0, fipe_delta: 0, mileage: 0, total_inv: 0 }
-
-    const totalSales = safeSales.reduce((acc, s) => acc + (s.value || 0), 0)
-    const cpl = safeMarketing.leads > 0 ? (safeMarketing.investment / safeMarketing.leads).toFixed(2) : '0.00'
-
-    return `📍 RELATÓRIO DE VISITA ${visitNum}: ${step?.objective?.toUpperCase()}
-
---- CABEÇALHO BASE ---
-Consultor: ${headerBase.consultant_name}
-Data: ${headerBase.visit_date ? new Date(headerBase.visit_date).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')}
-Loja: ${client?.name}
-Meta: ${headerBase.meta_mensal} | Projeção: ${headerBase.projecao}
-Leads: ${headerBase.leads_mes} | Estoque: ${headerBase.estoque_disponivel}
-
-${visitNum === 1 ? `--- INDICADORES QUANTITATIVOS ---
-Vendas Trimestre: ${totalSales} carros
-Marketing (CPL): R$ ${cpl}
-Volume Leads: ${safeMarketing.leads}/mês
-Estoque: ${safeStock.qty} carros\n` : ''}
---- RELATO DA VISITA ---
-${executiveSummary || '(Pendente)'}
-
---- FEEDBACK E PRÓXIMOS PASSOS ---
-${feedbackClient || '(Nenhum)'}
-
---- OBJETIVO PRÓXIMO CICLO ---
-${nextCycleGoal || '(A definir)'}
-
-Gerado via MX PERFORMANCE`
+    return buildExecutiveVisitReport({
+      clientName: client?.name,
+      visitNumber: visitNum,
+      objective: step?.objective,
+      consultantName: headerBase.consultant_name,
+      visitDate: headerBase.visit_date,
+      analysisPeriodPreset,
+      analysisPeriodStart,
+      analysisPeriodEnd,
+      monthlyGoal: headerBase.meta_mensal,
+      projection: headerBase.projecao,
+      leads: headerBase.leads_mes,
+      inventory: headerBase.estoque_disponivel,
+      executiveSummary,
+      feedbackClient,
+      nextCycleGoal,
+      checklist,
+      attachments,
+    })
   }
 
   const handleDownloadPDF = async () => {
@@ -393,6 +429,9 @@ Gerado via MX PERFORMANCE`
                 consultant_id: profile?.id || null,
                 auxiliary_consultant_id: null,
                 objective: step?.objective || null,
+                analysis_period_start: analysisPeriodStart || null,
+                analysis_period_end: analysisPeriodEnd || null,
+                analysis_period_preset: analysisPeriodStart && analysisPeriodEnd ? analysisPeriodPreset : null,
                 checklist_data: checklist,
                 feedback_client: feedbackClient,
                 executive_summary: executiveSummary,
@@ -419,7 +458,7 @@ Gerado via MX PERFORMANCE`
           </Link>
           <div>
             <div className="flex items-center gap-mx-sm">
-               <Typography variant="h1" className="text-2xl font-black text-black tracking-tighter uppercase">VISITA <span className="text-brand-primary">{visitNum}</span></Typography>
+               <Typography variant="h1" className="text-2xl font-black text-black tracking-tighter uppercase">{getPmrVisitDisplayLabel(visitNum)}</Typography>
                <div className={cn(
                  "px-mx-sm py-0.5 rounded-mx-full text-mx-nano font-black tracking-mx-widest uppercase shadow-mx-sm border",
                  visit?.status === 'concluida' ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-mx-orange-500/10 text-mx-orange-600 border-mx-orange-200 animate-pulse"
@@ -459,11 +498,67 @@ Gerado via MX PERFORMANCE`
 
         <div className="lg:col-span-2 space-y-mx-lg">
 
+          <div className="rounded-mx-2xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-mx-sm">
+              {VISIT_FLOW_STEPS.map((item, index) => (
+                <div key={item} className="min-h-mx-14 rounded-mx-xl border border-border-subtle bg-surface-alt/40 px-mx-sm py-mx-xs">
+                  <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-mx-widest">{String(index + 1).padStart(2, '0')}</Typography>
+                  <Typography variant="p" className="text-xs font-black uppercase leading-tight text-black">{item}</Typography>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <VisitHeaderBase
             data={headerBase}
             onChange={(u) => setHeaderBase(prev => ({ ...prev, ...u }))}
             clientName={client.name}
           />
+
+          <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden">
+            <div className="flex flex-col gap-mx-md">
+              <div className="flex items-center gap-mx-sm border-b border-border-subtle pb-mx-md">
+                <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Calendar size={20} /></div>
+                <div>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Periodo de Analise</Typography>
+                  <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-mx-widest">
+                    Define o recorte usado na conversa e no relatorio
+                  </Typography>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md">
+                <Select
+                  label="Recorte"
+                  value={analysisPeriodPreset}
+                  onChange={(event) => handleAnalysisPeriodPresetChange(event.target.value as VisitAnalysisPeriodPreset)}
+                >
+                  {VISIT_ANALYSIS_PERIOD_PRESETS.map((preset) => (
+                    <option key={preset.value} value={preset.value}>{preset.label}</option>
+                  ))}
+                </Select>
+                <div className="space-y-mx-xs">
+                  <Typography as="label" variant="caption" className="font-black uppercase tracking-widest">Inicio</Typography>
+                  <DatePicker
+                    value={analysisPeriodStart}
+                    onChange={(event) => {
+                      setAnalysisPeriodPreset('custom')
+                      setAnalysisPeriodStart(event.target.value)
+                    }}
+                  />
+                </div>
+                <div className="space-y-mx-xs">
+                  <Typography as="label" variant="caption" className="font-black uppercase tracking-widest">Fim</Typography>
+                  <DatePicker
+                    value={analysisPeriodEnd}
+                    onChange={(event) => {
+                      setAnalysisPeriodPreset('custom')
+                      setAnalysisPeriodEnd(event.target.value)
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
 
           <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden">
              <div className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-subtle pb-mx-md">
@@ -478,6 +573,7 @@ Gerado via MX PERFORMANCE`
              {visitNum === 5 && <VisitFiveExecution storeId={resolvedStoreId} onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 6 && <VisitSixExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 7 && <VisitSevenExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
+             {visitNum === 8 && <VisitEightExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
 
              <div className="mt-mx-lg pt-mx-lg border-t border-border-subtle">
                 <Typography variant="tiny" tone="muted" className="mb-mx-sm block font-black tracking-mx-widest uppercase">Checklist de Tarefas</Typography>

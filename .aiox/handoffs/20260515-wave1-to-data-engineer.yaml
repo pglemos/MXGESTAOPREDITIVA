@@ -1,0 +1,24 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "data-engineer"
+  story_context:
+    story_id: "CONS-13/CONS-15"
+    story_path: "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-data-rls-notes.md"
+    story_status: "Preflight"
+    current_task: "Schema/RLS plan for visit 8 and analysis period"
+    branch: "main"
+  decisions:
+    - "Visit 8 is monthly follow-up after PMR 1..7."
+    - "Normal visit create/edit/list should support 1..8."
+    - "Legacy completion RPC must keep rejecting 8."
+    - "Analysis period likely belongs on visitas_consultoria."
+  files_modified:
+    - "docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md"
+    - "docs/stories/story-CONS-15-filtro-periodo-visita-relatorio.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-data-rls-notes.md"
+  blockers:
+    - "Architect should confirm program_key strategy before migration."
+  next_action: "Draft migration plan for visit 8 and analysis period, including schema tests and RLS checks."
+

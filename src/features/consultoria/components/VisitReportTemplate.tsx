@@ -4,6 +4,8 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { getPmrVisitDisplayLabel } from '@/lib/consultoria/pmr-visit-rules'
+import { formatVisitAnalysisPeriodLabel } from '@/lib/consultoria/visit-analysis-period'
 
 const STORAGE_URL = 'https://fbhcmzzgwjdgkctlfvbo.supabase.co/storage/v1/object/evidencias-consultoria/'
 
@@ -18,6 +20,12 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
   const visitDateRaw = headerBase.visit_date || visit.scheduled_at || new Date().toISOString()
   const visitDate = new Date(visitDateRaw)
   const attachments = visit.attachments || []
+  const visitLabel = getPmrVisitDisplayLabel(visit.visit_number)
+  const analysisPeriodLabel = formatVisitAnalysisPeriodLabel({
+    preset: visit.analysis_period_preset,
+    start: visit.analysis_period_start,
+    end: visit.analysis_period_end,
+  })
   
   const formattedDate = !isNaN(visitDate.getTime()) 
     ? format(visitDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
@@ -47,7 +55,7 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
         <div style={{ textAlign: 'right' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 900, color: colors.primary, margin: 0 }}>RELATÓRIO DE AUDITORIA</h3>
           <div style={{ display: 'inline-block', backgroundColor: colors.primary, color: '#FFFFFF', padding: '4px 16px', borderRadius: '999px', fontSize: '12px', fontWeight: 'bold', marginTop: '8px' }}>
-            VISITA {visit.visit_number}
+            {visitLabel.toUpperCase()}
           </div>
         </div>
       </header>
@@ -63,6 +71,7 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
           <div style={{ fontSize: '10px', color: colors.textMuted, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>Data da Auditoria</div>
           <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000000' }}>{formattedDate}</div>
           <div style={{ fontSize: '14px', color: '#333333' }}>Consultor: {headerBase.consultant_name || 'Consultor MX'}</div>
+          <div style={{ fontSize: '12px', color: colors.textMuted, marginTop: '6px' }}>Periodo analisado: {analysisPeriodLabel}</div>
         </div>
       </section>
 

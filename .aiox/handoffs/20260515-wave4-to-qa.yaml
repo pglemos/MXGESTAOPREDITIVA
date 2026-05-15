@@ -1,0 +1,22 @@
+handoffId: 20260515-wave4-to-qa
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@qa'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 4
+  title: Desenvolvimento de pessoas
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-qa-test-plan.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-data-rls-notes.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/risk-register.md
+tasks:
+  - Validate route compatibility for training/development.
+  - Validate PDI/feedback access boundaries.
+  - Validate seller mobile and manager desktop flows.
+  - Block release if development data leaks across users or stores.
+outputs:
+  - QA gate for Wave 4.
+  - Risk notes and required fixes if gate fails.

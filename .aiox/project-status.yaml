@@ -1,21 +1,19 @@
 status:
   branch: main
   modifiedFiles:
-    - docs/frontend/frontend-spec.md
-    - docs/prd/technical-debt-DRAFT.md
-    - docs/prd/technical-debt-assessment.md
-    - docs/reports/TECHNICAL-DEBT-REPORT.md
-    - docs/reviews/db-specialist-review.md
-  modifiedFilesTotalCount: 15
+    - src/components/Layout.tsx
+    - src/components/organisms/AgendaCalendar.tsx
+    - src/pages/AgendaAdmin.tsx
+    - src/pages/Checkin.tsx
+    - src/pages/DashboardLoja.tsx
+  modifiedFilesTotalCount: 11
   recentCommits:
-    - >-
-      fix(design-system): enforce atomic design tokens and resolve ts syntax
-      errors
-    - 'feat: comprehensive UI/UX overhaul (Login, Layout, Tokens, Assets)'
+    - 'feat: harden google drive sharing'
+    - 'test: cover recovery redirect configuration'
   currentEpic: null
   currentStory: null
-  lastUpdate: '2026-04-13T10:50:00.939Z'
+  lastUpdate: '2026-05-15T14:13:21.516Z'
   isGitRepo: true
-timestamp: 1776077400941
+timestamp: 1778854401518
 ttl: 60
-gitFingerprint: 1776070107074.3325:1776075789017.6548
+gitFingerprint: 1777573827605.3738:1778801367803.5989

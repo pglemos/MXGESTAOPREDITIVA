@@ -1,0 +1,23 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "pm"
+  story_context:
+    story_id: "CONS-17"
+    story_path: "docs/stories/story-CONS-17-recorte-indicadores-planejamento-mvp.md"
+    story_status: "Draft"
+    current_task: "Validate MVP indicator subset for owner/strategic view"
+    branch: "main"
+  decisions:
+    - "Wave 2 reuses ConsultingStrategicView and ConsultingMonthlyCloseView."
+    - "Do not implement all 45 indicators in MVP."
+    - "Proposed MVP has 16 indicators across sales, funnel, marketing, stock, trade-in and margin."
+  files_modified:
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-indicators-mvp.md"
+    - "docs/stories/story-CONS-17-recorte-indicadores-planejamento-mvp.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-implementation.yaml"
+  blockers:
+    - "Need product decision on financial sensitivity for owner view."
+  next_action: "Approve or adjust the MVP indicator list, then hand to @data-engineer for source classification."
+

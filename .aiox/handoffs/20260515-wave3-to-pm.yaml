@@ -1,0 +1,25 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "pm"
+  story_context:
+    story_id: "OPS-20..OPS-23"
+    story_path: "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-routine-notes.md"
+    story_status: "Draft"
+    current_task: "Validate daily routine MVP"
+    branch: "main"
+  decisions:
+    - "Do not rewrite check-in; evolve existing Checkin, RotinaGerente and MorningReport."
+    - "WhatsApp automation is out of MVP for daily reminders."
+    - "Discipline insight is simple, not full gamification."
+  files_modified:
+    - "docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md"
+    - "docs/stories/story-OPS-21-validacao-gerente-rotina-diaria.md"
+    - "docs/stories/story-OPS-22-notificacoes-puxada-diaria.md"
+    - "docs/stories/story-OPS-23-insights-disciplina-vendedor.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-routine-notes.md"
+  blockers:
+    - "Need business decision for default daily reminder time."
+  next_action: "Approve MVP fields, manager validation rule and discipline display format."
+

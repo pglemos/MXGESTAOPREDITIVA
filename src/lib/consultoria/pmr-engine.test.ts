@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import {
+  buildPmrMetricViews,
   buildPmrStrategicPlan,
   derivePmrMetricResults,
   mergeLatestPmrResults,
@@ -54,6 +55,28 @@ describe('PMR autonomous engine', () => {
     expect(byMetric.get('inventory_investment')).toBe(4960000)
   })
 
+  test('derives funnel appointments and visits when financial source has them', () => {
+    const results = derivePmrMetricResults({
+      clientId: 'client-1',
+      financials: [{
+        id: 'f1',
+        client_id: 'client-1',
+        reference_date: '2026-04-01',
+        volume_vendas: 10,
+        volume_leads: 100,
+        volume_agendamentos: 30,
+        volume_visitas: 20,
+      }],
+    })
+
+    const byMetric = new Map(results.map((result) => [result.metric_key, result.result_value]))
+
+    expect(byMetric.get('appointments')).toBe(30)
+    expect(byMetric.get('visits')).toBe(20)
+    expect(byMetric.get('appointment_to_visit_rate')).toBe(0.6667)
+    expect(byMetric.get('visit_to_sale_rate')).toBe(0.5)
+  })
+
   test('manual result wins over automatic result on the same date', () => {
     const derived = derivePmrMetricResults({
       clientId: 'client-1',
@@ -83,6 +106,80 @@ describe('PMR autonomous engine', () => {
     expect(latest.get('leads_received')?.result_value).toBe(650)
   })
 
+  test('builds planned, realized, achievement and year-over-year metric view rows', () => {
+    const rows = buildPmrMetricViews({
+      includeEmpty: true,
+      catalog: [{
+        metric_key: 'sales_total',
+        label: 'Volume de vendas',
+        area: 'Vendas',
+        direction: 'increase',
+        value_type: 'number',
+        source_scope: 'manual',
+        formula_key: null,
+        active: true,
+        sort_order: 1,
+      }],
+      latestResults: new Map([[
+        'sales_total',
+        {
+          id: '00000000-0000-4000-8000-000000000010',
+          client_id: 'client-1',
+          metric_key: 'sales_total',
+          reference_date: '2026-04-01',
+          result_value: 24,
+          source: 'manual',
+          source_payload: {},
+        },
+      ]]),
+      targetByMetric: new Map([[
+        'sales_total',
+        {
+          id: '00000000-0000-4000-8000-000000000011',
+          client_id: 'client-1',
+          metric_key: 'sales_total',
+          reference_month: '2026-04-01',
+          target_value: 20,
+          source: 'manual',
+        },
+      ]]),
+      previousYearByMetric: new Map([[
+        'sales_total',
+        {
+          id: '00000000-0000-4000-8000-000000000012',
+          client_id: 'client-1',
+          metric_key: 'sales_total',
+          reference_date: '2025-04-01',
+          result_value: 16,
+          source: 'manual',
+          source_payload: {},
+        },
+      ]]),
+      parameterByMetric: new Map([[
+        'sales_total',
+        {
+          id: '00000000-0000-4000-8000-000000000013',
+          parameter_set_id: 'parameter-set-1',
+          metric_key: 'sales_total',
+          market_average: 18,
+          best_practice: 24,
+          target_default: 20,
+          red_threshold: null,
+          yellow_threshold: 18,
+          green_threshold: 20,
+          formula: {},
+          notes: null,
+        },
+      ]]),
+    })
+
+    expect(rows[0].target_value).toBe(20)
+    expect(rows[0].achievement_rate).toBe(1.2)
+    expect(rows[0].previous_year_result).toBe(16)
+    expect(rows[0].yoy_delta).toBe(0.5)
+    expect(rows[0].status).toBe('success')
+  })
+
   test('builds executive plan with actions from metrics and diagnostics', () => {
     const metricRows: PmrMetricView[] = [
       {
@@ -92,6 +189,10 @@ describe('PMR autonomous engine', () => {
         value_type: 'percent',
         direction: 'increase',
         latest_result: 0.12,
+        target_value: 0.3,
+        achievement_rate: 0.4,
+        previous_year_result: null,
+        yoy_delta: null,
         market_average: 0.2,
         best_practice: 0.3,
         status: 'danger',
@@ -103,6 +204,10 @@ describe('PMR autonomous engine', () => {
         value_type: 'percent',
         direction: 'decrease',
         latest_result: 0.36,
+        target_value: 0.15,
+        achievement_rate: 2.4,
+        previous_year_result: null,
+        yoy_delta: null,
         market_average: 0.26,
         best_practice: 0.15,
         status: 'danger',

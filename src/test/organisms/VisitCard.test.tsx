@@ -47,6 +47,11 @@ describe("VisitCard", () => {
     expect(screen.getByText(/Visita 3\/7/)).toBeDefined();
   });
 
+  test("renders monthly follow-up without 8/7 label", () => {
+    renderWithRouter(<VisitCard visit={{ ...mockVisit, visit_number: 8 }} linkTo="/visits/8" />);
+    expect(screen.getByText("Acompanhamento Mensal")).toBeDefined();
+  });
+
   test("links to correct URL", () => {
     renderWithRouter(<VisitCard visit={mockVisit} linkTo="/visits/1" />);
     const links = screen.getAllByRole("link");

@@ -1,0 +1,128 @@
+storyId: EPIC-MX-CONS-DEV-WAVE-2
+createdAt: '2026-05-15T00:00:00-03:00'
+createdBy: '@aiox-master'
+status: pending
+complexity: COMPLEX
+estimatedEffort: 3-5 dias uteis
+scope:
+  wave: 2
+  title: Visao do dono e planejamento estrategico
+  stories:
+    - docs/stories/story-CONS-17-recorte-indicadores-planejamento-mvp.md
+    - docs/stories/story-CONS-18-planejamento-estrategico-planejado-realizado.md
+    - docs/stories/story-CONS-19-visao-dono-performance-alertas.md
+  guidance:
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-kickoff.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-indicators-mvp.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-qa-test-plan.md
+agents:
+  orchestrator: '@aiox-master'
+  product: '@pm'
+  productGate: '@po'
+  architecture: '@architect'
+  data: '@data-engineer'
+  ux: '@ux-design-expert'
+  implementation: '@dev'
+  quality: '@qa'
+phases:
+  - id: phase-1
+    name: Indicator MVP validation
+    description: Approve the first indicator subset before UI/data work.
+    subtasks:
+      - id: '1.1'
+        description: Validate indicator MVP list and classify each source as existing, derived or missing.
+        service: infra
+        owner: '@pm'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-kickoff.md
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-indicators-mvp.md
+          - docs/stories/story-CONS-17-recorte-indicadores-planejamento-mvp.md
+          - src/lib/consultoria/pmr-engine.ts
+        verification:
+          type: manual
+          instructions: PM/PO approve MVP indicators and mark missing sources as backlog.
+        status: pending
+  - id: phase-2
+    name: Strategic view model
+    description: Extend existing PMR metrics into planned vs realized view.
+    subtasks:
+      - id: '2.1'
+        description: Define planned vs realized view model using existing metrics, targets and latest results.
+        service: backend
+        owner: '@architect'
+        files:
+          - src/lib/consultoria/pmr-engine.ts
+          - src/hooks/useConsultingMetrics.ts
+          - src/features/consultoria/types.ts
+        verification:
+          type: command
+          command: npm test
+        status: pending
+        dependencies:
+          - '1.1'
+      - id: '2.2'
+        description: Validate sources for previous-year comparison and trade-in volume.
+        service: database
+        owner: '@data-engineer'
+        files:
+          - src/hooks/useConsultingMetrics.ts
+          - supabase/migrations
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-indicators-mvp.md
+        verification:
+          type: manual
+          instructions: Data engineer documents which fields are existing, missing or deferred.
+        status: pending
+        dependencies:
+          - '1.1'
+  - id: phase-3
+    name: Owner-facing UX
+    description: Build owner/lojista reading layer from strategic and store performance data.
+    subtasks:
+      - id: '3.1'
+        description: Update strategic table to include planned, realized, percent and status without overwhelming admin MX.
+        service: frontend
+        owner: '@dev'
+        files:
+          - src/features/consultoria/components/ConsultingStrategicView.tsx
+          - src/lib/consultoria/pmr-engine.ts
+          - src/hooks/useConsultingMetrics.ts
+        verification:
+          type: command
+          command: npm run typecheck
+        status: pending
+        dependencies:
+          - '2.1'
+      - id: '3.2'
+        description: Design owner performance/alert composition reusing DashboardLoja and PMR metrics.
+        service: frontend
+        owner: '@ux-design-expert'
+        files:
+          - src/pages/DashboardLoja.tsx
+          - src/features/consultoria/components/ConsultingStrategicView.tsx
+          - src/features/consultoria/components/ConsultingActionPlanView.tsx
+        verification:
+          type: browser
+          instructions: Validate owner and admin views stay distinct on desktop and mobile.
+        status: pending
+        dependencies:
+          - '2.1'
+  - id: phase-4
+    name: Quality and access gate
+    description: Validate role visibility and calculation safety.
+    subtasks:
+      - id: '4.1'
+        description: Run full gates and role/access regression for owner/admin/manager.
+        service: infra
+        owner: '@qa'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-qa-test-plan.md
+          - docs/stories/story-CONS-18-planejamento-estrategico-planejado-realizado.md
+          - docs/stories/story-CONS-19-visao-dono-performance-alertas.md
+          - src/test
+        verification:
+          type: command
+          command: npm run lint && npm run typecheck && npm test
+        status: pending
+        dependencies:
+          - '3.1'
+          - '3.2'

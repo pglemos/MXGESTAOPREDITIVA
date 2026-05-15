@@ -62,7 +62,12 @@ export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
       return
     }
 
-    await uploadFiles(selected)
+    const result = await uploadFiles(selected)
+    if (result?.error) {
+      toast.error(result.error)
+      return
+    }
+    toast.success(`${selected.length} ${selected.length === 1 ? 'arquivo enviado' : 'arquivos enviados'}.`)
   }
 
   if (!canUseFiles) {

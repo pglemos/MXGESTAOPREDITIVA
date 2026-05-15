@@ -1,0 +1,277 @@
+epicId: EPIC-MX-CONS-DEV-20260515
+name: MX Consultoria Digital e Desenvolvimento de Pessoas
+source: docs/prd/escopo-reuniao-daniel-sistema-2026-05-15.md
+createdAt: '2026-05-15T00:00:00-03:00'
+createdBy: '@aiox-master'
+status: planned
+workflow:
+  recommended:
+    - '*workflow brownfield-fullstack --mode=guided'
+    - '*workflow spec-pipeline --mode=guided'
+    - '*workflow epic-orchestration --mode=guided'
+  controlArtifacts:
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/execution-brief.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/action-board.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/package-manifest.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/validation-report.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/story-index.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/requirements-traceability.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/risk-register.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/decision-log.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/dependency-matrix.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/go-no-go-checklist.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/agent-routing.md
+  executionPolicy:
+    mode: guided
+    nativeCodexAgents: false
+    useAioxAgentsOnly: true
+    reason: AGENTS.md exige agentes e workflows AIOX para trabalho de agentes neste repositorio.
+qualityGates:
+  required:
+    - npm run lint
+    - npm run typecheck
+    - npm test
+  conditional:
+    - npm run build
+    - playwright por fluxo de papel/mobile
+    - RLS audit quando houver mudanca de banco
+agents:
+  orchestrator:
+    id: '@aiox-master'
+    responsibilities:
+      - coordenar workflow
+      - resolver roteamento entre agentes
+      - manter plano por ondas
+      - acionar correct-course quando escopo fugir dos artefatos
+  product:
+    id: '@pm'
+    responsibilities:
+      - PRD brownfield
+      - priorizacao por valor
+      - metricas de sucesso
+      - recorte dos indicadores MVP
+  ownerValidation:
+    id: '@po'
+    responsibilities:
+      - validar artefatos
+      - garantir rastreabilidade
+      - aprovar checkpoints entre ondas
+  story:
+    id: '@sm'
+    responsibilities:
+      - criar stories executaveis
+      - acceptance criteria
+      - separar escopo por papel e fluxo
+  architecture:
+    id: '@architect'
+    responsibilities:
+      - impacto brownfield
+      - contratos de dados e servicos
+      - plano de implementacao por story
+  data:
+    id: '@data-engineer'
+    responsibilities:
+      - schema
+      - RLS
+      - migrations
+      - indicadores
+      - auditoria de dados
+  ux:
+    id: '@ux-design-expert'
+    responsibilities:
+      - jornada por papel
+      - mobile
+      - clareza das visitas
+      - visao do dono
+  implementation:
+    id: '@dev'
+    responsibilities:
+      - implementar stories
+      - testes locais
+      - atualizar File List
+  quality:
+    id: '@qa'
+    responsibilities:
+      - review de story
+      - risco
+      - regressao
+      - QA gate
+  operations:
+    id: '@devops'
+    responsibilities:
+      - branch
+      - push
+      - PR
+      - deploy
+waves:
+  - id: wave-0
+    name: Requisitos e corte do produto
+    status: planned
+    goal: Validar o escopo da reuniao e transformar em PRD/epics/stories rastreaveis.
+    workflow: spec-pipeline
+    agents:
+      lead: '@pm'
+      support:
+        - '@po'
+        - '@architect'
+        - '@ux-design-expert'
+        - '@data-engineer'
+    outputs:
+      - PRD brownfield aprovado
+      - backlog de epics fechado
+      - decisoes pendentes registradas
+    gate:
+      agent: '@po'
+      criteria:
+        - nenhum requisito sem origem no escopo
+        - dependencias e bloqueadores explicitados
+  - id: wave-1
+    name: Consultoria PMR pronta para uso
+    status: planned
+    goal: Admin/admin master MX executa visita, registra dados e entrega relatorio/resumo ao lojista/dono.
+    workflow: epic-orchestration
+    agents:
+      lead: '@architect'
+      support:
+        - '@ux-design-expert'
+        - '@data-engineer'
+        - '@dev'
+        - '@qa'
+    candidateStories:
+      - CONS-13-visita-8-acompanhamento-mensal
+      - CONS-14-fluxo-sequencial-visita-pmr
+      - CONS-15-filtro-periodo-visita-relatorio
+      - CONS-16-relatorio-executivo-resumo-tempo-real
+    guidance:
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-kickoff.md
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-qa-test-plan.md
+    gate:
+      agent: '@qa'
+      criteria:
+        - visita iniciada pela agenda
+        - relatorio gerado ao final
+        - acesso segregado por papel
+        - regressao PMR 1-7 preservada
+  - id: wave-2
+    name: Visao do dono e planejamento estrategico
+    status: planned
+    goal: Lojista/dono enxerga performance, planejamento, alertas e comparativos em uma leitura clara.
+    workflow: epic-orchestration
+    agents:
+      lead: '@pm'
+      support:
+        - '@data-engineer'
+        - '@ux-design-expert'
+        - '@architect'
+        - '@dev'
+        - '@qa'
+    candidateStories:
+      - CONS-17-recorte-indicadores-planejamento-mvp
+      - CONS-18-planejamento-estrategico-planejado-realizado
+      - CONS-19-visao-dono-performance-alertas
+    guidance:
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-kickoff.md
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-qa-test-plan.md
+    gate:
+      agent: '@po'
+      criteria:
+        - indicadores MVP aprovados
+        - dono nao acessa dados de outras lojas
+        - leitura operacional do admin MX preservada
+  - id: wave-3
+    name: Acompanhamento diario e rotina mobile
+    status: planned
+    goal: Vendedor registra rotina diaria, gerente valida e sistema gera insumos para consultoria.
+    workflow: epic-orchestration
+    agents:
+      lead: '@ux-design-expert'
+      support:
+        - '@pm'
+        - '@architect'
+        - '@data-engineer'
+        - '@dev'
+        - '@qa'
+    candidateStories:
+      - OPS-20-campos-preenchimento-diario-vendedor
+      - OPS-21-validacao-gerente-rotina-diaria
+      - OPS-22-notificacoes-puxada-diaria
+      - OPS-23-insights-disciplina-vendedor
+    guidance:
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-kickoff.md
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-qa-test-plan.md
+    gate:
+      agent: '@qa'
+      criteria:
+        - fluxo mobile validado
+        - gerente valida sem quebrar vendedor
+        - notificacoes respeitam usuario e loja
+  - id: wave-4
+    name: Desenvolvimento de pessoas
+    status: planned
+    goal: Transformar Treinamentos em ambiente de evolucao com biblioteca, trilha, PDI e feedback.
+    workflow: epic-orchestration
+    agents:
+      lead: '@architect'
+      support:
+        - '@pm'
+        - '@ux-design-expert'
+        - '@data-engineer'
+        - '@dev'
+        - '@qa'
+    candidateStories:
+      - DEV-24-reposicionar-treinamentos-desenvolvimento
+      - DEV-25-biblioteca-conteudo-temas-avaliacao
+      - DEV-26-trilha-novo-colaborador
+      - DEV-27-feedback-pdi-recomendacao-conteudo
+    guidance:
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-kickoff.md
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-qa-test-plan.md
+    gate:
+      agent: '@po'
+      criteria:
+        - PDI e feedback existentes reaproveitados
+        - biblioteca nao vira escopo de marketplace
+        - trilha obrigatoria limitada ao novo colaborador no MVP
+  - id: wave-5
+    name: Personalizacao por loja e app readiness
+    status: planned
+    goal: Preparar conteudo personalizado e criterios para submissao mobile.
+    workflow: epic-orchestration
+    agents:
+      lead: '@devops'
+      support:
+        - '@pm'
+        - '@architect'
+        - '@ux-design-expert'
+        - '@dev'
+        - '@qa'
+    candidateStories:
+      - APP-28-trilha-institucional-personalizada-loja
+      - APP-29-curadoria-conteudos-especialistas-fornecedores
+      - APP-30-app-readiness-mobile-pwa
+      - APP-31-checklist-submissao-apple-google
+    guidance:
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-kickoff.md
+      - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-qa-test-plan.md
+    gate:
+      agent: '@devops'
+      criteria:
+        - checklist app store documentado
+        - fluxos core testados
+        - secrets/ambiente revisados sem exposicao de dados
+checkpointPolicy:
+  betweenWaves:
+    agent: '@po'
+    options:
+      - GO
+      - PAUSE
+      - REVIEW
+      - ABORT
+  correctCourse:
+    agent: '@aiox-master'
+    command: '*correct-course'
+    triggers:
+      - requisito novo sem origem
+      - story grande demais
+      - mudanca de arquitetura nao aprovada
+      - risco de RLS ou dados financeiros

@@ -28,6 +28,7 @@ import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
+import { buildDailyRoutineReminder } from '@/lib/daily-routine'
 
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useStoreMetaRules } from '@/hooks/useGoals'
@@ -126,6 +127,7 @@ export default function RotinaGerente() {
     const [routineNotes, setRoutineNotes] = useState('')
     const [savingRoutine, setSavingRoutine] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
+    const [sentReminderKeys, setSentReminderKeys] = useState<Set<string>>(new Set())
 
     const diasInfo = useMemo(() => getDiasInfo(), [])
     const expectedAttainment = useMemo(() => (diasInfo.decorridos / diasInfo.total) * 100, [diasInfo])
@@ -139,7 +141,10 @@ export default function RotinaGerente() {
     const referenceDate = calculateReferenceDate()
     const previousDayCheckins = useMemo(() => checkins.filter(c => c.reference_date === referenceDate), [checkins, referenceDate])
     const pendingSellers = useMemo(() => (sellers || []).filter(s => !s.checkin_today), [sellers])
+    const activeRoutineStoreId = effectiveStoreId || membership?.store_id || ''
     const totalAgendamentosHoje = useMemo(() => previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0), 0), [previousDayCheckins])
+    const previousDayLeads = useMemo(() => previousDayCheckins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0), [previousDayCheckins])
+    const previousDaySales = useMemo(() => previousDayCheckins.reduce((acc, c) => acc + somarVendas([c]), 0), [previousDayCheckins])
     
     const canTriggerMatinal = useMemo(() => reuniaoDone && agendaValidated && pendingSellers.length === 0, [reuniaoDone, agendaValidated, pendingSellers])
 
@@ -182,10 +187,56 @@ export default function RotinaGerente() {
         const { error } = await registerRoutine({
             reference_date: referenceDate,
             checkins_pending_count: pendingSellers.length,
+            sem_registro_count: pendingSellers.length,
+            agd_cart_today: previousDayCheckins.reduce((acc, c) => acc + (c.agd_cart_today || 0), 0),
+            agd_net_today: previousDayCheckins.reduce((acc, c) => acc + (c.agd_net_today || 0), 0),
+            previous_day_leads: previousDayLeads,
+            previous_day_sales: previousDaySales,
+            ranking_snapshot: storeSales.processedRanking.slice(0, 10).map(item => ({
+                user_id: item.user_id,
+                user_name: item.user_name,
+                position: item.position,
+                vnd_total: item.vnd_total,
+                meta: item.meta,
+                atingimento: item.atingimento,
+            })),
             notes: routineNotes,
         })
         setSavingRoutine(false)
         if (error) toast.error(error); else { toast.success('Rotina diária firmada!'); refetchTeam() }
+    }
+
+    const handleSendDailyReminders = async () => {
+        if (!activeRoutineStoreId || pendingSellers.length === 0) return
+
+        const reminders = pendingSellers
+            .map((seller) => buildDailyRoutineReminder({ seller, storeId: activeRoutineStoreId, referenceDate }))
+            .filter((reminder) => !sentReminderKeys.has(reminder.dedupe_key))
+
+        if (reminders.length === 0) {
+            toast.info('Lembretes desta puxada ja foram enviados nesta sessao.')
+            return
+        }
+
+        const results = await Promise.all(reminders.map((reminder) => {
+            return sendNotification({
+                title: reminder.title,
+                message: reminder.message,
+                type: reminder.type,
+                priority: reminder.priority,
+                recipient_id: reminder.recipient_id,
+                store_id: reminder.store_id,
+                link: reminder.link,
+            })
+        }))
+
+        const failed = results.filter(result => result?.error).length
+        if (failed > 0) {
+            toast.error(`${failed} lembrete(s) nao foram enviados.`)
+            return
+        }
+        setSentReminderKeys(prev => new Set([...prev, ...reminders.map(reminder => reminder.dedupe_key)]))
+        toast.success(`${reminders.length} lembrete(s) enviados para vendedores pendentes.`)
     }
 
     return (
@@ -334,6 +385,15 @@ export default function RotinaGerente() {
                                                 <Typography variant="h1" tone={pendingSellers.length > 0 ? 'brand' : 'white'} className="text-5xl tabular-nums leading-none tracking-tighter">{pendingSellers.length}</Typography>
                                             </div>
                                         </div>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={handleSendDailyReminders}
+                                            disabled={pendingSellers.length === 0 || !activeRoutineStoreId}
+                                            className="w-full h-mx-12 rounded-mx-xl font-black uppercase tracking-widest text-mx-tiny"
+                                        >
+                                            <Send size={16} className="mr-2" /> Lembrar Pendentes
+                                        </Button>
                                     </div>
                                 </Card>
 

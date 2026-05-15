@@ -1,0 +1,26 @@
+handoffId: 20260515-wave1-to-dev
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@dev'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 1
+  title: Consultoria PMR pronta para uso
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-architecture-notes.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-data-rls-notes.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-ux-brief.md
+  - docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md
+  - docs/stories/story-CONS-14-fluxo-sequencial-visita-pmr.md
+  - docs/stories/story-CONS-15-filtro-periodo-visita-relatorio.md
+  - docs/stories/story-CONS-16-relatorio-executivo-resumo-tempo-real.md
+tasks:
+  - Implement only after PO/Architect/Data/UX gates are approved.
+  - Preserve PMR 1-7 and legacy completion behavior.
+  - Read current diffs before editing because the worktree has existing user changes.
+  - Update story checklist and File List for every changed file.
+outputs:
+  - Code changes scoped to CONS-13 through CONS-16.
+  - Test evidence for lint, typecheck and unit tests.

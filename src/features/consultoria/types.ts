@@ -127,6 +127,9 @@ export interface ConsultingVisit {
   visit_reason?: string | null
   target_audience?: string | null
   product_name?: string | null
+  analysis_period_start?: string | null
+  analysis_period_end?: string | null
+  analysis_period_preset?: string | null
   checklist_data: Array<{ task: string; completed: boolean }>
   feedback_client: string | null
   executive_summary: string | null

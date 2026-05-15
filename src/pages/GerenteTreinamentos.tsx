@@ -76,7 +76,7 @@ export default function GerenteTreinamentos() {
         setIsRefetching(true)
         await (tab === 'meus' ? refetchMe() : refetchTeam())
         setIsRefetching(false)
-        toast.success('Academy sincronizado!')
+        toast.success('Desenvolvimento sincronizado!')
     }, [tab, refetchMe, refetchTeam])
 
     const handleAssignTraining = async (trainingId: string) => {
@@ -138,9 +138,9 @@ export default function GerenteTreinamentos() {
                 <div className="flex flex-col gap-mx-tiny min-w-0">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">Academy <span className="text-mx-green-700">Gerencial</span></Typography>
+                        <Typography variant="h1">Desenvolvimento <span className="text-mx-green-700">Gerencial</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Mapeamento de Competências & Absorção MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Biblioteca, PDI, devolutivas e absorção MX</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">

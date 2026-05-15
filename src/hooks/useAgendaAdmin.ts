@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { isAdminMasterMxProfile } from '@/lib/agenda/admin-master'
 import type { ConsultingVisit } from '@/features/consultoria/types'
+import { isPmrSchedulableVisitNumber, PMR_FOLLOW_UP_VISIT } from '@/lib/consultoria/pmr-visit-rules'
 
 type CalendarSyncResult = {
   ok: boolean
@@ -56,7 +57,7 @@ export function getCentralSyncError(result: CalendarSyncResult | null) {
 }
 
 function validPmrVisitNumber(visitNumber: number) {
-  return Number.isInteger(visitNumber) && visitNumber >= 1 && visitNumber <= 7
+  return isPmrSchedulableVisitNumber(visitNumber)
 }
 
 export async function syncVisitToGoogle(
@@ -356,7 +357,7 @@ export function useAgendaAdmin() {
           client:clientes_consultoria!client_id(name, slug, status, modality)
         `)
       .gte('visit_number', 1)
-      .lte('visit_number', 7)
+      .lte('visit_number', PMR_FOLLOW_UP_VISIT)
       .order('scheduled_at', { ascending: true })
 
     let eventsQuery = supabase
@@ -482,7 +483,7 @@ export function useAgendaAdmin() {
       return { error: 'Apenas perfis MX podem agendar visitas.' }
     }
     if (!validPmrVisitNumber(input.visit_number)) {
-      return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
+      return { error: 'O PMR trabalha com visitas de 1 a 7 e acompanhamento mensal.' }
     }
 
     const consultantId = canViewAllAgendas ? input.consultant_id : supabaseUser.id
@@ -548,7 +549,7 @@ export function useAgendaAdmin() {
       return { error: 'Apenas perfis MX podem editar visitas.' }
     }
     if (!validPmrVisitNumber(input.visit_number)) {
-      return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
+      return { error: 'O PMR trabalha com visitas de 1 a 7 e acompanhamento mensal.' }
     }
 
     const consultantId = canViewAllAgendas ? input.consultant_id : supabaseUser.id
@@ -831,7 +832,7 @@ export function useAgendaAdmin() {
   const getNextVisitNumber = useCallback((clientId: string) => {
     const clientVisits = visits.filter((v) => v.client_id === clientId)
     const maxNum = clientVisits.reduce((max, v) => Math.max(max, v.visit_number), 0)
-    return Math.min(maxNum + 1, 7)
+    return Math.min(maxNum + 1, PMR_FOLLOW_UP_VISIT)
   }, [visits])
 
   const goToPrevMonth = useCallback(() => {

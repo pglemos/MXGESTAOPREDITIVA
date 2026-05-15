@@ -58,6 +58,13 @@ function hasRequiredScopes(savedScopes: unknown, requiredScopes: string[]): bool
   return requiredScopes.every((scope) => scopeSet.has(scope));
 }
 
+function hasAnyRequiredScope(savedScopes: unknown, acceptedScopes: string[]): boolean {
+  if (acceptedScopes.length === 0) return true;
+  if (!Array.isArray(savedScopes)) return false;
+  const scopeSet = new Set(savedScopes.filter((scope): scope is string => typeof scope === "string"));
+  return acceptedScopes.some((scope) => scopeSet.has(scope));
+}
+
 /**
  * Returns access_token for central MX Google integrations (gestao@mxconsultoria.com.br).
  * Uses GOOGLE_CENTRAL_REFRESH_TOKEN when configured, otherwise falls back to
@@ -121,11 +128,48 @@ export async function getCentralCalendarAccessToken(): Promise<string | null> {
 export const CENTRAL_CALENDAR_ID = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_ID") || "primary";
 export const CENTRAL_CALENDAR_EMAIL = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_EMAIL") || "gestao@mxconsultoria.com.br";
 export const CENTRAL_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
+export const CENTRAL_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 export const CENTRAL_DRIVE_ROOT_FOLDER_ID = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_ID") || "";
 export const CENTRAL_DRIVE_ROOT_FOLDER_NAME = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_NAME") || "MX Performance - Clientes";
 
 export async function getCentralDriveAccessToken(): Promise<string | null> {
-  return getCentralGoogleAccessToken([CENTRAL_DRIVE_SCOPE]);
+  const token = await getCentralGoogleAccessToken([CENTRAL_DRIVE_SCOPE]);
+  if (token) return token;
+
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const adminClient = createClient(
+    requireEnv("SUPABASE_URL", SUPABASE_URL),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+  const { data: tokenRow } = await adminClient
+    .from("tokens_oauth_consultoria")
+    .select("id, access_token, refresh_token, expires_at, scopes")
+    .eq("provider", CENTRAL_PROVIDER)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!tokenRow || !hasAnyRequiredScope(tokenRow.scopes, [CENTRAL_DRIVE_SCOPE, CENTRAL_DRIVE_FILE_SCOPE])) return null;
+
+  try {
+    let accessToken = await decryptToken(tokenRow.access_token);
+    const expiresAt = tokenRow.expires_at ? Date.parse(tokenRow.expires_at) : 0;
+    if (expiresAt && Date.now() >= expiresAt - 60_000 && tokenRow.refresh_token) {
+      const refreshTok = await decryptToken(tokenRow.refresh_token);
+      const refreshed = await refreshAccessToken(refreshTok);
+      const encrypted = await encryptToken(refreshed.access_token);
+      await adminClient
+        .from("tokens_oauth_consultoria")
+        .update({ access_token: encrypted, expires_at: new Date(Date.now() + refreshed.expires_in * 1000).toISOString() })
+        .eq("id", tokenRow.id);
+      accessToken = refreshed.access_token;
+    }
+    return accessToken;
+  } catch {
+    return null;
+  }
 }
 
 export async function googleApiRequest(

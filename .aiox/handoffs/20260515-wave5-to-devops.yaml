@@ -1,0 +1,23 @@
+handoffId: 20260515-wave5-to-devops
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@devops'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 5
+  title: Personalizacao por loja e app readiness
+inputs:
+  - docs/app-readiness/apple-google-submission-checklist.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-qa-test-plan.md
+  - docs/stories/story-APP-30-app-readiness-mobile-pwa.md
+  - docs/stories/story-APP-31-checklist-submissao-apple-google.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-app-readiness-notes.md
+tasks:
+  - Confirm PWA, wrapper native or native app path.
+  - Create Apple/Google submission checklist if approved.
+  - Keep credentials and certificates out of repository docs.
+outputs:
+  - App readiness checklist.
+  - Submission risk note.

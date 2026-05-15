@@ -1,0 +1,22 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "ux-design-expert"
+  story_context:
+    story_id: "OPS-20"
+    story_path: "docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md"
+    story_status: "Draft"
+    current_task: "Mobile seller daily check-in UX"
+    branch: "main"
+  decisions:
+    - "Existing Checkin.tsx is the base."
+    - "Keep daily vs adjustment distinction."
+    - "Make day-before vs today fields clearer."
+  files_modified:
+    - "docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-implementation.yaml"
+  blockers:
+    - "Needs browser/mobile verification after UI changes."
+  next_action: "Refine the mobile seller flow without adding long explanatory text or changing persistence."
+

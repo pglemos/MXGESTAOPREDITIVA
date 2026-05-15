@@ -1,0 +1,22 @@
+handoffId: 20260515-wave3-to-qa
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@qa'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 3
+  title: Acompanhamento diario e rotina mobile
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-qa-test-plan.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-routine-notes.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/risk-register.md
+tasks:
+  - Validate seller mobile check-in.
+  - Validate manager validation boundaries.
+  - Validate notification duplicate behavior.
+  - Block release if role access or mobile check-in fails.
+outputs:
+  - QA gate for Wave 3.
+  - Risk notes and required fixes if gate fails.

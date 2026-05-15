@@ -6,6 +6,7 @@ import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
+import { getPmrVisitDisplayLabel } from '@/lib/consultoria/pmr-visit-rules'
 
 export interface VisitCardData {
   id: string
@@ -129,7 +130,7 @@ export function VisitCard({
             {getVisitStatusBadge(visit.status)}
             <div className="flex items-center gap-mx-xs">
               <Typography variant="tiny" tone="muted">
-                Visita {visit.visit_number}/7
+                {getPmrVisitDisplayLabel(visit.visit_number)}
               </Typography>
             </div>
           </div>

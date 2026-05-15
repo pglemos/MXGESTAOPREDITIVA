@@ -1,0 +1,22 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "ux-design-expert"
+  story_context:
+    story_id: "CONS-19"
+    story_path: "docs/stories/story-CONS-19-visao-dono-performance-alertas.md"
+    story_status: "Draft"
+    current_task: "Owner/lojista performance and alert view"
+    branch: "main"
+  decisions:
+    - "Owner view must be simpler than admin MX operational view."
+    - "Use decision-oriented cards/alerts, not a large spreadsheet."
+    - "Mobile readability is required."
+  files_modified:
+    - "docs/stories/story-CONS-19-visao-dono-performance-alertas.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-implementation.yaml"
+  blockers:
+    - "Need indicator MVP and data availability before final UI."
+  next_action: "Design the owner reading layer using DashboardLoja and PMR strategic data without admin controls."
+

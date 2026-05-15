@@ -22,6 +22,7 @@ import {
   type ConsultingMethodologyStep,
   type ConsultingVisitProgram,
 } from '@/lib/schemas/consulting-client.schema'
+import { isPmrMainCycleVisitNumber, isPmrSchedulableVisitNumber } from '@/lib/consultoria/pmr-visit-rules'
 
 type ConsultingAssignableUser = {
   id: string
@@ -78,7 +79,7 @@ export function useConsultingClients() {
         const clientRows = (data || []) as unknown as ConsultingClientWithVisits[]
         const clientsWithLastVisit = clientRows.map(client => {
           const finishedVisits = (client.visitas_consultoria || [])
-            .filter(v => v.visit_number >= 1 && v.visit_number <= 7)
+            .filter(v => isPmrMainCycleVisitNumber(v.visit_number))
             .filter(v => v.status === 'concluida')
             .sort((a, b) => new Date(b.effective_visit_date || b.created_at).getTime() - new Date(a.effective_visit_date || a.created_at).getTime())
           
@@ -245,7 +246,7 @@ export function useConsultingClientDetail(clientId?: string) {
           contacts: parseConsultingClientContactArray(contactsRes.data || []),
           assignments: parseConsultingAssignmentArray(assignmentsRes.data || []),
           visits: ((visitsRes.data || []) as unknown as ConsultingVisit[])
-            .filter(visit => visit.visit_number >= 1 && visit.visit_number <= 7),
+            .filter(visit => isPmrSchedulableVisitNumber(visit.visit_number)),
           financials: parseConsultingFinancialArray(financialsRes.data || []),
           modules: parseConsultingClientModuleArray(modulesRes.data || []),
         } as ConsultingClientDetail

@@ -1,0 +1,22 @@
+handoffId: 20260515-wave2-to-qa
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@qa'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 2
+  title: Visao do dono e planejamento estrategico
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-qa-test-plan.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-2-indicators-mvp.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/risk-register.md
+tasks:
+  - Validate missing-data behavior.
+  - Validate owner/admin/manager/seller access boundaries.
+  - Validate mobile readability for owner dashboard.
+  - Block release if owner sees cross-store data or sensitive financial data without approval.
+outputs:
+  - QA gate for Wave 2.
+  - Risk notes and required fixes if gate fails.

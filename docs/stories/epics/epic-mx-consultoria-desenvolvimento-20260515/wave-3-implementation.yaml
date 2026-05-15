@@ -1,0 +1,129 @@
+storyId: EPIC-MX-CONS-DEV-WAVE-3
+createdAt: '2026-05-15T00:00:00-03:00'
+createdBy: '@aiox-master'
+status: pending
+complexity: COMPLEX
+estimatedEffort: 4-6 dias uteis
+scope:
+  wave: 3
+  title: Acompanhamento diario e rotina mobile
+  stories:
+    - docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md
+    - docs/stories/story-OPS-21-validacao-gerente-rotina-diaria.md
+    - docs/stories/story-OPS-22-notificacoes-puxada-diaria.md
+    - docs/stories/story-OPS-23-insights-disciplina-vendedor.md
+  guidance:
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-kickoff.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-routine-notes.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-qa-test-plan.md
+agents:
+  orchestrator: '@aiox-master'
+  product: '@pm'
+  productGate: '@po'
+  architecture: '@architect'
+  data: '@data-engineer'
+  ux: '@ux-design-expert'
+  implementation: '@dev'
+  quality: '@qa'
+phases:
+  - id: phase-1
+    name: Routine MVP validation
+    description: Freeze daily check-in fields, manager validation and discipline display.
+    subtasks:
+      - id: '1.1'
+        description: Validate daily fields and routine rules against current Checkin and RotinaGerente.
+        service: infra
+        owner: '@pm'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-kickoff.md
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-routine-notes.md
+          - docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md
+          - docs/stories/story-OPS-21-validacao-gerente-rotina-diaria.md
+        verification:
+          type: manual
+          instructions: PM/PO approves MVP fields, manager validation and deferred items.
+        status: pending
+  - id: phase-2
+    name: Mobile seller and manager workflow
+    description: Improve seller entry and manager validation without changing core persistence.
+    subtasks:
+      - id: '2.1'
+        description: Refine mobile check-in UX labels, grouping and benefit framing while preserving validation.
+        service: frontend
+        owner: '@ux-design-expert'
+        files:
+          - src/pages/Checkin.tsx
+          - src/hooks/useCheckins.ts
+          - src/lib/calculations.ts
+        verification:
+          type: browser
+          instructions: Validate mobile seller flow with no overlap and all required fields understandable.
+        status: pending
+        dependencies:
+          - '1.1'
+      - id: '2.2'
+        description: Harden manager routine validation state and admin audit by store.
+        service: frontend
+        owner: '@dev'
+        files:
+          - src/pages/RotinaGerente.tsx
+          - src/hooks/useManagerRoutine.ts
+          - src/hooks/useCheckinAuditor.ts
+        verification:
+          type: command
+          command: npm run typecheck
+        status: pending
+        dependencies:
+          - '1.1'
+  - id: phase-3
+    name: Notifications and discipline
+    description: Add in-app reminder contract and simple discipline insight.
+    subtasks:
+      - id: '3.1'
+        description: Design notification contract for daily pending sellers without WhatsApp dependency.
+        service: backend
+        owner: '@architect'
+        files:
+          - src/hooks/useData.ts
+          - src/pages/Notificacoes.tsx
+          - supabase/migrations
+        verification:
+          type: manual
+          instructions: Architect confirms no duplicate notification risk and no WhatsApp dependency.
+        status: pending
+        dependencies:
+          - '2.2'
+      - id: '3.2'
+        description: Classify discipline data source and expose simple seller/manager/admin insight.
+        service: database
+        owner: '@data-engineer'
+        files:
+          - src/hooks/useRanking.ts
+          - src/pages/VendedorHome.tsx
+          - src/pages/RotinaGerente.tsx
+        verification:
+          type: command
+          command: npm test
+        status: pending
+        dependencies:
+          - '2.1'
+  - id: phase-4
+    name: Quality gate
+    description: Validate role boundaries and mobile behavior.
+    subtasks:
+      - id: '4.1'
+        description: Run local gates and role regression for vendedor, gerente and admin MX.
+        service: infra
+        owner: '@qa'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-qa-test-plan.md
+          - docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md
+          - docs/stories/story-OPS-21-validacao-gerente-rotina-diaria.md
+          - docs/stories/story-OPS-22-notificacoes-puxada-diaria.md
+        verification:
+          type: command
+          command: npm run lint && npm run typecheck && npm test
+        status: pending
+        dependencies:
+          - '3.1'
+          - '3.2'

@@ -1,0 +1,22 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "architect"
+  story_context:
+    story_id: "OPS-22"
+    story_path: "docs/stories/story-OPS-22-notificacoes-puxada-diaria.md"
+    story_status: "Draft"
+    current_task: "Daily reminder notification contract"
+    branch: "main"
+  decisions:
+    - "Use in-app notifications first; no WhatsApp automation in MVP."
+    - "Avoid duplicate reminder per user/date."
+    - "Respect existing notification preferences when available."
+  files_modified:
+    - "docs/stories/story-OPS-22-notificacoes-puxada-diaria.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-routine-notes.md"
+  blockers:
+    - "Need decision on default reminder time."
+  next_action: "Define service/RPC/edge-function contract for pending seller reminders with idempotency."
+

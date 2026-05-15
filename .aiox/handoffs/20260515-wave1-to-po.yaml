@@ -1,0 +1,27 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "po"
+  story_context:
+    story_id: "EPIC-MX-CONS-DEV-20260515"
+    story_path: "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/README.md"
+    story_status: "Planned"
+    current_task: "Validate Wave 1 stories CONS-13..CONS-16"
+    branch: "main"
+  decisions:
+    - "Wave 1 focuses PMR consultoria usability before owner BI/development modules."
+    - "Consultor is admin/admin master MX; cliente is lojista/dono."
+    - "Legacy completion remains constrained to visits 1..7."
+    - "Report MVP is deterministic, not AI-dependent."
+  files_modified:
+    - "docs/prd/prd-mx-consultoria-digital-desenvolvimento-20260515.md"
+    - "docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md"
+    - "docs/stories/story-CONS-14-fluxo-sequencial-visita-pmr.md"
+    - "docs/stories/story-CONS-15-filtro-periodo-visita-relatorio.md"
+    - "docs/stories/story-CONS-16-relatorio-executivo-resumo-tempo-real.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-po-validation.md"
+  blockers:
+    - "PO still needs to choose Wave 2 indicator MVP later."
+  next_action: "Review wave-1-po-validation.md and mark CONS-13..CONS-16 ready or request scope edits."
+

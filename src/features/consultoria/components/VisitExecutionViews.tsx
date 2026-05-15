@@ -379,6 +379,70 @@ export function VisitSevenExecution({ onGenerateSummary }: { onGenerateSummary: 
   )
 }
 
+export function VisitEightExecution({ onGenerateSummary }: { onGenerateSummary: (t: string) => void }) {
+  const [review, setReview] = useState({
+    periodResult: '',
+    pendingActions: '',
+    positives: '',
+    improvements: '',
+    nextActions: '',
+    nextDate: '',
+  })
+
+  const save = () => {
+    if (!review.periodResult || !review.nextActions) {
+      return toast.error('Preencha resultado do periodo e proximas acoes')
+    }
+
+    onGenerateSummary(`--- ACOMPANHAMENTO MENSAL ---\nResultado do periodo: ${review.periodResult}\nPendencias revisadas: ${review.pendingActions || 'A registrar'}\nPontos positivos: ${review.positives || 'A registrar'}\nPontos a melhorar: ${review.improvements || 'A registrar'}\nProximas acoes: ${review.nextActions}\nProxima data: ${review.nextDate || 'A definir'}`)
+    toast.success('Acompanhamento mensal registrado!')
+    setReview({ periodResult: '', pendingActions: '', positives: '', improvements: '', nextActions: '', nextDate: '' })
+  }
+
+  return (
+    <Card className="p-mx-lg shadow-mx-md border border-border-default bg-white rounded-mx-2xl">
+      <div className="flex items-center gap-mx-sm mb-mx-md">
+        <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Clock size={20} /></div>
+        <Typography variant="h3" className="text-lg">Acompanhamento Mensal</Typography>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+        <div className="space-y-mx-md">
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Resultado do periodo</Typography>
+            <Textarea value={review.periodResult} onChange={e => setReview({ ...review, periodResult: e.target.value })} className="min-h-mx-24 text-sm" placeholder="Indicadores, fatos relevantes e evolucao observada" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Pendencias do plano de acao</Typography>
+            <Textarea value={review.pendingActions} onChange={e => setReview({ ...review, pendingActions: e.target.value })} className="min-h-mx-20 text-sm" placeholder="O que ficou pendente, atrasado ou sem dono claro" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Pontos positivos</Typography>
+            <Textarea value={review.positives} onChange={e => setReview({ ...review, positives: e.target.value })} className="min-h-mx-20 text-sm" placeholder="O que evoluiu no periodo" />
+          </div>
+        </div>
+
+        <div className="space-y-mx-md">
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Pontos a melhorar</Typography>
+            <Textarea value={review.improvements} onChange={e => setReview({ ...review, improvements: e.target.value })} className="min-h-mx-20 text-sm" placeholder="Gargalos, riscos e ajustes" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Proximas acoes e responsaveis</Typography>
+            <Textarea value={review.nextActions} onChange={e => setReview({ ...review, nextActions: e.target.value })} className="min-h-mx-24 text-sm" placeholder="Acoes, responsaveis e prazos" />
+          </div>
+          <div className="space-y-mx-xs">
+            <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Proxima data</Typography>
+            <Input type="date" value={review.nextDate} onChange={e => setReview({ ...review, nextDate: e.target.value })} className="h-mx-10 font-bold" />
+          </div>
+        </div>
+      </div>
+
+      <Button className="w-full mt-mx-md h-mx-12 font-black" variant="primary" onClick={save} icon={<Target size={16} />}>REGISTRAR ACOMPANHAMENTO</Button>
+    </Card>
+  )
+}
+
 export function VisitChecklist({ items, onToggle }: { items: Array<{ task: string, completed: boolean }>, onToggle: (i: number) => void }) {
   const toggle = (i: number) => onToggle(i)
   return (

@@ -1,0 +1,199 @@
+storyId: EPIC-MX-CONS-DEV-WAVE-1
+createdAt: '2026-05-15T00:00:00-03:00'
+createdBy: '@aiox-master'
+status: pending
+complexity: COMPLEX
+estimatedEffort: 4-7 dias uteis
+scope:
+  wave: 1
+  title: Consultoria PMR pronta para uso
+  stories:
+    - docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md
+    - docs/stories/story-CONS-14-fluxo-sequencial-visita-pmr.md
+    - docs/stories/story-CONS-15-filtro-periodo-visita-relatorio.md
+    - docs/stories/story-CONS-16-relatorio-executivo-resumo-tempo-real.md
+  guidance:
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-kickoff.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-architecture-notes.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-data-rls-notes.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-ux-brief.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-qa-test-plan.md
+agents:
+  orchestrator: '@aiox-master'
+  productGate: '@po'
+  architecture: '@architect'
+  data: '@data-engineer'
+  ux: '@ux-design-expert'
+  implementation: '@dev'
+  quality: '@qa'
+  operations: '@devops'
+dependencies:
+  - name: PMR native engine
+    version: existing
+    purpose: Reuse existing consulting metrics, planning and visit models.
+  - name: Visit report template
+    version: existing
+    purpose: Extend current visit report instead of creating unrelated report engine.
+  - name: Legacy PMR visit completion
+    version: existing
+    purpose: Preserve admin-only migration path for visits 1 to 7.
+phases:
+  - id: phase-1
+    name: Product and architecture preflight
+    description: Validate scope, contracts and constraints before implementation.
+    subtasks:
+      - id: '1.1'
+        description: Validate CONS-13 to CONS-16 against PRD and existing PMR artifacts.
+        service: infra
+        owner: '@po'
+        files:
+          - docs/prd/prd-mx-consultoria-digital-desenvolvimento-20260515.md
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-kickoff.md
+          - docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md
+          - docs/stories/story-CONS-16-relatorio-executivo-resumo-tempo-real.md
+        verification:
+          type: manual
+          instructions: PO confirms no untraced requirement and marks stories ready for development.
+        status: pending
+      - id: '1.2'
+        description: Produce technical impact note for PMR visit extension, report generation and period persistence.
+        service: infra
+        owner: '@architect'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-architecture-notes.md
+          - src/features/consultoria/types.ts
+          - src/pages/ConsultoriaClienteDetalhe.tsx
+        verification:
+          type: manual
+          instructions: Architect confirms reuse points and identifies required migrations before dev work.
+        status: pending
+  - id: phase-2
+    name: Data and schema changes
+    description: Add or adapt persistence for visit 8 and analysis period.
+    subtasks:
+      - id: '2.1'
+        description: Add PMR visit 8 model and ensure existing PMR 1 to 7 flows keep working.
+        service: database
+        owner: '@data-engineer'
+        files:
+          - scripts/seed_pmr_methodology.ts
+          - supabase/migrations/20260515090000_pmr_visit_8_monthly_followup.sql
+          - src/test/schemas/schemas.test.ts
+        verification:
+          type: command
+          command: npm test -- src/test/schemas/schemas.test.ts
+        status: pending
+        dependencies:
+          - '1.2'
+      - id: '2.2'
+        description: Persist visit analysis period with safe fallback for existing visits.
+        service: database
+        owner: '@data-engineer'
+        files:
+          - supabase/migrations/20260515091000_consulting_visit_analysis_period.sql
+          - src/lib/schemas/consulting-client.schema.ts
+          - src/features/consultoria/types.ts
+        verification:
+          type: command
+          command: npm test
+        status: pending
+        dependencies:
+          - '1.2'
+  - id: phase-3
+    name: Visit execution UX
+    description: Make the visit screen sequential, cleaner and usable in online/presential meetings.
+    subtasks:
+      - id: '3.1'
+        description: Redesign visit execution layout into guided sections with objective, period, checklist, notes, attachments and finalization.
+        service: frontend
+        owner: '@ux-design-expert'
+        files:
+          - src/pages/ConsultoriaClienteDetalhe.tsx
+          - src/features/consultoria/components/VisitExecutionViews.tsx
+          - src/features/consultoria/components/VisitActionQuickAdd.tsx
+        verification:
+          type: browser
+          instructions: Validate desktop and mobile layout with no overlap, no card nesting issues and clear visit flow.
+        status: pending
+        dependencies:
+          - '2.1'
+          - '2.2'
+      - id: '3.2'
+        description: Add period selector presets and wire selected period into visit state and report data.
+        service: frontend
+        owner: '@dev'
+        files:
+          - src/pages/ConsultoriaClienteDetalhe.tsx
+          - src/hooks/useConsultingClientBySlug.ts
+          - src/features/consultoria/types.ts
+        verification:
+          type: command
+          command: npm run typecheck
+        status: pending
+        dependencies:
+          - '2.2'
+  - id: phase-4
+    name: Report and real-time summary
+    description: Connect visit completion to deterministic MX summary/report generation.
+    subtasks:
+      - id: '4.1'
+        description: Define deterministic report section builder for visit summary using existing visit fields and generated notes.
+        service: backend
+        owner: '@architect'
+        files:
+          - src/lib/consultoria/visit-report-summary.ts
+          - src/lib/consultoria/visit-report-summary.test.ts
+          - src/features/consultoria/types.ts
+        verification:
+          type: command
+          command: npm test -- src/lib/consultoria/visit-report-summary.test.ts
+        status: pending
+        dependencies:
+          - '3.2'
+      - id: '4.2'
+        description: Update report template to show analysis period, structured positives/improvements/tasks and safe incomplete-data states.
+        service: frontend
+        owner: '@dev'
+        files:
+          - src/features/consultoria/components/VisitReportTemplate.tsx
+          - src/pages/ConsultoriaClienteDetalhe.tsx
+          - src/lib/consultoria/visit-report-summary.ts
+        verification:
+          type: command
+          command: npm run typecheck
+        status: pending
+        dependencies:
+          - '4.1'
+  - id: phase-5
+    name: Quality gate
+    description: Validate integration across PMR, agenda, report and role boundaries.
+    subtasks:
+      - id: '5.1'
+        description: Run full local gates after implementation.
+        service: infra
+        owner: '@qa'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-qa-test-plan.md
+          - docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md
+          - docs/stories/story-CONS-14-fluxo-sequencial-visita-pmr.md
+          - docs/stories/story-CONS-15-filtro-periodo-visita-relatorio.md
+        verification:
+          type: command
+          command: npm run lint && npm run typecheck && npm test
+        status: pending
+        dependencies:
+          - '4.2'
+      - id: '5.2'
+        description: Browser smoke for admin/admin master MX starting a visit from agenda and generating report.
+        service: frontend
+        owner: '@qa'
+        files:
+          - src/test/consultoria-pmr-wave-1.playwright.ts
+          - src/pages/AgendaAdmin.tsx
+          - src/pages/ConsultoriaClienteDetalhe.tsx
+        verification:
+          type: e2e
+          testFile: src/test/consultoria-pmr-wave-1.playwright.ts
+        status: pending
+        dependencies:
+          - '5.1'

@@ -1,0 +1,25 @@
+handoffId: 20260515-wave3-to-dev
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@dev'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 3
+  title: Acompanhamento diario e rotina mobile
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-routine-notes.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-implementation.yaml
+  - docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md
+  - docs/stories/story-OPS-21-validacao-gerente-rotina-diaria.md
+  - docs/stories/story-OPS-22-notificacoes-puxada-diaria.md
+  - docs/stories/story-OPS-23-insights-disciplina-vendedor.md
+tasks:
+  - Reuse existing check-in and lancamentos_diarios; do not create a parallel check-in.
+  - Preserve current validation rules unless PM/PO approves a change.
+  - Keep notification MVP in-app/popup and avoid WhatsApp dependency.
+  - Read current diffs before editing because the worktree has existing user changes.
+outputs:
+  - Code changes scoped to OPS-20 through OPS-23.
+  - Test evidence for lint, typecheck and unit tests.

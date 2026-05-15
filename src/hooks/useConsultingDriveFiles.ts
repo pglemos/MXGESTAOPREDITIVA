@@ -12,6 +12,10 @@ export type ConsultingDriveFile = {
   modifiedTime?: string
 }
 
+type MutationResult = {
+  error: string | null
+}
+
 type DriveResponse = {
   folderUrl?: string
   files?: ConsultingDriveFile[]
@@ -112,8 +116,8 @@ export function useConsultingDriveFiles(clientId?: string | null) {
     }
   }, [clientId, invokeJson])
 
-  const uploadFiles = useCallback(async (selectedFiles: File[], targetClientId = clientId) => {
-    if (!targetClientId || selectedFiles.length === 0) return
+  const uploadFiles = useCallback(async (selectedFiles: File[], targetClientId = clientId): Promise<MutationResult> => {
+    if (!targetClientId || selectedFiles.length === 0) return { error: null }
     setUploading(true)
     setError(null)
     try {
@@ -135,10 +139,12 @@ export function useConsultingDriveFiles(clientId?: string | null) {
       const data = await response.json().catch(() => ({})) as DriveResponse
       if (!response.ok || data.error) throw getDriveError(data, 'Falha ao enviar arquivos')
       applyResponse(data)
+      return { error: null }
     } catch (err) {
       const message = getErrorMessage(err, 'Falha ao enviar arquivos')
       setError(message)
       setNeedsReconnect(needsDriveReconnect(err, message))
+      return { error: message }
     } finally {
       setUploading(false)
     }

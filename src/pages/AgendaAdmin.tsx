@@ -28,6 +28,7 @@ import { Select } from '@/components/atoms/Select'
 import { DatePicker } from '@/components/atoms/DatePicker'
 import { mergeAgendaOptionLabels, useAgendaOptions } from '@/hooks/useAgendaOptions'
 import { GoogleCalendarStatus } from '@/features/agenda/components/GoogleCalendarStatus'
+import { getPmrVisitDisplayLabel, isPmrSchedulableVisitNumber, PMR_FOLLOW_UP_VISIT } from '@/lib/consultoria/pmr-visit-rules'
 import type { AgendaScheduleEvent, AgendaVisit } from '@/hooks/useAgendaAdmin'
 
 type DateFilter = 'hoje' | 'semana' | 'proxima_semana' | 'mes' | 'todos'
@@ -460,8 +461,8 @@ export default function AgendaAdmin() {
     const visitNumber = editingVisitId
       ? Number(scheduleForm.visit_number) || 0
       : getNextVisitNumber(scheduleForm.client_id)
-    if (!Number.isInteger(visitNumber) || visitNumber < 1 || visitNumber > 7) {
-      toast.error('O PMR trabalha apenas com visitas de 1 a 7.')
+    if (!isPmrSchedulableVisitNumber(visitNumber)) {
+      toast.error('O PMR trabalha com visitas de 1 a 7 e acompanhamento mensal.')
       return
     }
     const scheduledAt = buildSaoPauloDateTime(scheduleForm.scheduled_at, scheduleForm.scheduled_time)
@@ -584,8 +585,8 @@ export default function AgendaAdmin() {
   }, [scheduleForm.client_id, getNextVisitNumber])
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-md sm:gap-mx-lg p-mx-sm sm:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
-      <header className="flex flex-col lg:flex-row lg:items-start justify-between gap-mx-md sm:gap-mx-lg border-b border-border-default pb-mx-lg sm:pb-10 shrink-0">
+    <main className="w-full h-full flex flex-col gap-mx-md sm:gap-mx-lg p-mx-sm sm:p-mx-lg overflow-y-auto no-scrollbar bg-white relative">
+      <header className="flex flex-col lg:flex-row lg:items-start justify-between gap-mx-md sm:gap-mx-lg border-b border-border-default pb-mx-lg sm:pb-8 shrink-0">
         <PageHeader
           title="Agenda MX"
           description="AGENDAMENTOS E VISITAS DE CONSULTORIA"
@@ -598,7 +599,7 @@ export default function AgendaAdmin() {
               <Card
                 key={metric.key}
                 className={cn(
-                  'min-w-0 p-mx-sm sm:p-mx-md border-none shadow-mx-md bg-white text-center',
+                  'min-w-0 p-mx-sm sm:p-mx-md border border-border-default shadow-none bg-white text-center',
                   index === 0 && 'col-span-2 sm:col-span-1',
                 )}
               >
@@ -629,7 +630,7 @@ export default function AgendaAdmin() {
         </div>
       </header>
 
-      <Card className="p-mx-sm sm:p-mx-md border-none shadow-mx-md bg-white">
+      <Card className="p-mx-sm sm:p-mx-md border border-border-default shadow-none bg-white rounded-mx-2xl">
         <div className="flex flex-col gap-mx-sm">
           <FilterBar label="Período" icon={<CalendarDays size={16} className="text-brand-primary" />}>
             {dateFilters.map((f) => (
@@ -638,10 +639,10 @@ export default function AgendaAdmin() {
                 type="button"
                 onClick={() => setDateFilter(f.key)}
                 className={cn(
-                  'px-3 py-1.5 rounded-mx-lg text-xs font-black uppercase tracking-widest transition-all',
+                  'px-3 py-1.5 rounded-mx-full text-xs font-black uppercase tracking-widest transition-all',
                   dateFilter === f.key
                     ? 'bg-brand-primary text-white shadow-mx-sm'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border-default'
+                    : 'bg-white border border-border-default text-text-secondary hover:bg-surface-alt'
                 )}
               >
                 {f.label}
@@ -673,10 +674,10 @@ export default function AgendaAdmin() {
                 type="button"
                 onClick={() => setStatusFilter(f.key)}
                 className={cn(
-                  'px-3 py-1.5 rounded-mx-lg text-xs font-black uppercase tracking-widest transition-all',
+                  'px-3 py-1.5 rounded-mx-full text-xs font-black uppercase tracking-widest transition-all',
                   statusFilter === f.key
                     ? 'bg-brand-primary text-white shadow-mx-sm'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border-default'
+                    : 'bg-white border border-border-default text-text-secondary hover:bg-surface-alt'
                 )}
               >
                 {f.label}
@@ -867,7 +868,7 @@ export default function AgendaAdmin() {
                             </div>
                           )}
                           <div className="flex items-center justify-between mt-1">
-                            <Typography variant="tiny" tone="muted">Visita {visit.source_visit_code || visit.visit_number}/7</Typography>
+                            <Typography variant="tiny" tone="muted">{getPmrVisitDisplayLabel(visit.visit_number)}</Typography>
                             <ChevronRight size={14} className="text-text-tertiary group-hover:text-brand-primary transition-colors" />
                           </div>
                         </div>
@@ -957,7 +958,7 @@ export default function AgendaAdmin() {
             </Select>
             {selectedClientVisitNum && (
               <Typography variant="tiny" tone="muted">
-                Será a visita {selectedClientVisitNum} deste cliente
+                Será {getPmrVisitDisplayLabel(selectedClientVisitNum).toLowerCase()} deste cliente
               </Typography>
             )}
           </div>
@@ -970,7 +971,7 @@ export default function AgendaAdmin() {
                   id="agenda-visit-number"
                   type="number"
                   min="1"
-                  max="7"
+                  max={PMR_FOLLOW_UP_VISIT}
                   value={scheduleForm.visit_number}
                   onChange={(e) => setScheduleForm((prev) => ({ ...prev, visit_number: e.target.value }))}
                 />

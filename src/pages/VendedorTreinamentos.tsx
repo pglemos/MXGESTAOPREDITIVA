@@ -17,11 +17,20 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { startOfWeek } from 'date-fns'
+import {
+    buildNewCollaboratorTrack,
+    DEVELOPMENT_THEMES,
+    filterDevelopmentContent,
+    inferDevelopmentTheme,
+    recommendDevelopmentThemeFromGap,
+    type DevelopmentTheme,
+} from '@/lib/development-content'
 
 export default function VendedorTreinamentos() {
     const { treinamentos, loading, error, markWatched, refetch } = useTrainings()
     const { checkins } = useCheckins()
     const [searchTerm, setSearchTerm] = useState('')
+    const [selectedTheme, setSelectedTheme] = useState<DevelopmentTheme | 'todos'>('todos')
     const [isRefetching, setIsRefetching] = useState(false)
 
     // 🚀 Lógica de Prescrição Real MX
@@ -37,13 +46,7 @@ export default function VendedorTreinamentos() {
 
         if (!diag.gargalo) return null
 
-        const categoryMap: Record<string, string> = {
-            'LEAD_AGD': 'prospeccao',
-            'AGD_VISITA': 'atendimento',
-            'VISITA_VND': 'fechamento'
-        }
-
-        const category = categoryMap[diag.gargalo]
+        const category = recommendDevelopmentThemeFromGap(diag.gargalo)
         const recommended = treinamentos?.find(t => t.type === category && !t.watched) || treinamentos?.find(t => t.type === category)
 
         return { gargalo: diag.gargalo, label: diag.diagnostico, recommended }
@@ -54,9 +57,9 @@ export default function VendedorTreinamentos() {
 
     const filteredTrainings = useMemo(() => {
         if (!treinamentos) return []
-        const term = searchTerm.toLowerCase()
-        return treinamentos.filter(t => t.title.toLowerCase().includes(term) || t.type.toLowerCase().includes(term))
-    }, [treinamentos, searchTerm])
+        return filterDevelopmentContent(treinamentos, { search: searchTerm, theme: selectedTheme })
+    }, [selectedTheme, treinamentos, searchTerm])
+    const onboardingTrack = useMemo(() => buildNewCollaboratorTrack(), [])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch?.(); setIsRefetching(false)
@@ -78,15 +81,15 @@ export default function VendedorTreinamentos() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Minha <span className="text-mx-green-700">Evolução</span></Typography>
+                        <Typography variant="h1">Meu <span className="text-mx-green-700">Desenvolvimento</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CURADORIA TÁTICA • MX ACADEMY</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">BIBLIOTECA • RECOMENDAÇÕES • PLANO DE CARREIRA</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
                     <Card className="flex items-center gap-mx-md px-6 py-2 bg-white border border-border-default shadow-mx-sm rounded-mx-xl">
                         <div className="flex flex-col items-end">
-                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">Status Academy</Typography>
+                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">Status Desenvolvimento</Typography>
                             <Typography variant="mono" tone="brand" className="text-sm font-black">{watched} / {treinamentos?.length || 0}</Typography>
                         </div>
                         <div className="w-mx-20 h-1.5 bg-surface-alt rounded-mx-full overflow-hidden p-0.5 shadow-inner border border-border-default">
@@ -108,7 +111,49 @@ export default function VendedorTreinamentos() {
                 />
             </div>
 
+            <div className="flex gap-mx-xs overflow-x-auto pb-mx-xs">
+                <Button
+                    type="button"
+                    variant={selectedTheme === 'todos' ? 'secondary' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedTheme('todos')}
+                    className="shrink-0 rounded-mx-full uppercase font-black text-mx-tiny"
+                >
+                    Todos
+                </Button>
+                {DEVELOPMENT_THEMES.map(theme => (
+                    <Button
+                        key={theme.key}
+                        type="button"
+                        variant={selectedTheme === theme.key ? 'secondary' : 'outline'}
+                        size="sm"
+                        onClick={() => setSelectedTheme(theme.key)}
+                        className="shrink-0 rounded-mx-full uppercase font-black text-mx-tiny"
+                    >
+                        {theme.label}
+                    </Button>
+                ))}
+            </div>
+
             <section className="flex-1 min-h-0 pb-32" aria-live="polite">
+                {!searchTerm && selectedTheme === 'todos' && (
+                    <Card className="mb-mx-lg p-mx-lg md:p-mx-xl border border-border-default shadow-mx-lg bg-white">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg">
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">Trilha de novo colaborador</Typography>
+                                <Typography variant="p" tone="muted" className="text-sm">Fundamentos para entrar na rotina antes da liberação operacional pelo gestor.</Typography>
+                            </div>
+                            <div className="flex flex-wrap gap-mx-xs">
+                                {onboardingTrack.map(step => (
+                                    <Badge key={step.key} variant={step.locked ? 'outline' : 'success'} className="rounded-mx-full px-3 py-1">
+                                        {step.title}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+                )}
+
                 {/* AI Prescription Card */}
                 {gapAnalysis?.recommended && !searchTerm && (
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-14">
@@ -149,7 +194,7 @@ export default function VendedorTreinamentos() {
                                                 {t.watched ? <CheckCircle size={24} strokeWidth={2} /> : <Play size={24} strokeWidth={2} className="ml-1" />}
                                             </div>
                                             <div className="flex flex-col items-end gap-mx-xs">
-                                                <Badge variant="brand" className="px-4 py-1 rounded-mx-full uppercase text-mx-micro font-black">{t.type}</Badge>
+                                                <Badge variant="brand" className="px-4 py-1 rounded-mx-full uppercase text-mx-micro font-black">{inferDevelopmentTheme(t).replaceAll('_', ' ')}</Badge>
                                                 {t.watched && <Typography variant="caption" tone="success" className="text-mx-micro font-black tracking-widest uppercase flex items-center gap-mx-tiny"><CheckCircle size={10} /> VALIDADO</Typography>}
                                             </div>
                                         </header>
@@ -170,7 +215,7 @@ export default function VendedorTreinamentos() {
                                             <Play size={14} className="mr-2" /> ASSISTIR AULA
                                         </Button>
                                         {!t.watched ? (
-                                            <Button onClick={() => { markWatched?.(t.id); toast.success('Evolução Registrada! +100 XP ✨') }} className="flex-1 h-mx-xl rounded-mx-xl bg-mx-black text-white hover:bg-brand-primary shadow-mx-lg font-black uppercase text-mx-micro">
+                                            <Button onClick={() => { markWatched?.(t.id); toast.success('Evolução registrada! +100 XP') }} className="flex-1 h-mx-xl rounded-mx-xl bg-brand-secondary text-white hover:bg-brand-primary shadow-mx-lg font-black uppercase text-mx-micro border border-brand-secondary">
                                                 CONCLUIR MÓDULO
                                             </Button>
                                         ) : (

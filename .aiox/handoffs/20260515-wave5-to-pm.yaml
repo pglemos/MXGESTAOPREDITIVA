@@ -1,0 +1,20 @@
+handoffId: 20260515-wave5-to-pm
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@pm'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 5
+  title: Personalizacao por loja e app readiness
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-app-readiness-notes.md
+  - docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md
+  - docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md
+tasks:
+  - Define commercial package for institutional personalization.
+  - Decide first specialist/partner content categories.
+  - Confirm what remains PWA readiness versus native app submission.
+outputs:
+  - Product decision note for Wave 5.

@@ -1,0 +1,23 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "data-engineer"
+  story_context:
+    story_id: "OPS-21/OPS-23"
+    story_path: "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-implementation.yaml"
+    story_status: "Draft"
+    current_task: "Manager routine validation and seller discipline sources"
+    branch: "main"
+  decisions:
+    - "Routine validation should not mutate seller check-ins."
+    - "Discipline measures consistency, not sales performance."
+    - "Use existing lancamentos_diarios and manager routine logs first."
+  files_modified:
+    - "docs/stories/story-OPS-21-validacao-gerente-rotina-diaria.md"
+    - "docs/stories/story-OPS-23-insights-disciplina-vendedor.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-3-implementation.yaml"
+  blockers:
+    - "Need confirm if current manager routine log has all required fields."
+  next_action: "Classify whether existing views/tables cover validation and discipline or propose minimal migration."
+

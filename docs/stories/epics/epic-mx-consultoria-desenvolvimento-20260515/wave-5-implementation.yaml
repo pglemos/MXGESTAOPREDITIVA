@@ -1,0 +1,118 @@
+storyId: EPIC-MX-CONS-DEV-WAVE-5
+createdAt: '2026-05-15T00:00:00-03:00'
+createdBy: '@aiox-master'
+status: pending
+complexity: COMPLEX
+estimatedEffort: 4-7 dias uteis
+scope:
+  wave: 5
+  title: Personalizacao por loja e app readiness
+  stories:
+    - docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md
+    - docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md
+    - docs/stories/story-APP-30-app-readiness-mobile-pwa.md
+    - docs/stories/story-APP-31-checklist-submissao-apple-google.md
+  guidance:
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-kickoff.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-app-readiness-notes.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-qa-test-plan.md
+    - docs/app-readiness/apple-google-submission-checklist.md
+agents:
+  orchestrator: '@aiox-master'
+  product: '@pm'
+  productGate: '@po'
+  architecture: '@architect'
+  data: '@data-engineer'
+  ux: '@ux-design-expert'
+  implementation: '@dev'
+  quality: '@qa'
+  devops: '@devops'
+phases:
+  - id: phase-1
+    name: Product packaging validation
+    description: Define what is MVP, add-on and deferred in store personalization.
+    subtasks:
+      - id: '1.1'
+        description: Approve product packaging for institutional trail and specialist content.
+        service: product
+        owner: '@pm'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-kickoff.md
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-app-readiness-notes.md
+          - docs/app-readiness/apple-google-submission-checklist.md
+          - docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md
+          - docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md
+        verification:
+          type: manual
+          instructions: PM/PO approves commercial positioning and deferred scope.
+        status: pending
+  - id: phase-2
+    name: Personalization model
+    description: Define multi-tenant content model for store-specific institutional content.
+    subtasks:
+      - id: '2.1'
+        description: Design schema and RLS for store-specific content.
+        service: database
+        owner: '@data-engineer'
+        files:
+          - src/hooks/useTrainings.ts
+          - src/hooks/useStores.ts
+          - supabase/migrations
+        verification:
+          type: manual
+          instructions: Data engineer confirms no cross-store content leakage.
+        status: pending
+        dependencies:
+          - '1.1'
+      - id: '2.2'
+        description: Implement institutional content visibility in development/trail flows.
+        service: fullstack
+        owner: '@dev'
+        files:
+          - src/pages/GerenteTreinamentos.tsx
+          - src/pages/VendedorTreinamentos.tsx
+          - src/hooks/useTrainings.ts
+        verification:
+          type: command
+          command: npm run typecheck
+        status: pending
+        dependencies:
+          - '2.1'
+  - id: phase-3
+    name: App readiness
+    description: Validate PWA/mobile posture before any store submission.
+    subtasks:
+      - id: '3.1'
+        description: Audit mobile/PWA configuration and critical role flows.
+        service: infra
+        owner: '@qa'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-qa-test-plan.md
+          - vite.config.ts
+          - package.json
+          - public
+          - src/components/Layout.tsx
+          - src/pages/Checkin.tsx
+          - src/pages/VendedorHome.tsx
+          - src/pages/VendedorTreinamentos.tsx
+          - src/pages/GerenteTreinamentos.tsx
+          - src/pages/PainelConsultor.tsx
+        verification:
+          type: command
+          command: npm run lint && npm run typecheck && npm test
+        status: pending
+        dependencies:
+          - '2.2'
+      - id: '3.2'
+        description: Produce Apple/Google submission checklist with QA evidence and owners.
+        service: infra
+        owner: '@devops'
+        files:
+          - docs/app-readiness/apple-google-submission-checklist.md
+          - docs/stories/story-APP-31-checklist-submissao-apple-google.md
+        verification:
+          type: manual
+          instructions: DevOps confirms checklist and no secrets in docs.
+        status: pending
+        dependencies:
+          - '3.1'

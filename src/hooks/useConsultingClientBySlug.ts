@@ -20,6 +20,7 @@ import {
   type ConsultingClient,
 } from '@/lib/schemas/consulting-client.schema'
 import { validateLegacyVisitCompletionInput } from '@/lib/consultoria/legacy-visit-completion'
+import { isPmrSchedulableVisitNumber } from '@/lib/consultoria/pmr-visit-rules'
 
 type VisitRowIdentity = {
   id: string
@@ -96,7 +97,7 @@ export function useConsultingClientDetailBySlug(slug?: string) {
       supabase.from('snapshots_estoque_consultoria').select('*').eq('client_id', clientId).order('reference_month', { ascending: false }),
     ])
 
-    const visitRows = ((visitsRes.data || []) as VisitRowIdentity[]).filter((visit) => visit.visit_number >= 1 && visit.visit_number <= 7)
+    const visitRows = ((visitsRes.data || []) as VisitRowIdentity[]).filter((visit) => isPmrSchedulableVisitNumber(visit.visit_number))
     const visitIds = visitRows.map((visit) => visit.id).filter(Boolean)
     const { data: evidenceRows } = visitIds.length
       ? await supabase.from('evidencias_visita').select('*').in('visita_id', visitIds)
@@ -303,8 +304,8 @@ export function useConsultingClientDetailBySlug(slug?: string) {
     if (!supabaseUser || !clientId || !canManage) {
       return { error: 'Apenas administradores MX podem criar visitas manualmente.' }
     }
-    if (!Number.isInteger(input.visit_number) || input.visit_number < 1 || input.visit_number > 7) {
-      return { error: 'O PMR trabalha apenas com visitas de 1 a 7.' }
+    if (!isPmrSchedulableVisitNumber(input.visit_number)) {
+      return { error: 'O PMR trabalha com visitas de 1 a 7 e acompanhamento mensal.' }
     }
 
     const payload = {

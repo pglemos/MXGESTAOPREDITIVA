@@ -1,0 +1,34 @@
+schema: 1
+story: EPIC-MX-CONS-DEV-20260515
+gate: PASS
+status_reason: 'Automated gates, authenticated role smoke and RLS probe validation passed after the consulting visit RLS hardening migration was applied remotely.'
+reviewer: Quinn
+updated: '2026-05-15T16:13:37-03:00'
+top_issues: []
+waiver:
+  active: false
+quality_summary:
+  automated_checks:
+    - name: npm run validate:structure
+      result: PASS
+    - name: npm run validate:agents
+      result: PASS_WITH_WARNINGS
+      note: '0 errors, 121 framework dependency warnings outside the implementation package.'
+    - name: npm run lint
+      result: PASS
+    - name: npm run typecheck
+      result: PASS
+    - name: npm test
+      result: PASS
+      evidence: '265 passed, 0 failed, 573 assertions, 42 files.'
+    - name: npm run build
+      result: PASS_WITH_WARNING
+      note: 'Vite large chunk warning for PDF/export/charts bundles.'
+    - name: npx tsx scripts/validate_mx_cons_dev_rls_smoke.ts
+      result: PASS
+      note: 'Admin MX reads probe visit; dono, gerente and vendedor receive 0 rows for internal PMR visit probe.'
+    - name: PLAYWRIGHT_PORT=3002 npx playwright test src/test/mx-consultoria-role-smoke.playwright.ts --project=chromium
+      result: PASS
+      evidence: '3 passed.'
+  risk_level: low
+  release_recommendation: 'Ready for PR/release preparation. Keep known large chunk warning as non-blocking technical debt.'

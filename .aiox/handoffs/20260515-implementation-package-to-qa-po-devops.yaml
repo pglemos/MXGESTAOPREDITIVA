@@ -1,0 +1,65 @@
+handoffId: 20260515-implementation-package-to-qa-po-devops
+createdAt: '2026-05-15T17:55:00-03:00'
+from: '@aiox-master'
+to:
+  - '@qa'
+  - '@po'
+  - '@pm'
+  - '@data-engineer'
+  - '@devops'
+status: superseded
+supersededBy: 20260515-specialist-gates-to-release-readiness
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  title: MX Consultoria Digital e Desenvolvimento de Pessoas
+  scope: Waves 1-5 implemented at MVP/partial-MVP level
+summary:
+  implemented:
+    - CONS-13..CONS-19
+    - OPS-20..OPS-23
+    - DEV-24
+    - APP-30..APP-31
+  partial_mvp:
+    - DEV-25
+    - DEV-26
+    - DEV-27
+    - APP-28
+    - APP-29
+  validations:
+    - npm run validate:structure: PASS
+    - npm run validate:agents: PASS with non-blocking warnings
+    - npm run lint: PASS
+    - npm run typecheck: PASS
+    - npm test: PASS, 265 pass / 0 fail
+    - npm run build: PASS with existing large chunk warning
+    - authenticated role smoke: PASS
+    - authenticated RLS smoke: PASS
+    - remote Supabase migrations: PASS through 20260515162000
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/README.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/execution-brief.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/story-index.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/go-no-go-checklist.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/validation-report.md
+  - docs/app-readiness/mobile-pwa-readiness.md
+  - docs/app-readiness/apple-google-submission-checklist.md
+requiredNextActions:
+  - owner: '@qa'
+    action: 'Review draft PR evidence and rerun authenticated smoke if staged code changes.'
+  - owner: '@po'
+    action: Accept or reopen partial MVP boundaries in DEV-25, DEV-26, DEV-27, APP-28 and APP-29.
+  - owner: '@data-engineer'
+    action: Review draft PR migration/RLS evidence before merge.
+  - owner: '@devops'
+    action: Own branch, PR, deploy and PWA/wrapper/native publication decision.
+risks:
+  - PWA service worker remains intentionally self-destroying until installability decision.
+  - PDF/export bundle still emits large chunk warning during production build.
+  - PR packaging still requires careful staging because the worktree contains broad package edits and pre-existing unrelated edits.
+  - Partial MVP persistence remains open for content ratings, suggestions and formal trail assignment.
+  - Benchmark test was stabilized to avoid timing/JIT flake before QA handoff.
+outputs:
+  - QA gate result.
+  - PO acceptance note.
+  - Data/RLS review note.
+  - DevOps PR/deploy/publication decision.

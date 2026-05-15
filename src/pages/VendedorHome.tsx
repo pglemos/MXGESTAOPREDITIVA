@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth'
-import { useCheckins } from '@/hooks/useCheckins'
+import { CHECKIN_DEADLINE_LABEL, CHECKIN_EDIT_LIMIT_LABEL, useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
 import { useTrainings } from '@/hooks/useData'
@@ -11,7 +11,7 @@ import {
     Target, TrendingUp, Trophy, Car, Users, Globe, BarChart3, ArrowRight, Crown, Flame, 
     RefreshCw, CalendarDays, History, GraduationCap, Play, Clock, Zap, MessageSquare, ChevronRight 
 } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Badge } from '@/components/atoms/Badge'
@@ -22,10 +22,11 @@ import { Skeleton } from '@/components/atoms/Skeleton'
 import { MXScoreCard } from '@/components/molecules/MXScoreCard'
 import { PageHeader } from '@/components/molecules/PageHeader'
 import { formatWhatsAppMorningReport } from '@/lib/calculations'
+import { calculateDailyRoutineDiscipline } from '@/lib/daily-routine'
 
 export default function VendedorHome() {
     const { profile } = useAuth()
-    const { checkins, todayCheckin, loading: checkisLoading, fetchCheckins: refetchCheckins } = useCheckins()
+    const { checkins, todayCheckin, loading: checkisLoading, fetchCheckins: refetchCheckins, referenceDate } = useCheckins()
     const { storeGoal, sellerGoals, loading: goalsLoading, fetchGoals: refetchGoals } = useGoals()
     const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
     const { treinamentos, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
@@ -42,6 +43,23 @@ export default function VendedorHome() {
         ranking,
         projectionMode: storeGoal?.projection_mode 
     })
+    const referenceDateLabel = useMemo(() => {
+        if (!referenceDate) return 'Referência D-1'
+        return new Date(`${referenceDate}T12:00:00`).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'short',
+        })
+    }, [referenceDate])
+    const discipline = useMemo(() => {
+        if (!profile?.id || !referenceDate) return null
+        const end = new Date(`${referenceDate}T12:00:00`)
+        const referenceDates = Array.from({ length: 7 }, (_, index) => {
+            const date = new Date(end)
+            date.setDate(end.getDate() - (6 - index))
+            return date.toISOString().slice(0, 10)
+        })
+        return calculateDailyRoutineDiscipline({ referenceDates, checkins, sellerId: profile.id })
+    }, [checkins, profile?.id, referenceDate])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -180,31 +198,49 @@ export default function VendedorHome() {
             </AnimatePresence>
 
             {!todayCheckin && (
-                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="shrink-0">
-                    <Button 
-                        asChild
-                        className="w-full h-auto min-w-0 p-mx-lg md:p-mx-xl bg-brand-primary border-none rounded-mx-4xl text-left shadow-mx-xl group relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg"
+                <motion.section
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="shrink-0"
+                    aria-labelledby="daily-checkin-title"
+                >
+                    <Link
+                        to="/lancamento-diario"
+                        className="group relative grid w-full min-w-0 gap-mx-lg overflow-hidden rounded-mx-3xl bg-brand-primary p-mx-md text-white shadow-mx-xl transition-all hover:-translate-y-0.5 hover:shadow-mx-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 md:grid-cols-[1fr_auto] md:items-center md:p-mx-lg"
                     >
-                        <Link to="/lancamento-diario">
-                            <div className="absolute top-mx-0 right-mx-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10 min-w-0 max-w-full">
-                                <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-white/10 flex items-center justify-center border-4 border-white/10 shadow-mx-xl group-hover:rotate-12 transition-transform shrink-0 mx-auto lg:mx-0">
-                                    <Zap size={40} className="text-white fill-white/20" />
-                                </div>
-                                <div className="max-w-full sm:max-w-2xl min-w-0 space-y-mx-xs text-center lg:text-left">
-                                    <Typography variant="h1" tone="white" className="text-2xl sm:text-5xl uppercase leading-tight sm:leading-none font-black whitespace-normal break-words">Lançamento Diário Pendente</Typography>
-                                    <Typography variant="p" tone="white" className="text-sm sm:text-lg opacity-80 font-bold uppercase tracking-tight whitespace-normal break-words">Sua produção ainda não foi indexada no terminal.</Typography>
-                                </div>
+                        <div className="absolute inset-y-mx-0 right-mx-0 w-1/2 bg-gradient-to-l from-white/15 to-transparent pointer-events-none" aria-hidden="true" />
+                        <div className="relative z-10 flex min-w-0 flex-col gap-mx-md sm:flex-row sm:items-center">
+                            <div className="flex h-mx-16 w-mx-16 shrink-0 items-center justify-center rounded-mx-2xl border border-white/15 bg-white/10 shadow-mx-lg transition-transform group-hover:rotate-3">
+                                <Zap size={28} className="fill-white/20" aria-hidden="true" />
                             </div>
-                            <div className="flex items-center justify-between sm:justify-end gap-mx-md relative z-10 group/btn mt-6 lg:mt-0 w-full lg:w-auto">
-                                <Typography variant="caption" tone="white" className="opacity-60 group-hover/btn:opacity-100 transition-opacity uppercase font-black text-mx-tiny tracking-mx-widest">CONSOLIDAR AGORA</Typography>
-                                <div className="w-mx-14 h-mx-14 sm:w-mx-16 sm:h-mx-16 rounded-mx-full bg-white text-brand-primary flex items-center justify-center shadow-mx-xl group-hover:scale-110 transition-transform">
-                                    <ArrowRight size={24} strokeWidth={3} />
+                            <div className="min-w-0 space-y-mx-xs">
+                                <div className="flex flex-wrap items-center gap-mx-xs">
+                                    <Badge variant="outline" className="border-white/20 bg-white/15 px-3 py-1 text-white shadow-none">
+                                        Pendente
+                                    </Badge>
+                                    <Typography variant="tiny" tone="white" className="font-black tracking-mx-widest opacity-75">
+                                        Prazo {CHECKIN_DEADLINE_LABEL} · Edição até {CHECKIN_EDIT_LIMIT_LABEL}
+                                    </Typography>
                                 </div>
+                                <Typography id="daily-checkin-title" variant="h2" tone="white" className="text-xl leading-tight sm:text-3xl">
+                                    Lançamento Diário
+                                </Typography>
+                                <Typography variant="p" tone="white" className="max-w-3xl text-sm opacity-85">
+                                    Consolide a produção de {referenceDateLabel} e a agenda de hoje no Terminal MX.
+                                </Typography>
                             </div>
-                        </Link>
-                    </Button>
-                </motion.div>
+                        </div>
+                        <div className="relative z-10 flex min-w-0 items-center justify-between gap-mx-md rounded-mx-2xl bg-white px-mx-md py-mx-sm text-brand-secondary shadow-mx-lg md:min-w-mx-64">
+                            <div className="min-w-0">
+                                <Typography variant="tiny" className="block text-brand-secondary/60">Ação obrigatória</Typography>
+                                <Typography variant="caption" className="block truncate text-brand-secondary">Abrir lançamento</Typography>
+                            </div>
+                            <div className="flex h-mx-12 w-mx-12 shrink-0 items-center justify-center rounded-mx-xl bg-brand-primary text-white transition-transform group-hover:translate-x-1">
+                                <ArrowRight size={20} strokeWidth={3} aria-hidden="true" />
+                            </div>
+                        </div>
+                    </Link>
+                </motion.section>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
@@ -226,6 +262,34 @@ export default function VendedorHome() {
                     description="Objetivo de vendas definido para o mês vigente"
                 />
             </div>
+
+            {discipline && (
+                <Card className="p-mx-lg md:p-mx-xl border border-border-default shadow-mx-lg bg-white rounded-mx-4xl">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg">
+                        <div className="flex items-center gap-mx-md min-w-0">
+                            <div className={cn(
+                                "w-mx-16 h-mx-16 rounded-mx-2xl flex items-center justify-center shadow-mx-inner border shrink-0",
+                                discipline.status === 'consistent' ? 'bg-status-success-surface text-status-success border-status-success/20' : 'bg-status-warning-surface text-status-warning border-status-warning/20',
+                            )}>
+                                <Flame size={28} />
+                            </div>
+                            <div className="min-w-0">
+                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest">Disciplina de lancamento</Typography>
+                                <Typography variant="h2" className="text-2xl sm:text-3xl uppercase tracking-tight">{discipline.label}</Typography>
+                                <Typography variant="p" tone="muted" className="text-sm">
+                                    {discipline.submitted_days}/{discipline.expected_days} puxadas realizadas nos ultimos 7 dias.
+                                </Typography>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-mx-md">
+                            <Typography variant="h1" tone={discipline.status === 'consistent' ? 'success' : 'warning'} className="text-5xl tabular-nums leading-none">{discipline.percentage}%</Typography>
+                            <Badge variant={discipline.status === 'consistent' ? 'success' : 'warning'} className="rounded-mx-full px-4 py-1">
+                                {discipline.pending_days} pend.
+                            </Badge>
+                        </div>
+                    </div>
+                </Card>
+            )}
 
             <Card className="bg-white p-mx-lg md:p-mx-xl border border-border-default shadow-mx-lg relative overflow-hidden group rounded-mx-4xl">
                 <CardHeader className="flex flex-col sm:flex-row items-center justify-between mb-12 relative z-10 gap-mx-md p-mx-0 border-none bg-transparent">

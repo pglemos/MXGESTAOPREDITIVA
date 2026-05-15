@@ -1,0 +1,47 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { TabNav, type TabNavItem } from "@/components/molecules/TabNav";
+import * as React from "react";
+
+afterEach(() => {
+  cleanup();
+});
+
+describe("TabNav", () => {
+  const tabs: TabNavItem[] = [
+    { key: "overview", label: "Visão Geral" },
+    { key: "visits", label: "Agenda/Visitas" },
+    { key: "strategic", label: "Estratégico" },
+    { key: "action", label: "Plano de Ação" },
+    { key: "financial", label: "DRE/Financeiro" },
+    { key: "daily", label: "Acomp. Diário" },
+    { key: "monthly", label: "Fechamento" },
+    { key: "roi", label: "ROI/Choque" },
+    { key: "pdis", label: "Plano de Carreira (PDI)" },
+    { key: "files", label: "Arquivos" },
+  ];
+
+  test("keeps the files tab rendered when the full consulting tab set is shown", () => {
+    render(<TabNav tabs={tabs} activeTab="overview" onTabChange={() => {}} />);
+
+    expect(screen.getByRole("tab", { name: "Arquivos" })).toBeDefined();
+  });
+
+  test("wraps long tab sets instead of hiding the last tab in a clipped scroller", () => {
+    const { container } = render(<TabNav tabs={tabs} activeTab="overview" onTabChange={() => {}} />);
+    const nav = container.querySelector("nav");
+
+    expect(nav?.className).toContain("flex-wrap");
+    expect(nav?.className).not.toContain("overflow-x-auto");
+    expect(nav?.className).not.toContain("no-scrollbar");
+  });
+
+  test("notifies the selected tab", () => {
+    let selected = "";
+    render(<TabNav tabs={tabs} activeTab="overview" onTabChange={(tab) => { selected = tab; }} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Arquivos" }));
+
+    expect(selected).toBe("files");
+  });
+});

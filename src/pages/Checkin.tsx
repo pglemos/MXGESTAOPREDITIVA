@@ -18,6 +18,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import type { DailyCheckin } from '@/types/database'
+import { DAILY_ROUTINE_MVP_FIELDS } from '@/lib/daily-routine'
 
 const ZERO_REASONS = ['Folga', 'Treinamento', 'Feriado', 'Dia administrativo', 'Outro']
 const MAX_INPUT_VALUE = 999 
@@ -135,42 +136,49 @@ export default function Checkin() {
 
     const todayDisplay = new Date(referenceDate + 'T12:00:00')
     const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    const referenceInputLabel = customReferenceDate
+        ? new Date(`${customReferenceDate}T12:00:00`).toLocaleDateString('pt-BR')
+        : 'Selecionar data'
+    const previousDayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'previous_day').length
+    const todayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'today').length
 
     const NumberInput = ({ label, icon: Icon, field, tone }: { label: string; icon: LucideIcon; field: keyof CheckinForm; tone: 'brand' | 'success' | 'warning' | 'info' | 'error' }) => (
         <Card className={cn(
-            "flex flex-col gap-mx-md p-mx-lg border shadow-mx-sm transition-all group/input hover:shadow-mx-lg sm:flex-row sm:items-center sm:justify-between bg-white",
-            changedFields.has(field) ? "border-brand-primary/20" : "border-border-default"
+            "flex min-h-mx-32 flex-col justify-between gap-mx-md rounded-mx-2xl border bg-white p-mx-md shadow-mx-sm transition-all hover:shadow-mx-md",
+            changedFields.has(field) ? "border-brand-primary/40 ring-2 ring-brand-primary/10" : "border-border-default"
         )}>
-            <div className="flex items-center gap-mx-md flex-1 min-w-0">
-                <div className={cn("w-mx-2xl h-mx-2xl rounded-mx-2xl flex items-center justify-center border shadow-inner transition-all group-hover/input:scale-110 group-hover/input:rotate-3", 
+            <div className="flex items-center gap-mx-sm min-w-0">
+                <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center border shrink-0",
                     tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                     tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                     tone === 'info' ? 'bg-status-info-surface border-status-info/20 text-status-info' :
                     tone === 'warning' ? 'bg-status-warning-surface border-mx-amber-100 text-status-warning' :
                     'bg-status-error-surface border-mx-rose-100 text-status-error'
                 )}>
-                    <Icon size={28} strokeWidth={2} />
+                    <Icon size={20} strokeWidth={2} />
                 </div>
-                <div className="flex flex-col gap-mx-tiny flex-1">
-                    <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest leading-none">{label}</Typography>
-                    <Typography variant="h1" className="text-5xl tabular-nums leading-none">{form[field] as number}</Typography>
-                </div>
+                <Typography variant="caption" tone="muted" className="min-w-0 truncate font-black uppercase tracking-mx-wide leading-tight">{label}</Typography>
             </div>
-            <div className="flex items-center justify-end gap-mx-sm shrink-0">
-                <Button 
-                    type="button" variant="outline" size="icon"
-                    onClick={() => updateField(field, (form[field] as number) - 1)}
-                    className="w-mx-14 h-mx-14 rounded-mx-xl border-border-default hover:bg-status-error-surface hover:text-status-error hover:border-mx-rose-100 shadow-sm"
-                >
-                    <Minus size={24} strokeWidth={2} />
-                </Button>
-                <Button 
-                    type="button" variant="outline" size="icon"
-                    onClick={() => updateField(field, (form[field] as number) + 1)}
-                    className="w-mx-14 h-mx-14 rounded-mx-xl border-border-default hover:bg-status-success-surface hover:text-status-success hover:border-mx-emerald-100 shadow-sm"
-                >
-                    <Plus size={24} strokeWidth={2} />
-                </Button>
+            <div className="flex items-end justify-between gap-mx-sm">
+                <Typography variant="h1" className="text-4xl tabular-nums leading-none sm:text-5xl">{form[field] as number}</Typography>
+                <div className="flex items-center gap-mx-xs shrink-0">
+                    <Button
+                        type="button" variant="outline" size="icon"
+                        aria-label={`Diminuir ${label}`}
+                        onClick={() => updateField(field, (form[field] as number) - 1)}
+                        className="w-mx-11 h-mx-11 rounded-mx-xl border-border-default hover:bg-status-error-surface hover:text-status-error hover:border-mx-rose-100 shadow-sm"
+                    >
+                        <Minus size={18} strokeWidth={2} />
+                    </Button>
+                    <Button
+                        type="button" variant="outline" size="icon"
+                        aria-label={`Aumentar ${label}`}
+                        onClick={() => updateField(field, (form[field] as number) + 1)}
+                        className="w-mx-11 h-mx-11 rounded-mx-xl border-border-default hover:bg-status-success-surface hover:text-status-success hover:border-mx-emerald-100 shadow-sm"
+                    >
+                        <Plus size={18} strokeWidth={2} />
+                    </Button>
+                </div>
             </div>
         </Card>
     )
@@ -200,37 +208,52 @@ export default function Checkin() {
             )}
 
             {/* Header / Engine Toolbar */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-8 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Terminal <span className="text-mx-green-700">MX</span></Typography>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-center gap-mx-sm pl-6 mt-2">
-                        <div className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm" role="group">
+                    <Typography variant="caption" tone="muted" className="pl-0 sm:pl-6">
+                        Referência operacional: {dateStr}
+                    </Typography>
+                    <div className="flex flex-col items-stretch gap-mx-sm pl-0 mt-2 sm:flex-row sm:items-center sm:pl-6">
+                        <div className="flex w-full p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm sm:w-auto" role="group" aria-label="Tipo de lançamento">
                             <Button 
                                 variant={metricScope === 'daily' ? 'secondary' : 'ghost'} size="sm"
                                 onClick={() => setMetricScope('daily')}
-                                className="h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black"
+                                className="h-mx-9 flex-1 px-4 rounded-mx-full text-mx-tiny uppercase font-black sm:flex-none sm:px-6"
                             >
                                 REGISTRO DIÁRIO
                             </Button>
                             <Button 
                                 variant={metricScope === 'adjustment' ? 'secondary' : 'ghost'} size="sm"
                                 onClick={() => setMetricScope('adjustment')}
-                                className={cn("h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black", metricScope === 'adjustment' && "bg-mx-amber-400 text-mx-black")}
+                                className={cn("h-mx-9 flex-1 px-4 rounded-mx-full text-mx-tiny uppercase font-black sm:flex-none sm:px-6", metricScope === 'adjustment' && "bg-mx-amber-400 text-mx-black")}
                             >
                                 AJUSTE TÉCNICO
                             </Button>
                         </div>
-                        <div className="flex items-center gap-mx-xs bg-white border border-border-default px-6 h-mx-11 rounded-mx-full shadow-mx-sm">
+                        <label className="relative flex w-full cursor-pointer items-center gap-mx-xs bg-white border border-border-default px-5 h-mx-12 rounded-mx-full shadow-mx-sm sm:w-auto">
                             <CalendarDays size={16} className="text-brand-primary" />
-                            <input type="date" value={customReferenceDate} onChange={e => setCustomReferenceDate(e.target.value)} className="bg-transparent border-none outline-none text-mx-tiny font-black uppercase text-text-primary" />
-                        </div>
+                            <span className="min-w-0 flex-1 text-sm font-black uppercase text-text-primary sm:w-mx-32 sm:text-mx-tiny">
+                                {referenceInputLabel}
+                            </span>
+                            <input
+                                type="date"
+                                value={customReferenceDate}
+                                onChange={e => setCustomReferenceDate(e.target.value)}
+                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                aria-label="Data de referência do lançamento"
+                            />
+                        </label>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-mx-sm shrink-0">
+                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
+                    <Badge variant={isLate ? 'warning' : 'success'} className="px-5 py-2 rounded-mx-full uppercase tracking-widest font-black">
+                        {isLate ? `Após ${CHECKIN_DEADLINE_LABEL}` : `Até ${CHECKIN_DEADLINE_LABEL}`}
+                    </Badge>
                     {historicalCheckin && (
                         <Badge variant={canEditExisting || metricScope === 'adjustment' ? 'success' : 'outline'} className="px-6 py-2 rounded-mx-full uppercase tracking-widest font-black">
                             {canEditExisting || metricScope === 'adjustment' ? 'Edição Habilitada' : 'Visualização Somente'}
@@ -246,14 +269,30 @@ export default function Checkin() {
                 
                 {/* Form Core */}
                 <div className="flex-1 space-y-mx-lg">
+                    <Card className="p-mx-md sm:p-mx-lg border border-border-default shadow-mx-sm bg-white">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+                            <div className="rounded-mx-xl bg-status-success-surface border border-status-success/10 p-mx-md">
+                                <Typography variant="tiny" tone="success" className="font-black uppercase tracking-widest">Dia anterior</Typography>
+                                <Typography variant="p" className="font-black mt-1">{previousDayFieldsCount} campos de producao</Typography>
+                                <Typography variant="tiny" tone="muted">Leads, visitas, vendas e justificativa quando tudo estiver zerado.</Typography>
+                            </div>
+                            <div className="rounded-mx-xl bg-brand-primary/5 border border-brand-primary/10 p-mx-md">
+                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Hoje</Typography>
+                                <Typography variant="p" className="font-black mt-1">{todayFieldsCount} campos de rotina</Typography>
+                                <Typography variant="tiny" tone="muted">Agenda carteira, agenda internet e observacao operacional.</Typography>
+                            </div>
+                        </div>
+                    </Card>
+
                     {/* Retro Grid */}
-                    <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden group">
-                        <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-status-success-surface rounded-mx-full blur-mx-xl -mr-mx-48 -mt-mx-48 opacity-50" />
-                        <header className="flex items-center justify-between border-b border-border-default pb-10 relative z-10">
+                    <Card className="p-mx-md sm:p-mx-lg md:p-mx-xl space-y-mx-lg border border-border-default shadow-mx-md bg-white relative overflow-hidden">
+                        <header className="flex flex-col gap-mx-md border-b border-border-default pb-8 relative z-10 sm:flex-row sm:items-center sm:justify-between sm:pb-10">
                             <div className="flex items-center gap-mx-md">
-                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-xl transform -rotate-3"><History size={32} strokeWidth={2} /></div>
+                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-md"><History size={28} strokeWidth={2} /></div>
                                 <div>
-                                    <Typography variant="h2">Retrospectiva MX</Typography>
+                                    <Typography variant="h2" className="text-xl tracking-tight sm:text-2xl md:text-3xl">
+                                        Retrospectiva <span className="ml-1 text-mx-green-700">MX</span>
+                                    </Typography>
                                     <Typography variant="caption" tone="success" className="tracking-widest mt-1">CONSOLIDAÇÃO DE PRODUÇÃO: ONTEM</Typography>
                                 </div>
                             </div>
@@ -263,10 +302,10 @@ export default function Checkin() {
                             </div>
                         </header>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg relative z-10">
-                            <NumberInput label="Leads Recebidos (Ontem)" icon={Users} field="leads" tone="brand" />
-                            <NumberInput label="Visitas Realizadas (Ontem)" icon={Eye} field="visitas" tone="warning" />
-                            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-mx-lg pt-10 border-t border-border-default">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md relative z-10">
+                            <NumberInput label="Leads de Ontem" icon={Users} field="leads" tone="brand" />
+                            <NumberInput label="Visitas de Ontem" icon={Eye} field="visitas" tone="warning" />
+                            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-mx-md pt-mx-lg border-t border-border-default">
                                 <NumberInput label="Vendas Porta" icon={Car} field="vnd_porta" tone="success" />
                                 <NumberInput label="Vendas Carteira" icon={Smartphone} field="vnd_cart" tone="success" />
                                 <NumberInput label="Vendas Internet" icon={Globe} field="vnd_net" tone="success" />
@@ -275,13 +314,12 @@ export default function Checkin() {
                     </Card>
 
                     {/* Today Grid */}
-                    <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden group">
-                        <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-mx-indigo-50 rounded-mx-full blur-mx-xl -mr-48 -mt-48 opacity-50" />
-                        <header className="flex items-center justify-between border-b border-border-default pb-10 relative z-10">
+                    <Card className="p-mx-md sm:p-mx-lg md:p-mx-xl space-y-mx-lg border border-border-default shadow-mx-md bg-white relative overflow-hidden">
+                        <header className="flex flex-col gap-mx-md border-b border-border-default pb-8 relative z-10 sm:flex-row sm:items-center sm:justify-between sm:pb-10">
                             <div className="flex items-center gap-mx-md">
-                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-xl transform rotate-3"><CalendarDays size={32} strokeWidth={2} /></div>
+                                <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><CalendarDays size={28} strokeWidth={2} /></div>
                                 <div>
-                                    <Typography variant="h2">Agenda Operacional</Typography>
+                                    <Typography variant="h2" className="text-xl tracking-tight sm:text-2xl md:text-3xl">Agenda Operacional</Typography>
                                     <Typography variant="caption" tone="brand" className="tracking-widest mt-1">COMPROMISSOS FIRMADOS: HOJE</Typography>
                                 </div>
                             </div>
@@ -291,9 +329,9 @@ export default function Checkin() {
                             </div>
                         </header>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg relative z-10">
-                            <NumberInput label="Agenda Carteira (Hoje)" icon={UserCheck} field="agd_cart" tone="brand" />
-                            <NumberInput label="Agenda Internet (Hoje)" icon={Globe} field="agd_net" tone="info" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md relative z-10">
+                            <NumberInput label="Agenda Carteira" icon={UserCheck} field="agd_cart" tone="brand" />
+                            <NumberInput label="Agenda Internet" icon={Globe} field="agd_net" tone="info" />
                         </div>
                     </Card>
 
@@ -340,7 +378,7 @@ export default function Checkin() {
                     </AnimatePresence>
 
                     {/* Finalization */}
-                    <Card className="p-mx-10 md:p-14 space-y-mx-10 border-none shadow-mx-lg bg-white">
+                    <Card className="p-mx-md sm:p-mx-10 md:p-14 space-y-mx-8 md:space-y-mx-10 border-none shadow-mx-lg bg-white">
                         <div className="space-y-mx-sm">
                             <label className="flex items-center gap-mx-xs px-4 text-mx-tiny font-black text-text-tertiary uppercase tracking-mx-wider">
                                 <MessageSquare size={16} className="text-brand-primary" /> OBSERVAÇÕES OPERACIONAIS (Opcional)
@@ -358,9 +396,9 @@ export default function Checkin() {
                         <Button 
                             type="submit" 
                             disabled={saving || (!!todayCheckin && !canEditExisting && metricScope === 'daily')}
-                            className="w-full h-mx-3xl rounded-mx-3xl text-3xl font-black tracking-tighter uppercase shadow-mx-elite hover:-translate-y-2 active:scale-95 transition-all"
+                            className="w-full min-h-mx-20 rounded-mx-2xl px-mx-md text-lg font-black tracking-tight uppercase shadow-mx-elite hover:-translate-y-1 active:scale-95 transition-all sm:min-h-mx-24 sm:text-2xl"
                         >
-                            {saving ? <RefreshCw className="w-mx-xl h-mx-xl animate-spin" /> : <><Send size={40} className="mr-6" /> CONGELAR PERFORMANCE</>}
+                            {saving ? <RefreshCw className="w-mx-xl h-mx-xl animate-spin" /> : <><Send size={28} className="mr-2 sm:mr-4" /> Salvar Lançamento</>}
                         </Button>
                     </Card>
                 </div>
@@ -374,10 +412,10 @@ export default function Checkin() {
                         </header>
                         <ul className="space-y-mx-lg" role="list">
                             {[
-                                "Dados de ontem são imutáveis após registro.",
+                                `Envie o registro diário até ${CHECKIN_DEADLINE_LABEL}.`,
+                                `Correções ficam disponíveis até ${CHECKIN_EDIT_LIMIT_LABEL}.`,
                                 "A agenda de hoje determina o ritmo de amanhã.",
-                                "O fechamento do terminal ocorre às 09:00.",
-                                "Justificativa obrigatória para KPIs zerados."
+                                "Justificativa obrigatória para KPIs zerados.",
                             ].map((text, i) => (
                                 <li key={i} className="flex gap-mx-sm items-start group">
                                     <div className="w-mx-md h-mx-md rounded-mx-full bg-surface-alt flex items-center justify-center shrink-0 mt-0.5 font-black text-mx-tiny text-text-tertiary shadow-sm border border-border-default group-hover:bg-brand-primary group-hover:text-white transition-all" aria-hidden="true">{i+1}</div>

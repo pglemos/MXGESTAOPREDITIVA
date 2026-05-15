@@ -48,6 +48,11 @@ import { TabNav, TabNavItem } from '@/components/molecules/TabNav'
 import { Modal } from '@/components/organisms/Modal'
 import { Select } from '@/components/atoms/Select'
 import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
+import {
+  getPmrVisitDisplayLabel,
+  isPmrMainCycleVisitNumber,
+  isPmrSchedulableVisitNumber,
+} from '@/lib/consultoria/pmr-visit-rules'
 
 type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis' | 'files'
 
@@ -464,8 +469,8 @@ export default function ConsultoriaClienteDetalhe() {
   const handleSubmitManualVisit = async (event: React.FormEvent) => {
     event.preventDefault()
     const visitNumber = Number(visitForm.visit_number)
-    if (!Number.isInteger(visitNumber) || visitNumber < 1 || visitNumber > 7) {
-      toast.error('Selecione uma visita entre V1 e V7.')
+    if (!isPmrSchedulableVisitNumber(visitNumber)) {
+      toast.error('Selecione uma visita entre V1 e V7 ou acompanhamento mensal.')
       return
     }
     if (!visitForm.scheduled_at || !visitForm.scheduled_time) {
@@ -724,7 +729,7 @@ export default function ConsultoriaClienteDetalhe() {
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-mx-sm">
-              {methodologySteps.map((step) => {
+              {methodologySteps.filter((step) => isPmrMainCycleVisitNumber(step.visit_number)).map((step) => {
                 const visit = client?.visits?.find((item) => item.visit_number === step.visit_number)
                 const selected = legacyVisitNumbers.includes(step.visit_number)
                 return (
@@ -785,7 +790,7 @@ export default function ConsultoriaClienteDetalhe() {
         open={showVisitModal}
         onClose={() => setShowVisitModal(false)}
         title={visitForm.visit_id ? 'Editar visita manual' : 'Criar visita manual'}
-        description="Admin master MX pode selecionar qualquer etapa V1 a V7 para este cliente"
+        description="Admin master MX pode selecionar V1 a V7 ou acompanhamento mensal para este cliente"
         size="xl"
         footer={
           <>
@@ -808,7 +813,7 @@ export default function ConsultoriaClienteDetalhe() {
                 const existingVisit = client.visits?.find((visit) => visit.visit_number === step.visit_number)
                 return (
                   <option key={step.id} value={step.visit_number}>
-                    V{step.visit_number} - {existingVisit ? 'editar agendada' : 'criar manual'}
+                    {getPmrVisitDisplayLabel(step.visit_number)} - {existingVisit ? 'editar agendada' : 'criar manual'}
                   </option>
                 )
               })}

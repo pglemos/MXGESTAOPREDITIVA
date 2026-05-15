@@ -1,0 +1,35 @@
+handoff:
+  id: 20260515-wave1-preflight-to-po
+  date: 2026-05-15
+  from: aiox-master
+  to: aiox-po
+  epic: epic-mx-consultoria-desenvolvimento-20260515
+  wave: 1
+  status: ready_for_po_decision
+  context:
+    user_mode: yolo
+    native_codex_agents_used: false
+    reason_native_agents_not_used: "Project AGENTS.md requires AIOX local agent routing and forbids Codex native background agents for AIOX work."
+  specialist_outputs:
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-architect-preflight.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-data-preflight.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-ux-preflight.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-qa-preflight.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-specialist-preflight-summary.md
+  decisions_for_po:
+    - id: W1-D01
+      topic: "Visit 8 semantics"
+      recommendation: "Treat Visit 8 as Acompanhamento Mensal under pmr_7, outside PMR main-cycle progress."
+    - id: W1-D02
+      topic: "Analysis period storage"
+      recommendation: "Add nullable analysis_period_start, analysis_period_end, and analysis_period_preset to visitas_consultoria."
+    - id: W1-D03
+      topic: "Client-facing summary timing"
+      recommendation: "Keep summary private while editing and publish only after finalization."
+  next_story:
+    id: CONS-13
+    file: docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md
+    required_before_dev:
+      - update story checklist with accepted assumptions
+      - update story file list once implementation starts
+      - preserve legacy PMR completion behavior

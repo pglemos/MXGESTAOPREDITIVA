@@ -1,0 +1,24 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "ux-design-expert"
+  story_context:
+    story_id: "CONS-14/CONS-16"
+    story_path: "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-ux-brief.md"
+    story_status: "Preflight"
+    current_task: "Guided PMR visit execution UX"
+    branch: "main"
+  decisions:
+    - "Visit screen is operational, not marketing."
+    - "The screen should guide objective, period, checklist, notes, attachments and finalization."
+    - "Desktop and mobile both matter for online/presential meetings."
+    - "Avoid nested cards and visual clutter."
+  files_modified:
+    - "docs/stories/story-CONS-14-fluxo-sequencial-visita-pmr.md"
+    - "docs/stories/story-CONS-16-relatorio-executivo-resumo-tempo-real.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-ux-brief.md"
+  blockers:
+    - "Need dev server/browser verification after UI implementation."
+  next_action: "Produce final layout guidance or implement UI changes with @dev using existing VisitExecutionViews and ConsultoriaClienteDetalhe."
+

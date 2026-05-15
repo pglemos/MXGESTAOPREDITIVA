@@ -14,6 +14,8 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 const catalog = [
   ['sales_total', 'Vendas totais', 'increase', 'number', 'Vendas', 'daily', null, 10],
+  ['sales_goal', 'Meta de vendas', 'increase', 'number', 'Vendas', 'target', 'metas_metricas_cliente.sales_total', 12],
+  ['goal_achievement_rate', 'Realizacao da meta', 'increase', 'percent', 'Vendas', 'computed', 'sales_total/sales_goal', 14],
   ['sales_internet', 'Vendas Internet', 'increase', 'number', 'Vendas', 'daily', null, 20],
   ['leads_received', 'Leads recebidos', 'increase', 'number', 'Vendas', 'marketing', null, 30],
   ['appointments', 'Agendamentos', 'increase', 'number', 'Vendas', 'daily', null, 40],
@@ -24,6 +26,8 @@ const catalog = [
   ['internet_cost_per_sale', 'Custo por venda na internet', 'decrease', 'currency', 'Marketing', 'computed', 'internet_investment/sales_internet', 90],
   ['stock_turnover', 'Giro de Estoque', 'increase', 'number', 'Estoque', 'computed', 'sales_total/stock_total', 100],
   ['stock_over_90_rate', 'Tempo de Estoque +90', 'decrease', 'percent', 'Estoque', 'inventory', null, 110],
+  ['stock_total', 'Estoque total', 'increase', 'number', 'Estoque', 'inventory', null, 115],
+  ['trade_in_volume', 'Volume de carros de troca', 'increase', 'number', 'Troca', 'backlog', null, 118],
   ['avg_margin', 'Margem Media', 'increase', 'currency', 'Gestao', 'dre', null, 120],
 ]
 

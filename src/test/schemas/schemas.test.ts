@@ -3,7 +3,7 @@ import { FeedbackSchema, parseFeedback, parseFeedbackArray } from "@/lib/schemas
 import { NotificationSchema, parseNotification, parseNotificationArray } from "@/lib/schemas/notification.schema";
 import { PDISchema, parsePDI, parsePDIArray, PDIReviewSchema, parsePDIReview, parsePDIReviewArray } from "@/lib/schemas/pdi.schema";
 import { TeamProgressEntrySchema, parseTeamProgressEntry, parseTeamProgressEntryArray, TrainingProgressSchema, TrainingSchema } from "@/lib/schemas/performance.schema";
-import { ConsultingClientSchema, parseConsultingClient, parseConsultingClientArray, ConsultingClientUnitSchema, parseConsultingClientUnitArray, ConsultingClientContactSchema, parseConsultingClientContactArray, ConsultingAssignmentSchema, parseConsultingAssignmentArray, ConsultingMethodologyStepSchema, parseConsultingMethodologyStepArray, ConsultingFinancialSchema, parseConsultingFinancialArray, ConsultingClientModuleSchema, PmrFormTemplateSchema, PmrFormResponseSchema, ConsultingMetricCatalogItemSchema, ConsultingParameterValueSchema, ConsultingActionItemSchema, ConsultingStrategicPlanSchema } from "@/lib/schemas/consulting-client.schema";
+import { ConsultingClientSchema, parseConsultingClient, parseConsultingClientArray, ConsultingClientUnitSchema, parseConsultingClientUnitArray, ConsultingClientContactSchema, parseConsultingClientContactArray, ConsultingAssignmentSchema, parseConsultingAssignmentArray, ConsultingMethodologyStepSchema, parseConsultingMethodologyStepArray, ConsultingFinancialSchema, parseConsultingFinancialArray, ConsultingClientModuleSchema, PmrFormTemplateSchema, PmrFormResponseSchema, ConsultingMetricCatalogItemSchema, ConsultingParameterValueSchema, ConsultingActionItemSchema, ConsultingStrategicPlanSchema, ConsultingVisitSchema } from "@/lib/schemas/consulting-client.schema";
 import { DREFinancialSchema, parseDREFinancial, parseDREFinancialArray, DREComputedSchema } from "@/lib/schemas/dre.schema";
 
 const UUID = "550e8400-e29b-41d4-a716-446655440000";
@@ -345,6 +345,35 @@ describe("ConsultingClientSchema", () => {
   it("parses valid ConsultingMethodologyStep", () => {
     const result = parseConsultingMethodologyStepArray([validMethodologyStep]);
     expect(result[0].visit_number).toBe(1);
+  });
+
+  it("parses ConsultingVisit analysis period fields", () => {
+    const result = ConsultingVisitSchema.parse({
+      id: UUID,
+      client_id: UUID,
+      visit_number: 8,
+      scheduled_at: "2026-05-15T10:00:00Z",
+      duration_hours: 3,
+      modality: "Online",
+      status: "agendada",
+      consultant_id: null,
+      auxiliary_consultant_id: null,
+      objective: "Acompanhamento Mensal",
+      checklist_data: [],
+      feedback_client: null,
+      executive_summary: null,
+      google_event_id: null,
+      meta_mensal: null,
+      projecao: null,
+      leads_mes: null,
+      estoque_disponivel: null,
+      analysis_period_start: "2026-04-01",
+      analysis_period_end: "2026-04-30",
+      analysis_period_preset: "previous_month",
+      created_at: "2026-05-15T10:00:00Z",
+      updated_at: "2026-05-15T10:00:00Z",
+    });
+    expect(result.analysis_period_preset).toBe("previous_month");
   });
 
   it("parses valid ConsultingFinancial", () => {

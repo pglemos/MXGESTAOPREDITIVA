@@ -1,0 +1,22 @@
+handoffId: 20260515-wave1-to-qa
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@qa'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 1
+  title: Consultoria PMR pronta para uso
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-qa-test-plan.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/go-no-go-checklist.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/risk-register.md
+tasks:
+  - Validate PMR 1-7 regression before approving visit 8.
+  - Validate role boundaries for owner, manager, seller and admin.
+  - Validate desktop/mobile smoke for visit execution and report.
+  - Block release if RLS, report generation or PMR regression fails.
+outputs:
+  - QA gate for Wave 1.
+  - Risk notes and required fixes if gate fails.

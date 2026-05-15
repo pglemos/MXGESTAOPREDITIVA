@@ -308,7 +308,7 @@ function AdminMorningReport() {
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-8">
                             <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-white/10 text-white flex items-center justify-center border border-white/10 shadow-inner" aria-hidden="true"><TrendingUp size={24} /></div>
-                            <Badge variant="outline" className="text-white border-white/20 px-4 py-1 uppercase font-black"><Typography variant="tiny" as="span" tone="white">PROJEÇÃO</Typography></Badge>
+                            <Badge variant="outline" className="bg-white text-brand-secondary border-white px-4 py-1 uppercase font-black shadow-mx-sm"><Typography variant="tiny" as="span" className="text-inherit">PROJEÇÃO</Typography></Badge>
                         </div>
                         <Typography variant="h1" tone="white" className="text-5xl tabular-nums leading-none mb-3 tracking-tighter font-black">{networkMetrics.totalProjection}</Typography>
                         <Typography variant="tiny" tone="white" className="opacity-50 font-black uppercase tracking-widest">GAP: {networkMetrics.totalGap} UNIDADES</Typography>
@@ -569,7 +569,7 @@ function StoreMorningReport() {
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-8">
                             <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-white/10 text-white flex items-center justify-center border border-white/10 shadow-inner" aria-hidden="true"><TrendingUp size={24} /></div>
-                            <Badge variant="outline" className="text-white border-white/20 px-4 py-1 uppercase font-black"><Typography variant="tiny" as="span" tone="white">PROJEÇÃO MX</Typography></Badge>
+                            <Badge variant="outline" className="bg-white text-brand-secondary border-white px-4 py-1 uppercase font-black shadow-mx-sm"><Typography variant="tiny" as="span" className="text-inherit">PROJEÇÃO MX</Typography></Badge>
                         </div>
                         <Typography variant="h1" tone="white" className="text-6xl tabular-nums leading-none mb-3 tracking-tighter font-black">{metrics.projection}</Typography>
                         <Typography variant="tiny" tone="white" className="opacity-50 font-black uppercase tracking-widest">GAP RESIDUAL: {metrics.gap} UNIDADES</Typography>

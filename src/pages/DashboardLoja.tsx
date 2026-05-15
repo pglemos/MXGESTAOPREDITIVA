@@ -37,6 +37,12 @@ import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 type DashboardTab = 'performance' | 'metas' | 'equipe'
 type ChannelTone = 'success' | 'info' | 'brand'
 type StoreRankingEntry = RankingEntry & { id: string }
+type OwnerPerformanceAlert = {
+    title: string
+    description: string
+    action: string
+    variant: 'success' | 'warning' | 'danger' | 'outline'
+}
 
 const joinRecipients = (value?: string[] | null) => value?.join(', ') || ''
 const splitRecipients = (value: string) => value.split(',').map(email => email.trim()).filter(Boolean)
@@ -303,6 +309,58 @@ export default function DashboardLoja() {
 
     const funilData = useMemo(() => calcularFunil(checkins), [checkins])
     const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
+
+    const ownerPerformanceAlerts = useMemo<OwnerPerformanceAlert[]>(() => {
+        const sellerCount = (sellers || []).length
+        const alerts: OwnerPerformanceAlert[] = []
+
+        if (metrics.goalValue > 0 && metrics.attainment < 80) {
+            alerts.push({
+                title: 'Meta abaixo do ritmo',
+                description: `${metrics.attainment}% da meta realizada no periodo selecionado.`,
+                action: 'Validar plano de ataque com gerente e vendedores de menor ritmo.',
+                variant: metrics.attainment < 60 ? 'danger' : 'warning',
+            })
+        }
+
+        if (sellerCount > 0 && metrics.checkedInCount < sellerCount) {
+            alerts.push({
+                title: 'Rotina diaria incompleta',
+                description: `${metrics.checkedInCount}/${sellerCount} vendedores com registro sincronizado.`,
+                action: 'Cobrar fechamento da puxada diaria antes da proxima reuniao de gestao.',
+                variant: 'warning',
+            })
+        }
+
+        if (funilData.tx_lead_agd < funnelBenchmarks.leadAgd) {
+            alerts.push({
+                title: 'Baixa conversao de lead',
+                description: `${funilData.tx_lead_agd}% contra benchmark de ${funnelBenchmarks.leadAgd}%.`,
+                action: 'Revisar abordagem inicial, tempo de resposta e qualidade dos agendamentos.',
+                variant: 'danger',
+            })
+        }
+
+        if (funilData.tx_visita_vnd < funnelBenchmarks.visitaVnd) {
+            alerts.push({
+                title: 'Visita nao vira venda',
+                description: `${funilData.tx_visita_vnd}% contra benchmark de ${funnelBenchmarks.visitaVnd}%.`,
+                action: 'Checar proposta, avaliacao de troca, financiamento e fechamento.',
+                variant: 'danger',
+            })
+        }
+
+        if (alerts.length === 0) {
+            alerts.push({
+                title: 'Operacao dentro do esperado',
+                description: 'Meta, disciplina e funil sem alerta critico no periodo.',
+                action: 'Manter cadencia e observar oportunidades individuais no ranking.',
+                variant: 'success',
+            })
+        }
+
+        return alerts.slice(0, 4)
+    }, [funnelBenchmarks, funilData, metrics, sellers])
 
     const mixCanais = useMemo(() => {
         const total = metrics.totalSales || 1
@@ -777,7 +835,7 @@ export default function DashboardLoja() {
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-white/5 rounded-mx-full blur-3xl -mr-16 -mt-16" />
                     <Typography variant="tiny" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Meta de Vendas</Typography>
                     <Typography variant="h1" tone="white" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.goalValue}</Typography>
-                    <Badge variant="outline" className="text-white border-white/20 font-black h-mx-md uppercase text-mx-tiny">{metrics.attainment}% ATINGIDO</Badge>
+                    <Badge variant="outline" className="bg-white text-brand-secondary border-white font-black h-mx-md uppercase text-mx-tiny shadow-mx-sm">{metrics.attainment}% ATINGIDO</Badge>
                 </Card>
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
@@ -820,6 +878,41 @@ export default function DashboardLoja() {
                    </Card>
                 )}
                 </div>
+
+            {(isPerfilInternoMx(role) || role === 'dono' || role === 'gerente') && (
+                <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
+                    <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">
+                            <div>
+                                <CardTitle className="text-lg md:text-xl uppercase tracking-tighter">Visao do Dono</CardTitle>
+                                <CardDescription className="uppercase tracking-widest font-black mt-1 text-mx-tiny">
+                                    ALERTAS DE PERFORMANCE, ROTINA E FUNIL
+                                </CardDescription>
+                            </div>
+                            <Badge variant={ownerPerformanceAlerts.some(alert => alert.variant === 'danger') ? 'danger' : ownerPerformanceAlerts.some(alert => alert.variant === 'warning') ? 'warning' : 'success'} className="rounded-mx-full px-3 py-1 w-fit">
+                                {ownerPerformanceAlerts.some(alert => alert.variant === 'danger') ? 'ACAO NECESSARIA' : ownerPerformanceAlerts.some(alert => alert.variant === 'warning') ? 'PONTO DE ATENCAO' : 'DENTRO DO RITMO'}
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-mx-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-mx-md">
+                            {ownerPerformanceAlerts.map((alert) => (
+                                <div key={alert.title} className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+                                    <div className="flex items-start justify-between gap-mx-sm mb-mx-sm">
+                                        <Typography variant="p" className="font-black uppercase text-sm leading-tight">{alert.title}</Typography>
+                                        <Badge variant={alert.variant} className="rounded-mx-full px-2 py-0.5 shrink-0">
+                                            {alert.variant === 'success' ? 'OK' : alert.variant === 'warning' ? 'ATENCAO' : 'CRITICO'}
+                                        </Badge>
+                                    </div>
+                                    <Typography variant="tiny" tone="muted" className="block mb-mx-sm">{alert.description}</Typography>
+                                    <Typography variant="tiny" className="font-black uppercase tracking-tight">{alert.action}</Typography>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
                 <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
                     <div className="flex items-center justify-between">

@@ -1,0 +1,25 @@
+handoffId: 20260515-wave5-to-dev
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@dev'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 5
+  title: Personalizacao por loja e app readiness
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-kickoff.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-app-readiness-notes.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-5-implementation.yaml
+  - docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md
+  - docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md
+  - docs/stories/story-APP-30-app-readiness-mobile-pwa.md
+  - docs/stories/story-APP-31-checklist-submissao-apple-google.md
+tasks:
+  - Implement only after Wave 4 content/trail base exists.
+  - Preserve multi-tenant isolation for store-specific content.
+  - Do not implement marketplace or real app submission in this wave.
+  - Read current diffs before editing because the worktree has existing user changes.
+outputs:
+  - Code/docs changes scoped to APP-28 through APP-31.
+  - Test evidence for lint, typecheck and unit tests when code changes exist.

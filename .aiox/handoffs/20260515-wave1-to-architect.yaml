@@ -1,0 +1,24 @@
+handoff:
+  version: "1.0"
+  timestamp: "2026-05-15T00:00:00-03:00"
+  from_agent: "aiox-master"
+  to_agent: "architect"
+  story_context:
+    story_id: "EPIC-MX-CONS-DEV-WAVE-1"
+    story_path: "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-implementation.yaml"
+    story_status: "Preflight"
+    current_task: "Technical impact for CONS-13..CONS-16"
+    branch: "main"
+  decisions:
+    - "Reuse existing PMR, agenda and VisitReportTemplate."
+    - "Normal visit flows should accept 1..8; legacy completion remains 1..7."
+    - "Visit analysis period should live on visitas_consultoria unless architect rejects."
+    - "Build deterministic report summary in src/lib/consultoria."
+  files_modified:
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-architecture-notes.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-data-rls-notes.md"
+    - "docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-ux-brief.md"
+  blockers:
+    - "Need final decision: pmr_7 plus visit 8 vs new pmr_8 program key."
+  next_action: "Validate architecture notes, decide PMR program approach, then authorize data/dev implementation plan."
+

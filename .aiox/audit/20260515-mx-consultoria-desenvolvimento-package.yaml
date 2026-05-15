@@ -1,0 +1,33 @@
+auditId: 20260515-mx-consultoria-desenvolvimento-package
+createdAt: '2026-05-15T00:00:00-03:00'
+createdBy: '@aiox-master'
+agent: Orion
+mode: yolo
+scope:
+  epic: EPIC-MX-CONS-DEV-20260515
+  sourceMeeting: docs/prd/escopo-reuniao-daniel-sistema-2026-05-15.md
+  packageRoot: docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515
+summary:
+  - Converted Daniel/Jose meeting transcript into product scope and brownfield PRD.
+  - Created five execution waves for PMR consulting, owner planning, daily routine, people development and app readiness.
+  - Created story set CONS-13 through CONS-19, OPS-20 through OPS-23, DEV-24 through DEV-27 and APP-28 through APP-31.
+  - Created AIOX handoffs for PM, PO, Architect, Data Engineer, UX, Dev, QA and DevOps.
+  - Created kickoff and QA plans for waves 1 through 5.
+  - Created traceability, risk, decision, dependency, GO/NO-GO, action board, manifest and validation artifacts.
+validation:
+  yamlFilesParsed: 34
+  artifactReferencesChecked: 64
+  missingArtifactReferences: 0
+  asciiChecksForNewControlDocs: pass
+codeChanges:
+  productCodeEdited: false
+  notes: Planning and orchestration artifacts only. Existing dirty source files were not reverted or normalized.
+nextGate:
+  owner: '@po'
+  action: Validate wave-1-readiness-review.md and close W1-D01 through W1-D03 before implementation.
+relatedArtifacts:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/execution-brief.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/action-board.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/package-manifest.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/validation-report.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-1-readiness-review.md

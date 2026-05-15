@@ -21,6 +21,13 @@ import { useConsultingParameters } from '@/hooks/useConsultingParameters'
 import { useConsultingStrategicPlan } from '@/hooks/useConsultingStrategicPlan'
 import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
 import type { ConsultingGeneratedArtifact } from '@/lib/schemas/consulting-client.schema'
+import {
+  buildLatestTargetByMetric,
+  buildPreviousYearResultByMetric,
+  getPmrMvpIndicator,
+  isPmrMvpIndicator,
+  sortByPmrMvpOrder,
+} from '@/lib/consultoria/pmr-mvp-indicators'
 
 type Props = {
   clientId: string
@@ -31,6 +38,10 @@ function formatMetricValue(value: number, valueType?: string) {
   if (valueType === 'percent') return `${(value * 100).toFixed(1)}%`
   if (valueType === 'currency') return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   return value.toLocaleString('pt-BR')
+}
+
+function formatOptionalMetricValue(value: number | null, valueType?: string) {
+  return value == null ? '-' : formatMetricValue(value, valueType)
 }
 
 type MetricStatus = PmrMetricStatus
@@ -89,13 +100,22 @@ export function ConsultingStrategicView({ clientId, clientName = 'Cliente PMR' }
   const [submitting, setSubmitting] = useState(false)
 
   const selectedMetric = metrics.catalog.find((metric) => metric.metric_key === metricKey) || metrics.catalog[0]
+  const targetByMetric = useMemo(() => buildLatestTargetByMetric(metrics.targets), [metrics.targets])
+  const previousYearByMetric = useMemo(() => (
+    buildPreviousYearResultByMetric([...metrics.results, ...metrics.derivedResults])
+  ), [metrics.derivedResults, metrics.results])
   const strategicRows = useMemo(() => {
-    return buildPmrMetricViews({
+    const rows = buildPmrMetricViews({
       catalog: metrics.catalog,
       latestResults: metrics.latestResults,
+      targetByMetric,
+      previousYearByMetric,
       parameterByMetric: parameters.valueByMetric,
-    }).slice(0, 16)
-  }, [metrics.catalog, metrics.latestResults, parameters.valueByMetric])
+      includeEmpty: true,
+    }).filter((row) => isPmrMvpIndicator(row.metric_key))
+
+    return sortByPmrMvpOrder(rows)
+  }, [metrics.catalog, metrics.latestResults, parameters.valueByMetric, previousYearByMetric, targetByMetric])
 
   const swotOverride = useMemo(() => buildSwotOverride(swot), [swot])
   const planDraft = useMemo(() => buildPmrStrategicPlan({
@@ -234,7 +254,7 @@ export function ConsultingStrategicView({ clientId, clientName = 'Cliente PMR' }
             <div>
               <Typography variant="h3">ESTRATEGICO PMR</Typography>
               <Typography variant="caption" tone="muted">
-                Metas, realizados e comparativo com mercado e boa pratica.
+                Recorte MVP com planejado, realizado, realizacao e comparativo.
               </Typography>
             </div>
             <Badge variant="outline" className="rounded-mx-full px-3 py-1">
@@ -247,9 +267,10 @@ export function ConsultingStrategicView({ clientId, clientName = 'Cliente PMR' }
               <thead>
                 <tr className="border-b border-border-default">
                   <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">INDICADOR</Typography></th>
+                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">PLANEJADO</Typography></th>
                   <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">REALIZADO</Typography></th>
-                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">MERCADO</Typography></th>
-                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">BOA PRATICA</Typography></th>
+                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">% REAL.</Typography></th>
+                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">ANO ANT.</Typography></th>
                   <th className="py-mx-sm"><Typography variant="tiny" tone="muted">STATUS</Typography></th>
                 </tr>
               </thead>
@@ -260,33 +281,50 @@ export function ConsultingStrategicView({ clientId, clientName = 'Cliente PMR' }
                     <tr key={row.metric_key} className="border-b border-border-subtle">
                       <td className="py-mx-sm pr-mx-md">
                         <Typography variant="p" className="font-black">{row.label}</Typography>
-                        <Typography variant="tiny" tone="muted">{row.area}</Typography>
+                        <Typography variant="tiny" tone="muted">{getPmrMvpIndicator(row.metric_key)?.group || row.area}</Typography>
                       </td>
                       <td className="py-mx-sm pr-mx-md">
-                        <Typography variant="p">
-                          {row.latest_result != null ? formatMetricValue(row.latest_result, row.value_type) : '-'}
-                        </Typography>
+                        <Typography variant="p">{formatOptionalMetricValue(row.target_value, row.value_type)}</Typography>
                       </td>
                       <td className="py-mx-sm pr-mx-md">
-                        <Typography variant="p">
-                          {row.market_average != null ? formatMetricValue(row.market_average, row.value_type) : '-'}
-                        </Typography>
+                        <Typography variant="p">{formatOptionalMetricValue(row.latest_result, row.value_type)}</Typography>
                       </td>
                       <td className="py-mx-sm pr-mx-md">
-                        <Typography variant="p">
-                          {row.best_practice != null ? formatMetricValue(row.best_practice, row.value_type) : '-'}
-                        </Typography>
+                        <Typography variant="p">{formatOptionalMetricValue(row.achievement_rate, 'percent')}</Typography>
+                      </td>
+                      <td className="py-mx-sm pr-mx-md">
+                        <Typography variant="p">{formatOptionalMetricValue(row.previous_year_result, row.value_type)}</Typography>
+                        {row.yoy_delta != null && (
+                          <Typography variant="tiny" tone={row.yoy_delta >= 0 ? 'success' : 'error'}>
+                            {row.yoy_delta >= 0 ? '+' : ''}{formatMetricValue(row.yoy_delta, 'percent')}
+                          </Typography>
+                        )}
                       </td>
                       <td className="py-mx-sm">
                         <Badge variant={statusVariant[status]} className="rounded-mx-full px-3 py-1">
-                          {status === 'success' ? 'ACIMA' : status === 'warning' ? 'MERCADO' : status === 'danger' ? 'ATENCAO' : 'SEM DADO'}
+                          {status === 'success' ? 'DENTRO/ACIMA' : status === 'warning' ? 'ATENCAO' : status === 'danger' ? 'ABAIXO' : 'SEM DADO'}
                         </Badge>
+                        {getPmrMvpIndicator(row.metric_key)?.mvp_status === 'backlog' && (
+                          <Typography variant="tiny" tone="muted" className="block mt-1">fonte pendente</Typography>
+                        )}
                       </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-mx-md grid grid-cols-1 md:grid-cols-3 gap-mx-sm">
+            {strategicRows.filter((row) => row.status === 'danger' || row.status === 'warning').slice(0, 3).map((row) => (
+              <div key={row.metric_key} className="rounded-mx-lg border border-border-default bg-surface-alt p-mx-sm">
+                <Typography variant="tiny" tone="muted" className="font-black uppercase">Alerta</Typography>
+                <Typography variant="p" className="text-sm font-black">{row.label}</Typography>
+                <Typography variant="tiny" tone="muted">
+                  Realizado {formatOptionalMetricValue(row.latest_result, row.value_type)} contra planejado {formatOptionalMetricValue(row.target_value, row.value_type)}.
+                </Typography>
+              </div>
+            ))}
           </div>
         </Card>
 

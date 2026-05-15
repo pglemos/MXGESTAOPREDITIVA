@@ -216,8 +216,13 @@ async function ensureMxDriveAccess(
     ),
   );
 
-  const rejected = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
-  if (rejected) throw toError(rejected.reason);
+  const rejected = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
+  if (rejected.length > 0) {
+    console.warn("Non-blocking Google Drive share permission failures", {
+      failures: rejected.length,
+      message: toError(rejected[0].reason).message,
+    });
+  }
 }
 
 async function createDriveFolder(accessToken: string, name: string, parentId?: string): Promise<DriveFolder> {
@@ -767,7 +772,7 @@ Deno.serve(async (req) => {
       if (fileRow?.id) {
         const { error: updateError } = await adminClient
           .from("arquivos_drive_consultoria")
-          .update({ status: "trashed", deleted_by: userId, deleted_at: new Date().toISOString() })
+          .update({ status: "trashed", deleted_by: userId || null, deleted_at: new Date().toISOString() })
           .eq("id", fileRow.id);
         if (updateError && !isMissingTableError(updateError)) throw toError(updateError);
       }
@@ -797,7 +802,7 @@ Deno.serve(async (req) => {
             web_view_link: driveFile.webViewLink || null,
             web_content_link: driveFile.webContentLink || null,
             status: "active",
-            uploaded_by: userId,
+            uploaded_by: userId || null,
           },
           { onConflict: "google_drive_file_id" },
         );

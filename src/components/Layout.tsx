@@ -63,7 +63,7 @@ const navegacaoInternaMx: NavCategory[] = [
         { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
         { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
-        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
         { label: 'Notificações', path: '/notificacoes', icon: <Bell size={16} /> },
       ]
@@ -115,7 +115,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Devolutiva Estruturada', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
-        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
       ]
     }
@@ -135,7 +135,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Devolutivas', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
-        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
       ]
     }
@@ -236,11 +236,11 @@ export default function Layout() {
             <button type="button" aria-label="Pesquisar no sistema" onClick={handleGlobalSearch} className="w-mx-10 h-mx-10 bg-surface-alt rounded-mx-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
               <Search size={18} aria-hidden="true" />
             </button>
-            <button type="button" aria-label={`Abrir notificações. ${unreadCount} não lidas.`} onClick={() => navigate('/notificacoes')} className="relative w-mx-10 h-mx-10 bg-surface-alt rounded-mx-full flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
+            <button type="button" aria-label={`Abrir notificações. ${unreadCount} não lidas.`} onClick={() => navigate('/notificacoes')} className="flex items-center gap-mx-xs h-mx-10 px-mx-xs bg-surface-alt rounded-mx-full text-text-tertiary border border-border-default hover:text-text-primary transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
               <Bell size={18} aria-hidden="true" />
               {unreadCount > 0 && (
-                <span className="absolute top-mx-0 right-mx-0 w-3.5 h-3.5 rounded-mx-full bg-brand-primary border-2 border-white flex items-center justify-center text-mx-micro font-black text-white" aria-hidden="true">
-                  {unreadCount}
+                <span className="min-w-mx-10 h-mx-6 px-mx-xs rounded-mx-full bg-brand-primary border border-white flex items-center justify-center text-mx-micro font-black text-white leading-none" aria-hidden="true">
+                  {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </button>

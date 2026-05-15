@@ -279,67 +279,72 @@ export default function PainelConsultor() {
                     </div>
                 }
                 actions={
-                    <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                        <nav className="flex items-center gap-mx-tiny bg-white p-mx-tiny rounded-mx-full border border-border-default shadow-mx-sm relative h-mx-14 px-3">
-                            <Calendar size={14} className="text-text-tertiary ml-2 mr-1" />
-                            {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
-                                <Button 
-                                    key={t}
-                                    variant={timeframe === t ? 'secondary' : 'ghost'}
+                    <div className="flex flex-col items-stretch gap-mx-sm shrink-0 xl:items-end">
+                        <div className="flex flex-wrap items-center justify-end gap-mx-sm">
+                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-default bg-white p-mx-tiny px-3 shadow-mx-sm">
+                                <Calendar size={14} className="mr-1 text-text-tertiary" />
+                                {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
+                                    <Button 
+                                        key={t}
+                                        variant={timeframe === t ? 'secondary' : 'ghost'}
+                                        size="sm"
+                                        onClick={() => setTimeframe(t)}
+                                        className="rounded-mx-full px-4 h-mx-10 uppercase font-black text-mx-nano tracking-widest"
+                                    >
+                                        {t}
+                                    </Button>
+                                ))}
+                                <Button
+                                    variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
                                     size="sm"
-                                    onClick={() => setTimeframe(t)}
+                                    onClick={() => setShowCustomPicker(!showCustomPicker)}
                                     className="rounded-mx-full px-4 h-mx-10 uppercase font-black text-mx-nano tracking-widest"
                                 >
-                                    {t}
+                                    Custom
                                 </Button>
-                            ))}
-                            <Button
-                                variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
-                                size="sm"
-                                onClick={() => setShowCustomPicker(!showCustomPicker)}
-                                className="rounded-mx-full px-4 h-mx-10 uppercase font-black text-mx-nano tracking-widest"
-                            >
-                                Custom
-                            </Button>
 
-                            <AnimatePresence>
-                                {showCustomPicker && (
-                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-mx-0 z-50">
-                                        <Card className="p-mx-lg min-w-mx-card-sm shadow-mx-elite border-none bg-white/95 backdrop-blur-xl rounded-mx-3xl">
-                                            <header className="flex items-center justify-between mb-8">
-                                                <Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-widest">Período Customizado</Typography>
-                                                <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-10 h-mx-10 p-mx-0 rounded-mx-full"><X size={16} /></Button>
-                                            </header>
-                                            <div className="space-y-mx-md">
-                                                <div className="space-y-mx-xs">
-                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Início</Typography>
-                                                    <Input type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
+                                <AnimatePresence>
+                                    {showCustomPicker && (
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-mx-0 z-50">
+                                            <Card className="p-mx-lg min-w-mx-card-sm shadow-mx-elite border-none bg-white/95 backdrop-blur-xl rounded-mx-3xl">
+                                                <header className="flex items-center justify-between mb-8">
+                                                    <Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-widest">Período Customizado</Typography>
+                                                    <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-10 h-mx-10 p-mx-0 rounded-mx-full"><X size={16} /></Button>
+                                                </header>
+                                                <div className="space-y-mx-md">
+                                                    <div className="space-y-mx-xs">
+                                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Início</Typography>
+                                                        <Input type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
+                                                    </div>
+                                                    <div className="space-y-mx-xs">
+                                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Fim</Typography>
+                                                        <Input type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
+                                                    </div>
+                                                    <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-14 shadow-mx-lg font-black uppercase text-xs tracking-widest rounded-mx-xl">
+                                                        APLICAR PERÍODO
+                                                    </Button>
                                                 </div>
-                                                <div className="space-y-mx-xs">
-                                                    <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Fim</Typography>
-                                                    <Input type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
-                                                </div>
-                                                <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-14 shadow-mx-lg font-black uppercase text-xs tracking-widest rounded-mx-xl">
-                                                    APLICAR PERÍODO
-                                                </Button>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </nav>
+                                            </Card>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </nav>
 
-                        <div className="flex items-center gap-mx-sm">
                             <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-mx-xl shadow-mx-sm h-mx-14 w-mx-14 bg-white border-border-default">
                                 <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                             </Button>
-                            <nav className="flex items-center gap-mx-tiny bg-mx-black p-mx-tiny rounded-mx-full shadow-mx-xl border border-white/10 h-mx-14 px-3">
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-end gap-mx-sm">
+                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-default bg-white p-mx-tiny px-3 shadow-mx-sm">
                                 {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
                                     <Button 
-                                        key={r} variant="ghost" size="sm" 
+                                        key={r}
+                                        variant={isTriggering === r ? 'secondary' : 'ghost'}
+                                        size="sm" 
                                         onClick={() => triggerReport(r)} 
                                         disabled={isTriggering !== null} 
-                                        className="rounded-mx-full px-5 h-mx-10 text-white hover:bg-white/10 uppercase font-black text-mx-nano tracking-widest"
+                                        className="rounded-mx-full px-5 h-mx-10 uppercase font-black text-mx-nano tracking-widest text-text-primary hover:bg-surface-alt"
                                     >
                                         {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : r}
                                     </Button>
@@ -430,7 +435,7 @@ export default function PainelConsultor() {
                                 </Button>
                             ))}
                         </div>
-                        <Button asChild variant="mx-elite" className="h-mx-14 px-8 shadow-mx-xl uppercase font-black text-mx-tiny tracking-mx-widest rounded-mx-xl">
+                        <Button asChild variant="secondary" className="h-mx-14 px-8 shadow-mx-sm uppercase font-black text-mx-tiny tracking-mx-widest rounded-mx-xl border border-brand-primary/15 bg-white text-brand-secondary hover:bg-mx-green-50">
                             <Link to="/lojas"><Store size={18} className="mr-2" /> GESTÃO LOJAS</Link>
                         </Button>
                     </div>

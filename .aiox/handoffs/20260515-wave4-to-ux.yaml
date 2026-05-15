@@ -1,0 +1,20 @@
+handoffId: 20260515-wave4-to-ux
+createdAt: '2026-05-15T00:00:00-03:00'
+from: '@aiox-master'
+to: '@ux-design-expert'
+status: pending
+context:
+  epic: EPIC-MX-CONS-DEV-20260515
+  wave: 4
+  title: Desenvolvimento de pessoas
+inputs:
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-development-notes.md
+  - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-ux-brief.md
+  - docs/stories/story-DEV-24-reposicionar-treinamentos-desenvolvimento.md
+tasks:
+  - Redesign information architecture from training-only to development.
+  - Preserve route compatibility and current role expectations.
+  - Validate mobile seller experience.
+outputs:
+  - UX brief for development area.
+  - Navigation and label decisions.

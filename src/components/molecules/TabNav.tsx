@@ -21,7 +21,7 @@ export function TabNav<T extends string = string>({
   return (
     <nav
       className={cn(
-        'flex gap-mx-xs border-b border-border-subtle mb-mx-md overflow-x-auto no-scrollbar',
+        'flex flex-wrap gap-mx-xs border-b border-border-subtle mb-mx-md overflow-visible',
         className
       )}
       role="tablist"

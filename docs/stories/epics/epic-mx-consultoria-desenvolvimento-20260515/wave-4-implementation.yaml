@@ -1,0 +1,158 @@
+storyId: EPIC-MX-CONS-DEV-WAVE-4
+createdAt: '2026-05-15T00:00:00-03:00'
+createdBy: '@aiox-master'
+status: pending
+complexity: COMPLEX
+estimatedEffort: 5-8 dias uteis
+scope:
+  wave: 4
+  title: Desenvolvimento de pessoas
+  stories:
+    - docs/stories/story-DEV-24-reposicionar-treinamentos-desenvolvimento.md
+    - docs/stories/story-DEV-25-biblioteca-conteudo-temas-avaliacao.md
+    - docs/stories/story-DEV-26-trilha-novo-colaborador.md
+    - docs/stories/story-DEV-27-feedback-pdi-recomendacao-conteudo.md
+  guidance:
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-kickoff.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-development-notes.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-architecture-notes.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-data-rls-notes.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-ux-brief.md
+    - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-qa-test-plan.md
+agents:
+  orchestrator: '@aiox-master'
+  product: '@pm'
+  productGate: '@po'
+  architecture: '@architect'
+  data: '@data-engineer'
+  ux: '@ux-design-expert'
+  implementation: '@dev'
+  quality: '@qa'
+phases:
+  - id: phase-1
+    name: Product and IA validation
+    description: Freeze naming, navigation and MVP content taxonomy.
+    subtasks:
+      - id: '1.1'
+        description: Decide final area name and MVP theme taxonomy for development.
+        service: product
+        owner: '@pm'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-kickoff.md
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-development-notes.md
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-ux-brief.md
+          - docs/stories/story-DEV-24-reposicionar-treinamentos-desenvolvimento.md
+          - docs/stories/story-DEV-25-biblioteca-conteudo-temas-avaliacao.md
+        verification:
+          type: manual
+          instructions: PM/PO approves area name, taxonomy and deferred items.
+        status: pending
+  - id: phase-2
+    name: Development area shell
+    description: Reposition current training experience without breaking routes.
+    subtasks:
+      - id: '2.1'
+        description: Update navigation, labels and page grouping for Desenvolvimento/Evolucao.
+        service: frontend
+        owner: '@ux-design-expert'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-ux-brief.md
+          - src/components/Layout.tsx
+          - src/pages/VendedorTreinamentos.tsx
+          - src/pages/GerenteTreinamentos.tsx
+          - src/pages/GerentePDI.tsx
+        verification:
+          type: browser
+          instructions: Validate vendedor and gerente flows on desktop and mobile.
+        status: pending
+        dependencies:
+          - '1.1'
+  - id: phase-3
+    name: Library metadata and feedback loop
+    description: Add content themes, ratings, suggestions and admin review.
+    subtasks:
+      - id: '3.1'
+        description: Define database changes for content tags, ratings and suggestions.
+        service: database
+        owner: '@data-engineer'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-data-rls-notes.md
+          - src/hooks/useTrainings.ts
+          - supabase/migrations
+        verification:
+          type: manual
+          instructions: Data engineer confirms RLS and compatibility with current training_progress.
+        status: pending
+        dependencies:
+          - '1.1'
+      - id: '3.2'
+        description: Implement library search, filters, ratings and suggestion capture.
+        service: frontend
+        owner: '@dev'
+        files:
+          - src/pages/VendedorTreinamentos.tsx
+          - src/pages/GerenteTreinamentos.tsx
+          - src/hooks/useTrainings.ts
+        verification:
+          type: command
+          command: npm run typecheck
+        status: pending
+        dependencies:
+          - '3.1'
+  - id: phase-4
+    name: Onboarding trail and recommendations
+    description: Add new collaborator trail and deterministic content recommendations.
+    subtasks:
+      - id: '4.1'
+        description: Design contract for onboarding trail assignment, stage locking and completion notification.
+        service: backend
+        owner: '@architect'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-architecture-notes.md
+          - src/hooks/useTrainings.ts
+          - src/hooks/useData.ts
+          - src/pages/Notificacoes.tsx
+          - supabase/migrations
+        verification:
+          type: manual
+          instructions: Architect confirms no conflict with existing notification and training models.
+        status: pending
+        dependencies:
+          - '3.1'
+      - id: '4.2'
+        description: Connect feedback/PDI gaps to deterministic content recommendations.
+        service: fullstack
+        owner: '@dev'
+        files:
+          - src/pages/GerentePDI.tsx
+          - src/pages/GerenteFeedbacks.tsx
+          - src/pages/VendedorTreinamentos.tsx
+          - src/hooks/usePDISessions.ts
+          - src/hooks/useTrainings.ts
+        verification:
+          type: command
+          command: npm test
+        status: pending
+        dependencies:
+          - '3.2'
+          - '4.1'
+  - id: phase-5
+    name: Quality gate
+    description: Validate role boundaries, mobile behavior and development loop.
+    subtasks:
+      - id: '5.1'
+        description: Run local gates and role regression for vendedor, gerente, admin and admin master.
+        service: infra
+        owner: '@qa'
+        files:
+          - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/wave-4-qa-test-plan.md
+          - docs/stories/story-DEV-24-reposicionar-treinamentos-desenvolvimento.md
+          - docs/stories/story-DEV-25-biblioteca-conteudo-temas-avaliacao.md
+          - docs/stories/story-DEV-26-trilha-novo-colaborador.md
+          - docs/stories/story-DEV-27-feedback-pdi-recomendacao-conteudo.md
+        verification:
+          type: command
+          command: npm run lint && npm run typecheck && npm test
+        status: pending
+        dependencies:
+          - '4.2'
