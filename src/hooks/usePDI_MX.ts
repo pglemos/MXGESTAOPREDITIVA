@@ -334,7 +334,11 @@ export function usePDI_MX() {
         const { data, error } = await supabase.rpc('create_pdi_session_bundle', { p_payload: payload })
         setLoading(false)
         if (error) throw error
+        if (data) {
+            await supabase.rpc('gerar_recomendacoes_desenvolvimento_pdi', { p_sessao_id: data })
+        }
         queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
+        queryClient.invalidateQueries({ queryKey: ['development-recommendations'] })
         return data // Returns session UUID
     }, [queryClient])
 

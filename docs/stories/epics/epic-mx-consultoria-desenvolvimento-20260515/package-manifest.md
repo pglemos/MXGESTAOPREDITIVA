@@ -78,13 +78,13 @@
 |---|---|
 | `docs/qa/gates/epic-mx-cons-dev-20260515.yml` | QA gate decision: PASS with authenticated role and RLS smoke evidence. |
 | `docs/qa/reports/epic-mx-cons-dev-20260515-qa-review.md` | QA review evidence and requirement trace. |
-| `po-acceptance-note.md` | PO acceptance of MVP/partial-MVP boundaries. |
+| `po-acceptance-note.md` | PO acceptance after the requested second-pass completion. |
 | `data-rls-predeploy-review.md` | Data Engineer migration/RLS predeploy review. |
 | `devops-prepush-report.md` | DevOps pre-push quality and push-hold decision. |
 
 ## Current Execution Recommendation
 
-Implementation package for Waves 1-5 is complete at MVP/partial-MVP level. PO accepted the partial MVP boundaries; QA/Data gates are closed with authenticated role smoke, RLS smoke and remote migration evidence. DevOps pre-push passed; push/PR/deploy remain held only for careful staging scope review because the worktree contains broad package changes and pre-existing unrelated edits.
+Implementation package for Waves 1-5 is complete, with the requested second-pass completion for DEV-25, DEV-26, DEV-27 and the full 45-indicator planning catalog. QA/Data gates are closed with authenticated role smoke, RLS smoke, development full smoke and remote migration evidence.
 
 ## Validation Snapshot
 
@@ -92,8 +92,10 @@ Implementation package for Waves 1-5 is complete at MVP/partial-MVP level. PO ac
 - `npm run validate:agents`: PASS with 121 non-blocking pre-existing dependency warnings.
 - `npm run lint`: PASS.
 - `npm run typecheck`: PASS.
-- `npm test`: PASS, latest run with 265 passing tests and 573 assertions.
+- `npm test`: PASS, latest run with 268 passing tests and 589 assertions.
 - `npm run build`: PASS with existing large chunk warning for PDF/export bundles.
 - `npx tsx scripts/validate_mx_cons_dev_rls_smoke.ts`: PASS.
 - `PLAYWRIGHT_PORT=3002 npx playwright test src/test/mx-consultoria-role-smoke.playwright.ts --project=chromium`: PASS.
-- `npx supabase db push`: PASS; remote migrations match local through `20260515162000`.
+- `npx supabase db push`: PASS; remote migrations match local through `20260515190000`.
+- `npx tsx scripts/validate_mx_development_full_smoke.ts`: PASS.
+- Remote migrations now match local through `20260515190000`.

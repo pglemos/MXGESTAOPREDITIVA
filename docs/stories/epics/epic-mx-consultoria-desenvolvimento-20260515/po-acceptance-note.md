@@ -2,7 +2,7 @@
 
 **Agent:** @po / Pax  
 **Date:** 2026-05-15  
-**Decision:** ACCEPT WITH MVP BOUNDARIES  
+**Decision:** ACCEPT SECOND-PASS COMPLETION
 
 ## Scope Decision
 
@@ -11,7 +11,7 @@ The implementation package remains aligned with the meeting scope and PRD direct
 - Consultoria PMR digitalized as an operational flow for admin/admin master MX.
 - Owner/client visibility separated from internal consultant visibility.
 - Daily routine positioned as the core operational input.
-- Development of people positioned as MVP through area naming, content taxonomy, basic trail contracts and deterministic recommendations.
+- Development of people positioned through persisted library ratings/suggestions, onboarding workflow, PDI/feedback recommendations and curation controls.
 - App readiness handled as PWA/readiness planning, not premature native publication.
 
 ## Accepted as Implemented
@@ -21,13 +21,14 @@ The implementation package remains aligned with the meeting scope and PRD direct
 - DEV-24.
 - APP-30 and APP-31.
 
-## Accepted as Partial MVP
+## Accepted as Second-Pass Completion
 
-- DEV-25: content library taxonomy and rating/suggestion contract exist; persistence remains backlog.
-- DEV-26: new collaborator trail helper/UX contract exists; formal assignment persistence remains backlog.
-- DEV-27: feedback/PDI deterministic recommendation contract exists; persisted linkage remains backlog.
+- DEV-25: content library taxonomy, rating persistence, suggestion persistence and curator backlog are implemented.
+- DEV-26: new collaborator track assignment, month locks, step progress and final manager notification are implemented.
+- DEV-27: feedback/PDI recommendations, persisted history and seller visibility are implemented.
+- CONS-17: 45 planning indicators are materialized in code and migration seed.
 - APP-28: institutional/store-specific content metadata contract exists; full store media management remains backlog.
-- APP-29: editorial/source metadata contract exists; full curation workflow remains backlog.
+- APP-29: editorial/source metadata, suggestions and ratings now feed curation; production of external media remains an operational activity.
 
 ## PO Conditions Before Release
 
@@ -38,4 +39,4 @@ The implementation package remains aligned with the meeting scope and PRD direct
 
 ## Decision Rationale
 
-The partial MVP boundaries are intentional and prevent the scope from becoming a full LMS, full native app or full 45-indicator planning product in the first release.
+The requested development and indicator gaps were closed without turning the release into a full native app submission or external media production workflow.

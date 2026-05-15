@@ -1,6 +1,6 @@
 # Story DEV-26 - Trilha de Novo Colaborador
 
-**Status:** Partial MVP - contrato e visual preparados  
+**Status:** Implemented - workflow persistido com bloqueios e notificacao final
 **Epic:** EPIC-MX-CONS-DEV-20260515  
 **Onda:** 4 - Desenvolvimento de pessoas  
 **Owner:** @pm  
@@ -21,11 +21,11 @@ para garantir que ele conclua fundamentos antes da liberacao operacional.
 
 ## Acceptance Criteria
 
-- [ ] Gerente ou admin/admin master MX consegue atribuir trilha de novo colaborador a um vendedor.
+- [x] Gerente ou admin/admin master MX consegue atribuir trilha de novo colaborador a um vendedor.
 - [x] Trilha possui etapas obrigatorias modeladas no contrato MVP.
 - [x] Vendedor visualiza a trilha base e proximas etapas.
 - [x] Etapas futuras podem permanecer bloqueadas ate conclusao de requisitos anteriores no contrato MVP.
-- [ ] Ao concluir a trilha inicial, sistema notifica gerente com orientacao de feedback e liberacao para venda.
+- [x] Ao concluir a trilha inicial, sistema notifica gerente com orientacao de feedback e liberacao para venda.
 - [x] Trilha inicial contempla fundamentos de mercado, rotina diaria, funil, atendimento, CRM/preenchimento diario e cultura/institucional generico.
 - [x] Conteudo institucional personalizado por loja fica preparado como extensao, mas nao bloqueia o MVP.
 
@@ -49,7 +49,7 @@ para garantir que ele conclua fundamentos antes da liberacao operacional.
 - [x] `npm run lint`
 - [x] `npm run typecheck`
 - [x] `npm test`
-- [ ] Teste de fluxo gerente atribui trilha, vendedor conclui, gerente recebe notificacao.
+- [x] Teste de fluxo gerente atribui trilha, vendedor conclui, gerente recebe notificacao.
 
 ## File List
 
@@ -57,3 +57,7 @@ para garantir que ele conclua fundamentos antes da liberacao operacional.
 - `src/lib/development-content.ts`
 - `src/lib/development-content.test.ts`
 - `src/pages/VendedorTreinamentos.tsx`
+- `src/pages/GerenteTreinamentos.tsx`
+- `src/hooks/useTrainings.ts`
+- `scripts/validate_mx_development_full_smoke.ts`
+- `supabase/migrations/20260515190000_development_full_completion.sql`

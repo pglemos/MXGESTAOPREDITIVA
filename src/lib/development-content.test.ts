@@ -2,10 +2,14 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildDevelopmentContentMetadata,
   buildNewCollaboratorTrack,
+  buildDevelopmentRecommendation,
+  calculateAverageRating,
   filterDevelopmentContent,
   inferDevelopmentTheme,
+  isTrackStepUnlocked,
   isContentVisibleForStore,
   recommendDevelopmentThemeFromGap,
+  shouldReviewContent,
 } from './development-content'
 
 describe('development content helpers', () => {
@@ -38,6 +42,8 @@ describe('development content helpers', () => {
     expect(track[0].locked).toBe(false)
     expect(track.some(step => step.theme === 'rotina_diaria')).toBe(true)
     expect(track.filter(step => step.locked).length).toBeGreaterThan(0)
+    expect(track.length).toBe(11)
+    expect(track.some(step => step.month === 6 && step.unlockRule === 'manager_release')).toBe(true)
   })
 
   test('builds institutional/editorial metadata without leaking stores', () => {
@@ -52,5 +58,34 @@ describe('development content helpers', () => {
     expect(isContentVisibleForStore({ store_id: 'store-1' }, 'store-1')).toBe(true)
     expect(isContentVisibleForStore({ store_id: 'store-1' }, 'store-2')).toBe(false)
     expect(isContentVisibleForStore({ store_id: null }, 'store-2')).toBe(true)
+  })
+
+  test('calculates ratings and flags curation review candidates', () => {
+    expect(calculateAverageRating([{ rating: 5 }, { rating: 3 }, { rating: 4 }])).toEqual({ average: 4, count: 3 })
+    expect(shouldReviewContent({ averageRating: 3.2, ratingCount: 4 })).toBe(true)
+    expect(shouldReviewContent({ averageRating: 4.8, ratingCount: 4, editorialStatus: 'active' })).toBe(false)
+    expect(shouldReviewContent({ editorialStatus: 'review' })).toBe(true)
+  })
+
+  test('builds persisted recommendation metadata from feedback or PDI text', () => {
+    const recommendation = buildDevelopmentRecommendation({
+      source: 'feedback',
+      text: 'Baixo retorno de CRM e follow-up',
+      availableContent: [{ id: 'crm-1', title: 'CRM e follow-up', type: 'crm' }],
+    })
+
+    expect(recommendation.theme).toBe('crm')
+    expect(recommendation.training_id).toBe('crm-1')
+    expect(recommendation.reason).toContain('feedback')
+  })
+
+  test('unlocks onboarding steps by month and prior completion', () => {
+    const track = buildNewCollaboratorTrack()
+
+    expect(isTrackStepUnlocked(track[0], [], 1)).toBe(true)
+    expect(isTrackStepUnlocked(track[2], [], 1)).toBe(false)
+    expect(isTrackStepUnlocked(track[2], ['m1_rotina'], 1)).toBe(true)
+    expect(isTrackStepUnlocked(track[3], ['m1_atendimento'], 1)).toBe(false)
+    expect(isTrackStepUnlocked(track[3], ['m1_atendimento'], 2)).toBe(true)
   })
 })

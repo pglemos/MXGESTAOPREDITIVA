@@ -1,6 +1,6 @@
 # Wave 2 - Indicadores MVP de Planejamento
 
-**Status:** Aprovado e implementado no recorte MVP  
+**Status:** Superseded - catalogo completo de 45 indicadores implementado
 **Base:** Reuniao Daniel + artefatos PMR existentes  
 **Objetivo:** evitar tentar implementar os 45 indicadores de uma vez.
 
@@ -41,4 +41,4 @@
 
 ## Recomendacao
 
-Usar esses 16 indicadores como MVP inicial. Dados ausentes aparecem como "sem dado" e entram em backlog de coleta, nao como erro. O recorte foi materializado em `src/lib/consultoria/pmr-mvp-indicators.ts` para manter ordem, fonte, frequencia, visibilidade e status de disponibilidade.
+Este recorte foi a primeira entrega. A segunda passada substituiu o recorte por 45 indicadores completos materializados em `src/lib/consultoria/pmr-mvp-indicators.ts` e na migration `20260515190000_development_full_completion.sql`, mantendo compatibilidade do nome do helper.

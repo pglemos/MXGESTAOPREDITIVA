@@ -1,10 +1,10 @@
-import { useTrainings } from '@/hooks/useData'
+import { useContentSuggestions, useTrainings } from '@/hooks/useData'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { 
+import {
     GraduationCap, Plus, X, Save, ExternalLink, CheckCircle, 
     Play, Filter, Sparkles, BookOpen, Clock, Target, 
-    Users, LayoutDashboard, ChevronRight, RefreshCw, Smartphone
+    Users, LayoutDashboard, ChevronRight, RefreshCw, Smartphone, Star
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -14,13 +14,15 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 
-const types = ['prospeccao', 'fechamento', 'atendimento', 'gestao', 'pre-vendas']
-const audiences = ['vendedor', 'gerente', 'todos']
+const types = ['prospeccao', 'agendamento', 'atendimento', 'apresentacao', 'financiamento', 'carro_de_troca', 'fechamento', 'funil', 'rotina_diaria', 'crm', 'institucional', 'gestao', 'pre-vendas']
+const audiences = ['vendedor', 'gerente', 'dono', 'todos']
+const sources = ['mx_interno', 'especialista_convidado', 'fornecedor', 'loja_institucional']
 
 export default function ConsultorTreinamentos() {
     const { treinamentos, loading, error, createTraining, refetch } = useTrainings()
+    const { suggestions } = useContentSuggestions()
     const [showForm, setShowForm] = useState(false)
-    const [form, setForm] = useState({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos' })
+    const [form, setForm] = useState({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos', source_kind: 'mx_interno', editorial_status: 'active', duration_minutes: 15, xp_reward: 100, curation_notes: '' })
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
 
@@ -32,7 +34,7 @@ export default function ConsultorTreinamentos() {
         setSaving(false)
         if (createError) { toast.error(createError); return }
         toast.success('Novo módulo de aprendizado publicado!')
-        setShowForm(false); setForm({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos' })
+        setShowForm(false); setForm({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos', source_kind: 'mx_interno', editorial_status: 'active', duration_minutes: 15, xp_reward: 100, curation_notes: '' })
         refetch()
     }
 
@@ -118,6 +120,20 @@ export default function ConsultorTreinamentos() {
                                                     {audiences.map(a => <option key={a} value={a}>{a.toUpperCase()}</option>)}
                                                 </select>
                                             </div>
+                                            <div className="space-y-mx-sm">
+                                                <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Origem / Curadoria</Typography>
+                                                <select value={form.source_kind} onChange={e => setForm(p => ({ ...p, source_kind: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
+                                                    {sources.map(source => <option key={source} value={source}>{source.toUpperCase()}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-mx-sm">
+                                                <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Duração / XP</Typography>
+                                                <Input type="number" value={String(form.duration_minutes)} onChange={e => setForm(p => ({ ...p, duration_minutes: Number(e.target.value) || 15 }))} className="!h-14 px-6 font-bold" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-mx-sm">
+                                            <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Notas de Curadoria</Typography>
+                                            <Input value={form.curation_notes} onChange={e => setForm(p => ({ ...p, curation_notes: e.target.value }))} placeholder="Fonte, especialista, fornecedor ou revisão necessária" className="!h-14 px-6 font-bold" />
                                         </div>
                                     </div>
                                 </div>
@@ -132,6 +148,27 @@ export default function ConsultorTreinamentos() {
                     </motion.section>
                 )}
             </AnimatePresence>
+
+            {suggestions.length > 0 && (
+                <Card className="p-mx-lg border-none shadow-mx-xl bg-white">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md mb-mx-md">
+                        <div>
+                            <Typography variant="h3" className="uppercase tracking-tight">Backlog editorial</Typography>
+                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest">Sugestões recebidas da rede para curadoria MX</Typography>
+                        </div>
+                        <Badge variant="brand" className="rounded-mx-full px-4 py-1">{suggestions.length} sugestões</Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-sm">
+                        {suggestions.slice(0, 9).map(suggestion => (
+                            <div key={suggestion.id} className="rounded-mx-xl border border-border-default bg-surface-alt/50 p-mx-md">
+                                <Badge variant={suggestion.priority === 'high' ? 'danger' : 'outline'} className="rounded-mx-full">{suggestion.theme}</Badge>
+                                <Typography variant="p" className="font-black uppercase text-sm mt-mx-xs">{suggestion.title}</Typography>
+                                <Typography variant="caption" tone="muted" className="line-clamp-2">{suggestion.description || 'Sem descrição adicional.'}</Typography>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            )}
 
             {/* Academy Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg pb-32" aria-live="polite">
@@ -157,6 +194,7 @@ export default function ConsultorTreinamentos() {
                                 <div className="flex flex-wrap gap-mx-xs pt-4">
                                     <Badge variant="outline" className="border-border-strong px-3"><Users size={10} className="mr-1.5" /> <Typography variant="tiny" as="span">{t.target_audience?.toUpperCase()}</Typography></Badge>
                                     <Badge variant="outline" className="border-border-strong px-3"><Clock size={10} className="mr-1.5" /> <Typography variant="tiny" as="span">12 MIN</Typography></Badge>
+                                    <Badge variant={t.needs_review ? 'danger' : 'outline'} className="border-border-strong px-3"><Star size={10} className="mr-1.5 fill-current" /> <Typography variant="tiny" as="span">{t.average_rating || 0} ({t.rating_count || 0})</Typography></Badge>
                                 </div>
                             </div>
 

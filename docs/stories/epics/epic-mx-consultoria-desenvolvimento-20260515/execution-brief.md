@@ -6,7 +6,7 @@
 
 ## Estado do Pacote
 
-O pacote foi implementado em modo yolo por ondas. PO aceitou os limites de partial MVP, QA registrou gate `PASS`, Data Engineer fechou a revisao RLS/predeploy com `PASS`, e DevOps registrou pre-push aprovado com push retido apenas para revisao de staging/PR.
+O pacote foi implementado em modo yolo por ondas. A segunda passada fechou biblioteca com estrelas/sugestoes/curadoria, trilha de novo colaborador persistida, feedback/PDI com recomendacoes e o catalogo de 45 indicadores. QA registrou gate `PASS`, Data Engineer fechou a revisao RLS/predeploy com `PASS`, e os smokes autenticados passaram.
 
 ## Entrega Implementada
 
@@ -15,19 +15,19 @@ O pacote foi implementado em modo yolo por ondas. PO aceitou os limites de parti
 | 1 | Consultoria PMR pronta para uso | CONS-13 a CONS-16 | Implemented - QA final |
 | 2 | Visao do dono e planejamento | CONS-17 a CONS-19 | Implemented - QA final |
 | 3 | Rotina diaria e matinal | OPS-20 a OPS-23 | Implemented - QA final |
-| 4 | Desenvolvimento de pessoas | DEV-24 a DEV-27 | Partial MVP |
-| 5 | Personalizacao e app readiness | APP-28 a APP-31 | Partial/Readiness |
+| 4 | Desenvolvimento de pessoas | DEV-24 a DEV-27 | Implemented |
+| 5 | Personalizacao e app readiness | APP-28 a APP-31 | APP-29 implemented, APP-28 readiness |
 
 ## Proximo Lote Recomendado
 
 Executar empacotamento controlado para PR:
 
-1. DevOps revisar o escopo de staging para separar alteracoes do pacote de edicoes pre-existentes.
-2. Reexecutar quality gates apos staging.
-3. Criar commit e draft PR com as evidencias de QA/RLS/Playwright.
+1. Reexecutar quality gates finais.
+2. Criar commit e push na `main` conforme pedido do usuario.
+3. Registrar evidencias de QA/RLS/Playwright/smoke no pacote.
 4. Manter decisao PWA/wrapper/nativo como trilha de produto antes de submissao real Apple/Google.
 
-Motivo: os gates automatizados e autenticados passaram; o risco restante esta em higiene de repositorio, revisao de PR e decisao de publicacao.
+Motivo: os gates automatizados e autenticados passaram; o risco restante esta em revisao humana de release e decisao de publicacao.
 
 ## Gates Automatizados Executados
 
@@ -40,6 +40,7 @@ Motivo: os gates automatizados e autenticados passaram; o risco restante esta em
 - [x] RLS smoke autenticado.
 - [x] Playwright smoke autenticado por papel.
 - [x] Supabase remote migration push.
+- [x] Development full smoke autenticado.
 
 ## Evidencias Obrigatorias por Story Implementada
 
@@ -56,8 +57,6 @@ Motivo: os gates automatizados e autenticados passaram; o risco restante esta em
 
 | Bloqueador | Dono | Onde esta documentado |
 |---|---|---|
-| Staging scope review em worktree amplo | @devops | `devops-prepush-report.md` |
-| CodeRabbit/PR review ainda inexistente | @devops/@qa | futuro PR |
 | Decisao PWA/wrapper/nativo antes de submissao real | @pm/@devops | `docs/app-readiness/*` |
 
 ## Regras de Execucao
@@ -71,8 +70,7 @@ Motivo: os gates automatizados e autenticados passaram; o risco restante esta em
 
 ## Caminho Operacional
 
-1. DevOps revisa lista de arquivos para staging.
-2. DevOps reexecuta gates apos staging.
-3. DevOps cria commit e draft PR.
-4. QA/PO/Data revisam PR.
-5. PM decide continuidade para persistencia editorial, avaliacao de conteudo e trilha formal.
+1. DevOps reexecuta gates finais.
+2. DevOps cria commit e push.
+3. QA/PO/Data revisam o pacote publicado.
+4. PM decide continuidade comercial para APP-28 e publicacao mobile.

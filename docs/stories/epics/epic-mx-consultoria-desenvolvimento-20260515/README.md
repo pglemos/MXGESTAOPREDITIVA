@@ -56,7 +56,7 @@ Para cada story nova, usar:
 - `wave-1-kickoff.md`: pacote de partida da primeira onda executavel.
 - `wave-1-qa-test-plan.md`: plano de testes da primeira onda.
 - `docs/qa/gates/epic-mx-cons-dev-20260515.yml`: gate QA do pacote.
-- `po-acceptance-note.md`: aceite PO dos limites MVP/partial MVP.
+- `po-acceptance-note.md`: aceite PO da segunda passada de completude.
 - `data-rls-predeploy-review.md`: revisao Data/RLS antes de deploy.
 - `devops-prepush-report.md`: pre-push report e decisao de segurar push.
 
@@ -233,8 +233,8 @@ Agentes:
 | EPIC-CONS-02 | Relatorio executivo e resumo ao dono | 1 | @pm + @dev | Implemented - QA final |
 | EPIC-CONS-03 | Planejamento estrategico e visao do dono | 2 | @pm + @data-engineer | Implemented - QA final |
 | EPIC-OPS-04 | Rotina diaria, matinal e validacao gerente | 3 | @pm + @ux-design-expert | Implemented - QA final |
-| EPIC-DEV-05 | Desenvolvimento de pessoas e biblioteca | 4 | @pm + @architect | Partial MVP |
-| EPIC-DEV-06 | Trilha de novo colaborador | 4 | @pm + @sm | Partial MVP |
+| EPIC-DEV-05 | Desenvolvimento de pessoas e biblioteca | 4 | @pm + @architect | Implemented - segunda passada |
+| EPIC-DEV-06 | Trilha de novo colaborador | 4 | @pm + @sm | Implemented - segunda passada |
 | EPIC-APP-07 | Personalizacao por loja e app readiness | 5 | @pm + @devops | Partial/Readiness |
 
 ## Stories Criadas - Onda 1
@@ -255,7 +255,7 @@ Readiness review: `wave-1-readiness-review.md`.
 
 | Story | Titulo | Status | Agentes principais |
 |---|---|---|---|
-| CONS-17 | [Recorte MVP dos indicadores de planejamento](../../story-CONS-17-recorte-indicadores-planejamento-mvp.md) | Implemented - aguardando validacao final | @pm + @data-engineer |
+| CONS-17 | [Catalogo completo dos indicadores de planejamento](../../story-CONS-17-recorte-indicadores-planejamento-mvp.md) | Implemented - 45 indicadores | @pm + @data-engineer |
 | CONS-18 | [Planejamento estrategico com planejado x realizado](../../story-CONS-18-planejamento-estrategico-planejado-realizado.md) | Implemented - aguardando validacao final | @data-engineer + @dev |
 | CONS-19 | [Visao do dono com performance e alertas](../../story-CONS-19-visao-dono-performance-alertas.md) | Implemented - aguardando validacao final | @ux-design-expert + @dev |
 
@@ -283,9 +283,9 @@ Plano QA da onda: `wave-3-qa-test-plan.md`.
 | Story | Titulo | Status | Agentes principais |
 |---|---|---|---|
 | DEV-24 | [Reposicionar Treinamentos como Desenvolvimento](../../story-DEV-24-reposicionar-treinamentos-desenvolvimento.md) | Implemented - aguardando validacao final | @ux-design-expert + @dev |
-| DEV-25 | [Biblioteca de conteudo por tema, avaliacao e sugestao](../../story-DEV-25-biblioteca-conteudo-temas-avaliacao.md) | Partial MVP - biblioteca e temas implementados | @data-engineer + @dev |
-| DEV-26 | [Trilha de novo colaborador](../../story-DEV-26-trilha-novo-colaborador.md) | Partial MVP - contrato e visual preparados | @architect + @dev |
-| DEV-27 | [Feedback e PDI com recomendacao de conteudo](../../story-DEV-27-feedback-pdi-recomendacao-conteudo.md) | Partial MVP - recomendacao deterministica preparada | @architect + @data-engineer + @dev |
+| DEV-25 | [Biblioteca de conteudo por tema, avaliacao e sugestao](../../story-DEV-25-biblioteca-conteudo-temas-avaliacao.md) | Implemented - persistencia completa | @data-engineer + @dev |
+| DEV-26 | [Trilha de novo colaborador](../../story-DEV-26-trilha-novo-colaborador.md) | Implemented - workflow persistido | @architect + @dev |
+| DEV-27 | [Feedback e PDI com recomendacao de conteudo](../../story-DEV-27-feedback-pdi-recomendacao-conteudo.md) | Implemented - recomendacoes persistidas | @architect + @data-engineer + @dev |
 
 Plano de implementacao da onda: `wave-4-implementation.yaml`.
 Notas de desenvolvimento: `wave-4-development-notes.md`.
@@ -298,7 +298,7 @@ Plano QA da onda: `wave-4-qa-test-plan.md`.
 | Story | Titulo | Status | Agentes principais |
 |---|---|---|---|
 | APP-28 | [Trilha institucional personalizada por loja](../../story-APP-28-trilha-institucional-personalizada-loja.md) | Partial MVP - contrato multi-tenant preparado | @architect + @dev |
-| APP-29 | [Curadoria de conteudos com especialistas e fornecedores](../../story-APP-29-curadoria-conteudos-especialistas-fornecedores.md) | Partial MVP - metadados editoriais preparados | @pm + @dev |
+| APP-29 | [Curadoria de conteudos com especialistas e fornecedores](../../story-APP-29-curadoria-conteudos-especialistas-fornecedores.md) | Implemented - curadoria persistida | @pm + @dev |
 | APP-30 | [App readiness mobile e PWA](../../story-APP-30-app-readiness-mobile-pwa.md) | Implemented - readiness documental e PWA shortcuts ajustados | @devops + @qa + @dev |
 | APP-31 | [Checklist de submissao Apple e Google](../../story-APP-31-checklist-submissao-apple-google.md) | Implemented - checklist operacional criado | @devops + @qa |
 
@@ -322,7 +322,7 @@ Cada story deve concluir com:
 
 ## Bloqueadores e Decisoes Pendentes
 
-- QA autenticado por papel: vendedor, gerente, dono e admin/admin master MX.
-- PO aceitar limites de partial MVP em avaliacao/sugestao de conteudo, atribuicao formal de trilha e persistencia editorial.
-- Data/RLS validar migrations e isolamento multi-tenant em ambiente conectado.
+- QA autenticado por papel: vendedor, gerente, dono e admin/admin master MX concluido.
+- Segunda passada de biblioteca, trilha, feedback/PDI, curadoria e 45 indicadores concluida.
+- Data/RLS validar migrations e isolamento multi-tenant em ambiente conectado concluido.
 - DevOps decidir PWA, wrapper nativo ou submissao Apple/Google e conduzir branch/PR/deploy.

@@ -10,7 +10,7 @@ summary:
   - Implemented Wave 1 PMR consulting flow stories CONS-13 through CONS-16.
   - Implemented Wave 2 owner/planning stories CONS-17 through CONS-19.
   - Implemented Wave 3 daily routine stories OPS-20 through OPS-23.
-  - Implemented Wave 4 people development MVP/partial MVP stories DEV-24 through DEV-27.
+  - Completed Wave 4 people development stories DEV-24 through DEV-27, including ratings, suggestions, persisted onboarding tracks and feedback/PDI recommendations.
   - Implemented Wave 5 app readiness and personalization contracts APP-28 through APP-31.
   - Updated central AIOX execution, decision, validation, story index and go/no-go artifacts.
   - Continued formal AIOX workflow through QA, PO, Data Engineer and DevOps gate artifacts.
@@ -19,7 +19,7 @@ validation:
   validateAgents: pass_with_warnings
   lint: pass
   typecheck: pass
-  test: pass_265
+  test: pass_268
   build: pass_with_large_chunk_warning
   qaGate: pass
   poAcceptance: pass
@@ -27,18 +27,19 @@ validation:
   devopsPrepush: pass_held
   rlsSmoke: pass
   roleSmoke: pass
-  remoteMigrations: applied_through_20260515162000
+  developmentFullSmoke: pass
+  remoteMigrations: applied_through_20260515190000
 knownWarnings:
   - validate:agents reports missing optional/framework dependencies outside this implementation package.
   - vite build reports large PDF/export chunks.
   - PR packaging still requires staging scope review because the worktree contains broad package edits and pre-existing unrelated edits.
 stabilization:
   - src/benchmarks/find_optimization.test.ts now validates duplicate-find versus single-find behavior deterministically instead of relying on runtime timing.
-partialMvp:
-  - DEV-25 content ratings and suggestions persistence pending.
-  - DEV-26 formal onboarding trail assignment persistence pending.
-  - DEV-27 feedback/PDI-to-content persistence pending.
-  - APP-28/APP-29 store-specific/editorial persistence pending.
+secondPassCompletion:
+  - DEV-25 content ratings, suggestions and curation persistence completed.
+  - DEV-26 formal onboarding trail assignment, month locks and final manager notification completed.
+  - DEV-27 feedback/PDI-to-content recommendations and history completed.
+  - CONS-17 full 45-indicator planning catalog completed.
 nextGate:
   owner: '@devops'
   action: Review staging scope, rerun gates after staging, then create commit and draft PR.

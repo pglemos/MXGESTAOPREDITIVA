@@ -33,6 +33,7 @@
 | Authenticated role Playwright smoke | PASS |
 | Authenticated RLS smoke | PASS |
 | Supabase remote migration push | PASS |
+| Development full smoke | PASS |
 
 ## YAML Result
 
@@ -50,11 +51,13 @@
 - Wave 3 full `npm test`: 256 passed, 0 failed, 548 assertions, 40 files.
 - Wave 4 full `npm test`: 260 passed, 0 failed, 559 assertions, 41 files.
 - Wave 5 full `npm test`: 261 passed, 0 failed, 565 assertions, 41 files.
-- Final full `npm test`: 265 passed, 0 failed, 573 assertions, 42 files.
+- Final full `npm test`: 268 passed, 0 failed, 589 assertions, 42 files.
 - Wave 5 `npm run build`: PASS with existing large chunk warning for PDF/export bundles.
 - Authenticated role smoke: `PLAYWRIGHT_PORT=3002 npx playwright test src/test/mx-consultoria-role-smoke.playwright.ts --project=chromium` PASS, 3 tests.
 - RLS smoke: `npx tsx scripts/validate_mx_cons_dev_rls_smoke.ts` PASS for admin positive read and dono/gerente/vendedor negative reads.
-- Supabase remote migrations: `npx supabase db push` PASS through `20260515162000_harden_consulting_visits_role_scope.sql`.
+- Supabase remote migrations: `npx supabase db push` PASS through `20260515190000_development_full_completion.sql`.
+- Development full smoke: `npx tsx scripts/validate_mx_development_full_smoke.ts` PASS for content read, rating persistence, suggestion persistence, recommendation visibility, track assignment and step completion.
+- Second-pass completion: DEV-25 ratings/suggestions/curation persistence, DEV-26 persisted onboarding track workflow, DEV-27 persisted feedback/PDI recommendations and CONS-17 full 45 indicators validated.
 - `src/benchmarks/find_optimization.test.ts` was stabilized to validate search-count equivalence instead of timing/JIT performance.
 - `npm run validate:agents`: 12 agents validated, 0 errors, 121 warnings for missing optional/framework dependencies already outside this package.
 - The working tree already had unrelated modified `src/` files before this package; they were not reverted or normalized.

@@ -10,7 +10,7 @@
 export type UserRole = 'administrador_geral' | 'administrador_mx' | 'consultor_mx' | 'dono' | 'gerente' | 'vendedor'
 export type MembershipRole = 'dono' | 'gerente' | 'vendedor'
 export type PDIStatus = 'aberto' | 'em_andamento' | 'concluido'
-export type TrainingType = 'prospeccao' | 'fechamento' | 'atendimento' | 'gestao' | 'pre-vendas'
+export type TrainingType = 'prospeccao' | 'agendamento' | 'atendimento' | 'apresentacao' | 'financiamento' | 'carro_de_troca' | 'fechamento' | 'funil' | 'rotina_diaria' | 'crm' | 'institucional' | 'gestao' | 'pre-vendas'
 export type TargetAudience = 'vendedor' | 'gerente' | 'dono' | 'todos'
 export type CheckinScope = 'daily' | 'adjustment' | 'historical'
 export type CheckinSubmissionStatus = 'on_time' | 'late'
@@ -354,6 +354,15 @@ export interface Training {
     video_url: string
     target_audience: TargetAudience
     active: boolean
+    store_id?: string | null
+    source_kind?: 'mx_interno' | 'especialista_convidado' | 'fornecedor' | 'loja_institucional'
+    editorial_status?: 'draft' | 'active' | 'paused' | 'review' | 'retired'
+    review_after?: string | null
+    duration_minutes?: number
+    xp_reward?: number
+    curator_id?: string | null
+    curation_notes?: string | null
+    published_at?: string | null
     created_at: string
     updated_at?: string
 }
@@ -362,6 +371,11 @@ export interface TrainingProgress {
     id?: string
     user_id: string
     training_id: string
+    status?: 'locked' | 'available' | 'in_progress' | 'concluido' | 'completed'
+    started_at?: string | null
+    completed_at?: string | null
+    progress_percent?: number
+    source_context?: string | null
     created_at?: string
 }
 

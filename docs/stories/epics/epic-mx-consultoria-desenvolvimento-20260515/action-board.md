@@ -7,7 +7,7 @@
 
 | ID | Acao | Dono | Entrada | Saida esperada |
 |---|---|---|---|---|
-| A-01 | Escopo e partial MVPs validados | @po | `story-index.md`, `go-no-go-checklist.md` | Concluido |
+| A-01 | Escopo e segunda passada validados | @po | `story-index.md`, `go-no-go-checklist.md` | Concluido |
 | A-02 | Riscos criticos e acesso validados | @qa | `risk-register.md`, QA plans | Concluido |
 | A-03 | Smoke autenticado por papel | @qa | app em ambiente conectado | Concluido |
 | A-04 | Revisar migrations/RLS | @data-engineer + @qa | `supabase/migrations/*` | Concluido |
@@ -31,7 +31,7 @@
 | I-02 | CONS-15 | @dev | Implementada e validada em yolo mode |
 | I-03 | CONS-14 | @dev | Implementada e validada em yolo mode |
 | I-04 | CONS-16 | @dev | Implementada e validada em yolo mode |
-| I-05 | CONS-17 | @pm/@data-engineer | Recorte MVP implementado em helper, catalogo e migration |
+| I-05 | CONS-17 | @pm/@data-engineer | 45 indicadores completos implementados em helper, catalogo e migration |
 | I-06 | CONS-18 | @dev | Tabela planejado x realizado implementada |
 | I-07 | CONS-19 | @dev/@ux-design-expert | Visao do dono com alertas implementada |
 | I-08 | OPS-20 | @dev/@ux-design-expert | Campos MVP e UX dia anterior/hoje implementados |
@@ -39,11 +39,11 @@
 | I-10 | OPS-22 | @dev/@architect | Lembrete manual in-app para pendentes implementado |
 | I-11 | OPS-23 | @dev/@data-engineer | Disciplina simples do vendedor implementada |
 | I-12 | DEV-24 | @dev/@ux-design-expert | Reposicionamento para Desenvolvimento implementado |
-| I-13 | DEV-25 | @dev/@data-engineer | Biblioteca por temas implementada; avaliacao/sugestao pendentes |
-| I-14 | DEV-26 | @architect/@dev | Contrato e visual da trilha de novo colaborador preparados |
-| I-15 | DEV-27 | @architect/@data-engineer | Recomendacao deterministica por tema preparada |
+| I-13 | DEV-25 | @dev/@data-engineer | Biblioteca com avaliacao, sugestao e curadoria persistidas |
+| I-14 | DEV-26 | @architect/@dev | Trilha de novo colaborador persistida com bloqueios e notificacao |
+| I-15 | DEV-27 | @architect/@data-engineer | Feedback/PDI geram recomendacoes persistidas |
 | I-16 | APP-28 | @architect/@dev | Contrato de conteudo institucional por loja preparado |
-| I-17 | APP-29 | @pm/@dev | Metadados editoriais de curadoria preparados |
+| I-17 | APP-29 | @pm/@dev | Curadoria persistida com ratings, sugestoes e status editorial |
 | I-18 | APP-30 | @devops/@qa/@dev | Readiness mobile/PWA documentado e shortcuts corrigidos |
 | I-19 | APP-31 | @devops/@qa | Checklist Apple/Google criado |
 
@@ -59,5 +59,5 @@
 |---|---|---|---|
 | B-01 | Implementacao Onda 1 | Sem bloqueio tecnico restante | Pronta para revisao PO/QA final |
 | B-02 | Implementacao Onda 2 | Sem bloqueio tecnico restante | Pronta para QA final |
-| B-03 | Implementacao Onda 4 | Sem bloqueio para MVP; persistencia de avaliacao/trilha ainda pendente | Backlog DEV-25/26 |
+| B-03 | Implementacao Onda 4 | Sem bloqueio tecnico restante | Validada por smoke remoto de desenvolvimento |
 | B-04 | Submissao app | Depende de decisao PWA/wrapper/nativo, contas demo finais e @devops | APP-30/APP-31 prontos como checklist |

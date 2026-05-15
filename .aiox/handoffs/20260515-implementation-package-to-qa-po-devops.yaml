@@ -12,29 +12,29 @@ supersededBy: 20260515-specialist-gates-to-release-readiness
 context:
   epic: EPIC-MX-CONS-DEV-20260515
   title: MX Consultoria Digital e Desenvolvimento de Pessoas
-  scope: Waves 1-5 implemented at MVP/partial-MVP level
+  scope: Waves 1-5 implemented; second-pass completion applied for requested development and indicator gaps
 summary:
   implemented:
     - CONS-13..CONS-19
     - OPS-20..OPS-23
-    - DEV-24
+    - DEV-24..DEV-27
+    - CONS-17 full 45-indicator catalog
     - APP-30..APP-31
-  partial_mvp:
-    - DEV-25
-    - DEV-26
-    - DEV-27
-    - APP-28
-    - APP-29
+  second_pass_completion:
+    - DEV-25 ratings, suggestions and curation persistence
+    - DEV-26 persisted onboarding workflow with month locks and final notification
+    - DEV-27 persisted feedback/PDI recommendations and history
   validations:
     - npm run validate:structure: PASS
     - npm run validate:agents: PASS with non-blocking warnings
     - npm run lint: PASS
     - npm run typecheck: PASS
-    - npm test: PASS, 265 pass / 0 fail
+    - npm test: PASS, 268 pass / 0 fail
     - npm run build: PASS with existing large chunk warning
     - authenticated role smoke: PASS
     - authenticated RLS smoke: PASS
-    - remote Supabase migrations: PASS through 20260515162000
+    - development full smoke: PASS
+    - remote Supabase migrations: PASS through 20260515190000
 inputs:
   - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/README.md
   - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/execution-brief.md
@@ -47,7 +47,7 @@ requiredNextActions:
   - owner: '@qa'
     action: 'Review draft PR evidence and rerun authenticated smoke if staged code changes.'
   - owner: '@po'
-    action: Accept or reopen partial MVP boundaries in DEV-25, DEV-26, DEV-27, APP-28 and APP-29.
+    action: Review the second-pass completion evidence for DEV-25, DEV-26, DEV-27 and CONS-17.
   - owner: '@data-engineer'
     action: Review draft PR migration/RLS evidence before merge.
   - owner: '@devops'
@@ -56,7 +56,7 @@ risks:
   - PWA service worker remains intentionally self-destroying until installability decision.
   - PDF/export bundle still emits large chunk warning during production build.
   - PR packaging still requires careful staging because the worktree contains broad package edits and pre-existing unrelated edits.
-  - Partial MVP persistence remains open for content ratings, suggestions and formal trail assignment.
+  - Store-specific media production and real Apple/Google submission remain release/product decisions outside this second-pass completion.
   - Benchmark test was stabilized to avoid timing/JIT flake before QA handoff.
 outputs:
   - QA gate result.

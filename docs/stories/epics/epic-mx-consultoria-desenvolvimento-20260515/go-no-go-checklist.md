@@ -50,14 +50,14 @@ NO-GO se:
 
 GO se:
 
-- [x] Indicadores MVP foram aprovados em yolo mode.
+- [x] 45 indicadores completos foram materializados em yolo mode.
 - [x] Fontes dos indicadores estao classificadas como existente, derivada ou ausente.
 - [x] Dados ausentes aparecem como sem dados, nao como zero.
 - [x] Visao do dono esta separada da visao admin MX.
 
 NO-GO se:
 
-- [ ] Tentativa de implementar os 45 indicadores de uma vez.
+- [x] 45 indicadores foram implementados com fonte/frequencia/visibilidade.
 - [ ] Indicador financeiro sensivel aparece sem decisao de produto.
 
 ## Wave 3 - Rotina Diaria
@@ -80,10 +80,10 @@ NO-GO se:
 GO se:
 
 - [x] Nome da area foi decidido como Desenvolvimento no MVP.
-- [x] Biblioteca tem taxonomia MVP.
-- [x] Avaliacao e sugestao tem dono operacional para persistencia futura.
-- [x] Trilha de novo colaborador depende de conteudo minimo.
-- [x] Feedback/PDI recomendam conteudo por regra deterministica.
+- [x] Biblioteca tem taxonomia completa e persistencia de avaliacao/sugestao.
+- [x] Avaliacao e sugestao tem persistencia e curadoria administrativa.
+- [x] Trilha de novo colaborador tem atribuicao, bloqueios e notificacao final.
+- [x] Feedback/PDI recomendam conteudo por regra deterministica persistida.
 
 NO-GO se:
 

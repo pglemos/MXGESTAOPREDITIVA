@@ -35,24 +35,24 @@
 | Story | Arquivo | Status | Lead |
 |---|---|---|---|
 | DEV-24 | `docs/stories/story-DEV-24-reposicionar-treinamentos-desenvolvimento.md` | Implemented - aguardando validacao final | @ux-design-expert + @dev |
-| DEV-25 | `docs/stories/story-DEV-25-biblioteca-conteudo-temas-avaliacao.md` | Partial MVP - biblioteca e temas implementados | @data-engineer + @dev |
-| DEV-26 | `docs/stories/story-DEV-26-trilha-novo-colaborador.md` | Partial MVP - contrato e visual preparados | @architect + @dev |
-| DEV-27 | `docs/stories/story-DEV-27-feedback-pdi-recomendacao-conteudo.md` | Partial MVP - recomendacao deterministica preparada | @architect + @data-engineer + @dev |
+| DEV-25 | `docs/stories/story-DEV-25-biblioteca-conteudo-temas-avaliacao.md` | Implemented - avaliacao, sugestao e curadoria persistidas | @data-engineer + @dev |
+| DEV-26 | `docs/stories/story-DEV-26-trilha-novo-colaborador.md` | Implemented - workflow persistido com bloqueios e notificacao | @architect + @dev |
+| DEV-27 | `docs/stories/story-DEV-27-feedback-pdi-recomendacao-conteudo.md` | Implemented - recomendacoes persistidas por feedback/PDI | @architect + @data-engineer + @dev |
 
 ## Wave 5 - Personalizacao e App Readiness
 
 | Story | Arquivo | Status | Lead |
 |---|---|---|---|
 | APP-28 | `docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md` | Partial MVP - contrato multi-tenant preparado | @architect + @dev |
-| APP-29 | `docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md` | Partial MVP - metadados editoriais preparados | @pm + @dev |
+| APP-29 | `docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md` | Implemented - curadoria persistida | @pm + @dev |
 | APP-30 | `docs/stories/story-APP-30-app-readiness-mobile-pwa.md` | Implemented - readiness documental e PWA shortcuts ajustados | @devops + @qa + @dev |
 | APP-31 | `docs/stories/story-APP-31-checklist-submissao-apple-google.md` | Implemented - checklist operacional criado | @devops + @qa |
 
 ## Proximo Lote Recomendado
 
 1. QA autenticado por papel para CONS-13..APP-31.
-2. PO aceite dos partial MVPs DEV-25/26/27 e APP-28/29.
+2. PO revisar apenas APP-28/29 como extensoes comerciais; DEV-25/26/27 foram completadas.
 3. Data/RLS review das migrations CONS-13, CONS-15 e CONS-17.
 4. DevOps branch/PR/deploy se o pacote for aceito.
 
-Justificativa: a implementacao MVP ja foi feita; o risco restante e validação por papel, multi-tenant e decisao de publicacao.
+Justificativa: a segunda passada fechou biblioteca, trilha, feedback/PDI, curadoria e os 45 indicadores; o risco restante fica em multi-tenant especifico de APP-28 e decisao de publicacao.

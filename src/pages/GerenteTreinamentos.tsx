@@ -1,9 +1,9 @@
-import { useTrainings, useTeamTrainings, useNotifications } from '@/hooks/useData'
+import { useContentSuggestions, useDevelopmentTracks, useTrainings, useTeamTrainings, useNotifications } from '@/hooks/useData'
 import { motion, AnimatePresence } from 'motion/react'
 import { useState, useMemo, useCallback } from 'react'
 import { 
     GraduationCap, Play, CheckCircle, Search, 
-    Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send
+    Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send, Star, Route
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
@@ -29,6 +29,8 @@ export default function GerenteTreinamentos() {
 
     // Progresso da Equipe
     const { teamProgress, loading: tpLoading, error: tpError, refetch: refetchTeam } = useTeamTrainings()
+    const { suggestions } = useContentSuggestions()
+    const { assignments, assignDefaultTrack } = useDevelopmentTracks()
     
     // Notificações para Atribuição
     const { sendNotification } = useNotifications()
@@ -102,6 +104,14 @@ export default function GerenteTreinamentos() {
         }
     }
 
+    const handleAssignOnboarding = async (sellerId: string) => {
+        setIsAssigning(true)
+        const { error } = await assignDefaultTrack({ sellerId })
+        setIsAssigning(false)
+        if (error) toast.error(error)
+        else toast.success('Trilha de novo colaborador atribuída.')
+    }
+
     const filteredMe = useMemo(() => {
         if (!treinamentos) return []
         return treinamentos.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()) || t.type.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -170,6 +180,23 @@ export default function GerenteTreinamentos() {
             </header>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
+                {suggestions.length > 0 && (
+                    <Card className="mb-mx-lg p-mx-lg border border-border-default shadow-mx-lg bg-white">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">Sugestões de conteúdo da equipe</Typography>
+                                <Typography variant="p" tone="muted" className="text-sm">Fila de curadoria enviada por vendedores e gestores.</Typography>
+                            </div>
+                            <div className="flex flex-wrap gap-mx-xs">
+                                {suggestions.slice(0, 6).map(suggestion => (
+                                    <Badge key={suggestion.id} variant={suggestion.priority === 'high' ? 'danger' : 'brand'} className="rounded-mx-full px-3 py-1">
+                                        {suggestion.theme}: {suggestion.title}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+                )}
                 <AnimatePresence mode="wait">
                     {tab === 'meus' ? (
                         <motion.div key="meus" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
@@ -191,6 +218,10 @@ export default function GerenteTreinamentos() {
                                         <footer className="pt-8 border-t border-border-default flex items-center justify-between mt-auto relative z-10">
                                             <div className="flex items-center gap-mx-xs text-mx-micro font-black text-text-tertiary uppercase">
                                                 <Award size={14} className="text-status-warning" /> {t.watched ? 'ABSORVIDO' : 'PENDENTE'}
+                                            </div>
+                                            <div className="flex items-center gap-mx-tiny text-status-warning">
+                                                <Star size={14} className="fill-current" />
+                                                <Typography variant="tiny" as="span" className="font-black">{t.average_rating || 0} ({t.rating_count || 0})</Typography>
                                             </div>
                                             {!t.watched && (
                                                 <Button size="sm" onClick={() => markWatched(t.id)} className="h-mx-10 px-6 rounded-mx-full font-black uppercase text-mx-micro shadow-mx-md">
@@ -304,6 +335,15 @@ export default function GerenteTreinamentos() {
                                                 className="w-full h-mx-11 rounded-mx-xl font-black uppercase text-mx-micro shadow-sm bg-white border-border-strong hover:border-brand-primary transition-all"
                                             >
                                                 <Award size={14} className="mr-2" /> REFORÇO TÁTICO
+                                            </Button>
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => handleAssignOnboarding(p.seller_id)}
+                                                disabled={isAssigning || assignments.some((assignment: { seller_id?: string; status?: string }) => assignment.seller_id === p.seller_id && assignment.status === 'active')}
+                                                className="w-full h-mx-11 mt-mx-sm rounded-mx-xl font-black uppercase text-mx-micro shadow-sm"
+                                            >
+                                                <Route size={14} className="mr-2" /> TRILHA ENTRADA
                                             </Button>
                                         </div>
                                     </Card>

@@ -19,13 +19,15 @@ describe('pmr mvp indicators', () => {
     expect(keys).toContain('internet_cost_per_sale')
     expect(keys).toContain('stock_total')
     expect(keys).toContain('trade_in_volume')
-    expect(PMR_MVP_INDICATORS.length).toBe(16)
+    expect(keys).toContain('training_completion_rate')
+    expect(keys).toContain('gross_margin_rate')
+    expect(PMR_MVP_INDICATORS.length).toBe(45)
   })
 
-  test('sorts rows by MVP order and identifies backlog source', () => {
+  test('sorts rows by full PMR order and identifies sourced trade-in indicator', () => {
     expect(isPmrMvpIndicator('avg_margin')).toBe(true)
     expect(isPmrMvpIndicator('random_metric')).toBe(false)
-    expect(getPmrMvpIndicator('trade_in_volume')?.mvp_status).toBe('backlog')
+    expect(getPmrMvpIndicator('trade_in_volume')?.mvp_status).toBe('available')
     expect(sortByPmrMvpOrder([{ metric_key: 'avg_margin' }, { metric_key: 'sales_total' }])[0].metric_key).toBe('sales_total')
   })
 

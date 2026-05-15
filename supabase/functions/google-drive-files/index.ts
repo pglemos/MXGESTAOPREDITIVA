@@ -488,6 +488,30 @@ async function listDriveFiles(accessToken: string, folderId: string): Promise<Dr
   return Array.isArray(data.files) ? data.files as DriveFile[] : [];
 }
 
+async function listClientDriveFiles(
+  adminClient: ReturnType<typeof createClient>,
+  accessToken: string,
+  folder: DriveFolderRow,
+): Promise<DriveFile[]> {
+  const { data: subfolders } = await adminClient
+    .from("subpastas_drive_consultoria")
+    .select("google_drive_folder_id")
+    .eq("client_id", folder.client_id)
+    .eq("status", "active");
+
+  const folderIds = Array.from(new Set([
+    folder.google_drive_folder_id,
+    ...((subfolders || []) as Array<{ google_drive_folder_id?: string | null }>)
+      .map((subfolder) => subfolder.google_drive_folder_id)
+      .filter((folderId): folderId is string => Boolean(folderId)),
+  ]));
+
+  const results = await Promise.all(folderIds.map((folderId) => listDriveFiles(accessToken, folderId)));
+  return results
+    .flat()
+    .sort((a, b) => Date.parse(b.modifiedTime || b.createdTime || "") - Date.parse(a.modifiedTime || a.createdTime || ""));
+}
+
 async function uploadDriveFile(accessToken: string, folderId: string, file: File): Promise<DriveFile> {
   if (file.size > MAX_FILE_SIZE_BYTES) throw new Error(`Arquivo ${file.name} excede o limite de 25 MB`);
   const metadata = { name: file.name, parents: [folderId] };
@@ -715,7 +739,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "list") {
-      const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
+      const driveFiles = await listClientDriveFiles(adminClient, accessToken, folder);
 
       // Use EdgeRuntime.waitUntil so background tasks finish even after response is sent
       const bgTasks = (async () => {
@@ -765,7 +789,7 @@ Deno.serve(async (req) => {
       );
       const driveFileId = fileRow?.google_drive_file_id || deleteFileId;
 
-      const currentFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
+      const currentFiles = await listClientDriveFiles(adminClient, accessToken, folder);
       if (!currentFiles.some((f) => f.id === driveFileId)) throw new Error("Arquivo não encontrado para este cliente");
 
       await trashDriveFile(accessToken, driveFileId);
@@ -777,7 +801,7 @@ Deno.serve(async (req) => {
         if (updateError && !isMissingTableError(updateError)) throw toError(updateError);
       }
 
-      const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
+      const driveFiles = await listClientDriveFiles(adminClient, accessToken, folder);
       return jsonResponse({ folderUrl: folder.google_drive_folder_url, files: driveFiles });
     }
 
@@ -809,7 +833,7 @@ Deno.serve(async (req) => {
       if (upsertError && !isMissingTableError(upsertError)) throw toError(upsertError);
     }
 
-    const driveFiles = await listDriveFiles(accessToken, folder.google_drive_folder_id);
+    const driveFiles = await listClientDriveFiles(adminClient, accessToken, folder);
     return jsonResponse({ folderUrl: folder.google_drive_folder_url, uploaded, files: driveFiles });
   } catch (err) {
     const error = toError(err);

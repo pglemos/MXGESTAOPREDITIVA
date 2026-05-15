@@ -1,6 +1,6 @@
 # Story APP-29 - Curadoria de Conteudos com Especialistas e Fornecedores
 
-**Status:** Partial MVP - metadados editoriais preparados  
+**Status:** Implemented - curadoria persistida
 **Epic:** EPIC-MX-CONS-DEV-20260515  
 **Onda:** 5 - Personalizacao por loja e app readiness  
 **Owner:** @pm  
@@ -23,8 +23,8 @@ para ampliar valor percebido sem criar uma operacao manual desorganizada.
 
 - [x] Admin/admin master MX pode marcar conteudo como interno MX, especialista convidado ou fornecedor no contrato de conteudo.
 - [x] Conteudo possui metadados minimos: tema, publico-alvo/fonte por tipo, status editorial e data de revisao no contrato.
-- [x] Conteudos podem ser ativados, pausados ou substituidos sem apagar historico de progresso quando persistencia editorial for conectada.
-- [ ] Avaliacoes e sugestoes ajudam a priorizar substituicao de conteudos.
+- [x] Conteudos podem ser ativados, pausados ou substituidos sem apagar historico de progresso.
+- [x] Avaliacoes e sugestoes ajudam a priorizar substituicao de conteudos.
 - [x] Vendedor visualiza conteudo liberado sem expor dados administrativos da fonte.
 
 ## Regras de Negocio
@@ -39,16 +39,21 @@ para ampliar valor percebido sem criar uma operacao manual desorganizada.
 - `src/pages/GerenteTreinamentos.tsx`
 - `src/pages/VendedorTreinamentos.tsx`
 - `src/hooks/useTrainings.ts`
-- `supabase/migrations`
+- `supabase/migrations/20260515190000_development_full_completion.sql`
 
 ## Gates
 
 - [x] `npm run lint`
 - [x] `npm run typecheck`
 - [x] `npm test`
+- [x] `npx tsx scripts/validate_mx_development_full_smoke.ts`
 
 ## File List
 
 - `docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md`
 - `src/lib/development-content.ts`
 - `src/lib/development-content.test.ts`
+- `src/hooks/useTrainings.ts`
+- `src/pages/ConsultorTreinamentos.tsx`
+- `src/pages/GerenteTreinamentos.tsx`
+- `supabase/migrations/20260515190000_development_full_completion.sql`

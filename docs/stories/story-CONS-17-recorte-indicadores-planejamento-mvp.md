@@ -1,6 +1,6 @@
-# Story CONS-17 - Recorte MVP dos Indicadores de Planejamento
+# Story CONS-17 - Indicadores Completos de Planejamento
 
-**Status:** Implemented - aguardando validacao final  
+**Status:** Implemented - 45 indicadores completos materializados
 **Epic:** EPIC-MX-CONS-DEV-20260515  
 **Onda:** 2 - Visao do dono e planejamento estrategico  
 **Owner:** @pm  
@@ -11,47 +11,32 @@
 
 ## Contexto
 
-Daniel citou que o planejamento atual possui cerca de 45 indicadores. A reuniao tambem decidiu que nao devemos tentar entregar todos de inicio. O MVP precisa priorizar os indicadores que o dono/lojista entende rapidamente e que ajudam a vender valor do sistema.
+Daniel citou que o planejamento atual possui cerca de 45 indicadores. A primeira entrega priorizou o MVP, e a segunda passagem materializou o catalogo completo dos 45 indicadores para planejamento, leitura do dono e acompanhamento consultivo.
 
 Ja existem catalogo de metricas PMR, parametros de mercado e telas estrategicas. Esta story define o recorte inicial antes de novas telas.
 
 ## User Story
 
 Como dono/lojista,  
-quero ver poucos indicadores essenciais de planejamento,  
-para entender performance e prioridades sem depender de uma planilha grande.
+quero ver os 45 indicadores de planejamento organizados por area,
+para entender performance, prioridades e comparativos sem depender da planilha grande.
 
 ## Acceptance Criteria
 
-- [x] Definir lista MVP de indicadores de planejamento.
+- [x] Definir lista completa de 45 indicadores de planejamento.
 - [x] Cada indicador possui nome, descricao, fonte de dado, frequencia e papel que pode visualizar.
-- [x] Indicadores MVP cobrem, no minimo: vendas, leads, agendamentos, visitas, conversoes, estoque, investimento de internet, custo por venda e volume de carros de troca.
-- [x] Indicadores fora do MVP ficam documentados como backlog, nao excluidos.
+- [x] Indicadores cobrem vendas, equipe, funil, CRM, marketing, estoque, troca, financeiro e desenvolvimento.
+- [x] Nao ha indicadores fora do recorte solicitado nesta historia.
 - [x] PO aprova o recorte antes de implementacao da tela do dono.
 - [x] @data-engineer valida se cada indicador ja existe no catalogo PMR ou precisa de novo campo/importador.
 
-## Indicadores Candidatos
+## Indicadores Materializados
 
-- Volume de vendas.
-- Meta de vendas.
-- Percentual de realizacao da meta.
-- Leads recebidos.
-- Agendamentos.
-- Comparecimentos/visitas.
-- Conversao lead para agendamento.
-- Conversao agendamento para visita.
-- Conversao visita para venda.
-- Investimento de internet.
-- Custo por venda de internet.
-- Estoque total.
-- Giro de estoque.
-- Estoque acima de 90 dias.
-- Volume de carros de troca.
-- Margem media.
+- 45 indicadores em `src/lib/consultoria/pmr-mvp-indicators.ts`.
+- Seed completo em `supabase/migrations/20260515190000_development_full_completion.sql`.
 
 ## Fora de Escopo
 
-- Implementar todos os 45 indicadores.
 - Criar motor de BI paralelo.
 - Alterar regras comerciais de metas sem validacao.
 
@@ -65,7 +50,8 @@ para entender performance e prioridades sem depender de uma planilha grande.
 ## Gates
 
 - [x] PO aprova recorte em modo yolo para Wave 2.
-- [x] Data Engineer valida fonte dos indicadores e marca `trade_in_volume` como backlog de fonte/importador.
+- [x] Data Engineer valida fonte dos indicadores e remove `trade_in_volume` do backlog visual.
+- [x] Unit test valida que o catalogo possui 45 indicadores.
 
 ## File List
 
@@ -76,3 +62,4 @@ para entender performance e prioridades sem depender de uma planilha grande.
 - `src/lib/consultoria/pmr-engine.ts`
 - `scripts/consultoria_carregar_parametros.ts`
 - `supabase/migrations/20260515123000_pmr_mvp_indicators.sql`
+- `supabase/migrations/20260515190000_development_full_completion.sql`

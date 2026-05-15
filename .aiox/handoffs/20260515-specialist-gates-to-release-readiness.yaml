@@ -15,9 +15,10 @@ context:
 summary:
   completed:
     - QA gate artifact updated to PASS with authenticated role smoke.
-    - PO accepted MVP and partial-MVP boundaries.
+    - PO accepted the second-pass completion for DEV-25, DEV-26, DEV-27 and CONS-17.
     - Data/RLS predeploy review updated to PASS with positive and negative RLS smoke.
-    - Remote Supabase migrations applied through 20260515162000.
+    - Remote Supabase migrations applied through 20260515190000.
+    - Development full smoke passed for ratings, suggestions, recommendations, track assignment and step completion.
     - DevOps pre-push report created; push held for staging scope review.
   releaseHolds:
     - Staging scope review in dirty worktree.
@@ -39,5 +40,5 @@ requiredNextActions:
 outputs:
   - QA gate PASS.
   - Data/RLS smoke evidence PASS.
-  - Draft PR readiness pending DevOps staging scope review.
+  - Commit/push readiness pending final local gate rerun.
   - Publication decision pending PM/DevOps.

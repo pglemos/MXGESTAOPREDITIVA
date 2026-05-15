@@ -122,7 +122,7 @@ export function useNotifications() {
         return { error: error?.message || null }
       }
 
-      const { error } = await supabase.from('notificacoes').insert({ ...input, sender_id: profile.id, read: false })
+      const { error } = await supabase.from('notificacoes').insert({ ...input, target_type: 'all', sender_id: profile.id, read: false })
       return { error: error?.message || null }
     },
     onSuccess: (result) => {

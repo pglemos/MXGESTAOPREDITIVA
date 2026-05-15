@@ -1,4 +1,4 @@
-import { useTrainings } from '@/hooks/useData'
+import { useDevelopmentRecommendations, useDevelopmentTracks, useTrainings } from '@/hooks/useData'
 import { useCheckins } from '@/hooks/useCheckins'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
@@ -6,7 +6,7 @@ import {
     GraduationCap, Play, CheckCircle, ExternalLink, Clock, 
     Users, Target, BookOpen, ChevronRight, Sparkles, 
     RefreshCw, Search, X, Zap, ShieldCheck, History,
-    Smartphone
+    Smartphone, Star, Send, Lock, Unlock
 } from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
@@ -27,11 +27,15 @@ import {
 } from '@/lib/development-content'
 
 export default function VendedorTreinamentos() {
-    const { treinamentos, loading, error, markWatched, refetch } = useTrainings()
+    const { treinamentos, loading, error, markWatched, rateTraining, suggestContent, refetch } = useTrainings()
+    const { recommendations, updateRecommendation } = useDevelopmentRecommendations()
+    const { assignments, progress: trackProgress, completeTrackStep } = useDevelopmentTracks()
     const { checkins } = useCheckins()
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedTheme, setSelectedTheme] = useState<DevelopmentTheme | 'todos'>('todos')
     const [isRefetching, setIsRefetching] = useState(false)
+    const [suggestionTitle, setSuggestionTitle] = useState('')
+    const [suggestionTheme, setSuggestionTheme] = useState<DevelopmentTheme>('funil')
 
     // 🚀 Lógica de Prescrição Real MX
     const gapAnalysis = useMemo(() => {
@@ -60,11 +64,29 @@ export default function VendedorTreinamentos() {
         return filterDevelopmentContent(treinamentos, { search: searchTerm, theme: selectedTheme })
     }, [selectedTheme, treinamentos, searchTerm])
     const onboardingTrack = useMemo(() => buildNewCollaboratorTrack(), [])
+    const activeAssignment = assignments.find((assignment: { status?: string }) => assignment.status === 'active')
+    const activeTrackProgress = useMemo(() => {
+        if (!activeAssignment) return []
+        return trackProgress.filter((item: { assignment_id?: string }) => item.assignment_id === activeAssignment.id)
+    }, [activeAssignment, trackProgress])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch?.(); setIsRefetching(false)
         toast.success('Academy sincronizada!')
     }, [refetch])
+
+    const handleSuggestContent = useCallback(async () => {
+        if (!suggestionTitle.trim()) {
+            toast.error('Informe o tema que você precisa estudar.')
+            return
+        }
+        const { error } = await suggestContent({ title: suggestionTitle.trim(), theme: suggestionTheme, priority: 'medium' })
+        if (error) toast.error(error)
+        else {
+            toast.success('Sugestão enviada para a curadoria MX.')
+            setSuggestionTitle('')
+        }
+    }, [suggestContent, suggestionTheme, suggestionTitle])
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
@@ -141,13 +163,59 @@ export default function VendedorTreinamentos() {
                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg">
                             <div>
                                 <Typography variant="h3" className="uppercase tracking-tight">Trilha de novo colaborador</Typography>
-                                <Typography variant="p" tone="muted" className="text-sm">Fundamentos para entrar na rotina antes da liberação operacional pelo gestor.</Typography>
+                                <Typography variant="p" tone="muted" className="text-sm">
+                                    {activeAssignment ? 'Sua trilha persistida esta ativa. Conclua em ordem para liberar os proximos meses.' : 'Fundamentos para entrar na rotina antes da liberação operacional pelo gestor.'}
+                                </Typography>
                             </div>
                             <div className="flex flex-wrap gap-mx-xs">
-                                {onboardingTrack.map(step => (
-                                    <Badge key={step.key} variant={step.locked ? 'outline' : 'success'} className="rounded-mx-full px-3 py-1">
-                                        {step.title}
-                                    </Badge>
+                                {(activeTrackProgress.length ? activeTrackProgress : onboardingTrack).map((item: any) => {
+                                    const step = item.step || item
+                                    const status = item.status || (step.locked ? 'locked' : 'available')
+                                    const isCompleted = status === 'completed'
+                                    const isLocked = status === 'locked'
+                                    return (
+                                        <button
+                                            key={item.id || step.key}
+                                            type="button"
+                                            disabled={!item.id || isLocked || isCompleted}
+                                            onClick={async () => {
+                                                const { error } = await completeTrackStep({ progressId: item.id })
+                                                if (error) toast.error(error)
+                                                else toast.success('Etapa concluída. Próximo passo liberado quando aplicável.')
+                                            }}
+                                            className="text-left"
+                                        >
+                                            <Badge variant={isCompleted ? 'success' : isLocked ? 'outline' : 'brand'} className="rounded-mx-full px-3 py-1 gap-mx-xs">
+                                                {isLocked ? <Lock size={12} /> : <Unlock size={12} />}
+                                                {step.title}
+                                            </Badge>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </Card>
+                )}
+
+                {!searchTerm && selectedTheme === 'todos' && recommendations.length > 0 && (
+                    <Card className="mb-mx-lg p-mx-lg border border-brand-primary/20 shadow-mx-lg bg-white">
+                        <div className="flex flex-col gap-mx-md">
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">Recomendações do seu PDI e feedback</Typography>
+                                <Typography variant="p" tone="muted" className="text-sm">Conteúdos ligados às lacunas registradas pelo gestor.</Typography>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-sm">
+                                {recommendations.slice(0, 4).map(rec => (
+                                    <div key={rec.id} className="border border-border-default rounded-mx-xl p-mx-md bg-surface-alt/60">
+                                        <div className="flex items-start justify-between gap-mx-sm">
+                                            <div>
+                                                <Badge variant={rec.priority === 'high' ? 'danger' : 'brand'} className="rounded-mx-full">{rec.theme}</Badge>
+                                                <Typography variant="p" className="mt-mx-xs text-sm font-black">{rec.training?.title || 'Conteúdo recomendado'}</Typography>
+                                                <Typography variant="caption" tone="muted" className="line-clamp-2">{rec.reason}</Typography>
+                                            </div>
+                                            <Button size="sm" variant="outline" onClick={() => updateRecommendation({ id: rec.id, status: 'in_progress' })}>Iniciar</Button>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -205,7 +273,10 @@ export default function VendedorTreinamentos() {
                                             
                                             <div className="flex flex-wrap gap-mx-xs pt-4">
                                                 <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-surface-alt border border-border-default text-text-tertiary text-mx-micro font-black uppercase tracking-widest"><Clock size={12} /> 15 MIN</div>
-                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-mx-indigo-50 border border-mx-indigo-100 text-brand-primary text-mx-micro font-black uppercase tracking-widest"><Sparkles size={12} /> +100 XP</div>
+                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-mx-indigo-50 border border-mx-indigo-100 text-brand-primary text-mx-micro font-black uppercase tracking-widest"><Sparkles size={12} /> +{t.xp_reward || 100} XP</div>
+                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-status-warning-surface border border-status-warning/20 text-status-warning text-mx-micro font-black uppercase tracking-widest">
+                                                    <Star size={12} className="fill-current" /> {t.average_rating || 0} ({t.rating_count || 0})
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -223,12 +294,46 @@ export default function VendedorTreinamentos() {
                                                 <Typography variant="tiny" as="span" className="font-black uppercase"><ShieldCheck size={14} className="inline-block" /> CERTIFICADO</Typography>
                                             </div>
                                         )}
+                                        <div className="flex items-center justify-center gap-mx-tiny sm:w-mx-32">
+                                            {[1, 2, 3, 4, 5].map(value => (
+                                                <button
+                                                    key={value}
+                                                    type="button"
+                                                    aria-label={`Avaliar com ${value} estrela${value > 1 ? 's' : ''}`}
+                                                    onClick={() => rateTraining({ trainingId: t.id, rating: value })}
+                                                    className={cn('text-status-warning/30 hover:text-status-warning transition-colors', (t.user_rating || 0) >= value && 'text-status-warning')}
+                                                >
+                                                    <Star size={16} className={(t.user_rating || 0) >= value ? 'fill-current' : ''} />
+                                                </button>
+                                            ))}
+                                        </div>
                                     </footer>
                                 </Card>
                             </motion.div>
                         ))}
                     </AnimatePresence>
                 </div>
+
+                <Card className="mt-mx-lg p-mx-lg border border-border-default shadow-mx-lg bg-white">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_auto] gap-mx-sm items-end">
+                        <div>
+                            <Typography variant="h3" className="uppercase tracking-tight">Sugerir conteúdo</Typography>
+                            <Typography variant="p" tone="muted" className="text-sm">A curadoria MX recebe sua necessidade e prioriza novos módulos.</Typography>
+                            <Input
+                                value={suggestionTitle}
+                                onChange={(event) => setSuggestionTitle(event.target.value)}
+                                placeholder="Ex: quero uma aula sobre financiamento para autônomo"
+                                className="mt-mx-sm"
+                            />
+                        </div>
+                        <select value={suggestionTheme} onChange={(event) => setSuggestionTheme(event.target.value as DevelopmentTheme)} className="h-mx-xl rounded-mx-xl border border-border-default bg-surface-alt px-mx-md text-sm font-black uppercase">
+                            {DEVELOPMENT_THEMES.map(theme => <option key={theme.key} value={theme.key}>{theme.label}</option>)}
+                        </select>
+                        <Button onClick={handleSuggestContent} className="h-mx-xl rounded-mx-xl font-black uppercase">
+                            <Send size={16} className="mr-mx-xs" /> Enviar
+                        </Button>
+                    </div>
+                </Card>
             </section>
         </main>
     )

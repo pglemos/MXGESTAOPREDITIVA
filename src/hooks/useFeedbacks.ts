@@ -52,7 +52,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
       if (!profile || !storeId) return { error: 'Não autenticado' }
       if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar devolutivas, mas não criar ou editar.' }
 
-      const { error } = await supabase.from('devolutivas').upsert({
+      const { data: saved, error } = await supabase.from('devolutivas').upsert({
         store_id: storeId,
         manager_id: profile.id,
         seller_id: data.seller_id,
@@ -74,7 +74,11 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         notes: data.notes || null,
         acknowledged: false,
         acknowledged_at: null,
-      }, { onConflict: 'seller_id, week_reference' })
+      }, { onConflict: 'seller_id, week_reference' }).select('id').maybeSingle()
+
+      if (!error && saved?.id) {
+        await supabase.rpc('gerar_recomendacoes_desenvolvimento_feedback', { p_feedback_id: saved.id })
+      }
 
       return { error: error?.message || null }
     },
