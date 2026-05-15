@@ -84,7 +84,7 @@
 
 ## Current Execution Recommendation
 
-Implementation package for Waves 1-5 is complete, with the requested second-pass completion for DEV-25, DEV-26, DEV-27 and the full 45-indicator planning catalog. QA/Data gates are closed with authenticated role smoke, RLS smoke, development full smoke and remote migration evidence.
+Implementation package for Waves 1-5 is complete, with the requested second-pass completion for APP-28, DEV-25, DEV-26, DEV-27 and the full 45-indicator planning catalog. QA/Data gates are closed with authenticated role smoke, RLS smoke, development full smoke and remote migration evidence.
 
 ## Validation Snapshot
 
@@ -96,6 +96,6 @@ Implementation package for Waves 1-5 is complete, with the requested second-pass
 - `npm run build`: PASS with existing large chunk warning for PDF/export bundles.
 - `npx tsx scripts/validate_mx_cons_dev_rls_smoke.ts`: PASS.
 - `PLAYWRIGHT_PORT=3002 npx playwright test src/test/mx-consultoria-role-smoke.playwright.ts --project=chromium`: PASS.
-- `npx supabase db push`: PASS; remote migrations match local through `20260515190000`.
+- `npx supabase db push`: PASS; remote migrations match local through `20260515201000`.
 - `npx tsx scripts/validate_mx_development_full_smoke.ts`: PASS.
-- Remote migrations now match local through `20260515190000`.
+- Remote migrations now match local through `20260515201000`.

@@ -11,6 +11,8 @@
 - `supabase/migrations/20260515123000_pmr_mvp_indicators.sql`
 - `supabase/migrations/20260515162000_harden_consulting_visits_role_scope.sql`
 - `supabase/migrations/20260515190000_development_full_completion.sql`
+- `supabase/migrations/20260515200000_store_institutional_training_write.sql`
+- `supabase/migrations/20260515201000_harden_store_training_select_scope.sql`
 
 ## Static Review
 
@@ -21,10 +23,11 @@
 | Visit period constraints | PASS | Date range and preset constraints prevent invalid period state. |
 | Catalog seed safety | PASS | Metric inserts use `ON CONFLICT`; existing sort order updates are targeted. |
 | Development persistence | PASS | Ratings, suggestions, tracks, step progress and recommendations are additive and RLS-scoped. |
+| Store institutional content | PASS | `treinamentos` policies are scoped so store content is visible only to the linked store and internal MX. |
 | RLS policy changes | PASS | `visitas_consultoria` now has explicit internal/assigned-consultant select and internal write policies. |
 | Rollback readiness | PASS | Compensating rollback path documented below. |
 | Live smoke | PASS | Role-scoped probe visit smoke passed after remote migration application. |
-| Development smoke | PASS | Authenticated seller/manager smoke passed for rating, suggestion, recommendation, assignment and step completion. |
+| Development smoke | PASS | Authenticated seller/manager smoke passed for rating, suggestion, recommendation, store institutional isolation, assignment and step completion. |
 
 ## DBA Checklist Snapshot
 

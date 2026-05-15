@@ -34,7 +34,7 @@ summary:
     - authenticated role smoke: PASS
     - authenticated RLS smoke: PASS
     - development full smoke: PASS
-    - remote Supabase migrations: PASS through 20260515190000
+    - remote Supabase migrations: PASS through 20260515201000
 inputs:
   - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/README.md
   - docs/stories/epics/epic-mx-consultoria-desenvolvimento-20260515/execution-brief.md

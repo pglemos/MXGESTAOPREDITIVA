@@ -297,7 +297,7 @@ Plano QA da onda: `wave-4-qa-test-plan.md`.
 
 | Story | Titulo | Status | Agentes principais |
 |---|---|---|---|
-| APP-28 | [Trilha institucional personalizada por loja](../../story-APP-28-trilha-institucional-personalizada-loja.md) | Partial MVP - contrato multi-tenant preparado | @architect + @dev |
+| APP-28 | [Trilha institucional personalizada por loja](../../story-APP-28-trilha-institucional-personalizada-loja.md) | Implemented - conteudo institucional por loja | @architect + @dev |
 | APP-29 | [Curadoria de conteudos com especialistas e fornecedores](../../story-APP-29-curadoria-conteudos-especialistas-fornecedores.md) | Implemented - curadoria persistida | @pm + @dev |
 | APP-30 | [App readiness mobile e PWA](../../story-APP-30-app-readiness-mobile-pwa.md) | Implemented - readiness documental e PWA shortcuts ajustados | @devops + @qa + @dev |
 | APP-31 | [Checklist de submissao Apple e Google](../../story-APP-31-checklist-submissao-apple-google.md) | Implemented - checklist operacional criado | @devops + @qa |
@@ -323,6 +323,6 @@ Cada story deve concluir com:
 ## Bloqueadores e Decisoes Pendentes
 
 - QA autenticado por papel: vendedor, gerente, dono e admin/admin master MX concluido.
-- Segunda passada de biblioteca, trilha, feedback/PDI, curadoria e 45 indicadores concluida.
+- Segunda passada de biblioteca, trilha, feedback/PDI, curadoria, APP-28 e 45 indicadores concluida.
 - Data/RLS validar migrations e isolamento multi-tenant em ambiente conectado concluido.
 - DevOps decidir PWA, wrapper nativo ou submissao Apple/Google e conduzir branch/PR/deploy.

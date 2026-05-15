@@ -16,7 +16,7 @@
 - Focused `git diff --check`: PASS.
 - `npx tsx scripts/validate_mx_cons_dev_rls_smoke.ts`: PASS.
 - `PLAYWRIGHT_PORT=3002 npx playwright test src/test/mx-consultoria-role-smoke.playwright.ts --project=chromium`: PASS.
-- `npx supabase db push`: PASS; remote migrations now match local through `20260515190000`.
+- `npx supabase db push`: PASS; remote migrations now match local through `20260515201000`.
 - `npx tsx scripts/validate_mx_development_full_smoke.ts`: PASS.
 
 ## Push Status

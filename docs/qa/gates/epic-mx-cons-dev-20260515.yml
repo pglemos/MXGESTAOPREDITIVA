@@ -32,6 +32,6 @@ quality_summary:
       evidence: '3 passed.'
     - name: npx tsx scripts/validate_mx_development_full_smoke.ts
       result: PASS
-      note: 'Authenticated smoke covered content read, rating persistence, suggestion persistence, recommendation visibility, track assignment and step completion.'
+      note: 'Authenticated smoke covered content read, rating persistence, suggestion persistence, recommendation visibility, store institutional isolation, track assignment and step completion.'
   risk_level: low
   release_recommendation: 'Ready for PR/release preparation. Keep known large chunk warning as non-blocking technical debt.'

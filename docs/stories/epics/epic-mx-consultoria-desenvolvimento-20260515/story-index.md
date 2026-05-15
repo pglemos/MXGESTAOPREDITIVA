@@ -43,7 +43,7 @@
 
 | Story | Arquivo | Status | Lead |
 |---|---|---|---|
-| APP-28 | `docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md` | Partial MVP - contrato multi-tenant preparado | @architect + @dev |
+| APP-28 | `docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md` | Implemented - conteudo institucional por loja | @architect + @dev |
 | APP-29 | `docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md` | Implemented - curadoria persistida | @pm + @dev |
 | APP-30 | `docs/stories/story-APP-30-app-readiness-mobile-pwa.md` | Implemented - readiness documental e PWA shortcuts ajustados | @devops + @qa + @dev |
 | APP-31 | `docs/stories/story-APP-31-checklist-submissao-apple-google.md` | Implemented - checklist operacional criado | @devops + @qa |
@@ -51,8 +51,8 @@
 ## Proximo Lote Recomendado
 
 1. QA autenticado por papel para CONS-13..APP-31.
-2. PO revisar apenas APP-28/29 como extensoes comerciais; DEV-25/26/27 foram completadas.
+2. PO revisar APP-28/29 como extensoes comerciais implementadas; DEV-25/26/27 foram completadas.
 3. Data/RLS review das migrations CONS-13, CONS-15 e CONS-17.
 4. DevOps branch/PR/deploy se o pacote for aceito.
 
-Justificativa: a segunda passada fechou biblioteca, trilha, feedback/PDI, curadoria e os 45 indicadores; o risco restante fica em multi-tenant especifico de APP-28 e decisao de publicacao.
+Justificativa: a segunda passada fechou biblioteca, trilha, feedback/PDI, curadoria, APP-28 e os 45 indicadores; o risco restante fica na decisao de publicacao mobile.

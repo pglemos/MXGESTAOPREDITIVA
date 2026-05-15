@@ -27,7 +27,7 @@ The implementation package remains aligned with the meeting scope and PRD direct
 - DEV-26: new collaborator track assignment, month locks, step progress and final manager notification are implemented.
 - DEV-27: feedback/PDI recommendations, persisted history and seller visibility are implemented.
 - CONS-17: 45 planning indicators are materialized in code and migration seed.
-- APP-28: institutional/store-specific content metadata contract exists; full store media management remains backlog.
+- APP-28: institutional/store-specific content is implemented with store-scoped publication and RLS isolation.
 - APP-29: editorial/source metadata, suggestions and ratings now feed curation; production of external media remains an operational activity.
 
 ## PO Conditions Before Release

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useState, useMemo, useCallback } from 'react'
 import { 
     GraduationCap, Play, CheckCircle, Search, 
-    Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send, Star, Route
+    Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send, Star, Route, Plus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
@@ -21,9 +21,11 @@ export default function GerenteTreinamentos() {
     const [isRefetching, setIsRefetching] = useState(false)
     const [assigningTo, setAssigningTo] = useState<string | null>(null)
     const [isAssigning, setIsAssigning] = useState(false)
+    const [institutionalForm, setInstitutionalForm] = useState({ title: '', description: '', video_url: '' })
+    const [savingInstitutional, setSavingInstitutional] = useState(false)
 
     // Meus Treinamentos
-    const { treinamentos, loading: tLoading, error: tError, markWatched, refetch: refetchMe } = useTrainings()
+    const { treinamentos, loading: tLoading, error: tError, markWatched, createTraining, refetch: refetchMe } = useTrainings()
     const watched = useMemo(() => treinamentos?.filter(t => t.watched).length || 0, [treinamentos])
     const progress = useMemo(() => (treinamentos?.length || 0) > 0 ? (watched / treinamentos.length) * 100 : 0, [watched, treinamentos])
 
@@ -112,6 +114,35 @@ export default function GerenteTreinamentos() {
         else toast.success('Trilha de novo colaborador atribuída.')
     }
 
+    const handleCreateInstitutionalContent = async (event: React.FormEvent) => {
+        event.preventDefault()
+        if (!institutionalForm.title || !institutionalForm.video_url) {
+            toast.error('Informe título e link do conteúdo institucional.')
+            return
+        }
+        setSavingInstitutional(true)
+        const { error } = await createTraining({
+            title: institutionalForm.title,
+            description: institutionalForm.description,
+            video_url: institutionalForm.video_url,
+            type: 'institucional',
+            target_audience: 'todos',
+            source_kind: 'loja_institucional',
+            editorial_status: 'active',
+            duration_minutes: 12,
+            xp_reward: 80,
+            curation_notes: 'Conteúdo institucional publicado pelo gestor da loja.',
+        })
+        setSavingInstitutional(false)
+        if (error) {
+            toast.error(error)
+            return
+        }
+        setInstitutionalForm({ title: '', description: '', video_url: '' })
+        await refetchMe()
+        toast.success('Conteúdo institucional publicado para a loja.')
+    }
+
     const filteredMe = useMemo(() => {
         if (!treinamentos) return []
         return treinamentos.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()) || t.type.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -195,6 +226,38 @@ export default function GerenteTreinamentos() {
                                 ))}
                             </div>
                         </div>
+                    </Card>
+                )}
+                {tab === 'equipe' && (
+                    <Card className="mb-mx-lg p-mx-lg border border-border-default shadow-mx-lg bg-white">
+                        <form onSubmit={handleCreateInstitutionalContent} className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.4fr_1.2fr_auto] gap-mx-sm items-end">
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">Conteúdo institucional</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest">História, valores, cultura e processos da loja</Typography>
+                            </div>
+                            <Input
+                                value={institutionalForm.title}
+                                onChange={event => setInstitutionalForm(prev => ({ ...prev, title: event.target.value }))}
+                                placeholder="TÍTULO DO CONTEÚDO"
+                                className="!h-12 uppercase tracking-widest text-mx-tiny font-black"
+                            />
+                            <Input
+                                value={institutionalForm.video_url}
+                                onChange={event => setInstitutionalForm(prev => ({ ...prev, video_url: event.target.value }))}
+                                placeholder="LINK DO VÍDEO OU MATERIAL"
+                                className="!h-12 text-mx-tiny font-bold"
+                            />
+                            <Button type="submit" disabled={savingInstitutional} className="h-mx-12 rounded-mx-xl font-black uppercase text-mx-micro shadow-mx-md">
+                                {savingInstitutional ? <RefreshCw size={14} className="mr-2 animate-spin" /> : <Plus size={14} className="mr-2" />}
+                                Publicar
+                            </Button>
+                            <textarea
+                                value={institutionalForm.description}
+                                onChange={event => setInstitutionalForm(prev => ({ ...prev, description: event.target.value }))}
+                                placeholder="Descreva o que o novo colaborador precisa entender sobre a loja."
+                                className="lg:col-start-2 lg:col-span-2 w-full bg-surface-alt border border-border-default rounded-mx-xl p-mx-md text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all resize-none min-h-mx-20"
+                            />
+                        </form>
                     </Card>
                 )}
                 <AnimatePresence mode="wait">

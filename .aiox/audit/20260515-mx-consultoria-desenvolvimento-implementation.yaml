@@ -28,7 +28,7 @@ validation:
   rlsSmoke: pass
   roleSmoke: pass
   developmentFullSmoke: pass
-  remoteMigrations: applied_through_20260515190000
+  remoteMigrations: applied_through_20260515201000
 knownWarnings:
   - validate:agents reports missing optional/framework dependencies outside this implementation package.
   - vite build reports large PDF/export chunks.
@@ -39,6 +39,7 @@ secondPassCompletion:
   - DEV-25 content ratings, suggestions and curation persistence completed.
   - DEV-26 formal onboarding trail assignment, month locks and final manager notification completed.
   - DEV-27 feedback/PDI-to-content recommendations and history completed.
+  - APP-28 store institutional content and cross-store isolation completed.
   - CONS-17 full 45-indicator planning catalog completed.
 nextGate:
   owner: '@devops'

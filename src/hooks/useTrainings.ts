@@ -55,7 +55,7 @@ export function useTrainings() {
   const queryClient = useQueryClient()
 
   const { data: treinamentos, isLoading: loading, error: queryError, refetch } = useQuery({
-    queryKey: ['treinamentos', profile?.id, role],
+    queryKey: ['treinamentos', profile?.id, role, storeId],
     queryFn: async () => {
       if (!profile) return []
 
@@ -186,7 +186,12 @@ export function useTrainings() {
       curation_notes?: string | null
     }) => {
       if (!profile) return { error: 'Não autenticado' }
-      const { error } = await supabase.from('treinamentos').insert({ ...data, curator_id: profile.id })
+      const effectiveStoreId = data.store_id ?? (!isPerfilInternoMx(role) && data.source_kind === 'loja_institucional' ? storeId : null)
+      const { error } = await supabase.from('treinamentos').insert({
+        ...data,
+        store_id: effectiveStoreId,
+        curator_id: profile.id,
+      })
       return { error: error?.message || null }
     },
     onSuccess: (result) => {

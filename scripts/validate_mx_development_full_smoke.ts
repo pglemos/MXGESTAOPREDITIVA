@@ -44,6 +44,7 @@ async function main() {
   const admin = adminClient()
   const vendedor = anonClient()
   const gerente = anonClient()
+  const otherSeller = anonClient()
   const vendedorId = await signIn(vendedor, 'vendedor@mxgestaopreditiva.com.br')
   const gerenteId = await signIn(gerente, 'gerente@mxgestaopreditiva.com.br')
 
@@ -51,6 +52,36 @@ async function main() {
     'seller membership',
     admin.from('vinculos_loja').select('store_id').eq('user_id', vendedorId).eq('role', 'vendedor').limit(1).maybeSingle(),
   )
+
+  const otherStore = await requireSingle<{ id: string }>(
+    'other active store',
+    admin.from('lojas').select('id').neq('id', storeMembership.store_id).eq('active', true).limit(1).maybeSingle(),
+  )
+
+  const otherEmail = `smoke.app28.${Date.now()}@mxperformance.local`
+  const { data: otherAuth, error: otherAuthError } = await admin.auth.admin.createUser({
+    email: otherEmail,
+    password,
+    email_confirm: true,
+    user_metadata: { name: 'Smoke APP28 Outro Vendedor' },
+  })
+  if (otherAuthError || !otherAuth.user) throw new Error(`other seller auth seed failed: ${otherAuthError?.message || 'missing user'}`)
+  const otherSellerId = otherAuth.user.id
+  const { error: otherProfileError } = await admin.from('usuarios').upsert({
+    id: otherSellerId,
+    email: otherEmail,
+    name: 'Smoke APP28 Outro Vendedor',
+    role: 'vendedor',
+    active: true,
+  }, { onConflict: 'id' })
+  if (otherProfileError) throw new Error(`other seller profile seed failed: ${otherProfileError.message}`)
+  const { error: otherMembershipError } = await admin.from('vinculos_loja').insert({
+    user_id: otherSellerId,
+    store_id: otherStore.id,
+    role: 'vendedor',
+  })
+  if (otherMembershipError) throw new Error(`other seller membership seed failed: ${otherMembershipError.message}`)
+  await signIn(otherSeller, otherEmail)
 
   const training = await requireSingle<{ id: string; title: string }>(
     'development content',
@@ -99,6 +130,43 @@ async function main() {
     .select('id')
     .single()
   if (recommendationError || !recommendation) throw new Error(`recommendation seed failed: ${recommendationError?.message || 'missing row'}`)
+
+  const { data: institutionalTraining, error: institutionalTrainingError } = await gerente
+    .from('treinamentos')
+    .insert({
+      store_id: storeMembership.store_id,
+      title: `Smoke institucional loja ${Date.now()}`,
+      description: 'Conteúdo institucional exclusivo da loja para APP-28.',
+      type: 'institucional',
+      video_url: 'https://mxgestaopreditiva.com.br/academy/smoke-institucional',
+      target_audience: 'todos',
+      active: true,
+      source_kind: 'loja_institucional',
+      editorial_status: 'active',
+      duration_minutes: 10,
+      xp_reward: 80,
+      curator_id: gerenteId,
+      curation_notes: 'Smoke APP-28.',
+    })
+    .select('id,title,store_id')
+    .single()
+  if (institutionalTrainingError || !institutionalTraining) {
+    throw new Error(`institutional training insert failed: ${institutionalTrainingError?.message || 'missing row'}`)
+  }
+
+  const sellerInstitutionalContent = await requireSingle<{ id: string }>(
+    'same-store institutional visibility',
+    vendedor.from('treinamentos').select('id').eq('id', institutionalTraining.id).maybeSingle(),
+  )
+
+  const { data: otherStoreInstitutionalContent, error: otherStoreInstitutionalError } = await otherSeller
+    .from('treinamentos')
+    .select('id')
+    .eq('id', institutionalTraining.id)
+    .maybeSingle()
+  if (otherStoreInstitutionalError || otherStoreInstitutionalContent) {
+    throw new Error(`cross-store institutional isolation failed: ${otherStoreInstitutionalError?.message || 'unexpected visible row'}`)
+  }
 
   const sellerRecommendation = await requireSingle<{ id: string }>(
     'seller recommendation visibility',
@@ -154,6 +222,8 @@ async function main() {
     { check: 'rating persisted', result: rating.id },
     { check: 'suggestion persisted', result: suggestion.id },
     { check: 'recommendation visible', result: sellerRecommendation.id },
+    { check: 'institutional visible to store', result: sellerInstitutionalContent.id },
+    { check: 'institutional hidden cross-store', result: 'isolated' },
     { check: 'track assigned', result: assignment.id },
     { check: 'step completed', result: completedStep.status },
   ])
@@ -161,11 +231,16 @@ async function main() {
   await admin.from('progresso_etapa_trilha').delete().eq('assignment_id', assignment.id)
   await admin.from('atribuicoes_trilha_desenvolvimento').delete().eq('id', assignment.id)
   await admin.from('recomendacoes_desenvolvimento').delete().eq('id', recommendation.id)
+  await admin.from('treinamentos').delete().eq('id', institutionalTraining.id)
   await admin.from('treinamento_avaliacoes').delete().eq('id', rating.id)
   await admin.from('sugestoes_conteudo').delete().eq('id', suggestion.id)
+  await admin.from('vinculos_loja').delete().eq('user_id', otherSellerId)
+  await admin.from('usuarios').delete().eq('id', otherSellerId)
+  await admin.auth.admin.deleteUser(otherSellerId)
 
   await vendedor.auth.signOut()
   await gerente.auth.signOut()
+  await otherSeller.auth.signOut()
   console.log('\nDevelopment full smoke passed.')
 }
 

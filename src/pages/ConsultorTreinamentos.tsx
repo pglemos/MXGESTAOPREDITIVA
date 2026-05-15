@@ -1,4 +1,5 @@
 import { useContentSuggestions, useTrainings } from '@/hooks/useData'
+import { useStores } from '@/hooks/useTeam'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -21,20 +22,31 @@ const sources = ['mx_interno', 'especialista_convidado', 'fornecedor', 'loja_ins
 export default function ConsultorTreinamentos() {
     const { treinamentos, loading, error, createTraining, refetch } = useTrainings()
     const { suggestions } = useContentSuggestions()
+    const { lojas } = useStores()
     const [showForm, setShowForm] = useState(false)
-    const [form, setForm] = useState({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos', source_kind: 'mx_interno', editorial_status: 'active', duration_minutes: 15, xp_reward: 100, curation_notes: '' })
+    const [form, setForm] = useState({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos', source_kind: 'mx_interno', editorial_status: 'active', store_id: '', duration_minutes: 15, xp_reward: 100, curation_notes: '' })
     const [saving, setSaving] = useState(false)
     const [isRefetching, setIsRefetching] = useState(false)
+    const storeNameById = new Map(lojas.map(loja => [loja.id, loja.name]))
+    const resetForm = () => setForm({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos', source_kind: 'mx_interno', editorial_status: 'active', store_id: '', duration_minutes: 15, xp_reward: 100, curation_notes: '' })
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!form.title || !form.video_url) { toast.error('Preencha os campos obrigatórios.'); return }
+        if (form.source_kind === 'loja_institucional' && !form.store_id) {
+            toast.error('Selecione a loja para publicar conteúdo institucional.')
+            return
+        }
         setSaving(true)
-        const { error: createError } = await createTraining(form)
+        const { error: createError } = await createTraining({
+            ...form,
+            store_id: form.source_kind === 'loja_institucional' ? form.store_id : null,
+            type: form.source_kind === 'loja_institucional' ? 'institucional' : form.type,
+        })
         setSaving(false)
         if (createError) { toast.error(createError); return }
         toast.success('Novo módulo de aprendizado publicado!')
-        setShowForm(false); setForm({ title: '', description: '', type: 'prospeccao', video_url: '', target_audience: 'todos', source_kind: 'mx_interno', editorial_status: 'active', duration_minutes: 15, xp_reward: 100, curation_notes: '' })
+        setShowForm(false); resetForm()
         refetch()
     }
 
@@ -126,6 +138,15 @@ export default function ConsultorTreinamentos() {
                                                     {sources.map(source => <option key={source} value={source}>{source.toUpperCase()}</option>)}
                                                 </select>
                                             </div>
+                                            {form.source_kind === 'loja_institucional' && (
+                                                <div className="space-y-mx-sm">
+                                                    <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Loja vinculada</Typography>
+                                                    <select value={form.store_id} onChange={e => setForm(p => ({ ...p, store_id: e.target.value, type: 'institucional' }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
+                                                        <option value="">SELECIONE A LOJA</option>
+                                                        {lojas.map(loja => <option key={loja.id} value={loja.id}>{loja.name.toUpperCase()}</option>)}
+                                                    </select>
+                                                </div>
+                                            )}
                                             <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Duração / XP</Typography>
                                                 <Input type="number" value={String(form.duration_minutes)} onChange={e => setForm(p => ({ ...p, duration_minutes: Number(e.target.value) || 15 }))} className="!h-14 px-6 font-bold" />
@@ -183,6 +204,7 @@ export default function ConsultorTreinamentos() {
                                 </div>
                                 <div className="flex flex-col items-end gap-mx-xs">
                                     <Badge variant="brand" className="px-4 py-1 rounded-mx-full">{t.type}</Badge>
+                                    {t.store_id && <Badge variant="outline" className="px-4 py-1 rounded-mx-full max-w-mx-40 truncate">{storeNameById.get(t.store_id) || 'Loja institucional'}</Badge>}
                                     {t.watched && <Typography variant="tiny" tone="success" className="font-black tracking-widest uppercase">CONCLUÍDO</Typography>}
                                 </div>
                             </div>

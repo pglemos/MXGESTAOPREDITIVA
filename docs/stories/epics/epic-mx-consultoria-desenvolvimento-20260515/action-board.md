@@ -42,7 +42,7 @@
 | I-13 | DEV-25 | @dev/@data-engineer | Biblioteca com avaliacao, sugestao e curadoria persistidas |
 | I-14 | DEV-26 | @architect/@dev | Trilha de novo colaborador persistida com bloqueios e notificacao |
 | I-15 | DEV-27 | @architect/@data-engineer | Feedback/PDI geram recomendacoes persistidas |
-| I-16 | APP-28 | @architect/@dev | Contrato de conteudo institucional por loja preparado |
+| I-16 | APP-28 | @architect/@dev | Conteudo institucional por loja implementado com RLS escopada |
 | I-17 | APP-29 | @pm/@dev | Curadoria persistida com ratings, sugestoes e status editorial |
 | I-18 | APP-30 | @devops/@qa/@dev | Readiness mobile/PWA documentado e shortcuts corrigidos |
 | I-19 | APP-31 | @devops/@qa | Checklist Apple/Google criado |

@@ -16,7 +16,7 @@ O pacote foi implementado em modo yolo por ondas. A segunda passada fechou bibli
 | 2 | Visao do dono e planejamento | CONS-17 a CONS-19 | Implemented - QA final |
 | 3 | Rotina diaria e matinal | OPS-20 a OPS-23 | Implemented - QA final |
 | 4 | Desenvolvimento de pessoas | DEV-24 a DEV-27 | Implemented |
-| 5 | Personalizacao e app readiness | APP-28 a APP-31 | APP-29 implemented, APP-28 readiness |
+| 5 | Personalizacao e app readiness | APP-28 a APP-31 | APP-28/29 implemented, APP-30/31 readiness |
 
 ## Proximo Lote Recomendado
 
@@ -73,4 +73,4 @@ Motivo: os gates automatizados e autenticados passaram; o risco restante esta em
 1. DevOps reexecuta gates finais.
 2. DevOps cria commit e push.
 3. QA/PO/Data revisam o pacote publicado.
-4. PM decide continuidade comercial para APP-28 e publicacao mobile.
+4. PM decide publicacao mobile.

@@ -21,7 +21,7 @@ Automated engineering gates are green. Authenticated role smoke, RLS probe valid
 - Diff whitespace check on workflow artifacts and touched benchmark test: PASS.
 - `npx tsx scripts/validate_mx_cons_dev_rls_smoke.ts`: PASS.
 - `PLAYWRIGHT_PORT=3002 npx playwright test src/test/mx-consultoria-role-smoke.playwright.ts --project=chromium`: PASS, 3 tests.
-- `npx supabase db push`: applied through `20260515190000_development_full_completion.sql`.
+- `npx supabase db push`: applied through `20260515201000_harden_store_training_select_scope.sql`.
 - `npx tsx scripts/validate_mx_development_full_smoke.ts`: PASS.
 
 ## Requirement Trace
@@ -34,6 +34,7 @@ Automated engineering gates are green. Authenticated role smoke, RLS probe valid
 | Strategic planning indicators | Unit tests for the 45-indicator catalog/order/targets | Covered |
 | Daily routine discipline | Unit tests for MVP fields and reminders | Covered |
 | Development library/trail helpers | Unit tests and authenticated smoke for ratings, suggestions, persisted tracks and recommendations | Covered |
+| Store institutional content | Authenticated smoke for same-store visibility and cross-store isolation | Covered |
 | PWA/readiness docs | Build and documentation review | Covered |
 | Authenticated role UI smoke | Playwright role smoke for admin master, dono, gerente and vendedor | Covered |
 | RLS positive/negative validation | Supabase probe visit created and removed by script | Covered |
