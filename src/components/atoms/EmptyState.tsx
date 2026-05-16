@@ -41,11 +41,12 @@ export interface EmptyStateProps
   icon?: React.ReactNode
   title: string
   description?: string
+  nextStep?: string
   action?: React.ReactNode
 }
 
 const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
-  ({ className, size, icon, title, description, action, ...props }, ref) => {
+  ({ className, size, icon, title, description, nextStep, action, ...props }, ref) => {
     return (
       <div ref={ref} className={cn(emptyStateVariants({ size }), className)} {...props}>
         {icon && (
@@ -60,6 +61,16 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
           <Typography variant="p" tone="muted" className="max-w-md">
             {description}
           </Typography>
+        )}
+        {nextStep && (
+          <div className="mt-mx-xs max-w-md rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm text-left">
+            <Typography variant="caption" className="block text-text-secondary">
+              Próximo passo
+            </Typography>
+            <Typography variant="p" className="mt-mx-tiny text-text-secondary">
+              {nextStep}
+            </Typography>
+          </div>
         )}
         {action && (
           <div className="mt-mx-xs">

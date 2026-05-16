@@ -287,6 +287,7 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
               icon={<ListChecks />}
               title="Nenhuma opção encontrada"
               description="Crie uma opção ou ajuste os filtros do catálogo."
+              nextStep="Use o formulário acima para cadastrar a primeira opção ou revise o termo pesquisado."
             />
           </Card>
         ) : (

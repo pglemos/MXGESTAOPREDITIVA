@@ -8,7 +8,6 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
-  Trash2,
   Users,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -26,6 +25,7 @@ import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { cn, slugify } from '@/lib/utils'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
+import { TabNavPill } from '@/components/molecules/TabNavPill'
 import type { DigitalProduct, UserRole } from '@/types/database'
 
 type ProductAudience = UserRole
@@ -181,6 +181,8 @@ function toForm(product: ProductRecord): ProductForm {
 export default function ProdutosDigitais() {
   const { role } = useAuth()
   const canManage = isAdministradorMx(role)
+  const isOwner = role === 'dono'
+  const isSeller = role === 'vendedor'
   const [products, setProducts] = useState<ProductRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -190,6 +192,7 @@ export default function ProdutosDigitais() {
   const [editingProduct, setEditingProduct] = useState<ProductRecord | null>(null)
   const [form, setForm] = useState<ProductForm>(defaultForm)
   const [searchTerm, setSearchTerm] = useState('')
+  const [catalogMode, setCatalogMode] = useState<'administracao' | 'consumo'>('administracao')
   const [audienceFilter, setAudienceFilter] = useState<ProductAudience | 'todos'>('todos')
   const [statusFilter, setStatusFilter] = useState<ProductStatus | 'todos'>(canManage ? 'todos' : 'ativo')
 
@@ -220,11 +223,15 @@ export default function ProdutosDigitais() {
     fetchProducts()
   }, [fetchProducts])
 
+  const missingDefaultProducts = useMemo(() => {
+    const existingNames = new Set(products.map((product) => product.name.trim().toLowerCase()))
+    return PRODUCT_DEFAULT_CATALOG.filter((product) => !existingNames.has(product.name.toLowerCase()))
+  }, [products])
+
   const createDefaultProducts = async () => {
     if (!canManage || creatingDefaults) return
 
-    const existingNames = new Set(products.map((product) => product.name.trim().toLowerCase()))
-    const missingProducts = PRODUCT_DEFAULT_CATALOG.filter((product) => !existingNames.has(product.name.toLowerCase()))
+    const missingProducts = missingDefaultProducts
 
     if (missingProducts.length === 0) {
       toast.success('Produtos padrão já estão cadastrados.')
@@ -247,6 +254,21 @@ export default function ProdutosDigitais() {
 
     toast.success(`${missingProducts.length} produto(s) padrão criado(s).`)
     fetchProducts()
+  }
+
+  const previewDefaultProducts = () => {
+    if (missingDefaultProducts.length === 0) {
+      toast.success('Produtos padrão já estão cadastrados.')
+      return
+    }
+
+    requestToastConfirmation({
+      key: 'create-default-products',
+      title: `Criar ${missingDefaultProducts.length} produtos padrão?`,
+      description: `Serão criados: ${missingDefaultProducts.map(product => product.name).join(', ')}. Eles entram como ativos e liberados para os públicos padrão.`,
+      label: 'Criar produtos padrão',
+      onConfirm: createDefaultProducts,
+    })
   }
 
   const openCreateForm = () => {
@@ -343,7 +365,7 @@ export default function ProdutosDigitais() {
   const filteredProducts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase()
     return products
-      .filter((product) => isVisibleForRole(product, role, canManage))
+      .filter((product) => catalogMode === 'consumo' ? isVisibleForRole(product, role, false) : isVisibleForRole(product, role, canManage))
       .filter((product) => statusFilter === 'todos' || product.status === statusFilter)
       .filter((product) => audienceFilter === 'todos' || (product.target_roles || []).includes(audienceFilter))
       .filter((product) => {
@@ -355,16 +377,19 @@ export default function ProdutosDigitais() {
           ...(product.target_roles || []),
         ].some((value) => String(value || '').toLowerCase().includes(term))
       })
-  }, [audienceFilter, canManage, products, role, searchTerm, statusFilter])
+  }, [audienceFilter, canManage, catalogMode, products, role, searchTerm, statusFilter])
 
   const metrics = useMemo(() => {
     const visible = products.filter((product) => isVisibleForRole(product, role, canManage))
+    const audiencesCovered = new Set(visible.flatMap(product => product.target_roles || [])).size
     return {
       total: visible.length,
       ativos: visible.filter((product) => product.status === 'ativo').length,
       vendedores: visible.filter((product) => product.target_roles?.includes('vendedor')).length,
       gerentes: visible.filter((product) => product.target_roles?.includes('gerente')).length,
       donos: visible.filter((product) => product.target_roles?.includes('dono')).length,
+      audiencesCovered,
+      usageTelemetry: 'Sem telemetria',
     }
   }, [canManage, products, role])
 
@@ -389,8 +414,8 @@ export default function ProdutosDigitais() {
               Produtos <span className="text-mx-green-700">Digitais</span>
             </Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest">
-            CATÁLOGO POR PÚBLICO • ADMIN, CONSULTORES, DONOS, GERENTES E VENDEDORES
+          <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide">
+            {canManage ? 'Administração separada do consumo por público' : 'Catálogo liberado pelo Admin MX para o seu perfil'}
           </Typography>
         </div>
 
@@ -398,9 +423,9 @@ export default function ProdutosDigitais() {
           {[
             ['Total', metrics.total],
             ['Ativos', metrics.ativos],
+            ['Públicos', metrics.audiencesCovered],
             ['Vendedores', metrics.vendedores],
-            ['Gerentes', metrics.gerentes],
-            ['Donos', metrics.donos],
+            ['Engajamento', metrics.usageTelemetry],
           ].map(([label, value]) => (
             <Card key={label} className="min-w-0 border-none bg-white p-mx-sm text-center shadow-mx-md">
               <Typography variant="tiny" tone="muted" className="block text-mx-micro leading-tight tracking-widest">
@@ -415,6 +440,17 @@ export default function ProdutosDigitais() {
       <Card className="border-none bg-white p-mx-sm sm:p-mx-md shadow-mx-md">
         <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
           <div className="grid grid-cols-1 gap-mx-xs sm:grid-cols-3 lg:flex lg:flex-wrap">
+            {canManage && (
+              <TabNavPill
+                tabs={[
+                  { key: 'administracao', label: 'Administração' },
+                  { key: 'consumo', label: 'Consumo' },
+                ]}
+                activeTab={catalogMode}
+                onTabChange={(key) => setCatalogMode(key as typeof catalogMode)}
+                className="sm:col-span-3 lg:mr-mx-xs"
+              />
+            )}
             <Select
               id="product-audience-filter"
               value={audienceFilter}
@@ -467,17 +503,15 @@ export default function ProdutosDigitais() {
             </Button>
             {canManage && (
               <div className="flex min-w-0 flex-col gap-mx-xs sm:flex-row">
-                {PRODUCT_DEFAULT_CATALOG.some(
-                  (item) => !products.some((product) => product.name.trim().toLowerCase() === item.name.toLowerCase()),
-                ) && (
+                {missingDefaultProducts.length > 0 && (
                   <Button
                     variant="outline"
-                    onClick={createDefaultProducts}
+                    onClick={previewDefaultProducts}
                     disabled={creatingDefaults}
                     className="rounded-mx-xl bg-white text-mx-micro font-black uppercase tracking-widest"
                   >
                     <Package size={16} className="mr-2" />
-                    {creatingDefaults ? 'CRIANDO...' : 'CRIAR PADRÃO'}
+                    {creatingDefaults ? 'CRIANDO...' : `PREVER PADRÃO (${missingDefaultProducts.length})`}
                   </Button>
                 )}
                 <Button onClick={openCreateForm} className="bg-brand-secondary">
@@ -491,8 +525,29 @@ export default function ProdutosDigitais() {
 
       {!canManage && (
         <Card className="border-none bg-brand-primary/5 p-mx-md shadow-mx-sm">
-          <Typography variant="tiny" tone="muted" className="uppercase tracking-widest">
-            Você está vendo apenas produtos ativos liberados para o seu público.
+          {isOwner ? (
+            <div className="space-y-mx-xs">
+              <Typography variant="h3" className="uppercase tracking-tight">Catálogo para decisão do Dono</Typography>
+              <Typography variant="p" tone="muted" className="text-sm">
+                Use estes produtos para entender ofertas, materiais e entregáveis liberados para sua rede. Criação, publicação e segmentação de público ficam com o Admin MX.
+              </Typography>
+            </div>
+          ) : (
+            <div className="space-y-mx-xs">
+              <Typography variant="h3" className="uppercase tracking-tight">{isSeller ? 'Produtos liberados para vendedor' : 'Catálogo disponível'}</Typography>
+              <Typography variant="p" tone="muted" className="text-sm">
+                {isSeller
+                  ? 'A lista depende da liberação do Admin MX para o público vendedor. Quando não houver produto, o próximo passo é pedir ao gerente ou Admin MX a publicação do conteúdo correto.'
+                  : 'Você está vendo apenas produtos ativos liberados para o seu público.'}
+              </Typography>
+            </div>
+          )}
+        </Card>
+      )}
+      {canManage && (
+        <Card className="border-none bg-white p-mx-md shadow-mx-sm">
+          <Typography variant="p" tone="muted" className="text-sm">
+            Produtos Digitais é o catálogo operacional. Regras de governança, treinamentos e PDI ficam em Configurações para evitar duplicidade de decisão.
           </Typography>
         </Card>
       )}
@@ -505,12 +560,13 @@ export default function ProdutosDigitais() {
               icon={<Package />}
               title="Nenhum produto encontrado"
               description={canManage ? 'Crie ou ajuste os filtros do catálogo.' : 'Nenhum produto ativo foi liberado para o seu público.'}
+              nextStep={canManage ? 'Use “Criar produtos padrão” para publicar a base inicial ou limpe os filtros aplicados.' : 'Solicite ao gerente ou Admin MX a liberação de conteúdo para vendedor e revise os filtros aplicados.'}
             />
             {canManage && products.length === 0 && (
               <div className="flex justify-center px-mx-md pb-mx-lg">
-                <Button onClick={createDefaultProducts} disabled={creatingDefaults} className="bg-brand-secondary">
+                <Button onClick={previewDefaultProducts} disabled={creatingDefaults} className="bg-brand-secondary">
                   <Package size={18} className="mr-2" />
-                  {creatingDefaults ? 'CRIANDO PRODUTOS...' : 'CRIAR PRODUTOS PADRÃO'}
+                  {creatingDefaults ? 'CRIANDO PRODUTOS...' : 'PREVER PRODUTOS PADRÃO'}
                 </Button>
               </div>
             )}
@@ -551,6 +607,7 @@ export default function ProdutosDigitais() {
                         {product.description}
                       </Typography>
 
+                      {canManage && (
                       <div className="flex flex-wrap gap-mx-xs">
                         {(product.target_roles || []).map((audience) => (
                           <Badge key={audience} variant="outline" className="text-mx-nano">
@@ -558,10 +615,13 @@ export default function ProdutosDigitais() {
                           </Badge>
                         ))}
                       </div>
+                      )}
 
                       <footer className="mt-auto flex flex-col gap-mx-sm border-t border-border-default pt-mx-md">
+                        {canManage ? (
+                        <>
                         <div className="flex items-center justify-between">
-                          <Badge variant="ghost" className="px-0 text-mx-micro">Produto interno</Badge>
+                          <Badge variant="ghost" className="px-0 text-mx-micro">Destino interno: catálogo MX</Badge>
                           <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">
                             Ordem {product.sort_order ?? 0}
                           </Typography>
@@ -574,11 +634,15 @@ export default function ProdutosDigitais() {
                                 <Edit3 size={14} className="mr-2" /> EDITAR
                               </Button>
                               <Button variant="ghost" size="sm" onClick={() => handleDelete(product)} className="text-status-error">
-                                <Trash2 size={14} className="mr-2" /> EXCLUIR
+                                <Archive size={14} className="mr-2" /> ARQUIVAR
                               </Button>
                             </div>
                           )}
                         </div>
+                        </>
+                        ) : (
+                          <Badge variant="success" className="w-fit">Disponível para seu perfil</Badge>
+                        )}
                       </footer>
                     </div>
                   </Card>
@@ -596,7 +660,7 @@ export default function ProdutosDigitais() {
           setEditingProduct(null)
         }}
         title={editingProduct ? 'Editar Produto Digital' : 'Novo Produto Digital'}
-        description="Defina o produto interno, público e dados comerciais"
+        description="Defina administração, público e descrição exibida no consumo"
         size="2xl"
         footer={
           <>
@@ -669,6 +733,11 @@ export default function ProdutosDigitais() {
               <Users size={16} className="text-brand-primary" />
               <Typography variant="caption" className="font-black uppercase tracking-widest">
                 Públicos onde aparece *
+              </Typography>
+            </div>
+            <div className="rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm">
+              <Typography variant="p" className="text-sm">
+                Selecionados: {form.target_roles.map(getRoleLabel).join(', ') || 'nenhum público'}
               </Typography>
             </div>
             <div className="grid grid-cols-1 gap-mx-xs sm:grid-cols-3">

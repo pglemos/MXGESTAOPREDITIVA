@@ -18,6 +18,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
+import { LastUpdated } from '@/components/molecules/LastUpdated'
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 
 // New components
@@ -39,6 +40,7 @@ function GlobalRanking() {
     const { profile } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+    const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
     const [filterStore, setFilterStore] = useState<string>('all')
     const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
     const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'store-arena'>('leaderboard')
@@ -137,6 +139,7 @@ function GlobalRanking() {
         setIsRefetching(true)
         try {
             await refetch()
+            setLastUpdatedAt(new Date())
         } finally {
             setIsRefetching(false)
         }
@@ -147,7 +150,7 @@ function GlobalRanking() {
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Arena Global...</Typography>
+            <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando ranking global...</Typography>
         </div>
     )
 
@@ -157,43 +160,45 @@ function GlobalRanking() {
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Arena <span className="text-mx-green-700">Global</span></Typography>
+                        <Typography variant="h1">Ranking <span className="text-mx-green-700">Global</span></Typography>
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">
-                        {lojas.length} UNIDADES • {totalVendedores} VENDEDORES • MERITOCRACIA EM TEMPO REAL
+                        {lojas.length} UNIDADES • {totalVendedores} VENDEDORES • PERFORMANCE EM TEMPO REAL
                     </Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
                     <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs" role="tablist" aria-label="Modo da classificação">
                         <button type="button" role="tab" aria-selected={viewMode === 'leaderboard'} onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <Trophy size={14} /> Classificação
+                            <Trophy size={14} /> Ranking
                         </button>
                         <button type="button" role="tab" aria-selected={viewMode === 'battle'} onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <Swords size={14} /> Arena X1
+                            <Swords size={14} /> Comparativo
                         </button>
                         <button type="button" role="tab" aria-selected={viewMode === 'store-arena'} onClick={() => setViewMode('store-arena')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'store-arena' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <Building2 size={14} /> Arena Lojas
+                            <Building2 size={14} /> Comparativo Lojas
                         </button>
                     </div>
 
                     <div className="flex items-center gap-mx-sm w-full sm:w-auto order-1 sm:order-none">
+                        <LastUpdated value={lastUpdatedAt} className="hidden xl:inline-flex" />
                         <Button
                             variant="outline"
-                            size="icon"
                             onClick={() => setHideStoreNames((current) => !current)}
                             aria-label={hideStoreNames ? 'Mostrar lojas' : 'Ocultar lojas'}
                             title={hideStoreNames ? 'Mostrar lojas' : 'Ocultar lojas'}
-                            className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white"
+                            className="rounded-mx-xl shadow-mx-sm h-mx-xl bg-white px-mx-md"
                         >
                             {hideStoreNames ? <EyeOff size={20} /> : <Eye size={20} />}
+                            {hideStoreNames ? 'Mostrar lojas' : 'Ocultar lojas'}
                         </Button>
-                        <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
+                        <Button variant="outline" onClick={handleRefresh} aria-label="Atualizar ranking global" className="rounded-mx-xl shadow-mx-sm h-mx-xl bg-white px-mx-md">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                            Atualizar
                         </Button>
                         <div className="flex-1 sm:flex-none flex items-center justify-center gap-mx-sm bg-white border border-border-default px-6 h-mx-xl rounded-mx-full shadow-mx-sm">
                             <Trophy size={18} className="text-status-warning shrink-0" />
-                            <Typography variant="caption" className="whitespace-nowrap uppercase font-black text-mx-micro">{filtered.length} EM DISPUTA</Typography>
+                            <Typography variant="caption" className="whitespace-nowrap uppercase font-black text-mx-micro">{filtered.length} no ranking</Typography>
                         </div>
                     </div>
                 </div>
@@ -275,7 +280,7 @@ function GlobalRanking() {
                         {battleOpponents.length < 2 && (
                              <div className="mb-8 text-center animate-pulse">
                                  <p className="text-sm font-bold text-text-tertiary bg-white/50 inline-block px-4 py-2 rounded-full border border-white/60 shadow-sm">
-                                     Selecione {2 - battleOpponents.length} {2 - battleOpponents.length === 1 ? 'vendedor' : 'vendedores'} abaixo para iniciar o X1
+                                     Selecione {2 - battleOpponents.length} {2 - battleOpponents.length === 1 ? 'vendedor' : 'vendedores'} abaixo para iniciar o comparativo
                                  </p>
                              </div>
                         )}
@@ -289,7 +294,7 @@ function GlobalRanking() {
                              <BattleView opponents={battleOpponents} ranking={displayRanking} />
                         </div>
 
-                        <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2">Escolha os Combatentes</h3>
+                        <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2">Escolha os vendedores</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-mx-md">
                             {displayRanking.map(seller => {
                                 const selected = battleOpponents.includes(seller.user_id)
@@ -329,7 +334,7 @@ function GlobalRanking() {
                                 {storeOpponents.length < 2 && (
                                     <div className="mb-8 text-center animate-pulse">
                                         <p className="text-sm font-bold text-text-tertiary bg-white/50 inline-block px-4 py-2 rounded-full border border-white/60 shadow-sm">
-                                            Selecione {2 - storeOpponents.length} {2 - storeOpponents.length === 1 ? 'loja' : 'lojas'} abaixo para iniciar a Arena de Lojas
+                                            Selecione {2 - storeOpponents.length} {2 - storeOpponents.length === 1 ? 'loja' : 'lojas'} abaixo para iniciar o comparativo de lojas
                                         </p>
                                     </div>
                                 )}
@@ -413,7 +418,7 @@ function GlobalRanking() {
                                                 />
                                             </div>
                                             <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-mx-micro font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-text-primary'}`}>
-                                                {isFirst ? 'Campeão' : `#${seller.position} Lugar`}
+                                                {isFirst ? '1º lugar' : `#${seller.position} lugar`}
                                             </div>
                                         </div>
                                         <div className={`w-mx-20 sm:w-mx-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
@@ -460,7 +465,7 @@ function GlobalRanking() {
                                                         <div className="flex flex-wrap items-center gap-mx-xs sm:gap-mx-sm min-w-0">
                                                             <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="min-w-0 max-w-full truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
                                                             {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md px-3 text-mx-nano sm:text-xs">LÍDER</Badge>}
-                                                            {r.atingimento >= 100 && !isTop1 && <Badge variant="danger" className="px-3 text-mx-nano sm:text-xs"><Flame size={12} className="mr-1 inline-block"/> ON FIRE</Badge>}
+                                                            {r.atingimento >= 100 && !isTop1 && <Badge variant="success" className="px-3 text-mx-nano sm:text-xs"><Flame size={12} className="mr-1 inline-block"/> META BATIDA</Badge>}
                                                             {isMe && !isTop1 && <Badge variant="brand" className="px-3 text-mx-nano sm:text-xs">VOCÊ</Badge>}
                                                         </div>
                                                         <div className="flex items-center gap-mx-xs mb-mx-xs">
@@ -501,9 +506,9 @@ function GlobalRanking() {
                                                     <button
                                                       type="button"
                                                       onClick={(e) => { e.stopPropagation(); toggleOpponent(r.user_id); setViewMode('battle') }}
-                                                      aria-label={`Desafiar ${r.user_name} para X1`}
+                                                      aria-label={`Comparar ${r.user_name}`}
                                                       className={`ml-0 sm:ml-4 p-mx-sm rounded-xl transition-all border group/btn sm:hover:scale-110 active:scale-95 w-full sm:w-auto flex items-center justify-center ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
-                                                      title="Desafiar para X1"
+                                                      title="Comparar vendedor"
                                                     >
                                                         <Swords className="w-mx-sm h-mx-sm" />
                                                     </button>
@@ -530,7 +535,7 @@ function GlobalRanking() {
 
 
 function StoreRankingView() {
-    const { profile } = useAuth()
+    const { profile, role } = useAuth()
     const { ranking, loading: rankingLoading, error: rankingError, refetch: refetchRanking } = useRanking()
     const { checkins, loading: checkinsLoading, fetchCheckins } = useCheckins()
     const { metaRules, fetchMetaRules } = useStoreMetaRules()
@@ -538,6 +543,7 @@ function StoreRankingView() {
     const [viewMode, setViewMode] = useState<'leaderboard' | 'battle'>('leaderboard')
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+    const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
     const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
     const [battleOpponents, setBattleOpponents] = useState<string[]>([])
 
@@ -545,6 +551,7 @@ function StoreRankingView() {
         setIsRefetching(true)
         try {
             await Promise.all([refetchRanking(), fetchCheckins(), fetchMetaRules()])
+            setLastUpdatedAt(new Date())
         } finally {
             setIsRefetching(false)
         }
@@ -579,7 +586,7 @@ function StoreRankingView() {
     if (rankingLoading || checkinsLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Arena...</Typography>
+            <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando ranking...</Typography>
         </div>
     )
 
@@ -589,32 +596,51 @@ function StoreRankingView() {
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Arena de <span className="text-mx-green-700">Performance</span></Typography>
+                        <Typography variant="h1">Ranking de <span className="text-mx-green-700">Performance</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Meritocracia Real-time • MX ELITE TRACKING</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide font-black text-text-label">Performance em tempo real</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
                     <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs" role="tablist" aria-label="Modo da classificação da loja">
                         <button type="button" role="tab" aria-selected={viewMode === 'leaderboard'} onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <Trophy size={14} /> Classificação
+                            <Trophy size={14} /> Ranking
                         </button>
                         <button type="button" role="tab" aria-selected={viewMode === 'battle'} onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
-                            <Swords size={14} /> Arena X1
+                            <Swords size={14} /> Comparativo
                         </button>
                     </div>
 
                     <div className="flex items-center gap-mx-sm w-full sm:w-auto order-1 sm:order-none">
-                        <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
+                        <LastUpdated value={lastUpdatedAt} className="hidden xl:inline-flex" />
+                        <Button variant="outline" onClick={handleRefresh} aria-label="Atualizar ranking da loja" className="rounded-mx-xl shadow-mx-sm h-mx-xl bg-white px-mx-md">
                             <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                            Atualizar
                         </Button>
                         <div className="flex-1 sm:flex-none flex items-center justify-center gap-mx-sm bg-white border border-border-default px-6 h-mx-xl rounded-mx-full shadow-mx-sm">
                             <Trophy size={18} className="text-status-warning shrink-0" />
-                            <Typography variant="caption" className="whitespace-nowrap uppercase font-black text-mx-micro">{sortedRanking.length} EM DISPUTA</Typography>
+                            <Typography variant="caption" className="whitespace-nowrap uppercase font-black text-mx-micro">{sortedRanking.length} no ranking</Typography>
                         </div>
                     </div>
                 </div>
             </header>
+
+            {role === 'dono' && (
+                <Card className="border border-status-info/20 bg-status-info-surface p-mx-md shadow-mx-sm">
+                    <Typography variant="h3" className="uppercase tracking-tight text-status-info">Ranking como governança</Typography>
+                    <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                        Use esta classificação para identificar onde pedir plano de ação ao gerente, reconhecer consistência e cruzar performance com meta, funil e DRE. A execução diária continua com gerente e equipe.
+                    </Typography>
+                </Card>
+            )}
+            {role === 'vendedor' && (
+                <Card className="border border-brand-primary/15 bg-white p-mx-md shadow-mx-sm">
+                    <Typography variant="h3" className="uppercase tracking-tight">Sua leitura individual</Typography>
+                    <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">
+                        A classificação mostra vendas, objetivo, ritmo e atingimento para você entender sua distância da própria meta. Use o comparativo para aprender padrões de execução, não como cobrança isolada.
+                    </Typography>
+                </Card>
+            )}
 
             {/* STATS CARDS */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-mx-sm shrink-0">
@@ -651,7 +677,7 @@ function StoreRankingView() {
                         {battleOpponents.length < 2 && (
                              <div className="mb-8 text-center animate-pulse">
                                  <p className="text-sm font-bold text-text-tertiary bg-white/50 inline-block px-4 py-2 rounded-full border border-white/60 shadow-sm">
-                                     Selecione {2 - battleOpponents.length} {2 - battleOpponents.length === 1 ? 'vendedor' : 'vendedores'} abaixo para iniciar o X1
+                                     Selecione {2 - battleOpponents.length} {2 - battleOpponents.length === 1 ? 'vendedor' : 'vendedores'} abaixo para iniciar o comparativo
                                  </p>
                              </div>
                         )}
@@ -665,7 +691,7 @@ function StoreRankingView() {
                              <BattleView opponents={battleOpponents} ranking={sortedRanking} />
                         </div>
 
-                        <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2">Escolha os Combatentes</h3>
+                        <h3 className="font-display font-bold text-lg text-mx-black mb-4 px-2">Escolha os vendedores</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-mx-md">
                             {sortedRanking.map(seller => {
                                 const selected = battleOpponents.includes(seller.user_id)
@@ -713,7 +739,7 @@ function StoreRankingView() {
                                                 />
                                             </div>
                                             <div className={`absolute -bottom-3 px-3 py-1 rounded-full text-mx-micro font-black uppercase tracking-wider shadow-lg border border-white/20 whitespace-nowrap z-20 ${isFirst ? 'bg-mx-black text-brand-primary' : 'bg-surface-alt text-text-primary'}`}>
-                                                {isFirst ? 'Campeão' : `#${seller.position} Lugar`}
+                                                {isFirst ? '1º lugar' : `#${seller.position} lugar`}
                                             </div>
                                         </div>
                                         <div className={`w-mx-20 sm:w-mx-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
@@ -765,7 +791,7 @@ function StoreRankingView() {
                                                         <div className="flex flex-wrap items-center gap-mx-xs sm:gap-mx-sm min-w-0">
                                                             <Typography variant="h2" tone={isTop1 ? 'white' : 'default'} className="min-w-0 max-w-full truncate text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight">{r.user_name}</Typography>
                                                             {isTop1 && <Badge variant="warning" className="animate-pulse shadow-mx-md px-3 text-mx-nano sm:text-xs">LÍDER</Badge>}
-                                                            {r.atingimento >= 100 && !isTop1 && <Badge variant="danger" className="px-3 text-mx-nano sm:text-xs"><Flame size={12} className="mr-1 inline-block"/> ON FIRE</Badge>}
+                                                            {r.atingimento >= 100 && !isTop1 && <Badge variant="success" className="px-3 text-mx-nano sm:text-xs"><Flame size={12} className="mr-1 inline-block"/> META BATIDA</Badge>}
                                                             {isMe && !isTop1 && <Badge variant="brand" className="px-3 text-mx-nano sm:text-xs">VOCÊ</Badge>}
                                                         </div>
                                                         <div className="flex flex-wrap items-center gap-mx-md sm:gap-mx-10">
@@ -802,7 +828,7 @@ function StoreRankingView() {
                                                     <button
                                                       onClick={(e) => { e.stopPropagation(); toggleOpponent(r.user_id); setViewMode('battle') }}
                                                       className={`ml-0 sm:ml-4 p-mx-sm rounded-xl transition-all border group/btn sm:hover:scale-110 active:scale-95 w-full sm:w-auto flex items-center justify-center ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
-                                                      title="Desafiar para X1"
+                                                      title="Comparar vendedor"
                                                     >
                                                         <Swords className="w-mx-sm h-mx-sm" />
                                                     </button>

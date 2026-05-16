@@ -96,8 +96,8 @@ export const TAB_REGISTRY: ConfigTabDefinition[] = [
     },
     {
         key: 'catalogos',
-        label: 'Catálogos',
-        description: 'Treinamentos, produtos e PDI',
+        label: 'Governança de Conteúdo',
+        description: 'Atalhos e regras de catálogo',
         icon: FolderTree,
         component: CatalogosTab,
         roles: ['administrador_geral', 'administrador_mx', 'consultor_mx'],
@@ -133,20 +133,20 @@ export const TAB_REGISTRY: ConfigTabDefinition[] = [
     },
     {
         key: 'aparencia',
-        label: 'Aparência',
-        description: 'Tema, densidade e branding',
+        label: 'Minha Aparência',
+        description: 'Tema e densidade da minha sessão',
         icon: Palette,
         component: AparenciaTab,
         roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente', 'vendedor'],
-        section: 'sistema',
+        section: 'pessoal',
     },
 ]
 
 export const SECTION_LABELS: Record<ConfigTabDefinition['section'], string> = {
     pessoal: 'Pessoal',
-    gestao: 'Gestão da Rede',
-    mx: 'Operações MX',
-    sistema: 'Sistema',
+    gestao: 'Rede e Lojas',
+    mx: 'Governança MX',
+    sistema: 'Saúde do Sistema',
 }
 
 export function getVisibleTabs(role: string | null | undefined): ConfigTabDefinition[] {

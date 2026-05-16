@@ -14,8 +14,12 @@ import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader } from '@/components/molecules/Card'
 import { toast } from 'sonner'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function GerenteTreinamentos() {
+    const { role } = useAuth()
+    const isOwner = role === 'dono'
+    const canManageTeamTrainings = !isOwner
     const [tab, setTab] = useState<'meus' | 'equipe' | 'matriz'>('equipe')
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
@@ -65,7 +69,7 @@ export default function GerenteTreinamentos() {
         const promises = pendents.map(p => sendNotification({
             recipient_id: p.seller_id,
             title: '🔥 CONVOCAÇÃO MX ACADEMY',
-            message: `O gerente convocou a tropa para o treinamento: "${training?.title}". Todos devem concluir este módulo nas próximas 24h.`,
+            message: `O gerente solicitou a conclusão do treinamento: "${training?.title}". Todos devem concluir este módulo nas próximas 24h.`,
             type: 'training',
             priority: 'high',
             link: '/vendedor/treinamentos'
@@ -179,17 +183,19 @@ export default function GerenteTreinamentos() {
                 <div className="flex flex-col gap-mx-tiny min-w-0">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">Desenvolvimento <span className="text-mx-green-700">Gerencial</span></Typography>
+                        <Typography variant="h1">{isOwner ? 'Treinamentos da Rede' : 'Desenvolvimento '}<span className="text-mx-green-700">{isOwner ? 'MX' : 'Gerencial'}</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Biblioteca, PDI, devolutivas e absorção MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">
+                        {isOwner ? 'ACOMPANHE ABSORÇÃO E CURADORIA; EXECUÇÃO FICA COM O GERENTE' : 'Biblioteca, PDI, devolutivas e absorção MX'}
+                    </Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
                     <TabNavPill
                         tabs={[
-                            { key: 'equipe' as const, label: 'Equipe',    icon: Users },
-                            { key: 'matriz' as const, label: 'Matriz',    icon: LayoutDashboard },
-                            { key: 'meus'   as const, label: 'Meu Plano', icon: Target },
+                            { key: 'equipe' as const, label: 'Equipe',          icon: Users },
+                            { key: 'matriz' as const, label: 'Matriz da Equipe', icon: LayoutDashboard },
+                            { key: 'meus'   as const, label: 'Minha Trilha',     icon: Target },
                         ]}
                         activeTab={tab}
                         onTabChange={setTab}
@@ -211,6 +217,22 @@ export default function GerenteTreinamentos() {
             </header>
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
+                {!isOwner && (
+                    <Card className="mb-mx-lg border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                        <Typography variant="h3" className="uppercase tracking-tight text-status-info">Desenvolvimento do gerente</Typography>
+                        <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                            Separe a leitura por tarefa: equipe mostra progresso individual, matriz compara cobertura de conteúdos e minha trilha reúne seus próprios módulos. Conteúdo institucional e sugestões ficam como governança, não como competição.
+                        </Typography>
+                    </Card>
+                )}
+                {isOwner && (
+                    <Card className="mb-mx-lg border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                        <Typography variant="h3" className="uppercase tracking-tight text-status-info">Uso executivo dos treinamentos</Typography>
+                        <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                            Dono acompanha absorção, gargalos e consistência da trilha. Cobranças, atribuições e publicação de conteúdo institucional devem ser feitas pelo gerente ou Admin MX.
+                        </Typography>
+                    </Card>
+                )}
                 {suggestions.length > 0 && (
                     <Card className="mb-mx-lg p-mx-lg border border-border-default shadow-mx-lg bg-white">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">
@@ -228,7 +250,7 @@ export default function GerenteTreinamentos() {
                         </div>
                     </Card>
                 )}
-                {tab === 'equipe' && (
+                {tab === 'equipe' && canManageTeamTrainings && (
                     <Card className="mb-mx-lg p-mx-lg border border-border-default shadow-mx-lg bg-white">
                         <form onSubmit={handleCreateInstitutionalContent} className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.4fr_1.2fr_auto] gap-mx-sm items-end">
                             <div>
@@ -303,8 +325,8 @@ export default function GerenteTreinamentos() {
                                     <div className="flex items-center gap-mx-sm">
                                         <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><LayoutDashboard size={20} /></div>
                                         <div>
-                                            <Typography variant="h3" className="font-black uppercase">Matriz de Absorção</Typography>
-                                            <Typography variant="caption" tone="muted" className="font-black uppercase">Mapeamento Cruzado de Conhecimento</Typography>
+                                            <Typography variant="h3" className="font-black uppercase">Matriz de Cobertura</Typography>
+                                            <Typography variant="caption" tone="muted" className="font-black uppercase">Mapeamento de conteúdo por pessoa</Typography>
                                         </div>
                                     </div>
                                     <Badge variant="outline" className="px-4 py-1.5 rounded-mx-full uppercase font-black text-mx-micro shadow-sm border-border-strong">
@@ -322,7 +344,9 @@ export default function GerenteTreinamentos() {
                                                         <span className="truncate block max-w-mx-20 mx-auto">{t.title}</span>
                                                         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg">
                                                             {t.title}
-                                                            <Button onClick={() => handleRemindAll(t.id)} className="block mt-2 w-full h-mx-10 bg-brand-primary text-mx-nano font-black">COBRAR TROPA</Button>
+                                                            {canManageTeamTrainings && (
+                                                                <Button onClick={() => handleRemindAll(t.id)} className="block mt-2 w-full h-mx-10 bg-brand-primary text-mx-nano font-black">COBRAR EQUIPE</Button>
+                                                            )}
                                                         </div>
                                                     </th>
                                                 ))}
@@ -347,7 +371,7 @@ export default function GerenteTreinamentos() {
                                                                     )}>
                                                                         {isWatched ? <CheckCircle size={16} /> : <X size={16} />}
                                                                     </div>
-                                                                    {!isWatched && (
+                                                                    {!isWatched && canManageTeamTrainings && (
                                                                         <button 
                                                                             onClick={() => handleRemindSeller(p.seller_id, t.title)}
                                                                             disabled={isAssigning}
@@ -380,11 +404,11 @@ export default function GerenteTreinamentos() {
 
                                         <div className="relative z-10 w-full">
                                             <Typography variant="h3" className="text-base uppercase font-black truncate">{p.seller_name}</Typography>
-                                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase mb-6 block">Especialista de Elite</Typography>
+                                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase mb-6 block">Especialista da equipe</Typography>
                                             
                                             <div className="space-y-mx-sm mb-8">
                                                 <div className="flex justify-between items-end px-2">
-                                                    <Typography variant="tiny" className="font-black text-text-label uppercase">Absorção</Typography>
+                                                    <Typography variant="tiny" className="font-black text-text-label uppercase">Conclusão</Typography>
                                                     <Typography variant="mono" tone="brand" className="text-sm font-black">{Math.round((p.watched.length / treinamentos.length) * 100)}%</Typography>
                                                 </div>
                                                 <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-mx-px">
@@ -392,22 +416,30 @@ export default function GerenteTreinamentos() {
                                                 </div>
                                             </div>
 
-                                            <Button 
-                                                variant="outline" size="sm" 
-                                                onClick={() => setAssigningTo(p.seller_id)}
-                                                className="w-full h-mx-11 rounded-mx-xl font-black uppercase text-mx-micro shadow-sm bg-white border-border-strong hover:border-brand-primary transition-all"
-                                            >
-                                                <Award size={14} className="mr-2" /> REFORÇO TÁTICO
-                                            </Button>
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => handleAssignOnboarding(p.seller_id)}
-                                                disabled={isAssigning || assignments.some((assignment: { seller_id?: string; status?: string }) => assignment.seller_id === p.seller_id && assignment.status === 'active')}
-                                                className="w-full h-mx-11 mt-mx-sm rounded-mx-xl font-black uppercase text-mx-micro shadow-sm"
-                                            >
-                                                <Route size={14} className="mr-2" /> TRILHA ENTRADA
-                                            </Button>
+                                            {canManageTeamTrainings ? (
+                                                <>
+                                                    <Button
+                                                        variant="outline" size="sm"
+                                                        onClick={() => setAssigningTo(p.seller_id)}
+                                                        className="w-full h-mx-11 rounded-mx-xl font-black uppercase text-mx-micro shadow-sm bg-white border-border-strong hover:border-brand-primary transition-all"
+                                                    >
+                                                        <Award size={14} className="mr-2" /> PLANO DE REFORÇO
+                                                    </Button>
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        onClick={() => handleAssignOnboarding(p.seller_id)}
+                                                        disabled={isAssigning || assignments.some((assignment: { seller_id?: string; status?: string }) => assignment.seller_id === p.seller_id && assignment.status === 'active')}
+                                                        className="w-full h-mx-11 mt-mx-sm rounded-mx-xl font-black uppercase text-mx-micro shadow-sm"
+                                                    >
+                                                        <Route size={14} className="mr-2" /> TRILHA ENTRADA
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <Badge variant="outline" className="w-full justify-center rounded-mx-xl py-mx-sm font-black uppercase">
+                                                    Acompanhar
+                                                </Badge>
+                                            )}
                                         </div>
                                     </Card>
                                 </motion.article>
@@ -418,7 +450,7 @@ export default function GerenteTreinamentos() {
             </div>
 
             <AnimatePresence>
-                {assigningTo && (
+                {assigningTo && canManageTeamTrainings && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-sm">
                         <Card className="w-full max-w-mx-2xl max-h-full overflow-y-auto no-scrollbar shadow-mx-2xl border-none bg-white rounded-mx-3xl">
                             <header className="p-mx-lg border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">

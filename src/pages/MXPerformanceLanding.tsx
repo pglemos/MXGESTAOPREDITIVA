@@ -1156,7 +1156,7 @@ export default function MXPerformanceLanding() {
               <article className="mod" data-span="4">
                 <div>
                   <div className="mod-hd">
-                    <div className="mod-id"><b>03</b>· Classificação &amp; Arena</div>
+                    <div className="mod-id"><b>03</b>· Ranking &amp; Comparativos</div>
                     <div className="mod-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 21V9"/><path d="M12 21V3"/><path d="M18 21v-7"/></svg>
                     </div>
@@ -1660,7 +1660,7 @@ export default function MXPerformanceLanding() {
                 <h6>Plataforma</h6>
                 <a href="#sistema">Terminal MX</a>
                 <a href="#sistema">Painel da Loja</a>
-                <a href="#sistema">Classificação</a>
+                <a href="#sistema">Ranking</a>
                 <a href="#sistema">Devolutivas</a>
                 <a href="#sistema">PDI 360</a>
                 <a href="#sistema">MX Academy</a>

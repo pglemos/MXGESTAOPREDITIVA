@@ -72,7 +72,7 @@ export default function VendedorTreinamentos() {
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch?.(); setIsRefetching(false)
-        toast.success('Academy sincronizada!')
+        toast.success('Desenvolvimento sincronizado!')
     }, [refetch])
 
     const handleSuggestContent = useCallback(async () => {
@@ -91,21 +91,21 @@ export default function VendedorTreinamentos() {
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
             <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Academy...</Typography>
+            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando desenvolvimento...</Typography>
         </div>
     )
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            {/* Header / Academy Toolbar */}
+            {/* Header / Development Toolbar */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Meu <span className="text-mx-green-700">Desenvolvimento</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">BIBLIOTECA • RECOMENDAÇÕES • PLANO DE CARREIRA</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide font-black">Prioridades • recomendações • biblioteca</Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
@@ -123,6 +123,23 @@ export default function VendedorTreinamentos() {
                     </Button>
                 </div>
             </header>
+
+            <Card className="border border-border-default bg-white p-mx-md shadow-mx-sm">
+                <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-3">
+                    <div className="rounded-mx-xl bg-brand-primary/5 p-mx-md">
+                        <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">1. Prioridade</Typography>
+                        <Typography variant="p" className="mt-1 text-sm font-bold">{gapAnalysis?.recommended ? 'Comece pelo gap detectado no funil.' : 'Sem gap detectado nesta semana.'}</Typography>
+                    </div>
+                    <div className="rounded-mx-xl bg-status-info-surface p-mx-md">
+                        <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest">2. Recomendados</Typography>
+                        <Typography variant="p" className="mt-1 text-sm font-bold">{recommendations.length} conteúdo(s) ligados a PDI ou feedback.</Typography>
+                    </div>
+                    <div className="rounded-mx-xl bg-surface-alt p-mx-md">
+                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">3. Biblioteca</Typography>
+                        <Typography variant="p" className="mt-1 text-sm font-bold">Use busca e tema quando precisar estudar algo específico.</Typography>
+                    </div>
+                </div>
+            </Card>
 
             <div className="relative group w-full lg:w-mx-card-lg shrink-0 mb-4">
                 <Search className="absolute left-mx-5 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
@@ -273,7 +290,7 @@ export default function VendedorTreinamentos() {
                                             
                                             <div className="flex flex-wrap gap-mx-xs pt-4">
                                                 <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-surface-alt border border-border-default text-text-tertiary text-mx-micro font-black uppercase tracking-widest"><Clock size={12} /> 15 MIN</div>
-                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-mx-indigo-50 border border-mx-indigo-100 text-brand-primary text-mx-micro font-black uppercase tracking-widest"><Sparkles size={12} /> +{t.xp_reward || 100} XP</div>
+                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-mx-indigo-50 border border-mx-indigo-100 text-brand-primary text-mx-micro font-black uppercase tracking-widest"><Sparkles size={12} /> {t.xp_reward || 100} pts</div>
                                                 <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-status-warning-surface border border-status-warning/20 text-status-warning text-mx-micro font-black uppercase tracking-widest">
                                                     <Star size={12} className="fill-current" /> {t.average_rating || 0} ({t.rating_count || 0})
                                                 </div>
@@ -286,7 +303,7 @@ export default function VendedorTreinamentos() {
                                             <Play size={14} className="mr-2" /> ASSISTIR AULA
                                         </Button>
                                         {!t.watched ? (
-                                            <Button onClick={() => { markWatched?.(t.id); toast.success('Evolução registrada! +100 XP') }} className="flex-1 h-mx-xl rounded-mx-xl bg-brand-secondary text-white hover:bg-brand-primary shadow-mx-lg font-black uppercase text-mx-micro border border-brand-secondary">
+                                            <Button onClick={() => { markWatched?.(t.id); toast.success('Conclusão registrada.') }} className="flex-1 h-mx-xl rounded-mx-xl bg-brand-secondary text-white hover:bg-brand-primary shadow-mx-lg font-black uppercase text-mx-micro border border-brand-secondary">
                                                 CONCLUIR MÓDULO
                                             </Button>
                                         ) : (

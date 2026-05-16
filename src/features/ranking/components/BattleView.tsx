@@ -16,7 +16,7 @@ export function BattleView({ opponents, ranking }: BattleViewProps) {
     const p1 = ranking.find(s => s.user_id === p1Id)
     const p2 = ranking.find(s => s.user_id === p2Id)
 
-    if (!p1 || !p2) return <div className="text-center p-mx-xl text-text-tertiary font-bold uppercase tracking-widest">Selecione combatentes</div>
+    if (!p1 || !p2) return <div className="text-center p-mx-xl text-text-tertiary font-bold uppercase tracking-widest">Selecione dois vendedores</div>
 
     const ComparisonRow = ({ label, v1, v2, format = (v: number) => v }: { label: string, v1: number, v2: number, format?: (v: number) => ReactNode }) => {
         const total = v1 + v2

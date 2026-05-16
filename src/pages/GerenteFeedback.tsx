@@ -571,7 +571,9 @@ function StoreFeedback() {
         }
     }, [activeTab, refetchFeedbacks, refetchReports])
 
-    const canCreateFeedback = canManageFeedback(role)
+    const isOwner = role === 'dono'
+    const canCreateFeedback = canManageFeedback(role) && !isOwner
+    const isManager = role === 'gerente'
 
     if (devolutivasLoading || reportsLoading) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt">
@@ -595,9 +597,11 @@ function StoreFeedback() {
                 <div className="flex flex-col gap-mx-tiny min-w-0 max-w-full">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Devolutivas</span></Typography>
+                        <Typography variant="h1">{isOwner ? 'Devolutivas da ' : 'Gestão de '}<span className="text-mx-green-700">{isOwner ? 'Rede' : 'Devolutivas'}</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Rotina Semanal Mandatória • Metodologia MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">
+                        {isOwner ? 'ACOMPANHE QUALIDADE DE GESTÃO E COBRANÇAS SEMANAIS' : 'Rotina Semanal Mandatória • Metodologia MX'}
+                    </Typography>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
                     <nav className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm xl:mr-2" role="tablist">
@@ -623,11 +627,29 @@ function StoreFeedback() {
                 </div>
             </header>
 
+            {isManager && (
+                <Card className="border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                    <Typography variant="h3" className="uppercase tracking-tight text-status-info">Escopo do gerente</Typography>
+                    <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                        Aqui você executa devolutivas da sua unidade. Admin MX vê governança multi-loja e Dono acompanha consistência, mas a criação semanal operacional fica com o gerente.
+                    </Typography>
+                </Card>
+            )}
+
+            {isOwner && (
+                <Card className="border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                    <Typography variant="h3" className="uppercase tracking-tight text-status-info">Devolutivas como governança</Typography>
+                    <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                        Esta rota mostra evidências de feedback individual e relatórios semanais. O Dono acompanha consistência e cobra cadência; criação e execução das devolutivas ficam com gerente/Admin MX.
+                    </Typography>
+                </Card>
+            )}
+
             <AnimatePresence>
                 {showForm && (
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="feedback-store-title">
-                        <Card className="w-full max-w-mx-4xl max-h-full overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-mx-2xl">
+                        className="fixed inset-0 z-50 flex items-end justify-center p-mx-sm bg-mx-black/60 backdrop-blur-sm sm:items-center md:p-10" role="dialog" aria-modal="true" aria-labelledby="feedback-store-title">
+                        <Card className="flex max-h-full w-full max-w-mx-4xl flex-col overflow-hidden border-none bg-white shadow-mx-2xl rounded-mx-2xl">
                             <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                                 <div className="flex items-center gap-mx-sm">
                                     <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg"><MessageSquare size={24} /></div>
@@ -638,7 +660,7 @@ function StoreFeedback() {
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-mx-full w-mx-xl h-mx-xl"><X size={24} /></Button>
                             </header>
-                            <div className="p-mx-lg md:p-10 space-y-mx-xl">
+                            <div className="overflow-y-auto p-mx-lg md:p-10 space-y-mx-xl">
                                 <div className="grid md:grid-cols-2 gap-mx-lg">
                                     <div className="space-y-mx-xs">
                                         <label htmlFor="feedback-seller" className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary">Especialista</label>

@@ -210,7 +210,7 @@ function AdminPerformance() {
 
                     <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
                         <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-md">
-                            <CardTitle className="text-sm">Classificação por Loja</CardTitle>
+                            <CardTitle className="text-sm">Ranking por Loja</CardTitle>
                         </CardHeader>
                         <CardContent className="p-mx-0">
                             {metrics.byStore.slice(0, 5).map((store, i) => (

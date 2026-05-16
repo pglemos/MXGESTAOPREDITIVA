@@ -80,7 +80,7 @@ export function VisitThreeExecution() {
         <div className="p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default relative">
           <Badge className="absolute -top-mx-tiny left-mx-md font-bold text-mx-micro bg-brand-secondary text-white border-none px-mx-sm py-0.5 shadow-sm">GERENTE</Badge>
           <ul className="space-y-mx-md text-sm font-medium text-text-secondary mt-2">
-            {[ '09:30 - Cobrar preenchimento SGAP', '10:30 - Reunião Matinal / Classificação', '14:00 - Auditoria de CRM / Funil', '17:00 - Devolutiva Imediata' ].map(li => (<li key={li} className="flex items-center gap-mx-xs"><div className="w-mx-xs h-mx-xs rounded-mx-full bg-brand-secondary shrink-0" /> {li}</li>))}
+            {[ '09:30 - Cobrar preenchimento SGAP', '10:30 - Reunião Matinal / Ranking', '14:00 - Auditoria de CRM / Funil', '17:00 - Devolutiva Imediata' ].map(li => (<li key={li} className="flex items-center gap-mx-xs"><div className="w-mx-xs h-mx-xs rounded-mx-full bg-brand-secondary shrink-0" /> {li}</li>))}
           </ul>
         </div>
         <div className="p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default relative">

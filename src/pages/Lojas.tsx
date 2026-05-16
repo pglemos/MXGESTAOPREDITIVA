@@ -2,7 +2,7 @@ import { useStores, useStoresStats } from '@/hooks/useTeam'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Building2, Search, Plus, RefreshCw, X, Mail, Copy, Link2 } from 'lucide-react'
+import { ArrowRight, Building2, Compass, Search, Plus, RefreshCw, X, Mail, Copy, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn, getPreRegistrationLink, slugify } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
@@ -11,30 +11,52 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
+import { LastUpdated } from '@/components/molecules/LastUpdated'
+import { GlossaryHint } from '@/components/molecules/GlossaryHint'
 import { Skeleton } from '@/components/atoms/Skeleton'
+import { EmptyState } from '@/components/atoms/EmptyState'
 import { Link } from 'react-router-dom'
 import { DataGrid, Column } from '@/components/organisms/DataGrid'
 import type { Store } from '@/types/database'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
+import { DESTRUCTIVE_ACTION_LABELS, OPERATIONAL_ACTION_LABELS } from '@/lib/ui/actionLabels'
 
 export default function Lojas() {
     const { lojas, loading: storesLoading, refetch: refetchStores, createStore, toggleStoreStatus } = useStores()
     const { stats, loading: statsLoading, refetch: refetchStats } = useStoresStats()
     const { role } = useAuth()
+    const isOwner = role === 'dono'
     const [searchTerm, setSearchTerm] = useState('')
     const [filterActive, setFilterActive] = useState(true)
     const [isRefetching, setIsRefetching] = useState(false)
+    const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
+    const [copyError, setCopyError] = useState<string | null>(null)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [newStore, setNewStore] = useState({ name: '', manager_email: '' })
     const [creating, setCreating] = useState(false)
 
     const loading = storesLoading || statsLoading
+    const storeStatusCounts = useMemo(() => ({
+        active: (lojas || []).filter(store => store.active).length,
+        archived: (lojas || []).filter(store => !store.active).length,
+    }), [lojas])
 
     const filteredStores = useMemo(() => {
         return (lojas || [])
             .filter(s => s.active === filterActive)
             .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
     }, [lojas, searchTerm, filterActive])
+
+    const ownerActiveStores = useMemo(() => (lojas || []).filter(store => store.active), [lojas])
+    const ownerAttentionStores = useMemo(() => {
+        return ownerActiveStores
+            .map(store => ({
+                store,
+                stat: stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 },
+            }))
+            .filter(({ stat }) => stat.sellers === 0 || stat.disciplinePct < 80)
+            .sort((a, b) => a.stat.disciplinePct - b.stat.disciplinePct)
+    }, [ownerActiveStores, stats])
 
     // Corporate Consolidated View Calculation
     const corporateMetrics = useMemo(() => {
@@ -67,6 +89,7 @@ export default function Lojas() {
         setIsRefetching(true)
         try {
             await Promise.all([refetchStores(), refetchStats()])
+            setLastUpdatedAt(new Date())
             toast.success('Rede sincronizada!')
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Falha ao sincronizar rede.')
@@ -98,23 +121,28 @@ export default function Lojas() {
     const copyRegistrationLink = useCallback(async (storeName: string) => {
         const link = getRegistrationLink(storeName)
         if (!navigator.clipboard?.writeText) {
-            toast.error('Clipboard indisponível neste navegador.')
+            const message = 'Clipboard indisponível neste navegador. Selecione e copie o preview do link na tabela.'
+            setCopyError(message)
+            toast.error(message)
             return
         }
         try {
             await navigator.clipboard.writeText(link)
+            setCopyError(null)
             toast.success('Link de pré-cadastro copiado.')
         } catch {
-            toast.error('Não foi possível copiar o link.')
+            const message = 'Não foi possível copiar o link. Selecione e copie o preview do link na tabela.'
+            setCopyError(message)
+            toast.error(message)
         }
     }, [getRegistrationLink])
 
     const handleArchiveStore = useCallback((store: Store) => {
         requestToastConfirmation({
             key: `archive-store:${store.id}`,
-            title: `Desativar ${store.name}?`,
+            title: `${DESTRUCTIVE_ACTION_LABELS.deactivate} ${store.name}?`,
             description: 'A unidade ficará inativa, mas o histórico será preservado.',
-            label: 'Desativar',
+            label: DESTRUCTIVE_ACTION_LABELS.deactivate,
             onConfirm: async () => {
                 const { error } = await toggleStoreStatus(store.id, false)
                 if (error) toast.error(error)
@@ -162,12 +190,12 @@ export default function Lojas() {
                 return (
                     <div className="flex items-center justify-center gap-mx-xs sm:gap-mx-md">
                         <div className="text-center">
-                            <Typography variant="tiny" className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny">Tropa</Typography>
+                            <Typography variant="tiny" className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny">Equipe</Typography>
                             <Typography variant="h3" className="text-xs sm:text-base tabular-nums">{sStat.sellers}</Typography>
                         </div>
                         <div className="w-px h-mx-sm sm:h-mx-md bg-border-default mx-1 sm:mx-2" aria-hidden="true" />
                         <div className="text-center">
-                            <Typography variant="tiny" className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny">Sinc.</Typography>
+                            <Typography variant="tiny" className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny">Disciplina</Typography>
                             <Typography variant="h3" tone={sStat.disciplinePct < 80 ? 'error' : 'success'} className="text-xs sm:text-base tabular-nums">{sStat.disciplinePct}%</Typography>
                         </div>
                     </div>
@@ -178,12 +206,19 @@ export default function Lojas() {
             key: 'registration',
             header: 'PRÉ-CADASTRO',
             desktopOnly: true,
-            render: () => (
-                <div className="flex items-center gap-mx-xs min-w-0">
+            render: (store) => (
+                <div className="flex min-w-0 flex-col gap-mx-tiny">
+                  <div className="flex items-center gap-mx-xs min-w-0">
                     <Link2 size={14} className={cn('shrink-0', isAdministradorMx(role) ? 'text-brand-primary' : 'text-text-tertiary')} aria-hidden="true" />
                     <Typography variant="tiny" tone="muted" className="font-bold truncate max-w-mx-48">
-                        {isAdministradorMx(role) ? 'Disponível por cópia segura' : 'Restrito ao Admin MX'}
+                        {isAdministradorMx(role) ? 'Disponível por cópia segura' : isOwner ? 'Admin MX opera este link' : 'Restrito ao Admin MX'}
                     </Typography>
+                  </div>
+                  {isAdministradorMx(role) && (
+                    <Typography variant="tiny" className="block max-w-mx-64 truncate rounded-mx-md bg-surface-alt px-mx-xs py-mx-tiny font-mono text-text-secondary" title={getRegistrationLink(store.name)}>
+                        {getRegistrationLink(store.name)}
+                    </Typography>
+                  )}
                 </div>
             )
         },
@@ -195,12 +230,14 @@ export default function Lojas() {
                 <div className="flex items-center justify-end gap-mx-tiny sm:gap-mx-xs relative z-10" onClick={(e) => e.stopPropagation()}>
                     {store.active ? (
                         <>
-                            <Button asChild variant="secondary" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny">
-                                <Link to={`/lojas/${slugify(store.name)}`}>DASH</Link>
+                            <Button asChild variant="secondary" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black text-mx-nano sm:text-mx-tiny">
+                                <Link to={`/lojas/${slugify(store.name)}?id=${store.id}`}>{isOwner ? 'Abrir unidade' : OPERATIONAL_ACTION_LABELS.openDashboard}</Link>
                             </Button>
-                            <Button asChild variant="outline" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny border-border-strong bg-white">
-                                <Link to={`/lojas/${slugify(store.name)}?tab=equipe`}>EQUIPE</Link>
-                            </Button>
+                            {!isOwner && (
+                                <Button asChild variant="outline" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black text-mx-nano sm:text-mx-tiny border-border-strong bg-white">
+                                    <Link to={`/lojas/${slugify(store.name)}?id=${store.id}&tab=equipe`}>{OPERATIONAL_ACTION_LABELS.openTeam}</Link>
+                                </Button>
+                            )}
                             {isAdministradorMx(role) && (
                                 <>
                                     <Button variant="outline" size="icon" onClick={() => copyRegistrationLink(store.name)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg shadow-mx-md bg-white border-border-strong" aria-label={`Copiar link de pré-cadastro de ${store.name}`}>
@@ -213,14 +250,14 @@ export default function Lojas() {
                             )}
                         </>
                     ) : isAdministradorMx(role) ? (
-                        <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="h-mx-lg sm:h-mx-xl px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny bg-status-success hover:opacity-90 text-white">
-                            REST.
+                            <Button variant="secondary" size="sm" onClick={() => toggleStoreStatus(store.id, true)} className="h-mx-lg sm:h-mx-xl px-4 rounded-mx-lg shadow-mx-md font-black text-mx-nano sm:text-mx-tiny bg-status-success hover:opacity-90 text-white">
+                            Restaurar
                         </Button>
                     ) : null}
                 </div>
             )
         }
-    ], [copyRegistrationLink, getRegistrationLink, handleArchiveStore, stats, role, toggleStoreStatus])
+    ], [copyRegistrationLink, getRegistrationLink, handleArchiveStore, isOwner, stats, role, toggleStoreStatus])
 
     if (loading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
@@ -248,14 +285,20 @@ export default function Lojas() {
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Gestão de <span className="text-mx-green-700">Lojas</span></Typography>
-                    </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">CONTROLE DE UNIDADES & GOVERNANÇA MX</Typography>
+                    <Typography variant="h1">
+                        {isOwner ? 'Visão Executiva da Rede' : <>Gestão de <span className="text-mx-green-700">Lojas</span></>}
+                    </Typography>
+                </div>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">
+                        {isOwner ? 'COMPARE LOJAS, PRIORIZE DECISÕES E ACOMPANHE EXECUÇÃO' : 'CONTROLE DE UNIDADES & GOVERNANÇA MX'}
+                    </Typography>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="hidden sm:flex rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white border-border-strong" aria-label="Atualizar lista de lojas">
+                    <LastUpdated value={lastUpdatedAt} className="hidden xl:inline-flex" />
+                    <Button variant="outline" onClick={handleRefresh} className="hidden sm:flex rounded-mx-xl shadow-mx-sm h-mx-xl px-mx-md bg-white border-border-strong" aria-label="Atualizar lista de lojas">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                        {OPERATIONAL_ACTION_LABELS.refresh}
                     </Button>
                     <div className="relative group w-full sm:w-mx-sidebar-expanded order-2 sm:order-none">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
@@ -271,12 +314,12 @@ export default function Lojas() {
                         <div className="flex w-full sm:w-auto gap-mx-sm order-1 sm:order-none">
                             <TabNavPill
                                 tabs={[
-                                    { key: 'ativas',     label: 'Ativas' },
-                                    { key: 'arquivadas', label: 'Arquivadas' },
+                                    { key: 'ativas',     label: `Ativas (${storeStatusCounts.active})` },
+                                    { key: 'arquivadas', label: `Arquivadas (${storeStatusCounts.archived})` },
                                 ]}
                                 activeTab={filterActive ? 'ativas' : 'arquivadas'}
                                 onTabChange={(k) => setFilterActive(k === 'ativas')}
-                                className="hidden md:flex mr-2"
+                                className="flex-1 sm:flex-none mr-0 sm:mr-2"
                             />
                             <Button onClick={() => setIsCreateModalOpen(true)} className="flex-1 sm:flex-none h-mx-xl px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
                                 <Plus size={18} className="mr-2" aria-hidden="true" /> NOVA LOJA
@@ -286,14 +329,108 @@ export default function Lojas() {
                 </div>
             </header>
 
+            {copyError && (
+                <div role="alert" className="rounded-mx-xl border border-status-warning/20 bg-status-warning-surface px-mx-md py-mx-sm text-sm font-bold text-status-warning">
+                    {copyError}
+                </div>
+            )}
+
+            {isOwner && ownerActiveStores.length === 0 && (
+                <Card className="border-none bg-white shadow-mx-md">
+                    <EmptyState
+                        size="lg"
+                        icon={<Building2 />}
+                        title="Nenhuma loja ativa vinculada"
+                        description="Seu perfil de Dono ainda não possui uma unidade ativa para acompanhamento executivo."
+                        nextStep="Solicite ao Admin MX vincular ou ativar a primeira loja da rede. Depois disso, esta tela passa a mostrar comparação, decisões e acompanhamento por unidade."
+                    />
+                </Card>
+            )}
+
+            {isOwner && ownerActiveStores.length > 0 && (
+                <section className="grid grid-cols-1 gap-mx-md xl:grid-cols-12">
+                    <Card className="border border-border-default bg-white p-mx-lg shadow-mx-md xl:col-span-5">
+                        <div className="mb-mx-md flex items-start justify-between gap-mx-md">
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">O que decidir hoje</Typography>
+                                <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">
+                                    Prioridades executivas geradas pela disciplina e estrutura das lojas.
+                                </Typography>
+                            </div>
+                            <Compass size={24} className="shrink-0 text-brand-primary" aria-hidden="true" />
+                        </div>
+                        <div className="space-y-mx-sm">
+                            <div className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+                                <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-secondary">Unidades com atenção</Typography>
+                                <Typography variant="h2" tone={ownerAttentionStores.length ? 'warning' : 'success'} className="mt-mx-tiny tabular-nums">
+                                    {ownerAttentionStores.length}
+                                </Typography>
+                                <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">
+                                    {ownerAttentionStores.length
+                                        ? 'Revise loja sem equipe ou com disciplina abaixo de 80% antes da próxima reunião.'
+                                        : 'Todas as lojas ativas têm estrutura e disciplina dentro do mínimo esperado.'}
+                                </Typography>
+                            </div>
+                            <div className="rounded-mx-xl border border-status-info/20 bg-status-info-surface p-mx-md">
+                                <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-info">Pré-cadastro</Typography>
+                                <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                                    Links de pré-cadastro são operados pelo Admin MX para preservar governança de acesso.
+                                </Typography>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="border border-border-default bg-white p-mx-lg shadow-mx-md xl:col-span-7">
+                        <div className="mb-mx-md">
+                            <Typography variant="h3" className="uppercase tracking-tight">Comparativo direto entre lojas</Typography>
+                            <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">
+                                Use esta visão para decidir onde cobrar plano de ação e onde apenas acompanhar execução.
+                            </Typography>
+                        </div>
+                        <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-2">
+                            {ownerActiveStores.map(store => {
+                                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                                const needsAttention = sStat.sellers === 0 || sStat.disciplinePct < 80
+                                return (
+                                    <Link
+                                        key={store.id}
+                                        to={`/lojas/${slugify(store.name)}?id=${store.id}`}
+                                        className="group rounded-mx-xl border border-border-default bg-surface-alt p-mx-md transition-all hover:border-brand-primary hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15"
+                                    >
+                                        <div className="flex items-start justify-between gap-mx-sm">
+                                            <div className="min-w-0">
+                                                <Typography variant="p" className="font-black uppercase leading-tight group-hover:text-brand-primary">{store.name}</Typography>
+                                                <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold uppercase">
+                                                    {sStat.sellers} na equipe · {sStat.checkedIn}/{sStat.sellers} registros
+                                                </Typography>
+                                            </div>
+                                            <Badge variant={needsAttention ? 'warning' : 'success'} className="shrink-0 rounded-mx-full">
+                                                {needsAttention ? 'DECIDIR' : 'ACOMPANHAR'}
+                                            </Badge>
+                                        </div>
+                                        <div className="mt-mx-md flex items-center justify-between">
+                                            <div>
+                                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Disciplina</Typography>
+                                                <Typography variant="h2" tone={sStat.disciplinePct < 80 ? 'error' : 'success'} className="tabular-nums">{sStat.disciplinePct}%</Typography>
+                                            </div>
+                                            <ArrowRight size={18} className="text-text-tertiary transition-transform group-hover:translate-x-1 group-hover:text-brand-primary" aria-hidden="true" />
+                                        </div>
+                                    </Link>
+                                )
+                            })}
+                        </div>
+                    </Card>
+                </section>
+            )}
+
             {/* Painel Corporativo / Visão Cruzada */}
             <section className="mb-mx-md">
                 <Card className="bg-white shadow-mx-md border border-border-default overflow-hidden rounded-mx-2xl">
                     <CardContent className="p-mx-md sm:p-mx-lg flex flex-wrap gap-mx-md items-center justify-between sm:justify-start">
                         <div className="flex flex-col min-w-mx-20">
-                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-mx-widest mb-mx-tiny">Rede / Corporativo</Typography>
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-mx-widest mb-mx-tiny">{isOwner ? 'Minha Rede' : 'Rede / Corporativo'}</Typography>
                             <Typography variant="h2" className="text-brand-primary">{corporateMetrics.totalStores}</Typography>
-                            <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-tiny">Unidades Totais</Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-tiny">Unidades ativas</Typography>
                         </div>
                         <div className="w-px h-mx-12 bg-border-default hidden sm:block" />
                         <div className="flex flex-col min-w-mx-20">
@@ -303,9 +440,11 @@ export default function Lojas() {
                         </div>
                         <div className="w-px h-mx-12 bg-border-default hidden sm:block" />
                         <div className="flex flex-col min-w-mx-20">
-                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-mx-widest mb-mx-tiny">Aderência</Typography>
+                            <Typography variant="tiny" className="font-black text-text-label uppercase tracking-mx-wide mb-mx-tiny">
+                                <GlossaryHint term="Aderência" definition="Média de disciplina diária das lojas ativas com equipe cadastrada." />
+                            </Typography>
                             <Typography variant="h2" tone={corporateMetrics.avgDiscipline < 80 ? 'error' : 'success'}>{corporateMetrics.avgDiscipline}%</Typography>
-                            <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-tiny">Sincronia Média</Typography>
+                            <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-tiny">{isOwner ? 'Execução média' : 'Disciplina média'}</Typography>
                         </div>
                     </CardContent>
                 </Card>
@@ -316,7 +455,8 @@ export default function Lojas() {
                     <DataGrid 
                         columns={columns}
                         data={filteredStores}
-                        emptyMessage="Nenhuma unidade localizada na rede MX."
+                        emptyMessage={isOwner ? 'Nenhuma loja encontrada na sua visão executiva.' : 'Nenhuma unidade localizada na rede MX.'}
+                        emptyDescription={isOwner ? 'Limpe a busca ou solicite ao Admin MX revisar seus vínculos de Dono.' : 'Ajuste a busca, alterne o filtro de status ou cadastre uma nova unidade para iniciar a operação.'}
                     />
                 </Card>
             </div>
@@ -331,8 +471,8 @@ export default function Lojas() {
                                         <div className="flex items-center gap-mx-sm">
                                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 flex items-center justify-center text-brand-primary border border-mx-indigo-100 shadow-inner shrink-0"><Building2 size={28} /></div>
                                             <div>
-                                                <Typography id="create-store-title" variant="h3">Nova Unidade</Typography>
-                                                <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-widest">Protocolo de Expansão MX</Typography>
+                                                <Typography id="create-store-title" variant="h3">Criar loja</Typography>
+                                                <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-mx-wide">Cadastro único da rede MX</Typography>
                                             </div>
                                         </div>
                                         <Button 
@@ -377,7 +517,7 @@ export default function Lojas() {
                                     <footer className="pt-10 flex justify-end border-t border-border-default">
                                         <Button type="submit" disabled={creating} className="w-full sm:w-auto h-mx-2xl px-12 rounded-mx-full shadow-mx-xl bg-brand-secondary font-black uppercase tracking-widest">
                                             {creating ? <RefreshCw className="animate-spin mr-2" aria-hidden="true" /> : <Plus size={20} className="mr-2" aria-hidden="true" />}
-                                            ESTABELECER LOJA
+                                            Criar loja
                                         </Button>
                                     </footer>
                                 </form>

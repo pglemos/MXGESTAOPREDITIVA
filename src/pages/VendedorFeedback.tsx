@@ -22,6 +22,7 @@ export default function VendedorFeedback() {
     const { devolutivas, loading, acknowledge, refetch } = useFeedbacks()
     const [isAcknowledging, setIsAcknowledging] = useState<string | null>(null)
     const [isRefetching, setIsRefetching] = useState(false)
+    const pendingFeedbacks = useMemo(() => devolutivas.filter(item => !item.acknowledged), [devolutivas])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch(); setIsRefetching(false)
@@ -66,6 +67,20 @@ export default function VendedorFeedback() {
                 </div>
             </header>
 
+            {pendingFeedbacks.length > 0 && (
+                <Card className="border border-status-warning/20 bg-status-warning-surface p-mx-md shadow-mx-sm">
+                    <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <Typography variant="h3" tone="warning" className="uppercase tracking-tight">Ciência pendente</Typography>
+                            <Typography variant="p" tone="warning" className="text-sm font-bold">
+                                {pendingFeedbacks.length} devolutiva(s) precisam da sua confirmação de leitura.
+                            </Typography>
+                        </div>
+                        <Badge variant="warning" className="w-fit rounded-mx-full px-4 py-1">Ação obrigatória</Badge>
+                    </div>
+                </Card>
+            )}
+
             <div className="flex-1 min-h-0 pb-32">
                 {devolutivas.length === 0 ? (
                     <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
@@ -87,7 +102,7 @@ export default function VendedorFeedback() {
                                 >
                                     <Card className="p-mx-10 md:p-14 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg">
                                         <div className="space-y-mx-10">
-                                            <div className="flex items-center justify-between border-b border-border-default pb-8">
+                                            <div className="flex flex-col gap-mx-sm border-b border-border-default pb-8 sm:flex-row sm:items-center sm:justify-between">
                                                 <div className="flex items-center gap-mx-sm">
                                                     <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true">
                                                         <Calendar size={20} />
@@ -97,7 +112,16 @@ export default function VendedorFeedback() {
                                                         <Typography variant="caption" tone="muted">Auditado por {f.manager_name}</Typography>
                                                     </div>
                                                 </div>
-                                                {!f.acknowledged && <Badge variant="danger" className="animate-pulse">Pendente</Badge>}
+                                                {!f.acknowledged && (
+                                                    <Button
+                                                        onClick={() => handleAcknowledge(f.id)}
+                                                        disabled={isAcknowledging === f.id}
+                                                        className="h-mx-11 rounded-mx-xl shadow-mx-sm"
+                                                    >
+                                                        {isAcknowledging === f.id ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck size={16} className="mr-2" />}
+                                                        Confirmar ciência
+                                                    </Button>
+                                                )}
                                             </div>
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">

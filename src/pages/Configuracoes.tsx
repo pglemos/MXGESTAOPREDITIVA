@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
-import { Navigate, useSearchParams } from 'react-router-dom'
-import { Eye, LogOut, Settings, ShieldCheck } from 'lucide-react'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Eye, LogOut, Settings, ShieldCheck, SlidersHorizontal, Building2, FolderTree } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
@@ -65,8 +65,8 @@ export default function Configuracoes() {
                             </span>
                             <div>
                                 <Typography variant="h1">Configurações</Typography>
-                                <Typography variant="caption" className="font-black uppercase tracking-widest text-text-secondary">
-                                    Governança, identidade e operação da rede MX
+                                    <Typography variant="caption" className="font-black uppercase tracking-mx-wide text-text-secondary">
+                                    Minha conta, rede, lojas e saúde do sistema em áreas separadas
                                 </Typography>
                             </div>
                         </div>
@@ -80,7 +80,7 @@ export default function Configuracoes() {
                             {isReadOnly && (
                                 <Badge variant="outline" className="font-black uppercase">
                                     <Eye size={12} className="mr-1" />
-                                    Aba somente leitura
+                                    Consulta sem edição
                                 </Badge>
                             )}
                         </div>
@@ -120,22 +120,80 @@ export default function Configuracoes() {
                                     <Typography variant="h2" className="uppercase tracking-tight">
                                         {activeDefinition.label}
                                     </Typography>
-                                    <Typography variant="caption" className="font-black uppercase tracking-widest text-text-secondary">
+                                    <Typography variant="caption" className="font-black uppercase tracking-mx-wide text-text-secondary">
                                         {activeDefinition.description}
                                     </Typography>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-mx-sm">
                                 <Badge variant={isReadOnly ? 'outline' : 'success'} className="bg-brand-secondary font-black uppercase text-white">
-                                    {isReadOnly ? 'Somente leitura' : 'Edição habilitada'}
+                                    {isReadOnly ? 'Consulta segura' : 'Alterações habilitadas'}
                                 </Badge>
                                 <Badge variant="outline" className="font-black uppercase">
                                     <ShieldCheck size={12} className="mr-1" />
-                                    Role gated
+                                    Acesso pelo perfil
                                 </Badge>
                             </div>
                         </div>
                     </Card>
+
+                    <Card className="border border-border-default bg-white p-mx-md shadow-mx-sm">
+                        <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-3">
+                            <Button asChild variant={activeDefinition.key === 'perfil' ? 'secondary' : 'outline'} className="h-auto justify-start rounded-mx-xl px-mx-md py-mx-sm text-left">
+                                <Link to="/configuracoes?aba=perfil">
+                                    <Settings size={16} className="mr-2" />
+                                    Minha conta
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline" className="h-auto justify-start rounded-mx-xl px-mx-md py-mx-sm text-left">
+                                <Link to="/lojas">
+                                    <Building2 size={16} className="mr-2" />
+                                    Lojas e equipe
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline" className="h-auto justify-start rounded-mx-xl px-mx-md py-mx-sm text-left">
+                                <Link to={role === 'dono' ? '/configuracoes?aba=operacional-loja' : '/configuracoes/operacional'}>
+                                    <SlidersHorizontal size={16} className="mr-2" />
+                                    Operação por loja
+                                </Link>
+                            </Button>
+                        </div>
+                        <div className="mt-mx-sm flex items-start gap-mx-xs rounded-mx-xl bg-surface-alt px-mx-md py-mx-sm">
+                            <FolderTree size={16} className="mt-mx-tiny shrink-0 text-brand-primary" aria-hidden="true" />
+                            <Typography variant="p" tone="muted" className="text-xs">
+                                Catálogos, treinamentos, produtos e PDI têm rotas próprias para uso diário; aqui ficam apenas regras, atalhos e governança.
+                            </Typography>
+                        </div>
+                    </Card>
+
+                    {role === 'dono' && (
+                        <Card className="border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                            <div className="flex flex-col gap-mx-md lg:flex-row lg:items-start lg:justify-between">
+                                <div className="max-w-2xl">
+                                    <Typography variant="h3" className="uppercase tracking-tight text-status-info">
+                                        Permissões do Dono
+                                    </Typography>
+                                    <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                                        Seu perfil acompanha rede, lojas, equipe, PDI, produtos, devolutivas, notificações e parâmetros operacionais em modo de consulta. Alterações de cadastro, pré-cadastro, fonte de dados, metas e DRE são executadas pelo Admin MX para manter governança.
+                                    </Typography>
+                                </div>
+                                <div className="grid w-full gap-mx-xs sm:w-auto sm:min-w-mx-64">
+                                    <Button asChild variant="outline" className="justify-start rounded-mx-xl bg-white">
+                                        <Link to="/lojas">
+                                            <Building2 size={16} className="mr-2" />
+                                            Ver minhas lojas
+                                        </Link>
+                                    </Button>
+                                    <Button asChild variant="outline" className="justify-start rounded-mx-xl bg-white">
+                                        <Link to="/notificacoes">
+                                            <ShieldCheck size={16} className="mr-2" />
+                                            Solicitar ajuste
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
 
                     <ActiveComponent isReadOnly={isReadOnly} />
                 </section>

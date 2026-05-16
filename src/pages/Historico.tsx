@@ -1,4 +1,4 @@
-import { useMyCheckins } from '@/hooks/useCheckins'
+import { CHECKIN_MAX_INPUT_VALUE, useMyCheckins } from '@/hooks/useCheckins'
 import { calcularTotais } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import { 
@@ -40,6 +40,7 @@ export default function Historico() {
         vnd_net: 0,
         visitas: 0
     })
+    const [correctionError, setCorrectionError] = useState<string | null>(null)
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true); await refetch(); setIsRefetching(false)
@@ -49,6 +50,7 @@ export default function Historico() {
     const openCorrectionModal = (c: CheckinWithTotals) => {
         setSelectedCheckin(c)
         setCorrectionReason('')
+        setCorrectionError(null)
         setFormData({
             leads: c.leads_prev_day || 0,
             agd_cart: c.agd_cart_today || 0,
@@ -63,6 +65,11 @@ export default function Historico() {
     const handleRequestCorrection = async () => {
         if (!selectedCheckin) return
         if (!correctionReason.trim()) return toast.error('Descreva o motivo da correção')
+        const invalidField = Object.entries(formData).find(([, value]) => !Number.isFinite(value) || value < 0 || value > CHECKIN_MAX_INPUT_VALUE)
+        if (invalidField) {
+            setCorrectionError(`Revise ${invalidField[0]}: use valores de 0 a ${CHECKIN_MAX_INPUT_VALUE}.`)
+            return
+        }
 
         // Mapear campos para as colunas reais do banco para a aprovação ser atômica
         // Usamos os nomes canônicos que a RPC agora suporta e que a trigger respeita
@@ -87,22 +94,52 @@ export default function Historico() {
     }
 
     const processedCheckins = useMemo(() => {
+        const normalizedTerm = searchTerm.toLowerCase().trim()
         return checkins
             .map(c => ({
                 ...c,
                 parsedDate: parseISO(c.reference_date),
                 totals: calcularTotais(c)
             }))
-            .filter(c => 
-                c.reference_date.includes(searchTerm) || 
-                c.note?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                c.zero_reason?.toLowerCase().includes(searchTerm.toLowerCase())
-            )
+            .filter(c => {
+                if (!normalizedTerm) return true
+                const searchable = [
+                    c.reference_date,
+                    c.note,
+                    c.zero_reason,
+                    'leads',
+                    String(c.leads_prev_day || 0),
+                    'agenda',
+                    'agendamentos',
+                    String(c.totals.agd_total || 0),
+                    'visitas',
+                    String(c.visit_prev_day || 0),
+                    'vendas',
+                    'porta',
+                    String(c.vnd_porta_prev_day || 0),
+                    'carteira',
+                    String(c.vnd_cart_prev_day || 0),
+                    'internet',
+                    String(c.vnd_net_prev_day || 0),
+                    String(c.totals.vnd_total || 0),
+                ].join(' ').toLowerCase()
+                return searchable.includes(normalizedTerm)
+            })
             .sort((a, b) => {
                 const timeA = a.parsedDate.getTime(); const timeB = b.parsedDate.getTime()
                 return sortOrder === 'desc' ? timeB - timeA : timeA - timeB
             })
     }, [checkins, searchTerm, sortOrder])
+
+    const updateCorrectionNumber = (field: keyof typeof formData, value: string) => {
+        const numericValue = value === '' ? 0 : Number(value)
+        if (!Number.isFinite(numericValue) || numericValue < 0 || numericValue > CHECKIN_MAX_INPUT_VALUE) {
+            setCorrectionError(`Use valores de 0 a ${CHECKIN_MAX_INPUT_VALUE}.`)
+            return
+        }
+        setCorrectionError(null)
+        setFormData(prev => ({ ...prev, [field]: numericValue }))
+    }
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
@@ -145,11 +182,51 @@ export default function Historico() {
             {processedCheckins.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center py-40 rounded-mx-3xl text-center border-dashed border-2 border-border-default bg-white/50 shadow-inner">
                     <History size={48} className="text-text-tertiary mb-6 opacity-30" />
-                    <Typography variant="h2" className="mb-2">Memória Vazia</Typography>
-                    <Typography variant="p" tone="muted" className="max-w-xs uppercase tracking-tight">Nenhum registro localizado para o termo buscado na rede.</Typography>
+                    <Typography variant="h2" className="mb-2">Nenhum registro encontrado</Typography>
+                    <Typography variant="p" tone="muted" className="max-w-xs uppercase tracking-tight">Revise a busca por data, canal, total, nota ou motivo.</Typography>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg pb-32" aria-live="polite">
+                <div className="space-y-mx-lg pb-32" aria-live="polite">
+                    <Card className="border border-border-default bg-white p-mx-md shadow-mx-sm">
+                        <div className="mb-mx-md flex flex-col gap-mx-xs sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">Resumo comparativo</Typography>
+                                <Typography variant="p" tone="muted" className="text-sm">Últimos registros em linhas curtas para comparar dias sem abrir cada card.</Typography>
+                            </div>
+                            <Badge variant="outline" className="w-fit rounded-mx-full px-4 py-1">{processedCheckins.length} registros</Badge>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-mx-card-lg text-left text-sm">
+                                <thead className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">
+                                    <tr className="border-b border-border-default">
+                                        <th className="py-mx-xs pr-mx-sm">Data</th>
+                                        <th className="py-mx-xs pr-mx-sm">Leads</th>
+                                        <th className="py-mx-xs pr-mx-sm">Agenda</th>
+                                        <th className="py-mx-xs pr-mx-sm">Visitas</th>
+                                        <th className="py-mx-xs pr-mx-sm">Vendas</th>
+                                        <th className="py-mx-xs pr-mx-sm">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {processedCheckins.slice(0, 10).map(c => (
+                                        <tr key={c.id} className="border-b border-border-default/70 last:border-b-0">
+                                            <td className="py-mx-sm pr-mx-sm font-black">{format(c.parsedDate, 'dd/MM')}</td>
+                                            <td className="py-mx-sm pr-mx-sm tabular-nums">{c.leads_prev_day || 0}</td>
+                                            <td className="py-mx-sm pr-mx-sm tabular-nums">{c.totals.agd_total}</td>
+                                            <td className="py-mx-sm pr-mx-sm tabular-nums">{c.visit_prev_day || 0}</td>
+                                            <td className="py-mx-sm pr-mx-sm tabular-nums font-black">{c.totals.vnd_total}</td>
+                                            <td className="py-mx-sm pr-mx-sm">
+                                                <Button variant="ghost" size="sm" onClick={() => openCorrectionModal(c)} className="h-mx-8 px-mx-xs text-mx-micro font-black uppercase text-brand-primary">
+                                                    Corrigir
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg">
                     <AnimatePresence mode="popLayout">
                         {processedCheckins.map((c, i) => (
                             <motion.div key={c.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.01 }}>
@@ -168,9 +245,14 @@ export default function Historico() {
                                                 <Typography variant="caption" tone="muted" className="uppercase tracking-widest">SNAPSHOT OPERACIONAL</Typography>
                                             </div>
                                         </div>
-                                        <Badge variant={c.totals.vnd_total > 0 ? 'success' : c.zero_reason ? 'warning' : 'outline'} className="px-6 py-2 rounded-mx-full shadow-mx-sm font-black uppercase tracking-widest">
-                                            {c.totals.vnd_total > 0 ? `${c.totals.vnd_total} VENDAS` : c.zero_reason || 'INATIVO'}
-                                        </Badge>
+                                        <div className="flex flex-col gap-mx-xs sm:items-end">
+                                            <Badge variant={c.totals.vnd_total > 0 ? 'success' : c.zero_reason ? 'warning' : 'outline'} className="px-6 py-2 rounded-mx-full shadow-mx-sm font-black uppercase tracking-widest">
+                                                {c.totals.vnd_total > 0 ? `${c.totals.vnd_total} VENDAS` : c.zero_reason || 'INATIVO'}
+                                            </Badge>
+                                            <Button variant="outline" size="sm" onClick={() => openCorrectionModal(c)} className="rounded-mx-xl text-mx-nano font-black uppercase text-brand-primary">
+                                                <AlertCircle size={14} className="mr-1" /> Corrigir
+                                            </Button>
+                                        </div>
                                     </header>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-mx-sm mb-10 relative z-10">
@@ -213,6 +295,7 @@ export default function Historico() {
                             </motion.div>
                         ))}
                     </AnimatePresence>
+                    </div>
                 </div>
             )}
 
@@ -234,34 +317,44 @@ export default function Historico() {
                 }
             >
                 <div className="space-y-mx-lg py-4">
+                    <Card className="border-none bg-surface-alt p-mx-md shadow-none">
+                        <Typography variant="p" tone="muted" className="text-sm font-bold">
+                            Use os mesmos limites do lançamento diário: valores de 0 a {CHECKIN_MAX_INPUT_VALUE}. O teto evita erro de digitação ou correção fora da escala operacional.
+                        </Typography>
+                        {correctionError && (
+                            <Typography variant="tiny" tone="error" className="mt-mx-xs block font-black uppercase tracking-tight">
+                                {correctionError}
+                            </Typography>
+                        )}
+                    </Card>
                     <div className="grid grid-cols-2 gap-mx-md">
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Leads Recebidos</Typography>
-                            <Input type="number" value={formData.leads} onChange={(e) => setFormData(p => ({ ...p, leads: Number(e.target.value) }))} />
+                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.leads} onChange={(e) => updateCorrectionNumber('leads', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Visitas Realizadas</Typography>
-                            <Input type="number" value={formData.visitas} onChange={(e) => setFormData(p => ({ ...p, visitas: Number(e.target.value) }))} />
+                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.visitas} onChange={(e) => updateCorrectionNumber('visitas', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Porta</Typography>
-                            <Input type="number" value={formData.vnd_porta} onChange={(e) => setFormData(p => ({ ...p, vnd_porta: Number(e.target.value) }))} />
+                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_porta} onChange={(e) => updateCorrectionNumber('vnd_porta', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Carteira</Typography>
-                            <Input type="number" value={formData.vnd_cart} onChange={(e) => setFormData(p => ({ ...p, vnd_cart: Number(e.target.value) }))} />
+                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_cart} onChange={(e) => updateCorrectionNumber('vnd_cart', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Internet</Typography>
-                            <Input type="number" value={formData.vnd_net} onChange={(e) => setFormData(p => ({ ...p, vnd_net: Number(e.target.value) }))} />
+                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_net} onChange={(e) => updateCorrectionNumber('vnd_net', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Carteira</Typography>
-                            <Input type="number" value={formData.agd_cart} onChange={(e) => setFormData(p => ({ ...p, agd_cart: Number(e.target.value) }))} />
+                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.agd_cart} onChange={(e) => updateCorrectionNumber('agd_cart', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Internet</Typography>
-                            <Input type="number" value={formData.agd_net} onChange={(e) => setFormData(p => ({ ...p, agd_net: Number(e.target.value) }))} />
+                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.agd_net} onChange={(e) => updateCorrectionNumber('agd_net', e.target.value)} />
                         </div>
                     </div>
 

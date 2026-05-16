@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
     Target, TrendingUp, Trophy, Car, Users, Globe, BarChart3, ArrowRight, Crown, Flame,
-    RefreshCw, CalendarDays, History, GraduationCap, Play, Clock, Zap, MessageSquare, ChevronRight
+    RefreshCw, CalendarDays, History, GraduationCap, Play, Clock, Zap, MessageSquare, ChevronRight, Bell, LifeBuoy, CheckSquare
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -21,6 +21,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { MXScoreCard } from '@/components/molecules/MXScoreCard'
 import { PageHeader } from '@/components/molecules/PageHeader'
+import { LastUpdated } from '@/components/molecules/LastUpdated'
 import { formatWhatsAppMorningReport } from '@/lib/calculations'
 import { calculateDailyRoutineDiscipline } from '@/lib/daily-routine'
 
@@ -31,6 +32,7 @@ export default function VendedorHome() {
     const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
     const { treinamentos, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
     const [isRefetching, setIsRefetching] = useState(false)
+    const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
     const navigate = useNavigate()
 
     const tacticalPrescription = useTacticalPrescription({ checkins, treinamentos, userId: profile?.id })
@@ -79,6 +81,7 @@ export default function VendedorHome() {
                 refetchRanking?.() || Promise.resolve(),
                 refetchTrainings?.() || Promise.resolve()
             ])
+            setLastUpdatedAt(new Date())
             toast.success('Cockpit de performance atualizado!')
         } catch {
             toast.error('Não foi possível atualizar o cockpit.')
@@ -148,35 +151,36 @@ export default function VendedorHome() {
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
 
             <PageHeader
-                title={`Olá, ${profile?.name?.split(' ')[0]} 👋`}
-                description="PAINEL DE PERFORMANCE INDIVIDUAL • MX ELITE"
+                title={`Olá, ${profile?.name?.split(' ')[0]}`}
+                description="Painel de performance individual"
                 actions={
-                    <div className="flex flex-row items-center gap-mx-sm">
+                    <div className="flex flex-wrap items-center justify-end gap-mx-sm">
+                        <LastUpdated value={lastUpdatedAt} className="hidden xl:inline-flex" />
                         <Button
                             variant="outline"
-                            size="icon"
                             onClick={handleShareWhatsApp}
-                            className="w-mx-12 h-mx-12 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-status-success-surface text-status-success border-status-success/10 hover:bg-status-success hover:text-white transition-all"
+                            className="h-mx-12 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-status-success-surface text-status-success border-status-success/10 hover:bg-status-success hover:text-white transition-all px-mx-md"
                             aria-label="Compartilhar no WhatsApp"
                         >
                             <MessageSquare size={18} />
+                            Compartilhar
                         </Button>
                         <Button
                             variant="outline"
-                            size="icon"
                             onClick={handleRefresh}
                             disabled={isRefetching}
                             aria-label="Atualizar cockpit do vendedor"
-                            className="w-mx-12 h-mx-12 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white border-border-default"
+                            className="h-mx-12 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white border-border-default px-mx-md"
                         >
                             <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
+                            Atualizar
                         </Button>
                         <div className="flex items-center gap-mx-sm bg-white border border-border-default p-mx-xs px-6 rounded-mx-2xl sm:rounded-mx-3xl shadow-mx-sm h-mx-14">
                             <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-status-warning text-white flex items-center justify-center shadow-mx-md">
                                 <Trophy size={16} className="fill-white/20" />
                             </div>
                             <div className="min-w-0">
-                                <Typography variant="tiny" tone="muted" className="mb-0 block uppercase font-black tracking-mx-widest text-mx-nano">Arena</Typography>
+                                <Typography variant="tiny" tone="muted" className="mb-0 block uppercase font-black tracking-mx-wide text-mx-nano">Ranking</Typography>
                                 <Typography variant="h3" className="text-sm sm:text-base font-black whitespace-nowrap uppercase leading-none">{metrics.myRank?.position || '--'}º LUGAR</Typography>
                             </div>
                         </div>
@@ -184,31 +188,36 @@ export default function VendedorHome() {
                 }
             />
 
-            <AnimatePresence>
-                {tacticalPrescription && (
-                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="shrink-0">
-                        <Card className="bg-mx-black text-white p-mx-lg md:p-mx-xl border-none shadow-mx-xl relative overflow-hidden group rounded-mx-4xl">
-                            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent pointer-events-none" />
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10">
-                                <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-white text-brand-primary flex items-center justify-center shadow-mx-xl group-hover:rotate-6 transition-transform shrink-0 mx-auto lg:mx-0 border-4 border-white/10">
-                                    <GraduationCap size={40} />
-                                </div>
-                                <div className="flex-1 space-y-mx-xs text-center lg:text-left">
-                                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-mx-xs">
-                                        <Badge variant="warning" className="px-4 py-1 uppercase font-black text-mx-nano shadow-sm bg-brand-primary border-none text-white">Reciclagem</Badge>
-                                        <Typography variant="tiny" tone="white" className="opacity-60 uppercase font-black tracking-mx-widest text-mx-nano">Gap: {tacticalPrescription.gargalo}</Typography>
-                                    </div>
-                                    <Typography variant="h2" tone="white" className="text-2xl sm:text-4xl tracking-tighter uppercase leading-none font-black">Domine sua {tacticalPrescription.training.type}</Typography>
-                                    <Typography variant="p" tone="white" className="opacity-80 max-w-2xl text-sm sm:text-lg font-bold italic line-clamp-2 italic">"{tacticalPrescription.label}"</Typography>
-                                </div>
-                                <Button size="lg" variant="secondary" onClick={() => navigate('/treinamentos')} className="rounded-mx-full px-12 h-mx-16 shadow-mx-xl font-black uppercase tracking-mx-wide text-xs w-full lg:w-auto bg-white text-mx-black hover:bg-brand-primary hover:text-white transition-all border-none">
-                                    <Play size={16} className="fill-current mr-2" /> TREINAR AGORA
-                                </Button>
-                            </div>
-                        </Card>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <Card className="shrink-0 border border-border-default bg-white p-mx-md shadow-mx-sm">
+                <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
+                    <div className="min-w-0">
+                        <Typography variant="h3" className="uppercase tracking-tight">Ritual de hoje</Typography>
+                        <Typography variant="p" tone="muted" className="text-sm">
+                            Primeiro confira o lançamento obrigatório; depois veja alertas e suporte sem sair da rotina.
+                        </Typography>
+                    </div>
+                    <div className="grid grid-cols-1 gap-mx-xs sm:grid-cols-3 lg:min-w-mx-card-lg">
+                        <Button asChild variant={todayCheckin ? 'outline' : 'primary'} className="h-mx-12 rounded-mx-xl justify-start">
+                            <Link to="/lancamento-diario">
+                                <CheckSquare size={16} className="mr-2" />
+                                {todayCheckin ? 'Revisar lançamento' : 'Fazer lançamento'}
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline" className="h-mx-12 rounded-mx-xl justify-start bg-white">
+                            <Link to="/notificacoes">
+                                <Bell size={16} className="mr-2" />
+                                Ver alertas
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline" className="h-mx-12 rounded-mx-xl justify-start bg-white">
+                            <Link to="/ajuda">
+                                <LifeBuoy size={16} className="mr-2" />
+                                Ajuda
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+            </Card>
 
             {!todayCheckin && (
                 <motion.section
@@ -239,7 +248,7 @@ export default function VendedorHome() {
                                     Lançamento Diário
                                 </Typography>
                                 <Typography variant="p" tone="white" className="max-w-3xl text-sm opacity-85">
-                                    Consolide a produção de {referenceDateLabel} e a agenda de hoje no Terminal MX.
+                                    Etapa 1: produção de {referenceDateLabel}. Etapa 2: agenda de hoje. As datas ficam separadas para evitar troca no início do expediente.
                                 </Typography>
                             </div>
                         </div>
@@ -255,6 +264,32 @@ export default function VendedorHome() {
                     </Link>
                 </motion.section>
             )}
+
+            <AnimatePresence>
+                {tacticalPrescription && (
+                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="shrink-0">
+                        <Card className="bg-mx-black text-white p-mx-lg md:p-mx-xl border-none shadow-mx-xl relative overflow-hidden group rounded-mx-4xl">
+                            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent pointer-events-none" />
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-lg relative z-10">
+                                <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-white text-brand-primary flex items-center justify-center shadow-mx-xl group-hover:rotate-6 transition-transform shrink-0 mx-auto lg:mx-0 border-4 border-white/10">
+                                    <GraduationCap size={40} />
+                                </div>
+                                <div className="flex-1 space-y-mx-xs text-center lg:text-left">
+                                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-mx-xs">
+                                        <Badge variant="warning" className="px-4 py-1 uppercase font-black text-mx-nano shadow-sm bg-brand-primary border-none text-white">Reciclagem</Badge>
+                                        <Typography variant="tiny" tone="white" className="opacity-60 uppercase font-black tracking-mx-widest text-mx-nano">Gap: {tacticalPrescription.gargalo}</Typography>
+                                    </div>
+                                    <Typography variant="h2" tone="white" className="text-2xl sm:text-4xl tracking-tighter uppercase leading-none font-black">Domine sua {tacticalPrescription.training.type}</Typography>
+                                    <Typography variant="p" tone="white" className="opacity-80 max-w-2xl text-sm sm:text-lg font-bold italic line-clamp-2">"{tacticalPrescription.label}"</Typography>
+                                </div>
+                                <Button size="lg" variant="secondary" onClick={() => navigate('/treinamentos')} className="rounded-mx-full px-12 h-mx-16 shadow-mx-xl font-black uppercase tracking-mx-wide text-xs w-full lg:w-auto bg-white text-mx-black hover:bg-brand-primary hover:text-white transition-all border-none">
+                                    <Play size={16} className="fill-current mr-2" /> TREINAR AGORA
+                                </Button>
+                            </div>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
                 <MXScoreCard
@@ -287,10 +322,10 @@ export default function VendedorHome() {
                                 <Flame size={28} />
                             </div>
                             <div className="min-w-0">
-                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest">Disciplina de lancamento</Typography>
+                                <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest">Disciplina de lançamento</Typography>
                                 <Typography variant="h2" className="text-2xl sm:text-3xl uppercase tracking-tight">{discipline.label}</Typography>
                                 <Typography variant="p" tone="muted" className="text-sm">
-                                    {discipline.submitted_days}/{discipline.expected_days} puxadas realizadas nos ultimos 7 dias.
+                                    {discipline.submitted_days}/{discipline.expected_days} puxadas realizadas nos últimos 7 dias.
                                 </Typography>
                             </div>
                         </div>
@@ -309,12 +344,12 @@ export default function VendedorHome() {
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-status-warning text-white flex items-center justify-center shadow-mx-md"><Trophy size={28} /></div>
                         <div>
-                            <CardTitle className="text-2xl md:text-3xl uppercase tracking-tighter leading-none font-black">Arena de Elite</CardTitle>
-                            <CardDescription className="uppercase font-black text-mx-tiny tracking-mx-widest mt-1">SUA POSIÇÃO NO CAMPO DE BATALHA</CardDescription>
+                            <CardTitle className="text-2xl md:text-3xl leading-tight font-black">Ranking da Unidade</CardTitle>
+                            <CardDescription className="font-black text-mx-tiny tracking-mx-wide mt-1">Sua posição no período atual</CardDescription>
                         </div>
                     </div>
                     <Button variant="outline" asChild className="rounded-mx-full px-8 h-mx-12 bg-surface-alt border border-border-default shadow-mx-sm uppercase font-black tracking-widest text-mx-tiny w-full sm:w-auto hover:border-brand-primary transition-all">
-                        <Link to="/classificacao">Ver Arena Completa</Link>
+                        <Link to="/classificacao">Ver ranking completo</Link>
                     </Button>
                 </CardHeader>
 
@@ -322,7 +357,7 @@ export default function VendedorHome() {
                     <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center rounded-mx-3xl", metrics.competitors?.above ? "bg-white border-mx-green-100 shadow-mx-md" : "bg-surface-alt opacity-40 border-border-default")}>
                         {metrics.competitors?.above ? (
                             <>
-                                <Typography variant="tiny" tone="brand" className="mb-6 block font-black uppercase tracking-mx-widest">Próximo Alvo</Typography>
+                            <Typography variant="tiny" tone="brand" className="mb-6 block font-black uppercase tracking-mx-widest">Próxima referência</Typography>
                                 <div className="flex items-center gap-mx-sm mb-8">
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center font-black text-xl border border-status-warning/10 shadow-inner shrink-0 font-mono-numbers">{metrics.myRank?.position ? metrics.myRank.position - 1 : '--'}º</div>
                                     <div className="min-w-0">
@@ -337,7 +372,7 @@ export default function VendedorHome() {
                         ) : (
                             <div className="text-center py-6 md:py-10">
                                 <Crown size={48} className="text-status-warning mx-auto mb-4 animate-bounce" />
-                                <Typography variant="caption" tone="brand" className="tracking-mx-widest font-black uppercase text-mx-tiny">VOCÊ É O LÍDER</Typography>
+                                <Typography variant="caption" tone="brand" className="tracking-mx-widest font-black uppercase text-mx-tiny">Você está em 1º</Typography>
                             </div>
                         )}
                     </Card>
@@ -364,7 +399,7 @@ export default function VendedorHome() {
                     <Card className={cn("p-mx-lg border-2 border-dashed flex flex-col justify-center rounded-mx-3xl", metrics.competitors?.below ? "bg-white border-mx-rose-100 shadow-mx-md" : "bg-surface-alt opacity-40 border-border-default")}>
                         {metrics.competitors?.below ? (
                             <>
-                                <Typography variant="tiny" tone="error" className="mb-6 block uppercase font-black tracking-mx-widest">Na sua retaguarda</Typography>
+                                <Typography variant="tiny" tone="error" className="mb-6 block uppercase font-black tracking-mx-widest">Próximo na lista</Typography>
                                 <div className="flex items-center gap-mx-sm mb-8">
                                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-error-surface text-status-error flex items-center justify-center font-black text-xl border border-status-error/10 shadow-inner shrink-0 font-mono-numbers">{metrics.myRank?.position ? metrics.myRank.position + 1 : '--'}º</div>
                                     <div className="min-w-0">
@@ -379,7 +414,7 @@ export default function VendedorHome() {
                         ) : (
                             <div className="text-center py-6 md:py-10">
                                 <Flame size={48} className="text-status-error mx-auto mb-4" />
-                                <Typography variant="caption" tone="error" className="tracking-mx-widest font-black uppercase text-mx-tiny">MANTENHA A DISTÂNCIA</Typography>
+                                <Typography variant="caption" tone="error" className="tracking-mx-widest font-black uppercase text-mx-tiny">Sem comparação inferior</Typography>
                             </div>
                         )}
                     </Card>

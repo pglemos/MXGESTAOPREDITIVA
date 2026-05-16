@@ -25,6 +25,7 @@ const Historico = lazy(() => import('@/pages/Historico'))
 const Ranking = lazy(() => import('@/pages/Ranking'))
 const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
 const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
+const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
 const Notificacoes = lazy(() => import('@/pages/Notificacoes'))
 const Perfil = lazy(() => import('@/pages/Perfil'))
 
@@ -137,9 +138,9 @@ function ForbiddenRoute() {
         <div className="mx-auto mb-mx-lg flex h-mx-20 w-mx-20 items-center justify-center rounded-mx-2xl bg-status-warning-surface text-status-warning">
           <span className="text-2xl font-black" aria-hidden="true">403</span>
         </div>
-        <h1 className="text-2xl font-black uppercase tracking-mx-wide text-text-primary">Acesso não autorizado</h1>
-        <p className="mt-mx-sm text-sm font-bold uppercase leading-relaxed tracking-mx-wide text-text-tertiary">
-          O perfil atual não tem permissão para acessar esta rota.
+        <h1 className="text-2xl font-black tracking-mx-wide text-text-primary">Acesso não autorizado</h1>
+        <p className="mt-mx-sm text-sm font-bold leading-relaxed tracking-normal text-text-tertiary">
+          O perfil atual não tem permissão para acessar esta rota. Se esse acesso faz parte da sua rotina, solicite liberação ao Admin MX ou ao gestor responsável pela unidade.
         </p>
         <p className="mt-mx-md rounded-mx-xl bg-surface-alt px-mx-md py-mx-sm text-xs font-black uppercase tracking-mx-wide text-text-secondary">
           Perfil: {role || 'indefinido'} · Rota: {location.pathname}
@@ -172,7 +173,8 @@ function TeamAliasRedirect() {
   const { role, membership } = useAuth()
   if (isPerfilInternoMx(role) || role === 'dono') return <Navigate to="/lojas" replace />
   if (role === 'gerente' && membership?.store?.name) {
-    return <Navigate to={`/lojas/${slugify(membership.store.name)}?tab=equipe`} replace />
+    const idParam = membership.store_id ? `?id=${membership.store_id}&tab=equipe` : '?tab=equipe'
+    return <Navigate to={`/lojas/${slugify(membership.store.name)}${idParam}`} replace />
   }
   return <ForbiddenRoute />
 }
@@ -208,21 +210,25 @@ export default function App() {
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
             <Route path="team" element={<TeamAliasRedirect />} />
+            <Route path="equipe" element={<TeamAliasRedirect />} />
 
             {/* Vendedor */}
             <Route path="home" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorHome />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<Navigate to="/painel" replace />} />
+              <RoleSwitch vendedor={<VendedorHome />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Checkin />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
+              <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="historico" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Historico />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
+              <RoleSwitch vendedor={<Historico />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="ajuda" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorAjuda />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="ranking" element={<Navigate to="/classificacao" replace />} />
             <Route path="classificacao" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<Navigate to="/lojas" replace />} admin={<ConsultorTreinamentos />} />
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
             </Suspense>} />
             <Route path="devolutivas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorFeedback />} gerente={<GerenteFeedback />} dono={<GerenteFeedback />} admin={<GerenteFeedback />} />
@@ -234,14 +240,14 @@ export default function App() {
 
             {/* Gerente */}
             <Route path="lojas/:storeSlug" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
+              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
             </Suspense>} />
             <Route path="pdi" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorPDI />} gerente={<GerentePDI />} dono={<GerentePDI />} admin={<GerentePDI />} />
             </Suspense>} />
             <Route path="pdi/:id/print" element={<Suspense fallback={<Spinner />}><PDIPrint /></Suspense>} />
             <Route path="rotina" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<RotinaGerente />} dono={<RotinaGerente />} admin={<RotinaGerente />} />
+              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<RotinaGerente />} dono={<ForbiddenRoute />} admin={<RotinaGerente />} />
             </Suspense>} />
 
             {/* Admin Core */}
@@ -266,20 +272,20 @@ export default function App() {
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
             <Route path="configuracoes/consultoria-pmr" element={<Suspense fallback={<Spinner />}><ConsultoriaParametros /></Suspense>} />
             <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<RoleRedirect />} dono={<Navigate to="/lojas" replace />} admin={<Reprocessamento />} />
+              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<Reprocessamento />} />
             </Suspense>} />
             <Route path="relatorio-matinal" element={<Suspense fallback={<Spinner />}><MorningReport /></Suspense>} />
             <Route path="relatorios/performance-vendas" element={<Suspense fallback={<Spinner />}><SalesPerformance /></Suspense>} />
             <Route path="relatorios/performance-vendedor" element={<Suspense fallback={<Spinner />}><SellerPerformance /></Suspense>} />
             <Route path="auditoria" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<AiDiagnostics />} dono={<Navigate to="/lojas" replace />} admin={<AiDiagnostics />} />
+              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<AiDiagnostics />} dono={<ForbiddenRoute />} admin={<AiDiagnostics />} />
             </Suspense>} />
 
             <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
           </Route>
         </Routes>
       </Router>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors closeButton expand visibleToasts={5} position="top-right" toastOptions={{ duration: 8000 }} />
       </MotionConfig>
       </ErrorBoundary>
     </AuthProvider>

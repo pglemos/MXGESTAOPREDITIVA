@@ -9,11 +9,11 @@ import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX, getDiasInfo, calcularAtingimento } from '@/lib/calculations'
 import { motion, AnimatePresence } from 'motion/react'
 import {
-    CheckCircle2, Clock, Activity, CalendarDays,
+    CheckCircle2, Activity,
     Zap, FileCheck, Target, TrendingUp,
     MessageSquare, Award, ChevronRight, Mail,
-    BarChart3, RefreshCw, User, X, ShieldCheck, ShieldAlert, Users,
-    Smartphone, History, AlertTriangle, Send, Store
+    BarChart3, RefreshCw, X, ShieldCheck, ShieldAlert, Users,
+    History, Send, Store
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
@@ -40,6 +40,7 @@ type PendingCorrectionRequest = CheckinCorrectionRequest & {
     seller?: { name?: string | null; avatar_url?: string | null } | null
 }
 type MetricTone = 'success' | 'warning' | 'info' | 'error' | 'brand'
+type RoutineNotice = { tone: 'success' | 'warning' | 'error' | 'info'; message: string; detail?: string; at: Date }
 
 export default function RotinaGerente() {
     const [tab, setTab] = useState<RoutineTab>('diario')
@@ -61,22 +62,33 @@ export default function RotinaGerente() {
     const { pdis, refetch: refetchPDIs } = usePDIs(effectiveStoreId)
     const { sendNotification } = useNotifications()
     const { fetchPendingRequests, approveRequest, rejectRequest, loading: auditorLoading } = useCheckinAuditor(effectiveStoreId)
+    const [routineNotice, setRoutineNotice] = useState<RoutineNotice | null>(null)
+    const [matinalAudit, setMatinalAudit] = useState<RoutineNotice | null>(null)
     
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        const [reqs] = await Promise.all([
-            fetchPendingRequests(),
-            fetchCheckins(), 
-            fetchGoals(), 
-            refetchRanking(), 
-            refetchTeam(), 
-            refetchFeedbacks(), 
-            refetchPDIs()
-        ])
-        setPendingRequests(reqs)
-        setIsRefetching(false)
-        toast.success('Rituais sincronizados!')
-    }, [fetchCheckins, fetchGoals, refetchRanking, refetchTeam, refetchFeedbacks, refetchPDIs, fetchPendingRequests])
+        try {
+            const [reqs] = await Promise.all([
+                fetchPendingRequests(),
+                fetchCheckins(),
+                fetchGoals(),
+                fetchMetaRules(),
+                refetchRanking(),
+                refetchTeam(),
+                refetchFeedbacks(),
+                refetchPDIs()
+            ])
+            setPendingRequests(reqs)
+            setRoutineNotice({ tone: 'success', message: 'Rotina sincronizada.', detail: 'Dados de equipe, ranking, metas, PDI, devolutivas e ajustes foram atualizados.', at: new Date() })
+            toast.success('Rotina sincronizada.')
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : 'Falha ao sincronizar a rotina.'
+            setRoutineNotice({ tone: 'error', message: 'Falha na sincronização da rotina.', detail, at: new Date() })
+            toast.error(detail)
+        } finally {
+            setIsRefetching(false)
+        }
+    }, [fetchCheckins, fetchGoals, fetchMetaRules, refetchRanking, refetchTeam, refetchFeedbacks, refetchPDIs, fetchPendingRequests])
 
     // Event Bus: Realtime Notifications for Manager
     useEffect(() => {
@@ -89,6 +101,7 @@ export default function RotinaGerente() {
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'lancamentos_diarios', filter: `store_id=eq.${storeIdToListen}` },
                 (payload) => {
+                    setRoutineNotice({ tone: 'info', message: 'Novo lançamento diário recebido.', detail: 'A performance da unidade foi atualizada em tempo real.', at: new Date() })
                     toast.info(`Novo Lançamento Diário recebido!`, {
                         description: 'A performance da unidade foi atualizada em tempo real.',
                         icon: <Zap className="text-brand-primary" size={18} />
@@ -100,6 +113,7 @@ export default function RotinaGerente() {
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'solicitacoes_correcao_lancamento', filter: `store_id=eq.${storeIdToListen}` },
                 () => {
+                    setRoutineNotice({ tone: 'warning', message: 'Nova solicitação de correção.', detail: 'Revise a aba Ajustes antes de concluir a rotina.', at: new Date() })
                     toast.warning('Nova solicitação de correção!', {
                         description: 'Um vendedor solicitou ajuste em registro passado.',
                         icon: <ShieldAlert className="text-status-warning" size={18} />
@@ -147,6 +161,15 @@ export default function RotinaGerente() {
     const previousDaySales = useMemo(() => previousDayCheckins.reduce((acc, c) => acc + somarVendas([c]), 0), [previousDayCheckins])
     
     const canTriggerMatinal = useMemo(() => reuniaoDone && agendaValidated && pendingSellers.length === 0, [reuniaoDone, agendaValidated, pendingSellers])
+    const routineProgress = useMemo(() => {
+        const steps = [
+            { label: 'Reunião individual', done: reuniaoDone },
+            { label: 'Agenda validada', done: agendaValidated },
+            { label: 'Registros completos', done: pendingSellers.length === 0 },
+        ]
+        const doneCount = steps.filter(step => step.done).length
+        return { steps, doneCount, total: steps.length, percent: Math.round((doneCount / steps.length) * 100) }
+    }, [agendaValidated, pendingSellers.length, reuniaoDone])
 
     useEffect(() => {
         fetchPendingRequests().then(setPendingRequests)
@@ -156,6 +179,7 @@ export default function RotinaGerente() {
         const { error } = await approveRequest(req)
         if (error) toast.error(error)
         else {
+            setRoutineNotice({ tone: 'success', message: 'Correção aprovada.', detail: `${req.seller?.name || 'Vendedor'} teve o ajuste aplicado ao histórico.`, at: new Date() })
             toast.success('Correção aprovada e aplicada ao histórico!')
             handleRefresh()
         }
@@ -165,6 +189,7 @@ export default function RotinaGerente() {
         const { error } = await rejectRequest(id)
         if (error) toast.error(error)
         else {
+            setRoutineNotice({ tone: 'warning', message: 'Solicitação rejeitada.', detail: 'A decisão ficou registrada e a solicitação saiu da fila de ajustes.', at: new Date() })
             toast.success('Solicitação de ajuste rejeitada.')
             handleRefresh()
         }
@@ -178,8 +203,23 @@ export default function RotinaGerente() {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' }
             })
-            if (response.ok) toast.success('Relatório Matinal disparado!'); else toast.error('Falha no disparo.')
-        } catch (e) { toast.error('Erro de conexão.') } finally { setExecuting(false) }
+            if (response.ok) {
+                const notice = { tone: 'success' as const, message: 'Relatório Matinal disparado.', detail: 'Edge Function executada com sucesso para a unidade atual.', at: new Date() }
+                setMatinalAudit(notice)
+                setRoutineNotice(notice)
+                toast.success('Relatório Matinal disparado!')
+            } else {
+                const notice = { tone: 'error' as const, message: 'Falha no disparo do Matinal.', detail: `Edge Function retornou status ${response.status}.`, at: new Date() }
+                setMatinalAudit(notice)
+                setRoutineNotice(notice)
+                toast.error('Falha no disparo.')
+            }
+        } catch (e) {
+            const notice = { tone: 'error' as const, message: 'Erro de conexão no Matinal.', detail: e instanceof Error ? e.message : 'Não foi possível conectar à Edge Function.', at: new Date() }
+            setMatinalAudit(notice)
+            setRoutineNotice(notice)
+            toast.error('Erro de conexão.')
+        } finally { setExecuting(false) }
     }
 
     const handleRegisterRoutine = async () => {
@@ -214,7 +254,8 @@ export default function RotinaGerente() {
             .filter((reminder) => !sentReminderKeys.has(reminder.dedupe_key))
 
         if (reminders.length === 0) {
-            toast.info('Lembretes desta puxada ja foram enviados nesta sessao.')
+            setRoutineNotice({ tone: 'info', message: 'Lembretes já enviados.', detail: 'Lembretes desta puxada já foram enviados nesta sessão.', at: new Date() })
+            toast.info('Lembretes desta puxada já foram enviados nesta sessão.')
             return
         }
 
@@ -232,10 +273,12 @@ export default function RotinaGerente() {
 
         const failed = results.filter(result => result?.error).length
         if (failed > 0) {
-            toast.error(`${failed} lembrete(s) nao foram enviados.`)
+            setRoutineNotice({ tone: 'error', message: 'Falha parcial nos lembretes.', detail: `${failed} lembrete(s) não foram enviados.`, at: new Date() })
+            toast.error(`${failed} lembrete(s) não foram enviados.`)
             return
         }
         setSentReminderKeys(prev => new Set([...prev, ...reminders.map(reminder => reminder.dedupe_key)]))
+        setRoutineNotice({ tone: 'success', message: 'Lembretes enviados.', detail: `${reminders.length} vendedor(es) pendentes foram notificados.`, at: new Date() })
         toast.success(`${reminders.length} lembrete(s) enviados para vendedores pendentes.`)
     }
 
@@ -299,11 +342,69 @@ export default function RotinaGerente() {
                 </div>
             </header>
 
+            {!isAdmin && membership?.store?.name && (
+                <Card className="border border-border-default bg-white p-mx-md shadow-mx-sm">
+                    <div className="flex flex-col gap-mx-xs sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-mx-sm">
+                            <Store size={18} className="text-brand-primary" aria-hidden="true" />
+                            <Typography variant="p" className="font-black uppercase">Unidade atual: {membership.store.name}</Typography>
+                        </div>
+                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
+                            Contexto vindo do seu vínculo de gerente
+                        </Typography>
+                    </div>
+                </Card>
+            )}
+
+            {routineNotice && (
+                <div role="status" className={cn(
+                    "rounded-mx-xl border px-mx-md py-mx-sm text-sm font-bold",
+                    routineNotice.tone === 'success' && "border-status-success/20 bg-status-success-surface text-status-success",
+                    routineNotice.tone === 'warning' && "border-status-warning/20 bg-status-warning-surface text-status-warning",
+                    routineNotice.tone === 'error' && "border-status-error/20 bg-status-error-surface text-status-error",
+                    routineNotice.tone === 'info' && "border-status-info/20 bg-status-info-surface text-status-info"
+                )}>
+                    <div className="flex flex-col gap-mx-tiny sm:flex-row sm:items-center sm:justify-between">
+                        <span>{routineNotice.message}</span>
+                        <span className="text-mx-tiny font-black uppercase opacity-70">
+                            {routineNotice.at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    </div>
+                    {routineNotice.detail && <p className="mt-mx-tiny text-xs opacity-80">{routineNotice.detail}</p>}
+                </div>
+            )}
+
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 <AnimatePresence mode="wait">
                     {tab === 'diario' && (
                         <motion.div key="diario" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg">
                             <section className="lg:col-span-7 flex flex-col gap-mx-lg">
+                                <Card className="border border-border-default bg-white p-mx-lg shadow-mx-sm">
+                                    <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
+                                        <div>
+                                            <Typography variant="h3" className="uppercase tracking-tight">Progresso da rotina</Typography>
+                                            <Typography variant="p" tone="muted" className="mt-mx-tiny text-sm">
+                                                {routineProgress.doneCount}/{routineProgress.total} etapas concluídas antes do Matinal.
+                                            </Typography>
+                                        </div>
+                                        <div className="flex min-w-mx-48 items-center gap-mx-sm">
+                                            <div className="h-mx-xs flex-1 overflow-hidden rounded-mx-full bg-surface-alt">
+                                                <div className="h-full rounded-mx-full bg-brand-primary transition-all" style={{ width: `${routineProgress.percent}%` }} />
+                                            </div>
+                                            <Typography variant="h3" className="tabular-nums">{routineProgress.percent}%</Typography>
+                                        </div>
+                                    </div>
+                                    <div className="mt-mx-md grid grid-cols-1 gap-mx-xs sm:grid-cols-3">
+                                        {routineProgress.steps.map(step => (
+                                            <div key={step.label} className={cn(
+                                                "rounded-mx-xl border px-mx-md py-mx-sm text-sm font-black uppercase",
+                                                step.done ? "border-status-success/20 bg-status-success-surface text-status-success" : "border-border-default bg-surface-alt text-text-secondary"
+                                            )}>
+                                                {step.label}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
                                 <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden">
                                     <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-32 -mt-32" aria-hidden="true" />
                                     <header className="flex items-center justify-between border-b border-border-default pb-8 relative z-10">
@@ -359,6 +460,18 @@ export default function RotinaGerente() {
                                             >
                                                 {executing ? <RefreshCw className="animate-spin mr-2" /> : <Zap size={18} className="mr-2" />} DISPARAR AGORA
                                             </Button>
+                                            {matinalAudit && (
+                                                <div className={cn(
+                                                    "w-full rounded-mx-xl border px-mx-md py-mx-sm text-sm font-bold md:basis-full",
+                                                    matinalAudit.tone === 'success' ? "border-status-success/20 bg-status-success-surface text-status-success" : "border-status-error/20 bg-status-error-surface text-status-error"
+                                                )}>
+                                                    <div className="flex flex-col gap-mx-tiny sm:flex-row sm:items-center sm:justify-between">
+                                                        <span>{matinalAudit.message}</span>
+                                                        <span className="text-mx-tiny font-black uppercase opacity-70">{matinalAudit.at.toLocaleString('pt-BR')}</span>
+                                                    </div>
+                                                    {matinalAudit.detail && <p className="mt-mx-tiny text-xs opacity-80">{matinalAudit.detail}</p>}
+                                                </div>
+                                            )}
                                         </Card>
                                     </div>
                                 </Card>
@@ -473,6 +586,17 @@ export default function RotinaGerente() {
                                                             </header>
                                                             <Typography variant="p" className="text-sm font-bold italic leading-relaxed">"{req.reason}"</Typography>
                                                         </div>
+                                                        <div className="rounded-mx-xl border border-status-warning/20 bg-status-warning-surface p-mx-md">
+                                                            <Typography variant="tiny" className="mb-mx-xs block font-black uppercase tracking-widest text-status-warning">
+                                                                Decisão crítica
+                                                            </Typography>
+                                                            <Typography variant="p" className="text-sm text-status-warning">
+                                                                Aprovar aplica estes valores ao histórico do lançamento. Rejeitar mantém o registro atual e remove a solicitação da fila.
+                                                            </Typography>
+                                                            <Typography variant="tiny" className="mt-mx-xs block font-black uppercase text-status-warning">
+                                                                Referência: {req.requested_values.reference_date || 'não informada'}
+                                                            </Typography>
+                                                        </div>
                                                     </div>
 
                                                     <div className="lg:w-mx-card-md space-y-mx-md">
@@ -507,6 +631,7 @@ export default function RotinaGerente() {
                                                             <Button 
                                                                 variant="outline" size="sm" 
                                                                 onClick={() => handleRejectCorrection(req.id)}
+                                                                disabled={auditorLoading}
                                                                 className="flex-1 h-mx-11 rounded-mx-xl font-black text-mx-micro uppercase hover:bg-status-error-surface hover:text-status-error transition-all"
                                                             >
                                                                 REJEITAR
@@ -514,6 +639,7 @@ export default function RotinaGerente() {
                                                             <Button 
                                                                 size="sm" 
                                                                 onClick={() => handleApproveCorrection(req)}
+                                                                disabled={auditorLoading}
                                                                 className="flex-1 h-mx-11 rounded-mx-xl font-black text-mx-micro uppercase shadow-mx-md"
                                                             >
                                                                 APROVAR AJUSTE

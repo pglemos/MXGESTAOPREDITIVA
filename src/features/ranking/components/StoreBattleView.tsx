@@ -133,7 +133,7 @@ export function StoreBattleView({ opponents, lojas }: StoreBattleViewProps) {
             <Building2 size={36} className="text-brand-primary" />
           </div>
           <p className="font-bold uppercase tracking-widest text-text-tertiary">
-            Selecione 2 lojas para iniciar a Arena
+            Selecione 2 lojas para iniciar o comparativo
           </p>
         </motion.div>
       </div>

@@ -13,6 +13,7 @@ import { getAvatarDisplayUrl, uploadUserAvatar } from '@/lib/avatar'
 
 export default function Perfil() {
   const { profile, role, signOut, updateProfile, changePassword } = useAuth()
+  const isSeller = role === 'vendedor'
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState(profile?.name || '')
   const [phone, setPhone] = useState(profile?.phone || '')
@@ -88,9 +89,11 @@ export default function Perfil() {
         <div className="flex flex-col gap-mx-tiny">
           <div className="flex items-center gap-mx-sm">
             <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">Painel de <Typography as="span" className="text-brand-primary">Identidade</Typography></Typography>
+            <Typography variant="h1">{isSeller ? 'Minha' : 'Painel de'} <Typography as="span" className="text-brand-primary">{isSeller ? 'Conta' : 'Identidade'}</Typography></Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">GESTÃO DE CREDENCIAIS & SEGURANÇA MX</Typography>
+          <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide font-black">
+            {isSeller ? 'Dados pessoais, telefone, foto e senha' : 'Gestão de credenciais e segurança MX'}
+          </Typography>
         </div>
 
         <div className="flex items-center gap-mx-sm shrink-0">
@@ -99,7 +102,7 @@ export default function Perfil() {
           </Button>
           <Button onClick={handleSave} disabled={saving} className="h-mx-14 px-10 rounded-mx-full shadow-mx-xl">
             {saving ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck size={18} className="mr-2" />}
-            <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">FIRMAR ALTERAÇÕES</Typography>
+            <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">{isSeller ? 'Salvar conta' : 'Firmar alterações'}</Typography>
           </Button>
         </div>
       </header>
@@ -149,8 +152,10 @@ export default function Perfil() {
               <div className="flex items-center gap-mx-md relative z-10">
                 <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl transform rotate-2"><User size={32} /></div>
                 <div>
-                  <Typography variant="h2" className="text-2xl uppercase tracking-tighter leading-none">Configurações de Conta</Typography>
-                  <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black mt-1 font-black">SINC: IDENTITY GATEWAY v4.0</Typography>
+              <Typography variant="h2" className="text-2xl uppercase tracking-tighter leading-none">{isSeller ? 'Minha conta' : 'Configurações de Conta'}</Typography>
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-mx-wide font-black mt-1 font-black">
+                    {isSeller ? 'Informações usadas na rotina da loja' : 'Sinc: Identity Gateway v4.0'}
+                  </Typography>
                 </div>
               </div>
             </CardHeader>
@@ -181,7 +186,9 @@ export default function Perfil() {
               <div className="pt-14 border-t border-border-default space-y-mx-10">
                 <div className="flex items-center gap-mx-sm">
                   <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-mx-indigo-50 text-brand-primary flex items-center justify-center shadow-inner border border-mx-indigo-100"><ShieldCheck size={20} /></div>
-                  <Typography variant="caption" tone="brand" className="font-black uppercase tracking-widest">Segurança & Criptografia MX</Typography>
+                  <Typography variant="caption" tone="brand" className="font-black uppercase tracking-mx-wide">
+                    {isSeller ? 'Segurança da minha conta' : 'Segurança & Criptografia MX'}
+                  </Typography>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-mx-lg">
@@ -199,7 +206,7 @@ export default function Perfil() {
                   <Card className="p-mx-lg bg-surface-alt/50 border border-border-subtle rounded-mx-2xl flex items-center justify-between group/sec">
                     <div className="flex items-center gap-mx-sm">
                       <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-status-success shadow-mx-sm"><ShieldCheck size={20} /></div>
-                      <Typography variant="tiny" className="font-black uppercase tracking-widest">Double Factor</Typography>
+                      <Typography variant="tiny" className="font-black uppercase tracking-widest">Verificação de acesso</Typography>
                     </div>
                     <Badge variant="success" className="px-4 py-1 rounded-mx-full border-none">
                       <Typography variant="tiny" as="span" className="font-black uppercase">Ativo</Typography>

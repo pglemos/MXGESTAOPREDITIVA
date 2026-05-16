@@ -134,7 +134,7 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                         </header>
                         <div className="space-y-mx-md">
                             {[
-                                { label: 'Modo de Auditoria Forense', desc: 'Logs profundos de cada transação operacional', field: 'audit_mode' },
+                                { label: 'Diagnóstico detalhado', desc: 'Registro ampliado de eventos operacionais para suporte técnico', field: 'audit_mode' },
                                 { label: 'Lançamento Diário Estrito', desc: 'Bloquear cockpit sem registro matinal obrigatório', field: 'strict_checkin' },
                                 { label: 'Lançamento Manual Retroativo', desc: 'Autorizar gerência a retroagir dados (falha sistêmica)', field: 'allow_manual_retro' },
                             ].map(s => (

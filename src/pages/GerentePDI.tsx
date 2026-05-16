@@ -43,7 +43,9 @@ export default function GerentePDI() {
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
-    const canManagePDI = canManagePDICapability(role)
+    const isOwner = role === 'dono'
+    const isManager = role === 'gerente'
+    const canManagePDI = canManagePDICapability(role) && !isOwner
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
@@ -95,9 +97,11 @@ export default function GerentePDI() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">Evolução do <span className="text-mx-green-700">Vendedor</span></Typography>
+                        <Typography variant="h1">{isOwner ? 'PDI da ' : 'Evolução do '}<span className="text-mx-green-700">{isOwner ? 'Rede' : 'Vendedor'}</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX</Typography>
+                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">
+                        {isOwner ? 'ACOMPANHAMENTO EXECUTIVO DOS PLANOS DE DESENVOLVIMENTO' : 'PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX'}
+                    </Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
@@ -122,6 +126,24 @@ export default function GerentePDI() {
                     )}
                 </div>
             </header>
+
+            {isManager && (
+                <Card className="border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                    <Typography variant="h3" className="uppercase tracking-tight text-status-info">Escopo do gerente</Typography>
+                    <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                        Esta tela mostra os PDIs da sua unidade. Use o botão de novo PDI para conduzir desenvolvimento da equipe; Admin MX e Dono usam a mesma rota em escopos diferentes.
+                    </Typography>
+                </Card>
+            )}
+
+            {isOwner && (
+                <Card className="border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                    <Typography variant="h3" className="uppercase tracking-tight text-status-info">PDI como acompanhamento do Dono</Typography>
+                    <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                        Esta visão mostra evolução, prazos e consistência dos planos. Criação e condução de PDI ficam com gerente/Admin MX; aqui o foco é decidir onde cobrar cadência.
+                    </Typography>
+                </Card>
+            )}
 
             <AnimatePresence>
                 {showForm && (

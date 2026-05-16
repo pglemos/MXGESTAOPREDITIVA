@@ -459,6 +459,7 @@ function StoreMorningReport() {
 
     const [isRefetching, setIsRefetching] = useState(false)
     const [isSendingEmail, setIsSendingEmail] = useState(false)
+    const [reportAudit, setReportAudit] = useState<{ action: string; status: 'success' | 'error' | 'info'; detail: string; at: Date } | null>(null)
 
     const daysInfo = useMemo(() => getDiasInfo(), [])
     const referenceDate = useMemo(() => calculateReferenceDate(), [])
@@ -481,16 +482,21 @@ function StoreMorningReport() {
     const handleShareWhatsApp = useCallback(() => {
         const text = formatWhatsAppMorningReport(storeName, referenceDateLabel, metrics, ranking)
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+        setReportAudit({ action: 'Compartilhamento WhatsApp preparado', status: 'info', detail: 'A janela de compartilhamento foi aberta com o snapshot atual.', at: new Date() })
     }, [referenceDateLabel, metrics, ranking, storeName])
 
     const handleSendEmail = useCallback(async () => {
         setIsSendingEmail(true)
         try {
             await new Promise(r => setTimeout(r, 2000))
+            setReportAudit({ action: 'Relatório enviado para a Direção MX', status: 'success', detail: `Unidade ${storeName} · referência ${referenceDateLabel}.`, at: new Date() })
             toast.success('Relatório enviado para a Direção MX!')
-        } catch (e) { toast.error('Falha ao enviar e-mail.') }
+        } catch (e) {
+            setReportAudit({ action: 'Falha ao enviar relatório', status: 'error', detail: e instanceof Error ? e.message : 'Falha ao enviar e-mail.', at: new Date() })
+            toast.error('Falha ao enviar e-mail.')
+        }
         finally { setIsSendingEmail(false) }
-    }, [])
+    }, [referenceDateLabel, storeName])
 
     const handleDownloadXlsx = useCallback(async () => {
         toast.info('Gerando planilha operacional...')
@@ -501,15 +507,24 @@ function StoreMorningReport() {
         }))
         const { exportToExcel } = await import('@/lib/export')
         const success = exportToExcel(exportData, `Matinal_${storeName.replace(/\s+/g, '_')}`)
-        if (success) toast.success('Planilha gerada com sucesso!')
-        else toast.error('Falha ao gerar planilha.')
+        if (success) {
+            setReportAudit({ action: 'Planilha gerada', status: 'success', detail: `${exportData.length} linhas exportadas do Matinal.`, at: new Date() })
+            toast.success('Planilha gerada com sucesso!')
+        } else {
+            setReportAudit({ action: 'Falha ao gerar planilha', status: 'error', detail: 'Exportação local retornou erro.', at: new Date() })
+            toast.error('Falha ao gerar planilha.')
+        }
     }, [ranking, storeName])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
         try {
             await Promise.all([refetchCheckins(), refetchGoals(), fetchMetaRules(), refetchRanking(), refetchTeam()])
+            setReportAudit({ action: 'Snapshot atualizado', status: 'success', detail: 'Check-ins, metas, ranking e equipe foram sincronizados.', at: new Date() })
             toast.success('Snapshot operacional atualizado!')
+        } catch (error) {
+            setReportAudit({ action: 'Falha ao atualizar snapshot', status: 'error', detail: error instanceof Error ? error.message : 'Erro de sincronização.', at: new Date() })
+            toast.error('Falha ao atualizar snapshot.')
         } finally { setIsRefetching(false) }
     }, [refetchCheckins, refetchGoals, fetchMetaRules, refetchRanking, refetchTeam])
 
@@ -546,6 +561,21 @@ function StoreMorningReport() {
                     </Button>
                 </div>
             </header>
+
+            {reportAudit && (
+                <div role="status" className={cn(
+                    "rounded-mx-xl border px-mx-md py-mx-sm text-sm font-bold",
+                    reportAudit.status === 'success' && "border-status-success/20 bg-status-success-surface text-status-success",
+                    reportAudit.status === 'error' && "border-status-error/20 bg-status-error-surface text-status-error",
+                    reportAudit.status === 'info' && "border-status-info/20 bg-status-info-surface text-status-info"
+                )}>
+                    <div className="flex flex-col gap-mx-tiny sm:flex-row sm:items-center sm:justify-between">
+                        <span>{reportAudit.action}</span>
+                        <span className="text-mx-tiny font-black uppercase opacity-70">{reportAudit.at.toLocaleString('pt-BR')}</span>
+                    </div>
+                    <p className="mt-mx-tiny text-xs opacity-80">{reportAudit.detail}</p>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg shrink-0">
                 <Card className="p-mx-lg md:p-10 group relative overflow-hidden border-none shadow-mx-lg bg-white">

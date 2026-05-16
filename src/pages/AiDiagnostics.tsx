@@ -55,14 +55,14 @@ export default function AiDiagnostics() {
     const runScan = useCallback(() => {
         const startedAt = performance.now()
         setIsScanning(true); setLogs([]); setSummary(null)
-        addLog('Iniciando auditoria operacional MX.', 'info')
+        addLog('Iniciando diagnóstico operacional MX.', 'info')
         addLog(`Base carregada: ${checkins.length} lançamentos diários reais${isPerfilInternoMx(role) ? ` dos últimos ${ADMIN_AUDIT_DAYS} dias` : ''}.`, 'success')
         addLog('Calculando funil e benchmarks MX 20/60/33 no navegador.', 'info')
         const funnel = calcularFunil(checkins); const diagnosis = gerarDiagnosticoMX(funnel)
         addLog(`Totais: ${funnel.leads} leads, ${funnel.agd_total} agendamentos, ${funnel.visitas} visitas, ${funnel.vnd_total} vendas.`, 'info')
         addLog(`Conversões: ${funnel.tx_lead_agd}% lead→agd, ${funnel.tx_agd_visita}% agd→visita, ${funnel.tx_visita_vnd}% visita→venda.`, diagnosis.gargalo ? 'warning' : 'success')
         setSummary({ diagnostic: diagnosis.diagnostico, action: diagnosis.sugestao })
-        addLog(`Auditoria concluída em ${Math.max(1, Math.round(performance.now() - startedAt))}ms.`, 'success')
+        addLog(`Diagnóstico concluído em ${Math.max(1, Math.round(performance.now() - startedAt))}ms.`, 'success')
         setIsScanning(false)
     }, [checkins, addLog, role])
 
@@ -78,7 +78,7 @@ export default function AiDiagnostics() {
         <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-brand-secondary" id="main-content">
             <ShieldCheck size={48} className="text-white/20 mb-6" aria-hidden="true" />
             <Typography variant="h2" tone="white" className="uppercase tracking-tighter">Acesso Restrito</Typography>
-            <Typography variant="caption" tone="white" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Auditoria operacional disponível para Admin MX e Gerente.</Typography>
+            <Typography variant="caption" tone="white" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Diagnóstico operacional disponível para Admin MX e Gerente.</Typography>
         </main>
     )
 
@@ -90,9 +90,9 @@ export default function AiDiagnostics() {
                 <div className="flex flex-col gap-mx-tiny">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-glow-brand animate-pulse" aria-hidden="true" />
-                        <Typography variant="h1" tone="white">Auditoria <Typography as="span" className="text-brand-primary/80">Forense</Typography></Typography>
+                        <Typography variant="h1" tone="white">Diagnóstico <Typography as="span" className="text-brand-primary/80">Operacional</Typography></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-50 tracking-widest uppercase font-black">MOTOR HEURÍSTICO MX 20/60/33{isPerfilInternoMx(role) ? ` • ${ADMIN_AUDIT_DAYS} DIAS` : ''}</Typography>
+                    <Typography variant="caption" tone="white" className="pl-mx-md opacity-70 tracking-mx-wide uppercase font-black">Leitura de funil MX 20/60/33{isPerfilInternoMx(role) ? ` • ${ADMIN_AUDIT_DAYS} dias` : ''}</Typography>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-mx-md shrink-0 w-full sm:w-auto">
@@ -105,7 +105,7 @@ export default function AiDiagnostics() {
                     <Button 
                         size="icon" onClick={handleScan} disabled={isScanning} 
                         className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary shadow-mx-xl border border-white/10 active:scale-95 transition-all"
-                        aria-label="Reiniciar escaneamento de auditoria"
+                            aria-label="Reiniciar diagnóstico operacional"
                     >
                         <Zap size={32} className={cn(isScanning ? "animate-bounce" : "fill-white")} aria-hidden="true" />
                     </Button>
@@ -119,7 +119,7 @@ export default function AiDiagnostics() {
                         <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="flex items-center gap-mx-sm">
                                 <TerminalIcon size={18} className="text-brand-primary/80" aria-hidden="true" />
-                                <Typography variant="caption" tone="white" className="font-black tracking-widest uppercase">Console de Auditoria Operacional</Typography>
+                                <Typography variant="caption" tone="white" className="font-black tracking-mx-wide uppercase">Eventos do diagnóstico operacional</Typography>
                             </div>
                             <div className="flex gap-1.5" aria-hidden="true">
                                 <div className="w-2.5 h-2.5 rounded-mx-full bg-status-error opacity-30" />
@@ -153,8 +153,8 @@ export default function AiDiagnostics() {
                         <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
                             <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl shrink-0" aria-hidden="true"><ShieldCheck size={32} /></div>
                             <div>
-                                <Typography variant="h2" className="text-xl sm:text-2xl uppercase tracking-tighter">Veredito MX</Typography>
-                                <Typography variant="caption" tone="muted" className="tracking-widest font-black uppercase">CONCLUSÃO OPERACIONAL</Typography>
+                                <Typography variant="h2" className="text-xl sm:text-2xl tracking-tight">Resumo operacional</Typography>
+                                <Typography variant="caption" tone="muted" className="tracking-mx-wide font-black uppercase">Conclusão e ação sugerida</Typography>
                             </div>
                         </header>
 
@@ -189,7 +189,7 @@ export default function AiDiagnostics() {
                         </div>
                         
                         <footer className="pt-8 border-t border-border-default mt-auto">
-                            <Typography variant="tiny" tone="muted" className="text-center block uppercase tracking-widest font-black opacity-20">Heurística Baseada no Critério 20/60/33</Typography>
+                            <Typography variant="tiny" tone="muted" className="text-center block uppercase tracking-mx-wide font-black opacity-60">Referência operacional: critério 20/60/33</Typography>
                         </footer>
                     </Card>
                 </aside>

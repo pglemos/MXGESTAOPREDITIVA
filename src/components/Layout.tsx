@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
   Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
-  LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
+  LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal, LifeBuoy,
   BriefcaseBusiness,
   CalendarDays,
   MonitorPlay,
@@ -46,23 +46,35 @@ const rotulosPerfil: Record<string, string> = {
   vendedor: 'Vendedor',
 }
 
+const categoryDescriptions: Record<string, string> = {
+  'Rede e Gestão': 'Lojas, CRM de consultoria, agenda e visão executiva da rede.',
+  Simulação: 'Entrar como vendedor, gerente ou dono sem trocar de conta.',
+  'Rotina e Conteúdo': 'Ranking, devolutivas, PDI, treinamentos, produtos e notificações.',
+  'Relatórios e Diagnóstico': 'Relatórios oficiais, benchmarks e diagnóstico operacional.',
+  Configurações: 'Parâmetros, integrações, sistema e governança técnica.',
+  'Visão Executiva': 'Lojas, performance e equipe do proprietário.',
+  Acompanhamento: 'Relatórios, devolutivas e conteúdos liberados para gestão.',
+  'Operação Loja': 'Painel, equipe, rotina e ranking da unidade.',
+  'Gestão de Gente': 'Devolutivas, PDI, treinamentos e produtos da equipe.',
+  'Meu Ritual': 'Home, lançamento, histórico e ranking individual.',
+  Evolução: 'Devolutivas, PDI, treinamentos e produtos liberados.',
+}
+
 const navegacaoInternaMx: NavCategory[] = [
     {
-      category: 'Governança MX', icon: <Grid size={22} />,
+      category: 'Rede e Gestão', icon: <Grid size={22} />,
       items: [
         { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
         { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
         { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
-        { label: 'Benchmarks', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
       ]
     },
     simulacaoItems,
     {
-      category: 'Rituais MX', icon: <Target size={22} />,
+      category: 'Rotina e Conteúdo', icon: <Target size={22} />,
       items: [
-        { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
-        { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
+        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
@@ -70,7 +82,15 @@ const navegacaoInternaMx: NavCategory[] = [
       ]
     },
     {
-      category: 'Sustentação', icon: <Settings size={22} />,
+      category: 'Relatórios e Diagnóstico', icon: <TrendingUp size={22} />,
+      items: [
+        { label: 'Relatório Matinal', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
+        { label: 'Performance de Vendas', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
+        { label: 'Diagnóstico Operacional', path: '/auditoria', icon: <Database size={16} /> },
+      ]
+    },
+    {
+      category: 'Configurações', icon: <Settings size={22} />,
       items: [
         { label: 'Configuração Operacional', path: '/configuracoes/operacional', icon: <SlidersHorizontal size={16} /> },
         { label: 'Parâmetros PMR', path: '/configuracoes/consultoria-pmr', icon: <Database size={16} /> },
@@ -90,13 +110,16 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Minhas Lojas', path: '/lojas', icon: <Building2 size={16} /> },
         { label: 'Performance', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
         { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
+        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
     },
     {
       category: 'Acompanhamento', icon: <User size={22} />,
       items: [
         { label: 'Matinal Oficial', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
-        { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
+        { label: 'Devolutivas', path: '/devolutivas', icon: <MessageSquare size={16} /> },
+        { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
+        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
       ]
     }
@@ -108,7 +131,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Painel da Loja', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
         { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
         { label: 'Rotina Diária', path: '/rotina', icon: <CheckSquare size={16} /> },
-        { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
+        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
     },
     {
@@ -128,7 +151,8 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Home', path: '/home', icon: <Home size={16} /> },
         { label: 'Lançamento Diário', path: '/lancamento-diario', icon: <CheckSquare size={16} /> },
         { label: 'Histórico', path: '/historico', icon: <History size={16} /> },
-        { label: 'Classificação', path: '/classificacao', icon: <Trophy size={16} /> },
+        { label: 'Ajuda do Ritual', path: '/ajuda', icon: <LifeBuoy size={16} /> },
+        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
     },
     {
@@ -152,20 +176,25 @@ export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [navigationSearch, setNavigationSearch] = useState('')
   const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const navigationSearchRef = useRef<HTMLInputElement>(null)
   useFocusTrap(mobileMenuRef, mobileMenuOpen)
 
   useEffect(() => {
-    if (!mobileMenuOpen) return
+    if (!mobileMenuOpen && !isDrawerOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileMenuOpen(false)
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false)
+        setIsDrawerOpen(false)
+      }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [mobileMenuOpen])
+  }, [mobileMenuOpen, isDrawerOpen])
 
-  const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : role === 'gerente' ? '/classificacao' : '/lojas'
-  const storeTeamPath = storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}?tab=equipe`
+  const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}${membership.store_id ? `?id=${membership.store_id}` : ''}` : role === 'gerente' ? '/classificacao' : '/lojas'
+  const storeTeamPath = role === 'gerente' ? '/equipe' : storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}${storeDashboardPath.includes('?') ? '&' : '?'}tab=equipe`
   const categories = React.useMemo(() => {
     const baseCategories = role ? (navConfig[role] || []) : []
     return baseCategories.map(category => {
@@ -177,7 +206,24 @@ export default function Layout() {
       return { ...category, items }
     }).filter(category => category.items.length > 0)
   }, [role, storeDashboardPath, storeTeamPath])
-  const activeCategoryData = categories.find(c => c.category === activeCategory) || categories[0]
+  const filteredCategories = React.useMemo(() => {
+    const term = navigationSearch.trim().toLowerCase()
+    if (!term) return categories
+    return categories.map(category => ({
+      ...category,
+      items: category.items.filter(item => {
+        const searchable = `${category.category} ${item.label} ${item.path}`.toLowerCase()
+        return searchable.includes(term)
+      }),
+    })).filter(category => category.items.length > 0)
+  }, [categories, navigationSearch])
+  const activeCategoryData = navigationSearch.trim()
+    ? {
+        category: 'Resultados',
+        icon: <Search size={22} />,
+        items: filteredCategories.flatMap(category => category.items),
+      }
+    : categories.find(c => c.category === activeCategory) || categories[0]
   const perfilVisivel = role ? rotulosPerfil[role] || 'Perfil autorizado' : 'Perfil autorizado'
   const perfilBaseVisivel = baseProfile?.name || 'Admin MX'
 
@@ -207,10 +253,15 @@ export default function Layout() {
   }
 
   const handleGlobalSearch = () => {
-    const targetPath = isPerfilInternoMx(role) || role === 'dono' ? '/lojas' : '/classificacao'
-    navigate(targetPath)
+    setNavigationSearch('')
+    if (categories[0]) setActiveCategory(categories[0].category)
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setMobileMenuOpen(true)
+    } else {
+      setIsDrawerOpen(true)
+    }
     window.setTimeout(() => {
-      document.getElementById('main-content')?.focus()
+      navigationSearchRef.current?.focus()
     }, 0)
   }
 
@@ -299,13 +350,12 @@ export default function Layout() {
         </section>
       )}
 
-      <div className="flex flex-1 p-mx-sm md:p-mx-md gap-mx-md relative">
+      <div className="flex flex-1 p-mx-sm pb-mx-24 md:p-mx-md gap-mx-md relative">
 
         {/* Sidebar Minimalista - Semantic Nav */}
         <aside 
           className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky mx-layout-sticky-offset z-[60]" 
           aria-label="Menu Lateral Principal"
-          onMouseLeave={() => setIsDrawerOpen(false)}
         >
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
             {categories.map((cat) => (
@@ -359,11 +409,14 @@ export default function Layout() {
               className="hidden md:flex fixed left-mx-layout-drawer-left top-mx-layout-offset-top w-mx-sidebar-expanded h-mx-layout-viewport bg-white border border-border-default rounded-mx-3xl shadow-mx-xl z-50 overflow-hidden flex flex-col"
               role="navigation"
               aria-label={`Opções do módulo ${activeCategoryData?.category}`}
-              onMouseEnter={() => setIsDrawerOpen(true)}
-              onMouseLeave={() => setIsDrawerOpen(false)}
             >
               <div className="p-mx-lg border-b border-border-subtle flex items-center justify-between bg-surface-alt/30">
-                <Typography variant="caption" className="font-black uppercase tracking-widest">{activeCategoryData?.category}</Typography>
+                <div className="min-w-0">
+                  <Typography variant="caption" className="font-black uppercase tracking-widest">{activeCategoryData?.category}</Typography>
+                  <Typography variant="tiny" tone="muted" className="mt-mx-tiny block normal-case tracking-normal">
+                    {activeCategoryData?.category ? categoryDescriptions[activeCategoryData.category] : 'Módulos disponíveis para seu perfil.'}
+                  </Typography>
+                </div>
                 <button 
                   type="button" 
                   aria-label="Fechar painel de opções" 
@@ -373,8 +426,22 @@ export default function Layout() {
                   <X size={16} aria-hidden="true" />
                 </button>
               </div>
+              <div className="border-b border-border-subtle p-mx-sm">
+                <label className="relative block">
+                  <span className="sr-only">Buscar módulo</span>
+                  <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+                  <input
+                    ref={navigationSearchRef}
+                    type="search"
+                    value={navigationSearch}
+                    onChange={(event) => setNavigationSearch(event.target.value)}
+                    placeholder="Buscar módulo"
+                    className="h-mx-11 w-full rounded-mx-lg border border-border-default bg-white pl-mx-xl pr-mx-sm text-sm font-bold text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
+                  />
+                </label>
+              </div>
               <div className="flex-1 overflow-y-auto p-mx-sm space-y-mx-tiny no-scrollbar">
-                {activeCategoryData?.items.map(item => (
+                {activeCategoryData?.items.length ? activeCategoryData.items.map(item => (
                   <NavLink
                     key={item.path} to={item.path} onClick={() => setIsDrawerOpen(false)}
                     aria-current={location.pathname === item.path ? 'page' : undefined}
@@ -386,7 +453,11 @@ export default function Layout() {
                     <span className="shrink-0" aria-hidden="true">{item.icon}</span>
                     <span className="truncate">{item.label}</span>
                   </NavLink>
-                ))}
+                )) : (
+                  <div className="rounded-mx-xl border border-dashed border-border-default bg-surface-alt p-mx-md text-center">
+                    <Typography variant="p" tone="muted">Nenhum módulo encontrado para a busca atual.</Typography>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -405,16 +476,16 @@ export default function Layout() {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-xl max-h-[90vh] overflow-y-auto"
-              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8rem)' }}
+              className="absolute bottom-mx-0 left-mx-0 right-mx-0 bg-white rounded-t-mx-4xl p-mx-lg overflow-y-auto"
+              style={{ maxHeight: 'calc(100dvh - 1rem)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }}
               onClick={e => e.stopPropagation()}
               ref={mobileMenuRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby="mobile-menu-title"
             >
-              <div className="w-mx-xl h-1.5 bg-surface-alt rounded-mx-full mx-auto mb-8" aria-hidden="true" />
-              <div className="flex items-center justify-between mb-10">
+              <div className="w-mx-xl h-1.5 bg-surface-alt rounded-mx-full mx-auto mb-6" aria-hidden="true" />
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-mx-sm">
                   <div className="h-mx-xl overflow-hidden"><img src={MxLogo} alt="MX Performance" className="h-full w-auto object-contain" /></div>
                   <div>
@@ -425,19 +496,36 @@ export default function Layout() {
                 <button type="button" aria-label="Fechar menu mobile" onClick={() => setMobileMenuOpen(false)} className="w-mx-xl h-mx-xl rounded-mx-2xl bg-surface-alt flex items-center justify-center text-text-tertiary focus-visible:ring-2 focus-visible:ring-brand-primary/20"><X size={24} aria-hidden="true" /></button>
               </div>
 
-              <div className="space-y-mx-10">
-                {categories.map(cat => (
+              <div className="space-y-mx-md">
+                <label className="relative block">
+                  <span className="sr-only">Buscar módulo</span>
+                  <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+                  <input
+                    ref={navigationSearchRef}
+                    type="search"
+                    value={navigationSearch}
+                    onChange={(event) => setNavigationSearch(event.target.value)}
+                    placeholder="Buscar módulo"
+                    className="h-mx-12 w-full rounded-mx-xl border border-border-default bg-surface-alt pl-mx-xl pr-mx-sm text-sm font-bold text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
+                  />
+                </label>
+                {filteredCategories.map(cat => (
                   <nav key={cat.category} className="space-y-mx-sm" aria-label={cat.category}>
                     <div className="flex items-center gap-mx-xs px-2">
                       <div className="text-brand-primary" aria-hidden="true">{cat.icon}</div>
-                      <Typography variant="tiny" className="font-black text-text-tertiary uppercase tracking-mx-wide">{cat.category}</Typography>
+                      <div className="min-w-0">
+                        <Typography variant="tiny" className="font-black text-text-tertiary uppercase tracking-mx-wide">{cat.category}</Typography>
+                        {categoryDescriptions[cat.category] && (
+                          <Typography variant="tiny" tone="muted" className="block truncate normal-case tracking-normal">{categoryDescriptions[cat.category]}</Typography>
+                        )}
+                      </div>
                     </div>
                     <div className="grid grid-cols-1 gap-mx-xs">
                       {cat.items.map(item => (
                         <NavLink
                           key={item.path} to={item.path} onClick={() => setMobileMenuOpen(false)}
                           className={({ isActive }) => cn(
-                            "flex items-center gap-mx-sm px-6 py-4 rounded-mx-2xl text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]",
+                            "flex items-center gap-mx-sm px-5 py-3 rounded-mx-xl text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]",
                             isActive ? 'bg-brand-primary text-white shadow-mx-lg' : 'bg-surface-alt text-text-secondary active:bg-border-default'
                           )}
                         >
@@ -447,7 +535,12 @@ export default function Layout() {
                     </div>
                   </nav>
                 ))}
-                <button type="button" onClick={() => signOut()} className="w-full flex items-center gap-mx-sm px-6 py-4 rounded-mx-2xl bg-status-error-surface text-status-error text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]">
+                {filteredCategories.length === 0 && (
+                  <div className="rounded-mx-xl border border-dashed border-border-default bg-surface-alt p-mx-md text-center">
+                    <Typography variant="p" tone="muted">Nenhum módulo encontrado para a busca atual.</Typography>
+                  </div>
+                )}
+                <button type="button" onClick={() => signOut()} className="w-full flex items-center gap-mx-sm px-5 py-3 rounded-mx-xl bg-status-error-surface text-status-error text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]">
                   <LogOut size={20} aria-hidden="true" /> Encerrar Sessão
                 </button>
               </div>
@@ -457,15 +550,16 @@ export default function Layout() {
       </AnimatePresence>
 
       {/* Mobile Bar - Semantic Nav */}
-      <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-2xl bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-md border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
-        <div className="flex w-full justify-between items-center relative z-10">
+      <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-20 bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-sm py-mx-xs border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
+        <div className="grid w-full grid-cols-5 items-center gap-mx-tiny relative z-10">
           <NavLink
             to={role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? storeDashboardPath : '/lojas'}
             aria-label="Início"
             aria-current={location.pathname === (role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? storeDashboardPath : '/lojas') ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
+            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Início</span>
           </NavLink>
           
           {role === 'vendedor' && (
@@ -473,9 +567,10 @@ export default function Layout() {
               to="/lancamento-diario"
               aria-label="Fazer Lançamento Diário"
               aria-current={location.pathname === '/lancamento-diario' ? 'page' : undefined}
-              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+              className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <CheckSquare size={22} />
+              <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Lançar</span>
             </NavLink>
           )}
 
@@ -484,9 +579,10 @@ export default function Layout() {
               to={isPerfilInternoMx(role) ? '/lojas' : storeTeamPath}
               aria-label="Gerir Equipe" 
               aria-current={location.pathname === storeDashboardPath && new URLSearchParams(location.search).get('tab') === 'equipe' ? 'page' : undefined}
-              className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+              className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <Users size={22} />
+              <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">{isPerfilInternoMx(role) ? 'Lojas' : 'Equipe'}</span>
             </NavLink>
           )}
 
@@ -494,27 +590,30 @@ export default function Layout() {
             type="button" 
             aria-label="Abrir menu mobile" 
             onClick={() => setMobileMenuOpen(true)} 
-            className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
+            className="min-w-0 h-mx-14 rounded-mx-2xl bg-brand-primary text-white flex flex-col items-center justify-center gap-mx-tiny shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
           >
             <Menu size={24} aria-hidden="true" />
+            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Menu</span>
           </button>
 
             <NavLink
               to="/classificacao"
-            aria-label="Ver Classificação"
+            aria-label="Ver ranking"
             aria-current={location.pathname === '/classificacao' ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             <Trophy size={22} />
+            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Rank</span>
           </NavLink>
 
           <NavLink 
             to="/perfil" 
             aria-label="Meu Perfil" 
             aria-current={location.pathname === '/perfil' ? 'page' : undefined}
-            className="w-mx-xl h-mx-xl flex items-center justify-center text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             <User size={22} />
+            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Perfil</span>
           </NavLink>
         </div>
       </nav>

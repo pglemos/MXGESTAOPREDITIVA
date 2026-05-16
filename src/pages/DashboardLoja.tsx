@@ -6,12 +6,14 @@ import { useOperationalSettings, type StoreSettingsPayload } from '@/hooks/useOp
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useDRE } from '@/hooks/useDRE'
 import { useState, useMemo, useCallback, useEffect, useRef, type FormEvent } from 'react'
-import { 
-    RefreshCw, Search, Globe, ChevronDown, Calendar, History, ArrowRight,
-    Settings2, Plus, Trash2, Save, ShieldCheck, Mail, Target, Building2, Users
+import {
+    RefreshCw, Search, Globe, ChevronDown, History, ArrowRight,
+    Settings2, Plus, Archive, Save, ShieldCheck, Mail, Target, Building2, Users
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
+import { LastUpdated } from '@/components/molecules/LastUpdated'
+import { GlossaryHint } from '@/components/molecules/GlossaryHint'
 import { format, parseISO, startOfMonth } from 'date-fns'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { motion } from 'motion/react'
@@ -20,6 +22,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
+import { EmptyState } from '@/components/atoms/EmptyState'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Modal } from '@/components/organisms/Modal'
@@ -42,13 +45,52 @@ type OwnerPerformanceAlert = {
     description: string
     action: string
     variant: 'success' | 'warning' | 'danger' | 'outline'
+    impact: 'Alto' | 'Médio' | 'Baixo'
+    ctaLabel: string
+    ctaTo: string
 }
 
 const joinRecipients = (value?: string[] | null) => value?.join(', ') || ''
 const splitRecipients = (value: string) => value.split(',').map(email => email.trim()).filter(Boolean)
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const SOURCE_MODE_DESCRIPTIONS: Record<StoreSourceMode, string> = {
+    native_app: 'Lançamentos entram pelo app MX e alimentam painel, ranking e relatórios automaticamente.',
+    legacy_forms: 'Dados vêm de formulário legado; use quando a loja ainda não opera pelo app.',
+    hybrid: 'Aceita app MX e legado no mesmo período; exige conferência para evitar duplicidade.',
+}
 const toNumber = (value: string, fallback = 0) => {
     const parsed = Number(value)
     return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function RecipientPreview({ value }: { value: string }) {
+    const recipients = splitRecipients(value)
+    if (!recipients.length) {
+        return (
+            <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">
+                Nenhum destinatário configurado.
+            </Typography>
+        )
+    }
+
+    return (
+        <div className="flex flex-wrap gap-mx-xs">
+            {recipients.map(recipient => {
+                const valid = EMAIL_PATTERN.test(recipient)
+                return (
+                    <span
+                        key={recipient}
+                        className={cn(
+                            'rounded-mx-full border px-mx-xs py-mx-tiny text-mx-micro font-black',
+                            valid ? 'border-status-success/20 bg-status-success-surface text-status-success' : 'border-status-error/20 bg-status-error-surface text-status-error'
+                        )}
+                    >
+                        {recipient}
+                    </span>
+                )
+            })}
+        </div>
+    )
 }
 const toBoundedNumber = (value: string, fallback: number, min: number, max: number) => {
     const parsed = toNumber(value, fallback)
@@ -62,11 +104,14 @@ export default function DashboardLoja() {
     const location = useLocation()
     const { lojas, loading: storesLoading, createStore, updateStore, deleteStore, refetch: refetchStores } = useStores()
     const isAdminMx = isAdministradorMx(role)
+    const isOwner = role === 'dono'
 
     const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(null)
     const [resolving, setResolving] = useState(!!storeSlug)
+    const [storeResolutionIssue, setStoreResolutionIssue] = useState<string | null>(null)
     const [storeEditOpen, setStoreEditOpen] = useState(false)
     const [createStoreOpen, setCreateStoreOpen] = useState(false)
+    const [showAdminSettings, setShowAdminSettings] = useState(false)
     const [savingStore, setSavingStore] = useState(false)
     const [creatingStore, setCreatingStore] = useState(false)
     const [deletingStore, setDeletingStore] = useState(false)
@@ -106,6 +151,7 @@ export default function DashboardLoja() {
         const resolve = () => {
             if (!storeSlug) {
                 setResolvedStoreId(null)
+                setStoreResolutionIssue(null)
                 setResolving(false)
                 return
             }
@@ -116,25 +162,27 @@ export default function DashboardLoja() {
             }
 
             setResolving(true)
-            const found = selectableStores.find(store => slugify(store.name) === storeSlug)
+            const foundByQuery = queryStoreId ? selectableStores.find(store => store.id === queryStoreId) : null
+            const found = foundByQuery || selectableStores.find(store => slugify(store.name) === storeSlug)
 
             if (found) {
                 setResolvedStoreId(found.id)
+                setStoreResolutionIssue(null)
                 setResolving(false)
                 return
             }
 
             setResolvedStoreId(null)
             if (!storesLoading) {
-                toast.error('Unidade não localizada.')
+                setStoreResolutionIssue('A unidade solicitada não foi encontrada ou não está vinculada ao seu perfil.')
             }
             setResolving(false)
         }
 
         resolve()
-    }, [storeSlug, selectableStores, storesLoading])
+    }, [queryStoreId, storeSlug, selectableStores, storesLoading])
 
-    const urlStoreId = storeSlug ? resolvedStoreId : queryStoreId
+    const urlStoreId = queryStoreId || (storeSlug ? resolvedStoreId : null)
     const shouldUseStoreList = !storeSlug && !queryStoreId && (isPerfilInternoMx(role) || role === 'dono')
     const requestedStoreId = useMemo(() => {
         return urlStoreId || (!storeSlug && !shouldUseStoreList ? authStoreId || (isPerfilInternoMx(role) ? activeStores[0]?.id : null) : null) || null
@@ -151,8 +199,8 @@ export default function DashboardLoja() {
     }, [requestedStoreForbidden, requestedStoreId])
 
     useEffect(() => {
-        if (requestedStoreForbidden) toast.error('Você não possui vínculo ativo com esta unidade.')
-    }, [requestedStoreForbidden])
+        if (requestedStoreForbidden && !isOwner) toast.error('Você não possui vínculo ativo com esta unidade.')
+    }, [isOwner, requestedStoreForbidden])
 
     const activeTab = useMemo<DashboardTab>(() => {
         const tab = new URLSearchParams(location.search).get('tab')
@@ -160,11 +208,15 @@ export default function DashboardLoja() {
     }, [location.search])
 
     const handleTabChange = useCallback((tab: DashboardTab) => {
+        const params = new URLSearchParams(location.search)
+        if (selectedStoreId) params.set('id', selectedStoreId)
+        if (tab === 'performance') params.delete('tab')
+        else params.set('tab', tab)
         navigate({
             pathname: location.pathname,
-            search: tab === 'performance' ? '' : `?tab=${tab}`,
+            search: params.toString() ? `?${params.toString()}` : '',
         })
-    }, [location.pathname, navigate])
+    }, [location.pathname, location.search, navigate, selectedStoreId])
 
     const LOJA_TABS = useMemo(() => [
         { key: 'performance' as const, label: 'Performance', icon: Globe },
@@ -195,6 +247,8 @@ export default function DashboardLoja() {
     const [endDate, setEndDate] = useState(() => referenceDate)
     const [sellerSearch, setSellerSearch] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+    const [syncWarning, setSyncWarning] = useState<string | null>(null)
+    const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
     const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const { checkins, loading, refetch } = useCheckinsByDateRange(
@@ -221,11 +275,17 @@ export default function DashboardLoja() {
                     if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current)
                     refetchTimerRef.current = setTimeout(() => {
                         void refetch()
+                            .then(() => {
+                                setSyncWarning(null)
+                                setLastSyncAt(new Date())
+                            })
+                            .catch(() => setSyncWarning('Falha ao sincronizar automaticamente. Use Atualizar.'))
                     }, 500)
                 }
             )
             .subscribe(status => {
                 if (status === 'CHANNEL_ERROR') {
+                    setSyncWarning('Realtime indisponível. Use Atualizar para confirmar os dados.')
                     toast.error('Realtime do dashboard indisponível. Use atualizar para sincronizar.')
                 }
             })
@@ -243,8 +303,11 @@ export default function DashboardLoja() {
         setIsRefetching(true)
         try {
             await refetch()
+            setSyncWarning(null)
+            setLastSyncAt(new Date())
             toast.success('Performance sincronizada!')
         } catch {
+            setSyncWarning('Falha na atualização manual. Tente novamente antes de tomar decisão operacional.')
             toast.error('Não foi possível atualizar a performance.')
         } finally {
             setIsRefetching(false)
@@ -333,57 +396,76 @@ export default function DashboardLoja() {
         if (metrics.goalValue > 0 && metrics.attainment < 80) {
             alerts.push({
                 title: 'Meta abaixo do ritmo',
-                description: `${metrics.attainment}% da meta realizada no periodo selecionado.`,
-                action: 'Validar plano de ataque com gerente e vendedores de menor ritmo.',
+                description: `${metrics.attainment}% da meta realizada no período selecionado.`,
+                action: isOwner ? 'Decidir cobrança de plano de recuperação com o gerente.' : 'Validar plano de ataque com gerente e vendedores de menor ritmo.',
                 variant: metrics.attainment < 60 ? 'danger' : 'warning',
+                impact: metrics.attainment < 60 ? 'Alto' : 'Médio',
+                ctaLabel: 'Abrir metas',
+                ctaTo: `${location.pathname}?id=${selectedStoreId || ''}&tab=metas`,
             })
         }
 
         if (sellerCount > 0 && metrics.checkedInCount < sellerCount) {
             alerts.push({
-                title: 'Rotina diaria incompleta',
+                title: 'Rotina diária incompleta',
                 description: `${metrics.checkedInCount}/${sellerCount} vendedores com registro sincronizado.`,
-                action: 'Cobrar fechamento da puxada diaria antes da proxima reuniao de gestao.',
+                action: isOwner ? 'Acompanhar a cobrança do gerente; não executar a rotina operacional.' : 'Cobrar fechamento da puxada diária antes da próxima reunião de gestão.',
                 variant: 'warning',
+                impact: 'Médio',
+                ctaLabel: role === 'gerente' ? 'Abrir rotina' : 'Ver equipe',
+                ctaTo: role === 'gerente' ? '/rotina' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
             })
         }
 
         if (funilData.tx_lead_agd < funnelBenchmarks.leadAgd) {
             alerts.push({
-                title: 'Baixa conversao de lead',
+                title: 'Baixa conversão de lead',
                 description: `${funilData.tx_lead_agd}% contra benchmark de ${funnelBenchmarks.leadAgd}%.`,
-                action: 'Revisar abordagem inicial, tempo de resposta e qualidade dos agendamentos.',
+                action: isOwner ? 'Priorizar decisão comercial sobre origem e tratamento dos leads.' : 'Revisar abordagem inicial, tempo de resposta e qualidade dos agendamentos.',
                 variant: 'danger',
+                impact: 'Alto',
+                ctaLabel: role === 'gerente' ? 'Criar devolutiva' : 'Ver ranking',
+                ctaTo: role === 'gerente' ? '/devolutivas' : '/classificacao',
             })
         }
 
         if (funilData.tx_visita_vnd < funnelBenchmarks.visitaVnd) {
             alerts.push({
-                title: 'Visita nao vira venda',
+                title: 'Visita não vira venda',
                 description: `${funilData.tx_visita_vnd}% contra benchmark de ${funnelBenchmarks.visitaVnd}%.`,
-                action: 'Checar proposta, avaliacao de troca, financiamento e fechamento.',
+                action: isOwner ? 'Decidir intervenção em preço, troca, financiamento ou fechamento.' : 'Checar proposta, avaliação de troca, financiamento e fechamento.',
                 variant: 'danger',
+                impact: 'Alto',
+                ctaLabel: role === 'gerente' ? 'Ver ranking' : 'Ver ranking',
+                ctaTo: '/classificacao',
             })
         }
 
         if ((checkins || []).length === 0) {
             alerts.push({
-                title: 'Sem dados no periodo',
-                description: 'Ainda nao ha check-ins para sustentar um diagnostico operacional.',
-                action: 'Validar se a equipe lancou a rotina antes de concluir a leitura.',
+                title: 'Sem dados no período',
+                description: 'Ainda não há check-ins para sustentar um diagnóstico operacional.',
+                action: isOwner ? 'Solicitar ao gerente confirmação da rotina antes de decidir.' : 'Validar se a equipe lançou a rotina antes de concluir a leitura.',
                 variant: 'outline',
+                impact: 'Médio',
+                ctaLabel: role === 'gerente' ? 'Abrir rotina' : 'Ver equipe',
+                ctaTo: role === 'gerente' ? '/rotina' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
             })
         } else if (alerts.length === 0) {
             alerts.push({
-                title: 'Operacao dentro do esperado',
-                description: 'Meta, disciplina e funil sem alerta critico no periodo.',
-                action: 'Manter cadencia e observar oportunidades individuais no ranking.',
+                title: 'Operação dentro do esperado',
+                description: 'Meta, disciplina e funil sem alerta crítico no período.',
+                action: isOwner ? 'Acompanhar execução e cobrar manutenção da cadência.' : 'Manter cadência e observar oportunidades individuais no ranking.',
                 variant: 'success',
+                impact: 'Baixo',
+                ctaLabel: 'Ver ranking',
+                ctaTo: '/classificacao',
             })
         }
 
-        return alerts.slice(0, 4)
-    }, [checkins, funnelBenchmarks, funilData, metrics, sellers])
+        const weight = { danger: 0, warning: 1, outline: 2, success: 3 } as const
+        return alerts.sort((a, b) => weight[a.variant] - weight[b.variant]).slice(0, 4)
+    }, [checkins, funnelBenchmarks, funilData, isOwner, location.pathname, metrics, role, selectedStoreId, sellers])
 
     const mixCanais = useMemo(() => {
         const porta = (checkins || []).reduce((acc, c) => acc + (c.vnd_porta_prev_day || 0), 0)
@@ -454,6 +536,35 @@ export default function DashboardLoja() {
             .filter(r => r.user_name.toLowerCase().includes(sellerSearch.toLowerCase()))
     }, [metrics.ranking, sellerSearch])
 
+    const pendingDisciplineSellers = useMemo(() => {
+        return (sellers || []).filter(seller => !seller.checkin_today)
+    }, [sellers])
+
+    const periodContext = useMemo(() => {
+        if (viewMode === 'day') {
+            return {
+                title: 'Leitura D-1',
+                description: `Dados do dia de referência ${format(parseISO(referenceDate), 'dd/MM/yyyy')}. Intervalo manual fica desativado nesta leitura.`,
+            }
+        }
+
+        return {
+            title: 'Intervalo manual',
+            description: `Dados consolidados de ${format(parseISO(startDate), 'dd/MM/yyyy')} até ${format(parseISO(endDate), 'dd/MM/yyyy')}.`,
+        }
+    }, [endDate, referenceDate, startDate, viewMode])
+
+    const funnelInterpretation = useCallback((value: number, benchmark: number) => {
+        if (value >= benchmark) return 'Dentro ou acima do benchmark; mantenha a cadência e monitore volume.'
+        const gap = Math.max(benchmark - value, 0)
+        return `Abaixo do benchmark em ${gap} p.p.; priorize ação nesta etapa antes da próxima reunião.`
+    }, [])
+
+    const lastSyncLabel = useMemo(() => {
+        if (!lastSyncAt) return 'Ainda não atualizado nesta sessão'
+        return `Atualizado às ${lastSyncAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+    }, [lastSyncAt])
+
     useEffect(() => {
         if (!isAdminMx || !selectedStoreId) return
 
@@ -491,7 +602,7 @@ export default function DashboardLoja() {
             await fetchSettings()
             const nextName = updates.name || selectedStore?.name
             if (nextName && slugify(nextName) !== storeSlug) {
-                navigate(`/lojas/${slugify(nextName)}`, { replace: true })
+                navigate(`/lojas/${slugify(nextName)}?id=${id}`, { replace: true })
             }
         } finally {
             setSavingStore(false)
@@ -622,8 +733,29 @@ export default function DashboardLoja() {
         }
     }
 
-    if (!resolving && !storesLoading && requestedStoreForbidden) {
-        return <Navigate to={role === 'dono' ? '/lojas' : '/classificacao'} replace />
+    if (!resolving && !storesLoading && requestedStoreForbidden && !isOwner) {
+        return <Navigate to="/classificacao" replace />
+    }
+
+    if (!resolving && !storesLoading && isOwner && (requestedStoreForbidden || storeResolutionIssue || !selectedStoreId)) {
+        return (
+            <main className="w-full h-full bg-surface-alt p-mx-lg">
+                <Card className="mx-auto max-w-2xl border-none bg-white shadow-mx-xl">
+                    <EmptyState
+                        size="lg"
+                        icon={<Building2 />}
+                        title={requestedStoreForbidden ? 'Loja fora do seu vínculo' : 'Unidade não localizada'}
+                        description={requestedStoreForbidden ? 'Seu perfil de Dono não possui vínculo ativo com esta unidade.' : storeResolutionIssue || 'Não encontramos uma unidade ativa para abrir este painel.'}
+                        nextStep="Volte para a visão executiva da rede e escolha uma loja ativa. Se a loja foi renomeada ou criada recentemente, solicite ao Admin MX revisar seu vínculo."
+                        action={
+                            <Button onClick={() => navigate('/lojas', { replace: true })} className="rounded-mx-full bg-brand-secondary px-mx-xl">
+                                Voltar para minhas lojas
+                            </Button>
+                        }
+                    />
+                </Card>
+            </main>
+        )
     }
 
     if (!resolving && !storesLoading && !selectedStoreId && (isPerfilInternoMx(role) || role === 'dono')) {
@@ -662,8 +794,8 @@ export default function DashboardLoja() {
                 <div className="flex flex-col gap-mx-xs text-center xl:text-left min-w-0">
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-mx-tiny">Status de Unidade</Typography>                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        {(isPerfilInternoMx(role) || role === 'dono') ? (
-                            <div className="relative group">
+                        {isPerfilInternoMx(role) ? (
+                            <div className="relative group max-w-full">
                                 <select 
                                     value={selectedStoreId || ''} 
                                     onChange={e => {
@@ -671,10 +803,10 @@ export default function DashboardLoja() {
 	                                        const newStore = selectableStores.find(store => store.id === newStoreId)
 	                                        if (newStore) {
                                                 if (!isPerfilInternoMx(role)) setActiveStoreId(newStoreId)
-	                                            navigate(`/lojas/${slugify(newStore.name)}${activeTab === 'performance' ? '' : `?tab=${activeTab}`}`)
+	                                            navigate(`/lojas/${slugify(newStore.name)}?id=${newStoreId}${activeTab === 'performance' ? '' : `&tab=${activeTab}`}`)
 	                                        }
 	                                    }}
-                                    className="appearance-none bg-transparent text-3xl sm:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors whitespace-normal max-w-full"
+                                    className="appearance-none bg-transparent text-2xl sm:text-4xl xl:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors truncate max-w-mx-2xl"
                                 >
                                     {selectableStores.map(store => (
                                         <option key={store.id} value={store.id} className="text-lg bg-white">{store.name.toUpperCase()}</option>
@@ -683,32 +815,82 @@ export default function DashboardLoja() {
                                 <ChevronDown size={24} className="absolute right-mx-0 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
                             </div>
                         ) : (
-                            <Typography variant="h1" className="text-3xl sm:text-5xl font-black uppercase tracking-tighter break-words">{metrics.storeName}</Typography>
+                            <Typography variant="h1" className="max-w-full text-3xl sm:text-5xl font-black uppercase tracking-tighter break-words">{metrics.storeName}</Typography>
                         )}
                     </div>
                 </div>
 
 	                <div className="flex flex-wrap items-center justify-center xl:justify-end gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
+                        {isOwner && selectableStores.length > 1 && (
+                            <label className="flex w-full flex-col gap-mx-tiny rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-xs shadow-mx-sm sm:w-mx-sidebar-expanded">
+                                <span className="text-mx-micro font-black uppercase tracking-widest text-text-secondary">Trocar unidade</span>
+                                <select
+                                    value={selectedStoreId || ''}
+                                    onChange={event => {
+                                        const newStoreId = event.target.value
+                                        const newStore = selectableStores.find(store => store.id === newStoreId)
+                                        if (!newStore) return
+                                        setActiveStoreId(newStoreId)
+                                        navigate(`/lojas/${slugify(newStore.name)}?id=${newStoreId}${activeTab === 'performance' ? '' : `&tab=${activeTab}`}`)
+                                    }}
+                                    className="min-w-0 bg-transparent text-sm font-black uppercase text-text-primary outline-none"
+                                >
+                                    {selectableStores.map(store => (
+                                        <option key={store.id} value={store.id}>{store.name}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        )}
 	                    <TabNavPill tabs={LOJA_TABS} activeTab={activeTab} onTabChange={handleTabChange} className="max-w-full overflow-x-auto" buttonClassName="h-mx-8 sm:h-mx-10 px-4 sm:px-6 shrink-0" aria-label="Abas da loja" />
 
 	                    {activeTab === 'performance' && (
-	                    <>
-	                    <TabNavPill tabs={PERIODO_TABS} activeTab={viewMode} onTabChange={(m) => setViewMode(m as 'day' | 'month')} buttonClassName="h-mx-8 sm:h-mx-10 px-4 sm:px-6" aria-label="Período do dashboard" />
-
-                    <div className="flex items-center gap-mx-sm px-4 bg-white h-mx-10 sm:h-mx-14 rounded-mx-xl shadow-mx-sm border border-border-default">
-                        <Calendar size={14} className="text-brand-primary shrink-0" />
-                        <input type="date" value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="uppercase font-black text-text-primary bg-transparent outline-none text-mx-tiny w-mx-3xl sm:w-auto" />
-                        <div className="hidden sm:block w-px h-mx-sm bg-border-strong mx-1" />
-                        <input type="date" value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="hidden sm:block uppercase font-black text-text-primary bg-transparent outline-none text-mx-tiny" />
-                    </div>
-
-	                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-10 h-mx-10 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white">
-	                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
-	                    </Button>
-	                    </>
+		                    <Button variant="outline" onClick={handleRefresh} aria-label={`Atualizar performance. ${lastSyncLabel}`} title={lastSyncLabel} className="h-mx-10 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white px-mx-md">
+		                        <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
+                                Atualizar
+		                    </Button>
 	                    )}
 	                </div>
-	            </header>
+		            </header>
+
+                    <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
+                        <LastUpdated value={lastSyncAt} />
+                        {syncWarning && (
+                            <div role="alert" className="rounded-mx-xl border border-status-warning/20 bg-status-warning-surface px-mx-md py-mx-sm text-mx-tiny font-black uppercase tracking-tight text-status-warning">
+                                {syncWarning}
+                            </div>
+                        )}
+                    </div>
+
+                    {activeTab === 'performance' && (
+                        <Card className="border border-border-default bg-white p-mx-md shadow-mx-sm">
+                            <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[auto_1fr_auto] xl:items-center">
+                                <div className="min-w-0">
+                                    <Typography variant="h3" className="uppercase tracking-tight">{periodContext.title}</Typography>
+                                    <Typography variant="p" tone="muted" className="mt-mx-tiny text-sm">{periodContext.description}</Typography>
+                                </div>
+                                <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center">
+                                    <TabNavPill tabs={PERIODO_TABS} activeTab={viewMode} onTabChange={(m) => setViewMode(m as 'day' | 'month')} buttonClassName="h-mx-11 px-5" aria-label="Período do dashboard" />
+                                    <div className={cn(
+                                        "grid grid-cols-1 gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-sm sm:grid-cols-2",
+                                        viewMode === 'day' && "opacity-50"
+                                    )}>
+                                        <label className="space-y-mx-tiny">
+                                            <span className="block text-mx-micro font-black uppercase tracking-widest text-text-secondary">Início</span>
+                                            <input type="date" aria-label="Data inicial do período" disabled={viewMode === 'day'} value={startDate} onChange={e => {setStartDate(e.target.value); setViewMode('month')}} className="h-mx-12 w-full min-w-mx-40 rounded-mx-lg border border-border-default bg-white px-mx-sm text-sm font-black text-text-primary outline-none focus:border-brand-primary" />
+                                        </label>
+                                        <label className="space-y-mx-tiny">
+                                            <span className="block text-mx-micro font-black uppercase tracking-widest text-text-secondary">Fim</span>
+                                            <input type="date" aria-label="Data final do período" disabled={viewMode === 'day'} value={endDate} onChange={e => {setEndDate(e.target.value); setViewMode('month')}} className="h-mx-12 w-full min-w-mx-40 rounded-mx-lg border border-border-default bg-white px-mx-sm text-sm font-black text-text-primary outline-none focus:border-brand-primary" />
+                                        </label>
+                                    </div>
+                                </div>
+                                <Button type="button" variant="outline" onClick={() => handleTabChange('metas')} className="h-mx-11 rounded-mx-xl bg-white">
+                                    <Target size={16} className="mr-2" />
+                                    Metas que alimentam a leitura
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
 
 	            {activeTab === 'metas' ? (
 	                <StoreGoalsPanel storeId={selectedStoreId} storeName={metrics.storeName} />
@@ -717,7 +899,7 @@ export default function DashboardLoja() {
 	            ) : (
 	            <>
 	            {isAdminMx && selectedStore && (
-	                <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
+	                <Card className="w-full border border-border-default shadow-mx-sm bg-white overflow-hidden">
                     <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
                         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md">
                             <div className="flex items-center gap-mx-sm min-w-0">
@@ -725,27 +907,32 @@ export default function DashboardLoja() {
                                     <Settings2 size={22} />
                                 </div>
                                 <div className="min-w-0">
-                                    <CardTitle className="text-lg md:text-xl uppercase tracking-tight">Administração da Loja</CardTitle>
-                                    <CardDescription className="uppercase tracking-widest font-black mt-1 text-mx-tiny">
-                                        {operationalLoading ? 'CARREGANDO DADOS...' : selectedStore.name.toUpperCase()}
+                                    <CardTitle className="text-lg md:text-xl tracking-tight">Administração da Loja</CardTitle>
+                                    <CardDescription className="uppercase tracking-mx-wide font-black mt-1 text-mx-tiny">
+                                        {operationalLoading ? 'CARREGANDO DADOS...' : `${selectedStore.name.toUpperCase()} · Cadastro e parâmetros separados da leitura de performance`}
                                     </CardDescription>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-mx-sm">
                                 <Button type="button" variant="outline" onClick={() => setStoreEditOpen(true)} className="h-mx-10 rounded-mx-xl">
-                                    <Building2 size={16} className="mr-2" /> EDITAR
+                                    <Building2 size={16} className="mr-2" /> Editar cadastro
                                 </Button>
-                                <Button type="button" variant="outline" onClick={() => setCreateStoreOpen(true)} className="h-mx-10 rounded-mx-xl">
-                                    <Plus size={16} className="mr-2" /> NOVA
+                                <Button type="button" variant="outline" onClick={() => navigate('/lojas')} className="h-mx-10 rounded-mx-xl">
+                                    <Building2 size={16} className="mr-2" /> Gerenciar lojas
                                 </Button>
-                                <Button type="button" variant="danger" onClick={handleDeleteStore} disabled={deletingStore} className="h-mx-10 rounded-mx-xl">
-                                    {deletingStore ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Trash2 size={16} className="mr-2" />}
-                                    EXCLUIR
+                                <Button type="button" variant={showAdminSettings ? 'secondary' : 'outline'} onClick={() => setShowAdminSettings(current => !current)} className="h-mx-10 rounded-mx-xl">
+                                    <Settings2 size={16} className="mr-2" /> {showAdminSettings ? 'Ocultar parâmetros' : 'Configurar parâmetros'}
                                 </Button>
                             </div>
                         </div>
                     </CardHeader>
+                    {showAdminSettings && (
                     <CardContent className="p-mx-lg">
+                        <div className="mb-mx-lg rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm">
+                            <Typography variant="p" tone="muted" className="text-sm">
+                                Estes parâmetros alteram metas, fonte de dados, benchmarks e entregas de relatório. A leitura de performance abaixo continua baseada nos lançamentos do período selecionado.
+                            </Typography>
+                        </div>
                         <form onSubmit={handleSettingsSubmit} className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg">
                             <section className="xl:col-span-4 space-y-mx-md">
                                 <div className="flex items-center gap-mx-xs">
@@ -779,6 +966,9 @@ export default function DashboardLoja() {
                                             <option value="legacy_forms">Forms legado</option>
                                             <option value="hybrid">Híbrido</option>
                                         </select>
+                                        <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">
+                                            {SOURCE_MODE_DESCRIPTIONS[settingsForm.source_mode]}
+                                        </Typography>
                                     </label>
                                 </div>
                                 <div className="grid grid-cols-1 gap-mx-sm">
@@ -806,14 +996,17 @@ export default function DashboardLoja() {
                                     <label className="space-y-mx-xs">
                                         <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Lead / Agendamento (%)</span>
                                         <Input type="number" min="0" step="0.01" value={settingsForm.bench_lead_agd} onChange={e => setSettingsForm(prev => ({ ...prev, bench_lead_agd: e.target.value }))} className="font-mono-numbers font-black" />
+                                        <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">Impacta a régua visual Lead → Agendamento.</Typography>
                                     </label>
                                     <label className="space-y-mx-xs">
                                         <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Agendamento / Visita (%)</span>
                                         <Input type="number" min="0" step="0.01" value={settingsForm.bench_agd_visita} onChange={e => setSettingsForm(prev => ({ ...prev, bench_agd_visita: e.target.value }))} className="font-mono-numbers font-black" />
+                                        <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">Impacta a régua visual Agendamento → Visita.</Typography>
                                     </label>
                                     <label className="space-y-mx-xs">
                                         <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Visita / Venda (%)</span>
                                         <Input type="number" min="0" step="0.01" value={settingsForm.bench_visita_vnd} onChange={e => setSettingsForm(prev => ({ ...prev, bench_visita_vnd: e.target.value }))} className="font-mono-numbers font-black" />
+                                        <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">Impacta a régua visual Visita → Venda.</Typography>
                                     </label>
                                 </div>
                             </section>
@@ -831,14 +1024,17 @@ export default function DashboardLoja() {
                                     <label className="space-y-mx-xs">
                                         <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Matinal</span>
                                         <Input value={settingsForm.matinal_recipients} onChange={e => setSettingsForm(prev => ({ ...prev, matinal_recipients: e.target.value }))} placeholder="email1@loja.com.br, email2@loja.com.br" />
+                                        <RecipientPreview value={settingsForm.matinal_recipients} />
                                     </label>
                                     <label className="space-y-mx-xs">
                                         <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Semanal</span>
                                         <Input value={settingsForm.weekly_recipients} onChange={e => setSettingsForm(prev => ({ ...prev, weekly_recipients: e.target.value }))} placeholder="email1@loja.com.br, email2@loja.com.br" />
+                                        <RecipientPreview value={settingsForm.weekly_recipients} />
                                     </label>
                                     <label className="space-y-mx-xs">
                                         <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Mensal</span>
                                         <Input value={settingsForm.monthly_recipients} onChange={e => setSettingsForm(prev => ({ ...prev, monthly_recipients: e.target.value }))} placeholder="email1@loja.com.br, email2@loja.com.br" />
+                                        <RecipientPreview value={settingsForm.monthly_recipients} />
                                     </label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                                         <label className="space-y-mx-xs">
@@ -857,21 +1053,64 @@ export default function DashboardLoja() {
                                 </div>
                             </section>
 
-                            <footer className="xl:col-span-12 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-mx-sm pt-mx-md border-t border-border-default">
+                            <footer className="xl:col-span-12 flex flex-col gap-mx-md pt-mx-md border-t border-border-default">
+                                <div className="rounded-mx-xl border border-status-error/20 bg-status-error-surface p-mx-md">
+                                    <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <Typography variant="caption" className="font-black uppercase tracking-mx-wide text-status-error">Zona de risco</Typography>
+                                            <Typography variant="p" className="mt-mx-tiny text-sm text-status-error">Arquivar preserva histórico, mas remove a loja da operação ativa.</Typography>
+                                        </div>
+                                        <Button type="button" variant="danger" onClick={handleDeleteStore} disabled={deletingStore} className="h-mx-10 rounded-mx-xl">
+                                            {deletingStore ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Archive size={16} className="mr-2" />}
+                                            Arquivar loja
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-mx-sm">
                                 <Button type="button" variant="ghost" onClick={fetchSettings} disabled={operationalLoading || savingSettings} className="h-mx-10 rounded-mx-xl">
-                                    <RefreshCw size={16} className={cn('mr-2', operationalLoading && 'animate-spin')} /> RECARREGAR
+                                    <RefreshCw size={16} className={cn('mr-2', operationalLoading && 'animate-spin')} /> Recarregar
                                 </Button>
                                 <Button type="submit" disabled={savingSettings || operationalLoading} className="h-mx-10 rounded-mx-xl bg-brand-secondary">
                                     {savingSettings ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Save size={16} className="mr-2" />}
-                                    SALVAR DADOS
+                                    Salvar dados
                                 </Button>
+                                </div>
                             </footer>
                         </form>
                     </CardContent>
+                    )}
                 </Card>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
+            {isOwner && (
+                <section className="grid grid-cols-1 gap-mx-md xl:grid-cols-3">
+                    <Card className="border border-status-warning/20 bg-status-warning-surface p-mx-lg shadow-mx-sm">
+                        <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-warning">O que eu decido hoje</Typography>
+                        <Typography variant="h3" className="mt-mx-xs uppercase text-status-warning">
+                            {ownerPerformanceAlerts[0]?.title || 'Sem decisão crítica'}
+                        </Typography>
+                        <Typography variant="p" className="mt-mx-xs text-sm text-status-warning">
+                            {ownerPerformanceAlerts[0]?.action || 'Acompanhe a execução e mantenha a cadência de gestão.'}
+                        </Typography>
+                    </Card>
+                    <Card className="border border-border-default bg-white p-mx-lg shadow-mx-sm">
+                        <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-secondary">O que eu acompanho</Typography>
+                        <Typography variant="h3" className="mt-mx-xs uppercase">Execução do gerente</Typography>
+                        <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">
+                            Disciplina diária, funil comercial e atingimento de meta ficam separados das ações operacionais.
+                        </Typography>
+                    </Card>
+                    <Card className="border border-border-default bg-white p-mx-lg shadow-mx-sm">
+                        <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-secondary">Financeiro</Typography>
+                        <Typography variant="h3" className="mt-mx-xs uppercase">{latestDRE ? 'DRE disponível' : 'DRE pendente'}</Typography>
+                        <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">
+                            {latestDRE ? 'Use o resultado líquido como contexto da decisão comercial.' : 'Solicite ao Admin MX o cadastro do DRE para conectar performance e margem.'}
+                        </Typography>
+                    </Card>
+                </section>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-mx-md md:gap-mx-lg shrink-0">
                 <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-white/5 rounded-mx-full blur-3xl -mr-16 -mt-16" />
                     <Typography variant="tiny" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Meta de Vendas</Typography>
@@ -888,21 +1127,47 @@ export default function DashboardLoja() {
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-info-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Escoamento Médio</Typography>
+                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Leads Gerados</Typography>
                     <div className="flex items-baseline gap-mx-xs mb-2">
                         <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalLeads}</Typography>
                         <Typography variant="h3" tone="muted" className="text-xl font-black uppercase opacity-20">LEADS</Typography>
                     </div>
-                    <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest text-mx-tiny">{metrics.totalVis} VISITAS EFETUADAS</Typography>
+                    <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest text-mx-tiny">ENTRADA DO FUNIL</Typography>
+                </Card>
+
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
+                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-warning-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Visitas Realizadas</Typography>
+                    <div className="flex items-baseline gap-mx-xs mb-2">
+                        <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalVis}</Typography>
+                        <Typography variant="h3" tone="muted" className="text-xl font-black uppercase opacity-20">VIS</Typography>
+                    </div>
+                    <Typography variant="tiny" tone="warning" className="font-black uppercase tracking-widest text-mx-tiny">MEIO DO FUNIL</Typography>
                 </Card>
 
                 <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
                     <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-success-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Saúde Disciplinar</Typography>
+                    <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">
+                        <GlossaryHint term="Saúde Disciplinar" definition="Percentual da equipe que realizou o lançamento diário obrigatório." />
+                    </Typography>
                     <Typography variant="h1" tone={metrics.checkedInCount < (sellers || []).length ? 'error' : 'success'} className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">
                         {metrics.checkedInCount}<span className="text-text-tertiary text-2xl font-black">/{(sellers || []).length}</span>
                     </Typography>
                     <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">REGISTROS SINCRONIZADOS</Typography>
+                    {pendingDisciplineSellers.length > 0 && (
+                        <div className="mt-mx-sm rounded-mx-xl border border-status-warning/20 bg-status-warning-surface p-mx-sm">
+                            <Typography variant="tiny" className="block font-black uppercase tracking-widest text-status-warning">Pendentes</Typography>
+                            <Typography variant="p" className="mt-mx-tiny text-sm text-status-warning line-clamp-2">
+                                {pendingDisciplineSellers.slice(0, 3).map(seller => seller.name).join(', ')}
+                                {pendingDisciplineSellers.length > 3 ? ` +${pendingDisciplineSellers.length - 3}` : ''}
+                            </Typography>
+                            {role === 'gerente' && (
+                                <Button type="button" variant="outline" size="sm" onClick={() => navigate('/rotina')} className="mt-mx-sm h-mx-9 rounded-mx-lg bg-white text-status-warning">
+                                    Resolver na rotina
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </Card>
 
                 {/* DRE Summary for Owner/Admin */}
@@ -921,8 +1186,10 @@ export default function DashboardLoja() {
                 {(isPerfilInternoMx(role) || role === 'dono') && !latestDRE && (
                    <Card className="p-mx-lg bg-white shadow-mx-lg border-none">
                        <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny text-brand-primary">Lucratividade Preditiva (DRE)</Typography>
-                       <Typography variant="h3" className="mb-mx-xs uppercase">Sem DRE cadastrado</Typography>
-                       <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">RESULTADO INDISPONÍVEL</Typography>
+                       <Typography variant="h3" className="mb-mx-xs uppercase">DRE pendente</Typography>
+                       <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">
+                           {isOwner ? 'SOLICITE CADASTRO AO ADMIN MX' : 'RESULTADO INDISPONÍVEL'}
+                       </Typography>
                    </Card>
                 )}
                 </div>
@@ -932,13 +1199,13 @@ export default function DashboardLoja() {
                     <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">
                             <div>
-                                <CardTitle className="text-lg md:text-xl uppercase tracking-tighter">{role === 'gerente' ? 'Visao Gerencial' : 'Visao do Dono'}</CardTitle>
+                                <CardTitle className="text-lg md:text-xl uppercase tracking-tighter">{role === 'gerente' ? 'Visão Gerencial' : isOwner ? 'Decisões do Dono' : 'Visão do Dono'}</CardTitle>
                                 <CardDescription className="uppercase tracking-widest font-black mt-1 text-mx-tiny">
-                                    ALERTAS DE PERFORMANCE, ROTINA E FUNIL
+                                    {isOwner ? 'IMPACTO FINANCEIRO, COMERCIAL E DISCIPLINAR PRIORIZADO' : 'ALERTAS DE PERFORMANCE, ROTINA E FUNIL'}
                                 </CardDescription>
                             </div>
                             <Badge variant={ownerPerformanceAlerts.some(alert => alert.variant === 'danger') ? 'danger' : ownerPerformanceAlerts.some(alert => alert.variant === 'warning') ? 'warning' : 'success'} className="rounded-mx-full px-3 py-1 w-fit">
-                                {ownerPerformanceAlerts.some(alert => alert.variant === 'danger') ? 'ACAO NECESSARIA' : ownerPerformanceAlerts.some(alert => alert.variant === 'warning') ? 'PONTO DE ATENCAO' : 'DENTRO DO RITMO'}
+                                {ownerPerformanceAlerts.some(alert => alert.variant === 'danger') ? 'AÇÃO NECESSÁRIA' : ownerPerformanceAlerts.some(alert => alert.variant === 'warning') ? 'PONTO DE ATENÇÃO' : 'DENTRO DO RITMO'}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -949,11 +1216,19 @@ export default function DashboardLoja() {
                                     <div className="flex items-start justify-between gap-mx-sm mb-mx-sm">
                                         <Typography variant="p" className="font-black uppercase text-sm leading-tight">{alert.title}</Typography>
                                         <Badge variant={alert.variant} className="rounded-mx-full px-2 py-0.5 shrink-0">
-                                            {alert.variant === 'success' ? 'OK' : alert.variant === 'warning' ? 'ATENCAO' : 'CRITICO'}
+                                            {alert.variant === 'success' ? 'OK' : alert.variant === 'warning' ? 'ATENÇÃO' : alert.variant === 'outline' ? 'VALIDAR' : 'CRÍTICO'}
                                         </Badge>
                                     </div>
+                                    {isOwner && (
+                                        <Typography variant="tiny" tone="muted" className="mb-mx-xs block font-black uppercase tracking-widest">
+                                            Impacto {alert.impact}
+                                        </Typography>
+                                    )}
                                     <Typography variant="tiny" tone="muted" className="block mb-mx-sm">{alert.description}</Typography>
                                     <Typography variant="tiny" className="font-black uppercase tracking-tight">{alert.action}</Typography>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => navigate(alert.ctaTo)} className="mt-mx-sm h-mx-9 rounded-mx-lg bg-white">
+                                        {alert.ctaLabel}
+                                    </Button>
                                 </div>
                             ))}
                         </div>
@@ -1000,6 +1275,9 @@ export default function DashboardLoja() {
                                         )} 
                                     />
                                 </div>
+                                <Typography variant="p" tone="muted" className="text-sm">
+                                    {funnelInterpretation(step.val, step.bench)}
+                                </Typography>
                             </div>
                         ))}
                     </div>
@@ -1011,8 +1289,8 @@ export default function DashboardLoja() {
                     <Card className="border-none shadow-mx-lg bg-white overflow-hidden flex-1">
                         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
                             <div>
-                                <CardTitle className="text-xl md:text-2xl uppercase tracking-tighter">{viewMode === 'day' ? 'Grade Diária' : 'Classificação Unidade'}</CardTitle>
-                                <CardDescription className="font-black uppercase tracking-widest mt-1 text-mx-tiny">AUDITORIA DE PERFORMANCE INDIVIDUAL</CardDescription>
+                                <CardTitle className="text-xl md:text-2xl">{viewMode === 'day' ? 'Grade Diária' : 'Ranking da Unidade'}</CardTitle>
+                                <CardDescription className="font-black uppercase tracking-mx-wide mt-1 text-mx-tiny">Performance individual para ação gerencial</CardDescription>
                             </div>
                             <div className="relative group w-full sm:w-mx-sidebar-expanded">
                                 <Search size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
@@ -1020,7 +1298,21 @@ export default function DashboardLoja() {
                                 <Input id="dashboard-seller-search" name="dashboard-seller-search" placeholder="BUSCAR..." value={sellerSearch} onChange={e => setSellerSearch(e.target.value)} className="!pl-10 !h-10 text-mx-tiny font-black uppercase" />
                             </div>
                         </CardHeader>
-                        <DataGrid columns={columns} data={filteredRanking} emptyMessage="Nenhum especialista localizado." />
+                        <div className="border-b border-border-default bg-white px-mx-lg py-mx-sm">
+                            <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
+                                <Typography variant="p" tone="muted" className="text-sm">
+                                    Use a busca para localizar vendedor e abrir ações de devolutiva, PDI ou rotina sem depender de estética competitiva.
+                                </Typography>
+                                {sellerSearch.trim() && filteredRanking.length > 0 && (
+                                    <div className="flex flex-wrap gap-mx-xs">
+                                        <Button type="button" variant="outline" size="sm" onClick={() => navigate('/devolutivas')} className="h-mx-9 rounded-mx-lg bg-white">Devolutiva</Button>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => navigate('/pdi')} className="h-mx-9 rounded-mx-lg bg-white">PDI</Button>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => navigate('/rotina')} className="h-mx-9 rounded-mx-lg bg-white">Rotina</Button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <DataGrid columns={columns} data={filteredRanking} emptyMessage="Nenhum especialista localizado." emptyDescription="Limpe a busca ou confirme se a equipe ativa realizou lançamentos no período selecionado." />
                     </Card>
                 </section>
 

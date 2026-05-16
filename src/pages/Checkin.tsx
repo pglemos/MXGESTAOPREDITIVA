@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { CHECKIN_DEADLINE_LABEL, CHECKIN_EDIT_LIMIT_LABEL, CHECKIN_MAX_INPUT_VALUE, CHECKIN_ZERO_REASONS, canEditCurrentCheckin, isCheckinLate, useCheckins } from '@/hooks/useCheckins'
+import { CHECKIN_DEADLINE_LABEL, CHECKIN_EDIT_LIMIT_LABEL, CHECKIN_EDIT_LIMIT_MINUTES, CHECKIN_MAX_INPUT_VALUE, CHECKIN_ZERO_REASONS, MX_TIMEZONE, canEditCurrentCheckin, isCheckinLate, useCheckins } from '@/hooks/useCheckins'
 import { validarFunil, calcularTotais } from '@/lib/calculations'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'motion/react'
 import {
     CheckSquare, Users, Globe, Car, Eye, Send, Sparkles,
-    MessageSquare, AlertTriangle, ChevronLeft, Minus, Plus, Zap,
-    ArrowLeft, Target, TrendingUp, Info, RefreshCw, Trash2,
-    X, History, CalendarDays, ShieldCheck, Smartphone, UserCheck
+    MessageSquare, AlertTriangle, Minus, Plus, Zap,
+    RefreshCw,
+    X, History, CalendarDays, ShieldCheck, Smartphone, UserCheck, Clock
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -35,6 +35,10 @@ interface CheckinForm {
     zero_reason: string
 }
 
+type NumericCheckinField = Exclude<keyof CheckinForm, 'note' | 'zero_reason'>
+
+const CHECKIN_MAX_INPUT_HELP = `O teto ${CHECKIN_MAX_INPUT_VALUE} evita erro de digitação, importação duplicada ou lançamento fora da escala operacional.`
+
 export default function Checkin() {
     const { profile, role, membership, storeId } = useAuth()
     const navigate = useNavigate()
@@ -45,7 +49,9 @@ export default function Checkin() {
     const [metricScope, setMetricScope] = useState<'daily' | 'adjustment'>('daily')
     const [currentTime, setCurrentTime] = useState(() => new Date())
     const [inputError, setInputError] = useState<string | null>(null)
+    const [fieldErrors, setFieldErrors] = useState<Partial<Record<NumericCheckinField | 'note' | 'zero_reason', string>>>({})
     const [numberDrafts, setNumberDrafts] = useState<Partial<Record<keyof CheckinForm, string>>>({})
+    const [saveNotice, setSaveNotice] = useState<{ title: string; detail: string } | null>(null)
     
     const [form, setForm] = useState<CheckinForm>({
         leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '',
@@ -111,15 +117,45 @@ export default function Checkin() {
     }, [changedFields, saving])
 
     const isLate = isCheckinLate(currentTime); const canEditExisting = canEditCurrentCheckin(currentTime)
+    const minutesUntilEditLock = useMemo(() => {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: MX_TIMEZONE,
+            hour: '2-digit',
+            minute: '2-digit',
+            hourCycle: 'h23',
+        }).formatToParts(currentTime)
+        const byType = new Map(parts.map(part => [part.type, part.value]))
+        const currentMinutes = Number(byType.get('hour')) * 60 + Number(byType.get('minute'))
+        return CHECKIN_EDIT_LIMIT_MINUTES - currentMinutes
+    }, [currentTime])
+    const deadlineMessage = useMemo(() => {
+        if (minutesUntilEditLock < 0) return `Bloqueado desde ${CHECKIN_EDIT_LIMIT_LABEL}.`
+        const lockText = minutesUntilEditLock === 0 ? 'menos de 1 min' : `${minutesUntilEditLock} min`
+        return isLate
+            ? `Prazo oficial passou às ${CHECKIN_DEADLINE_LABEL}. Edição bloqueia em ${lockText}.`
+            : `No prazo. Edição bloqueia em ${lockText}.`
+    }, [isLate, minutesUntilEditLock])
     const allZero = useMemo(() => form.leads === 0 && totals.agd_total === 0 && form.visitas === 0 && totals.vnd_total === 0, [form.leads, totals])
     const funnelError = useMemo(() => { try { return validarFunil(form) } catch { return "Erro de validação" } }, [form])
+
+    const setFieldError = (field: NumericCheckinField | 'note' | 'zero_reason', message: string | null) => {
+        setFieldErrors(prev => {
+            const next = { ...prev }
+            if (message) next[field] = message
+            else delete next[field]
+            return next
+        })
+    }
 
     const updateField = (field: keyof CheckinForm, value: number | string) => {
         if (typeof value === 'number' && (!Number.isFinite(value) || value < 0 || value > CHECKIN_MAX_INPUT_VALUE)) {
             setInputError(`Informe um valor entre 0 e ${CHECKIN_MAX_INPUT_VALUE}.`)
+            setFieldError(field as NumericCheckinField, `Use um número entre 0 e ${CHECKIN_MAX_INPUT_VALUE}.`)
             return
         }
         setInputError(null)
+        setFieldError(field as NumericCheckinField, null)
+        setSaveNotice(null)
         setForm(prev => ({ ...prev, [field]: value }))
         setChangedFields(prev => new Set(prev).add(field))
     }
@@ -129,9 +165,16 @@ export default function Checkin() {
         setChangedFields(prev => new Set(prev).add(field))
         if (rawValue === '') {
             setInputError(null)
+            setFieldError(field as NumericCheckinField, 'Campo obrigatório antes de salvar.')
             return
         }
         const numericValue = Number(rawValue)
+        if (!Number.isFinite(numericValue) || numericValue < 0 || numericValue > CHECKIN_MAX_INPUT_VALUE) {
+            setFieldError(field as NumericCheckinField, `Use um número de 0 a ${CHECKIN_MAX_INPUT_VALUE}.`)
+            setInputError(`Revise ${rawValue}: ${CHECKIN_MAX_INPUT_HELP}`)
+            return
+        }
+        setFieldError(field as NumericCheckinField, null)
         updateField(field, numericValue)
     }
 
@@ -163,30 +206,45 @@ export default function Checkin() {
         e.preventDefault()
         if (saving) return 
         if (Object.values(numberDrafts).some(value => value === '')) {
+            const emptyFields = Object.entries(numberDrafts)
+                .filter(([, value]) => value === '')
+                .map(([field]) => field as NumericCheckinField)
+            emptyFields.forEach(field => setFieldError(field, 'Preencha este campo ou use 0.'))
+            setInputError('Preencha os campos numéricos vazios antes de salvar.')
             toast.error('Preencha os campos numéricos vazios antes de salvar.')
             return
         }
         if (!canEditExisting && metricScope === 'daily') {
+            setInputError(`Lançamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`)
             toast.error(`Lançamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`); return
         }
-        if (allZero && !form.zero_reason) { toast.error('Justificativa obrigatória para produção zero.'); return }
+        if (allZero && !form.zero_reason) {
+            setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
+            setInputError('Justificativa obrigatória para produção zero.')
+            toast.error('Justificativa obrigatória para produção zero.')
+            return
+        }
         if (allZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
+            setFieldError('note', 'Descreva o motivo “Outro” com pelo menos 8 caracteres.')
+            setInputError('Descreva o motivo com pelo menos 8 caracteres quando selecionar Outro.')
             toast.error('Descreva o motivo quando selecionar Outro.')
             return
         }
-        if (funnelError) { toast.error(funnelError); return }
+        if (funnelError) { setInputError(funnelError); toast.error(funnelError); return }
 
         setSaving(true)
         const { error } = await saveCheckin(form, metricScope, customReferenceDate)
         if (error) { setSaving(false); toast.error(error); return }
         setChangedFields(new Set())
 
-        if (totals.vnd_total > 0) {
-            setShowConfetti(true); toast.success(`🎉 Vitória! ${totals.vnd_total} vendas consolidadas!`)
-            timerRef.current = setTimeout(() => navigate('/home'), 2500)
-        } else {
-            toast.success('Ritual MX sincronizado!'); navigate('/home')
-        }
+        setFieldErrors({})
+        setSaveNotice({
+            title: totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Lançamento salvo.',
+            detail: 'Você pode revisar os números, abrir o histórico ou voltar para o início sem espera automática.',
+        })
+        if (totals.vnd_total > 0) setShowConfetti(true)
+        toast.success(totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Lançamento salvo.')
+        timerRef.current = setTimeout(() => setShowConfetti(false), 1200)
     }
 
     const todayDisplay = new Date(referenceDate + 'T12:00:00')
@@ -194,10 +252,10 @@ export default function Checkin() {
     const previousDayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'previous_day').length
     const todayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'today').length
 
-    const NumberInput = ({ label, icon: Icon, field, tone }: { label: string; icon: LucideIcon; field: keyof CheckinForm; tone: 'brand' | 'success' | 'warning' | 'info' | 'error' }) => (
+    const NumberInput = ({ label, icon: Icon, field, tone }: { label: string; icon: LucideIcon; field: NumericCheckinField; tone: 'brand' | 'success' | 'warning' | 'info' | 'error' }) => (
         <Card className={cn(
-            "flex min-h-mx-32 flex-col justify-between gap-mx-md rounded-mx-2xl border bg-white p-mx-md shadow-mx-sm transition-all hover:shadow-mx-md",
-            changedFields.has(field) ? "border-brand-primary/40 ring-2 ring-brand-primary/10" : "border-border-default"
+            "flex min-h-mx-24 flex-col justify-between gap-mx-sm rounded-mx-2xl border bg-white p-mx-md shadow-mx-sm transition-all hover:shadow-mx-md",
+            fieldErrors[field] ? "border-status-error/40 ring-2 ring-status-error/10" : changedFields.has(field) ? "border-brand-primary/40 ring-2 ring-brand-primary/10" : "border-border-default"
         )}>
             <div className="flex items-center gap-mx-sm min-w-0">
                 <div className={cn("w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center border shrink-0",
@@ -219,16 +277,18 @@ export default function Checkin() {
                     max={CHECKIN_MAX_INPUT_VALUE}
                     name={String(field)}
                     aria-label={label}
-                    aria-describedby={inputError ? 'checkin-input-error' : undefined}
+                    aria-invalid={Boolean(fieldErrors[field])}
+                    aria-describedby={fieldErrors[field] ? `checkin-error-${field}` : `checkin-limit-${field}`}
                     value={numberDrafts[field] ?? String(form[field] as number)}
                     onChange={(event) => updateNumberField(field, event.target.value)}
                     onBlur={() => commitNumberField(field)}
-                    className="min-w-0 w-mx-24 bg-transparent text-4xl tabular-nums leading-none font-black text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20 rounded-mx-md sm:text-5xl"
+                    className="min-w-0 w-mx-24 bg-transparent text-3xl tabular-nums leading-none font-black text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20 rounded-mx-md sm:text-4xl"
                 />
                 <div className="flex items-center gap-mx-xs shrink-0">
                     <Button
                         type="button" variant="outline" size="icon"
                         aria-label={`Diminuir ${label}`}
+                        disabled={(form[field] as number) <= 0}
                         onClick={() => updateField(field, (form[field] as number) - 1)}
                         className="w-mx-11 h-mx-11 rounded-mx-xl border-border-default hover:bg-status-error-surface hover:text-status-error hover:border-mx-rose-100 shadow-sm"
                     >
@@ -237,6 +297,7 @@ export default function Checkin() {
                     <Button
                         type="button" variant="outline" size="icon"
                         aria-label={`Aumentar ${label}`}
+                        disabled={(form[field] as number) >= CHECKIN_MAX_INPUT_VALUE}
                         onClick={() => updateField(field, (form[field] as number) + 1)}
                         className="w-mx-11 h-mx-11 rounded-mx-xl border-border-default hover:bg-status-success-surface hover:text-status-success hover:border-mx-emerald-100 shadow-sm"
                     >
@@ -244,6 +305,15 @@ export default function Checkin() {
                     </Button>
                 </div>
             </div>
+            {fieldErrors[field] ? (
+                <Typography id={`checkin-error-${field}`} variant="tiny" tone="error" className="font-black uppercase tracking-tight">
+                    {fieldErrors[field]}
+                </Typography>
+            ) : (
+                <Typography id={`checkin-limit-${field}`} variant="tiny" tone="muted" className="font-black uppercase tracking-tight">
+                    Digite direto ou ajuste por unidade. 0 a {CHECKIN_MAX_INPUT_VALUE}.
+                </Typography>
+            )}
         </Card>
     )
 
@@ -272,7 +342,9 @@ export default function Checkin() {
             
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center bg-white/20 backdrop-blur-sm" aria-hidden="true">
-                    <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: [0, 1.5, 1], rotate: 0 }} className="text-mx-huge">🎉</motion.div>
+                    <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: [0, 1.25, 1], rotate: 0 }} className="flex h-mx-32 w-mx-32 items-center justify-center rounded-mx-4xl bg-brand-primary text-white shadow-mx-2xl">
+                        <Sparkles size={64} aria-hidden="true" />
+                    </motion.div>
                 </div>
             )}
 
@@ -329,6 +401,14 @@ export default function Checkin() {
                             {canEditExisting || metricScope === 'adjustment' ? 'Edição Habilitada' : 'Visualização Somente'}
                         </Badge>
                     )}
+                    <div className={cn(
+                        "w-full rounded-mx-xl border px-mx-md py-mx-sm text-left sm:w-auto",
+                        canEditExisting ? 'border-status-success/20 bg-status-success-surface' : 'border-status-error/20 bg-status-error-surface'
+                    )}>
+                        <Typography variant="tiny" tone={canEditExisting ? 'success' : 'error'} className="font-black uppercase tracking-tight">
+                            {deadlineMessage}
+                        </Typography>
+                    </div>
                     <Button variant="outline" size="icon" onClick={handleExit} aria-label="Voltar ao início" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
                         <X size={24} />
                     </Button>
@@ -339,17 +419,36 @@ export default function Checkin() {
                 
                 {/* Form Core */}
                 <div className="flex-1 space-y-mx-lg">
+                    {minutesUntilEditLock <= 15 && minutesUntilEditLock >= 0 && metricScope === 'daily' && (
+                        <Card className="p-mx-md border border-status-warning/20 bg-status-warning-surface shadow-mx-sm">
+                            <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-start gap-mx-sm">
+                                    <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-white text-status-warning border border-status-warning/20 flex items-center justify-center shrink-0">
+                                        <Clock size={20} />
+                                    </div>
+                                    <div>
+                                        <Typography variant="h3" tone="warning" className="uppercase tracking-tight">Bloqueio próximo</Typography>
+                                        <Typography variant="p" tone="warning" className="text-sm font-bold">
+                                            Faltam {minutesUntilEditLock === 0 ? 'menos de 1 minuto' : `${minutesUntilEditLock} minutos`} para o fechamento das edições diárias.
+                                        </Typography>
+                                    </div>
+                                </div>
+                                <Badge variant="warning" className="w-fit rounded-mx-full px-4 py-1">Até {CHECKIN_EDIT_LIMIT_LABEL}</Badge>
+                            </div>
+                        </Card>
+                    )}
+
                     <Card className="p-mx-md sm:p-mx-lg border border-border-default shadow-mx-sm bg-white">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                             <div className="rounded-mx-xl bg-status-success-surface border border-status-success/10 p-mx-md">
                                 <Typography variant="tiny" tone="success" className="font-black uppercase tracking-widest">Dia anterior</Typography>
-                                <Typography variant="p" className="font-black mt-1">{previousDayFieldsCount} campos de producao</Typography>
+                                <Typography variant="p" className="font-black mt-1">{previousDayFieldsCount} campos de produção</Typography>
                                 <Typography variant="tiny" tone="muted">Leads, visitas, vendas e justificativa quando tudo estiver zerado.</Typography>
                             </div>
                             <div className="rounded-mx-xl bg-brand-primary/5 border border-brand-primary/10 p-mx-md">
                                 <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Hoje</Typography>
                                 <Typography variant="p" className="font-black mt-1">{todayFieldsCount} campos de rotina</Typography>
-                                <Typography variant="tiny" tone="muted">Agenda carteira, agenda internet e observacao operacional.</Typography>
+                                <Typography variant="tiny" tone="muted">Agenda carteira, agenda internet e observação operacional.</Typography>
                             </div>
                         </div>
                     </Card>
@@ -430,6 +529,20 @@ export default function Checkin() {
                         )}
                     </AnimatePresence>
 
+                    <Card className="p-mx-md border border-border-default bg-white shadow-mx-sm">
+                        <div className="flex flex-col gap-mx-xs sm:flex-row sm:items-start sm:justify-between">
+                            <div className="space-y-mx-xs">
+                                <Typography variant="h3" className="uppercase tracking-tight">Regra de produção zero</Typography>
+                                <Typography variant="p" tone="muted" className="text-sm">
+                                    Se leads, visitas, agendamentos e vendas ficarem zerados, o motivo passa a ser obrigatório. Se escolher “Outro”, descreva no campo Observações com pelo menos 8 caracteres.
+                                </Typography>
+                            </div>
+                            <Badge variant={allZero ? 'warning' : 'outline'} className="w-fit rounded-mx-full px-4 py-1">
+                                {allZero ? 'Justificativa necessária' : 'Sem justificativa agora'}
+                            </Badge>
+                        </div>
+                    </Card>
+
                     {/* Zero Reason */}
                     <AnimatePresence>
                         {allZero && (
@@ -449,16 +562,42 @@ export default function Checkin() {
                                             id="checkin-zero-reason"
                                             name="zero_reason"
                                             value={form.zero_reason} onChange={e => updateField('zero_reason', e.target.value)}
+                                            aria-invalid={Boolean(fieldErrors.zero_reason)}
+                                            aria-describedby={fieldErrors.zero_reason ? 'checkin-error-zero-reason' : undefined}
                                             className="w-full h-mx-2xl px-8 bg-mx-black text-white rounded-mx-2xl text-lg font-black uppercase tracking-widest outline-none shadow-mx-xl border-none focus:ring-8 focus:ring-white/10 transition-all appearance-none cursor-pointer"
                                         >
                                             <option value="">Selecione o motivo...</option>
                                             {CHECKIN_ZERO_REASONS.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
                                         </select>
+                                        {fieldErrors.zero_reason && (
+                                            <Typography id="checkin-error-zero-reason" variant="tiny" className="mt-mx-sm block font-black uppercase tracking-tight text-mx-black">
+                                                {fieldErrors.zero_reason}
+                                            </Typography>
+                                        )}
                                     </div>
                                 </Card>
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    {saveNotice && (
+                        <Card className="p-mx-md border border-status-success/20 bg-status-success-surface shadow-mx-sm">
+                            <div className="flex flex-col gap-mx-md sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <Typography variant="h3" tone="success" className="uppercase tracking-tight">{saveNotice.title}</Typography>
+                                    <Typography variant="p" tone="success" className="text-sm font-bold">{saveNotice.detail}</Typography>
+                                </div>
+                                <div className="flex flex-col gap-mx-xs sm:flex-row">
+                                    <Button type="button" variant="outline" onClick={() => navigate('/historico')} className="rounded-mx-xl bg-white">
+                                        <History size={16} className="mr-2" /> Histórico
+                                    </Button>
+                                    <Button type="button" onClick={() => navigate('/home')} className="rounded-mx-xl">
+                                        Voltar ao início
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
 
                     {/* Finalization */}
                     <Card className="p-mx-md sm:p-mx-10 md:p-14 space-y-mx-8 md:space-y-mx-10 border-none shadow-mx-lg bg-white">
@@ -470,10 +609,17 @@ export default function Checkin() {
                                 id="checkin-note"
                                 name="note"
                                 value={form.note} onChange={e => updateField('note', e.target.value)} maxLength={280}
+                                aria-invalid={Boolean(fieldErrors.note)}
+                                aria-describedby={fieldErrors.note ? 'checkin-error-note' : undefined}
                                 placeholder="Descreva aqui eventos críticos ou detalhes de fechamento estratégico..."
                                 className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-10 text-lg font-bold text-text-primary placeholder:text-text-tertiary/30 focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner min-h-mx-48"
                             />
-                            <div className="flex justify-end pr-6">
+                            <div className="flex flex-col gap-mx-xs pr-6 sm:flex-row sm:items-center sm:justify-between">
+                                {fieldErrors.note && (
+                                    <Typography id="checkin-error-note" variant="tiny" tone="error" className="font-black uppercase tracking-tight">
+                                        {fieldErrors.note}
+                                    </Typography>
+                                )}
                                 <Typography variant="mono" tone="muted" className="text-mx-tiny">{form.note.length}/280</Typography>
                             </div>
                         </div>

@@ -1,0 +1,79 @@
+import { Link } from 'react-router-dom'
+import { Bell, CheckSquare, History, LifeBuoy, MessageSquare, Phone, UserRound } from 'lucide-react'
+import { Card } from '@/components/molecules/Card'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { Badge } from '@/components/atoms/Badge'
+
+export default function VendedorAjuda() {
+  return (
+    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+      <header className="flex flex-col gap-mx-tiny border-b border-border-default pb-10 shrink-0">
+        <div className="flex items-center gap-mx-sm">
+          <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
+          <Typography variant="h1">Ajuda do <span className="text-mx-green-700">Ritual</span></Typography>
+        </div>
+        <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide font-black">
+          Suporte operacional para o vendedor
+        </Typography>
+      </header>
+
+      <section className="grid grid-cols-1 gap-mx-lg lg:grid-cols-3 pb-32">
+        <Card className="border-none bg-white p-mx-lg shadow-mx-lg lg:col-span-2">
+          <div className="flex items-start gap-mx-md">
+            <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+              <LifeBuoy size={28} />
+            </div>
+            <div className="space-y-mx-xs">
+              <Typography variant="h2" className="uppercase tracking-tight">Precisa destravar algo hoje?</Typography>
+              <Typography variant="p" tone="muted" className="text-sm">
+                Use esta rota para saber onde agir sem procurar no menu. Problemas de número, prazo, correção ou feedback devem seguir um caminho claro antes de acionar o gestor.
+              </Typography>
+            </div>
+          </div>
+
+          <div className="mt-mx-lg grid grid-cols-1 gap-mx-sm sm:grid-cols-2">
+            {[
+              { title: 'Lançamento de hoje', desc: 'Preencher ou revisar produção D-1 e agenda de hoje.', icon: CheckSquare, to: '/lancamento-diario' },
+              { title: 'Corrigir um dia', desc: 'Abrir histórico e pedir ajuste com motivo.', icon: History, to: '/historico' },
+              { title: 'Alertas pendentes', desc: 'Ver cobranças, feedbacks e avisos obrigatórios.', icon: Bell, to: '/notificacoes' },
+              { title: 'Devolutivas', desc: 'Confirmar ciência e ver próximos passos do gestor.', icon: MessageSquare, to: '/devolutivas' },
+            ].map(item => (
+              <Button key={item.title} asChild variant="outline" className="h-auto justify-start rounded-mx-2xl bg-white p-mx-md text-left">
+                <Link to={item.to}>
+                  <item.icon size={18} className="mr-mx-sm shrink-0 text-brand-primary" />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-black uppercase tracking-tight text-text-primary">{item.title}</span>
+                    <span className="block text-xs font-bold normal-case tracking-normal text-text-tertiary">{item.desc}</span>
+                  </span>
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
+          <div className="space-y-mx-md">
+            <Badge variant="brand" className="rounded-mx-full px-4 py-1">Escala de suporte</Badge>
+            <div className="space-y-mx-sm">
+              <div className="flex items-start gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+                <UserRound size={18} className="mt-0.5 text-brand-primary" />
+                <div>
+                  <Typography variant="caption" className="font-black uppercase tracking-tight">1. Gerente da unidade</Typography>
+                  <Typography variant="p" tone="muted" className="text-xs">Correção de lançamento, dúvida de meta ou devolutiva.</Typography>
+                </div>
+              </div>
+              <div className="flex items-start gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+                <Phone size={18} className="mt-0.5 text-brand-primary" />
+                <div>
+                  <Typography variant="caption" className="font-black uppercase tracking-tight">2. Admin MX</Typography>
+                  <Typography variant="p" tone="muted" className="text-xs">Acesso, produto digital, configuração de perfil ou erro técnico persistente.</Typography>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </section>
+    </main>
+  )
+}

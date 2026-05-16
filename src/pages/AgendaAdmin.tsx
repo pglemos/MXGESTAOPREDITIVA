@@ -742,6 +742,7 @@ export default function AgendaAdmin() {
                 icon={<CalendarDays />}
                 title="Nenhuma visita encontrada"
                 description="Não há agendamentos para o período selecionado."
+                nextStep="Altere o período, limpe os filtros ou cadastre um novo agendamento."
               />
             </Card>
           ) : (

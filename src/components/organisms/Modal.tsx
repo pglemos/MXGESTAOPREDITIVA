@@ -6,7 +6,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { X } from 'lucide-react'
 
 const modalSizeVariants = cva(
-  'w-[calc(100vw-2rem)] bg-white shadow-mx-xl rounded-mx-2xl sm:rounded-mx-3xl overflow-hidden flex flex-col max-h-[90vh]',
+  'w-auto sm:w-full bg-white shadow-mx-lg rounded-mx-2xl sm:rounded-mx-3xl overflow-hidden flex flex-col',
   {
     variants: {
       size: {
@@ -51,7 +51,7 @@ export function Modal({
         <Dialog.Overlay className="fixed inset-0 bg-mx-black/60 backdrop-blur-md z-[100]" />
         <Dialog.Content
           className={cn(
-            'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] focus:outline-none',
+            'fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none',
             modalSizeVariants({ size }),
             className
           )}
@@ -71,6 +71,7 @@ export function Modal({
               <Dialog.Close asChild>
                 <button
                   type="button"
+                  aria-label="Fechar modal"
                   className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all shrink-0"
                 >
                   <X size={20} />
@@ -79,12 +80,12 @@ export function Modal({
             )}
           </div>
 
-          <div className="p-mx-md sm:p-mx-lg overflow-y-auto flex-1">
+          <div className="p-mx-md sm:p-mx-lg overflow-y-auto overscroll-contain no-scrollbar flex-1">
             {children}
           </div>
 
           {footer && (
-            <div className="p-mx-md sm:p-mx-lg border-t border-border-default flex flex-col-reverse sm:flex-row sm:justify-end gap-mx-sm sticky bottom-mx-0 bg-white shrink-0">
+            <div className="p-mx-md sm:p-mx-lg border-t border-border-default flex flex-col-reverse sm:flex-row sm:justify-end gap-mx-sm sticky bottom-mx-0 bg-white shrink-0" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1rem)' }}>
               {footer}
             </div>
           )}

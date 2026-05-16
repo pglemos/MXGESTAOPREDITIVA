@@ -74,7 +74,7 @@ export function SellerProfileModal({ seller, onClose }: SellerProfileModalProps)
 
                     <div className="flex gap-mx-xs justify-center w-full flex-wrap mb-8">
                         {badge === 'fire' && <div className="p-mx-xs bg-status-warning-surface text-status-warning rounded-xl border border-status-warning/30" title="On Fire"><Flame className="w-mx-sm h-mx-sm" /></div>}
-                        {badge === 'crown' && <div className="p-mx-xs bg-status-warning-surface text-status-warning rounded-xl border border-status-warning/30" title="Rei da Arena"><Crown className="w-mx-sm h-mx-sm" /></div>}
+                        {badge === 'crown' && <div className="p-mx-xs bg-status-warning-surface text-status-warning rounded-xl border border-status-warning/30" title="Líder do ranking"><Crown className="w-mx-sm h-mx-sm" /></div>}
                         {trend === 'up' && <div className="p-mx-xs bg-status-success-surface text-status-success rounded-xl border border-status-success/30" title="Em Ascensão"><TrendingUp className="w-mx-sm h-mx-sm" /></div>}
                     </div>
 

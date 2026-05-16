@@ -21,6 +21,7 @@ export interface DataGridProps<T> {
   data: T[]
   loading?: boolean
   emptyMessage?: string
+  emptyDescription?: string
   rowClassName?: string
   onRowClick?: (item: T) => void
   minWidth?: string
@@ -37,6 +38,7 @@ function DataGridInner<T extends { id: string | number }>({
   data,
   loading,
   emptyMessage = "Nenhum registro localizado na malha.",
+  emptyDescription,
   rowClassName,
   onRowClick,
   minWidth = "min-w-mx-table",
@@ -60,6 +62,11 @@ function DataGridInner<T extends { id: string | number }>({
         <Typography variant="caption" className="uppercase font-black tracking-widest max-w-xs mx-auto">
           {emptyMessage}
         </Typography>
+        {emptyDescription && (
+          <Typography variant="p" tone="muted" className="max-w-md mx-auto">
+            {emptyDescription}
+          </Typography>
+        )}
       </div>
     )
   }
@@ -67,7 +74,10 @@ function DataGridInner<T extends { id: string | number }>({
   return (
     <div className="w-full">
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto no-scrollbar">
+      <div className="hidden md:block overflow-x-auto">
+        <Typography variant="tiny" tone="muted" className="sr-only">
+          Se houver colunas fora da área visível, role a tabela horizontalmente.
+        </Typography>
         <table className={cn("w-full text-left border-collapse", minWidth)}>
           <thead className={cn(stickyHeader && "sticky top-0 z-20")}>
             <tr className="bg-surface-alt/50 border-b border-border-default">
@@ -119,7 +129,7 @@ function DataGridInner<T extends { id: string | number }>({
       </div>
 
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-mx-md pb-20">
+      <div className="md:hidden space-y-mx-md pb-mx-24">
         <AnimatePresence mode="popLayout">
           {data.map((item, idx) => (
             <motion.div
