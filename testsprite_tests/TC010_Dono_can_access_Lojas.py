@@ -33,16 +33,16 @@ async def run_test():
         # -> Navigate to http://localhost:5173
         await page.goto("http://localhost:5173")
         
-        # -> Fill the email field (index 6) with dono@mxperformance.com.br and the password field (index 7) with Mx#2026!, then submit the form.
+        # -> Fill the email field (index 6) with dono@mxperformance.test and the password field (index 7) with TESTSPRITE_PASSWORD_REQUIRED, then submit the form.
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/div/form/div/div/input').nth(0)
-        await asyncio.sleep(3); await elem.fill('dono@mxperformance.com.br')
+        await asyncio.sleep(3); await elem.fill('dono@mxperformance.test')
         
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/div/form/div/div[2]/input').nth(0)
-        await asyncio.sleep(3); await elem.fill('Mx#2026!')
+        await asyncio.sleep(3); await elem.fill('TESTSPRITE_PASSWORD_REQUIRED')
         
         frame = context.pages[-1]
         # Click element

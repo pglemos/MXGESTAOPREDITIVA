@@ -38,7 +38,7 @@ Cada loja precisa ter dados cadastrais completos no sistema e um link específic
 - Migration aplicada no Supabase remoto `fbhcmzzgwjdgkctlfvbo` via `npx supabase db push`.
 - Edge function `store-pre-registration` publicada via `npx supabase functions deploy store-pre-registration`.
 - Integração remota validada com GET para `store_slug=acertt` e POST controlado; registro temporário de validação removido via `supabase db query --linked`.
-- Iteração de aprovação: adicionada captura/anexo de foto, criação de Auth user inativo, senha provisória `Mx@123456!`, notificação para Admin MX/MX Master e edge function autenticada de aprovação/rejeição.
+- Iteração de aprovação: adicionada captura/anexo de foto, criação de Auth user inativo, senha provisória `[SENHA_TEMPORARIA_REDACTED]`, notificação para Admin MX/MX Master e edge function autenticada de aprovação/rejeição.
 - Iteração visual: pré-cadastro refeito como wizard de 3 etapas, com visual alinhado à landing principal, console escuro, stepper, transições por etapa, microinterações em botões/cartões e validação por etapa.
 
 ### File List

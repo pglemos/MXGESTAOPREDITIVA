@@ -4,8 +4,8 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 BASE_URL = "http://localhost:3000"
 LOGIN_URL = f"{BASE_URL}/auth/login"
 CREDENTIALS = {
-    "email": "admin@mxperformance.com.br",
-    "password": "Mx#2026!"
+    "email": "TESTSPRITE_ADMIN_EMAIL_REQUIRED",
+    "password": "TESTSPRITE_PASSWORD_REQUIRED"
 }
 HEADERS = {
     "Content-Type": "application/json"

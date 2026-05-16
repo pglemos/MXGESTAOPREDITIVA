@@ -14,13 +14,7 @@ const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
 const ROLE_SIMULATION_STORAGE_KEY = 'mx_role_simulation'
 const DEV_BYPASS_ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 const PROFILE_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, must_change_password, notification_preferences'
-const MEMBERSHIP_SELECT = 'id, user_id, store_id, role, created_at, store:lojas(id, name, manager_email, legal_name, cnpj, address, administrative_phone, partners, active, source_mode, created_at, updated_at)'
-const SIMULATION_STORE_NAMES = ['LOJA MX', 'MX CONSULTORIA']
-const SIMULATION_ROLE_LABELS: Record<SimulationRole, string> = {
-    dono: 'Dono',
-    gerente: 'Gerente',
-    vendedor: 'Vendedor',
-}
+const MEMBERSHIP_SELECT = 'id, user_id, store_id, role, created_at, is_active, ended_at, store:lojas(id, name, manager_email, legal_name, cnpj, address, administrative_phone, partners, active, source_mode, created_at, updated_at)'
 const AUTH_NETWORK_ERROR_MESSAGE = 'Não foi possível conectar ao servidor de autenticação. Verifique sua conexão ou tente novamente em alguns minutos.'
 
 interface AuthState {
@@ -49,15 +43,15 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState>({
-    supabaseUser: null, 
-    profile: null, 
+    supabaseUser: null,
+    profile: null,
     baseProfile: null,
-    membership: null, 
+    membership: null,
     baseMembership: null,
     vinculos_loja: [],
-    role: null, 
+    role: null,
     baseRole: null,
-    storeId: null, 
+    storeId: null,
     activeStoreId: null,
     setActiveStoreId: () => { },
     isSimulating: false,
@@ -65,9 +59,9 @@ const AuthContext = createContext<AuthState>({
     simulationLoading: false,
     startSimulation: () => { },
     stopSimulation: () => { },
-    initialized: false, 
+    initialized: false,
     loading: true,
-    signIn: async () => ({ error: null }), 
+    signIn: async () => ({ error: null }),
     signOut: async () => { },
     updateProfile: async () => ({ error: 'Not initialized' }),
     changePassword: async () => ({ error: 'Not initialized' })
@@ -85,6 +79,7 @@ function isTransientFetchError(error: unknown) {
 
 function isDevBypassAllowed() {
     if (!import.meta.env.DEV || typeof window === 'undefined') return false
+    if (import.meta.env.VITE_ENABLE_DEV_AUTH_BYPASS !== 'true') return false
     return DEV_BYPASS_ALLOWED_HOSTS.has(window.location.hostname)
 }
 
@@ -128,27 +123,10 @@ function readSimulationRole(): SimulationRole | null {
     return stored === 'dono' || stored === 'gerente' || stored === 'vendedor' ? stored : null
 }
 
-function pickSimulationStore(stores: Store[]) {
+function pickSimulationStore(stores: Store[], preferredStoreId?: string | null) {
     const activeStores = stores.filter(store => store.active)
-    const exactMatch = activeStores.find(store => SIMULATION_STORE_NAMES.includes(store.name.trim().toLocaleUpperCase('pt-BR')))
-    if (exactMatch) return exactMatch
-    return activeStores.find(store => store.name.toLocaleUpperCase('pt-BR').includes('MX')) || activeStores[0] || null
-}
-
-function buildFallbackSimulationUser(role: SimulationRole, storeId: string): AppUser {
-    return {
-        id: `simulation-${role}`,
-        name: `MX ${SIMULATION_ROLE_LABELS[role]}`,
-        email: `${role}@mxperformance.local`,
-        role,
-        avatar_url: null,
-        is_venda_loja: false,
-        active: true,
-        created_at: new Date().toISOString(),
-        store_id: storeId,
-        must_change_password: false,
-        notification_preferences: null,
-    }
+    if (!preferredStoreId) return null
+    return activeStores.find(store => store.id === preferredStoreId) || null
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -178,10 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [])
 
     const startSimulation = useCallback((role: SimulationRole) => {
+        if (!canSimulate) return
         if (typeof window !== 'undefined') window.sessionStorage.setItem(ROLE_SIMULATION_STORAGE_KEY, role)
         setSimulationRole(role)
         setSimulationLoading(true)
-    }, [])
+    }, [canSimulate])
 
     const fetchProfile = useCallback(async (userId: string): Promise<AppUser | null> => {
         const { data, error } = await supabase.from('usuarios').select(PROFILE_SELECT).eq('id', userId).maybeSingle()
@@ -198,8 +177,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .from('vinculos_loja')
             .select(MEMBERSHIP_SELECT)
             .eq('user_id', userId)
+            .eq('is_active', true)
             .order('created_at', { ascending: true })
-        
+
         if (error && !isTransientFetchError(error)) {
             console.error('Audit Error [useAuth]: fetchMemberships fail ->', error.message)
         }
@@ -296,6 +276,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             timeoutId = setTimeout(() => {
                 if (mounted) {
+                    void supabase.auth.signOut()
+                    setSupabaseUser(null)
+                    setProfile(null)
+                    setMemberships([])
+                    setActiveStoreId(null)
+                    lastLoadedUserIdRef.current = null
                     setLoading(false)
                 }
             }, 10000);
@@ -305,7 +291,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     fetchProfile(userId),
                     fetchMemberships(userId)
                 ])
-                
+
                 const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : null
 
                 if (!currentRole) {
@@ -325,7 +311,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setActiveStoreId(null)
                     return
                 }
-                
+
                 // Ejeção Ativa (Sessões Existentes): Se o usuário perder a loja ativada enquanto logado
                 if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
                     await supabase.auth.signOut()
@@ -378,27 +364,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (storesError) throw storesError
 
-                const store = pickSimulationStore((stores || []) as Store[])
-                if (!store) throw new Error('Nenhuma loja ativa disponível para simulação.')
+                const store = pickSimulationStore((stores || []) as Store[], activeStoreId || baseMembership?.store_id)
+                if (!store) throw new Error('Selecione uma loja ativa antes de iniciar a simulação.')
 
                 const { data: memberships, error: membershipError } = await supabase
                     .from('vinculos_loja')
                     .select(`${MEMBERSHIP_SELECT}, users:usuarios(${PROFILE_SELECT})`)
                     .eq('store_id', store.id)
                     .eq('role', role)
+                    .eq('is_active', true)
 
                 if (membershipError) throw membershipError
 
                 const rows = (memberships || []) as unknown as SimulationMembershipRow[]
-                const selected = rows.find(row => row.users?.active && (role !== 'vendedor' || !row.users.is_venda_loja)) || rows.find(row => row.users?.active) || rows[0]
-                const user = selected?.users ? { ...selected.users, role, store_id: store.id, must_change_password: false } : buildFallbackSimulationUser(role, store.id)
+                const selected = rows.find(row => row.users?.active && (role !== 'vendedor' || !row.users.is_venda_loja)) || rows.find(row => row.users?.active)
+                if (!selected?.users) {
+                    throw new Error(`Nenhum usuário ativo encontrado para simular o perfil ${role} na loja ${store.name}.`)
+                }
+
+                const user = { ...selected.users, role, store_id: store.id }
                 const membership: StoreMembership = {
-                    id: selected?.id || `simulation-membership-${role}`,
+                    id: selected.id,
                     user_id: user.id,
                     store_id: store.id,
                     role,
-                    created_at: selected?.created_at || new Date().toISOString(),
-                    store: selected?.store || store,
+                    created_at: selected.created_at,
+                    store: selected.store || store,
                 }
 
                 if (!mounted) return
@@ -411,6 +402,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (mounted) {
                     setSimulationProfile(null)
                     setSimulationMemberships([])
+                    stopSimulation()
                 }
             } finally {
                 if (mounted) setSimulationLoading(false)
@@ -429,7 +421,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             mounted = false
         }
-    }, [canSimulate, loading, profile, simulationRole, stopSimulation])
+    }, [activeStoreId, baseMembership?.store_id, canSimulate, loading, profile, simulationRole, stopSimulation])
 
     const signIn = async (email: string, password: string) => {
         let data: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>['data']
@@ -445,7 +437,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             return { error: 'Erro inesperado ao realizar login.' }
         }
-        
+
         if (error) {
             if (isTransientFetchError(error)) {
                 return { error: AUTH_NETWORK_ERROR_MESSAGE }
@@ -454,13 +446,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (data?.user) {
-            
+
             // Trava Zero Trust: Validar acesso operacional antes de liberar a interface
             const [loadedProfile, loadedMemberships] = await Promise.all([
                 fetchProfile(data.user.id),
                 fetchMemberships(data.user.id)
             ])
-            
+
             const currentRole = loadedProfile ? normalizeRole(loadedProfile.role) : null
 
             if (!currentRole) {
@@ -478,7 +470,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setMemberships([])
                 return { error: 'LOGIN PENDENTE: Seu acesso foi criado e aguarda aprovação do Admin MX.' }
             }
-            
+
             if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
                 await supabase.auth.signOut()
                 setSupabaseUser(null)
@@ -487,7 +479,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return { error: 'ACESSO BLOQUEADO: Sua unidade operacional foi desativada da Malha MX.' }
             }
         }
-        
+
         return { error: null }
     }
 
@@ -495,47 +487,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (simulationRole) return { error: 'Edição de perfil bloqueada durante a simulação.' }
         if (!supabaseUser?.id) return { error: 'Não autenticado' }
 
-        const { error } = await supabase
-            .from('usuarios')
-            .update(updates)
-            .eq('id', supabaseUser.id)
+        try {
+            const { data, error } = await supabase.rpc('update_my_profile', { p_updates: updates })
 
-        if (error) return { error: error.message }
+            if (error) return { error: error.message }
+            const result = data as { ok?: boolean; error?: string } | null
+            if (!result?.ok) return { error: result?.error || 'Não foi possível atualizar o perfil.' }
 
-        const updatedProfile = { ...profile, ...updates } as AppUser
-        setProfile(updatedProfile)
-        return { error: null }
+            const updatedProfile = { ...profile, ...updates } as AppUser
+            setProfile(updatedProfile)
+            return { error: null }
+        } catch (err) {
+            if (isTransientFetchError(err)) return { error: AUTH_NETWORK_ERROR_MESSAGE }
+            return { error: 'Não foi possível atualizar o perfil.' }
+        }
     }
 
     const changePassword = async (newPassword: string): Promise<{ error: string | null }> => {
         if (simulationRole) return { error: 'Troca de senha bloqueada durante a simulação.' }
         if (!supabaseUser) return { error: 'Usuário não autenticado' }
-        
-        const { error: authError } = await supabase.auth.updateUser({ password: newPassword })
-        if (authError) return { error: authError.message }
-        
-        const { error: dbError } = await supabase
-            .from('usuarios')
-            .update({ must_change_password: false })
-            .eq('id', supabaseUser.id)
-            
-        if (!dbError) {
-            setProfile(prev => prev ? { ...prev, must_change_password: false } : null)
+
+        try {
+            const { error: authError } = await supabase.auth.updateUser({ password: newPassword })
+            if (authError) return { error: authError.message }
+
+            const { data, error: dbError } = await supabase.rpc('complete_password_change')
+            const result = data as { ok?: boolean; error?: string } | null
+
+            if (!dbError && result?.ok) {
+                setProfile(prev => prev ? { ...prev, must_change_password: false } : null)
+            }
+
+            return { error: dbError?.message || result?.error || null }
+        } catch (err) {
+            if (isTransientFetchError(err)) return { error: AUTH_NETWORK_ERROR_MESSAGE }
+            return { error: 'Não foi possível concluir a troca de senha.' }
         }
-        
-        return { error: dbError?.message || null }
     }
 
     const signOut = async () => {
         if (simulationRole) {
             stopSimulation()
-            return
         }
         if (devBypassRef.current && typeof window !== 'undefined') {
             window.localStorage.removeItem(DEV_BYPASS_STORAGE_KEY)
             devBypassRef.current = false
         }
-        await supabase.auth.signOut()
+        try {
+            await supabase.auth.signOut()
+        } catch (err) {
+            if (import.meta.env.DEV) console.warn('Audit Warn [useAuth]: signOut failed locally.', err)
+        }
         setSupabaseUser(null)
         setProfile(null)
         setMemberships([])

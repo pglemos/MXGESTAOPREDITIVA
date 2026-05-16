@@ -3,12 +3,15 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { DailyCheckin, CheckinFormData, CheckinWithTotals, CheckinScope } from '@/types/database'
 import { calcularTotais } from '@/lib/calculations'
+import { canCreateAdjustment } from '@/lib/auth/capabilities'
 
 export const CHECKIN_DEADLINE_MINUTES = 9 * 60 + 30
 export const CHECKIN_EDIT_LIMIT_MINUTES = 9 * 60 + 45
 export const CHECKIN_DEADLINE_LABEL = '09:30'
 export const CHECKIN_EDIT_LIMIT_LABEL = '09:45'
-const MX_TIMEZONE = 'America/Sao_Paulo'
+export const MX_TIMEZONE = 'America/Sao_Paulo'
+export const CHECKIN_ZERO_REASONS = ['Folga', 'Treinamento', 'Feriado', 'Dia administrativo', 'Outro'] as const
+export const CHECKIN_MAX_INPUT_VALUE = 999
 const CHECKIN_SELECT = 'id, seller_user_id, store_id, reference_date, submitted_at, metric_scope, submission_status, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, zero_reason, note, submitted_late, edit_locked_at, created_by, updated_at'
 
 function withCheckinTotals(checkin: DailyCheckin): CheckinWithTotals {
@@ -55,10 +58,12 @@ export function calculateReferenceDate(baseDate = new Date()): string {
 }
 
 export function isCheckinLate(baseDate = new Date()): boolean {
+    // Atraso começa depois de 09:30; exatamente 09:30 ainda é no prazo.
     return minutesSinceSaoPauloStartOfDay(baseDate) > CHECKIN_DEADLINE_MINUTES
 }
 
 export function canEditCurrentCheckin(baseDate = new Date()): boolean {
+    // Edição/envio diário é permitido até 09:45 inclusive; 09:46 bloqueia.
     return minutesSinceSaoPauloStartOfDay(baseDate) <= CHECKIN_EDIT_LIMIT_MINUTES
 }
 
@@ -85,11 +90,12 @@ export function validateCheckinSubmissionDate(finalDate: string, officialReferen
 }
 
 export function useCheckins(storeIdOverride?: string) {
-    const { profile, storeId: authStoreId } = useAuth()
+    const { profile, storeId: authStoreId, role } = useAuth()
     const storeId = storeIdOverride || authStoreId
     const [checkins, setCheckins] = useState<CheckinWithTotals[]>([])
     const [loading, setLoading] = useState(true)
     const [todayCheckin, setTodayCheckin] = useState<CheckinWithTotals | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
     const referenceDate = calculateReferenceDate()
 
@@ -100,6 +106,7 @@ export function useCheckins(storeIdOverride?: string) {
             return
         }
         setLoading(true)
+        setError(null)
 
         // Otimização: Selecionar apenas colunas de métricas e identificação
         let query = supabase.from('lancamentos_diarios')
@@ -112,7 +119,11 @@ export function useCheckins(storeIdOverride?: string) {
         if (filters?.userId) query = query.eq('seller_user_id', filters.userId)
 
         const { data, error } = await query
-        if (!error && data) {
+        if (error) {
+            console.error('Audit Error [useCheckins]: fetchCheckins fail ->', error.message)
+            setError('Não foi possível carregar os lançamentos.')
+            setCheckins([])
+        } else if (data) {
             setCheckins((data as DailyCheckin[]).map(withCheckinTotals))
         }
         setLoading(false)
@@ -123,7 +134,7 @@ export function useCheckins(storeIdOverride?: string) {
             setTodayCheckin(null)
             return
         }
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('lancamentos_diarios')
             .select(CHECKIN_SELECT)
             .eq('seller_user_id', profile.id)
@@ -132,13 +143,17 @@ export function useCheckins(storeIdOverride?: string) {
             .eq('metric_scope', 'daily')
             .maybeSingle()
         
-        if (data) setTodayCheckin(withCheckinTotals(data as DailyCheckin))
+        if (error) {
+            console.error('Audit Error [useCheckins]: fetchTodayCheckin fail ->', error.message)
+            setError('Não foi possível carregar o lançamento oficial do dia.')
+            setTodayCheckin(null)
+        } else if (data) setTodayCheckin(withCheckinTotals(data as DailyCheckin))
         else setTodayCheckin(null)
     }, [profile, storeId, referenceDate])
 
     const fetchCheckinByDate = useCallback(async (date: string, scope: string = 'daily') => {
         if (!profile || !storeId) return null
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('lancamentos_diarios')
             .select(CHECKIN_SELECT)
             .eq('seller_user_id', profile.id)
@@ -147,11 +162,19 @@ export function useCheckins(storeIdOverride?: string) {
             .eq('metric_scope', scope)
             .maybeSingle()
         
+        if (error) {
+            console.error('Audit Error [useCheckins]: fetchCheckinByDate fail ->', error.message)
+            setError('Não foi possível carregar o lançamento desta data.')
+            return null
+        }
         return data ? withCheckinTotals(data as DailyCheckin) : null
     }, [profile, storeId])
 
     const saveCheckin = async (formData: CheckinFormData, scope: CheckinScope = 'daily', customDate?: string): Promise<{ error: string | null }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
+        if (scope === 'adjustment' && !canCreateAdjustment(role)) {
+            return { error: 'Ajuste técnico é restrito a gestores e perfis internos MX.' }
+        }
         
         const finalDate = customDate || formData.reference_date || referenceDate
         const dateError = validateCheckinSubmissionDate(finalDate, referenceDate, scope)
@@ -159,13 +182,14 @@ export function useCheckins(storeIdOverride?: string) {
 
         const isDaily = scope === 'daily' && finalDate === referenceDate
 
-        if (isDaily && todayCheckin && !canEditCurrentCheckin()) {
-            return { error: `Correções do lançamento diário ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
+        if (isDaily && !canEditCurrentCheckin()) {
+            return { error: `Lançamentos diários ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
         }
 
-        const sanitize = (str?: string | null) => str ? str.replace(/[&<>"']/g, (m) => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[m] || m)) : null
+        const normalizeText = (str?: string | null) => {
+            const trimmed = str?.trim()
+            return trimmed || null
+        }
 
         const submittedAt = new Date()
         const payload = {
@@ -186,16 +210,16 @@ export function useCheckins(storeIdOverride?: string) {
             vnd_cart_prev_day: formData.vnd_cart_prev_day ?? formData.vnd_cart,
             vnd_net_prev_day: formData.vnd_net_prev_day ?? formData.vnd_net,
             visit_prev_day: formData.visit_prev_day ?? formData.visitas,
-            zero_reason: sanitize(formData.zero_reason) || null,
-            note: sanitize(formData.note) || null,
+            zero_reason: normalizeText(formData.zero_reason),
+            note: normalizeText(formData.note),
         }
 
-        const { error } = await supabase.from('lancamentos_diarios').upsert(payload, {
-            onConflict: 'seller_user_id,store_id,reference_date,metric_scope'
-        })
+        const { data, error } = await supabase.rpc('submit_checkin', { p_payload: payload })
 
         if (error) return { error: error.message }
-        await fetchTodayCheckin()
+        const result = data as { ok?: boolean; error?: string } | null
+        if (!result?.ok) return { error: result?.error || 'Não foi possível salvar o check-in.' }
+        await Promise.all([fetchTodayCheckin(), fetchCheckins()])
         return { error: null }
     }
 
@@ -210,9 +234,10 @@ export function useCheckins(storeIdOverride?: string) {
         fetchTodayCheckin, 
         saveCheckin, 
         submitCheckin: saveCheckin, // Alias para consistência MX
-        refetch: fetchTodayCheckin, // Alias para consistência MX
+        refetch: fetchCheckins, // Alias para consistência MX
         referenceDate, 
-        fetchCheckinByDate 
+        fetchCheckinByDate,
+        error,
     }
 }
 
@@ -221,6 +246,7 @@ export function useMyCheckins() {
     const { profile, storeId } = useAuth()
     const [checkins, setCheckins] = useState<CheckinWithTotals[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const fetch = useCallback(async (filters?: { startDate?: string; endDate?: string }) => {
         if (!profile || !storeId) {
@@ -229,22 +255,33 @@ export function useMyCheckins() {
             return
         }
         setLoading(true)
-        let query = supabase.from('lancamentos_diarios').select(CHECKIN_SELECT)
-            .eq('seller_user_id', profile.id).eq('store_id', storeId).order('reference_date', { ascending: false })
-        if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
-        if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
-        const { data } = await query
-        if (data) setCheckins((data as DailyCheckin[]).map(withCheckinTotals))
-        setLoading(false)
+        setError(null)
+        try {
+            let query = supabase.from('lancamentos_diarios').select(CHECKIN_SELECT)
+                .eq('seller_user_id', profile.id).eq('store_id', storeId).order('reference_date', { ascending: false })
+            if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
+            if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
+            const { data, error: queryError } = await query
+            if (queryError) throw queryError
+            setCheckins(((data || []) as DailyCheckin[]).map(withCheckinTotals))
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Erro desconhecido'
+            console.error('Audit Error [useMyCheckins]: fetch fail ->', message)
+            setError('Não foi possível carregar o histórico de lançamentos.')
+            setCheckins([])
+        } finally {
+            setLoading(false)
+        }
     }, [profile, storeId])
 
     useEffect(() => { fetch() }, [fetch])
-    return { checkins, loading, refetch: fetch }
+    return { checkins, loading, error, refetch: fetch }
 }
 
 export function useCheckinsByDateRange(storeId: string | null, startDate: string, endDate: string) {
     const [checkins, setCheckins] = useState<CheckinWithTotals[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const fetch = useCallback(async () => {
         if (!storeId) {
@@ -253,21 +290,29 @@ export function useCheckinsByDateRange(storeId: string | null, startDate: string
             return
         }
         setLoading(true)
-        const { data, error } = await supabase
-            .from('lancamentos_diarios')
-            .select(CHECKIN_SELECT)
-            .eq('store_id', storeId)
-            .eq('metric_scope', 'daily')
-            .gte('reference_date', startDate)
-            .lte('reference_date', endDate)
-            .order('reference_date', { ascending: false })
+        setError(null)
+        try {
+            const { data, error: queryError } = await supabase
+                .from('lancamentos_diarios')
+                .select(CHECKIN_SELECT)
+                .eq('store_id', storeId)
+                .eq('metric_scope', 'daily')
+                .gte('reference_date', startDate)
+                .lte('reference_date', endDate)
+                .order('reference_date', { ascending: false })
 
-        if (!error && data) {
-            setCheckins((data as DailyCheckin[]).map(withCheckinTotals))
+            if (queryError) throw queryError
+            setCheckins(((data || []) as DailyCheckin[]).map(withCheckinTotals))
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Erro desconhecido'
+            console.error('Audit Error [useCheckinsByDateRange]: fetch fail ->', message)
+            setError('Não foi possível carregar os lançamentos do período.')
+            setCheckins([])
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }, [storeId, startDate, endDate])
 
     useEffect(() => { fetch() }, [fetch])
-    return { checkins, loading, refetch: fetch }
+    return { checkins, loading, error, refetch: fetch }
 }

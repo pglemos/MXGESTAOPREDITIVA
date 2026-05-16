@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 import {
+  createE2EPassword,
   createE2EAdminUser,
   deleteE2EUser,
-  E2E_DEFAULT_PASSWORD,
   getMustChangePassword,
   type E2EUser,
 } from './e2e-helpers/supabase-admin'
@@ -25,13 +25,14 @@ test.describe('First login forced password change', () => {
   })
 
   test('new user logs in with a temporary password, is blocked by modal, changes password, and is not prompted again', async ({ page }, testInfo) => {
+    const temporaryPassword = createE2EPassword('MxFirstLogin')
     user = await createE2EAdminUser({
       prefix: `first-login-${testInfo.project.name}`,
-      password: E2E_DEFAULT_PASSWORD,
+      password: temporaryPassword,
       mustChangePassword: true,
     })
 
-    await login(page, user.email, E2E_DEFAULT_PASSWORD)
+    await login(page, user.email, temporaryPassword)
 
     const dialog = page.getByRole('dialog')
     await expect(dialog).toContainText(/Segurança MX/i, { timeout: 15000 })

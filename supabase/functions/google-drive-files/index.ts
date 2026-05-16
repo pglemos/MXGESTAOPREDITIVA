@@ -10,6 +10,8 @@ import {
   CENTRAL_DRIVE_ROOT_FOLDER_NAME,
 } from "../_shared/google.ts";
 
+declare const EdgeRuntime: { waitUntil?: (promise: Promise<unknown>) => void } | undefined;
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
@@ -25,7 +27,7 @@ const SUBFOLDER_TYPES = [
   { tipo: "visitas", name: "Relatórios de Visita" },
 ] as const;
 
-type DriveAction = "ensure-folder" | "list" | "upload" | "delete";
+type DriveAction = "ensure-folder" | "list" | "upload" | "delete" | "setup_client" | "setup_all" | "delete_client_folder";
 
 type ConsultingClientRow = {
   id: string;
@@ -61,6 +63,11 @@ type DriveFolder = { id: string; name: string; webViewLink: string };
 type DriveShareTarget = {
   emailAddress: string;
 };
+
+type SupabaseEdgeClient = {
+  auth: any;
+  from: (table: string) => any;
+}
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -143,7 +150,7 @@ function normalizeEmail(value: unknown): string | null {
   return email;
 }
 
-async function getMxDriveShareTargets(adminClient: ReturnType<typeof createClient>): Promise<DriveShareTarget[]> {
+async function getMxDriveShareTargets(adminClient: SupabaseEdgeClient): Promise<DriveShareTarget[]> {
   const { data, error } = await adminClient
     .from("usuarios")
     .select("email")
@@ -159,7 +166,7 @@ async function getMxDriveShareTargets(adminClient: ReturnType<typeof createClien
 
   const emails = new Set<string>([
     ...envEmails,
-    ...(data || []).map((row: { email?: string | null }) => normalizeEmail(row.email)).filter((email): email is string => Boolean(email)),
+    ...(data || []).map((row: { email?: string | null }) => normalizeEmail(row.email)).filter((email: string | null): email is string => Boolean(email)),
   ]);
 
   return Array.from(emails).map((emailAddress) => ({ emailAddress }));
@@ -200,7 +207,7 @@ async function grantDriveReaderPermission(
 }
 
 async function ensureMxDriveAccess(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: SupabaseEdgeClient,
   accessToken: string,
   fileIds: string[],
 ): Promise<void> {
@@ -295,7 +302,7 @@ async function driveHasChildren(accessToken: string, folderId: string): Promise<
  * Stores the chosen folder ID in config_drive_central to prevent future duplicates.
  * If duplicates already exist, keeps the one with content and deletes the empty ones.
  */
-async function getRootFolder(adminClient: ReturnType<typeof createClient>, accessToken: string): Promise<DriveFolder> {
+async function getRootFolder(adminClient: any, accessToken: string): Promise<DriveFolder> {
   if (CENTRAL_DRIVE_ROOT_FOLDER_ID) {
     return { id: CENTRAL_DRIVE_ROOT_FOLDER_ID, name: CENTRAL_DRIVE_ROOT_FOLDER_NAME, webViewLink: folderUrl(CENTRAL_DRIVE_ROOT_FOLDER_ID) };
   }
@@ -343,7 +350,7 @@ async function getRootFolder(adminClient: ReturnType<typeof createClient>, acces
 
 /** Ensures all document-type subfolders exist inside the client folder. */
 async function ensureSubfolders(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: any,
   accessToken: string,
   folder: DriveFolderRow,
   userId: string,
@@ -391,17 +398,18 @@ async function ensureSubfolders(
 }
 
 async function ensureClientFolder(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: any,
   accessToken: string,
   client: ConsultingClientRow,
   userId: string,
 ): Promise<DriveFolderRow> {
-  const { data: existing, error: existingError } = await adminClient
+  const { data: existingData, error: existingError } = await adminClient
     .from("pastas_drive_consultoria")
     .select("*")
     .eq("client_id", client.id)
     .eq("status", "active")
     .maybeSingle();
+  const existing = existingData as DriveFolderRow | null;
   const cacheAvailable = !isMissingTableError(existingError);
   if (existingError && cacheAvailable) throw toError(existingError);
   if (existing?.google_drive_folder_id) {
@@ -441,7 +449,7 @@ async function ensureClientFolder(
     };
   }
 
-  const { data: row, error: upsertError } = await adminClient
+  const { data: rowData, error: upsertError } = await adminClient
     .from("pastas_drive_consultoria")
     .upsert(
       {
@@ -458,6 +466,7 @@ async function ensureClientFolder(
     )
     .select("*")
     .single();
+  const row = rowData as DriveFolderRow | null;
 
   if (upsertError) {
     if (!isMissingTableError(upsertError)) throw toError(upsertError);
@@ -489,7 +498,7 @@ async function listDriveFiles(accessToken: string, folderId: string): Promise<Dr
 }
 
 async function listClientDriveFiles(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: any,
   accessToken: string,
   folder: DriveFolderRow,
 ): Promise<DriveFile[]> {
@@ -551,15 +560,18 @@ async function trashDriveFile(accessToken: string, fileId: string): Promise<void
   );
 }
 
-async function authenticate(req: Request) {
-  const sessionClient = createSessionClient(req.headers.get("Authorization"));
+async function authenticate(req: Request): Promise<
+  | { error: Response }
+  | { sessionClient: SupabaseEdgeClient; adminClient: SupabaseEdgeClient; userId: string; role: string }
+> {
+  const sessionClient = createSessionClient(req.headers.get("Authorization")) as unknown as SupabaseEdgeClient;
   const { data: authData, error: authError } = await sessionClient.auth.getUser();
   if (authError || !authData.user) throw new Error("Sessão inválida ou expirada");
 
   const adminClient = createClient(
     requireEnv("SUPABASE_URL", SUPABASE_URL),
     requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
-  );
+  ) as unknown as SupabaseEdgeClient;
   const { data: profile, error: profileError } = await adminClient
     .from("usuarios")
     .select("role, active")
@@ -578,7 +590,7 @@ async function authenticate(req: Request) {
   return { sessionClient, adminClient, userId: authData.user.id, role: profile.role as string };
 }
 
-async function getClient(adminClient: ReturnType<typeof createClient>, clientId: string): Promise<ConsultingClientRow> {
+async function getClient(adminClient: any, clientId: string): Promise<ConsultingClientRow> {
   const { data, error } = await adminClient
     .from("clientes_consultoria")
     .select("id,name,slug,primary_store_id")
@@ -589,7 +601,7 @@ async function getClient(adminClient: ReturnType<typeof createClient>, clientId:
   return data as ConsultingClientRow;
 }
 
-async function assertClientAccess(sessionClient: ReturnType<typeof createClient>, role: string, clientId: string): Promise<void> {
+async function assertClientAccess(sessionClient: SupabaseEdgeClient, role: string, clientId: string): Promise<void> {
   if (role === "administrador_geral" || role === "administrador_mx") return;
 
   const { data, error } = await sessionClient
@@ -636,8 +648,8 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") || "";
     const isServiceRole = isServiceRoleBearer(authHeader);
 
-    let adminClient: ReturnType<typeof createClient>;
-    let sessionClient: ReturnType<typeof createClient> | null = null;
+    let adminClient: SupabaseEdgeClient;
+    let sessionClient: SupabaseEdgeClient | null = null;
     let userId: string;
     let role: string | null = null;
 
@@ -645,7 +657,7 @@ Deno.serve(async (req) => {
       adminClient = createClient(
         requireEnv("SUPABASE_URL", SUPABASE_URL),
         requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
-      );
+      ) as unknown as SupabaseEdgeClient;
       userId = ""; // service role — created_by will be null
     } else if (action === "setup_all") {
       return jsonResponse({ error: "setup_all requer service role JWT" }, 403);
@@ -770,7 +782,7 @@ Deno.serve(async (req) => {
         ]);
       })();
 
-      try { EdgeRuntime.waitUntil(bgTasks); } catch { bgTasks.catch(() => {}); }
+      try { EdgeRuntime?.waitUntil?.(bgTasks); } catch { bgTasks.catch(() => {}); }
 
       return jsonResponse({ folderUrl: folder.google_drive_folder_url, files: driveFiles });
     }

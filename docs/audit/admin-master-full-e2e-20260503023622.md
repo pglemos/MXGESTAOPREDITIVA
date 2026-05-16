@@ -1,7 +1,7 @@
 # Validacao E2E Admin Master MX - 20260503023622
 
 - Run ID: `E2E_ADMIN_MASTER_20260503023622`
-- Usuario validado: `synvollt@gmail.com`
+- Usuario validado: `[EMAIL_REDACTED]`
 - Ambiente: `https://mxperformance.vercel.app`
 - Status geral: `PASS_WITH_WARNINGS`
 - Senha: nao registrada neste artefato.
@@ -19,9 +19,9 @@
 
 | Secao | Validacao | Status | Detalhes |
 | --- | --- | --- | --- |
-| Preflight | account, role and password login | PASS | `{"duration_ms":2077,"profile":{"id":"9b9ee2fb-d002-492f-b274-06846972a014","email":"synvollt@gmail.com","name":"Synvollt","role":"administrador_geral","active":true,"must_change_password":false}}` |
+| Preflight | account, role and password login | PASS | `{"duration_ms":2077,"profile":{"id":"9b9ee2fb-d002-492f-b274-06846972a014","email":"[EMAIL_REDACTED]","name":"Synvollt","role":"administrador_geral","active":true,"must_change_password":false}}` |
 | Preflight | permission matrix | PASS | `{"duration_ms":333,"modules":7,"permission_codes":["comparar","criar","editar","excluir","exportar","visualizar"],"matrix_rows":24,"delete_permissions":5,"export_permissions":1}` |
-| CLI/API | store CRUD and operational rules | PASS | `{"duration_ms":841,"store_id":"88301c3c-b906-4449-9a18-9f8652ad0a5f","store_name":"E2E ADMIN MASTER 20260503023622 EDITADA","manager_email":"synvollt@gmail.com"}` |
+| CLI/API | store CRUD and operational rules | PASS | `{"duration_ms":841,"store_id":"88301c3c-b906-4449-9a18-9f8652ad0a5f","store_name":"E2E ADMIN MASTER 20260503023622 EDITADA","manager_email":"[EMAIL_REDACTED]"}` |
 | CLI/API | team/user CRUD, seller tenure and checkins | PASS | `{"duration_ms":1973,"user_id":"b315dc00-340f-4aae-8b4e-e6b5cf606fb9","feedback_id":"ae184780-168a-470a-b311-5e3ec2bc7124","checkin_rows":4}` |
 | CLI/API | digital product CRUD | PASS | `{"duration_ms":152,"product_id":"8c91d763-5d19-47e8-bf6c-285e4b4c8542","status":"ativo"}` |
 | CLI/API | consulting client, visit and agenda CRUD | PASS | `{"duration_ms":473,"client_id":"1f9079f0-e684-4012-aa26-cd0d6a1c57ca","visit_id":"7de786e1-540b-45e6-a749-419fdd3aef77","event_id":"e6b0787b-4e4a-4068-9878-907376ecb76d","slug":"e2e-admin-master-20260503023622"}` |

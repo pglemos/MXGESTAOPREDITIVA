@@ -17,7 +17,7 @@
 ## PO 10-Point Checklist
 
 - [x] Requisitos rastreados aos epics existentes, sem requisitos inventados.
-- [x] Epic 1 usa senha temporaria `123456` em constante central e edge function.
+- [x] Epic 1 usa senha temporaria `[SENHA_TEMPORARIA_REDACTED]` em constante central e edge function.
 - [x] Epic 1 mantem `must_change_password=true` no auth metadata e em `public.users`.
 - [x] Epic 2 provisionou os 4 admins MX e gerou auditoria/log.
 - [x] Epic 2 nao grava `role=admin` em `memberships`, respeitando constraint do schema.

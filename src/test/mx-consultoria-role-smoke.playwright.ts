@@ -1,13 +1,14 @@
 import { expect, test, type Page } from '@playwright/test'
 import {
+  createE2EPassword,
   createE2EAdminUser,
   deleteE2EUser,
-  E2E_DEFAULT_PASSWORD,
   type E2EUser,
 } from './e2e-helpers/supabase-admin'
+import { getE2ERolePassword } from './e2e-helpers/auth'
 
 const STORE_SLUG = 'mx-consultoria'
-const PASSWORD = 'Mx#2026!'
+const PASSWORD = getE2ERolePassword()
 
 const STORE_USERS = {
   dono: { email: 'dono@mxgestaopreditiva.com.br', password: PASSWORD },
@@ -39,18 +40,19 @@ test.describe('MX Consultoria release gate - authenticated role smoke', () => {
   })
 
   test('admin master can access PMR consultation surfaces', async ({ page }) => {
+    const adminPassword = createE2EPassword('MxConsultoria')
     adminMaster = await createE2EAdminUser({
       prefix: 'e2e-admin-master-mx-cons-dev',
       role: 'administrador_geral',
       name: 'E2E Admin Master MX Consultoria',
-      password: E2E_DEFAULT_PASSWORD,
+      password: adminPassword,
     })
 
     await login(page, adminMaster.email, adminMaster.password)
     await expectRoute(page, '/painel', /\/painel/)
     await expectRoute(page, '/agenda', /\/agenda/)
     await expectRoute(page, '/consultoria\/clientes', /\/consultoria\/clientes/)
-    await expect(page.getByText(/CRM de Consultoria|Consultoria/i).first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('main#main-content').getByText(/CRM de Consultoria|Consultoria/i).first()).toBeVisible({ timeout: 20000 })
   })
 
   test('store roles land on their allowed operating surfaces', async ({ page }) => {

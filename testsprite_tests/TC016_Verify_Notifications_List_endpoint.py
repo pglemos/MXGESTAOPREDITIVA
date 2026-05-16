@@ -4,8 +4,8 @@ BASE_URL = "http://localhost:3000"
 AUTH_TOKEN_ENDPOINT = "/auth/v1/token?grant_type=password"
 NOTIFICATIONS_ENDPOINT = "/rest/v1/notifications"
 
-USERNAME = "admin@mxperformance.com.br"
-PASSWORD = "Mx#2026!"
+USERNAME = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 
 def test_TC016_verify_notifications_list_endpoint():
     # Obtain bearer token for admin user

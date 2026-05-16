@@ -2,8 +2,14 @@
 
 **Data de registro:** 2026-05-15  
 **Fonte:** transcricao da reuniao entre Jose Roberto e Daniel Santos MX  
-**Status:** escopo inicial para alinhamento de produto  
+**Status:** escopo consolidado para alinhamento de produto, backlog e validacao PO
 **Relacionado a:** `docs/prd/mx-consultoria-crm/`, `docs/stories/story-OPS-20260514-legacy-pmr-visit-completion.md`, `docs/stories/story-CONS-08-strategic-plan-action-plan.md`, `docs/stories/story-pdi-complete-09/spec/spec.md`, `docs/stories/story-training-notifications-12/spec/spec.md`
+
+## 0. Nota de Recorte
+
+Este documento registra apenas os pontos da reuniao que impactam produto, sistema, operacao e backlog. Foram descartados do escopo assuntos laterais da conversa, como detalhes pessoais de clientes, deslocamento, passagem, negociacoes pontuais e comentarios sem decisao de sistema.
+
+O escopo deve ser lido como material de produto para alimentar PRD, epicos e stories. Ele nao substitui validacao tecnica, validacao PO nem desenho final de UX.
 
 ## 1. Resumo Executivo
 
@@ -13,6 +19,8 @@ A reuniao definiu que o sistema deve evoluir de uma ferramenta operacional inter
 2. **Produto de entrada baseado em desenvolvimento de pessoas:** oferecer ao lojista uma solucao simples de consumo diario, com rotina, biblioteca de conteudo, trilha de novo colaborador, PDI, feedback estruturado e acompanhamento de engajamento da equipe.
 
 O direcionamento central da reuniao foi: o consultor, gerente, vendedor e dono precisam ficar "presos ao sistema" porque o sistema deve concentrar execucao, informacao, acompanhamento e devolutiva.
+
+O produto tambem deve resolver uma tensao comercial importante: como o nivel de consciencia do mercado sobre consultoria e baixo, o sistema precisa entregar valor pratico antes da venda da consultoria completa. Por isso, rotina diaria, desenvolvimento de vendedores, relatorios prontos e visao de performance foram tratados como alavancas de entrada.
 
 ## 2. Contexto de Negocio
 
@@ -243,6 +251,20 @@ Requisitos:
   - Google: cerca de 2 semanas para primeira validacao.
 - O sistema deve estar "no ponto de agulha" antes de submissao.
 
+### 4.14 Ajustes Operacionais Imediatos
+
+A reuniao tambem levantou problemas e ajustes de operacao que nao sao necessariamente novos modulos, mas afetam uso real do sistema.
+
+Requisitos:
+
+- Revisar fluxo de recuperacao/redefinicao de senha, pois o link pode cair na tela inicial sem permitir troca de senha.
+- Garantir que novos usuarios recebam acesso correto por e-mail e perfil.
+- Validar rotas diretas, como `/lojas`, para evitar redirecionamento inesperado.
+- Confirmar sincronizacao/importacao da agenda, principalmente quando ainda houver atualizacao em planilhas antigas.
+- Permitir que clientes legados tenham visitas PMR 1 a 7 baixadas/concluidas administrativamente com anexo dos relatorios existentes.
+- Manter anexos de documentos e relatorios dentro do historico do cliente/visita.
+- Testar a versao mobile/celular nos fluxos de vendedor e consultor antes de liberar uso amplo.
+
 ## 5. Priorizacao Proposta
 
 ### Fase 1 - Fechar Consultoria e App Base
@@ -261,6 +283,8 @@ Inclui:
 - visoes consultor/cliente/dono basicas;
 - correcao de acesso/senha e rotas criticas.
 
+Decisao de produto: esta fase deve ser concluida antes de expandir a biblioteca e a trilha de desenvolvimento, porque a consultoria precisa estar operacional para testes, cases e submissao/app readiness.
+
 ### Fase 2 - Acompanhamento Diario e Visao de Performance
 
 Objetivo: gerar valor diario para loja e alimentar consultoria com dados.
@@ -275,6 +299,8 @@ Inclui:
 - BI/visao geral do dono;
 - rotina sugerida do vendedor.
 
+Decisao de produto: o preenchimento diario so tera adesao se o vendedor entender beneficio direto e se gerente/dono comprarem a rotina. O sistema deve reforcar valor, disciplina e impacto no bolso, nao apenas cobrar informacao.
+
 ### Fase 3 - Desenvolvimento de Pessoas
 
 Objetivo: criar produto de entrada escalavel e percebido como sistema de desenvolvimento.
@@ -288,6 +314,8 @@ Inclui:
 - feedback estruturado conectado a aulas;
 - PDI conectado a desempenho;
 - plano de carreira/evolucao.
+
+Decisao de produto: biblioteca livre e recomendacoes por lacuna devem atender vendedores existentes; trilha obrigatoria deve ser focada em novos colaboradores.
 
 ### Fase 4 - Personalizacao e Conteudo Premium
 
@@ -312,6 +340,9 @@ Para manter foco, estes itens nao devem bloquear as fases iniciais:
 - regras avancadas de contratacao/recrutamento;
 - modelo robusto de gamificacao antes da rotina diaria estar validada;
 - BI completo com todos os 45 indicadores antes dos indicadores prioritarios.
+- integracao automatica com WhatsApp antes de consolidar notificacoes in-app e rotina;
+- IA generativa como dependencia obrigatoria para relatorio ou recomendacao;
+- curso completo, marketplace ou operacao editorial complexa antes da biblioteca MVP.
 
 ## 7. Riscos e Pontos de Atencao
 
@@ -359,6 +390,9 @@ Para manter foco, estes itens nao devem bloquear as fases iniciais:
 - Quais informacoes diarias do vendedor sao obrigatorias no primeiro MVP?
 - Qual sera o mecanismo inicial de incentivo: estrelas, ranking, pontuacao ou outro?
 - Qual padrao final do relatorio executivo enviado ao cliente?
+- Qual fluxo comercial sera usado para vender o sistema como produto de entrada antes da consultoria completa?
+- Quais clientes atuais serao usados como pilotos e cases de validacao?
+- Quais evidencias minimas precisam existir antes de submeter Apple/Google?
 
 ## 11. Backlog Inicial Derivado
 
@@ -378,3 +412,52 @@ Para manter foco, estes itens nao devem bloquear as fases iniciais:
 14. Integrar feedback estruturado a recomendacao de aulas.
 15. Integrar PDI, conteudo e performance.
 16. Mapear primeira leva de conteudos para gravacao.
+
+## 12. Mapa de Backlog para Stories Existentes
+
+| Tema da reuniao | Story/artefato relacionado | Onda | Observacao |
+|---|---|---:|---|
+| Visita 8 de acompanhamento mensal | `docs/stories/story-CONS-13-visita-8-acompanhamento-mensal.md` | 1 | Completa lacuna fora das visitas PMR 1 a 7. |
+| Tela de visita mais sequencial e limpa | `docs/stories/story-CONS-14-fluxo-sequencial-visita-pmr.md` | 1 | Endereca uso por consultores novos, online e presencial. |
+| Periodo discutido na visita | `docs/stories/story-CONS-15-filtro-periodo-visita-relatorio.md` | 1 | Alimenta conversa, indicadores e relatorio. |
+| Relatorio executivo e resumo imediato | `docs/stories/story-CONS-16-relatorio-executivo-resumo-tempo-real.md` | 1 | Evita trabalho posterior do consultor. |
+| Planejamento planejado x realizado | `docs/stories/story-CONS-18-planejamento-estrategico-planejado-realizado.md` | 2 | Aproxima tela de planejamento da logica do DRE financeiro. |
+| Preenchimento diario do vendedor | `docs/stories/story-OPS-20-campos-preenchimento-diario-vendedor.md` | 3 | Principal input operacional da consultoria. |
+| Validacao do gerente | `docs/stories/story-OPS-21-validacao-gerente-rotina-diaria.md` | 3 | Garante confiabilidade dos dados. |
+| Notificacoes da puxada diaria | `docs/stories/story-OPS-22-notificacoes-puxada-diaria.md` | 3 | Primeiro passo antes de WhatsApp/app push. |
+| Insights de disciplina | `docs/stories/story-OPS-23-insights-disciplina-vendedor.md` | 3 | Mostra valor para vendedor, gerente e dono. |
+| Treinamentos como Desenvolvimento | `docs/stories/story-DEV-24-reposicionar-treinamentos-desenvolvimento.md` | 4 | Reposiciona produto como desenvolvimento de pessoas. |
+| Biblioteca de conteudo | `docs/stories/story-DEV-25-biblioteca-conteudo-temas-avaliacao.md` | 4 | Atende estudo sob demanda por temas. |
+| Trilha de novo colaborador | `docs/stories/story-DEV-26-trilha-novo-colaborador.md` | 4 | Padroniza onboarding antes de liberar vendedor. |
+| Feedback/PDI com conteudo recomendado | `docs/stories/story-DEV-27-feedback-pdi-recomendacao-conteudo.md` | 4 | Liga lacunas a plano de acao. |
+| Trilha institucional por loja | `docs/stories/story-APP-28-trilha-institucional-personalizada-loja.md` | 5 | Diferencial comercial e pacote adicional. |
+| Especialistas e fornecedores | `docs/stories/story-APP-29-curadoria-conteudos-especialistas-fornecedores.md` | 5 | Estrutura biblioteca com conteudos externos. |
+| Readiness mobile/PWA | `docs/stories/story-APP-30-app-readiness-mobile-pwa.md` | 5 | Gate antes de distribuicao app. |
+| Checklist Apple/Google | `docs/stories/story-APP-31-checklist-submissao-apple-google.md` | 5 | Organiza submissao, evidencias e riscos. |
+
+## 13. Recorte MVP Recomendado
+
+O MVP deve focar em tres promessas claras:
+
+1. **Executar consultoria dentro do sistema:** agenda, visita, objetivo, periodo, checklist, anexo, resumo e relatorio.
+2. **Gerar valor diario para a loja:** vendedor preenche, gerente valida, dono enxerga performance e consultor usa os dados.
+3. **Desenvolver equipe comercial:** biblioteca por tema, trilha de novo colaborador, PDI, feedback e recomendacao de conteudo.
+
+O que nao deve entrar no MVP, mesmo sendo desejavel:
+
+- IA obrigatoria para escrever relatorio.
+- Gamificacao robusta.
+- Todos os 45 indicadores do planejamento.
+- Personalizacao institucional completa para todas as lojas.
+- Automacao WhatsApp completa.
+- Marketplace de aulas.
+
+## 14. Proximas Acoes de Produto
+
+1. Validar com PO se a prioridade continua sendo Fase 1 antes de desenvolvimento de pessoas.
+2. Fechar nome final da area de desenvolvimento.
+3. Definir os indicadores MVP do planejamento estrategico.
+4. Validar o modelo final do relatorio executivo enviado ao cliente.
+5. Escolher clientes piloto para testar consultoria, rotina diaria e visao dono.
+6. Confirmar primeira pauta de conteudos para gravacao em estudio.
+7. Revisar checklist mobile/PWA antes de qualquer submissao Apple/Google.

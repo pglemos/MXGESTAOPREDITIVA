@@ -4,8 +4,8 @@ BASE_URL = "http://localhost:3000"
 AUTH_URL = f"{BASE_URL}/auth/v1/token?grant_type=password"
 MEMBERSHIPS_ENDPOINT = f"{BASE_URL}/rest/v1/memberships"
 
-ADMIN_EMAIL = "admin@mxperformance.com.br"
-ADMIN_PASSWORD = "Mx#2026!"
+ADMIN_EMAIL = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+ADMIN_PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 
 def test_TC018_verify_memberships_list_endpoint():
     # Authenticate as Admin to get access token

@@ -3,8 +3,8 @@ import requests
 BASE_URL = "http://localhost:3000"
 AUTH_URL = f"{BASE_URL}/auth/v1/token?grant_type=password"
 REPROCESSING_LOGS_URL = f"{BASE_URL}/rest/v1/reprocessing_logs"
-ADMIN_EMAIL = "admin@mxperformance.com.br"
-ADMIN_PASSWORD = "Mx#2026!"
+ADMIN_EMAIL = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+ADMIN_PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 TIMEOUT = 30
 
 def test_verify_reprocessing_logs_endpoint():

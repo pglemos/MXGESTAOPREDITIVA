@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { ManagerRoutineLog, RankingEntry } from '@/types/database'
 
+const MANAGER_ROUTINE_LOG_SELECT = 'id, store_id, manager_id, routine_date, reference_date, checkins_pending_count, sem_registro_count, agd_cart_today, agd_net_today, previous_day_leads, previous_day_sales, ranking_snapshot, notes, status, executed_at, updated_at, created_at'
+
 export type RoutineRankingSnapshot = Pick<RankingEntry, 'user_id' | 'user_name' | 'position' | 'vnd_total' | 'meta' | 'atingimento'>
 
 interface RegisterRoutinePayload {
@@ -37,7 +39,7 @@ export function useManagerRoutine(storeIdOverride?: string) {
         setLoading(true)
         const { data } = await supabase
             .from('logs_rotina_gerente')
-            .select('*')
+            .select(MANAGER_ROUTINE_LOG_SELECT)
             .eq('store_id', storeId)
             .order('routine_date', { ascending: false })
             .limit(7)
@@ -69,7 +71,7 @@ export function useManagerRoutine(storeIdOverride?: string) {
                 status: 'completed',
                 executed_at: new Date().toISOString(),
             }, { onConflict: 'store_id,manager_id,routine_date' })
-            .select('*')
+            .select(MANAGER_ROUTINE_LOG_SELECT)
             .single()
 
         if (error) return { error: error.message }

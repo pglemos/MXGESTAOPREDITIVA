@@ -33,16 +33,16 @@ async def run_test():
         # -> Navigate to http://localhost:5173
         await page.goto("http://localhost:5173")
         
-        # -> Fill the email field with gerente credentials (example@gmail.com) and the password field with password123, then submit the form.
+        # -> Fill the email field with gerente credentials (usuario@mxperformance.test) and the password field with TESTSPRITE_PASSWORD_REQUIRED, then submit the form.
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/div/form/div/div/input').nth(0)
-        await asyncio.sleep(3); await elem.fill('example@gmail.com')
+        await asyncio.sleep(3); await elem.fill('usuario@mxperformance.test')
         
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/div/form/div/div[2]/input').nth(0)
-        await asyncio.sleep(3); await elem.fill('password123')
+        await asyncio.sleep(3); await elem.fill('TESTSPRITE_PASSWORD_REQUIRED')
         
         frame = context.pages[-1]
         # Click element
@@ -51,7 +51,7 @@ async def run_test():
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        assert await frame.locator("xpath=//*[contains(., 'example@gmail.com')]").nth(0).is_visible(), "The dashboard should show the gerente email after login"
+        assert await frame.locator("xpath=//*[contains(., 'usuario@mxperformance.test')]").nth(0).is_visible(), "The dashboard should show the gerente email after login"
         assert not await frame.locator("xpath=//*[contains(., 'Admin')]").nth(0).is_visible(), "The admin navigation or controls should not be visible to a Gerente after login"
         await asyncio.sleep(5)
 

@@ -6,8 +6,10 @@ import {
   createE2EConsultingVisit,
   deleteE2EConsultingData,
   deleteE2EUser,
+  getSupabaseAdmin,
   type E2EUser,
 } from './e2e-helpers/supabase-admin'
+import { getE2EInternalCredentials, loginWithCredentials } from './e2e-helpers/auth'
 
 async function login(page: import('@playwright/test').Page, email: string, password: string) {
   await page.goto('/login')
@@ -43,14 +45,22 @@ test.describe('Agenda admin filters', () => {
 
   test('Daniel admin master filters all consultants and date windows: today, week, next week, month, all', async ({ page }, testInfo) => {
     const suffix = `${testInfo.project.name}-${Date.now()}`
-    const loginAdmin = await createE2EAdminUser({ prefix: `agenda-login-${suffix}`, name: 'Daniel Admin Master' })
+    const adminCredentials = getE2EInternalCredentials()
+    const { data: loginAdmin, error: loginAdminError } = await getSupabaseAdmin()
+      .from('usuarios')
+      .select('id')
+      .eq('email', adminCredentials.email)
+      .single()
+    expect(loginAdminError).toBeNull()
+    expect(loginAdmin?.id).toBeTruthy()
+
     const consultantA = await createE2EAdminUser({ prefix: `agenda-a-${suffix}`, name: `Agenda Consultor A ${suffix}`, role: 'consultor_mx' })
     const consultantB = await createE2EAdminUser({ prefix: `agenda-b-${suffix}`, name: `Agenda Consultor B ${suffix}`, role: 'consultor_mx' })
-    users.push(loginAdmin, consultantA, consultantB)
+    users.push(consultantA, consultantB)
 
-    const clientToday = await createE2EConsultingClient({ name: `E2E Agenda Hoje ${suffix}`, createdBy: loginAdmin.id })
-    const clientNextWeek = await createE2EConsultingClient({ name: `E2E Agenda Proxima ${suffix}`, createdBy: loginAdmin.id })
-    const clientOtherConsultant = await createE2EConsultingClient({ name: `E2E Agenda Outro ${suffix}`, createdBy: loginAdmin.id })
+    const clientToday = await createE2EConsultingClient({ name: `E2E Agenda Hoje ${suffix}`, createdBy: loginAdmin!.id })
+    const clientNextWeek = await createE2EConsultingClient({ name: `E2E Agenda Proxima ${suffix}`, createdBy: loginAdmin!.id })
+    const clientOtherConsultant = await createE2EConsultingClient({ name: `E2E Agenda Outro ${suffix}`, createdBy: loginAdmin!.id })
     clientIds.push(clientToday.id, clientNextWeek.id, clientOtherConsultant.id)
 
     const now = new Date()
@@ -59,7 +69,7 @@ test.describe('Agenda admin filters', () => {
     await createE2EConsultingVisit({ clientId: clientNextWeek.id, consultantId: consultantA.id, scheduledAt: withHour(nextWeekDate, 11), visitNumber: 2 })
     await createE2EConsultingVisit({ clientId: clientOtherConsultant.id, consultantId: consultantB.id, scheduledAt: withHour(now, 12), visitNumber: 3 })
 
-    await login(page, loginAdmin.email, loginAdmin.password)
+    await loginWithCredentials(page, adminCredentials.email, adminCredentials.password)
     await page.goto(`/agenda?range=todos&consultant=${consultantA.id}`)
 
     await expect(page.getByText('Agenda MX')).toBeVisible({ timeout: 15000 })

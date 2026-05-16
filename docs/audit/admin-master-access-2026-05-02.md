@@ -8,9 +8,9 @@
 
 | Email | Acao | Role final | Ativo | Troca obrigatoria | Senha provisoria |
 |---|---|---|---|---|---|
-| `danieljsvendas@gmail.com` | Atualizado | `administrador_geral` | Sim | Sim | Mantida |
-| `synvollt@gmail.com` | Criado | `administrador_geral` | Sim | Sim | Definida conforme solicitacao |
-| `joseroberto20161@gmail.com` | Atualizado | `administrador_geral` | Sim | Sim | Definida conforme solicitacao |
+| `[EMAIL_REDACTED]` | Atualizado | `administrador_geral` | Sim | Sim | Mantida |
+| `[EMAIL_REDACTED]` | Criado | `administrador_geral` | Sim | Sim | Definida conforme solicitacao |
+| `[EMAIL_REDACTED]` | Atualizado | `administrador_geral` | Sim | Sim | Definida conforme solicitacao |
 
 ## Validacao
 

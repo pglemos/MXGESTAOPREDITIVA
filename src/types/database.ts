@@ -323,6 +323,8 @@ export interface Membership {
     store_id: string
     role: MembershipRole
     created_at?: string
+    is_active?: boolean
+    ended_at?: string | null
     store?: Store
 }
 

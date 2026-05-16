@@ -89,7 +89,7 @@ async function cleanupPendingUser(
 ) {
   if (deleteCreatedAuthUser) {
     await adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId).eq('store_id', storeId)
-    await adminClient.from('vinculos_loja').delete().eq('user_id', userId).eq('store_id', storeId)
+    await adminClient.from('vinculos_loja').update({ is_active: false, ended_at: new Date().toISOString().slice(0, 10) }).eq('user_id', userId).eq('store_id', storeId)
     await adminClient.from('usuarios').delete().eq('id', userId)
   }
   if (avatarStoragePath) await adminClient.storage.from('pre-cadastro-avatares').remove([avatarStoragePath])
@@ -342,6 +342,8 @@ serve(async (req) => {
     user_id: userId,
     store_id: store.id,
     role,
+    is_active: true,
+    ended_at: null,
   }, { onConflict: 'user_id,store_id' })
 
   if (membershipError) {

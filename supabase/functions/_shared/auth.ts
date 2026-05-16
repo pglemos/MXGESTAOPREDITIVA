@@ -86,7 +86,7 @@ export async function requireAuthenticatedRole(req: Request, allowedRoles: MxRol
 export async function authorizeReportRequest(req: Request) {
   const cronSecret = Deno.env.get("MX_CRON_SECRET");
   if (cronSecret && req.headers.get("x-mx-cron-secret") === cronSecret) {
-    return { context: null };
+    return { context: null, response: undefined };
   }
   return requireAuthenticatedRole(req, ADMIN_ROLES);
 }

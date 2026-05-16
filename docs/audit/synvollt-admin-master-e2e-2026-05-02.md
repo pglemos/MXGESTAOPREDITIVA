@@ -1,8 +1,8 @@
 # Validação E2E Admin Master MX — synvollt
 
-**Data:** 2026-05-02 21:35 -03  
-**Usuário:** `synvollt@gmail.com`  
-**Role validada:** `administrador_geral`  
+**Data:** 2026-05-02 21:35 -03
+**Usuário:** `[EMAIL_REDACTED]`
+**Role validada:** `administrador_geral`
 **Ambiente:** `https://mxperformance.vercel.app`
 
 ## Resultado

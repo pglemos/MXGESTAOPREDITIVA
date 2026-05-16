@@ -26,6 +26,26 @@ type SellerRow = {
   vnd: number;
 };
 
+type RelatedUser = {
+  name?: string | null;
+  email?: string | null;
+  is_venda_loja?: boolean | null;
+};
+
+type RosterRow = {
+  user_id: string;
+  users?: RelatedUser | RelatedUser[] | null;
+};
+
+type SellerTenureRow = {
+  seller_user_id: string;
+  users?: RelatedUser | RelatedUser[] | null;
+};
+
+function normalizeRelatedUser(users: RelatedUser | RelatedUser[] | null | undefined): RelatedUser | null {
+  return Array.isArray(users) ? users[0] ?? null : users ?? null;
+}
+
 type RankingRow = SellerRow & {
   txLeadAgd: number;
   txAgdVis: number;
@@ -201,13 +221,13 @@ async function buildWeeklyPayload(store: any, dates: ReturnType<typeof getSaoPau
     supabase.from("regras_metas_loja").select("monthly_goal, bench_lead_agd, bench_agd_visita, bench_visita_vnd").eq("store_id", store.id).maybeSingle(),
   ]);
 
-  const tenureRows = tenuresRes.data && tenuresRes.data.length > 0
-    ? tenuresRes.data.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))
-    : (fallbackMembersRes.data || []);
+  const tenureRows: RosterRow[] = tenuresRes.data && tenuresRes.data.length > 0
+    ? (tenuresRes.data as SellerTenureRow[]).map((item) => ({ user_id: item.seller_user_id, users: item.users }))
+    : ((fallbackMembersRes.data || []) as RosterRow[]);
 
   const agg = new Map<string, SellerRow>();
   for (const row of tenureRows) {
-    const user = (row as any).users;
+    const user = normalizeRelatedUser(row.users);
     agg.set(row.user_id, { uid: row.user_id, name: user?.name || "Vendedor", email: user?.email || null, is_venda_loja: user?.is_venda_loja || false, leads: 0, agd: 0, vis: 0, vnd: 0 });
   }
 

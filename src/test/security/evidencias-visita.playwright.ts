@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { getE2EInternalCredentials } from '../e2e-helpers/auth';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY!;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.replaceAll('"', '');
-const senhaPadraoTeste = process.env.E2E_AUTH_PASSWORD || 'Mx#2026!';
 
 function novoClienteAnonimo() {
   return createClient(supabaseUrl, supabaseKey, {
@@ -21,9 +21,10 @@ function novoClienteServico() {
 
 async function autenticarAdmin() {
   const client = novoClienteAnonimo();
+  const adminCredentials = getE2EInternalCredentials();
   const { data, error } = await client.auth.signInWithPassword({
-    email: 'admin@mxgestaopreditiva.com.br',
-    password: senhaPadraoTeste,
+    email: adminCredentials.email,
+    password: adminCredentials.password,
   });
 
   expect(error).toBeNull();

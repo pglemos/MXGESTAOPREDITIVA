@@ -11,11 +11,16 @@ describe('route access matrix', () => {
     }
   })
 
-  it('keeps simulation routes routable after a role switch is activated', () => {
-    for (const role of ['administrador_mx', 'vendedor', 'gerente', 'dono'] as const) {
+  it('keeps simulation routes restricted to internal MX profiles', () => {
+    for (const role of ['administrador_mx', 'consultor_mx', 'administrador_geral'] as const) {
       expect(canAccessPath('/simulacao/vendedor', role)).toBe(true)
       expect(canAccessPath('/simulacao/gerente', role)).toBe(true)
       expect(canAccessPath('/simulacao/dono', role)).toBe(true)
+    }
+    for (const role of ['vendedor', 'gerente', 'dono'] as const) {
+      expect(canAccessPath('/simulacao/vendedor', role)).toBe(false)
+      expect(canAccessPath('/simulacao/gerente', role)).toBe(false)
+      expect(canAccessPath('/simulacao/dono', role)).toBe(false)
     }
   })
 
@@ -48,8 +53,35 @@ describe('route access matrix', () => {
     expect(canAccessPath('/auditoria', 'vendedor')).toBe(false)
   })
 
-  it('keeps unknown routes available for the NotFound route after authentication', () => {
+  it('denies unknown authenticated routes by default', () => {
     expect(getRouteAccessRule('/rota-inexistente')).toBeNull()
-    expect(canAccessPath('/rota-inexistente', 'vendedor')).toBe(true)
+    expect(canAccessPath('/rota-inexistente', 'vendedor')).toBe(false)
+  })
+
+  it('gates configurations and PDI print by capability-level role groups', () => {
+    expect(canAccessPath('/configuracoes', 'administrador_mx')).toBe(true)
+    expect(canAccessPath('/configuracoes', 'dono')).toBe(true)
+    expect(canAccessPath('/configuracoes', 'gerente')).toBe(false)
+    expect(canAccessPath('/configuracoes', 'vendedor')).toBe(false)
+    expect(canAccessPath('/settings', 'dono')).toBe(true)
+    expect(canAccessPath('/settings', 'vendedor')).toBe(false)
+    expect(canAccessPath('/produtos', 'gerente')).toBe(true)
+    expect(canAccessPath('/produtos', 'vendedor')).toBe(false)
+    expect(canAccessPath('/pdi/abc/print', 'gerente')).toBe(true)
+    expect(canAccessPath('/pdi/abc/print', 'vendedor')).toBe(false)
+  })
+
+  it('keeps the legacy team alias capability scoped', () => {
+    expect(canAccessPath('/team', 'administrador_mx')).toBe(true)
+    expect(canAccessPath('/team', 'dono')).toBe(true)
+    expect(canAccessPath('/team', 'gerente')).toBe(true)
+    expect(canAccessPath('/team', 'vendedor')).toBe(false)
+  })
+
+  it('stores capability metadata on sensitive route rules', () => {
+    expect(getRouteAccessRule('/simulacao/vendedor')?.capability).toBe('simulate_role')
+    expect(getRouteAccessRule('/produtos')?.capability).toBe('view_products')
+    expect(getRouteAccessRule('/configuracoes')?.capability).toBe('view_configurations')
+    expect(getRouteAccessRule('/pdi/abc/print')?.capability).toBe('print_pdi')
   })
 })

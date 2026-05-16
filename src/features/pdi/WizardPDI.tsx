@@ -220,7 +220,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
         try {
             const payload = {
                 colaborador_id: form.colaborador_id,
-                loja_id: selectedSeller?.store_id || storeId,
+                loja_id: selectedSeller?.store_id || storeId || '',
                 cargo_id: form.cargo_id,
                 proxima_revisao_data: form.proxima_revisao_data,
                 metas: form.metas.filter(m => m.descricao.trim()),

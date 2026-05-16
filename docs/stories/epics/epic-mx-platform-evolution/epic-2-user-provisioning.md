@@ -22,10 +22,10 @@ respeitando o fluxo de troca obrigatória de senha no primeiro login (garantido 
 
 | Nome | Email | Role | Senha inicial | Notas |
 |------|-------|------|---------------|-------|
-| Daniel | danieljsvendas@gmail.com | admin | 123456 | Já mencionado nos contextos OAuth — possivelmente já existe |
-| Gedson | gedson.freire.localiza@gmail.com | admin | 123456 | Novo |
-| João | camarajoaoaugusto@gmail.com | admin | 123456 | Novo |
-| Mariane | marianedcs@gmail.com | admin | 123456 | Novo |
+| Daniel | [EMAIL_REDACTED] | admin | [SENHA_TEMPORARIA_REDACTED] | Já mencionado nos contextos OAuth — possivelmente já existe |
+| Gedson | [EMAIL_REDACTED] | admin | [SENHA_TEMPORARIA_REDACTED] | Novo |
+| João | [EMAIL_REDACTED] | admin | [SENHA_TEMPORARIA_REDACTED] | Novo |
+| Mariane | [EMAIL_REDACTED] | admin | [SENHA_TEMPORARIA_REDACTED] | Novo |
 
 **Pré-validação obrigatória:** rodar query antes de inserir para identificar emails já existentes em `auth.users` e em `public.users`.
 
@@ -50,18 +50,18 @@ respeitando o fluxo de troca obrigatória de senha no primeiro login (garantido 
 
 - [x] Para cada email não existente, criar via edge function `register-user` (mesma usada na Equipe):
   - role: `admin`
-  - password: `123456`
+  - password: `[SENHA_TEMPORARIA_REDACTED]`
   - `must_change_password: true`
 - [x] Para usuários existentes mas sem role `admin`: atualizar via SQL com confirmação manual
 - [x] Documentar comandos executados em `docs/audit/mx-team-provisioning-log.md`
-- [x] Cada um dos 4 colaboradores deve conseguir login com `123456` e ser obrigado a trocar a senha
+- [x] Cada um dos 4 colaboradores deve conseguir login com `[SENHA_TEMPORARIA_REDACTED]` e ser obrigado a trocar a senha
 
 ### Story 2.3: Notificar colaboradores
 
 **Critérios de Aceitação:**
 
 - [x] Mensagem-template (texto puro, para PO copiar e enviar) em `docs/templates/welcome-message-mx-admin.md`
-  - Inclui URL do app, email cadastrado, senha temporária `123456`, instrução de trocar no primeiro login
+  - Inclui URL do app, email cadastrado, senha temporária `[SENHA_TEMPORARIA_REDACTED]`, instrução de trocar no primeiro login
 
 ---
 

@@ -43,9 +43,9 @@ export async function decryptToken(payload: string): Promise<string> {
   const secret = requireEnv("GOOGLE_TOKEN_ENCRYPTION_SECRET", Deno.env.get("GOOGLE_TOKEN_ENCRYPTION_SECRET"));
   const key = await deriveAesKey(secret);
   const plaintext = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: fromBase64Url(ivPart) },
+    { name: "AES-GCM", iv: fromBase64Url(ivPart) as BufferSource },
     key,
-    fromBase64Url(cipherPart),
+    fromBase64Url(cipherPart) as BufferSource,
   );
 
   return textDecoder.decode(plaintext);

@@ -62,12 +62,12 @@ Chaves, tokens, secrets, push, PR, release, migrations remotas e deploy automati
 - @dev corrigiu matriz de rotas: `/lancamento-diario` restrito a vendedor e `/auditoria` alinhada ao App para internos MX + gerente.
 - `ProdutosDigitais` passou de delete fisico para arquivamento via `status='arquivado'`, com textos de UI atualizados.
 - `store-pre-registration` passou a gerar senha provisoria forte por solicitacao e nao persistir a senha em `pre_cadastros_loja.temporary_password`.
-- `StorePreRegistration` removeu fallback fixo `Mx@123456!` no retorno da Edge Function.
+- `StorePreRegistration` removeu fallback fixo `[SENHA_TEMPORARIA_REDACTED]` no retorno da Edge Function.
 - `StoreTeamPanel` deixou de selecionar e exibir `temporary_password` de pre-cadastros.
 - `_shared/auth` de Edge Functions passou a bloquear perfil `active=false`.
 - `useCheckins` e `useAuth` reduziram consultas amplas nos caminhos tocados.
 - `ProdutosDigitais` reduziu `select('*')` para contrato explicito.
-- Scan focado confirmou que `Mx@123456`, `select('*')` e delete fisico de produto nao aparecem mais nos arquivos tocados.
+- Scan focado confirmou que `[SENHA_TEMPORARIA_REDACTED]`, `select('*')` e delete fisico de produto nao aparecem mais nos arquivos tocados.
 - `deno --version` falhou com `command not found`; `deno check` local das Edge Functions nao foi executado.
 - Build passou, mas manteve aviso de chunk grande: `vendor-pdf` acima de 1 MB.
 

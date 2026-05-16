@@ -2,22 +2,22 @@
   {
     "id": "TC001",
     "title": "Login Admin",
-    "description": "Admin login with admin@mxperformance.com.br / Mx#2026!"
+    "description": "Admin login with TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED"
   },
   {
     "id": "TC002",
     "title": "Login Dono",
-    "description": "Dono login with dono@mxperformance.com.br / Mx#2026!"
+    "description": "Dono login with dono@mxperformance.test / TESTSPRITE_PASSWORD_REQUIRED"
   },
   {
     "id": "TC003",
     "title": "Login Gerente",
-    "description": "Gerente login with gerente@mxperformance.com.br / Mx#2026!"
+    "description": "Gerente login with gerente@mxperformance.test / TESTSPRITE_PASSWORD_REQUIRED"
   },
   {
     "id": "TC004",
     "title": "Login Vendedor",
-    "description": "Vendedor login with vendedor@mxperformance.com.br / Mx#2026!"
+    "description": "Vendedor login with vendedor@mxperformance.test / TESTSPRITE_PASSWORD_REQUIRED"
   },
   {
     "id": "TC005",

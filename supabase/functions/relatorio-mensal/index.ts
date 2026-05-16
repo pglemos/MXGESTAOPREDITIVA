@@ -26,6 +26,25 @@ type SellerMonthlyRow = {
   vt: number;
 };
 
+type RelatedUser = {
+  name?: string | null;
+  is_venda_loja?: boolean | null;
+};
+
+type RosterRow = {
+  user_id: string;
+  users?: RelatedUser | RelatedUser[] | null;
+};
+
+type SellerTenureRow = {
+  seller_user_id: string;
+  users?: RelatedUser | RelatedUser[] | null;
+};
+
+function normalizeRelatedUser(users: RelatedUser | RelatedUser[] | null | undefined): RelatedUser | null {
+  return Array.isArray(users) ? users[0] ?? null : users ?? null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -153,13 +172,13 @@ async function buildMonthlyPayload(store: any, dates: ReturnType<typeof getSaoPa
     supabase.from("regras_metas_loja").select("monthly_goal, include_venda_loja_in_store_total").eq("store_id", store.id).maybeSingle(),
   ]);
 
-  const rosterRows = tenuresRes.data && tenuresRes.data.length > 0
-    ? tenuresRes.data.map((item: any) => ({ user_id: item.seller_user_id, users: item.users }))
-    : (fallbackMembersRes.data || []);
+  const rosterRows: RosterRow[] = tenuresRes.data && tenuresRes.data.length > 0
+    ? (tenuresRes.data as SellerTenureRow[]).map((item) => ({ user_id: item.seller_user_id, users: item.users }))
+    : ((fallbackMembersRes.data || []) as RosterRow[]);
 
   const agg = new Map<string, SellerMonthlyRow>();
   for (const row of rosterRows) {
-    const user = (row as any).users;
+    const user = normalizeRelatedUser(row.users);
     agg.set(row.user_id, {
       uid: row.user_id,
       name: user?.name || "Vendedor",

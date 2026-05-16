@@ -1,8 +1,8 @@
 import requests
 
 BASE_URL = "http://localhost:3000"
-ADMIN_USERNAME = "admin@mxperformance.com.br"
-ADMIN_PASSWORD = "Mx#2026!"
+ADMIN_USERNAME = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+ADMIN_PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 TIMEOUT = 30
 
 def test_tc034_verify_weekly_reports_list_endpoint():

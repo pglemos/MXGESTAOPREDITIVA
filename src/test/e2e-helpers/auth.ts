@@ -1,0 +1,46 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const E2E_AUTH_EMAIL_SKIP_REASON = 'E2E authenticated tests require E2E_AUTH_EMAIL in the local environment.'
+const E2E_AUTH_PASSWORD_SKIP_REASON = 'E2E authenticated tests require E2E_AUTH_PASSWORD in the local environment.'
+
+export function getE2EInternalEmail() {
+  const email = process.env.E2E_AUTH_EMAIL
+  if (!email) {
+    test.skip(true, E2E_AUTH_EMAIL_SKIP_REASON)
+    return '__missing_e2e_auth_email__@example.test'
+  }
+  return email
+}
+
+export function getE2EPassword() {
+  const password = process.env.E2E_AUTH_PASSWORD
+  if (!password) {
+    test.skip(true, E2E_AUTH_PASSWORD_SKIP_REASON)
+    return '__missing_e2e_auth_password__'
+  }
+  return password
+}
+
+export function getE2ERolePassword() {
+  return process.env.E2E_ROLE_PASSWORD || getE2EPassword()
+}
+
+export function getE2EInternalCredentials() {
+  return {
+    email: getE2EInternalEmail(),
+    password: getE2EPassword(),
+  }
+}
+
+export async function loginWithCredentials(page: Page, email: string, password: string) {
+  await page.goto('/login')
+  await page.fill('input[type="email"]', email)
+  await page.fill('input[type="password"]', password)
+  await page.click('button[type="submit"]')
+  await expect(page.locator('main#main-content').first()).toBeVisible({ timeout: 20000 })
+}
+
+export async function loginAsInternalMx(page: Page) {
+  const { email, password } = getE2EInternalCredentials()
+  await loginWithCredentials(page, email, password)
+}

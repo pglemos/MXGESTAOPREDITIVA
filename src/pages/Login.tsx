@@ -23,6 +23,15 @@ function isValidEmail(value: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
 }
 
+function getRecoverySessionFromHash(): { accessToken: string; refreshToken: string } | null {
+    if (typeof window === 'undefined' || !window.location.hash) return null
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+    if (!accessToken || !refreshToken) return null
+    return { accessToken, refreshToken }
+}
+
 export default function Login() {
     const { signIn, profile, loading: authLoading } = useAuth()
     const navigate = useNavigate()
@@ -58,12 +67,26 @@ export default function Login() {
         if (mode !== 'recovery') return
 
         let mounted = true
-        const timeoutId = window.setTimeout(async () => {
+        const ensureRecoverySession = async () => {
+            const recoverySession = getRecoverySessionFromHash()
+            if (recoverySession) {
+                const { error: sessionError } = await supabase.auth.setSession({
+                    access_token: recoverySession.accessToken,
+                    refresh_token: recoverySession.refreshToken,
+                })
+                if (sessionError && mounted) {
+                    setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+                }
+                return
+            }
+
             const { data } = await supabase.auth.getSession()
             if (mounted && !data.session) {
                 setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
             }
-        }, 1200)
+        }
+
+        const timeoutId = window.setTimeout(ensureRecoverySession, getRecoverySessionFromHash() ? 0 : 1200)
 
         return () => {
             mounted = false
@@ -180,8 +203,7 @@ export default function Login() {
         resetFeedback()
 
         const { data: sessionData } = await supabase.auth.getSession()
-        const userId = sessionData.session?.user.id
-        if (!userId) {
+        if (!sessionData.session?.user.id) {
             setLoading(false)
             setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
             return
@@ -194,16 +216,14 @@ export default function Login() {
             return
         }
 
-        const { error: profileError } = await supabase
-            .from('usuarios')
-            .update({ must_change_password: false })
-            .eq('id', userId)
+        const { data: profileData, error: profileError } = await supabase.rpc('complete_password_change')
+        const profileResult = profileData as { ok?: boolean; error?: string } | null
 
         await supabase.auth.signOut()
         setLoading(false)
 
-        if (profileError) {
-            setError(profileError.message)
+        if (profileError || !profileResult?.ok) {
+            setError(profileError?.message || profileResult?.error || 'Não foi possível concluir a troca de senha.')
             return
         }
 

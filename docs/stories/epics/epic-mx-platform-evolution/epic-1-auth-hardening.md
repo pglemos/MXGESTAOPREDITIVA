@@ -13,7 +13,7 @@
 
 ## Objetivo
 
-Padronizar a senha de primeiro acesso de **todos os usuários novos** como `123456`, garantindo que o fluxo já existente de troca obrigatória de senha (`must_change_password = true`) funcione corretamente do cadastro até o primeiro login bem-sucedido.
+Padronizar a senha de primeiro acesso de **todos os usuários novos** como `[SENHA_TEMPORARIA_REDACTED]`, garantindo que o fluxo já existente de troca obrigatória de senha (`must_change_password = true`) funcione corretamente do cadastro até o primeiro login bem-sucedido.
 
 ---
 
@@ -29,7 +29,7 @@ A infraestrutura para troca obrigatória **já existe**:
 | Renderização condicional no Layout | [src/components/Layout.tsx:153](../../../../src/components/Layout.tsx) | ✅ Pronto |
 | Hook `changePassword` que zera o flag | [src/hooks/useAuth.tsx:328](../../../../src/hooks/useAuth.tsx) | ✅ Pronto |
 
-**Único ajuste necessário:** trocar o default password no `registerUser` de `'Mx#2026!'` para `'123456'` em [src/hooks/useTeam.ts:136](../../../../src/hooks/useTeam.ts).
+**Único ajuste necessário:** trocar o default password no `registerUser` de `'[SENHA_TEMPORARIA_REDACTED]'` para `'[SENHA_TEMPORARIA_REDACTED]'` em [src/hooks/useTeam.ts:136](../../../../src/hooks/useTeam.ts).
 
 A edge function `register-user` (chamada via `supabase.functions.invoke`) também precisa ser auditada para confirmar que respeita a senha enviada e marca `must_change_password = true` no metadata.
 
@@ -37,17 +37,17 @@ A edge function `register-user` (chamada via `supabase.functions.invoke`) també
 
 ## Stories
 
-### Story 1.1: Padronizar senha default `123456` no fluxo de criação
+### Story 1.1: Padronizar senha default `[SENHA_TEMPORARIA_REDACTED]` no fluxo de criação
 
 **Critérios de Aceitação:**
 
-- [x] Constante `DEFAULT_FIRST_LOGIN_PASSWORD = '123456'` exportada de local centralizado (sugestão: `src/lib/auth/constants.ts`)
-- [x] [src/hooks/useTeam.ts:136](../../../../src/hooks/useTeam.ts) usa a constante em vez do literal `'Mx#2026!'`
+- [x] Constante `DEFAULT_FIRST_LOGIN_PASSWORD = '[SENHA_TEMPORARIA_REDACTED]'` exportada de local centralizado (sugestão: `src/lib/auth/constants.ts`)
+- [x] [src/hooks/useTeam.ts:136](../../../../src/hooks/useTeam.ts) usa a constante em vez do literal `'[SENHA_TEMPORARIA_REDACTED]'`
 - [ ] Edge function `supabase/functions/register-user` (verificar existência ou criar):
-  - [x] Aceita `password` no body com fallback para `123456`
+  - [x] Aceita `password` no body com fallback para `[SENHA_TEMPORARIA_REDACTED]`
   - [x] Cria usuário via `supabase.auth.admin.createUser` com `user_metadata.must_change_password = true`
-- [x] Validador frontend de força de senha em `ForcePasswordChange.tsx` mantém mínimo 6 chars (já implementado) — confirmar que não bloqueia `123456` em testes
-- [x] Teste E2E (`src/test/auth-first-login.playwright.ts`): novo usuário criado → faz login com `123456` → modal `<ForcePasswordChange />` aparece → troca para senha forte → modal desaparece → não reaparece em login subsequente
+- [x] Validador frontend de força de senha em `ForcePasswordChange.tsx` mantém mínimo 6 chars (já implementado) — confirmar que não bloqueia `[SENHA_TEMPORARIA_REDACTED]` em testes
+- [x] Teste E2E (`src/test/auth-first-login.playwright.ts`): novo usuário criado → faz login com `[SENHA_TEMPORARIA_REDACTED]` → modal `<ForcePasswordChange />` aparece → troca para senha forte → modal desaparece → não reaparece em login subsequente
 
 ### Story 1.2: Auditoria do flow de force password change
 
@@ -75,5 +75,5 @@ A edge function `register-user` (chamada via `supabase.functions.invoke`) també
 | Risco | Mitigação |
 |-------|-----------|
 | Usuários existentes ficarem com flag pendente acidentalmente | Migration de validação: `UPDATE users SET must_change_password = false WHERE created_at < '2026-04-30'` (apenas se autorizado pelo PO) |
-| Senha `123456` ser considerada fraca pelo Supabase Auth | Configurar `password_min_length = 6` em `supabase/config.toml` |
+| Senha `[SENHA_TEMPORARIA_REDACTED]` ser considerada fraca pelo Supabase Auth | Configurar `password_min_length = 6` em `supabase/config.toml` |
 | Edge function `register-user` não existir | Story 1.1 cria a função se ausente |

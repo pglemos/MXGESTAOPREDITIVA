@@ -188,6 +188,9 @@ export async function sendReportEmail({
   if (provider === "none") {
     return { status: "not_sent", warnings: ["Nenhum provedor de e-mail configurado"] };
   }
+  if (!resend) {
+    return { status: "not_sent", warnings: ["Resend nao configurado"] };
+  }
 
   try {
     if (provider === "gmail") {

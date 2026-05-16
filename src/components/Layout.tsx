@@ -18,6 +18,7 @@ import { Avatar } from './atoms/Avatar'
 import MxLogo from '@/assets/mx-logo.png'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
+import { canAccessPath } from '@/lib/auth/routeAccess'
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
@@ -163,18 +164,18 @@ export default function Layout() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [mobileMenuOpen])
 
-  const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/lojas'
+  const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : role === 'gerente' ? '/classificacao' : '/lojas'
   const storeTeamPath = storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}?tab=equipe`
   const categories = React.useMemo(() => {
     const baseCategories = role ? (navConfig[role] || []) : []
-    return baseCategories.map(category => ({
-      ...category,
-      items: category.items.map(item => {
+    return baseCategories.map(category => {
+      const items = category.items.map(item => {
         if (item.path === STORE_DASHBOARD_PATH) return { ...item, path: storeDashboardPath }
         if (item.path === STORE_TEAM_PATH) return { ...item, path: storeTeamPath }
         return item
-      }),
-    }))
+      }).filter(item => canAccessPath(item.path, role))
+      return { ...category, items }
+    }).filter(category => category.items.length > 0)
   }, [role, storeDashboardPath, storeTeamPath])
   const activeCategoryData = categories.find(c => c.category === activeCategory) || categories[0]
   const perfilVisivel = role ? rotulosPerfil[role] || 'Perfil autorizado' : 'Perfil autorizado'
@@ -183,7 +184,12 @@ export default function Layout() {
   useEffect(() => {
     if (!categories.length) return
     for (const cat of categories) {
-      if (cat.items.some(item => location.pathname.startsWith(item.path.split('?')[0]))) {
+      if (cat.items.some(item => {
+        const [path, query] = item.path.split('?')
+        if (!location.pathname.startsWith(path)) return false
+        if (!query) return true
+        return location.search === `?${query}`
+      })) {
         setActiveCategory(cat.category)
         break
       }
@@ -192,23 +198,24 @@ export default function Layout() {
 
   if (!profile || !role) return null
 
-  const handleGlobalSearch = () => {
-    const searchInput = document.querySelector<HTMLInputElement>(
-      'input[type="search"], input[placeholder*="BUSCAR"], input[placeholder*="LOCALIZAR"]',
+  if (profile.must_change_password) {
+    return (
+      <div className="min-h-screen bg-mx-black flex items-center justify-center p-mx-lg">
+        <ForcePasswordChange />
+      </div>
     )
-    if (searchInput) {
-      searchInput.focus()
-      searchInput.select()
-      return
-    }
+  }
 
-    if (isPerfilInternoMx(role) || role === 'dono') navigate('/lojas')
-    else navigate('/classificacao')
+  const handleGlobalSearch = () => {
+    const targetPath = isPerfilInternoMx(role) || role === 'dono' ? '/lojas' : '/classificacao'
+    navigate(targetPath)
+    window.setTimeout(() => {
+      document.getElementById('main-content')?.focus()
+    }, 0)
   }
 
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
-      {profile?.must_change_password && <ForcePasswordChange />}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-mx-xl focus:shadow-mx-xl">
         Pular para conteúdo principal
       </a>
@@ -278,7 +285,7 @@ export default function Layout() {
                 Simulação {simulationRole ? rotulosPerfil[simulationRole] : 'MX'} ativa
               </Typography>
               <Typography variant="tiny" tone="white" className="block max-w-full min-w-0 opacity-60 font-bold truncate">
-                Admin: {perfilBaseVisivel} • Loja: {membership?.store?.name || 'Sandbox MX'} • Usuário: {profile.name}
+                Base: {perfilBaseVisivel} • Loja: {membership?.store?.name || 'Sandbox MX'}
               </Typography>
             </div>
           </div>
@@ -339,7 +346,7 @@ export default function Layout() {
         </aside>
 
         {/* Workspace Root */}
-        <main className="flex-1 bg-white border border-border-default rounded-mx-3xl relative shadow-mx-sm overflow-hidden" id="main-content" role="main">
+        <main className="flex-1 bg-white border border-border-default rounded-mx-3xl relative shadow-mx-sm overflow-hidden" id="main-content" role="main" tabIndex={-1}>
           <Outlet />
         </main>
 
@@ -404,18 +411,18 @@ export default function Layout() {
               ref={mobileMenuRef}
               role="dialog"
               aria-modal="true"
-              aria-label="Menu Mobile Principal"
+              aria-labelledby="mobile-menu-title"
             >
               <div className="w-mx-xl h-1.5 bg-surface-alt rounded-mx-full mx-auto mb-8" aria-hidden="true" />
               <div className="flex items-center justify-between mb-10">
                 <div className="flex items-center gap-mx-sm">
                   <div className="h-mx-xl overflow-hidden"><img src={MxLogo} alt="MX Performance" className="h-full w-auto object-contain" /></div>
                   <div>
-                    <Typography variant="h2" className="text-xl font-black text-text-primary tracking-tighter uppercase">MX PERFORMANCE</Typography>
+                    <Typography id="mobile-menu-title" variant="h2" className="text-xl font-black text-text-primary tracking-tighter uppercase">MX PERFORMANCE</Typography>
                     <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{perfilVisivel}</Typography>
                   </div>
                 </div>
-                <button onClick={() => setMobileMenuOpen(false)} className="w-mx-xl h-mx-xl rounded-mx-2xl bg-surface-alt flex items-center justify-center text-text-tertiary focus-visible:ring-2 focus-visible:ring-brand-primary/20"><X size={24} aria-label="Fechar" /></button>
+                <button type="button" aria-label="Fechar menu mobile" onClick={() => setMobileMenuOpen(false)} className="w-mx-xl h-mx-xl rounded-mx-2xl bg-surface-alt flex items-center justify-center text-text-tertiary focus-visible:ring-2 focus-visible:ring-brand-primary/20"><X size={24} aria-hidden="true" /></button>
               </div>
 
               <div className="space-y-mx-10">
@@ -440,7 +447,7 @@ export default function Layout() {
                     </div>
                   </nav>
                 ))}
-                <button onClick={() => signOut()} className="w-full flex items-center gap-mx-sm px-6 py-4 rounded-mx-2xl bg-status-error-surface text-status-error text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]">
+                <button type="button" onClick={() => signOut()} className="w-full flex items-center gap-mx-sm px-6 py-4 rounded-mx-2xl bg-status-error-surface text-status-error text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]">
                   <LogOut size={20} aria-hidden="true" /> Encerrar Sessão
                 </button>
               </div>
@@ -472,7 +479,7 @@ export default function Layout() {
             </NavLink>
           )}
 
-          {(role === 'gerente' || isPerfilInternoMx(role)) && (
+          {(role === 'gerente' || role === 'dono' || isPerfilInternoMx(role)) && (
             <NavLink 
               to={isPerfilInternoMx(role) ? '/lojas' : storeTeamPath}
               aria-label="Gerir Equipe" 

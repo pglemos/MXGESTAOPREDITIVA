@@ -44,7 +44,7 @@ export default function Lojas() {
         let totalDiscipline = 0
         let activeStoresCount = 0
 
-        filteredStores.forEach(s => {
+        lojas.filter(s => s.active).forEach(s => {
             const sStat = stats[s.id]
             if (sStat) {
                 totalSellers += sStat.sellers
@@ -57,17 +57,22 @@ export default function Lojas() {
 
         return {
             totalSellers,
-            totalStores: filteredStores.length,
+            totalStores: lojas.filter(s => s.active).length,
             activeStores: activeStoresCount,
             avgDiscipline: activeStoresCount > 0 ? Math.round(totalDiscipline / activeStoresCount) : 0
         }
-    }, [filteredStores, stats])
+    }, [lojas, stats])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        await Promise.all([refetchStores(), refetchStats()])
-        setIsRefetching(false)
-        toast.success('Rede sincronizada!')
+        try {
+            await Promise.all([refetchStores(), refetchStats()])
+            toast.success('Rede sincronizada!')
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Falha ao sincronizar rede.')
+        } finally {
+            setIsRefetching(false)
+        }
     }, [refetchStores, refetchStats])
 
     const handleCreateStore = async (e: React.FormEvent) => {
@@ -82,7 +87,7 @@ export default function Lojas() {
             toast.success('Unidade operacional criada com sucesso!')
             setIsCreateModalOpen(false)
             setNewStore({ name: '', manager_email: '' })
-            handleRefresh()
+            await handleRefresh()
         }
     }
 
@@ -92,8 +97,16 @@ export default function Lojas() {
 
     const copyRegistrationLink = useCallback(async (storeName: string) => {
         const link = getRegistrationLink(storeName)
-        await navigator.clipboard?.writeText(link)
-        toast.success('Link de pré-cadastro copiado.')
+        if (!navigator.clipboard?.writeText) {
+            toast.error('Clipboard indisponível neste navegador.')
+            return
+        }
+        try {
+            await navigator.clipboard.writeText(link)
+            toast.success('Link de pré-cadastro copiado.')
+        } catch {
+            toast.error('Não foi possível copiar o link.')
+        }
     }, [getRegistrationLink])
 
     const handleArchiveStore = useCallback((store: Store) => {
@@ -134,8 +147,8 @@ export default function Lojas() {
             render: (store) => {
                 const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
                 return (
-                    <Badge variant={sStat.sellers > 0 ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none">
-                        {sStat.sellers > 0 ? "Ativa" : "Vazia"}
+                    <Badge variant={store.active ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none">
+                        {store.active ? (sStat.sellers > 0 ? "OPERANDO" : "SEM EQUIPE") : "INATIVA"}
                     </Badge>
                 )
             }
@@ -165,11 +178,11 @@ export default function Lojas() {
             key: 'registration',
             header: 'PRÉ-CADASTRO',
             desktopOnly: true,
-            render: (store) => (
+            render: () => (
                 <div className="flex items-center gap-mx-xs min-w-0">
-                    <Link2 size={14} className="text-brand-primary shrink-0" />
+                    <Link2 size={14} className={cn('shrink-0', isAdministradorMx(role) ? 'text-brand-primary' : 'text-text-tertiary')} aria-hidden="true" />
                     <Typography variant="tiny" tone="muted" className="font-bold truncate max-w-mx-48">
-                        {getRegistrationLink(store.name)}
+                        {isAdministradorMx(role) ? 'Disponível por cópia segura' : 'Restrito ao Admin MX'}
                     </Typography>
                 </div>
             )
@@ -188,13 +201,15 @@ export default function Lojas() {
                             <Button asChild variant="outline" size="sm" className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black uppercase text-mx-nano sm:text-mx-tiny border-border-strong bg-white">
                                 <Link to={`/lojas/${slugify(store.name)}?tab=equipe`}>EQUIPE</Link>
                             </Button>
-                            <Button variant="outline" size="icon" onClick={() => copyRegistrationLink(store.name)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg shadow-mx-md bg-white border-border-strong" aria-label={`Copiar link de pré-cadastro de ${store.name}`}>
-                                <Copy size={16} />
-                            </Button>
                             {isAdministradorMx(role) && (
-                                <Button variant="ghost" size="icon" onClick={() => handleArchiveStore(store)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
-                                    <X size={16} />
-                                </Button>
+                                <>
+                                    <Button variant="outline" size="icon" onClick={() => copyRegistrationLink(store.name)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg shadow-mx-md bg-white border-border-strong" aria-label={`Copiar link de pré-cadastro de ${store.name}`}>
+                                        <Copy size={16} />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleArchiveStore(store)} className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface" aria-label={`Desativar ${store.name}`}>
+                                        <X size={16} />
+                                    </Button>
+                                </>
                             )}
                         </>
                     ) : isAdministradorMx(role) ? (
@@ -308,7 +323,7 @@ export default function Lojas() {
 
             <AnimatePresence>
                 {isCreateModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="create-store-title">
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-lg">
                             <Card className="p-mx-lg md:p-14 border-none shadow-mx-2xl bg-white overflow-hidden relative rounded-mx-3xl">
                                 <form onSubmit={handleCreateStore} className="space-y-mx-xl relative z-10">
@@ -316,7 +331,7 @@ export default function Lojas() {
                                         <div className="flex items-center gap-mx-sm">
                                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 flex items-center justify-center text-brand-primary border border-mx-indigo-100 shadow-inner shrink-0"><Building2 size={28} /></div>
                                             <div>
-                                                <Typography variant="h3">Nova Unidade</Typography>
+                                                <Typography id="create-store-title" variant="h3">Nova Unidade</Typography>
                                                 <Typography variant="caption" tone="muted" className="mt-1 block uppercase tracking-widest">Protocolo de Expansão MX</Typography>
                                             </div>
                                         </div>
@@ -335,6 +350,7 @@ export default function Lojas() {
                                             <Typography as="label" htmlFor="store-name" variant="caption" className="ml-2 font-black uppercase tracking-widest text-text-tertiary">Nome da Unidade</Typography>
                                             <Input 
                                                 id="store-name"
+                                                name="store-name"
                                                 required autoFocus placeholder="EX: MX SÃO PAULO - LESTE" 
                                                 value={newStore.name} onChange={e => setNewStore(p => ({ ...p, name: e.target.value.toUpperCase() }))}
                                                 className="!h-14 !px-6 font-black uppercase tracking-widest"
@@ -349,6 +365,7 @@ export default function Lojas() {
                                                 <Mail size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
                                                 <Input 
                                                     id="manager-email"
+                                                    name="manager-email"
                                                     type="email" placeholder="gestor@unidade.com.br"
                                                     value={newStore.manager_email} onChange={e => setNewStore(p => ({ ...p, manager_email: e.target.value }))}
                                                     className="!h-14 !pl-14 !px-6 font-bold"
@@ -359,7 +376,7 @@ export default function Lojas() {
 
                                     <footer className="pt-10 flex justify-end border-t border-border-default">
                                         <Button type="submit" disabled={creating} className="w-full sm:w-auto h-mx-2xl px-12 rounded-mx-full shadow-mx-xl bg-brand-secondary font-black uppercase tracking-widest">
-                                            {creating ? <RefreshCw className="animate-spin mr-2" /> : <Plus size={20} className="mr-2" />}
+                                            {creating ? <RefreshCw className="animate-spin mr-2" aria-hidden="true" /> : <Plus size={20} className="mr-2" aria-hidden="true" />}
                                             ESTABELECER LOJA
                                         </Button>
                                     </footer>

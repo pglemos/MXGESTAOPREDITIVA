@@ -6,6 +6,8 @@ import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
 import type { User, Store, StoreSeller, UserRole, StorePartner } from '@/types/database'
 
+const STORES_SELECT = 'id, name, manager_email, legal_name, cnpj, address, administrative_phone, partners, active, source_mode, created_at, updated_at'
+
 export type StoreUpdateFields = Pick<Store, 'name' | 'manager_email' | 'legal_name' | 'cnpj' | 'address' | 'administrative_phone' | 'partners' | 'active'>
 export type TeamMemberUpdateFields = Partial<Pick<User, 'name' | 'email' | 'phone' | 'active'>> & {
     role?: UserRole
@@ -28,9 +30,12 @@ export type TeamMember = User & {
 }
 
 type TeamMembershipRow = {
+    id?: string
     user_id: string
     store_id: string
     role: UserRole
+    is_active?: boolean | null
+    ended_at?: string | null
     users: User | null
     store?: { name?: string | null } | null
 }
@@ -43,6 +48,8 @@ type SellerTenureRow = {
     is_active?: boolean | null
     closing_month_grace?: boolean | null
 }
+
+type SellerTenureUpdateFields = Partial<Pick<SellerTenureRow, 'started_at' | 'ended_at' | 'is_active' | 'closing_month_grace'>>
 
 export interface RegisterUserInput {
     email: string
@@ -66,7 +73,9 @@ const normalizeStoreName = (name: string) => name.trim().toLocaleUpperCase('pt-B
 const isInternalRole = (role?: string | null) => role === 'administrador_geral' || role === 'administrador_mx' || role === 'consultor_mx'
 const isStoreTeamRole = (role?: string | null) => role === 'dono' || role === 'gerente' || role === 'vendedor'
 const todayISO = () => new Date().toISOString().slice(0, 10)
-const DEFAULT_INITIAL_MONTHLY_GOAL = 1
+const DEFAULT_INITIAL_MONTHLY_GOAL = 0
+const TEAM_USER_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, store_id, must_change_password, notification_preferences'
+const TEAM_MEMBERSHIP_SELECT = `id, user_id, store_id, role, is_active, ended_at, users:usuarios(${TEAM_USER_SELECT}), store:lojas(name)`
 
 const storeUpdateSchema = z.object({
     name: z.string().trim().min(2, 'Nome da loja deve ter pelo menos 2 caracteres.').max(120, 'Nome da loja muito longo.').optional(),
@@ -92,6 +101,8 @@ const normalizeOptionalText = (value?: string | null) => {
     const trimmed = (value || '').trim()
     return trimmed ? trimmed : null
 }
+
+const normalizeOptionalEmail = (value?: string | null) => normalizeOptionalText(value)?.toLowerCase() || null
 
 const normalizePartners = (partners?: StorePartner[]) => {
     return (partners || [])
@@ -128,40 +139,22 @@ export function useTeam(storeIdOverride?: string) {
 
             // 1. Fetch Users & Memberships
             if (storeId && storeId !== 'all') {
-                const { data: members } = await supabase
+                const { data: members, error: membersError } = await supabase
                     .from('vinculos_loja')
-                    .select('user_id, store_id, role, users:usuarios(*), store:lojas(name)')
+                    .select(TEAM_MEMBERSHIP_SELECT)
                     .eq('store_id', storeId)
+                    .eq('is_active', true)
+                if (membersError) throw membersError
                 teamData = (members || []) as unknown as TeamMembershipRow[]
             } else {
                 // Global view for Admins: only store-linked operational roles belong in this team list.
-                const { data: members } = await supabase
+                const { data: members, error: membersError } = await supabase
                     .from('vinculos_loja')
-                    .select('user_id, store_id, role, users:usuarios(*), store:lojas(name)')
+                    .select(TEAM_MEMBERSHIP_SELECT)
+                    .eq('is_active', true)
+                if (membersError) throw membersError
 
-                const userMap = new Map<string, TeamMembershipRow>()
-
-                ;((members || []) as unknown as TeamMembershipRow[])
-                    .filter(hasStoreTeamUser)
-                    .forEach((m) => {
-                        if (!userMap.has(m.user_id)) {
-                            userMap.set(m.user_id, {
-                                user_id: m.user_id,
-                                store_id: m.store_id,
-                                role: m.role,
-                                users: m.users,
-                                store: { name: m.store?.name || 'MULTI-LOJA' },
-                            })
-                        } else {
-                            const existing = userMap.get(m.user_id)
-                            const storeName = m.store?.name
-                            if (existing?.store?.name && storeName && !existing.store.name.includes(storeName)) {
-                                existing.store.name += `, ${storeName}`
-                            }
-                        }
-                    })
-
-                teamData = Array.from(userMap.values())
+                teamData = ((members || []) as unknown as TeamMembershipRow[]).filter(hasStoreTeamUser)
             }
 
             // 2. Fetch Tenures (Vigência)
@@ -169,7 +162,8 @@ export function useTeam(storeIdOverride?: string) {
             if (storeId && storeId !== 'all') {
                 tenuresQuery = tenuresQuery.eq('store_id', storeId)
             }
-            const { data: tenures } = await tenuresQuery
+            const { data: tenures, error: tenuresError } = await tenuresQuery
+            if (tenuresError) throw tenuresError
             tenureMap = new Map(((tenures || []) as SellerTenureRow[]).map(t => [`${t.store_id}:${t.seller_user_id}`, t]))
 
             // 3. Fetch Checkins
@@ -177,7 +171,8 @@ export function useTeam(storeIdOverride?: string) {
             if (storeId && storeId !== 'all') {
                 checkinsQuery = checkinsQuery.eq('store_id', storeId)
             }
-            const { data: todayCheckins } = await checkinsQuery
+            const { data: todayCheckins, error: checkinsError } = await checkinsQuery
+            if (checkinsError) throw checkinsError
             checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
 
             // 4. Assemble Final Team
@@ -205,7 +200,7 @@ export function useTeam(storeIdOverride?: string) {
         }
     }, [storeId, referenceDate, role])
 
-    const updateVigencia = async (userId: string, data: Record<string, unknown>) => {
+    const updateVigencia = async (userId: string, data: SellerTenureUpdateFields) => {
         if (!isAdministradorMx(role) && role !== 'dono' && role !== 'gerente') {
             return { error: 'Apenas gestores da loja podem alterar vigência.' }
         }
@@ -215,142 +210,73 @@ export function useTeam(storeIdOverride?: string) {
         if (target && target.role !== 'vendedor') {
             return { error: 'Vigência operacional só pode ser alterada para vendedores.' }
         }
-        const { error } = await supabase.from('vendedores_loja').upsert({
-            store_id: scopedStoreId,
-            seller_user_id: userId,
-            ...data
-        }, { onConflict: 'store_id, seller_user_id' })
-        if (!error) await fetchTeam()
-        return { error: error?.message || null }
+        const payload: SellerTenureUpdateFields = {
+            started_at: data.started_at || todayISO(),
+            ended_at: data.ended_at ?? null,
+            is_active: data.is_active ?? true,
+            closing_month_grace: data.closing_month_grace ?? false,
+        }
+        const { data: response, error } = await supabase.functions.invoke('manage-store-team', {
+            body: {
+                action: 'update',
+                user_id: userId,
+                store_id: scopedStoreId,
+                updates: { role: 'vendedor', ...payload },
+            },
+        })
+        if (!error && response?.success) {
+            await fetchTeam()
+            return { error: null }
+        }
+        return { error: error?.message || response?.error || 'Erro ao alterar vigência.' }
     }
 
     const updateTeamMember = async (userId: string, updates: TeamMemberUpdateFields) => {
-        if (!isAdministradorMx(role)) {
-            if (role !== 'dono' && role !== 'gerente') return { error: 'Apenas gestores da loja podem editar integrantes.' }
-            const { data, error } = await supabase.functions.invoke('manage-store-team', {
-                body: {
-                    action: 'update',
-                    user_id: userId,
-                    store_id: updates.store_id || storeId,
-                    previous_store_id: updates.previous_store_id || storeId,
-                    updates,
-                },
-            })
-            if (!error && data?.success) {
-                await fetchTeam()
-                return { error: null }
-            }
-            return { error: error?.message || data?.error || 'Erro ao editar integrante.' }
+        if (!isAdministradorMx(role) && role !== 'dono' && role !== 'gerente') {
+            return { error: 'Apenas gestores da loja podem editar integrantes.' }
         }
-
-        const nextRole = updates.role
         const targetStoreId = updates.store_id || (storeId && storeId !== 'all' ? storeId : null)
-        if (nextRole && !isInternalRole(nextRole) && !targetStoreId) {
+        if (!targetStoreId) {
             return { error: 'Selecione a loja do integrante.' }
         }
 
-        const userPayload: Record<string, unknown> = {}
-        if (typeof updates.name !== 'undefined') userPayload.name = updates.name.trim().toLocaleUpperCase('pt-BR')
-        if (typeof updates.email !== 'undefined') userPayload.email = updates.email.trim().toLowerCase()
-        if (typeof updates.phone !== 'undefined') userPayload.phone = updates.phone || null
-        if (typeof updates.active !== 'undefined') userPayload.active = updates.active
-        if (typeof updates.is_venda_loja !== 'undefined') userPayload.is_venda_loja = updates.is_venda_loja
-        if (nextRole) userPayload.role = nextRole
-
-        if (Object.keys(userPayload).length) {
-            const { error } = await supabase.from('usuarios').update(userPayload).eq('id', userId)
-            if (error) return { error: error.message }
+        if (updates.role && isInternalRole(updates.role)) {
+            return { error: 'Papéis internos MX não podem ser geridos pelo painel de equipe da loja.' }
         }
 
-        if (nextRole && targetStoreId && !isInternalRole(nextRole)) {
-            const previousStoreId = updates.previous_store_id || null
-            if (previousStoreId && previousStoreId !== targetStoreId) {
-                const { error: previousMembershipError } = await supabase
-                    .from('vinculos_loja')
-                    .delete()
-                    .eq('user_id', userId)
-                    .eq('store_id', previousStoreId)
-                if (previousMembershipError) return { error: previousMembershipError.message }
-
-                const { error: previousTenureError } = await supabase
-                    .from('vendedores_loja')
-                    .update({ is_active: false, ended_at: updates.ended_at || todayISO() })
-                    .eq('store_id', previousStoreId)
-                    .eq('seller_user_id', userId)
-                if (previousTenureError) return { error: previousTenureError.message }
-            }
-
-            const { error: membershipError } = await supabase
-                .from('vinculos_loja')
-                .upsert({ user_id: userId, store_id: targetStoreId, role: nextRole }, { onConflict: 'user_id,store_id' })
-            if (membershipError) return { error: membershipError.message }
-
-            if (nextRole === 'vendedor') {
-                const { error: tenureError } = await supabase
-                    .from('vendedores_loja')
-                    .upsert({
-                        store_id: targetStoreId,
-                        seller_user_id: userId,
-                        started_at: updates.started_at || todayISO(),
-                        ended_at: updates.ended_at || null,
-                        is_active: updates.is_active ?? updates.active ?? true,
-                        closing_month_grace: updates.closing_month_grace ?? false,
-                    }, { onConflict: 'store_id,seller_user_id' })
-                if (tenureError) return { error: tenureError.message }
-            } else {
-                const { error: tenureError } = await supabase
-                    .from('vendedores_loja')
-                    .update({ is_active: false, ended_at: updates.ended_at || todayISO() })
-                    .eq('store_id', targetStoreId)
-                    .eq('seller_user_id', userId)
-                if (tenureError) return { error: tenureError.message }
-            }
+        const { data, error } = await supabase.functions.invoke('manage-store-team', {
+            body: {
+                action: 'update',
+                user_id: userId,
+                store_id: targetStoreId,
+                previous_store_id: updates.previous_store_id || (storeId && storeId !== 'all' ? storeId : targetStoreId),
+                updates,
+            },
+        })
+        if (!error && data?.success) {
+            await fetchTeam()
+            return { error: null }
         }
-
-        await fetchTeam()
-        return { error: null }
+        return { error: error?.message || data?.error || 'Erro ao editar integrante.' }
     }
 
     const deleteTeamMember = async (userId: string, targetStoreId?: string | null) => {
-        if (!isAdministradorMx(role)) {
-            if (role !== 'dono' && role !== 'gerente') return { error: 'Apenas gestores da loja podem excluir integrantes.' }
-            const scopedStoreId = targetStoreId || (storeId && storeId !== 'all' ? storeId : null)
-            if (!scopedStoreId) return { error: 'Selecione a loja do integrante.' }
-            const { data, error } = await supabase.functions.invoke('manage-store-team', {
-                body: {
-                    action: 'delete',
-                    user_id: userId,
-                    store_id: scopedStoreId,
-                },
-            })
-            if (!error && data?.success) {
-                await fetchTeam()
-                return { error: null }
-            }
-            return { error: error?.message || data?.error || 'Erro ao excluir integrante.' }
-        }
-
+        if (!isAdministradorMx(role) && role !== 'dono' && role !== 'gerente') return { error: 'Apenas gestores da loja podem excluir integrantes.' }
         const scopedStoreId = targetStoreId || (storeId && storeId !== 'all' ? storeId : null)
-        const endedAt = todayISO()
-
         if (!scopedStoreId) return { error: 'Selecione a loja do integrante.' }
 
-        const { error: tenureError } = await supabase
-            .from('vendedores_loja')
-            .update({ is_active: false, ended_at: endedAt })
-            .eq('store_id', scopedStoreId)
-            .eq('seller_user_id', userId)
-        if (tenureError) return { error: tenureError.message }
-
-        const { error: membershipError } = await supabase
-            .from('vinculos_loja')
-            .delete()
-            .eq('store_id', scopedStoreId)
-            .eq('user_id', userId)
-        if (membershipError) return { error: membershipError.message }
-
-        await fetchTeam()
-        return { error: null }
+        const { data, error } = await supabase.functions.invoke('manage-store-team', {
+            body: {
+                action: 'delete',
+                user_id: userId,
+                store_id: scopedStoreId,
+            },
+        })
+        if (!error && data?.success) {
+            await fetchTeam()
+            return { error: null }
+        }
+        return { error: error?.message || data?.error || 'Erro ao excluir integrante.' }
     }
 
     const registerUser = async (userData: RegisterUserInput) => {
@@ -365,10 +291,10 @@ export function useTeam(storeIdOverride?: string) {
     }
 
     useEffect(() => { fetchTeam() }, [fetchTeam])
-    return { 
-        sellers, 
+    return {
+        sellers,
         team: sellers, // Alias para consistência MX
-        loading, 
+        loading,
         refetch: fetchTeam,
         updateVigencia,
         updateTeamMember,
@@ -384,84 +310,65 @@ export function useStores() {
 
     const fetchStores = useCallback(async () => {
         setLoading(true)
-        let query = supabase.from('lojas').select('*').order('name')
-        
-        if (role === 'dono' || role === 'gerente') {
-            const storeIds = vinculos_loja.map(m => m.store_id)
-            if (!storeIds.length) {
-                setStores([])
-                setLoading(false)
-                return
+        try {
+            let query = supabase.from('lojas').select(STORES_SELECT).order('name')
+
+            if (role === 'dono' || role === 'gerente') {
+                const storeIds = vinculos_loja.map(m => m.store_id)
+                if (!storeIds.length) {
+                    setStores([])
+                    return
+                }
+                query = query.in('id', storeIds)
+            } else if (role === 'vendedor' && storeId) {
+                query = query.eq('id', storeId)
             }
-            query = query.in('id', storeIds)
-        } else if (role === 'vendedor' && storeId) {
-            query = query.eq('id', storeId)
-        }
 
-        if (!isPerfilInternoMx(role)) {
-            query = query.eq('active', true)
-        }
+            if (!isPerfilInternoMx(role)) {
+                query = query.eq('active', true)
+            }
 
-        const { data } = await query
-        if (data) {
-            setStores(data)
+            const { data, error } = await query
+            if (error) throw error
+            setStores(data || [])
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Erro desconhecido'
+            console.error('Audit Error [useStores]: fetchStores fail ->', message)
+            toast.error('Não foi possível carregar as lojas.')
+            setStores([])
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }, [role, vinculos_loja, storeId])
 
     const createStore = async (name: string, managerEmail?: string, details?: Partial<Pick<StoreUpdateFields, 'legal_name' | 'cnpj' | 'address' | 'administrative_phone' | 'partners'>>) => {
         if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem criar lojas.' }
+        const validation = storeUpdateSchema.pick({ name: true, manager_email: true, legal_name: true, cnpj: true, address: true, administrative_phone: true, partners: true }).safeParse({
+            name,
+            manager_email: managerEmail || null,
+            ...details,
+        })
+        if (!validation.success) {
+            const message = validation.error.issues[0]?.message || 'Dados da loja inválidos.'
+            toast.error(message)
+            return { error: message }
+        }
         const normalizedName = normalizeStoreName(name)
         const storePayload = {
             name: normalizedName,
-            manager_email: managerEmail || null,
+            manager_email: normalizeOptionalEmail(managerEmail),
             legal_name: normalizeOptionalText(details?.legal_name),
             cnpj: normalizeOptionalText(details?.cnpj),
             address: normalizeOptionalText(details?.address),
             administrative_phone: normalizeOptionalText(details?.administrative_phone),
             partners: normalizePartners(details?.partners),
+            monthly_goal: DEFAULT_INITIAL_MONTHLY_GOAL,
         }
-        const { data: store, error } = await supabase
-            .from('lojas')
-            .insert(storePayload)
-            .select('id')
-            .single()
+        const { data, error } = await supabase.rpc('admin_create_store', { p_payload: storePayload })
+        const payload = data as { ok?: boolean; error?: string } | null
 
         if (error) return { error: error.message }
-
-        if (store?.id) {
-            const recipients = managerEmail ? [managerEmail] : []
-            const [deliveryResult, metaRulesResult, benchmarksResult] = await Promise.all([
-                supabase.from('regras_entrega_loja').upsert({
-                    store_id: store.id,
-                    matinal_recipients: recipients,
-                    weekly_recipients: recipients,
-                    monthly_recipients: recipients,
-                    timezone: 'America/Sao_Paulo',
-                    active: true,
-                }, { onConflict: 'store_id' }),
-                supabase.from('regras_metas_loja').upsert({
-                    store_id: store.id,
-                    monthly_goal: DEFAULT_INITIAL_MONTHLY_GOAL,
-                    individual_goal_mode: 'even',
-                    include_venda_loja_in_store_total: true,
-                    include_venda_loja_in_individual_goal: false,
-                    bench_lead_agd: 20,
-                    bench_agd_visita: 60,
-                    bench_visita_vnd: 33,
-                    projection_mode: 'calendar',
-                }, { onConflict: 'store_id' }),
-                supabase.from('benchmarks_loja').upsert({
-                    store_id: store.id,
-                    lead_to_agend: 20,
-                    agend_to_visit: 60,
-                    visit_to_sale: 33,
-                }, { onConflict: 'store_id' }),
-            ])
-
-            const setupError = deliveryResult.error || metaRulesResult.error || benchmarksResult.error
-            if (setupError) return { error: setupError.message }
-        }
+        if (!payload?.ok) return { error: payload?.error || 'Não foi possível criar a loja.' }
 
         await fetchStores()
         return { error: null }
@@ -480,7 +387,7 @@ export function useStores() {
         const payload: Partial<StoreUpdateFields> = {}
         if (typeof validation.data.name !== 'undefined') payload.name = normalizeStoreName(validation.data.name)
         if (typeof validation.data.manager_email !== 'undefined') {
-            payload.manager_email = validation.data.manager_email ? validation.data.manager_email : null
+            payload.manager_email = normalizeOptionalEmail(validation.data.manager_email)
         }
         if (typeof validation.data.legal_name !== 'undefined') payload.legal_name = normalizeOptionalText(validation.data.legal_name)
         if (typeof validation.data.cnpj !== 'undefined') payload.cnpj = normalizeOptionalText(validation.data.cnpj)
@@ -489,27 +396,12 @@ export function useStores() {
         if (typeof validation.data.partners !== 'undefined') payload.partners = normalizePartners(validation.data.partners)
         if (typeof validation.data.active !== 'undefined') payload.active = validation.data.active
 
-        const { error } = await supabase.from('lojas').update(payload).eq('id', id)
-        if (error) {
-            toast.error(error.message)
-            return { error: error.message }
-        }
-
-        if (Object.prototype.hasOwnProperty.call(payload, 'manager_email')) {
-            const recipients = payload.manager_email ? [payload.manager_email] : []
-            const { error: deliveryError } = await supabase.from('regras_entrega_loja').upsert({
-                store_id: id,
-                matinal_recipients: recipients,
-                weekly_recipients: recipients,
-                monthly_recipients: recipients,
-                timezone: 'America/Sao_Paulo',
-                active: true,
-            }, { onConflict: 'store_id' })
-
-            if (deliveryError) {
-                toast.error(deliveryError.message)
-                return { error: deliveryError.message }
-            }
+        const { data, error } = await supabase.rpc('admin_update_store', { p_store_id: id, p_payload: payload })
+        const result = data as { ok?: boolean; error?: string } | null
+        if (error || !result?.ok) {
+            const message = error?.message || result?.error || 'Não foi possível atualizar a loja.'
+            toast.error(message)
+            return { error: message }
         }
 
         await fetchStores()
@@ -519,13 +411,22 @@ export function useStores() {
 
     const deleteStore = async (id: string) => {
         if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem arquivar lojas.' }
-        const { error } = await supabase.from('lojas').update({ active: false }).eq('id', id)
-        if (error) return { error: error.message }
+        const { data, error } = await supabase.rpc('admin_archive_store', { p_store_id: id })
+        const result = data as { ok?: boolean; error?: string } | null
+        if (error || !result?.ok) return { error: error?.message || result?.error || 'Não foi possível arquivar a loja.' }
         await fetchStores()
         return { error: null }
     }
 
-    const toggleStoreStatus = async (id: string, active: boolean) => updateStore(id, { active })
+    const toggleStoreStatus = async (id: string, active: boolean) => {
+        if (!active) return deleteStore(id)
+        if (!isAdministradorMx(role)) return { error: 'Apenas administradores MX podem restaurar lojas.' }
+        const { data, error } = await supabase.rpc('admin_restore_store', { p_store_id: id })
+        const result = data as { ok?: boolean; error?: string } | null
+        if (error || !result?.ok) return { error: error?.message || result?.error || 'Não foi possível restaurar a loja.' }
+        await fetchStores()
+        return { error: null }
+    }
 
     useEffect(() => { fetchStores() }, [fetchStores])
     return { lojas, loading, createStore, updateStore, deleteStore, toggleStoreStatus, refetch: fetchStores }
@@ -538,14 +439,24 @@ export function useMemberships() {
 
     const fetch = useCallback(async () => {
         setLoading(true)
-        if (!isAdministradorMx(role)) {
+        try {
+            if (!isAdministradorMx(role)) {
+                setMemberships([])
+                return
+            }
+            const { data, error } = await supabase
+                .from('vinculos_loja')
+                .select('id, user_id, store_id, role, is_active, ended_at, store:lojas(name)')
+                .eq('is_active', true)
+            if (error) throw error
+            setMemberships((data || []) as unknown as { id: string; user_id: string; store_id: string; role: string; store?: { name?: string } }[])
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Erro desconhecido'
+            console.error('Audit Error [useMemberships]: fetch fail ->', message)
             setMemberships([])
+        } finally {
             setLoading(false)
-            return
         }
-        const { data } = await supabase.from('vinculos_loja').select('*, store:lojas(name)')
-        if (data) setMemberships(data)
-        setLoading(false)
     }, [role])
 
     useEffect(() => { fetch() }, [fetch])
@@ -569,7 +480,7 @@ export function useStoresStats() {
             }
 
             let sellersQuery = supabase.from('vendedores_loja').select('store_id').eq('is_active', true)
-            let checkinsQuery = supabase.from('lancamentos_diarios').select('store_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
+            let checkinsQuery = supabase.from('lancamentos_diarios').select('store_id,seller_user_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
 
             if (authorizedStoreIds) {
                 sellersQuery = sellersQuery.in('store_id', authorizedStoreIds)
@@ -581,6 +492,9 @@ export function useStoresStats() {
                 checkinsQuery
             ])
 
+            if (sellersRes.error) throw sellersRes.error
+            if (checkinsRes.error) throw checkinsRes.error
+
             const newStats: Record<string, { sellers: number; checkedIn: number; disciplinePct: number }> = {}
 
             if (sellersRes.data) {
@@ -591,7 +505,11 @@ export function useStoresStats() {
             }
 
             if (checkinsRes.data) {
-                checkinsRes.data.forEach((c: { store_id: string }) => {
+                const checkinStoreSellerKeys = new Set<string>()
+                checkinsRes.data.forEach((c: { store_id: string; seller_user_id?: string }) => {
+                    const key = `${c.store_id}:${c.seller_user_id || 'unknown'}`
+                    if (checkinStoreSellerKeys.has(key)) return
+                    checkinStoreSellerKeys.add(key)
                     if (!newStats[c.store_id]) newStats[c.store_id] = { sellers: 0, checkedIn: 0, disciplinePct: 0 }
                     newStats[c.store_id].checkedIn++
                 })
@@ -599,12 +517,14 @@ export function useStoresStats() {
 
             Object.keys(newStats).forEach(sid => {
                 const s = newStats[sid]
-                s.disciplinePct = s.sellers > 0 ? Math.round((s.checkedIn / s.sellers) * 100) : 100
+                s.disciplinePct = s.sellers > 0 ? Math.min(100, Math.round((s.checkedIn / s.sellers) * 100)) : 0
             })
 
             setStats(newStats)
         } catch (err) {
-            console.error('Error fetching lojas stats:', err)
+            console.error('Audit Error [useStoresStats]: fetchStats fail ->', err)
+            toast.error('Não foi possível carregar as métricas das lojas.')
+            setStats({})
         } finally {
             setLoading(false)
         }
@@ -627,26 +547,36 @@ export function useSellersByStore(storeId: string | null) {
             return
         }
         setLoading(true)
-        const { data: sellersData } = await supabase
+        const { data: sellersData, error: sellersError } = await supabase
             .from('vendedores_loja')
             .select('*, users:usuarios(*)')
             .eq('store_id', storeId)
             .eq('is_active', true)
 
-        const { data: checkins } = await supabase
+        if (sellersError) {
+            console.error('Audit Error [useSellersByStore]: sellers fail ->', sellersError.message)
+            setSellers([])
+            setLoading(false)
+            return
+        }
+
+        const { data: checkins, error: checkinsError } = await supabase
             .from('lancamentos_diarios')
             .select('seller_user_id')
             .eq('store_id', storeId)
             .eq('reference_date', referenceDate)
             .eq('metric_scope', 'daily')
+        if (checkinsError) console.error('Audit Error [useSellersByStore]: checkins fail ->', checkinsError.message)
 
         const checkedIn = new Set(checkins?.map(c => c.seller_user_id) || [])
 
         if (sellersData) {
-            setSellers(sellersData.map((s: { seller_user_id: string; users?: User }) => ({
-                ...s.users,
-                checkin_today: checkedIn.has(s.seller_user_id)
-            } as User & { checkin_today: boolean })))
+            setSellers(sellersData
+                .filter((s: { users?: User | null }) => Boolean(s.users))
+                .map((s: { seller_user_id: string; users?: User | null }) => ({
+                    ...(s.users as User),
+                    checkin_today: checkedIn.has(s.seller_user_id)
+                })))
         }
         setLoading(false)
     }, [storeId, referenceDate])
@@ -661,16 +591,18 @@ export function useAllSellers() {
 
     const fetch = useCallback(async () => {
         setLoading(true)
-        const [{ data: tenures }, { data: lojas }] = await Promise.all([
-            supabase.from('vendedores_loja')
-                .select('seller_user_id, store_id, users:usuarios(id, name, email, role), stores:lojas(name)')
-                .eq('is_active', true),
-            supabase.from('lojas').select('id, name'),
-        ])
+        try {
+            const [tenuresRes, lojasRes] = await Promise.all([
+                supabase.from('vendedores_loja')
+                    .select('seller_user_id, store_id, users:usuarios(id, name, email, role)')
+                    .eq('is_active', true),
+                supabase.from('lojas').select('id, name').eq('active', true),
+            ])
+            if (tenuresRes.error) throw tenuresRes.error
+            if (lojasRes.error) throw lojasRes.error
 
-        const storeMap = new Map((lojas || []).map(s => [s.id, s.name]))
-        if (tenures) {
-            const typedTenures = tenures as unknown as Array<{ store_id: string; users?: User | null }>
+            const storeMap = new Map((lojasRes.data || []).map(s => [s.id, s.name]))
+            const typedTenures = (tenuresRes.data || []) as unknown as Array<{ store_id: string; users?: User | null }>
             setSellers(typedTenures
                 .filter(t => t.users?.role === 'vendedor')
                 .map(t => ({
@@ -679,8 +611,13 @@ export function useAllSellers() {
                     store_name: storeMap.get(t.store_id) || '',
                 }))
             )
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Erro desconhecido'
+            console.error('Audit Error [useAllSellers]: fetch fail ->', message)
+            setSellers([])
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }, [])
 
     useEffect(() => { fetch() }, [fetch])

@@ -21,15 +21,30 @@ export default function VendedorPDI() {
     const [isRefetching, setIsRefetching] = useState(false)
 
     const handleRefresh = useCallback(async () => {
-        setIsRefetching(true); await refetch(); setIsRefetching(false)
-        toast.success('Plano de evolução sincronizado!')
+        setIsRefetching(true)
+        try {
+            await refetch()
+            toast.success('Plano de evolução sincronizado.')
+        } catch {
+            toast.error('Não foi possível atualizar seu PDI.')
+        } finally {
+            setIsRefetching(false)
+        }
     }, [refetch])
 
-    const activePDI = useMemo(() => pdis.find(p => p.status !== 'concluido') || pdis[0], [pdis])
+    const activePDI = useMemo(() => {
+        return [...pdis]
+            .filter(p => p.status !== 'concluido')
+            .sort((a, b) => {
+                const aTime = a.due_date ? Date.parse(a.due_date) : Number.MAX_SAFE_INTEGER
+                const bTime = b.due_date ? Date.parse(b.due_date) : Number.MAX_SAFE_INTEGER
+                return aTime - bTime
+            })[0] || null
+    }, [pdis])
 
     const radarData = useMemo(() => {
         if (!activePDI) return []
-        return activePDI.avaliacoes.map(av => ({
+        return (activePDI.avaliacoes || []).map(av => ({
             subject: av.competencia,
             A: av.nota,
         }))
@@ -45,6 +60,15 @@ export default function VendedorPDI() {
     }, [activePDI])
 
     const actionPlan = useMemo(() => activePDI?.plano_acao || [], [activePDI])
+
+    const nextReviewLabel = useMemo(() => {
+        if (!activePDI?.due_date) return '--/--'
+        try {
+            return format(parseISO(activePDI.due_date), 'dd/MM/yy')
+        } catch {
+            return '--/--'
+        }
+    }, [activePDI?.due_date])
 
     const pdiMilestones = useMemo(() => [
         { label: '6 meses', metas: metasByPrazo['6_meses'] },
@@ -68,14 +92,14 @@ export default function VendedorPDI() {
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         <Typography variant="h1">Meu Plano de <span className="text-mx-green-700">Carreira</span></Typography>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md">Personal Development Plan • MX ACADEMY</Typography>
+                    <Typography variant="caption" className="pl-mx-md">Plano de Desenvolvimento Individual MX ACADEMY</Typography>
                 </div>
 
                 <div className="flex items-center gap-mx-sm">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar meu PDI" disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
                     </Button>
-                    <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm uppercase tracking-widest">Ativo</Badge>
+                    {activePDI && <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm uppercase tracking-widest">{activePDI.status === 'em_andamento' ? 'Em andamento' : 'Aberto'}</Badge>}
                 </div>
             </div>
 
@@ -120,11 +144,13 @@ export default function VendedorPDI() {
                                             <div key={label} className="bg-white border border-border-default rounded-mx-xl p-mx-sm shadow-sm">
                                                 <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest mb-2 block">{label}</Typography>
                                                 <ul className="space-y-mx-xs">
-                                                    {metas.map((meta, idx) => (
+                                                    {metas.length > 0 ? metas.map((meta, idx) => (
                                                         <li key={`${meta.prazo}-${idx}`} className="text-xs font-bold uppercase text-text-secondary">
                                                             <span className="text-brand-primary">[{meta.tipo}]</span> {meta.descricao}
                                                         </li>
-                                                    ))}
+                                                    )) : (
+                                                        <li className="text-xs font-bold uppercase text-text-tertiary">Sem metas registradas.</li>
+                                                    )}
                                                 </ul>
                                             </div>
                                         ))}
@@ -138,7 +164,7 @@ export default function VendedorPDI() {
                                     <Typography variant="h3">Plano de Ação Imediato</Typography>
                                 </div>
                                 <div className="grid gap-mx-md">
-                                    {actionPlan.map((action, idx) => (
+                                    {actionPlan.length > 0 ? actionPlan.map((action, idx) => (
                                         <div key={idx} className="flex items-center gap-mx-md p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-lg transition-all group">
                                             <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center font-black text-xs text-text-tertiary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all shadow-sm" aria-hidden="true">{idx + 1}</div>
                                             <div className="flex-1">
@@ -147,7 +173,11 @@ export default function VendedorPDI() {
                                             </div>
                                             <CheckCircle2 size={20} className="text-text-tertiary/20 group-hover:text-status-success transition-colors" />
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-lg text-center">
+                                            <Typography variant="p" tone="muted" className="font-black uppercase tracking-tight">Sem ações imediatas registradas.</Typography>
+                                        </div>
+                                    )}
                                 </div>
                             </Card>
                         </div>
@@ -155,15 +185,34 @@ export default function VendedorPDI() {
                         <aside className="xl:col-span-4 space-y-mx-lg">
                             <Card className="p-mx-10 flex flex-col items-center">
                                 <Typography variant="h3" className="mb-8 w-full border-b border-border-default pb-6">Radar Técnico</Typography>
-                                <div className="w-full aspect-square relative">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                            <PolarGrid stroke="#e2e8f0" />
-                                            <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} />
-                                            <Radar name="Competências" dataKey="A" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.2} strokeWidth={3} />
-                                        </RadarChart>
-                                    </ResponsiveContainer>
-                                </div>
+                                {radarData.length > 0 ? (
+                                    <>
+                                        <div className="w-full aspect-square relative" aria-label="Radar técnico do PDI">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                                                    <PolarGrid stroke="#e2e8f0" />
+                                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} />
+                                                    <Radar name="Competências" dataKey="A" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.2} strokeWidth={3} />
+                                                </RadarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <table className="sr-only">
+                                            <caption>Notas por competência do PDI</caption>
+                                            <tbody>
+                                                {radarData.map(item => (
+                                                    <tr key={item.subject}>
+                                                        <th scope="row">{item.subject}</th>
+                                                        <td>{item.A}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </>
+                                ) : (
+                                    <div className="w-full aspect-square rounded-mx-2xl border border-dashed border-border-default bg-surface-alt flex items-center justify-center p-mx-lg text-center">
+                                        <Typography variant="p" tone="muted" className="font-black uppercase tracking-tight">Sem avaliações registradas.</Typography>
+                                    </div>
+                                )}
                                 <Typography variant="caption" tone="muted" className="mt-6 text-center">Referência MX de Alta Performance</Typography>
                             </Card>
 
@@ -174,7 +223,7 @@ export default function VendedorPDI() {
                                     <Calendar size={32} className="text-brand-primary/80" aria-hidden="true" />
                                     <div>
                                         <Typography variant="h1" tone="white" className="text-3xl tabular-nums">
-                                            {activePDI.due_date ? format(parseISO(activePDI.due_date), 'dd/MM/yy') : '--/--'}
+                                            {nextReviewLabel}
                                         </Typography>
                                         <Typography variant="caption" tone="white" className="opacity-50">Auditado por Gestor</Typography>
                                     </div>

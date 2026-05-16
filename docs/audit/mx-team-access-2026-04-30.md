@@ -6,15 +6,15 @@
 
 | Nome | Email | Auth? | Profile? | Role | must_change_password | active | Memberships | Recomendação |
 |------|-------|-------|----------|------|----------------------|--------|-------------|--------------|
-| Daniel | `danieljsvendas@gmail.com` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
-| Gedson | `gedson.freire.localiza@gmail.com` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
-| João | `camarajoaoaugusto@gmail.com` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
-| Mariane | `marianedcs@gmail.com` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
+| Daniel | `[EMAIL_REDACTED]` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
+| Gedson | `[EMAIL_REDACTED]` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
+| João | `[EMAIL_REDACTED]` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
+| Mariane | `[EMAIL_REDACTED]` | ✅ | ✅ | admin | true | true | - | JÁ EXISTE COMO ADMIN — somente revisar memberships |
 
 ## Próximos passos
 
 1. Compartilhar credenciais usando `docs/templates/welcome-message-mx-admin.md`.
-2. Cada colaborador faz login com `123456` e troca a senha no primeiro acesso.
+2. Cada colaborador faz login com `[SENHA_TEMPORARIA_REDACTED]` e troca a senha no primeiro acesso.
 
 ---
 

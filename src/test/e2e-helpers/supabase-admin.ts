@@ -1,9 +1,13 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { test } from '@playwright/test'
 import { config as loadEnv } from 'dotenv'
 
 loadEnv()
 
-export const E2E_DEFAULT_PASSWORD = 'Mx#2026!E2E'
+export function createE2EPassword(prefix = 'MxE2E') {
+  const suffix = Math.random().toString(36).slice(2, 10)
+  return `${prefix}#${Date.now()}!${suffix}Aa1`
+}
 
 export interface E2EUser {
   id: string
@@ -21,6 +25,7 @@ export function getSupabaseAdmin() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) {
+    test.skip(true, 'E2E setup tests require SUPABASE_URL/VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.')
     throw new Error('SUPABASE_URL/VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for E2E setup.')
   }
 
@@ -37,6 +42,7 @@ export function getSupabaseAnon() {
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !anonKey) {
+    test.skip(true, 'E2E setup tests require SUPABASE_URL/VITE_SUPABASE_URL and SUPABASE_ANON_KEY/VITE_SUPABASE_ANON_KEY.')
     throw new Error('SUPABASE_URL/VITE_SUPABASE_URL and SUPABASE_ANON_KEY/VITE_SUPABASE_ANON_KEY are required for E2E setup.')
   }
 
@@ -57,7 +63,7 @@ export async function createE2EAdminUser(options?: {
   const admin = getSupabaseAdmin()
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   const email = options?.email || `${options?.prefix || 'e2e-admin'}-${suffix}@mxperformance.test`
-  const password = options?.password || E2E_DEFAULT_PASSWORD
+  const password = options?.password || createE2EPassword()
   const mustChangePassword = options?.mustChangePassword ?? false
   const name = options?.name || 'E2E Admin'
   const role = options?.role || 'administrador_geral'

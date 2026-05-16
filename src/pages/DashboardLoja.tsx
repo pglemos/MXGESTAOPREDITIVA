@@ -1,18 +1,18 @@
 import { useSellersByStore, useStores } from '@/hooks/useTeam'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
-import { useCheckinsByDateRange } from '@/hooks/useCheckins'
+import { calculateReferenceDate, useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { useStoreGoal } from '@/hooks/useGoals'
 import { useOperationalSettings, type StoreSettingsPayload } from '@/hooks/useOperationalSettings'
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useDRE } from '@/hooks/useDRE'
-import { useState, useMemo, useCallback, useEffect, type FormEvent } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef, type FormEvent } from 'react'
 import { 
     RefreshCw, Search, Globe, ChevronDown, Calendar, History, ArrowRight,
     Settings2, Plus, Trash2, Save, ShieldCheck, Mail, Target, Building2, Users
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
-import { format, subDays, startOfMonth } from 'date-fns'
+import { format, parseISO, startOfMonth } from 'date-fns'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { motion } from 'motion/react'
 import { Badge } from '@/components/atoms/Badge'
@@ -49,6 +49,10 @@ const splitRecipients = (value: string) => value.split(',').map(email => email.t
 const toNumber = (value: string, fallback = 0) => {
     const parsed = Number(value)
     return Number.isFinite(parsed) ? parsed : fallback
+}
+const toBoundedNumber = (value: string, fallback: number, min: number, max: number) => {
+    const parsed = toNumber(value, fallback)
+    return Math.min(max, Math.max(min, parsed))
 }
 
 export default function DashboardLoja() {
@@ -95,9 +99,8 @@ export default function DashboardLoja() {
     }, [activeStores, role, vinculos_loja])
 
     const queryStoreId = useMemo(() => {
-        if (typeof window === 'undefined') return null
-        return new URLSearchParams(window.location.search).get('id')
-    }, [])
+        return new URLSearchParams(location.search).get('id')
+    }, [location.search])
 
     useEffect(() => {
         const resolve = () => {
@@ -133,22 +136,23 @@ export default function DashboardLoja() {
 
     const urlStoreId = storeSlug ? resolvedStoreId : queryStoreId
     const shouldUseStoreList = !storeSlug && !queryStoreId && (isPerfilInternoMx(role) || role === 'dono')
+    const requestedStoreId = useMemo(() => {
+        return urlStoreId || (!storeSlug && !shouldUseStoreList ? authStoreId || (isPerfilInternoMx(role) ? activeStores[0]?.id : null) : null) || null
+    }, [activeStores, authStoreId, role, shouldUseStoreList, storeSlug, urlStoreId])
+
+    const requestedStoreForbidden = useMemo(() => {
+        if (!(role === 'gerente' || role === 'dono') || !requestedStoreId) return false
+        return !vinculos_loja.some(m => m.store_id === requestedStoreId)
+    }, [requestedStoreId, role, vinculos_loja])
+
     const selectedStoreId = useMemo(() => {
-        const requestedStoreId = urlStoreId || (!storeSlug && !shouldUseStoreList ? authStoreId || (isPerfilInternoMx(role) ? activeStores[0]?.id : null) : null) || null
-
-        if ((role === 'gerente' || role === 'dono') && requestedStoreId) {
-            const isMember = vinculos_loja.some(m => m.store_id === requestedStoreId)
-            return isMember ? requestedStoreId : authStoreId
-        }
-
+        if (requestedStoreForbidden) return null
         return requestedStoreId
-    }, [activeStores, authStoreId, role, shouldUseStoreList, storeSlug, urlStoreId, vinculos_loja])
+    }, [requestedStoreForbidden, requestedStoreId])
 
     useEffect(() => {
-        if (selectedStoreId && selectedStoreId !== authStoreId) {
-            setActiveStoreId(selectedStoreId)
-        }
-    }, [selectedStoreId, authStoreId, setActiveStoreId])
+        if (requestedStoreForbidden) toast.error('Você não possui vínculo ativo com esta unidade.')
+    }, [requestedStoreForbidden])
 
     const activeTab = useMemo<DashboardTab>(() => {
         const tab = new URLSearchParams(location.search).get('tab')
@@ -186,14 +190,13 @@ export default function DashboardLoja() {
     } = useOperationalSettings(selectedStoreId)
 
     const [viewMode, setViewMode] = useState<'day' | 'month'>('day')
-    const [startDate, setStartDate] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'))
-    const [endDate, setEndDate] = useState(() => format(new Date(), 'yyyy-MM-dd'))
+    const [referenceDate] = useState(() => calculateReferenceDate())
+    const [startDate, setStartDate] = useState(() => format(startOfMonth(parseISO(referenceDate)), 'yyyy-MM-dd'))
+    const [endDate, setEndDate] = useState(() => referenceDate)
     const [sellerSearch, setSellerSearch] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
+    const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    // Fix Hydration Error: stabilize date generation using state to match SSR/CSR
-    const [referenceDate] = useState(() => format(subDays(new Date(), 1), 'yyyy-MM-dd'))
-    
     const { checkins, loading, refetch } = useCheckinsByDateRange(
         selectedStoreId, 
         viewMode === 'day' ? referenceDate : startDate, 
@@ -215,12 +218,23 @@ export default function DashboardLoja() {
                     filter: `store_id=eq.${selectedStoreId}`
                 },
                 () => {
-                    refetch() // Recarregar dados quando houver mudança real no banco
+                    if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current)
+                    refetchTimerRef.current = setTimeout(() => {
+                        void refetch()
+                    }, 500)
                 }
             )
-            .subscribe()
+            .subscribe(status => {
+                if (status === 'CHANNEL_ERROR') {
+                    toast.error('Realtime do dashboard indisponível. Use atualizar para sincronizar.')
+                }
+            })
 
         return () => {
+            if (refetchTimerRef.current) {
+                clearTimeout(refetchTimerRef.current)
+                refetchTimerRef.current = null
+            }
             supabase.removeChannel(channel)
         }
     }, [selectedStoreId, refetch])
@@ -230,6 +244,8 @@ export default function DashboardLoja() {
         try {
             await refetch()
             toast.success('Performance sincronizada!')
+        } catch {
+            toast.error('Não foi possível atualizar a performance.')
         } finally {
             setIsRefetching(false)
         }
@@ -350,7 +366,14 @@ export default function DashboardLoja() {
             })
         }
 
-        if (alerts.length === 0) {
+        if ((checkins || []).length === 0) {
+            alerts.push({
+                title: 'Sem dados no periodo',
+                description: 'Ainda nao ha check-ins para sustentar um diagnostico operacional.',
+                action: 'Validar se a equipe lancou a rotina antes de concluir a leitura.',
+                variant: 'outline',
+            })
+        } else if (alerts.length === 0) {
             alerts.push({
                 title: 'Operacao dentro do esperado',
                 description: 'Meta, disciplina e funil sem alerta critico no periodo.',
@@ -360,18 +383,18 @@ export default function DashboardLoja() {
         }
 
         return alerts.slice(0, 4)
-    }, [funnelBenchmarks, funilData, metrics, sellers])
+    }, [checkins, funnelBenchmarks, funilData, metrics, sellers])
 
     const mixCanais = useMemo(() => {
-        const total = metrics.totalSales || 1
         const porta = (checkins || []).reduce((acc, c) => acc + (c.vnd_porta_prev_day || 0), 0)
         const carteira = (checkins || []).reduce((acc, c) => acc + (c.vnd_cart_prev_day || 0), 0)
         const digital = (checkins || []).reduce((acc, c) => acc + (c.vnd_net_prev_day || 0), 0)
+        const total = metrics.totalSales
         
         return [
-            { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: Math.round((porta / total) * 100), tone: 'success' as ChannelTone },
-            { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: Math.round((carteira / total) * 100), tone: 'info' as ChannelTone },
-            { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: Math.round((digital / total) * 100), tone: 'brand' as ChannelTone },
+            { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: total > 0 ? Math.round((porta / total) * 100) : 0, tone: 'success' as ChannelTone },
+            { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: total > 0 ? Math.round((carteira / total) * 100) : 0, tone: 'info' as ChannelTone },
+            { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: total > 0 ? Math.round((digital / total) * 100) : 0, tone: 'brand' as ChannelTone },
         ]
     }, [checkins, metrics.totalSales])
 
@@ -511,8 +534,8 @@ export default function DashboardLoja() {
                 toast.error(error)
                 return
             }
-            toast.success('Loja excluída.')
-            navigate('/lojas', { replace: true })
+            toast.success('Loja arquivada.')
+            navigate(isPerfilInternoMx(role) || role === 'dono' ? '/lojas' : '/classificacao', { replace: true })
         } finally {
             setDeletingStore(false)
         }
@@ -522,9 +545,9 @@ export default function DashboardLoja() {
         if (!selectedStoreId || !selectedStore) return
         requestToastConfirmation({
             key: `delete-store-dashboard:${selectedStoreId}`,
-            title: `Excluir ${selectedStore.name}?`,
-            description: 'A ação depende das regras do banco e pode ser bloqueada se houver dados vinculados.',
-            label: 'Excluir',
+            title: `Arquivar ${selectedStore.name}?`,
+            description: 'A unidade ficará inativa, vínculos operacionais ativos serão encerrados e o histórico será preservado.',
+            label: 'Arquivar',
             onConfirm: executeDeleteStore,
         })
     }
@@ -533,11 +556,25 @@ export default function DashboardLoja() {
         event.preventDefault()
         if (!selectedStoreId) return
 
+        const monthlyGoal = toBoundedNumber(settingsForm.monthly_goal, 0, 0, 999999)
+        const benchLeadAgd = toBoundedNumber(settingsForm.bench_lead_agd, 20, 0, 100)
+        const benchAgdVisita = toBoundedNumber(settingsForm.bench_agd_visita, 60, 0, 100)
+        const benchVisitaVnd = toBoundedNumber(settingsForm.bench_visita_vnd, 33, 0, 100)
+        if (
+            String(monthlyGoal) !== String(toNumber(settingsForm.monthly_goal, 0)) ||
+            String(benchLeadAgd) !== String(toNumber(settingsForm.bench_lead_agd, 20)) ||
+            String(benchAgdVisita) !== String(toNumber(settingsForm.bench_agd_visita, 60)) ||
+            String(benchVisitaVnd) !== String(toNumber(settingsForm.bench_visita_vnd, 33))
+        ) {
+            toast.error('Revise metas e benchmarks. Use valores entre 0 e 100 para conversões.')
+            return
+        }
+
         const matinalRecipients = splitRecipients(settingsForm.matinal_recipients)
         const payload: StoreSettingsPayload = {
             store: {
                 id: selectedStoreId,
-                manager_email: settingsForm.manager_email.trim() || matinalRecipients[0] || null,
+                manager_email: settingsForm.manager_email.trim() || null,
                 source_mode: settingsForm.source_mode,
                 active: settingsForm.active,
             },
@@ -552,19 +589,19 @@ export default function DashboardLoja() {
             },
             benchmark: {
                 store_id: selectedStoreId,
-                lead_to_agend: toNumber(settingsForm.bench_lead_agd, 20),
-                agend_to_visit: toNumber(settingsForm.bench_agd_visita, 60),
-                visit_to_sale: toNumber(settingsForm.bench_visita_vnd, 33),
+                lead_to_agend: benchLeadAgd,
+                agend_to_visit: benchAgdVisita,
+                visit_to_sale: benchVisitaVnd,
             },
             meta: {
                 store_id: selectedStoreId,
-                monthly_goal: toNumber(settingsForm.monthly_goal, 0),
+                monthly_goal: monthlyGoal,
                 individual_goal_mode: settingsForm.individual_goal_mode,
                 include_venda_loja_in_store_total: settingsForm.include_venda_loja_in_store_total,
                 include_venda_loja_in_individual_goal: settingsForm.include_venda_loja_in_individual_goal,
-                bench_lead_agd: toNumber(settingsForm.bench_lead_agd, 20),
-                bench_agd_visita: toNumber(settingsForm.bench_agd_visita, 60),
-                bench_visita_vnd: toNumber(settingsForm.bench_visita_vnd, 33),
+                bench_lead_agd: benchLeadAgd,
+                bench_agd_visita: benchAgdVisita,
+                bench_visita_vnd: benchVisitaVnd,
                 projection_mode: settingsForm.projection_mode,
             },
         }
@@ -579,10 +616,14 @@ export default function DashboardLoja() {
 
             await Promise.all([refetchStores(), refetchStoreGoal()])
             toast.success('Dados operacionais da loja atualizados.')
-            if (!payload.store.active) navigate('/lojas', { replace: true })
+            if (!payload.store.active) navigate(isPerfilInternoMx(role) || role === 'dono' ? '/lojas' : '/classificacao', { replace: true })
         } finally {
             setSavingSettings(false)
         }
+    }
+
+    if (!resolving && !storesLoading && requestedStoreForbidden) {
+        return <Navigate to={role === 'dono' ? '/lojas' : '/classificacao'} replace />
     }
 
     if (!resolving && !storesLoading && !selectedStoreId && (isPerfilInternoMx(role) || role === 'dono')) {
@@ -629,7 +670,7 @@ export default function DashboardLoja() {
                                         const newStoreId = e.target.value
 	                                        const newStore = selectableStores.find(store => store.id === newStoreId)
 	                                        if (newStore) {
-	                                            setActiveStoreId(newStoreId)
+                                                if (!isPerfilInternoMx(role)) setActiveStoreId(newStoreId)
 	                                            navigate(`/lojas/${slugify(newStore.name)}${activeTab === 'performance' ? '' : `?tab=${activeTab}`}`)
 	                                        }
 	                                    }}
@@ -877,6 +918,13 @@ export default function DashboardLoja() {
                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">RESULTADO LÍQUIDO MÊS</Typography>
                    </Card>
                 )}
+                {(isPerfilInternoMx(role) || role === 'dono') && !latestDRE && (
+                   <Card className="p-mx-lg bg-white shadow-mx-lg border-none">
+                       <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny text-brand-primary">Lucratividade Preditiva (DRE)</Typography>
+                       <Typography variant="h3" className="mb-mx-xs uppercase">Sem DRE cadastrado</Typography>
+                       <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">RESULTADO INDISPONÍVEL</Typography>
+                   </Card>
+                )}
                 </div>
 
             {(isPerfilInternoMx(role) || role === 'dono' || role === 'gerente') && (
@@ -884,7 +932,7 @@ export default function DashboardLoja() {
                     <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">
                             <div>
-                                <CardTitle className="text-lg md:text-xl uppercase tracking-tighter">Visao do Dono</CardTitle>
+                                <CardTitle className="text-lg md:text-xl uppercase tracking-tighter">{role === 'gerente' ? 'Visao Gerencial' : 'Visao do Dono'}</CardTitle>
                                 <CardDescription className="uppercase tracking-widest font-black mt-1 text-mx-tiny">
                                     ALERTAS DE PERFORMANCE, ROTINA E FUNIL
                                 </CardDescription>
@@ -922,7 +970,7 @@ export default function DashboardLoja() {
                         </div>
                         <div className="hidden sm:flex items-baseline gap-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Eficiência Global</Typography>
-                            <Typography variant="h2" tone={funilData.tx_visita_vnd >= 33 ? 'success' : 'error'} className="tabular-nums">{funilData.tx_visita_vnd}%</Typography>
+                            <Typography variant="h2" tone={funilData.tx_visita_vnd >= funnelBenchmarks.visitaVnd ? 'success' : 'error'} className="tabular-nums">{funilData.tx_visita_vnd}%</Typography>
                         </div>
                     </div>
                 </CardHeader>
@@ -968,7 +1016,8 @@ export default function DashboardLoja() {
                             </div>
                             <div className="relative group w-full sm:w-mx-sidebar-expanded">
                                 <Search size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
-                                <Input placeholder="BUSCAR..." value={sellerSearch} onChange={e => setSellerSearch(e.target.value)} className="!pl-10 !h-10 text-mx-tiny font-black uppercase" />
+                                <label htmlFor="dashboard-seller-search" className="sr-only">Buscar especialista</label>
+                                <Input id="dashboard-seller-search" name="dashboard-seller-search" placeholder="BUSCAR..." value={sellerSearch} onChange={e => setSellerSearch(e.target.value)} className="!pl-10 !h-10 text-mx-tiny font-black uppercase" />
                             </div>
                         </CardHeader>
                         <DataGrid columns={columns} data={filteredRanking} emptyMessage="Nenhum especialista localizado." />
@@ -1038,6 +1087,8 @@ export default function DashboardLoja() {
                             Nome da Loja
                         </Typography>
                         <Input
+                            id="dashboard-new-store-name"
+                            name="store_name"
                             required
                             autoFocus
                             value={newStore.name}
@@ -1050,6 +1101,8 @@ export default function DashboardLoja() {
                             E-mail do Gestor
                         </Typography>
                         <Input
+                            id="dashboard-new-store-manager-email"
+                            name="manager_email"
                             type="email"
                             value={newStore.manager_email}
                             onChange={event => setNewStore(prev => ({ ...prev, manager_email: event.target.value }))}

@@ -39,7 +39,7 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] 35 rotas mobile autenticadas carregadas sem erro fatal e sem overflow horizontal.
 - [x] Supabase: migrações `20260430000000` e `20260430001000` aplicadas no remoto.
 - [x] Supabase: funções `google-calendar-sync`, `google-calendar-merged` e `google-oauth-handler` redeployadas.
-- [x] Admin José criado também no e-mail solicitado `joseroberto20161@gmail.com`.
+- [x] Admin José criado também no e-mail solicitado `[EMAIL_REDACTED]`.
 - [x] Token OAuth da Agenda Central MX salvo no Supabase.
 - [x] Google OAuth app publicado em produção, com necessidade de verificação formal indicada pelo Google.
 - [x] Google Calendar API ativada no projeto OAuth da conta central.
@@ -54,12 +54,12 @@ Solicitação operacional em YOLO mode para fechar as ondas de melhoria do siste
 - [x] Filtro de período passou a controlar a grade visual da agenda: `Hoje` renderiza 1 dia, `Semana` e `Próx. Semana` renderizam 7 dias, `Mês`/`Todos` renderizam a grade mensal; validado por Chrome MCP.
 - [x] Agenda passou a salvar e exibir Motivo da visita, Alvo e Produto em criação/edição/visualização de visita e evento/aula; campos validados em Chrome MCP mobile sem overflow.
 - [x] Gates pós-auditoria: `npm run lint`, `npm test` e `npm run build`.
-- [x] Follow-up 2026-05-05: verificado no Supabase remoto que a Agenda Central MX segue conectada, mas `José Roberto <joseroberto20161@gmail.com>` e `Synvollt <synvollt@gmail.com>` ainda não possuem token Google pessoal.
+- [x] Follow-up 2026-05-05: verificado no Supabase remoto que a Agenda Central MX segue conectada, mas `José Roberto <[EMAIL_REDACTED]>` e `Synvollt <[EMAIL_REDACTED]>` ainda não possuem token Google pessoal.
 - [x] Follow-up 2026-05-05: sync pessoal passou a usar o usuário responsável/consultor do agendamento, e não apenas o admin autenticado que criou/editou a agenda.
 - [x] Follow-up 2026-05-05: migration remota aplicada, Edge Functions `google-oauth-handler`, `google-calendar-sync` e `google-calendar-merged` redeployadas, e frontend publicado em produção Vercel.
-- [x] Follow-up 2026-05-05: Synvollt validado em produção; Google OAuth abriu a verificação em duas etapas e o sistema salvou token pessoal para `synvollt@gmail.com`.
+- [x] Follow-up 2026-05-05: Synvollt validado em produção; Google OAuth abriu a verificação em duas etapas e o sistema salvou token pessoal para `[EMAIL_REDACTED]`.
 - [x] Follow-up 2026-05-05: criada tabela de espelhos por admin master e `google-calendar-sync` passou a replicar eventos da Agenda Central MX na agenda pessoal dos admins MX conectados.
-- [x] Follow-up 2026-05-05: backfill Synvollt processou 53 eventos futuros, com 53 espelhos sincronizados e 0 erros; `google-calendar-merged` retornou `personalConnected: true`, `centralConnected: true`, `personalGoogleEmail: synvollt@gmail.com`, 59 eventos centrais e 53 pessoais no recorte ampliado.
+- [x] Follow-up 2026-05-05: backfill Synvollt processou 53 eventos futuros, com 53 espelhos sincronizados e 0 erros; `google-calendar-merged` retornou `personalConnected: true`, `centralConnected: true`, `personalGoogleEmail: [EMAIL_REDACTED]`, 59 eventos centrais e 53 pessoais no recorte ampliado.
 - [x] Gates follow-up 2026-05-05: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
 - [ ] Verificação final de acesso aos dados Google: pendente de URL de vídeo YouTube demonstrando o uso do escopo `calendar.events`.
 
@@ -78,7 +78,7 @@ Resultado operacional:
 - Criado projeto Google Cloud `mx-performance-calendar-oauth` na organização `mxconsultoria.com.br`.
 - Criado client OAuth web para o redirect `https://fbhcmzzgwjdgkctlfvbo.supabase.co/functions/v1/google-oauth-handler`.
 - Secrets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `GOOGLE_REDIRECT_URI` atualizados no Supabase.
-- Usuários de teste adicionados: `gestao@mxconsultoria.com.br`, `danieljsvendas@gmail.com`, `joseroberto20161@gmail.com`, `gedson.freire.localiza@gmail.com`, `camarajoaoaugusto@gmail.com`, `marianedcs@gmail.com`.
+- Usuários de teste adicionados: `gestao@mxconsultoria.com.br`, `[EMAIL_REDACTED]`, `[EMAIL_REDACTED]`, `[EMAIL_REDACTED]`, `[EMAIL_REDACTED]`, `[EMAIL_REDACTED]`.
 - Escopos configurados: `userinfo.email` e `calendar.events`.
 - Google Calendar API ativada.
 - App OAuth publicado em produção. O Google passou a indicar que o app precisa de verificação formal antes de remover limites/avisos de app não verificado.

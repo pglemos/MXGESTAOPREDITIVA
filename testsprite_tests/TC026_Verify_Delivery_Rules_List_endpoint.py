@@ -3,8 +3,8 @@ import requests
 BASE_URL = "http://localhost:3000"
 LOGIN_URL = f"{BASE_URL}/auth/v1/token?grant_type=password"
 DELIVERY_RULES_URL = f"{BASE_URL}/rest/v1/store_delivery_rules"
-ADMIN_EMAIL = "admin@mxperformance.com.br"
-ADMIN_PASSWORD = "Mx#2026!"
+ADMIN_EMAIL = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+ADMIN_PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 TIMEOUT = 30
 
 def test_TC026_verify_delivery_rules_list_endpoint():

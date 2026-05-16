@@ -8,12 +8,16 @@ const INTERNAL_ROLES = ["administrador_geral", "administrador_mx", "consultor_mx
 
 export type DriveDocTipo = "pdi" | "feedback" | "relatorios" | "plano_acao" | "dre_financeiro" | "visitas";
 
+type SupabaseAdminClient = {
+  from: (table: string) => any;
+}
+
 function makeAdminClient() {
   return createClient(
     requireEnv("SUPABASE_URL", SUPABASE_URL),
     requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY),
     { auth: { persistSession: false, autoRefreshToken: false } },
-  );
+  ) as unknown as SupabaseAdminClient;
 }
 
 async function driveUploadMultipart(
@@ -33,7 +37,7 @@ async function driveUploadMultipart(
       "\r\n",
       `--${boundary}\r\n`,
       `Content-Type: ${mimeType}\r\n\r\n`,
-      content,
+      content as unknown as BlobPart,
       "\r\n",
       `--${boundary}--`,
     ],
@@ -62,7 +66,7 @@ function normalizeEmail(value: unknown): string | null {
   return email;
 }
 
-async function getMxDriveShareEmails(adminClient: ReturnType<typeof createClient>): Promise<string[]> {
+async function getMxDriveShareEmails(adminClient: any): Promise<string[]> {
   const { data, error } = await adminClient
     .from("usuarios")
     .select("email")
@@ -78,7 +82,7 @@ async function getMxDriveShareEmails(adminClient: ReturnType<typeof createClient
 
   return Array.from(new Set([
     ...envEmails,
-    ...(data || []).map((row: { email?: string | null }) => normalizeEmail(row.email)).filter((email): email is string => Boolean(email)),
+    ...(data || []).map((row: { email?: string | null }) => normalizeEmail(row.email)).filter((email: string | null): email is string => Boolean(email)),
   ]));
 }
 
@@ -116,7 +120,7 @@ async function grantDriveReaderPermission(accessToken: string, fileId: string, e
 }
 
 async function ensureMxDriveAccess(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: any,
   accessToken: string,
   fileId: string,
 ): Promise<void> {

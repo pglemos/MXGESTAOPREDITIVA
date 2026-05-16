@@ -11,11 +11,11 @@
       },
       {
         "type": "action",
-        "description": "Enter admin@mxperformance.com.br in the email field"
+        "description": "Enter TESTSPRITE_ADMIN_EMAIL_REQUIRED in the email field"
       },
       {
         "type": "action",
-        "description": "Enter Mx#2026! in the password field"
+        "description": "Enter TESTSPRITE_PASSWORD_REQUIRED in the password field"
       },
       {
         "type": "action",
@@ -36,7 +36,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -57,7 +57,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -78,7 +78,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -99,7 +99,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -120,7 +120,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -141,7 +141,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -162,7 +162,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -183,7 +183,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -204,7 +204,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -225,7 +225,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -246,7 +246,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -267,7 +267,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -288,7 +288,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -309,7 +309,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -330,7 +330,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -351,7 +351,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -372,7 +372,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -393,7 +393,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -414,7 +414,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -435,7 +435,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -456,7 +456,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -477,7 +477,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -498,7 +498,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -519,7 +519,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",
@@ -540,7 +540,7 @@
     "steps": [
       {
         "type": "action",
-        "description": "Login as Admin (admin@mxperformance.com.br / Mx#2026!)"
+        "description": "Login as Admin (TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED)"
       },
       {
         "type": "action",

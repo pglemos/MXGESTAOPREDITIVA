@@ -38,7 +38,7 @@ async function rollbackCreatedUser(adminClient: SupabaseClient, userId: string) 
 
   const steps = [
     () => adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId),
-    () => adminClient.from('vinculos_loja').delete().eq('user_id', userId),
+    () => adminClient.from('vinculos_loja').update({ is_active: false, ended_at: todayISO() }).eq('user_id', userId),
     () => adminClient.from('usuarios').delete().eq('id', userId),
     () => adminClient.auth.admin.deleteUser(userId),
   ]
@@ -138,6 +138,7 @@ serve(async (req) => {
       .select('role')
       .eq('user_id', caller.user.id)
       .eq('store_id', store_id)
+      .eq('is_active', true)
       .maybeSingle()
 
     if (callerMembershipError || !callerMembership || callerMembership.role !== callerRole) {
@@ -190,7 +191,7 @@ serve(async (req) => {
     const { error: membershipError } = await adminClient
       .from('vinculos_loja')
       .upsert(
-        { user_id: newUserId, store_id, role },
+        { user_id: newUserId, store_id, role, is_active: true, ended_at: null },
         { onConflict: 'user_id,store_id' },
       )
 

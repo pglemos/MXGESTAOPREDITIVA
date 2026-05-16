@@ -86,7 +86,7 @@ Assignments continuam usando a tabela `users` existente e o controle de acesso p
 
 Validacao local concluida para gates e para o shell de `/consultoria/clientes` com bypass DEV.
 
-Validacao live concluida em `2026-04-13` / `2026-04-14` com o usuario admin real `jose.roberto@mxperformance.com.br`:
+Validacao live concluida em `2026-04-13` / `2026-04-14` com o usuario admin real `[EMAIL_REDACTED]`:
 - `unidades_cliente_consultoria`: insert e delete validados
 - `contatos_cliente_consultoria`: insert e delete validados
 - `atribuicoes_consultoria`: upsert, deactivate, reactivate e delete validados

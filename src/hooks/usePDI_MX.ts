@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 
@@ -151,6 +152,32 @@ type PDIStoreIdentityRow = {
     name: string
 }
 
+const pdiSessionBundleSchema = z.object({
+    colaborador_id: z.string().min(1, 'Selecione o colaborador do PDI.'),
+    loja_id: z.string().min(1, 'Selecione a loja do colaborador.'),
+    cargo_id: z.string().min(1, 'Selecione o cargo do PDI.'),
+    proxima_revisao_data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe uma data válida para a próxima revisão.'),
+    metas: z.array(z.object({
+        prazo: z.string().min(1),
+        tipo: z.string().min(1),
+        descricao: z.string().trim().min(1),
+    })).min(1, 'Informe as metas do PDI.'),
+    avaliacoes: z.array(z.object({
+        competencia_id: z.string().min(1),
+        nota_atribuida: z.number().finite(),
+        alvo: z.number().finite(),
+    })).min(1, 'Informe as avaliações por competência.'),
+    plano_acao: z.array(z.object({
+        competencia_id: z.string().min(1),
+        descricao_acao: z.string().trim().min(1),
+        data_conclusao: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        impacto: z.string().min(1),
+        custo: z.string().min(1),
+    })).min(1, 'Informe o plano de ação do PDI.'),
+})
+
+type PDISessionBundlePayload = z.infer<typeof pdiSessionBundleSchema>
+
 function joinMetas(metas: PDIMeta360[], prazo: string) {
     return metas
         .filter(m => m.prazo === prazo)
@@ -172,12 +199,14 @@ async function fetchPDISessions360(params: {
     const effectiveStoreId = storeIdOverride || storeId
     let query = supabase
         .from('pdi_sessoes')
-        .select('*')
+        .select('id, colaborador_id, gerente_id, loja_id, cargo_id, status, created_at, updated_at, data_realizacao, proxima_revisao_data')
         .order('created_at', { ascending: false })
 
     if (role === 'vendedor') {
         query = query.eq('colaborador_id', profileId)
-    } else if ((role === 'gerente' || role === 'dono') && effectiveStoreId) {
+    } else if (role === 'gerente' && effectiveStoreId) {
+        query = query.eq('loja_id', effectiveStoreId).eq('gerente_id', profileId)
+    } else if (role === 'dono' && effectiveStoreId) {
         query = query.eq('loja_id', effectiveStoreId)
     } else if (isPerfilInternoMx(role) && effectiveStoreId && effectiveStoreId !== 'all') {
         query = query.eq('loja_id', effectiveStoreId)
@@ -193,14 +222,14 @@ async function fetchPDISessions360(params: {
     const storeIds = Array.from(new Set(sessionRows.map(s => s.loja_id).filter((id): id is string => Boolean(id))))
 
     const [metasResp, avaliacoesResp, planoResp, usuariosResp, lojasResp] = await Promise.all([
-        supabase.from('pdi_metas').select('*').in('sessao_id', sessionIds).order('created_at', { ascending: true }),
+        supabase.from('pdi_metas').select('id, sessao_id, prazo, tipo, descricao').in('sessao_id', sessionIds).order('created_at', { ascending: true }),
         supabase
             .from('pdi_avaliacoes_competencia')
-            .select('*, competencia:pdi_competencias(id,nome,tipo,ordem)')
+            .select('id, sessao_id, competencia_id, nota_atribuida, alvo, competencia:pdi_competencias(id,nome,tipo,ordem)')
             .in('sessao_id', sessionIds),
         supabase
             .from('pdi_plano_acao')
-            .select('*, competencia:pdi_competencias(id,nome,tipo,ordem)')
+            .select('id, sessao_id, competencia_id, descricao_acao, data_conclusao, impacto, custo, status, competencia:pdi_competencias(id,nome,tipo,ordem)')
             .in('sessao_id', sessionIds)
             .order('data_conclusao', { ascending: true }),
         userIds.length ? supabase.from('usuarios').select('id,name,avatar_url').in('id', userIds) : Promise.resolve({ data: [], error: null }),
@@ -304,7 +333,7 @@ export function usePDI_MX() {
 
     const fetchCargos = useCallback(async () => {
         setLoading(true)
-        const { data, error } = await supabase.from('pdi_niveis_cargo').select('*').order('nivel', { ascending: true })
+        const { data, error } = await supabase.from('pdi_niveis_cargo').select('id, nome, nivel, nota_min, nota_max').order('nivel', { ascending: true })
         if (error) setError(error.message)
         else setCargos(data || [])
         setLoading(false)
@@ -329,13 +358,22 @@ export function usePDI_MX() {
         return data as PDISuggestedAction[]
     }, [])
 
-    const saveSessionBundle = useCallback(async (payload: Record<string, unknown>) => {
+    const saveSessionBundle = useCallback(async (payload: PDISessionBundlePayload) => {
+        const parsed = pdiSessionBundleSchema.safeParse(payload)
+        if (!parsed.success) {
+            throw new Error(parsed.error.issues[0]?.message || 'Bundle de PDI inválido.')
+        }
+
         setLoading(true)
-        const { data, error } = await supabase.rpc('create_pdi_session_bundle', { p_payload: payload })
+        setError(null)
+        const { data, error } = await supabase.rpc('create_pdi_session_bundle', { p_payload: parsed.data })
         setLoading(false)
         if (error) throw error
         if (data) {
-            await supabase.rpc('gerar_recomendacoes_desenvolvimento_pdi', { p_sessao_id: data })
+            const { error: recommendationsError } = await supabase.rpc('gerar_recomendacoes_desenvolvimento_pdi', { p_sessao_id: data })
+            if (recommendationsError) {
+                setError('PDI salvo, mas recomendações automáticas não foram geradas.')
+            }
         }
         queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
         queryClient.invalidateQueries({ queryKey: ['development-recommendations'] })

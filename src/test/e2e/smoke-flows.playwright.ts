@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getE2EInternalCredentials } from '../e2e-helpers/auth';
 
 /**
  * SMOKE TESTS: MX Performance Core Flows
@@ -8,12 +9,14 @@ import { test, expect } from '@playwright/test';
 test.describe('Smoke Flows: Authenticated Experience', () => {
 
   test('Admin Login Bypass & Dashboard Navigation', async ({ page }, testInfo) => {
+    const { email, password } = getE2EInternalCredentials();
+
     // 1. Acesso à página de login
     await page.goto('/login');
-    
-    // 2. Preenchimento via E2E Bypass (conforme src/pages/Login.tsx)
-    await page.fill('input[type="email"]', 'admin@mxgestaopreditiva.com.br');
-    await page.fill('input[type="password"]', 'Mx#2026!');
+
+    // 2. Preenchimento com conta interna MX configurada para E2E.
+    await page.fill('input[type="email"]', email);
+    await page.fill('input[type="password"]', password);
     
     // 3. Submissão
     await page.click('button[type="submit"]');

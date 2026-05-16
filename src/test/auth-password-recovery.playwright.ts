@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test'
 import {
+  createE2EPassword,
   createE2EAdminUser,
   createPasswordRecoverySession,
   createPasswordRecoveryLink,
   deleteE2EUser,
-  E2E_DEFAULT_PASSWORD,
   getMustChangePassword,
   type E2EUser,
 } from './e2e-helpers/supabase-admin'
@@ -67,7 +67,7 @@ test.describe('Password recovery login flow', () => {
 
     await page.goto('/login')
     await page.getByRole('button', { name: /Esqueci minha senha/i }).click()
-    await page.fill('input[type="email"]', 'marianedcs@gmail.com')
+    await page.fill('input[type="email"]', 'rate-limit@mxperformance.test')
     await page.getByRole('button', { name: /Enviar link/i }).click()
 
     await expect(page.getByText(/Já existe um link recente/i)).toBeVisible()
@@ -79,15 +79,21 @@ test.describe('Password recovery login flow', () => {
       await route.abort('namenotresolved')
     })
 
-    await login(page, 'marianedcs@gmail.com', '123456')
+    await login(page, 'network-failure@mxperformance.test', createE2EPassword())
 
     await expect(page.getByText(/Não foi possível conectar ao servidor de autenticação/i)).toBeVisible()
     await expect(page.getByText(/E-mail ou senha inválidos/i)).toHaveCount(0)
   })
 
-  test('generated recovery link points to the login recovery route', async () => {
+  test('generated recovery link points to the login recovery route', async ({}, testInfo) => {
+    user = await createE2EAdminUser({
+      prefix: `password-recovery-link-${testInfo.project.name}`,
+      password: createE2EPassword('MxRecoveryLink'),
+      mustChangePassword: true,
+    })
+
     const link = await createPasswordRecoveryLink(
-      'marianedcs@gmail.com',
+      user.email,
       'https://mxperformance.vercel.app/login?recovery=1',
     )
 
@@ -99,9 +105,10 @@ test.describe('Password recovery login flow', () => {
   })
 
   test('recovery link lets a user set a new password and clears must_change_password', async ({ page }, testInfo) => {
+    const temporaryPassword = createE2EPassword('MxRecovery')
     user = await createE2EAdminUser({
       prefix: `password-recovery-${testInfo.project.name}`,
-      password: E2E_DEFAULT_PASSWORD,
+      password: temporaryPassword,
       mustChangePassword: true,
     })
 
@@ -124,7 +131,7 @@ test.describe('Password recovery login flow', () => {
     await expect(page.getByText(/Senha redefinida com sucesso/i)).toBeVisible({ timeout: 15000 })
     await expect.poll(() => getMustChangePassword(user!.id), { timeout: 15000 }).toBe(false)
 
-    await login(page, user.email, E2E_DEFAULT_PASSWORD)
+    await login(page, user.email, temporaryPassword)
     await expect(page.getByText(/E-mail ou senha inválidos/i)).toBeVisible()
 
     await login(page, user.email, newPassword)

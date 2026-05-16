@@ -2,6 +2,7 @@ import { useFeedbacks, useWeeklyFeedbackReports } from '@/hooks/useData'
 import { useTeam, useAllSellers, useStores } from '@/hooks/useTeam'
 import { useCheckins, useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { canManageFeedback } from '@/lib/auth/capabilities'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { 
@@ -51,6 +52,29 @@ function getPreviousWeekRange() {
     }
 }
 
+function formatSafeDate(value?: string | null, pattern = 'dd/MM/yyyy') {
+    if (!value) return '--/--'
+    try {
+        return format(parseISO(value), pattern)
+    } catch {
+        return '--/--'
+    }
+}
+
+function buildFeedbackMetricsPatch(checkins: DailyCheckin[], commitmentMode: 'actual' | 'suggested' = 'actual') {
+    const funnel = calcularFunil(checkins)
+    return {
+        leads_week: funnel.leads,
+        agd_week: funnel.agd_total,
+        visit_week: funnel.visitas,
+        vnd_week: funnel.vnd_total,
+        tx_lead_agd: funnel.tx_lead_agd,
+        tx_agd_visita: funnel.tx_agd_visita,
+        tx_visita_vnd: funnel.tx_visita_vnd,
+        meta_compromisso: commitmentMode === 'suggested' ? Math.ceil(funnel.vnd_total * 1.2) || 1 : funnel.vnd_total,
+    }
+}
+
 export default function GerenteFeedback() {
     const { role } = useAuth()
     const isAdmin = isPerfilInternoMx(role)
@@ -66,9 +90,8 @@ const FEEDBACK_TABS: TabNavPillItem<FeedbackTab>[] = [
 ]
 
 function AdminFeedback() {
-    const { profile, setActiveStoreId } = useAuth()
     const { devolutivas, loading: devolutivasLoading, createFeedback, refetch: refetchFeedbacks } = useFeedbacks()
-    const { reports, loading: reportsLoading, refetch: refetchReports } = useWeeklyFeedbackReports()
+    const { reports, loading: reportsLoading, error: reportsError, refetch: refetchReports } = useWeeklyFeedbackReports()
     const { sellers: allSellers, loading: sellersLoading } = useAllSellers()
     const { lojas } = useStores()
 
@@ -101,13 +124,18 @@ function AdminFeedback() {
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        if (activeTab === 'individual') await refetchFeedbacks()
-        else await refetchReports()
-        setIsRefetching(false)
-        toast.success('Sincronizado!')
+        try {
+            if (activeTab === 'individual') await refetchFeedbacks()
+            else await refetchReports()
+            toast.success('Sincronizado!')
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Falha ao sincronizar devolutivas.')
+        } finally {
+            setIsRefetching(false)
+        }
     }, [activeTab, refetchFeedbacks, refetchReports])
 
-    const handleSellerSelect = useCallback(async (sellerId: string) => {
+    const loadSellerMetrics = useCallback(async (sellerId: string, weekReference: string) => {
         if (!sellerId) {
             setFormData(f => ({ ...f, seller_id: '' }))
             return
@@ -115,60 +143,61 @@ function AdminFeedback() {
         const seller = allSellers.find(s => s.id === sellerId)
         if (!seller) return
 
+        let selectedWeekStart: Date
+        let selectedWeekEnd: Date
+        try {
+            selectedWeekStart = startOfWeek(parseISO(weekReference), { weekStartsOn: 1 })
+            selectedWeekEnd = endOfWeek(selectedWeekStart, { weekStartsOn: 1 })
+        } catch {
+            toast.error('Semana inválida.')
+            return
+        }
+
         const { supabase } = await import('@/lib/supabase')
-        const { data: weekCheckins } = await supabase
+        const { data: weekCheckins, error } = await supabase
             .from('lancamentos_diarios')
-            .select('*')
+            .select('id, seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('seller_user_id', sellerId)
             .eq('store_id', seller.store_id)
-            .gte('reference_date', previousWeek.startKey)
-            .lte('reference_date', previousWeek.endKey)
+            .gte('reference_date', format(selectedWeekStart, 'yyyy-MM-dd'))
+            .lte('reference_date', format(selectedWeekEnd, 'yyyy-MM-dd'))
+        if (error) {
+            toast.error('Não foi possível carregar os check-ins do especialista.')
+            return
+        }
 
-        const funnel = calcularFunil((weekCheckins || []) as DailyCheckin[])
         setFormData(f => ({
             ...f,
             seller_id: sellerId,
-            leads_week: funnel.leads,
-            agd_week: funnel.agd_total,
-            visit_week: funnel.visitas,
-            vnd_week: funnel.vnd_total,
-            tx_lead_agd: funnel.tx_lead_agd,
-            tx_agd_visita: funnel.tx_agd_visita,
-            tx_visita_vnd: funnel.tx_visita_vnd,
-            meta_compromisso: Math.ceil(funnel.vnd_total * 1.2) || 1,
+            week_reference: weekReference,
+            ...buildFeedbackMetricsPatch((weekCheckins || []) as DailyCheckin[]),
         }))
-    }, [allSellers, previousWeek])
+    }, [allSellers])
+
+    const handleSellerSelect = useCallback((sellerId: string) => {
+        void loadSellerMetrics(sellerId, formData.week_reference)
+    }, [formData.week_reference, loadSellerMetrics])
+
+    const handleWeekReferenceChange = useCallback((weekReference: string) => {
+        setFormData(f => ({ ...f, week_reference: weekReference }))
+        if (formData.seller_id) void loadSellerMetrics(formData.seller_id, weekReference)
+    }, [formData.seller_id, loadSellerMetrics])
 
     const handleSubmit = async () => {
+        if (!formData.seller_id || !formData.positives.trim() || !formData.attention_points.trim() || !formData.action.trim()) {
+            toast.error('Preencha especialista, pontos fortes, pontos de atenção e ação.')
+            return
+        }
         setSaving(true)
         const seller = allSellers.find(s => s.id === formData.seller_id)
         if (!seller) { setSaving(false); toast.error('Selecione um vendedor.'); return }
-        const { supabase } = await import('@/lib/supabase')
-        const { error } = await supabase.from('devolutivas').upsert({
-            store_id: seller.store_id,
-            manager_id: profile?.id,
-            seller_id: formData.seller_id,
-            week_reference: formData.week_reference,
-            leads_week: formData.leads_week,
-            agd_week: formData.agd_week,
-            visit_week: formData.visit_week,
-            vnd_week: formData.vnd_week,
-            tx_lead_agd: formData.tx_lead_agd,
-            tx_agd_visita: formData.tx_agd_visita,
-            tx_visita_vnd: formData.tx_visita_vnd,
-            meta_compromisso: formData.meta_compromisso,
-            positives: formData.positives,
-            attention_points: formData.attention_points,
-            action: formData.action,
-            notes: formData.notes || null,
-            acknowledged: false,
-        }, { onConflict: 'seller_id, week_reference' })
+        const { error } = await createFeedback({ ...formData, store_id: seller.store_id })
         setSaving(false)
-        if (error) toast.error(error.message)
+        if (error) toast.error(error)
         else {
             toast.success('Mentoria registrada!')
             setShowForm(false)
-            refetchFeedbacks()
+            await refetchFeedbacks()
         }
     }
 
@@ -179,13 +208,14 @@ function AdminFeedback() {
             diagnostic: { diagnostico: f.attention_points, sugestao: f.action },
             actions: [f.action],
             periodLabel: `Semana ${f.week_reference}`,
-            dateLabel: f.created_at ? format(parseISO(f.created_at), 'dd/MM/yyyy') : f.week_reference,
+            dateLabel: f.created_at ? formatSafeDate(f.created_at) : f.week_reference,
             metaIndividual: f.commitment_suggested || f.meta_compromisso || f.vnd_week,
             metaCompromisso: f.meta_compromisso,
             positives: f.positives,
             attentionPoints: f.attention_points,
         })
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+        const opened = window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
+        if (!opened) toast.error('O navegador bloqueou a janela do WhatsApp.')
     }
 
     if (devolutivasLoading || reportsLoading || sellersLoading) return (
@@ -196,6 +226,11 @@ function AdminFeedback() {
                     <Skeleton className="h-mx-xs w-mx-48" />
                 </div>
             </header>
+            {reportsError && (
+                <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
+                    {reportsError}
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
                 <Skeleton className="h-mx-64 rounded-mx-2xl" />
                 <Skeleton className="h-mx-64 rounded-mx-2xl" />
@@ -218,7 +253,8 @@ function AdminFeedback() {
                     <TabNavPill tabs={FEEDBACK_TABS} activeTab={activeTab} onTabChange={setActiveTab} buttonClassName="h-mx-9 px-6" className="w-full sm:w-auto xl:mr-2" />
                     <div className="relative group w-full sm:w-mx-sidebar-expanded">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" aria-hidden="true" />
-                        <Input placeholder="BUSCAR MENTORIA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        <label htmlFor="feedback-admin-search" className="sr-only">Buscar mentoria</label>
+                        <Input id="feedback-admin-search" name="feedback-admin-search" placeholder="BUSCAR MENTORIA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                             className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest font-black" />
                     </div>
                     <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white" aria-label="Sincronizar">
@@ -235,13 +271,13 @@ function AdminFeedback() {
             <AnimatePresence>
                 {showForm && (
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm" role="dialog" aria-modal="true">
+                        className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="feedback-admin-title">
                         <Card className="w-full max-w-mx-4xl max-h-full overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-mx-2xl">
                             <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                                 <div className="flex items-center gap-mx-sm">
                                     <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg"><MessageSquare size={24} /></div>
                                     <div>
-                                        <Typography variant="h2" className="uppercase tracking-tighter">Nova Mentoria</Typography>
+                                        <Typography id="feedback-admin-title" variant="h2" className="uppercase tracking-tighter">Nova Mentoria</Typography>
                                         <Typography variant="tiny" tone="muted" className="font-black uppercase">Selecione a loja e o especialista</Typography>
                                     </div>
                                 </div>
@@ -250,9 +286,9 @@ function AdminFeedback() {
                             <div className="p-mx-lg md:p-10 space-y-mx-xl">
                                 <div className="grid md:grid-cols-3 gap-mx-lg">
                                     <div className="space-y-mx-xs">
-                                        <Typography variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Loja</Typography>
+                                        <Typography as="label" htmlFor="feedback-admin-store" variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Loja</Typography>
                                         <div className="relative">
-                                            <select value={selectedStoreId} onChange={(e) => { setSelectedStoreId(e.target.value); setFormData(f => ({ ...f, seller_id: '' })) }}
+                                            <select id="feedback-admin-store" name="store_id" value={selectedStoreId} onChange={(e) => { setSelectedStoreId(e.target.value); setFormData(f => ({ ...f, seller_id: '' })) }}
                                                 className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold uppercase shadow-inner appearance-none cursor-pointer">
                                                 <option value="">Todas as lojas</option>
                                                 {lojas.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -261,15 +297,26 @@ function AdminFeedback() {
                                         </div>
                                     </div>
                                     <div className="space-y-mx-xs">
-                                        <Typography variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Especialista</Typography>
+                                        <Typography as="label" htmlFor="feedback-admin-seller" variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Especialista</Typography>
                                         <div className="relative">
-                                            <select value={formData.seller_id} onChange={(e) => handleSellerSelect(e.target.value)}
+                                            <select id="feedback-admin-seller" name="seller_id" value={formData.seller_id} onChange={(e) => handleSellerSelect(e.target.value)}
                                                 className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold uppercase shadow-inner appearance-none cursor-pointer">
                                                 <option value="">Selecione...</option>
                                                 {filteredSellers.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()} — {s.store_name}</option>)}
                                             </select>
                                             <ChevronDown size={18} className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
                                         </div>
+                                    </div>
+                                    <div className="space-y-mx-xs">
+                                        <label htmlFor="feedback-admin-week-reference" className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary">Semana</label>
+                                        <Input
+                                            id="feedback-admin-week-reference"
+                                            name="week_reference"
+                                            type="date"
+                                            value={formData.week_reference}
+                                            onChange={e => handleWeekReferenceChange(e.target.value)}
+                                            className="!h-mx-14 bg-surface-alt font-black"
+                                        />
                                     </div>
                                     <div className="space-y-mx-xs">
                                         <Typography variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Semana</Typography>
@@ -298,21 +345,21 @@ function AdminFeedback() {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                                             <div className="space-y-mx-sm">
-                                                <label className="text-mx-tiny font-black uppercase tracking-widest text-status-success ml-2 flex items-center gap-mx-xs"><Award size={14} /> Pontos Fortes</label>
-                                                <textarea value={formData.positives} onChange={e => setFormData(f => ({ ...f, positives: e.target.value }))}
+                                                <label htmlFor="feedback-admin-positives" className="text-mx-tiny font-black uppercase tracking-widest text-status-success ml-2 flex items-center gap-mx-xs"><Award size={14} /> Pontos Fortes</label>
+                                                <textarea id="feedback-admin-positives" name="positives" value={formData.positives} onChange={e => setFormData(f => ({ ...f, positives: e.target.value }))}
                                                     placeholder="O que o especialista fez de excelente?"
                                                     className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-success transition-all shadow-sm outline-none resize-none" />
                                             </div>
                                             <div className="space-y-mx-sm">
-                                                <label className="text-mx-tiny font-black uppercase tracking-widest text-status-error ml-2 flex items-center gap-mx-xs"><AlertCircle size={14} /> Pontos de Atenção</label>
-                                                <textarea value={formData.attention_points} onChange={e => setFormData(f => ({ ...f, attention_points: e.target.value }))}
+                                                <label htmlFor="feedback-admin-attention" className="text-mx-tiny font-black uppercase tracking-widest text-status-error ml-2 flex items-center gap-mx-xs"><AlertCircle size={14} /> Pontos de Atenção</label>
+                                                <textarea id="feedback-admin-attention" name="attention_points" value={formData.attention_points} onChange={e => setFormData(f => ({ ...f, attention_points: e.target.value }))}
                                                     placeholder="Quais os gargalos identificados?"
                                                     className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-error transition-all shadow-sm outline-none resize-none" />
                                             </div>
                                         </div>
                                         <div className="space-y-mx-sm">
-                                            <label className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary ml-2 flex items-center gap-mx-xs"><Target size={16} /> Próximo Passo (Ação)</label>
-                                            <textarea value={formData.action} onChange={e => setFormData(f => ({ ...f, action: e.target.value }))}
+                                            <label htmlFor="feedback-admin-action" className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary ml-2 flex items-center gap-mx-xs"><Target size={16} /> Próximo Passo (Ação)</label>
+                                            <textarea id="feedback-admin-action" name="action" value={formData.action} onChange={e => setFormData(f => ({ ...f, action: e.target.value }))}
                                                 placeholder="Qual a ÚNICA COISA que ele deve focar esta semana?"
                                                 className="w-full h-mx-3xl p-mx-md bg-white border-2 border-brand-primary/20 rounded-mx-2xl text-base font-black focus:border-brand-primary transition-all shadow-mx-lg outline-none resize-none" />
                                         </div>
@@ -347,7 +394,7 @@ function AdminFeedback() {
                                                     <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{sellerName.substring(0, 2)}</div>
                                                     <div>
                                                         <Typography variant="h3" className="text-base font-black uppercase tracking-tight">{sellerName}</Typography>
-                                                        <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
+                                                        <Typography variant="tiny" tone="muted" className="text-mx-tiny font-black uppercase">{formatSafeDate(f.created_at)}</Typography>
                                                     </div>
                                                 </div>
                                                 <Badge variant={f.acknowledged ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black uppercase shadow-sm border-none">{f.acknowledged ? 'LIDO' : 'PENDENTE'}</Badge>
@@ -383,7 +430,7 @@ function AdminFeedback() {
                                                 <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><Calendar size={24} /></div>
                                                 <div>
                                                     <Typography variant="tiny" tone="muted" className="uppercase tracking-widest font-black text-mx-micro">FECHAMENTO SEMANAL</Typography>
-                                                    <Typography variant="h3" className="text-lg uppercase font-black tracking-tight">{format(parseISO(report.week_start), 'dd/MM')} - {format(parseISO(report.week_end), 'dd/MM')}</Typography>
+                                                    <Typography variant="h3" className="text-lg uppercase font-black tracking-tight">{formatSafeDate(report.week_start, 'dd/MM')} - {formatSafeDate(report.week_end, 'dd/MM')}</Typography>
                                                 </div>
                                             </div>
                                             <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black shadow-sm uppercase border-none">{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>
@@ -430,29 +477,61 @@ function StoreFeedback() {
         meta_compromisso: 0, positives: '', attention_points: '', action: '', notes: ''
     })
 
-    const handleSellerSelect = useCallback((sellerId: string) => {
+    const calculateStoreSellerMetrics = useCallback((sellerId: string, weekReference: string) => {
         if (!sellerId) { setFormData(f => ({ ...f, seller_id: '' })); return }
+        let selectedWeekStart: Date
+        try {
+            selectedWeekStart = startOfWeek(parseISO(weekReference), { weekStartsOn: 1 })
+        } catch {
+            toast.error('Semana inválida.')
+            return null
+        }
         const weekCheckins = checkins.filter(c =>
             c.seller_user_id === sellerId &&
-            isSameWeek(parseISO(c.reference_date), previousWeek.start, { weekStartsOn: 1 })
+            (() => {
+                try {
+                    return isSameWeek(parseISO(c.reference_date), selectedWeekStart, { weekStartsOn: 1 })
+                } catch {
+                    return false
+                }
+            })()
         )
-        const funnel = calcularFunil(weekCheckins)
+        return buildFeedbackMetricsPatch(weekCheckins, 'suggested')
+    }, [checkins])
+
+    const handleSellerSelect = useCallback((sellerId: string) => {
+        if (!sellerId) { setFormData(f => ({ ...f, seller_id: '' })); return }
+        const metricsPatch = calculateStoreSellerMetrics(sellerId, formData.week_reference)
+        if (!metricsPatch) return
         setFormData(f => ({
             ...f, seller_id: sellerId,
-            leads_week: funnel.leads, agd_week: funnel.agd_total,
-            visit_week: funnel.visitas, vnd_week: funnel.vnd_total,
-            tx_lead_agd: funnel.tx_lead_agd, tx_agd_visita: funnel.tx_agd_visita,
-            tx_visita_vnd: funnel.tx_visita_vnd,
-            meta_compromisso: Math.ceil(funnel.vnd_total * 1.2) || 1
+            ...metricsPatch,
         }))
-    }, [checkins, previousWeek])
+    }, [calculateStoreSellerMetrics, formData.week_reference])
+
+    const handleWeekReferenceChange = useCallback((weekReference: string) => {
+        const metricsPatch = formData.seller_id ? calculateStoreSellerMetrics(formData.seller_id, weekReference) : null
+        setFormData(f => ({
+            ...f,
+            week_reference: weekReference,
+            ...(metricsPatch || {}),
+        }))
+    }, [calculateStoreSellerMetrics, formData.seller_id])
 
     const handleSubmit = async () => {
+        if (!formData.seller_id || !formData.positives.trim() || !formData.attention_points.trim() || !formData.action.trim()) {
+            toast.error('Preencha especialista, pontos fortes, pontos de atenção e ação.')
+            return
+        }
         setSaving(true)
         const { error } = await createFeedback(formData)
         setSaving(false)
         if (error) toast.error(error)
-        else { toast.success('Mentoria registrada!'); setShowForm(false); refetchFeedbacks() }
+        else {
+            toast.success('Mentoria registrada!')
+            setShowForm(false)
+            await refetchFeedbacks()
+        }
     }
 
     const handleShareWhatsApp = (f: FeedbackListItem) => {
@@ -462,13 +541,14 @@ function StoreFeedback() {
             diagnostic: { diagnostico: f.attention_points, sugestao: f.action },
             actions: [f.action],
             periodLabel: `Semana ${f.week_reference}`,
-            dateLabel: f.created_at ? format(parseISO(f.created_at), 'dd/MM/yyyy') : f.week_reference,
+            dateLabel: f.created_at ? formatSafeDate(f.created_at) : f.week_reference,
             metaIndividual: f.commitment_suggested || f.meta_compromisso || f.vnd_week,
             metaCompromisso: f.meta_compromisso,
             positives: f.positives,
             attentionPoints: f.attention_points,
         })
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+        const opened = window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
+        if (!opened) toast.error('O navegador bloqueou a janela do WhatsApp.')
     }
 
     const filteredFeedbacks = useMemo(() => {
@@ -480,13 +560,18 @@ function StoreFeedback() {
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        if (activeTab === 'individual') await refetchFeedbacks()
-        else await refetchReports()
-        setIsRefetching(false)
-        toast.success('Sincronizado!')
+        try {
+            if (activeTab === 'individual') await refetchFeedbacks()
+            else await refetchReports()
+            toast.success('Sincronizado!')
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Falha ao sincronizar devolutivas.')
+        } finally {
+            setIsRefetching(false)
+        }
     }, [activeTab, refetchFeedbacks, refetchReports])
 
-    const canCreateFeedback = role === 'gerente'
+    const canCreateFeedback = canManageFeedback(role)
 
     if (devolutivasLoading || reportsLoading) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt">
@@ -523,10 +608,11 @@ function StoreFeedback() {
                     </nav>
                     <div className="relative group w-full sm:w-mx-sidebar-expanded">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
-                        <Input placeholder="BUSCAR MENTORIA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        <label htmlFor="feedback-store-search" className="sr-only">Buscar mentoria</label>
+                        <Input id="feedback-store-search" name="feedback-store-search" placeholder="BUSCAR MENTORIA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                             className="!pl-11 !h-12 !text-mx-tiny uppercase tracking-widest font-black" />
                     </div>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Sincronizar devolutivas" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     {activeTab === 'individual' && canCreateFeedback && (
@@ -540,13 +626,13 @@ function StoreFeedback() {
             <AnimatePresence>
                 {showForm && (
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm" role="dialog" aria-modal="true">
+                        className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="feedback-store-title">
                         <Card className="w-full max-w-mx-4xl max-h-full overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-mx-2xl">
                             <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
                                 <div className="flex items-center gap-mx-sm">
                                     <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg"><MessageSquare size={24} /></div>
                                     <div>
-                                        <Typography variant="h2" className="uppercase tracking-tighter">Nova Mentoria</Typography>
+                                        <Typography id="feedback-store-title" variant="h2" className="uppercase tracking-tighter">Nova Mentoria</Typography>
                                         <Typography variant="tiny" tone="muted" className="font-black uppercase">Ciclo de Devolutiva Semanal</Typography>
                                     </div>
                                 </div>
@@ -555,9 +641,9 @@ function StoreFeedback() {
                             <div className="p-mx-lg md:p-10 space-y-mx-xl">
                                 <div className="grid md:grid-cols-2 gap-mx-lg">
                                     <div className="space-y-mx-xs">
-                                        <Typography variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Especialista</Typography>
+                                        <label htmlFor="feedback-seller" className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary">Especialista</label>
                                         <div className="relative">
-                                            <select value={formData.seller_id} onChange={(e) => handleSellerSelect(e.target.value)}
+                                            <select id="feedback-seller" name="seller_id" value={formData.seller_id} onChange={(e) => handleSellerSelect(e.target.value)}
                                                 className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold uppercase shadow-inner appearance-none cursor-pointer">
                                                 <option value="">Selecione...</option>
                                                 {sellers.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
@@ -566,9 +652,17 @@ function StoreFeedback() {
                                         </div>
                                     </div>
                                     <div className="space-y-mx-xs">
-                                        <Typography variant="tiny" tone="muted" className="ml-2 uppercase font-black tracking-widest">Semana</Typography>
-                                        <div className="h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md flex items-center text-sm font-black text-brand-primary shadow-inner">
-                                            <Calendar size={18} className="mr-3 opacity-40" />{previousWeek.label} (ANTERIOR)
+                                        <label htmlFor="feedback-week-reference" className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary">Semana</label>
+                                        <div className="relative">
+                                            <Calendar size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+                                            <input
+                                                id="feedback-week-reference"
+                                                name="week_reference"
+                                                type="date"
+                                                value={formData.week_reference}
+                                                onChange={e => handleWeekReferenceChange(e.target.value)}
+                                                className="w-full h-mx-14 pl-12 pr-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-black text-brand-primary shadow-inner"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -591,19 +685,19 @@ function StoreFeedback() {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                                             <div className="space-y-mx-sm">
-                                                <label className="text-mx-tiny font-black uppercase tracking-widest text-status-success ml-2 flex items-center gap-mx-xs"><Award size={14} /> Pontos Fortes</label>
-                                                <textarea value={formData.positives} onChange={e => setFormData(f => ({ ...f, positives: e.target.value }))}
+                                                <label htmlFor="feedback-positives" className="text-mx-tiny font-black uppercase tracking-widest text-status-success ml-2 flex items-center gap-mx-xs"><Award size={14} /> Pontos Fortes</label>
+                                                <textarea id="feedback-positives" name="positives" value={formData.positives} onChange={e => setFormData(f => ({ ...f, positives: e.target.value }))}
                                                     className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-success transition-all shadow-sm outline-none resize-none" />
                                             </div>
                                             <div className="space-y-mx-sm">
-                                                <label className="text-mx-tiny font-black uppercase tracking-widest text-status-error ml-2 flex items-center gap-mx-xs"><AlertCircle size={14} /> Pontos de Atenção</label>
-                                                <textarea value={formData.attention_points} onChange={e => setFormData(f => ({ ...f, attention_points: e.target.value }))}
+                                                <label htmlFor="feedback-attention" className="text-mx-tiny font-black uppercase tracking-widest text-status-error ml-2 flex items-center gap-mx-xs"><AlertCircle size={14} /> Pontos de Atenção</label>
+                                                <textarea id="feedback-attention" name="attention_points" value={formData.attention_points} onChange={e => setFormData(f => ({ ...f, attention_points: e.target.value }))}
                                                     className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-error transition-all shadow-sm outline-none resize-none" />
                                             </div>
                                         </div>
                                         <div className="space-y-mx-sm">
-                                            <label className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary ml-2 flex items-center gap-mx-xs"><Target size={16} /> Ação</label>
-                                            <textarea value={formData.action} onChange={e => setFormData(f => ({ ...f, action: e.target.value }))}
+                                            <label htmlFor="feedback-action" className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary ml-2 flex items-center gap-mx-xs"><Target size={16} /> Ação</label>
+                                            <textarea id="feedback-action" name="action" value={formData.action} onChange={e => setFormData(f => ({ ...f, action: e.target.value }))}
                                                 className="w-full h-mx-3xl p-mx-md bg-white border-2 border-brand-primary/20 rounded-mx-2xl text-base font-black focus:border-brand-primary transition-all shadow-mx-lg outline-none resize-none" />
                                         </div>
                                     </motion.div>
@@ -611,7 +705,7 @@ function StoreFeedback() {
                             </div>
                             <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex justify-end gap-mx-sm">
                                 <Button variant="ghost" onClick={() => setShowForm(false)} className="h-mx-14 px-8 rounded-mx-full font-black uppercase tracking-widest">CANCELAR</Button>
-                                <Button onClick={handleSubmit} disabled={saving || !formData.seller_id || !formData.action}
+                                <Button onClick={handleSubmit} disabled={saving || !formData.seller_id || !formData.positives.trim() || !formData.attention_points.trim() || !formData.action.trim()}
                                     className="h-mx-14 px-12 rounded-mx-full shadow-mx-xl font-black uppercase tracking-widest">
                                     {saving ? <RefreshCw className="animate-spin mr-2" /> : <Send size={18} className="mr-2" />} REGISTRAR
                                 </Button>
@@ -637,7 +731,7 @@ function StoreFeedback() {
                                                     <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase">{sellerName.substring(0, 2)}</div>
                                                     <div>
                                                         <Typography variant="h3" className="text-base font-black uppercase tracking-tight">{sellerName}</Typography>
-                                                        <Typography variant="tiny" tone="muted" className="font-black uppercase">{format(parseISO(f.created_at), 'dd/MM/yyyy')}</Typography>
+                                                        <Typography variant="tiny" tone="muted" className="font-black uppercase">{formatSafeDate(f.created_at)}</Typography>
                                                     </div>
                                                 </div>
                                                 <Badge variant={f.acknowledged ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black uppercase shadow-sm border-none">{f.acknowledged ? 'LIDO' : 'PENDENTE'}</Badge>
@@ -667,7 +761,7 @@ function StoreFeedback() {
                                             <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md"><Calendar size={24} /></div>
                                             <div>
                                                 <Typography variant="tiny" tone="muted" className="uppercase tracking-widest font-black text-mx-micro">FECHAMENTO SEMANAL</Typography>
-                                                <Typography variant="h3" className="text-lg uppercase font-black tracking-tight">{format(parseISO(report.week_start), 'dd/MM')} - {format(parseISO(report.week_end), 'dd/MM')}</Typography>
+                                                <Typography variant="h3" className="text-lg uppercase font-black tracking-tight">{formatSafeDate(report.week_start, 'dd/MM')} - {formatSafeDate(report.week_end, 'dd/MM')}</Typography>
                                             </div>
                                         </div>
                                         <Badge variant={report.email_status === 'sent' ? 'success' : 'danger'} className="px-4 py-1 rounded-mx-lg text-mx-micro font-black shadow-sm uppercase border-none">{report.email_status === 'sent' ? 'ENVIADO' : 'FALHA'}</Badge>

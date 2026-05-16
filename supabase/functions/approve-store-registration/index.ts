@@ -21,6 +21,11 @@ const PRE_REGISTRATION_SELECT = [
   'company_administrative_phone',
 ].join(', ')
 
+type SupabaseAdminClient = {
+  auth: any
+  from: (table: string) => any
+}
+
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -51,7 +56,7 @@ serve(async (req) => {
 
   const adminClient = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
-  })
+  }) as unknown as SupabaseAdminClient
 
   const { data: authData, error: authError } = await adminClient.auth.getUser(token)
   if (authError || !authData.user) return jsonResponse({ success: false, error: 'Sessão inválida.' }, 401)
@@ -97,8 +102,16 @@ serve(async (req) => {
   const finalRole = allowedRoles.includes(approvedRole) ? approvedRole : preRegistration.role
 
   if (action === 'reject') {
-    await adminClient.from('vendedores_loja').delete().eq('seller_user_id', preRegistration.auth_user_id).eq('store_id', preRegistration.store_id)
-    await adminClient.from('vinculos_loja').delete().eq('user_id', preRegistration.auth_user_id).eq('store_id', preRegistration.store_id)
+    await adminClient
+      .from('vendedores_loja')
+      .update({ is_active: false, ended_at: new Date().toISOString().slice(0, 10) })
+      .eq('seller_user_id', preRegistration.auth_user_id)
+      .eq('store_id', preRegistration.store_id)
+    await adminClient
+      .from('vinculos_loja')
+      .update({ is_active: false, ended_at: new Date().toISOString().slice(0, 10) })
+      .eq('user_id', preRegistration.auth_user_id)
+      .eq('store_id', preRegistration.store_id)
     await adminClient.from('usuarios').update({ active: false }).eq('id', preRegistration.auth_user_id)
     await adminClient.from('pre_cadastros_loja').update({
       status: 'rejected',
@@ -143,6 +156,8 @@ serve(async (req) => {
     user_id: preRegistration.auth_user_id,
     store_id: preRegistration.store_id,
     role: finalRole,
+    is_active: true,
+    ended_at: null,
   }, { onConflict: 'user_id,store_id' })
 
   if (membershipError) return jsonResponse({ success: false, error: membershipError.message }, 500)
@@ -173,7 +188,11 @@ serve(async (req) => {
     }, { onConflict: 'store_id,seller_user_id' })
     if (sellerError) return jsonResponse({ success: false, error: sellerError.message }, 500)
   } else {
-    await adminClient.from('vendedores_loja').delete().eq('seller_user_id', preRegistration.auth_user_id).eq('store_id', preRegistration.store_id)
+    await adminClient
+      .from('vendedores_loja')
+      .update({ is_active: false, ended_at: new Date().toISOString().slice(0, 10) })
+      .eq('seller_user_id', preRegistration.auth_user_id)
+      .eq('store_id', preRegistration.store_id)
   }
 
   const { error: updateError } = await adminClient.from('pre_cadastros_loja').update({

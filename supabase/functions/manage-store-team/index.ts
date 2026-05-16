@@ -98,7 +98,7 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: 'Invalid JSON body' }, 400)
   }
 
-  const action = payload.action
+  const action = payload.action ?? ''
   const userId = payload.user_id
   const targetStoreId = payload.store_id
   const previousStoreId = payload.previous_store_id || targetStoreId
@@ -114,6 +114,7 @@ serve(async (req) => {
       .select('role')
       .eq('user_id', caller.user.id)
       .eq('store_id', targetStoreId)
+      .eq('is_active', true)
       .in('role', ['dono', 'gerente'])
       .maybeSingle()
 
@@ -127,6 +128,7 @@ serve(async (req) => {
         .select('role')
         .eq('user_id', caller.user.id)
         .eq('store_id', previousStoreId)
+        .eq('is_active', true)
         .in('role', ['dono', 'gerente'])
         .maybeSingle()
 
@@ -154,6 +156,7 @@ serve(async (req) => {
     .select('role')
     .eq('user_id', userId)
     .eq('store_id', targetStoreId)
+    .eq('is_active', true)
     .maybeSingle()
   const targetMembershipRow = targetMembership as StoreMembershipRow | null
 
@@ -172,6 +175,7 @@ serve(async (req) => {
       .select('role')
       .eq('user_id', userId)
       .eq('store_id', previousStoreId)
+      .eq('is_active', true)
       .maybeSingle()
     previousMembership = data as StoreMembershipRow | null
   }
@@ -200,7 +204,7 @@ serve(async (req) => {
 
     const { error: membershipError } = await adminClient
       .from('vinculos_loja')
-      .delete()
+      .update({ is_active: false, ended_at: endedAt })
       .eq('store_id', targetStoreId)
       .eq('user_id', userId)
     if (membershipError) return jsonResponse({ success: false, error: membershipError.message }, 500)
@@ -209,6 +213,7 @@ serve(async (req) => {
       .from('vinculos_loja')
       .select('id')
       .eq('user_id', userId)
+      .eq('is_active', true)
       .limit(1)
     if (remainingError) return jsonResponse({ success: false, error: remainingError.message }, 500)
 
@@ -246,7 +251,7 @@ serve(async (req) => {
   if (previousStoreId && previousStoreId !== targetStoreId) {
     const { error: previousMembershipError } = await adminClient
       .from('vinculos_loja')
-      .delete()
+      .update({ is_active: false, ended_at: updates.ended_at || todayISO() })
       .eq('user_id', userId)
       .eq('store_id', previousStoreId)
     if (previousMembershipError) return jsonResponse({ success: false, error: previousMembershipError.message }, 500)
@@ -260,7 +265,7 @@ serve(async (req) => {
 
   const { error: membershipError } = await adminClient
     .from('vinculos_loja')
-    .upsert({ user_id: userId, store_id: targetStoreId, role: nextRole }, { onConflict: 'user_id,store_id' })
+    .upsert({ user_id: userId, store_id: targetStoreId, role: nextRole, is_active: true, ended_at: null }, { onConflict: 'user_id,store_id' })
   if (membershipError) return jsonResponse({ success: false, error: membershipError.message }, 500)
 
   if (nextRole === 'vendedor') {

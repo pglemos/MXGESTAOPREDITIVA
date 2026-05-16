@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, Component, type ReactNode, type ErrorInfo } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { Toaster } from 'sonner'
 import { MotionConfig } from 'motion/react'
@@ -108,13 +108,8 @@ const withLegacyShell = (node: React.ReactNode) => (
 )
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading, initialized, supabaseUser, role } = useAuth()
+  const { profile, loading, initialized, role } = useAuth()
   const location = useLocation()
-  
-  // Debug log for auth state
-  React.useEffect(() => {
-    if (import.meta.env.DEV) console.log('Audit Info [ProtectedRoute]:', { initialized, loading, hasSupabaseUser: !!supabaseUser, hasProfile: !!profile })
-  }, [initialized, loading, supabaseUser, profile])
 
   if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-mx-black"><Spinner /></div>
   if (!profile) {
@@ -126,10 +121,39 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   if (!canAccessPath(location.pathname, role)) {
-    if (import.meta.env.DEV) console.warn('Audit Warn [ProtectedRoute]: Role denied for route.', { role, pathname: location.pathname })
-    return <RoleRedirect />
+    return <ForbiddenRoute />
   }
   return <>{children}</>
+}
+
+function ForbiddenRoute() {
+  const { role } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  return (
+    <main className="min-h-screen bg-surface-alt flex items-center justify-center p-mx-lg">
+      <section className="w-full max-w-lg rounded-mx-3xl border border-border-default bg-white p-mx-xl text-center shadow-mx-xl">
+        <div className="mx-auto mb-mx-lg flex h-mx-20 w-mx-20 items-center justify-center rounded-mx-2xl bg-status-warning-surface text-status-warning">
+          <span className="text-2xl font-black" aria-hidden="true">403</span>
+        </div>
+        <h1 className="text-2xl font-black uppercase tracking-mx-wide text-text-primary">Acesso não autorizado</h1>
+        <p className="mt-mx-sm text-sm font-bold uppercase leading-relaxed tracking-mx-wide text-text-tertiary">
+          O perfil atual não tem permissão para acessar esta rota.
+        </p>
+        <p className="mt-mx-md rounded-mx-xl bg-surface-alt px-mx-md py-mx-sm text-xs font-black uppercase tracking-mx-wide text-text-secondary">
+          Perfil: {role || 'indefinido'} · Rota: {location.pathname}
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/', { replace: true })}
+          className="mt-mx-xl rounded-mx-full bg-brand-primary px-mx-xl py-mx-sm text-sm font-black uppercase tracking-mx-wide text-white transition-colors hover:bg-brand-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20"
+        >
+          Voltar para minha área
+        </button>
+      </section>
+    </main>
+  )
 }
 
 function RoleRedirect() {
@@ -137,10 +161,20 @@ function RoleRedirect() {
   if (isPerfilInternoMx(role)) return <Navigate to="/painel" replace />
   if (role === 'dono') return <Navigate to="/lojas" replace />
   if (role === 'gerente') {
-    const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/lojas'
+    const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/classificacao'
     return <Navigate to={storeDashboardPath} replace />
   }
-  return <Navigate to="/home" replace />
+  if (role === 'vendedor') return <Navigate to="/home" replace />
+  return <Navigate to="/login" replace />
+}
+
+function TeamAliasRedirect() {
+  const { role, membership } = useAuth()
+  if (isPerfilInternoMx(role) || role === 'dono') return <Navigate to="/lojas" replace />
+  if (role === 'gerente' && membership?.store?.name) {
+    return <Navigate to={`/lojas/${slugify(membership.store.name)}?tab=equipe`} replace />
+  }
+  return <ForbiddenRoute />
 }
 
 function PublicHome() {
@@ -173,7 +207,7 @@ export default function App() {
             <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
-            <Route path="team" element={<Navigate to="/lojas" replace />} />
+            <Route path="team" element={<TeamAliasRedirect />} />
 
             {/* Vendedor */}
             <Route path="home" element={<Suspense fallback={<Spinner />}>
@@ -207,7 +241,7 @@ export default function App() {
             </Suspense>} />
             <Route path="pdi/:id/print" element={<Suspense fallback={<Spinner />}><PDIPrint /></Suspense>} />
             <Route path="rotina" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<RotinaGerente />} dono={<Navigate to="/lojas" replace />} admin={<RotinaGerente />} />
+              <RoleSwitch vendedor={<Navigate to="/home" replace />} gerente={<RotinaGerente />} dono={<RotinaGerente />} admin={<RotinaGerente />} />
             </Suspense>} />
 
             {/* Admin Core */}
@@ -267,5 +301,6 @@ function RoleSwitch({
   if (isPerfilInternoMx(role)) return <>{admin ?? <RoleRedirect />}</>
   if (role === 'dono') return <>{dono}</>
   if (role === 'gerente') return <>{gerente}</>
-  return <>{vendedor}</>
+  if (role === 'vendedor') return <>{vendedor}</>
+  return <RoleRedirect />
 }

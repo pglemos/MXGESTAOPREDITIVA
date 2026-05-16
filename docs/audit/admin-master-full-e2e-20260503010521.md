@@ -1,7 +1,7 @@
 # Validacao E2E Admin Master MX - 20260503010521
 
 - Run ID: `E2E_ADMIN_MASTER_20260503010521`
-- Usuario validado: `synvollt@gmail.com`
+- Usuario validado: `[EMAIL_REDACTED]`
 - Ambiente: `https://mxperformance.vercel.app`
 - Status geral: `FAIL`
 - Senha: nao registrada neste artefato.
@@ -19,9 +19,9 @@
 
 | Secao | Validacao | Status | Detalhes |
 | --- | --- | --- | --- |
-| Preflight | account, role and password login | PASS | `{"duration_ms":605,"profile":{"id":"9b9ee2fb-d002-492f-b274-06846972a014","email":"synvollt@gmail.com","name":"Synvollt","role":"administrador_geral","active":true,"must_change_password":false}}` |
+| Preflight | account, role and password login | PASS | `{"duration_ms":605,"profile":{"id":"9b9ee2fb-d002-492f-b274-06846972a014","email":"[EMAIL_REDACTED]","name":"Synvollt","role":"administrador_geral","active":true,"must_change_password":false}}` |
 | Preflight | permission matrix | PASS | `{"duration_ms":134,"modules":7,"permission_codes":["comparar","criar","editar","excluir","exportar","visualizar"],"matrix_rows":24,"delete_permissions":5,"export_permissions":1}` |
-| CLI/API | store CRUD and operational rules | PASS | `{"duration_ms":706,"store_id":"a3b6b454-1f4d-444e-8045-2f5d92792d52","store_name":"E2E ADMIN MASTER 20260503010521 EDITADA","manager_email":"synvollt@gmail.com"}` |
+| CLI/API | store CRUD and operational rules | PASS | `{"duration_ms":706,"store_id":"a3b6b454-1f4d-444e-8045-2f5d92792d52","store_name":"E2E ADMIN MASTER 20260503010521 EDITADA","manager_email":"[EMAIL_REDACTED]"}` |
 | CLI/API | seller tenure upsert constraint | FAIL | `{"message":"there is no unique or exclusion constraint matching the ON CONFLICT specification"}` |
 | CLI/API | daily checkins upsert constraint | FAIL | `{"message":"there is no unique or exclusion constraint matching the ON CONFLICT specification"}` |
 | CLI/API | team/user CRUD, seller tenure and checkins | PASS | `{"duration_ms":1144,"user_id":"fc216e91-1739-4247-b0ff-1ab7d4804c1b","feedback_id":"1dbf9cf0-cc2c-4b1c-8a2f-9cbe739e67ae","checkin_rows":4}` |

@@ -1,6 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { usePDISessions } from '@/hooks/usePDI_MX'
-import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/useAuth'
+import { canManagePDI as canManagePDICapability } from '@/lib/auth/capabilities'
 import { useState, useCallback, useMemo } from 'react'
 import { 
     Plus, Calendar, TrendingUp, 
@@ -26,6 +27,15 @@ const statusCfg = {
     draft: { variant: 'warning' as const, label: 'RASCUNHO' }
 }
 
+function formatSafeDate(value?: string | null) {
+    if (!value) return '--/--'
+    try {
+        return format(parseISO(value), 'dd/MM/yy')
+    } catch {
+        return '--/--'
+    }
+}
+
 export default function GerentePDI() {
     const { role } = useAuth()
     const navigate = useNavigate()
@@ -33,11 +43,18 @@ export default function GerentePDI() {
     const [showForm, setShowForm] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
-    const canManagePDI = isPerfilInternoMx(role) || role === 'gerente'
+    const canManagePDI = canManagePDICapability(role)
 
     const handleRefresh = useCallback(async () => {
-        setIsRefetching(true); await refetch(); setIsRefetching(false)
-        toast.success('Matriz de PDI sincronizada!')
+        setIsRefetching(true)
+        try {
+            await refetch()
+            toast.success('Matriz de PDI sincronizada.')
+        } catch {
+            toast.error('Não foi possível atualizar os PDIs.')
+        } finally {
+            setIsRefetching(false)
+        }
     }, [refetch])
 
     const filteredPDIs = useMemo(() => {
@@ -86,13 +103,16 @@ export default function GerentePDI() {
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
                     <div className="relative group w-full sm:w-mx-sidebar-expanded">
                         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                        <label htmlFor="pdi-search" className="sr-only">Buscar plano de PDI</label>
                         <Input
+                            id="pdi-search"
+                            name="pdi-search"
                             placeholder="BUSCAR PLANO..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="!pl-11 !h-12 uppercase tracking-widest text-mx-tiny font-black"
                         />
                     </div>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar lista de PDIs" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
                         <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                     {canManagePDI && (
@@ -126,7 +146,7 @@ export default function GerentePDI() {
                                 return (
                                     <motion.article key={p.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
                                         <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
-                                            <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
                                             
                                             <div>
                                                 <header className="flex items-start justify-between mb-10 border-b border-border-default pb-6 relative z-10">
@@ -159,16 +179,14 @@ export default function GerentePDI() {
                                                     <div className="flex items-center gap-mx-xs">
                                                         <Calendar size={14} className="text-brand-primary" />
                                                         <Typography variant="mono" tone="muted" className="text-mx-tiny font-black uppercase">
-                                                            {p.due_date ? format(parseISO(p.due_date), 'dd/MM/yy') : '--/--'}
+                                                            {formatSafeDate(p.due_date)}
                                                         </Typography>
                                                     </div>
-                                                    <Link to={`/pdi/${p.id}/print`}>
-                                                        <Button variant="ghost" size="icon" className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default" aria-label="Ação">
-                                                            <Printer size={18} />
-                                                        </Button>
-                                                    </Link>
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default" aria-label={`Imprimir PDI de ${p.seller_name || 'vendedor'}`}>
+                                                        <Printer size={18} />
+                                                    </Button>
                                                 </div>
-                                                <Button variant="secondary" size="icon" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md hover:scale-110 active:scale-95 transition-all" aria-label="Ação">
+                                                <Button type="button" variant="secondary" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md hover:scale-110 active:scale-95 transition-all" aria-label={`Abrir PDI de ${p.seller_name || 'vendedor'}`}>
                                                     <ChevronRight size={24} strokeWidth={2} />
                                                 </Button>
                                             </footer>
@@ -184,7 +202,7 @@ export default function GerentePDI() {
                             <TrendingUp size={48} className="text-text-tertiary opacity-20" />
                         </div>
                         <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Matriz de Evolução Limpa</Typography>
-                        <Typography variant="caption" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest mb-10 font-black">Não localizamos planos de desenvolvimento ativos na malha.</Typography>
+                        <Typography variant="caption" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest mb-10 font-black">Não localizamos planos de desenvolvimento para os filtros atuais.</Typography>
                         {canManagePDI && (
                             <Button onClick={() => setShowForm(true)} className="h-mx-2xl px-12 rounded-mx-full shadow-mx-elite font-black uppercase tracking-widest text-xs">
                                 <Plus size={20} className="mr-3" /> INICIAR PRIMEIRO PDI

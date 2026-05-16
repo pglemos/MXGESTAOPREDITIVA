@@ -37,12 +37,12 @@ async def run_test():
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/div/form/div/div/input').nth(0)
-        await asyncio.sleep(3); await elem.fill('example@gmail.com')
+        await asyncio.sleep(3); await elem.fill('usuario@mxperformance.test')
         
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=/html/body/div/div/div[3]/div[2]/div/form/div/div[2]/input').nth(0)
-        await asyncio.sleep(3); await elem.fill('password123')
+        await asyncio.sleep(3); await elem.fill('TESTSPRITE_PASSWORD_REQUIRED')
         
         frame = context.pages[-1]
         # Click element

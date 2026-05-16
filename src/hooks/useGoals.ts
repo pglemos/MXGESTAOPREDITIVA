@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { StoreMetaRules, StoreBenchmark } from '@/types/database'
 
+const STORE_META_RULES_SELECT = 'store_id, monthly_goal, individual_goal_mode, include_venda_loja_in_store_total, include_venda_loja_in_individual_goal, bench_lead_agd, bench_agd_visita, bench_visita_vnd, projection_mode, updated_by, updated_at'
+const STORE_BENCHMARK_SELECT = 'store_id, lead_to_agend, agend_to_visit, visit_to_sale, updated_by, updated_at'
+
 export function useGoals(storeIdOverride?: string) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
@@ -57,7 +60,7 @@ export function useAllStoreGoals() {
         setLoading(true)
         const [goalsRes, benchRes] = await Promise.all([
             supabase.from('regras_metas_loja').select('store_id, monthly_goal, stores:lojas(name)'),
-            supabase.from('benchmarks_loja').select('*')
+            supabase.from('benchmarks_loja').select(STORE_BENCHMARK_SELECT)
         ])
         
         if (goalsRes.data) {
@@ -109,7 +112,7 @@ export function useStoreMetaRules(storeIdOverride?: string) {
         setLoading(true)
         const { data } = await supabase
             .from('regras_metas_loja')
-            .select('*')
+            .select(STORE_META_RULES_SELECT)
             .eq('store_id', storeId)
             .maybeSingle()
 

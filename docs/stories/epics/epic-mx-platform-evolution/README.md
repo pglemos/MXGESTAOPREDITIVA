@@ -3,7 +3,7 @@
 **Epic Set ID:** EPIC-MX-EVOL-Q2
 **Status:** ONDA A IMPLEMENTADA / ONDA B BLOQUEADA
 **Owner:** @pm (Morgan) → orquestrado por @aiox-master (Orion)
-**Solicitado por:** synvollt@gmail.com
+**Solicitado por:** [EMAIL_REDACTED]
 **Data de criação:** 2026-04-30
 
 ---

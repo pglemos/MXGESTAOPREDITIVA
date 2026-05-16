@@ -2,8 +2,8 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 
 def test_login_vendedor():
     base_url = "http://localhost:3000"
-    email = "vendedor@mxperformance.com.br"
-    password = "Mx#2026!"
+    email = "vendedor@mxperformance.test"
+    password = "TESTSPRITE_PASSWORD_REQUIRED"
     pages_to_test = [
         ("/painel", "painel-unique-element"),
         ("/lojas", "lojas-unique-element"),

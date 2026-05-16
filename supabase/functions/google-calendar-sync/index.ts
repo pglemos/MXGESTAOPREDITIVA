@@ -198,7 +198,7 @@ function normalizeAttendees(attendees: (GoogleAttendee | null | undefined)[]): G
     const email = attendee?.email?.trim().toLowerCase();
     if (!email || seen.has(email)) continue;
     seen.add(email);
-    normalized.push({ email, displayName: attendee.displayName });
+    normalized.push({ email, displayName: attendee?.displayName });
   }
   return normalized;
 }

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
+import { getE2EInternalCredentials, getE2ERolePassword } from '../e2e-helpers/auth';
 
 /**
  * SECURITY TEST: SEC-01 RLS Isolation
@@ -8,7 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY!;
-const senhaPadraoTeste = process.env.E2E_AUTH_PASSWORD || 'Mx#2026!';
+const senhaPadraoTeste = getE2ERolePassword();
 
 test.describe('Security: RLS Data Isolation', () => {
   
@@ -42,9 +43,10 @@ test.describe('Security: RLS Data Isolation', () => {
 
   test('Admin deve conseguir ver dados de todas as lojas', async () => {
     const adminClient = createClient(supabaseUrl, supabaseKey);
+    const adminCredentials = getE2EInternalCredentials();
     const { error: authError } = await adminClient.auth.signInWithPassword({
-      email: 'admin@mxgestaopreditiva.com.br',
-      password: senhaPadraoTeste,
+      email: adminCredentials.email,
+      password: adminCredentials.password,
     });
     expect(authError).toBeNull();
 

@@ -2,8 +2,8 @@ import asyncio
 from playwright.async_api import async_playwright, TimeoutError
 
 BASE_URL = "http://localhost:3000"
-LOGIN_EMAIL = "dono@mxperformance.com.br"
-LOGIN_PASSWORD = "Mx#2026!"
+LOGIN_EMAIL = "dono@mxperformance.test"
+LOGIN_PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 TIMEOUT = 30000  # 30 seconds
 
 async def test_login_dono_and_navigate_all_modules():

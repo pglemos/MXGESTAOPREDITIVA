@@ -6,6 +6,7 @@ import {
   getCheckinEditLockedAt,
   validateCheckinSubmissionDate,
 } from './useCheckins'
+import { canCreateAdjustment } from '@/lib/auth/capabilities'
 
 describe('Check-in Validation Logic', () => {
   it('should calculate reference date as yesterday', () => {
@@ -20,17 +21,21 @@ describe('Check-in Validation Logic', () => {
 
   it('should mark check-in as late after 09:30', () => {
     const lateTime = new Date('2025-05-15T12:31:00.000Z')
+    const exactDeadline = new Date('2025-05-15T12:30:00.000Z')
     const onTime = new Date('2025-05-15T12:29:00.000Z')
     
     expect(isCheckinLate(lateTime)).toBe(true)
+    expect(isCheckinLate(exactDeadline)).toBe(false)
     expect(isCheckinLate(onTime)).toBe(false)
   })
 
   it('should block editing after 09:45', () => {
     const blockedTime = new Date('2025-05-15T12:46:00.000Z')
+    const exactLimit = new Date('2025-05-15T12:45:00.000Z')
     const allowedTime = new Date('2025-05-15T12:44:00.000Z')
     
     expect(canEditCurrentCheckin(blockedTime)).toBe(false)
+    expect(canEditCurrentCheckin(exactLimit)).toBe(true)
     expect(canEditCurrentCheckin(allowedTime)).toBe(true)
   })
 
@@ -47,5 +52,11 @@ describe('Check-in Validation Logic', () => {
   it('should allow adjustment only for valid historical references', () => {
     expect(validateCheckinSubmissionDate('2025-05-13', '2025-05-14', 'adjustment')).toBeNull()
     expect(validateCheckinSubmissionDate('13/05/2025', '2025-05-14', 'adjustment')).toContain('inválida')
+  })
+
+  it('should keep technical adjustments restricted to leadership roles', () => {
+    expect(canCreateAdjustment('vendedor')).toBe(false)
+    expect(canCreateAdjustment('gerente')).toBe(true)
+    expect(canCreateAdjustment('administrador_mx')).toBe(true)
   })
 })

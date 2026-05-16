@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { canManagePDI } from '@/lib/auth/capabilities'
 import type { PDIFormData, PDIStatus } from '@/types/database'
 import { parsePDIArray, parsePDIReviewArray, type PDI, type PDIReview } from '@/lib/schemas/pdi.schema'
 
@@ -13,6 +14,9 @@ interface PDIReviewCreateDTO {
 
 const ALLOWED_REVIEW_KEYS = new Set<string>(['notes', 'rating', 'pdi_id', 'reviewer_id'])
 const ALLOWED_PDI_STATUSES: readonly PDIStatus[] = ['aberto', 'em_andamento', 'concluido']
+const PDI_SELECT = 'id, store_id, manager_id, seller_id, status, meta_6m, meta_12m, meta_24m, comp_prospeccao, comp_abordagem, comp_demonstracao, comp_fechamento, comp_crm, comp_digital, comp_disciplina, comp_organizacao, comp_negociacao, comp_produto, action_1, action_2, action_3, action_4, action_5, due_date, acknowledged, seller_acknowledged_at, manager_acknowledged_at, created_at, updated_at, seller:usuarios!pdis_seller_id_fkey(name)'
+const PDI_BASE_SELECT = PDI_SELECT.replace(', seller:usuarios!pdis_seller_id_fkey(name)', '')
+const PDI_REVIEW_SELECT = 'id, pdi_id, reviewer_id, notes, rating, created_at'
 
 function sanitizeReviewPayload(data: Record<string, unknown>): PDIReviewCreateDTO {
   const sanitized: PDIReviewCreateDTO = {}
@@ -42,9 +46,10 @@ export function usePDIs(storeIdOverride?: string) {
     queryFn: async () => {
       if (!profile || (!storeId && !isPerfilInternoMx(role))) return [] as (PDI & { seller_name?: string })[]
 
-      let query = supabase.from('pdis').select('*, seller:usuarios!pdis_seller_id_fkey(name)')
+      let query = supabase.from('pdis').select(PDI_SELECT)
       if (role === 'vendedor') query = query.eq('seller_id', profile.id)
-      else if (role === 'gerente' || role === 'dono') query = query.eq('store_id', storeId)
+      else if (role === 'gerente') query = query.eq('store_id', storeId).eq('manager_id', profile.id)
+      else if (role === 'dono') query = query.eq('store_id', storeId)
       else if (isPerfilInternoMx(role) && storeIdOverride) query = query.eq('store_id', storeId)
 
       const { data } = await query.order('created_at', { ascending: false })
@@ -67,7 +72,7 @@ export function usePDIs(storeIdOverride?: string) {
   const createPDIMut = useMutation({
     mutationFn: async (data: PDIFormData) => {
       if (!profile || !storeId) return { error: 'Não autenticado' }
-      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não criar ou editar.' }
+      if (!canManagePDI(role)) return { error: 'Seu papel permite acompanhar PDIs, mas não criar ou editar.' }
       const { error } = await supabase.from('pdis').insert({
         store_id: storeId, manager_id: profile.id, seller_id: data.seller_id,
         meta_6m: data.meta_6m, meta_12m: data.meta_12m, meta_24m: data.meta_24m,
@@ -97,7 +102,7 @@ export function usePDIs(storeIdOverride?: string) {
       if (type === 'seller' && target.seller_id !== profile.id) {
         return { error: 'Apenas o vendedor destinatário pode assinar este PDI.' }
       }
-      if (type === 'manager' && !isPerfilInternoMx(role) && role !== 'gerente') {
+      if (type === 'manager' && !canManagePDI(role)) {
         return { error: 'Apenas gestor ou equipe MX pode assinar este PDI.' }
       }
 
@@ -108,7 +113,8 @@ export function usePDIs(storeIdOverride?: string) {
       }).eq('id', id)
 
       if (type === 'seller') query = query.eq('seller_id', profile.id)
-      if (type === 'manager' && !isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
+      if (type === 'manager' && role === 'gerente' && storeId) query = query.eq('store_id', storeId).eq('manager_id', profile.id)
+      else if (type === 'manager' && !isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
 
       const { error } = await query
       return { error: error?.message || null }
@@ -123,10 +129,11 @@ export function usePDIs(storeIdOverride?: string) {
       const target = pdis?.find(item => item.id === id)
       if (!profile || !target) return { error: 'PDI não encontrado para atualização.' }
       if (!ALLOWED_PDI_STATUSES.includes(status)) return { error: 'Status de PDI inválido.' }
-      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não alterar status.' }
+      if (!canManagePDI(role)) return { error: 'Seu papel permite acompanhar PDIs, mas não alterar status.' }
 
       let query = supabase.from('pdis').update({ status }).eq('id', id)
-      if (!isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
+      if (role === 'gerente' && storeId) query = query.eq('store_id', storeId).eq('manager_id', profile.id)
+      else if (!isPerfilInternoMx(role) && storeId) query = query.eq('store_id', storeId)
 
       const { error } = await query
       return { error: error?.message || null }
@@ -136,23 +143,12 @@ export function usePDIs(storeIdOverride?: string) {
     },
   })
 
-  const usePDIReviews = (pdiId: string) => {
-    const { data } = useQuery({
-      queryKey: ['pdi-reviews', pdiId],
-      queryFn: async () => {
-        const { data } = await supabase.from('pdi_reviews').select('*').eq('pdi_id', pdiId).order('created_at', { ascending: false })
-        return parsePDIReviewArray(data || [])
-      },
-      enabled: !!pdiId,
-    })
-    return data || []
-  }
-
   const createReviewMut = useMutation({
     mutationFn: async ({ pdiId, data }: { pdiId: string; data: Record<string, unknown> }) => {
       const target = pdis?.find(item => item.id === pdiId)
       if (!profile || !target) return { error: 'PDI não encontrado para revisão.' }
-      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar PDIs, mas não revisar.' }
+      if (!canManagePDI(role)) return { error: 'Seu papel permite acompanhar PDIs, mas não revisar.' }
+      if (role === 'gerente' && target.manager_id !== profile.id) return { error: 'Apenas o gerente responsável pode revisar este PDI.' }
       const sanitized = sanitizeReviewPayload(data)
       const validationError = validateReviewPayload(sanitized)
       if (validationError) return { error: validationError }
@@ -188,7 +184,7 @@ export function useMyPDIs() {
     queryKey: ['my-pdis', profile?.id],
     queryFn: async () => {
       if (!profile || !authStoreId) return []
-      const { data } = await supabase.from('pdis').select('*').eq('seller_id', profile.id).order('created_at', { ascending: false })
+      const { data } = await supabase.from('pdis').select(PDI_BASE_SELECT).eq('seller_id', profile.id).order('created_at', { ascending: false })
       return parsePDIArray(data || []) as (PDI & { seller_name?: string })[]
     },
     enabled: !!profile && !!authStoreId,
@@ -199,4 +195,16 @@ export function useMyPDIs() {
     loading,
     refetch,
   }
+}
+
+export function usePDIReviews(pdiId: string) {
+  const { data } = useQuery({
+    queryKey: ['pdi-reviews', pdiId],
+    queryFn: async () => {
+      const { data } = await supabase.from('pdi_reviews').select(PDI_REVIEW_SELECT).eq('pdi_id', pdiId).order('created_at', { ascending: false })
+      return parsePDIReviewArray(data || [])
+    },
+    enabled: !!pdiId,
+  })
+  return data || []
 }

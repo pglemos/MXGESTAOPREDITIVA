@@ -13,6 +13,13 @@ import type {
 
 type SellerTenure = StoreSeller & { user?: Pick<User, 'id' | 'name' | 'email' | 'role' | 'active' | 'is_venda_loja'> | null }
 
+const STORE_SETTINGS_SELECT = 'id, name, manager_email, legal_name, cnpj, address, administrative_phone, partners, active, source_mode, created_at, updated_at'
+const DELIVERY_RULES_SELECT = 'store_id, matinal_recipients, weekly_recipients, monthly_recipients, whatsapp_group_ref, timezone, active, updated_by, updated_at'
+const BENCHMARK_SELECT = 'store_id, lead_to_agend, agend_to_visit, visit_to_sale, updated_by, updated_at'
+const META_RULES_SELECT = 'store_id, monthly_goal, individual_goal_mode, include_venda_loja_in_store_total, include_venda_loja_in_individual_goal, bench_lead_agd, bench_agd_visita, bench_visita_vnd, projection_mode, updated_by, updated_at'
+const SELLER_TENURES_SELECT = 'id, store_id, seller_user_id, started_at, ended_at, closing_month_grace, is_active, created_at, updated_at, user:usuarios(id, name, email, role, active, is_venda_loja)'
+const SELLER_USERS_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, store_id, must_change_password, notification_preferences'
+
 export type StoreSettingsPayload = {
     store: Pick<Store, 'id' | 'manager_email' | 'source_mode' | 'active'>
     delivery: Pick<StoreDeliveryRules, 'store_id' | 'matinal_recipients' | 'weekly_recipients' | 'monthly_recipients' | 'whatsapp_group_ref' | 'timezone' | 'active'>
@@ -45,19 +52,19 @@ export function useOperationalSettings(storeId: string | null) {
 
         setLoading(true)
         const [storeRes, deliveryRes, benchmarkRes, metaRes, tenuresRes, usersRes] = await Promise.all([
-            supabase.from('lojas').select('*').eq('id', storeId).maybeSingle(),
-            supabase.from('regras_entrega_loja').select('*').eq('store_id', storeId).maybeSingle(),
-            supabase.from('benchmarks_loja').select('*').eq('store_id', storeId).maybeSingle(),
-            supabase.from('regras_metas_loja').select('*').eq('store_id', storeId).maybeSingle(),
+            supabase.from('lojas').select(STORE_SETTINGS_SELECT).eq('id', storeId).maybeSingle(),
+            supabase.from('regras_entrega_loja').select(DELIVERY_RULES_SELECT).eq('store_id', storeId).maybeSingle(),
+            supabase.from('benchmarks_loja').select(BENCHMARK_SELECT).eq('store_id', storeId).maybeSingle(),
+            supabase.from('regras_metas_loja').select(META_RULES_SELECT).eq('store_id', storeId).maybeSingle(),
             supabase
                 .from('vendedores_loja')
-                .select('*, user:usuarios(id,name,email,role,active,is_venda_loja)')
+                .select(SELLER_TENURES_SELECT)
                 .eq('store_id', storeId)
                 .order('is_active', { ascending: false })
                 .order('started_at', { ascending: false }),
             supabase
                 .from('usuarios')
-                .select('*')
+                .select(SELLER_USERS_SELECT)
                 .eq('role', 'vendedor')
                 .eq('active', true)
                 .order('name'),
@@ -78,7 +85,7 @@ export function useOperationalSettings(storeId: string | null) {
         setDeliveryRules(deliveryData)
         setBenchmark((benchmarkRes.data as StoreBenchmark) || null)
         setMetaRules((metaRes.data as StoreMetaRules) || null)
-        setSellerTenures((tenuresRes.data as SellerTenure[]) || [])
+        setSellerTenures((tenuresRes.data as unknown as SellerTenure[]) || [])
         setSellerUsers((usersRes.data as User[]) || [])
         setLoading(false)
     }, [storeId, canManage])

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { CHECKIN_DEADLINE_LABEL, CHECKIN_EDIT_LIMIT_LABEL, canEditCurrentCheckin, isCheckinLate, useCheckins } from '@/hooks/useCheckins'
+import { CHECKIN_DEADLINE_LABEL, CHECKIN_EDIT_LIMIT_LABEL, CHECKIN_MAX_INPUT_VALUE, CHECKIN_ZERO_REASONS, canEditCurrentCheckin, isCheckinLate, useCheckins } from '@/hooks/useCheckins'
 import { validarFunil, calcularTotais } from '@/lib/calculations'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'motion/react'
@@ -19,9 +19,7 @@ import { Button } from '@/components/atoms/Button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import type { DailyCheckin } from '@/types/database'
 import { DAILY_ROUTINE_MVP_FIELDS } from '@/lib/daily-routine'
-
-const ZERO_REASONS = ['Folga', 'Treinamento', 'Feriado', 'Dia administrativo', 'Outro']
-const MAX_INPUT_VALUE = 999 
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 interface CheckinForm {
     leads: number
@@ -42,15 +40,18 @@ export default function Checkin() {
     const navigate = useNavigate()
     const [saving, setSaving] = useState(false)
     const [showConfetti, setShowConfetti] = useState(false)
-    const timerRef = useRef<NodeJS.Timeout | null>(null)
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const [changedFields, setChangedFields] = useState<Set<keyof CheckinForm>>(new Set())
     const [metricScope, setMetricScope] = useState<'daily' | 'adjustment'>('daily')
+    const [currentTime, setCurrentTime] = useState(() => new Date())
+    const [inputError, setInputError] = useState<string | null>(null)
+    const [numberDrafts, setNumberDrafts] = useState<Partial<Record<keyof CheckinForm, string>>>({})
     
     const [form, setForm] = useState<CheckinForm>({
         leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '',
     })
 
-    const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate, fetchCheckinByDate } = useCheckins()
+    const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate, fetchCheckinByDate, error: checkinLoadError } = useCheckins()
     const [historicalCheckin, setHistoricalCheckin] = useState<DailyCheckin | null>(null)
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [customReferenceDate, setCustomReferenceDate] = useState('')
@@ -65,13 +66,16 @@ export default function Checkin() {
             setHistoricalCheckin(todayCheckin)
         } else {
             setLoadingHistory(true)
-            fetchCheckinByDate(customReferenceDate, metricScope).then(res => {
-                setHistoricalCheckin(res); setLoadingHistory(false)
-            })
+            fetchCheckinByDate(customReferenceDate, metricScope)
+                .then(res => setHistoricalCheckin(res))
+                .catch(() => toast.error('Não foi possível carregar o lançamento selecionado.'))
+                .finally(() => setLoadingHistory(false))
         }
     }, [customReferenceDate, metricScope, todayCheckin, referenceDate, fetchCheckinByDate])
 
     useEffect(() => {
+        if (changedFields.size > 0) return
+        setNumberDrafts({})
         if (historicalCheckin) {
             setForm({
                 leads: historicalCheckin.leads_prev_day || 0,
@@ -89,42 +93,93 @@ export default function Checkin() {
         } else {
             setForm({ leads: 0, agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0, vnd_porta: 0, vnd_cart: 0, vnd_net: 0, visitas: 0, note: '', zero_reason: '' })
         }
-    }, [historicalCheckin])
+    }, [historicalCheckin, changedFields.size])
 
     const totals = useMemo(() => calcularTotais(form), [form])
     
     useEffect(() => {
+        const clock = setInterval(() => setCurrentTime(new Date()), 30000)
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (changedFields.size > 0 && !saving) { e.preventDefault(); e.returnValue = '' }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
+            clearInterval(clock)
             if (timerRef.current) clearTimeout(timerRef.current)
         }
     }, [changedFields, saving])
 
-    const now = new Date(); const isLate = isCheckinLate(now); const canEditExisting = canEditCurrentCheckin(now)
+    const isLate = isCheckinLate(currentTime); const canEditExisting = canEditCurrentCheckin(currentTime)
     const allZero = useMemo(() => form.leads === 0 && totals.agd_total === 0 && form.visitas === 0 && totals.vnd_total === 0, [form.leads, totals])
     const funnelError = useMemo(() => { try { return validarFunil(form) } catch { return "Erro de validação" } }, [form])
 
     const updateField = (field: keyof CheckinForm, value: number | string) => {
-        setForm(prev => ({ ...prev, [field]: typeof value === 'number' ? Math.min(MAX_INPUT_VALUE, Math.max(0, value)) : value }))
+        if (typeof value === 'number' && (!Number.isFinite(value) || value < 0 || value > CHECKIN_MAX_INPUT_VALUE)) {
+            setInputError(`Informe um valor entre 0 e ${CHECKIN_MAX_INPUT_VALUE}.`)
+            return
+        }
+        setInputError(null)
+        setForm(prev => ({ ...prev, [field]: value }))
         setChangedFields(prev => new Set(prev).add(field))
+    }
+
+    const updateNumberField = (field: keyof CheckinForm, rawValue: string) => {
+        setNumberDrafts(prev => ({ ...prev, [field]: rawValue }))
+        setChangedFields(prev => new Set(prev).add(field))
+        if (rawValue === '') {
+            setInputError(null)
+            return
+        }
+        const numericValue = Number(rawValue)
+        updateField(field, numericValue)
+    }
+
+    const commitNumberField = (field: keyof CheckinForm) => {
+        setNumberDrafts(prev => {
+            if (prev[field] !== '') return prev
+            const next = { ...prev }
+            delete next[field]
+            return next
+        })
+        if (numberDrafts[field] === '') updateField(field, 0)
+    }
+
+    const handleExit = () => {
+        if (changedFields.size > 0 && !saving) {
+            requestToastConfirmation({
+                key: 'checkin-unsaved-exit',
+                title: 'Sair sem salvar?',
+                description: 'Existem alterações no lançamento atual.',
+                label: 'Sair',
+                onConfirm: async () => navigate('/home'),
+            })
+            return
+        }
+        navigate('/home')
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (saving) return 
-        if (todayCheckin && !canEditExisting && metricScope === 'daily') {
-            toast.error(`Correções bloqueadas após ${CHECKIN_EDIT_LIMIT_LABEL}.`); return
+        if (Object.values(numberDrafts).some(value => value === '')) {
+            toast.error('Preencha os campos numéricos vazios antes de salvar.')
+            return
+        }
+        if (!canEditExisting && metricScope === 'daily') {
+            toast.error(`Lançamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`); return
         }
         if (allZero && !form.zero_reason) { toast.error('Justificativa obrigatória para produção zero.'); return }
+        if (allZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
+            toast.error('Descreva o motivo quando selecionar Outro.')
+            return
+        }
         if (funnelError) { toast.error(funnelError); return }
 
         setSaving(true)
         const { error } = await saveCheckin(form, metricScope, customReferenceDate)
         if (error) { setSaving(false); toast.error(error); return }
+        setChangedFields(new Set())
 
         if (totals.vnd_total > 0) {
             setShowConfetti(true); toast.success(`🎉 Vitória! ${totals.vnd_total} vendas consolidadas!`)
@@ -136,9 +191,6 @@ export default function Checkin() {
 
     const todayDisplay = new Date(referenceDate + 'T12:00:00')
     const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
-    const referenceInputLabel = customReferenceDate
-        ? new Date(`${customReferenceDate}T12:00:00`).toLocaleDateString('pt-BR')
-        : 'Selecionar data'
     const previousDayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'previous_day').length
     const todayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'today').length
 
@@ -160,7 +212,19 @@ export default function Checkin() {
                 <Typography variant="caption" tone="muted" className="min-w-0 truncate font-black uppercase tracking-mx-wide leading-tight">{label}</Typography>
             </div>
             <div className="flex items-end justify-between gap-mx-sm">
-                <Typography variant="h1" className="text-4xl tabular-nums leading-none sm:text-5xl">{form[field] as number}</Typography>
+                <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={CHECKIN_MAX_INPUT_VALUE}
+                    name={String(field)}
+                    aria-label={label}
+                    aria-describedby={inputError ? 'checkin-input-error' : undefined}
+                    value={numberDrafts[field] ?? String(form[field] as number)}
+                    onChange={(event) => updateNumberField(field, event.target.value)}
+                    onBlur={() => commitNumberField(field)}
+                    className="min-w-0 w-mx-24 bg-transparent text-4xl tabular-nums leading-none font-black text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20 rounded-mx-md sm:text-5xl"
+                />
                 <div className="flex items-center gap-mx-xs shrink-0">
                     <Button
                         type="button" variant="outline" size="icon"
@@ -200,6 +264,11 @@ export default function Checkin() {
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
+            {checkinLoadError && (
+                <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
+                    {checkinLoadError}
+                </div>
+            )}
             
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center bg-white/20 backdrop-blur-sm" aria-hidden="true">
@@ -229,21 +298,22 @@ export default function Checkin() {
                             <Button 
                                 variant={metricScope === 'adjustment' ? 'secondary' : 'ghost'} size="sm"
                                 onClick={() => setMetricScope('adjustment')}
+                                disabled
+                                title="Ajuste técnico é restrito a gestores e perfis internos MX."
                                 className={cn("h-mx-9 flex-1 px-4 rounded-mx-full text-mx-tiny uppercase font-black sm:flex-none sm:px-6", metricScope === 'adjustment' && "bg-mx-amber-400 text-mx-black")}
                             >
                                 AJUSTE TÉCNICO
                             </Button>
                         </div>
-                        <label className="relative flex w-full cursor-pointer items-center gap-mx-xs bg-white border border-border-default px-5 h-mx-12 rounded-mx-full shadow-mx-sm sm:w-auto">
+                        <label htmlFor="checkin-reference-date" className="flex w-full items-center gap-mx-xs bg-white border border-border-default px-5 h-mx-12 rounded-mx-full shadow-mx-sm sm:w-auto">
                             <CalendarDays size={16} className="text-brand-primary" />
-                            <span className="min-w-0 flex-1 text-sm font-black uppercase text-text-primary sm:w-mx-32 sm:text-mx-tiny">
-                                {referenceInputLabel}
-                            </span>
                             <input
+                                id="checkin-reference-date"
+                                name="reference_date"
                                 type="date"
                                 value={customReferenceDate}
                                 onChange={e => setCustomReferenceDate(e.target.value)}
-                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                className="min-w-0 flex-1 bg-transparent text-sm font-black uppercase text-text-primary outline-none sm:w-mx-32 sm:text-mx-tiny"
                                 aria-label="Data de referência do lançamento"
                             />
                         </label>
@@ -259,7 +329,7 @@ export default function Checkin() {
                             {canEditExisting || metricScope === 'adjustment' ? 'Edição Habilitada' : 'Visualização Somente'}
                         </Badge>
                     )}
-                    <Button variant="outline" size="icon" onClick={() => navigate('/home')} aria-label="Voltar ao início" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
+                    <Button variant="outline" size="icon" onClick={handleExit} aria-label="Voltar ao início" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm">
                         <X size={24} />
                     </Button>
                 </div>
@@ -350,6 +420,16 @@ export default function Checkin() {
                         )}
                     </AnimatePresence>
 
+                    <AnimatePresence>
+                        {inputError && (
+                            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
+                                <Card id="checkin-input-error" role="alert" className="p-mx-md bg-status-warning-surface border border-status-warning/20">
+                                    <Typography variant="p" tone="warning" className="font-black uppercase tracking-tight">{inputError}</Typography>
+                                </Card>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
                     {/* Zero Reason */}
                     <AnimatePresence>
                         {allZero && (
@@ -364,12 +444,15 @@ export default function Checkin() {
                                         </div>
                                     </header>
                                     <div className="relative z-10">
+                                        <label htmlFor="checkin-zero-reason" className="sr-only">Motivo da produção zero</label>
                                         <select 
+                                            id="checkin-zero-reason"
+                                            name="zero_reason"
                                             value={form.zero_reason} onChange={e => updateField('zero_reason', e.target.value)}
                                             className="w-full h-mx-2xl px-8 bg-mx-black text-white rounded-mx-2xl text-lg font-black uppercase tracking-widest outline-none shadow-mx-xl border-none focus:ring-8 focus:ring-white/10 transition-all appearance-none cursor-pointer"
                                         >
                                             <option value="">Selecione o motivo...</option>
-                                            {ZERO_REASONS.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
+                                            {CHECKIN_ZERO_REASONS.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
                                         </select>
                                     </div>
                                 </Card>
@@ -380,10 +463,12 @@ export default function Checkin() {
                     {/* Finalization */}
                     <Card className="p-mx-md sm:p-mx-10 md:p-14 space-y-mx-8 md:space-y-mx-10 border-none shadow-mx-lg bg-white">
                         <div className="space-y-mx-sm">
-                            <label className="flex items-center gap-mx-xs px-4 text-mx-tiny font-black text-text-tertiary uppercase tracking-mx-wider">
-                                <MessageSquare size={16} className="text-brand-primary" /> OBSERVAÇÕES OPERACIONAIS (Opcional)
+                            <label htmlFor="checkin-note" className="flex items-center gap-mx-xs px-4 text-mx-tiny font-black text-text-tertiary uppercase tracking-mx-wider">
+                                <MessageSquare size={16} className="text-brand-primary" /> OBSERVAÇÕES OPERACIONAIS {allZero && form.zero_reason === 'Outro' ? '(Obrigatório)' : '(Opcional)'}
                             </label>
                             <textarea
+                                id="checkin-note"
+                                name="note"
                                 value={form.note} onChange={e => updateField('note', e.target.value)} maxLength={280}
                                 placeholder="Descreva aqui eventos críticos ou detalhes de fechamento estratégico..."
                                 className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-10 text-lg font-bold text-text-primary placeholder:text-text-tertiary/30 focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner min-h-mx-48"
@@ -395,7 +480,7 @@ export default function Checkin() {
 
                         <Button 
                             type="submit" 
-                            disabled={saving || (!!todayCheckin && !canEditExisting && metricScope === 'daily')}
+                            disabled={saving || (!canEditExisting && metricScope === 'daily')}
                             className="w-full min-h-mx-20 rounded-mx-2xl px-mx-md text-lg font-black tracking-tight uppercase shadow-mx-elite hover:-translate-y-1 active:scale-95 transition-all sm:min-h-mx-24 sm:text-2xl"
                         >
                             {saving ? <RefreshCw className="w-mx-xl h-mx-xl animate-spin" /> : <><Send size={28} className="mr-2 sm:mr-4" /> Salvar Lançamento</>}

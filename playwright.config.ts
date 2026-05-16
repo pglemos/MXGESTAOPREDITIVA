@@ -2,7 +2,8 @@ import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEB_SERVER === '1';
-const playwrightPort = process.env.PLAYWRIGHT_PORT || '3001';
+const reuseWebServer = process.env.PLAYWRIGHT_REUSE_SERVER === '1';
+const playwrightPort = process.env.PLAYWRIGHT_PORT || '3107';
 const baseURL = process.env.VITE_APP_URL || `http://localhost:${playwrightPort}`;
 
 /**
@@ -75,6 +76,6 @@ export default defineConfig({
     : {
         command: `npx vite --port=${playwrightPort} --host=0.0.0.0`,
         url: baseURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: reuseWebServer,
       },
 });

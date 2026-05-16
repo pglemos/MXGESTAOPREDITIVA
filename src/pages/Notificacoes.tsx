@@ -19,6 +19,7 @@ import { format } from 'date-fns'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import type { StorePreRegistration } from '@/types/database'
+import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 const preRegistrationSelect = [
   'id',
@@ -172,10 +173,8 @@ export default function Notificacoes() {
     toast.success('Central sincronizada!')
   }, [fetchNotifications, refetchPreRegistrations])
 
-  const handleReviewPreRegistration = useCallback(async (item: StorePreRegistration, action: 'approve' | 'reject', notificationId?: string) => {
+  const executeReviewPreRegistration = useCallback(async (item: StorePreRegistration, action: 'approve' | 'reject', notificationId?: string) => {
     if (!isAdminMx) return
-    const label = action === 'approve' ? 'aprovar' : 'rejeitar'
-    if (!window.confirm(`Confirmar ${label} login de ${item.full_name}?`)) return
 
     setReviewingPreRegistrationId(item.id)
     try {
@@ -213,6 +212,19 @@ export default function Notificacoes() {
       setReviewingPreRegistrationId(null)
     }
   }, [approvalFunctionUrl, fetchNotifications, isAdminMx, markRead, refetchPreRegistrations])
+
+  const handleReviewPreRegistration = useCallback(async (item: StorePreRegistration, action: 'approve' | 'reject', notificationId?: string) => {
+    if (!isAdminMx) return
+    const label = action === 'approve' ? 'aprovar' : 'rejeitar'
+
+    requestToastConfirmation({
+      key: `notification-pre-registration:${item.id}:${action}`,
+      title: `Confirmar ${label} login?`,
+      description: `${item.full_name} (${item.email}) será ${action === 'approve' ? 'liberado para acesso' : 'rejeitado'}.`,
+      label: action === 'approve' ? 'Aprovar' : 'Rejeitar',
+      onConfirm: () => void executeReviewPreRegistration(item, action, notificationId),
+    })
+  }, [executeReviewPreRegistration, isAdminMx])
 
   const getTypeIcon = (type: string) => {
     switch (type) {

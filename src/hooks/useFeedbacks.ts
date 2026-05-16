@@ -1,8 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { canManageFeedback } from '@/lib/auth/capabilities'
 import type { FeedbackFormData } from '@/types/database'
 import { parseFeedback, type Feedback } from '@/lib/schemas/feedback.schema'
+
+const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, notes, acknowledged, acknowledged_at, created_at, updated_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
 
 export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
   const { profile, storeId: authStoreId, role } = useAuth()
@@ -14,7 +17,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
     queryFn: async () => {
       if (!profile || (!storeId && !isPerfilInternoMx(role))) return []
 
-      let query = supabase.from('devolutivas').select('*, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)')
+      let query = supabase.from('devolutivas').select(FEEDBACK_SELECT)
 
       if (role === 'vendedor') {
         query = query.eq('seller_id', profile.id)
@@ -26,7 +29,8 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         if (filters?.sellerId) query = query.eq('seller_id', filters.sellerId)
       }
 
-      const { data } = await query.order('created_at', { ascending: false })
+      const { data, error } = await query.order('created_at', { ascending: false })
+      if (error) throw error
       if (data) {
         return (data as (Record<string, unknown> & { seller?: { name?: string }; manager?: { name?: string } })[]).map((f) => {
           const { seller, manager, ...rest } = f
@@ -48,12 +52,13 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   })
 
   const createFeedbackMut = useMutation({
-    mutationFn: async (data: FeedbackFormData) => {
-      if (!profile || !storeId) return { error: 'Não autenticado' }
-      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Seu papel permite acompanhar devolutivas, mas não criar ou editar.' }
+    mutationFn: async (data: FeedbackFormData & { store_id?: string }) => {
+      const targetStoreId = data.store_id || storeId
+      if (!profile || !targetStoreId) return { error: 'Não autenticado' }
+      if (!canManageFeedback(role)) return { error: 'Seu papel permite acompanhar devolutivas, mas não criar ou editar.' }
 
       const { data: saved, error } = await supabase.from('devolutivas').upsert({
-        store_id: storeId,
+        store_id: targetStoreId,
         manager_id: profile.id,
         seller_id: data.seller_id,
         week_reference: data.week_reference,
@@ -74,7 +79,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         notes: data.notes || null,
         acknowledged: false,
         acknowledged_at: null,
-      }, { onConflict: 'seller_id, week_reference' }).select('id').maybeSingle()
+      }, { onConflict: 'store_id,manager_id,seller_id,week_reference' }).select('id').maybeSingle()
 
       if (!error && saved?.id) {
         await supabase.rpc('gerar_recomendacoes_desenvolvimento_feedback', { p_feedback_id: saved.id })
@@ -112,7 +117,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   return {
     devolutivas: devolutivas || [],
     loading,
-    createFeedback: (data: FeedbackFormData) => createFeedbackMut.mutateAsync(data),
+    createFeedback: (data: FeedbackFormData & { store_id?: string }) => createFeedbackMut.mutateAsync(data),
     acknowledge: (id: string) => acknowledgeMut.mutateAsync(id),
     acknowledgeFeedback: (id: string) => acknowledgeMut.mutateAsync(id),
     refetch,

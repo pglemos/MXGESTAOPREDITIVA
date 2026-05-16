@@ -3,16 +3,31 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { RankingEntry, User } from '@/types/database'
 import { calcularAtingimento, getDiasInfo, getOperationalStatus } from '@/lib/calculations'
+import { calculateReferenceDate } from '@/hooks/useCheckins'
+
+type StorePerformanceEntry = {
+    id: string
+    name: string
+    meta: number
+    realizado: number
+    projecao: number
+    gap: number
+    status: 'green' | 'yellow' | 'red'
+    disciplina: { total: number; done: number; ok: boolean }
+    efficiency: number
+}
 
 export function useRanking(storeIdOverride?: string, filters?: { startDate?: string; endDate?: string }) {
     const { storeId: authStoreId } = useAuth()
     const storeId = storeIdOverride || authStoreId
     const [ranking, setRanking] = useState<RankingEntry[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
-    const now = new Date()
-    const defaultStartOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-    const defaultEndOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`
+    const reference = calculateReferenceDate()
+    const [referenceYear, referenceMonth] = reference.split('-').map(Number)
+    const defaultStartOfMonth = `${referenceYear}-${String(referenceMonth).padStart(2, '0')}-01`
+    const defaultEndOfMonth = new Date(Date.UTC(referenceYear, referenceMonth, 0)).toISOString().slice(0, 10)
 
     const startDate = filters?.startDate || defaultStartOfMonth
     const endDate = filters?.endDate || defaultEndOfMonth
@@ -25,9 +40,10 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         }
 
         setLoading(true)
+        setError(null)
 
         // Get checkins for the month using canonical EPIC-01 columns
-        const { data: checkins } = await supabase
+        const { data: checkins, error: checkinsError } = await supabase
             .from('lancamentos_diarios')
             .select('seller_user_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
             .eq('store_id', storeId)
@@ -35,29 +51,57 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             .gte('reference_date', startDate)
             .lte('reference_date', endDate)
 
-
+        if (checkinsError) {
+            console.error('Audit Error [useRanking]: checkins fail ->', checkinsError.message)
+            setError('Não foi possível carregar os lançamentos do ranking.')
+            setRanking([])
+            setLoading(false)
+            return
+        }
 
         // Get active sellers by operational tenure. Fallback keeps old data readable until lojas are configured.
-        const { data: tenures } = await supabase
+        const { data: tenures, error: tenuresError } = await supabase
             .from('vendedores_loja')
             .select('seller_user_id, users:usuarios(name, is_venda_loja, avatar_url)')
             .eq('store_id', storeId)
             .eq('is_active', true)
+        if (tenuresError) {
+            console.error('Audit Error [useRanking]: tenures fail ->', tenuresError.message)
+            setError('Não foi possível carregar os vínculos ativos do ranking.')
+            setRanking([])
+            setLoading(false)
+            return
+        }
 
-        const { data: fallbackMembers } = (!tenures || tenures.length === 0)
+        const { data: fallbackMembers, error: fallbackError } = (!tenures || tenures.length === 0)
             ? await supabase
                 .from('vinculos_loja')
                 .select('user_id, users:usuarios(name, is_venda_loja, avatar_url)')
                 .eq('store_id', storeId)
                 .eq('role', 'vendedor')
-            : { data: null }
+                .eq('is_active', true)
+            : { data: null, error: null }
+        if (fallbackError) {
+            console.error('Audit Error [useRanking]: fallback members fail ->', fallbackError.message)
+            setError('Não foi possível carregar a equipe do ranking.')
+            setRanking([])
+            setLoading(false)
+            return
+        }
 
         // Get metas for the store
-        const { data: rules } = await supabase
+        const { data: rules, error: rulesError } = await supabase
             .from('regras_metas_loja')
             .select('monthly_goal, include_venda_loja_in_individual_goal')
             .eq('store_id', storeId)
             .maybeSingle()
+        if (rulesError) {
+            console.error('Audit Error [useRanking]: rules fail ->', rulesError.message)
+            setError('Não foi possível carregar as metas do ranking.')
+            setRanking([])
+            setLoading(false)
+            return
+        }
 
         const members = (tenures && tenures.length > 0)
             ? (tenures as unknown as { seller_user_id: string; users?: User }[]).map((item) => ({ user_id: item.seller_user_id, users: item.users }))
@@ -156,6 +200,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
     return {
         ranking,
         loading,
+        error,
         refetch: fetchRanking
     }
 }
@@ -163,14 +208,16 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
 export function useGlobalRanking() {
     const [ranking, setRanking] = useState<RankingEntry[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const fetchGlobal = useCallback(async () => {
-        const now = new Date()
-        const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+        const reference = calculateReferenceDate()
+        const startOfMonth = `${reference.slice(0, 7)}-01`
         const dias = getDiasInfo()
         setLoading(true)
+        setError(null)
 
-        const [{ data: checkins }, { data: tenures }, { data: rules }, { data: todayCheckins }] = await Promise.all([
+        const [checkinsRes, tenuresRes, rulesRes, todayCheckinsRes] = await Promise.all([
             supabase.from('lancamentos_diarios')
                 .select('seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                 .eq('metric_scope', 'daily')
@@ -185,6 +232,18 @@ export function useGlobalRanking() {
                 .eq('metric_scope', 'daily')
                 .eq('reference_date', dias.referencia),
         ])
+        if (checkinsRes.error || tenuresRes.error || rulesRes.error || todayCheckinsRes.error) {
+            const message = checkinsRes.error?.message || tenuresRes.error?.message || rulesRes.error?.message || todayCheckinsRes.error?.message || 'Erro desconhecido'
+            console.error('Audit Error [useGlobalRanking]: fetch fail ->', message)
+            setError('Não foi possível carregar o ranking global.')
+            setRanking([])
+            setLoading(false)
+            return
+        }
+        const checkins = checkinsRes.data
+        const tenures = tenuresRes.data
+        const rules = rulesRes.data
+        const todayCheckins = todayCheckinsRes.data
 
         if (!checkins || !tenures) { setLoading(false); return }
 
@@ -276,21 +335,23 @@ export function useGlobalRanking() {
 
     useEffect(() => { fetchGlobal() }, [fetchGlobal])
 
-    return { ranking, loading, refetch: fetchGlobal }
+    return { ranking, loading, error, refetch: fetchGlobal }
 }
 
 export function useStorePerformance() {
-    const [performance, setPerformance] = useState<any[]>([])
+    const [performance, setPerformance] = useState<StorePerformanceEntry[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const fetchPerformance = useCallback(async () => {
         setLoading(true)
-        const now = new Date()
-        const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+        setError(null)
+        const reference = calculateReferenceDate()
+        const startOfMonth = `${reference.slice(0, 7)}-01`
         const dias = getDiasInfo()
 
-        const [{ data: lojas }, { data: rules }, { data: checkins }, { data: sellers }, { data: yesterdayCheckins }] = await Promise.all([
-            supabase.from('lojas').select('id, name'),
+        const [lojasRes, rulesRes, checkinsRes, sellersRes, yesterdayCheckinsRes] = await Promise.all([
+            supabase.from('lojas').select('id, name').eq('active', true),
             supabase.from('regras_metas_loja').select('store_id, monthly_goal'),
             supabase.from('lancamentos_diarios')
                 .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
@@ -302,6 +363,19 @@ export function useStorePerformance() {
                 .eq('metric_scope', 'daily')
                 .eq('reference_date', dias.referencia) // Today
         ])
+        if (lojasRes.error || rulesRes.error || checkinsRes.error || sellersRes.error || yesterdayCheckinsRes.error) {
+            const message = lojasRes.error?.message || rulesRes.error?.message || checkinsRes.error?.message || sellersRes.error?.message || yesterdayCheckinsRes.error?.message || 'Erro desconhecido'
+            console.error('Audit Error [useStorePerformance]: fetch fail ->', message)
+            setError('Não foi possível carregar a performance das lojas.')
+            setPerformance([])
+            setLoading(false)
+            return
+        }
+        const lojas = lojasRes.data
+        const rules = rulesRes.data
+        const checkins = checkinsRes.data
+        const sellers = sellersRes.data
+        const yesterdayCheckins = yesterdayCheckinsRes.data
 
         if (!lojas) { setLoading(false); return }
 
@@ -318,7 +392,7 @@ export function useStorePerformance() {
         const checkinsTodayMap = new Map<string, number>()
         yesterdayCheckins?.forEach(c => checkinsTodayMap.set(c.store_id, (checkinsTodayMap.get(c.store_id) || 0) + 1))
 
-        const perf = lojas.map(s => {
+        const perf: StorePerformanceEntry[] = lojas.map(s => {
             const meta = rulesMap.get(s.id) || 0
             const realizado = salesMap.get(s.id) || 0
             const projecao = Math.round((realizado / Math.max(dias.decorridos, 1)) * dias.total)
@@ -332,7 +406,7 @@ export function useStorePerformance() {
             // Semáforo logic
             const targetToday = (meta / dias.total) * dias.decorridos
             const efficiency = targetToday > 0 ? realizado / targetToday : 1
-            const status = efficiency >= 1 ? 'green' : efficiency >= 0.8 ? 'yellow' : 'red'
+            const status: StorePerformanceEntry['status'] = efficiency >= 1 ? 'green' : efficiency >= 0.8 ? 'yellow' : 'red'
 
             return {
                 id: s.id,
@@ -352,5 +426,5 @@ export function useStorePerformance() {
     }, [])
 
     useEffect(() => { fetchPerformance() }, [fetchPerformance])
-    return { performance, loading, refetch: fetchPerformance }
+    return { performance, loading, error, refetch: fetchPerformance }
 }

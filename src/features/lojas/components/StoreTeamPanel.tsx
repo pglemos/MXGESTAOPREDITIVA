@@ -21,6 +21,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { PageHeader } from '@/components/molecules/PageHeader'
 import { Link } from 'react-router-dom'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { canManageTeam } from '@/lib/auth/capabilities'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 import type { MembershipRole, StorePreRegistration } from '@/types/database'
 
@@ -33,13 +34,22 @@ type EditableTeamMember = TeamMember & {
   previous_store_id?: string | null
 }
 
+type PendingConfirmation = {
+  key: string
+  title: string
+  description: string
+  label: string
+  onConfirm: () => void
+}
+
 const getDeleteMemberConfirmationKey = (member: TeamMember | EditableTeamMember) => `delete-member:${member.id}:${member.store_id || 'sem-loja'}`
 const getPreRegistrationConfirmationKey = (item: StorePreRegistration) => `pre-registration:${item.id}`
 
 export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const { role } = useAuth()
-  const canManageTeamMembers = isAdministradorMx(role) || role === 'dono' || role === 'gerente'
+  const canManageTeamMembers = canManageTeam(role)
   const canApprovePreRegistrations = isAdministradorMx(role)
+  const canSharePreRegistrationLink = isAdministradorMx(role)
   const canCreateMembers = canManageTeamMembers
   const { lojas } = useStores()
   const editableStoreRoles = useMemo<MembershipRole[]>(() => {
@@ -58,7 +68,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const [loadingPreRegistrations, setLoadingPreRegistrations] = useState(false)
   const [reviewingPreRegistrationId, setReviewingPreRegistrationId] = useState<string | null>(null)
   const [pendingConfirmations, setPendingConfirmations] = useState<Set<string>>(() => new Set())
-  const confirmationTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null)
+  const [expandedPreRegistrations, setExpandedPreRegistrations] = useState<Set<string>>(() => new Set())
   const approvalFunctionUrl = useMemo(() => getSupabaseFunctionUrl('approve-store-registration'), [])
 
   const registrationLink = useMemo(() => {
@@ -66,47 +77,51 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     return getPreRegistrationLink(storeName)
   }, [storeName])
 
+  const handleCopyRegistrationLink = useCallback(async () => {
+    if (!canSharePreRegistrationLink || !registrationLink) return
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard indisponível.')
+      await navigator.clipboard.writeText(registrationLink)
+      toast.success('Link de pré-cadastro copiado.')
+    } catch {
+      toast.error('Não foi possível copiar o link. Copie manualmente pela barra do navegador.')
+    }
+  }, [canSharePreRegistrationLink, registrationLink])
+
   const fetchPreRegistrations = useCallback(async () => {
     if (!storeId) return
     setLoadingPreRegistrations(true)
-    const { data, error } = canApprovePreRegistrations
-      ? await supabase
-        .from('pre_cadastros_loja')
-        .select('id, store_id, store_name_snapshot, auth_user_id, full_name, email, phone, role, segment, store_tenure, market_experience, notes, company_legal_name, company_cnpj, company_address, company_administrative_phone, avatar_url, avatar_storage_path, status, submitted_at, reviewed_by, reviewed_at, approved_by, approved_at, rejected_by, rejected_at, approval_note')
-        .eq('store_id', storeId)
-        .order('submitted_at', { ascending: false })
-        .limit(20)
-      : { data: [], error: null }
+    try {
+      const { data, error } = canApprovePreRegistrations
+        ? await supabase
+          .from('pre_cadastros_loja')
+          .select('id, store_id, store_name_snapshot, auth_user_id, full_name, email, phone, role, segment, store_tenure, market_experience, notes, company_legal_name, company_cnpj, company_address, company_administrative_phone, avatar_url, avatar_storage_path, status, submitted_at, reviewed_by, reviewed_at, approved_by, approved_at, rejected_by, rejected_at, approval_note')
+          .eq('store_id', storeId)
+          .order('submitted_at', { ascending: false })
+          .limit(20)
+        : { data: [], error: null }
 
-    if (error) {
-      if (import.meta.env.DEV) console.warn('[StoreTeamPanel] pre-cadastros unavailable', error.message)
-      setPreRegistrations([])
-    } else {
+      if (error) throw error
       setPreRegistrations((data || []) as StorePreRegistration[])
+    } catch {
+      toast.error('Não foi possível carregar os pré-cadastros.')
+      setPreRegistrations([])
+    } finally {
+      setLoadingPreRegistrations(false)
     }
-    setLoadingPreRegistrations(false)
   }, [canApprovePreRegistrations, storeId])
 
   useEffect(() => {
     fetchPreRegistrations()
   }, [fetchPreRegistrations])
 
-  useEffect(() => {
-    return () => {
-      for (const timer of confirmationTimersRef.current.values()) clearTimeout(timer)
-      confirmationTimersRef.current.clear()
-    }
-  }, [])
-
   const clearPendingConfirmation = useCallback((key: string) => {
-    const timer = confirmationTimersRef.current.get(key)
-    if (timer) clearTimeout(timer)
-    confirmationTimersRef.current.delete(key)
     setPendingConfirmations((current) => {
       const next = new Set(current)
       next.delete(key)
       return next
     })
+    setPendingConfirmation(current => current?.key === key ? null : current)
   }, [])
 
   const requestConfirmation = useCallback((input: {
@@ -122,20 +137,38 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     }
 
     setPendingConfirmations((current) => new Set(current).add(input.key))
-    const timer = setTimeout(() => clearPendingConfirmation(input.key), 13000)
-    confirmationTimersRef.current.set(input.key, timer)
-    toast.warning(input.title, {
-      description: input.description,
-      duration: 12000,
-      action: {
-        label: input.label,
-        onClick: () => {
-          clearPendingConfirmation(input.key)
-          input.onConfirm()
-        },
-      },
+    setPendingConfirmation(input)
+  }, [pendingConfirmations])
+
+  useEffect(() => {
+    if (!pendingConfirmation) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') clearPendingConfirmation(pendingConfirmation.key)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [clearPendingConfirmation, pendingConfirmation])
+
+  const togglePreRegistrationDetails = useCallback((id: string) => {
+    setExpandedPreRegistrations(current => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
     })
-  }, [clearPendingConfirmation, pendingConfirmations])
+  }, [])
+
+  const redactEmail = useCallback((email: string) => {
+    const [local, domain] = email.split('@')
+    if (!local || !domain) return 'e-mail oculto'
+    return `${local.slice(0, 2)}***@${domain}`
+  }, [])
+
+  const redactPhone = useCallback((phone?: string | null) => {
+    const digits = (phone || '').replace(/\D/g, '')
+    if (digits.length < 4) return 'telefone oculto'
+    return `***${digits.slice(-4)}`
+  }, [])
 
   const filteredTeam = useMemo(() => {
     return (team || []).filter(m =>
@@ -167,22 +200,31 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     }
 
     setSaving(true)
-    const { error } = await updateTeamMember(editingMember.id, {
-      name: editingMember.name,
-      email: editingMember.email,
-      phone: editingMember.phone,
-      role: editingMember.role,
-      active: editingMember.active,
-      store_id: memberStoreId,
-      previous_store_id: editingMember.previous_store_id || editingMember.store_id || storeId,
-      started_at: editingMember.started_at,
-      ended_at: editingMember.ended_at,
-      is_active: editingMember.active === false ? false : editingMember.is_active,
-      closing_month_grace: editingMember.closing_month_grace,
-      is_venda_loja: editingMember.is_venda_loja
-    })
-    setSaving(false)
-    if (error) toast.error(error); else { toast.success('Integrante atualizado!'); setEditingMember(null); refetch() }
+    try {
+      const { error } = await updateTeamMember(editingMember.id, {
+        name: editingMember.name,
+        email: editingMember.email,
+        phone: editingMember.phone,
+        role: editingMember.role,
+        active: editingMember.active,
+        store_id: memberStoreId,
+        previous_store_id: editingMember.previous_store_id || editingMember.store_id || storeId,
+        started_at: editingMember.started_at,
+        ended_at: editingMember.ended_at,
+        is_active: editingMember.active === false ? false : editingMember.is_active,
+        closing_month_grace: editingMember.closing_month_grace,
+        is_venda_loja: editingMember.is_venda_loja
+      })
+      if (error) {
+        toast.error(error)
+        return
+      }
+      toast.success('Integrante atualizado.')
+      setEditingMember(null)
+      await refetch()
+    } finally {
+      setSaving(false)
+    }
   }
 
   const executeDeleteMember = useCallback(async (member: TeamMember | EditableTeamMember) => {
@@ -196,7 +238,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
         toast.error(error)
         return
       }
-      toast.success('Integrante excluído da equipe.')
+      toast.success('Vínculo encerrado.')
       setEditingMember(null)
       await refetch()
     } finally {
@@ -217,8 +259,9 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   }, [canManageTeamMembers, executeDeleteMember, requestConfirmation, storeId])
 
   const getVigenciaStatus = (m: TeamMember) => {
+    const today = new Date().toISOString().slice(0, 10)
     if (!m.is_active) return { label: 'INATIVO', variant: 'outline' as const, color: 'text-text-tertiary border-border-default bg-surface-alt' }
-    if (m.ended_at && new Date(m.ended_at) < new Date()) return { label: 'ENCERRADO', variant: 'danger' as const, color: 'text-status-error border-status-error/10 bg-status-error-surface' }
+    if (m.ended_at && m.ended_at.slice(0, 10) < today) return { label: 'ENCERRADO', variant: 'danger' as const, color: 'text-status-error border-status-error/10 bg-status-error-surface' }
     return { label: 'ATIVO', variant: 'success' as const, color: 'text-status-success border-status-success/10 bg-status-success-surface' }
   }
 
@@ -226,6 +269,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     setIsRefetching(true)
     try {
       await Promise.all([refetch(), fetchPreRegistrations()])
+    } catch {
+      toast.error('Não foi possível atualizar a equipe.')
     } finally {
       setIsRefetching(false)
     }
@@ -255,16 +300,25 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
           role: item.role,
         }),
       })
-      const payload = await response.json()
+      const payload = await response.json().catch(() => null) as { success?: boolean; error?: string; temporary_password?: unknown } | null
+      if (!payload) throw new Error('Não foi possível interpretar a resposta da aprovação.')
       if (!response.ok || !payload.success) throw new Error(payload.error || 'Não foi possível revisar o login.')
 
       const temporaryPassword = typeof payload.temporary_password === 'string' ? payload.temporary_password : ''
-      toast.success(
-        action === 'approve' && temporaryPassword
-          ? `Login aprovado. Senha temporária: ${temporaryPassword}`
-          : action === 'approve' ? 'Login aprovado e sincronizado.' : 'Login rejeitado.',
-        action === 'approve' && temporaryPassword ? { duration: 15000 } : undefined,
-      )
+      if (action === 'approve' && temporaryPassword) {
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(temporaryPassword)
+            toast.success('Login aprovado. Senha temporária copiada para a área de transferência.')
+          } else {
+            toast.success('Login aprovado. Gere uma nova senha temporária em caso de perda.')
+          }
+        } catch {
+          toast.success('Login aprovado. Gere uma nova senha temporária em caso de perda.')
+        }
+      } else {
+        toast.success(action === 'approve' ? 'Login aprovado e sincronizado.' : 'Login rejeitado.')
+      }
       await Promise.all([refetch(), fetchPreRegistrations()])
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Falha ao revisar login.')
@@ -333,12 +387,66 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   return (
     <section className="w-full flex flex-col gap-mx-lg relative">
         <>
+          <AnimatePresence>
+            {pendingConfirmation && (
+              <div className="fixed inset-0 z-[140] flex items-center justify-center p-mx-md" role="presentation">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-mx-black/60 backdrop-blur-md"
+                  onClick={() => clearPendingConfirmation(pendingConfirmation.key)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                  role="alertdialog"
+                  aria-modal="true"
+                  aria-labelledby="team-confirm-title"
+                  aria-describedby="team-confirm-description"
+                  className="relative z-10 w-full max-w-md rounded-mx-3xl border border-border-default bg-white p-mx-xl shadow-mx-elite"
+                >
+                  <Typography id="team-confirm-title" variant="h2" className="font-black uppercase tracking-tight text-text-primary">
+                    {pendingConfirmation.title}
+                  </Typography>
+                  <Typography id="team-confirm-description" variant="caption" tone="muted" className="mt-mx-sm block font-bold leading-relaxed">
+                    {pendingConfirmation.description}
+                  </Typography>
+                  <div className="mt-mx-xl flex flex-col-reverse sm:flex-row gap-mx-sm sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => clearPendingConfirmation(pendingConfirmation.key)}
+                      className="h-mx-12 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      onClick={() => {
+                        const action = pendingConfirmation.onConfirm
+                        clearPendingConfirmation(pendingConfirmation.key)
+                        action()
+                      }}
+                      className="h-mx-12 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano"
+                    >
+                      {pendingConfirmation.label}
+                    </Button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           <PageHeader
             title="Equipe da Loja"
             description={`Criar, editar e remover integrantes vinculados à loja ${storeName || ''}`.trim()}
             actions={
               <div className="flex flex-col sm:flex-row items-center gap-mx-sm w-full lg:w-auto">
                 <div className="relative group w-full sm:w-mx-96">
+                  <label htmlFor="search-specialist" className="sr-only">Buscar integrante da equipe</label>
                   <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                   <Input
                     id="search-specialist"
@@ -353,10 +461,12 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   <Button
                       variant="outline"
                       size="icon"
+                      type="button"
                       onClick={handleRefresh}
+                      aria-label="Atualizar equipe e pré-cadastros"
                       className="w-mx-14 h-mx-14 rounded-mx-xl bg-white shadow-mx-sm border-border-default shrink-0"
                   >
-                    <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
+                    <RefreshCw size={20} aria-hidden="true" className={cn(isRefetching && "animate-spin")} />
                   </Button>
                   {canCreateMembers && (
                     <Button
@@ -397,6 +507,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
             ))}
           </div>
 
+          {canSharePreRegistrationLink ? (
           <Card className="border border-border-default bg-white shadow-mx-lg overflow-hidden">
             <CardHeader className="border-b border-border-default bg-surface-alt/60 p-mx-lg">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md">
@@ -412,7 +523,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => registrationLink && navigator.clipboard?.writeText(registrationLink).then(() => toast.success('Link de pré-cadastro copiado.'))}
+                  onClick={() => void handleCopyRegistrationLink()}
                   className="h-mx-12 rounded-mx-xl bg-white"
                   disabled={!registrationLink}
                 >
@@ -440,7 +551,9 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                 </div>
               ) : preRegistrations.length > 0 ? (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-md">
-                  {preRegistrations.map(item => (
+                  {preRegistrations.map(item => {
+                    const detailsExpanded = expandedPreRegistrations.has(item.id)
+                    return (
                     <div key={item.id} className="rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md">
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-mx-sm">
                         <div className="flex items-start gap-mx-sm min-w-0">
@@ -454,8 +567,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                           <div className="min-w-0">
                             <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{item.full_name}</Typography>
                             <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">
-                              <span className="inline-flex items-center gap-mx-tiny"><Mail size={11} />{item.email}</span>
-                              <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} />{item.phone}</span>
+                              <span className="inline-flex items-center gap-mx-tiny"><Mail size={11} aria-hidden="true" />{detailsExpanded ? item.email : redactEmail(item.email)}</span>
+                              <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} aria-hidden="true" />{detailsExpanded ? item.phone : redactPhone(item.phone)}</span>
                             </div>
                           </div>
                         </div>
@@ -481,7 +594,16 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                         <BriefcaseBusiness size={13} className="text-brand-primary" />
                         <span>{item.segment}</span>
                       </div>
-                      {item.role === 'dono' && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => togglePreRegistrationDetails(item.id)}
+                        className="mt-mx-sm h-mx-9 rounded-mx-lg px-mx-sm text-mx-nano font-black uppercase tracking-widest text-brand-primary"
+                        aria-expanded={detailsExpanded}
+                      >
+                        {detailsExpanded ? 'Ocultar dados sensíveis' : 'Ver dados sensíveis'}
+                      </Button>
+                      {item.role === 'dono' && detailsExpanded && (
                         <div className="mt-mx-sm rounded-mx-xl border border-brand-primary/15 bg-white p-mx-sm">
                           <Typography variant="tiny" tone="brand" className="mb-mx-xs block font-black uppercase tracking-widest">
                             Dados administrativos
@@ -494,7 +616,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                           </div>
                         </div>
                       )}
-                      {item.notes && (
+                      {item.notes && detailsExpanded && (
                         <Typography variant="tiny" tone="muted" className="mt-mx-sm block font-bold leading-relaxed">
                           {item.notes}
                         </Typography>
@@ -523,7 +645,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                         </div>
                       )}
                     </div>
-                  ))}
+                  )})}
                 </div>
               ) : (
                 <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-lg text-center">
@@ -533,6 +655,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
               )}
             </CardContent>
           </Card>
+          ) : null}
 
           <div className="flex-1 min-h-0 pb-32 mt-mx-md">
             {filteredTeam.length > 0 ? (
@@ -612,7 +735,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                               onClick={() => handleDeleteMember(member)}
                               disabled={pendingConfirmations.has(getDeleteMemberConfirmationKey(member))}
                               className="h-mx-10 w-mx-10 rounded-mx-xl text-status-error hover:bg-status-error-surface"
-                              aria-label={`Excluir ${member.name}`}
+                              aria-label={`Encerrar vínculo de ${member.name}`}
                             >
                               <Trash2 size={16} />
                             </Button>
@@ -660,7 +783,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
           <AnimatePresence>
             {editingMember && (
-              <div className="fixed inset-0 z-[100] flex items-start justify-center p-mx-md overflow-y-auto" role="dialog" aria-modal="true">
+              <div className="fixed inset-0 z-[100] flex items-start justify-center p-mx-md overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="edit-team-member-title">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingMember(null)} className="absolute inset-0 bg-mx-black/60 backdrop-blur-md" />
 
                 <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="w-full max-w-2xl relative z-10 my-mx-lg">
@@ -673,11 +796,11 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                                     <ShieldCheck size={28} className="text-white" />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-white text-2xl">Editar integrante</CardTitle>
+                                    <CardTitle id="edit-team-member-title" className="text-white text-2xl">Editar integrante</CardTitle>
                                     <Typography variant="caption" tone="white" className="opacity-60 block uppercase font-black tracking-mx-widest text-mx-nano">Dados de acesso, vínculo e vigência de {editingMember.name}</Typography>
                                 </div>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => setEditingMember(null)} className="text-white/40 hover:text-white hover:bg-white/10 rounded-mx-full">
+                            <Button type="button" variant="ghost" size="icon" aria-label="Fechar edição de integrante" onClick={() => setEditingMember(null)} className="text-white/40 hover:text-white hover:bg-white/10 rounded-mx-full">
                                 <X size={20} />
                             </Button>
                         </div>
@@ -687,10 +810,12 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                       <form onSubmit={handleUpdateMember} className="space-y-mx-lg">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Nome</Typography>
+                            <label htmlFor="edit-member-name" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Nome</label>
                             <div className="relative">
                               <User size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                               <input
+                                id="edit-member-name"
+                                name="name"
                                 required
                                 value={editingMember.name || ''}
                                 onChange={e => setEditingMember({ ...editingMember, name: e.target.value.toUpperCase() })}
@@ -699,10 +824,12 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             </div>
                           </div>
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">E-mail</Typography>
+                            <label htmlFor="edit-member-email" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">E-mail</label>
                             <div className="relative">
                               <Mail size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                               <input
+                                id="edit-member-email"
+                                name="email"
                                 required
                                 type="email"
                                 value={editingMember.email || ''}
@@ -712,10 +839,12 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             </div>
                           </div>
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Telefone</Typography>
+                            <label htmlFor="edit-member-phone" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Telefone</label>
                             <div className="relative">
                               <Phone size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
                               <input
+                                id="edit-member-phone"
+                                name="phone"
                                 value={editingMember.phone || ''}
                                 onChange={e => setEditingMember({ ...editingMember, phone: e.target.value })}
                                 className="w-full h-mx-14 pl-12 pr-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-bold focus:outline-none focus:border-brand-primary transition-all"
@@ -723,8 +852,10 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             </div>
                           </div>
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Papel na loja</Typography>
+                            <label htmlFor="edit-member-role" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Papel na loja</label>
                             <select
+                              id="edit-member-role"
+                              name="role"
                               value={editingMember.role || 'vendedor'}
                               onChange={e => setEditingMember({ ...editingMember, role: e.target.value as MembershipRole })}
                               className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase focus:outline-none focus:border-brand-primary transition-all"
@@ -735,8 +866,10 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             </select>
                           </div>
                           <div className="sm:col-span-2 space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Loja vinculada</Typography>
+                            <label htmlFor="edit-member-store" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Loja vinculada</label>
                             <select
+                              id="edit-member-store"
+                              name="store_id"
                               value={editingMember.store_id || storeId || ''}
                               onChange={e => setEditingMember({ ...editingMember, store_id: e.target.value })}
                               className="w-full h-mx-14 px-4 bg-surface-alt border border-border-default rounded-mx-2xl text-text-primary font-black uppercase focus:outline-none focus:border-brand-primary transition-all"
@@ -751,7 +884,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
                         <div className="grid grid-cols-2 gap-mx-md">
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Início da vigência</Typography>
+                            <label htmlFor="started-at" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Início da vigência</label>
                             <input
                               id="started-at"
                               name="started_at"
@@ -762,8 +895,10 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             />
                           </div>
                           <div className="space-y-mx-tiny">
-                            <Typography variant="tiny" tone="muted" className="px-2 font-black uppercase tracking-mx-widest">Término (Opcional)</Typography>
+                            <label htmlFor="ended-at" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Término (Opcional)</label>
                             <input
+                              id="ended-at"
+                              name="ended_at"
                               type="date"
                               value={editingMember.ended_at || ''}
                               onChange={e => setEditingMember({...editingMember, ended_at: e.target.value})}
@@ -780,7 +915,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                                   <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Permite acesso ao sistema</Typography>
                                 </div>
                               </div>
-                              <input type="checkbox" checked={editingMember.active ?? true} onChange={e => setEditingMember({...editingMember, active: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-status-success cursor-pointer" />
+                              <input type="checkbox" name="active" checked={editingMember.active ?? true} onChange={e => setEditingMember({...editingMember, active: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-status-success cursor-pointer" />
                             </label>
                             <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
                               <div className="flex items-center gap-mx-md">
@@ -790,7 +925,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                                   <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Conta na lista operacional da loja</Typography>
                                 </div>
                               </div>
-                              <input type="checkbox" checked={editingMember.is_active} onChange={e => setEditingMember({...editingMember, is_active: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-brand-primary cursor-pointer" />
+                              <input type="checkbox" name="is_active" checked={editingMember.is_active} onChange={e => setEditingMember({...editingMember, is_active: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-brand-primary cursor-pointer" />
                             </label>
 
                             <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
@@ -801,7 +936,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                                   <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Conta como indicador operacional da unidade</Typography>
                                 </div>
                               </div>
-                              <input type="checkbox" checked={editingMember.is_venda_loja ?? false} onChange={e => setEditingMember({...editingMember, is_venda_loja: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-brand-primary cursor-pointer" />
+                              <input type="checkbox" name="is_venda_loja" checked={editingMember.is_venda_loja ?? false} onChange={e => setEditingMember({...editingMember, is_venda_loja: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-brand-primary cursor-pointer" />
                             </label>
 
                             <label className="flex items-center justify-between p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all cursor-pointer group">
@@ -812,7 +947,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                                   <Typography variant="caption" tone="muted" className="text-mx-nano uppercase font-black">Ignorar metas do mês vigente</Typography>
                                 </div>
                               </div>
-                              <input type="checkbox" checked={editingMember.closing_month_grace} onChange={e => setEditingMember({...editingMember, closing_month_grace: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-status-warning cursor-pointer" />
+                              <input type="checkbox" name="closing_month_grace" checked={editingMember.closing_month_grace} onChange={e => setEditingMember({...editingMember, closing_month_grace: e.target.checked})} className="w-mx-sm h-mx-sm rounded-mx-md accent-status-warning cursor-pointer" />
                             </label>
                           </div>
                         </div>
@@ -826,7 +961,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                             className="h-mx-16 sm:w-mx-40 rounded-mx-2xl font-black uppercase tracking-mx-wide text-xs shadow-mx-lg"
                           >
                             <Trash2 size={18} className="mr-2" />
-                            EXCLUIR
+                            ENCERRAR
                           </Button>
                           <Button
                             type="submit" disabled={saving}

@@ -1,17 +1,19 @@
 import { test, expect } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
+import { getE2EInternalEmail, getE2EPassword, getE2ERolePassword } from '../e2e-helpers/auth';
+import { createE2EAdminUser, deleteE2EUser, type E2EUser } from '../e2e-helpers/supabase-admin';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY!;
-const senhaPadraoTeste = process.env.E2E_AUTH_PASSWORD || 'Mx#2026!';
+const senhaPerfilLoja = getE2ERolePassword();
 
 const contasPorPerfil = [
-  ['administrador_geral', 'administrador.geral@mxgestaopreditiva.com.br'],
-  ['administrador_mx', 'admin@mxgestaopreditiva.com.br'],
-  ['consultor_mx', 'consultor.mx@mxgestaopreditiva.com.br'],
-  ['dono', 'dono@mxgestaopreditiva.com.br'],
-  ['gerente', 'gerente@mxgestaopreditiva.com.br'],
-  ['vendedor', 'vendedor@mxgestaopreditiva.com.br'],
+  { perfil: 'administrador_geral', email: getE2EInternalEmail(), password: getE2EPassword() },
+  { perfil: 'dono', email: 'dono@mxgestaopreditiva.com.br', password: senhaPerfilLoja },
+  { perfil: 'gerente', email: 'gerente@mxgestaopreditiva.com.br', password: senhaPerfilLoja },
+  { perfil: 'vendedor', email: 'vendedor@mxgestaopreditiva.com.br', password: senhaPerfilLoja },
+  ...(process.env.E2E_ADMIN_MX_EMAIL ? [{ perfil: 'administrador_mx', email: process.env.E2E_ADMIN_MX_EMAIL, password: getE2EPassword() }] : []),
+  ...(process.env.E2E_CONSULTOR_MX_EMAIL ? [{ perfil: 'consultor_mx', email: process.env.E2E_CONSULTOR_MX_EMAIL, password: senhaPerfilLoja }] : []),
 ] as const;
 
 function novoClienteAnonimo() {
@@ -20,11 +22,11 @@ function novoClienteAnonimo() {
   });
 }
 
-async function autenticar(email: string) {
+async function autenticar(email: string, password: string) {
   const client = novoClienteAnonimo();
   const { data, error } = await client.auth.signInWithPassword({
     email,
-    password: senhaPadraoTeste,
+    password,
   });
 
   expect(error).toBeNull();
@@ -33,9 +35,17 @@ async function autenticar(email: string) {
 }
 
 test.describe('Segurança: perfis reais e dados sensíveis', () => {
-  for (const [perfil, email] of contasPorPerfil) {
+  let consultorTemporario: E2EUser | null = null;
+
+  test.afterEach(async () => {
+    if (!consultorTemporario) return;
+    await deleteE2EUser(consultorTemporario.id);
+    consultorTemporario = null;
+  });
+
+  for (const { perfil, email, password } of contasPorPerfil) {
     test(`perfil ${perfil} autentica com sessão live real`, async () => {
-      const { client, userId } = await autenticar(email);
+      const { client, userId } = await autenticar(email, password);
 
       const { data: usuario, error } = await client
         .from('usuarios')
@@ -52,7 +62,12 @@ test.describe('Segurança: perfis reais e dados sensíveis', () => {
   }
 
   test('consultor MX não acessa financeiro sensível sem permissão administrativa', async () => {
-    const { client } = await autenticar('consultor.mx@mxgestaopreditiva.com.br');
+    consultorTemporario = await createE2EAdminUser({
+      prefix: 'e2e-security-consultor',
+      role: 'consultor_mx',
+      name: 'E2E Consultor MX Segurança',
+    });
+    const { client } = await autenticar(consultorTemporario.email, consultorTemporario.password);
 
     const { count, error } = await client
       .from('financeiro_consultoria')
@@ -63,7 +78,12 @@ test.describe('Segurança: perfis reais e dados sensíveis', () => {
   });
 
   test('consultor MX acessa benchmark anonimizado e gera log sensível', async () => {
-    const admin = (await autenticar('admin@mxgestaopreditiva.com.br')).client;
+    consultorTemporario = await createE2EAdminUser({
+      prefix: 'e2e-security-benchmark',
+      role: 'consultor_mx',
+      name: 'E2E Consultor MX Benchmark',
+    });
+    const admin = (await autenticar(getE2EInternalEmail(), getE2EPassword())).client;
     const { count: antes, error: erroAntes } = await admin
       .from('logs_acesso_sensivel')
       .select('id', { count: 'exact', head: true })
@@ -71,7 +91,7 @@ test.describe('Segurança: perfis reais e dados sensíveis', () => {
       .eq('entidade', 'benchmark_lojas_anonimo');
     expect(erroAntes).toBeNull();
 
-    const consultor = (await autenticar('consultor.mx@mxgestaopreditiva.com.br')).client;
+    const consultor = (await autenticar(consultorTemporario.email, consultorTemporario.password)).client;
     const { data: benchmark, error: erroBenchmark } = await consultor.rpc('listar_benchmark_anonimo_lojas');
 
     expect(erroBenchmark).toBeNull();

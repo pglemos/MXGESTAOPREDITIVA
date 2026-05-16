@@ -5,8 +5,8 @@ def test_auth_user_details():
     login_url = f"{base_url}/auth/v1/token?grant_type=password"
     user_url = f"{base_url}/auth/v1/user"
     credentials = {
-        "email": "admin@mxperformance.com.br",
-        "password": "Mx#2026!"
+        "email": "TESTSPRITE_ADMIN_EMAIL_REQUIRED",
+        "password": "TESTSPRITE_PASSWORD_REQUIRED"
     }
     timeout = 30
 

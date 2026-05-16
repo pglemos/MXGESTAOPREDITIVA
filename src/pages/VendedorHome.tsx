@@ -7,9 +7,9 @@ import { useTacticalPrescription } from '@/hooks/useTacticalPrescription'
 import { useSellerMetrics } from '@/hooks/useSellerMetrics'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { 
-    Target, TrendingUp, Trophy, Car, Users, Globe, BarChart3, ArrowRight, Crown, Flame, 
-    RefreshCw, CalendarDays, History, GraduationCap, Play, Clock, Zap, MessageSquare, ChevronRight 
+import {
+    Target, TrendingUp, Trophy, Car, Users, Globe, BarChart3, ArrowRight, Crown, Flame,
+    RefreshCw, CalendarDays, History, GraduationCap, Play, Clock, Zap, MessageSquare, ChevronRight
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -34,14 +34,14 @@ export default function VendedorHome() {
     const navigate = useNavigate()
 
     const tacticalPrescription = useTacticalPrescription({ checkins, treinamentos, userId: profile?.id })
-    const metrics = useSellerMetrics({ 
-        checkins, 
-        todayCheckin, 
-        profile, 
-        sellerGoals, 
-        storeGoal, 
+    const metrics = useSellerMetrics({
+        checkins,
+        todayCheckin,
+        profile,
+        sellerGoals,
+        storeGoal,
         ranking,
-        projectionMode: storeGoal?.projection_mode 
+        projectionMode: storeGoal?.projection_mode
     })
     const referenceDateLabel = useMemo(() => {
         if (!referenceDate) return 'Referência D-1'
@@ -60,17 +60,28 @@ export default function VendedorHome() {
         })
         return calculateDailyRoutineDiscipline({ referenceDates, checkins, sellerId: profile.id })
     }, [checkins, profile?.id, referenceDate])
+    const referenceCheckin = useMemo(() => {
+        if (!profile?.id || !referenceDate) return null
+        return checkins.find(c => c.seller_user_id === profile.id && c.reference_date === referenceDate) || null
+    }, [checkins, profile?.id, referenceDate])
+    const weeklyProgressPct = useMemo(() => {
+        if (!metrics?.meta) return 0
+        const weeklyGoal = Math.max(Math.round(metrics.meta / 4), 1)
+        return Math.min(100, Math.round((metrics.vendasSemana / weeklyGoal) * 100))
+    }, [metrics?.meta, metrics?.vendasSemana])
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
         try {
             await Promise.all([
-                refetchCheckins(), 
-                refetchGoals(), 
+                refetchCheckins(),
+                refetchGoals(),
                 refetchRanking?.() || Promise.resolve(),
                 refetchTrainings?.() || Promise.resolve()
             ])
             toast.success('Cockpit de performance atualizado!')
+        } catch {
+            toast.error('Não foi possível atualizar o cockpit.')
         } finally {
             setIsRefetching(false)
         }
@@ -80,23 +91,24 @@ export default function VendedorHome() {
         if (!metrics || !profile) return
         const text = formatWhatsAppMorningReport(
             profile.name || 'Especialista',
-            'Hoje',
-            { 
+            referenceDateLabel,
+            {
                 teamGoal: metrics.meta || 0,
                 currentSales: metrics.vendasOntem,
                 reaching: metrics.atingimento,
                 projection: metrics.projecao,
                 gap: Math.max((metrics.meta || 0) - metrics.vendasOntem, 0),
-                vnd_total: metrics.vendasOntem, 
-                leads: 0, 
-                visitas: 0, 
+                vnd_total: metrics.vendasOntem,
+                leads: referenceCheckin?.leads_prev_day || 0,
+                visitas: referenceCheckin?.visit_prev_day || 0,
                 agd_total: metrics.agendamentosHoje,
                 pendingSellers: []
             },
             []
         )
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
-    }, [metrics, profile])
+        const opened = window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
+        if (!opened) toast.error('Não foi possível abrir o WhatsApp.')
+    }, [metrics, profile, referenceCheckin, referenceDateLabel])
 
     if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading || !metrics) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500 overflow-hidden">
@@ -135,26 +147,27 @@ export default function VendedorHome() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
 
-            <PageHeader 
+            <PageHeader
                 title={`Olá, ${profile?.name?.split(' ')[0]} 👋`}
                 description="PAINEL DE PERFORMANCE INDIVIDUAL • MX ELITE"
                 actions={
                     <div className="flex flex-row items-center gap-mx-sm">
-                        <Button 
-                            variant="outline" 
-                            size="icon" 
+                        <Button
+                            variant="outline"
+                            size="icon"
                             onClick={handleShareWhatsApp}
-                            className="w-mx-12 h-mx-12 sm:w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-status-success-surface text-status-success border-status-success/10 hover:bg-status-success hover:text-white transition-all"
+                            className="w-mx-12 h-mx-12 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-status-success-surface text-status-success border-status-success/10 hover:bg-status-success hover:text-white transition-all"
                             aria-label="Compartilhar no WhatsApp"
                         >
                             <MessageSquare size={18} />
                         </Button>
-                        <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={handleRefresh} 
-                            disabled={isRefetching} 
-                            className="w-mx-12 h-mx-12 sm:w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-sm bg-white border-border-default"
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleRefresh}
+                            disabled={isRefetching}
+                            aria-label="Atualizar cockpit do vendedor"
+                            className="w-mx-12 h-mx-12 sm:w-mx-14 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white border-border-default"
                         >
                             <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                         </Button>
@@ -185,7 +198,7 @@ export default function VendedorHome() {
                                         <Badge variant="warning" className="px-4 py-1 uppercase font-black text-mx-nano shadow-sm bg-brand-primary border-none text-white">Reciclagem</Badge>
                                         <Typography variant="tiny" tone="white" className="opacity-60 uppercase font-black tracking-mx-widest text-mx-nano">Gap: {tacticalPrescription.gargalo}</Typography>
                                     </div>
-                                    <Typography variant="h2" tone="white" className="text-2xl sm:text-4xl tracking-tighter uppercase leading-none font-black">Masterize sua {tacticalPrescription.training.type}</Typography>
+                                    <Typography variant="h2" tone="white" className="text-2xl sm:text-4xl tracking-tighter uppercase leading-none font-black">Domine sua {tacticalPrescription.training.type}</Typography>
                                     <Typography variant="p" tone="white" className="opacity-80 max-w-2xl text-sm sm:text-lg font-bold italic line-clamp-2 italic">"{tacticalPrescription.label}"</Typography>
                                 </div>
                                 <Button size="lg" variant="secondary" onClick={() => navigate('/treinamentos')} className="rounded-mx-full px-12 h-mx-16 shadow-mx-xl font-black uppercase tracking-mx-wide text-xs w-full lg:w-auto bg-white text-mx-black hover:bg-brand-primary hover:text-white transition-all border-none">
@@ -244,21 +257,21 @@ export default function VendedorHome() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0">
-                <MXScoreCard 
-                    label="Produção Ontem" value={metrics.vendasOntem} sub="CONSOLIDADO" icon={History} tone="success" 
+                <MXScoreCard
+                    label="Produção Ontem" value={metrics.vendasOntem} sub="CONSOLIDADO" icon={History} tone="success"
                     description="Total de unidades vendidas no dia anterior"
                 />
-                <MXScoreCard 
-                    label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="COMPROMISSOS" icon={CalendarDays} tone="brand" 
+                <MXScoreCard
+                    label="Agenda de Hoje" value={metrics.agendamentosHoje} sub="COMPROMISSOS" icon={CalendarDays} tone="brand"
                     description="Quantidade de atendimentos agendados para hoje"
                 />
-                <MXScoreCard 
-                    label="Projeção MX" value={metrics.projecao} sub="PREDICTIVE" icon={Zap} tone="brand" 
+                <MXScoreCard
+                    label="Projeção MX" value={metrics.projecao} sub="PREDICTIVE" icon={Zap} tone="brand"
                     description="Estimativa de vendas para o fechamento do mês baseada no ritmo atual"
                     isHighlight
                 />
-                <MXScoreCard 
-                    label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} icon={Target} tone="warning" 
+                <MXScoreCard
+                    label="Meta do Mês" value={metrics.meta || '--'} sub={`${metrics.atingimento}% ATG`} icon={Target} tone="warning"
                     description="Objetivo de vendas definido para o mês vigente"
                 />
             </div>
@@ -414,13 +427,13 @@ export default function VendedorHome() {
                         </CardHeader>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
                             {[
-                                { time: '08:00', task: 'Motivacional', desc: 'Energização e Foco.' },
-                                { time: '08:15', task: 'Organização', desc: 'Terminal MX e Estratégia.' },
-                                { time: '08:55', task: 'Novos Leads', desc: 'Boas-vindas e Classificação.' },
-                                { time: '11:00', task: 'Prospecção', desc: 'Carteira e Redes Sociais.' },
-                                { time: '13:00', task: 'Atendimento', desc: 'Execução de Agendados.' },
-                                { time: '16:00', task: 'Lista Quente', desc: 'Quebra de Objeções.' },
-                                { time: '17:00', task: 'Fechamento', desc: 'Preparação D+1.' },
+                                { time: '1', task: 'Energia', desc: 'Foco e preparação da abordagem.' },
+                                { time: '2', task: 'Organização', desc: 'Terminal MX e estratégia.' },
+                                { time: '3', task: 'Leads', desc: 'Boas-vindas e classificação.' },
+                                { time: '4', task: 'Prospecção', desc: 'Carteira e redes sociais.' },
+                                { time: '5', task: 'Atendimento', desc: 'Execução de agendados.' },
+                                { time: '6', task: 'Recuperação', desc: 'Objeções e lista quente.' },
+                                { time: '7', task: 'Fechamento', desc: 'Preparação D+1.' },
                             ].map((r, i) => (
                                 <div key={i} className="flex items-center gap-mx-md p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-sm transition-all group/task">
                                     <Typography variant="mono" tone="brand" className="text-sm font-black shrink-0 font-mono-numbers">{r.time}</Typography>
@@ -439,7 +452,7 @@ export default function VendedorHome() {
                     <Card className="bg-mx-black text-white p-mx-lg md:p-mx-xl h-full border-none shadow-mx-xl relative overflow-hidden group min-h-mx-96 rounded-mx-4xl">
                         <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 via-transparent to-transparent z-0 opacity-50 pointer-events-none" aria-hidden="true" />
                         <div className="absolute -right-20 -bottom-20 opacity-5 group-hover:rotate-12 transition-transform duration-700 pointer-events-none" aria-hidden="true"><Zap size={400} fill="currentColor" /></div>
-                        
+
                         <CardHeader className="flex flex-row items-center justify-between mb-16 relative z-10 p-mx-0 bg-transparent border-none">
                             <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-mx-inner group-hover:bg-brand-primary transition-colors shrink-0">
                                 <TrendingUp size={24} />
@@ -455,7 +468,7 @@ export default function VendedorHome() {
                                     <Typography variant="tiny" tone="white" className="uppercase font-black text-mx-tiny opacity-40">UNIDADES</Typography>
                                 </div>
                                 <div className="h-mx-xs w-full bg-white/5 rounded-mx-full overflow-hidden border border-white/5 p-mx-tiny shadow-mx-inner">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} transition={{ duration: 2 }} className="h-full bg-gradient-to-r from-brand-primary to-brand-primary/50 rounded-mx-full shadow-mx-glow-brand" />
+                                    <motion.div initial={{ width: 0 }} animate={{ width: `${weeklyProgressPct}%` }} transition={{ duration: 2 }} className="h-full bg-gradient-to-r from-brand-primary to-brand-primary/50 rounded-mx-full shadow-mx-glow-brand" />
                                 </div>
                             </div>
                             <Typography variant="p" tone="white" className="text-base md:text-lg italic opacity-60 leading-relaxed uppercase tracking-tight font-black italic">

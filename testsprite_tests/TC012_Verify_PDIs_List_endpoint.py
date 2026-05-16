@@ -8,8 +8,8 @@ TIMEOUT = 30
 def test_TC012_verify_pdis_list_endpoint():
     # Login to get access token
     credentials = {
-        "username": "admin@mxperformance.com.br",
-        "password": "Mx#2026!"
+        "username": "TESTSPRITE_ADMIN_EMAIL_REQUIRED",
+        "password": "TESTSPRITE_PASSWORD_REQUIRED"
     }
     try:
         login_response = requests.post(

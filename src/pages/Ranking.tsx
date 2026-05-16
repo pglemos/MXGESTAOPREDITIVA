@@ -4,8 +4,8 @@ import { useStoreSales } from '@/hooks/useStoreSales'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useStoreMetaRules } from '@/hooks/useGoals'
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { 
-    Trophy, Crown, TrendingUp, RefreshCw, 
+import {
+    Trophy, Crown, TrendingUp, RefreshCw,
     Search, Building2, Calendar, Zap, Target,
     Phone, Users, CheckCircle2, XCircle,
     Flame, Swords, X, MessageSquare, Eye, EyeOff
@@ -35,7 +35,7 @@ export default function Ranking() {
 }
 
 function GlobalRanking() {
-    const { ranking, loading, refetch } = useGlobalRanking()
+    const { ranking, loading, error, refetch } = useGlobalRanking()
     const { profile } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
@@ -44,6 +44,7 @@ function GlobalRanking() {
     const [viewMode, setViewMode] = useState<'leaderboard' | 'battle' | 'store-arena'>('leaderboard')
     const [battleOpponents, setBattleOpponents] = useState<string[]>([])
     const [storeOpponents, setStoreOpponents] = useState<string[]>([])
+    const privacyStorageKey = `${STORE_PRIVACY_STORAGE_KEY}:${profile?.id || 'anonymous'}`
     const [hideStoreNames, setHideStoreNames] = useState(() => {
         if (typeof window === 'undefined') return false
         return window.localStorage.getItem(STORE_PRIVACY_STORAGE_KEY) === 'true'
@@ -74,10 +75,10 @@ function GlobalRanking() {
         if (filterStore !== 'all') list = list.filter(r => r.store_name === filterStore)
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase()
-            list = list.filter(r => r.user_name.toLowerCase().includes(term) || (r.store_name || '').toLowerCase().includes(term))
+            list = list.filter(r => r.user_name.toLowerCase().includes(term) || (!hideStoreNames && (r.store_name || '').toLowerCase().includes(term)))
         }
         return list.filter(r => !r.is_venda_loja) // Exclude venda loja for actual ranking
-    }, [ranking, searchTerm, filterStore])
+    }, [ranking, searchTerm, filterStore, hideStoreNames])
 
     const displayRanking = useMemo(() => {
         if (!hideStoreNames) return filtered
@@ -99,21 +100,16 @@ function GlobalRanking() {
     }, [hideStoreNames, networkMetrics])
 
     useEffect(() => {
-        window.localStorage.setItem(STORE_PRIVACY_STORAGE_KEY, String(hideStoreNames))
-    }, [hideStoreNames])
+        window.sessionStorage.setItem(privacyStorageKey, String(hideStoreNames))
+    }, [hideStoreNames, privacyStorageKey])
 
     useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            const target = event.target as HTMLElement | null
-            const tagName = target?.tagName?.toLowerCase()
-            if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') return
-            if (event.key.toLowerCase() === 'h') setHideStoreNames((current) => !current)
-        }
-        window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [])
+        if (typeof window === 'undefined') return
+        const stored = window.sessionStorage.getItem(privacyStorageKey) ?? window.localStorage.getItem(STORE_PRIVACY_STORAGE_KEY)
+        setHideStoreNames(stored === 'true')
+    }, [privacyStorageKey])
 
-    // Podium 
+    // Podium
     const top3 = [...filtered].sort((a, b) => a.position - b.position).slice(0, 3)
     const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean)
 
@@ -139,9 +135,14 @@ function GlobalRanking() {
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        await refetch()
-        setIsRefetching(false)
+        try {
+            await refetch()
+        } finally {
+            setIsRefetching(false)
+        }
     }, [refetch])
+
+    const selectedSellerEntry = selectedSeller ? displayRanking.find(s => s.user_id === selectedSeller) : null
 
     if (loading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
@@ -162,16 +163,16 @@ function GlobalRanking() {
                         {lojas.length} UNIDADES • {totalVendedores} VENDEDORES • MERITOCRACIA EM TEMPO REAL
                     </Typography>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs">
-                        <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                    <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs" role="tablist" aria-label="Modo da classificação">
+                        <button type="button" role="tab" aria-selected={viewMode === 'leaderboard'} onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Classificação
                         </button>
-                        <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                        <button type="button" role="tab" aria-selected={viewMode === 'battle'} onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
                         </button>
-                        <button onClick={() => setViewMode('store-arena')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'store-arena' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                        <button type="button" role="tab" aria-selected={viewMode === 'store-arena'} onClick={() => setViewMode('store-arena')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'store-arena' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Building2 size={14} /> Arena Lojas
                         </button>
                     </div>
@@ -226,10 +227,19 @@ function GlobalRanking() {
                 ))}
             </div>
 
+            {error && (
+                <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
+                    {error}
+                </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-mx-sm shrink-0 mb-6">
                 <div className="relative group flex-1">
                     <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                     <Input
+                        id="ranking-global-search"
+                        name="ranking-global-search"
+                        aria-label="Localizar vendedor ou loja"
                         placeholder="LOCALIZAR VENDEDOR OU LOJA..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -269,10 +279,10 @@ function GlobalRanking() {
                                  </p>
                              </div>
                         )}
-                        
+
                         <div className="relative mb-10">
                              {battleOpponents.length > 0 && (
-                                <button onClick={() => setBattleOpponents([])} className="absolute top-mx-0 right-mx-0 z-50 p-mx-xs bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
+                                <button type="button" aria-label="Limpar seleção de vendedores" onClick={() => setBattleOpponents([])} className="absolute top-mx-0 right-mx-0 z-50 p-mx-xs bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
                                     <X className="w-mx-sm h-mx-sm" />
                                 </button>
                              )}
@@ -284,9 +294,11 @@ function GlobalRanking() {
                             {displayRanking.map(seller => {
                                 const selected = battleOpponents.includes(seller.user_id)
                                 return (
-                                    <button 
+                                    <button
+                                        type="button"
                                         key={seller.user_id}
                                         onClick={() => toggleOpponent(seller.user_id)}
+                                        aria-pressed={selected}
                                         className={`p-mx-md rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-mx-sm relative overflow-hidden group active:scale-95
                                             ${selected ? 'bg-mx-black border-brand-primary shadow-xl scale-105' : 'bg-white/40 border-white/40 hover:bg-white hover:border-white'}`}
                                     >
@@ -324,7 +336,7 @@ function GlobalRanking() {
 
                                 <div className="relative mb-10">
                                     {storeOpponents.length > 0 && (
-                                        <button onClick={() => setStoreOpponents([])} aria-label="Limpar seleção de lojas" className="absolute top-mx-0 right-mx-0 z-50 p-mx-xs bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
+                                        <button type="button" onClick={() => setStoreOpponents([])} aria-label="Limpar seleção de lojas" className="absolute top-mx-0 right-mx-0 z-50 p-mx-xs bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
                                             <X className="w-mx-sm h-mx-sm" />
                                         </button>
                                     )}
@@ -387,7 +399,7 @@ function GlobalRanking() {
                             {podiumOrder.map((seller) => {
                                 const isFirst = seller.position === 1
                                 const isSecond = seller.position === 2
-                                
+
                                 return (
                                     <div key={seller.user_id} onClick={() => setSelectedSeller(seller.user_id)} className={`flex flex-col items-center group cursor-pointer transition-transform duration-500 hover:-translate-y-2 z-10 ${isFirst ? '-mb-4 sm:-mb-0' : ''}`}>
                                         <div className="relative mb-3 flex flex-col items-center">
@@ -486,8 +498,10 @@ function GlobalRanking() {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <button 
+                                                    <button
+                                                      type="button"
                                                       onClick={(e) => { e.stopPropagation(); toggleOpponent(r.user_id); setViewMode('battle') }}
+                                                      aria-label={`Desafiar ${r.user_name} para X1`}
                                                       className={`ml-0 sm:ml-4 p-mx-sm rounded-xl transition-all border group/btn sm:hover:scale-110 active:scale-95 w-full sm:w-auto flex items-center justify-center ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
                                                       title="Desafiar para X1"
                                                     >
@@ -504,10 +518,10 @@ function GlobalRanking() {
                 )}
             </div>
 
-            {selectedSeller && (
-                <SellerProfileModal 
-                    seller={displayRanking.find(s => s.user_id === selectedSeller)!}
-                    onClose={() => setSelectedSeller(null)} 
+            {selectedSellerEntry && (
+                <SellerProfileModal
+                    seller={selectedSellerEntry}
+                    onClose={() => setSelectedSeller(null)}
                 />
             )}
         </main>
@@ -517,10 +531,10 @@ function GlobalRanking() {
 
 function StoreRankingView() {
     const { profile } = useAuth()
-    const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
+    const { ranking, loading: rankingLoading, error: rankingError, refetch: refetchRanking } = useRanking()
     const { checkins, loading: checkinsLoading, fetchCheckins } = useCheckins()
     const { metaRules, fetchMetaRules } = useStoreMetaRules()
-    
+
     const [viewMode, setViewMode] = useState<'leaderboard' | 'battle'>('leaderboard')
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
@@ -529,8 +543,11 @@ function StoreRankingView() {
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)
-        await Promise.all([refetchRanking(), fetchCheckins(), fetchMetaRules()])
-        setIsRefetching(false)
+        try {
+            await Promise.all([refetchRanking(), fetchCheckins(), fetchMetaRules()])
+        } finally {
+            setIsRefetching(false)
+        }
     }, [refetchRanking, fetchCheckins, fetchMetaRules])
 
     const storeSales = useStoreSales({
@@ -543,7 +560,7 @@ function StoreRankingView() {
         return (storeSales.processedRanking || []).filter(r => r.user_name.toLowerCase().includes(searchTerm.toLowerCase()) && !r.is_venda_loja)
     }, [storeSales.processedRanking, searchTerm])
 
-    // Podium 
+    // Podium
     const top3 = [...sortedRanking].sort((a, b) => a.position - b.position).slice(0, 3)
     const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean)
 
@@ -555,6 +572,9 @@ function StoreRankingView() {
             else setBattleOpponents([battleOpponents[0], id])
         }
     }
+    const selectedSellerEntry = selectedSeller
+        ? sortedRanking.find(s => s.user_id === selectedSeller) || (storeSales.processedRanking || []).find(s => s.user_id === selectedSeller) || null
+        : null
 
     if (rankingLoading || checkinsLoading) return (
         <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
@@ -573,13 +593,13 @@ function StoreRankingView() {
                     </div>
                     <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">Meritocracia Real-time • MX ELITE TRACKING</Typography>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
-                    <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs">
-                        <button onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                    <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs" role="tablist" aria-label="Modo da classificação da loja">
+                        <button type="button" role="tab" aria-selected={viewMode === 'leaderboard'} onClick={() => setViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Trophy size={14} /> Classificação
                         </button>
-                        <button onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
+                        <button type="button" role="tab" aria-selected={viewMode === 'battle'} onClick={() => setViewMode('battle')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'battle' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
                             <Swords size={14} /> Arena X1
                         </button>
                     </div>
@@ -619,6 +639,12 @@ function StoreRankingView() {
                 ))}
             </div>
 
+            {rankingError && (
+                <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
+                    {rankingError}
+                </div>
+            )}
+
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 {viewMode === 'battle' && (
                     <div className="animate-slide-up">
@@ -629,10 +655,10 @@ function StoreRankingView() {
                                  </p>
                              </div>
                         )}
-                        
+
                         <div className="relative mb-10">
                              {battleOpponents.length > 0 && (
-                                <button onClick={() => setBattleOpponents([])} className="absolute top-mx-0 right-mx-0 z-50 p-mx-xs bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
+                                <button type="button" aria-label="Limpar seleção de vendedores" onClick={() => setBattleOpponents([])} className="absolute top-mx-0 right-mx-0 z-50 p-mx-xs bg-white/10 text-text-tertiary hover:text-status-error hover:bg-status-error-surface rounded-full transition-colors">
                                     <X className="w-mx-sm h-mx-sm" />
                                 </button>
                              )}
@@ -644,7 +670,7 @@ function StoreRankingView() {
                             {sortedRanking.map(seller => {
                                 const selected = battleOpponents.includes(seller.user_id)
                                 return (
-                                    <button 
+                                    <button
                                         key={seller.user_id}
                                         onClick={() => toggleOpponent(seller.user_id)}
                                         className={`p-mx-md rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-mx-sm relative overflow-hidden group active:scale-95
@@ -673,7 +699,7 @@ function StoreRankingView() {
                             {podiumOrder.map((seller) => {
                                 const isFirst = seller.position === 1
                                 const isSecond = seller.position === 2
-                                
+
                                 return (
                                     <div key={seller.user_id} onClick={() => setSelectedSeller(seller.user_id)} className={`flex flex-col items-center group cursor-pointer transition-transform duration-500 hover:-translate-y-2 z-10 ${isFirst ? '-mb-4 sm:-mb-0' : ''}`}>
                                         <div className="relative mb-3 flex flex-col items-center">
@@ -709,7 +735,7 @@ function StoreRankingView() {
                         {/* LIST */}
                         <div className="relative group w-full max-w-sm mb-4">
                             <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
-                            <Input placeholder="LOCALIZAR VENDEDOR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="!pl-11 !h-mx-14 !text-mx-tiny uppercase tracking-widest font-black" />
+                            <Input id="ranking-store-search" name="ranking-store-search" aria-label="Localizar vendedor" placeholder="LOCALIZAR VENDEDOR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="!pl-11 !h-mx-14 !text-mx-tiny uppercase tracking-widest font-black" />
                         </div>
 
                         <ol className="grid gap-mx-lg m-mx-0 p-mx-0 list-none w-full max-w-full">
@@ -773,7 +799,7 @@ function StoreRankingView() {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <button 
+                                                    <button
                                                       onClick={(e) => { e.stopPropagation(); toggleOpponent(r.user_id); setViewMode('battle') }}
                                                       className={`ml-0 sm:ml-4 p-mx-sm rounded-xl transition-all border group/btn sm:hover:scale-110 active:scale-95 w-full sm:w-auto flex items-center justify-center ${isBattleSelected ? 'bg-brand-primary border-brand-primary text-mx-black shadow-mx-glow-brand' : 'bg-surface-alt border-border-default text-text-tertiary hover:border-brand-primary hover:text-brand-primary'}`}
                                                       title="Desafiar para X1"
@@ -791,10 +817,10 @@ function StoreRankingView() {
                 )}
             </div>
 
-            {selectedSeller && (
-                <SellerProfileModal 
-                    seller={sortedRanking.find(s => s.user_id === selectedSeller) || (storeSales.processedRanking || []).find(s => s.user_id === selectedSeller)!} 
-                    onClose={() => setSelectedSeller(null)} 
+            {selectedSellerEntry && (
+                <SellerProfileModal
+                    seller={selectedSellerEntry}
+                    onClose={() => setSelectedSeller(null)}
                 />
             )}
         </main>

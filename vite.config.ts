@@ -38,7 +38,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
-        globIgnores: ['**/vendor-pdf*.js', '**/vendor-charts*.js', '**/vendor-export*.js'],
+        globIgnores: ['**/vendor-html2pdf*.js', '**/vendor-html2canvas*.js', '**/vendor-jspdf*.js', '**/vendor-charts*.js', '**/vendor-export*.js'],
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/pre-cadastro(?:\/|$)/],
@@ -82,14 +82,18 @@ export default defineConfig({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
-          'vendor-ui': ['lucide-react', 'motion', 'sonner'],
-          'vendor-charts': ['recharts'],
-          'vendor-export': ['xlsx'],
-          'vendor-pdf': ['html2pdf.js', 'jspdf'],
-          'vendor-supabase': ['@supabase/supabase-js'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('react-dom') || id.includes('react-router-dom') || /node_modules\/react\//.test(id)) return 'vendor-react';
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) return 'vendor-utils';
+          if (id.includes('lucide-react') || id.includes('motion') || id.includes('sonner')) return 'vendor-ui';
+          if (id.includes('recharts')) return 'vendor-charts';
+          if (id.includes('xlsx')) return 'vendor-export';
+          if (id.includes('html2canvas')) return 'vendor-html2canvas';
+          if (id.includes('html2pdf.js')) return 'vendor-html2pdf';
+          if (id.includes('jspdf')) return 'vendor-jspdf';
+          if (id.includes('@supabase/supabase-js')) return 'vendor-supabase';
+          return undefined;
         },
       },
     },

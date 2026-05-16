@@ -3,8 +3,8 @@ import requests
 BASE_URL = "http://localhost:3000"
 AUTH_URL = f"{BASE_URL}/auth/v1/token?grant_type=password"
 FEEDBACKS_URL = f"{BASE_URL}/rest/v1/feedbacks"
-USERNAME = "admin@mxperformance.com.br"
-PASSWORD = "Mx#2026!"
+USERNAME = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 TIMEOUT = 30
 
 def test_TC010_verify_feedbacks_list_endpoint():

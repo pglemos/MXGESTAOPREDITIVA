@@ -9,6 +9,7 @@ import type { Store } from '@/types/database'
 import type { StoreUpdateFields } from '@/hooks/useTeam'
 import { getPreRegistrationLink } from '@/lib/utils'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
+import { toast } from 'sonner'
 
 interface StoreEditModalProps {
   open: boolean
@@ -61,6 +62,16 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
     })
   }
 
+  const handleCopyRegistrationLink = async () => {
+    if (!registrationLink) return
+    try {
+      await navigator.clipboard.writeText(registrationLink)
+      toast.success('Link de pré-cadastro copiado.')
+    } catch {
+      toast.error('Não foi possível copiar o link.')
+    }
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!store) return
@@ -107,7 +118,7 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => registrationLink && navigator.clipboard?.writeText(registrationLink)}
+              onClick={() => void handleCopyRegistrationLink()}
               className="shrink-0 rounded-mx-xl"
             >
               <Copy size={14} className="mr-2" />

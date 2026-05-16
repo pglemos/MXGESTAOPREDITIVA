@@ -3,8 +3,8 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 
 def test_login_gerente_and_navigate_modules():
     base_url = "http://localhost:3000"
-    email = "gerente@mxperformance.com.br"
-    password = "Mx#2026!"
+    email = "gerente@mxperformance.test"
+    password = "TESTSPRITE_PASSWORD_REQUIRED"
 
     modules = [
         ("Painel", "/painel", "css=h1:has-text('Painel')"),

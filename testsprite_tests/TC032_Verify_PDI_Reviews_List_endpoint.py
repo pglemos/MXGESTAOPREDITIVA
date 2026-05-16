@@ -3,8 +3,8 @@ import requests
 BASE_URL = "http://localhost:3000"
 AUTH_URL = f"{BASE_URL}/auth/v1/token?grant_type=password"
 PDI_REVIEWS_URL = f"{BASE_URL}/rest/v1/pdi_reviews"
-EMAIL = "admin@mxperformance.com.br"
-PASSWORD = "Mx#2026!"
+EMAIL = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 TIMEOUT = 30
 
 

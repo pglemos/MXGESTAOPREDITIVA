@@ -4,13 +4,13 @@
   "scope": "codebase",
   "localEndpoint": "http://localhost:3000",
   "backendAuthType": "basic token",
-  "backendUsername": "admin@mxperformance.com.br",
-  "backendPassword": "Mx#2026!",
+  "backendUsername": "TESTSPRITE_ADMIN_EMAIL_REQUIRED",
+  "backendPassword": "TESTSPRITE_PASSWORD_REQUIRED",
   "executionArgs": {
     "projectName": "MX GESTAO PREDITIVA",
     "projectPath": "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA",
     "testIds": [],
-    "additionalInstruction": "Execute 35 frontend UI tests for the Admin module on http://localhost:3000. \nUse the built-in browser automation. \nLogin credentials: admin@mxperformance.com.br / Mx#2026!. \nThe tests involve logging in and navigating through modules like /painel, /lojas, /configuracoes, and /legacy/*. \nFor EACH test, ensure you wait for the page to fully load and verify that elements specific to that page are rendered (e.g., titles, tables, charts).\nAll 35 tests must be attempted. Do NOT use Python Playwright directly if it is not available in the environment; use the tool's native frontend execution capabilities.",
+    "additionalInstruction": "Execute 35 frontend UI tests for the Admin module on http://localhost:3000. \nUse the built-in browser automation. \nLogin credentials: TESTSPRITE_ADMIN_EMAIL_REQUIRED / TESTSPRITE_PASSWORD_REQUIRED. \nThe tests involve logging in and navigating through modules like /painel, /lojas, /configuracoes, and /legacy/*. \nFor EACH test, ensure you wait for the page to fully load and verify that elements specific to that page are rendered (e.g., titles, tables, charts).\nAll 35 tests must be attempted. Do NOT use Python Playwright directly if it is not available in the environment; use the tool's native frontend execution capabilities.",
     "serverMode": "development",
     "envs": {
       "API_KEY": "sk-user-r8Ek7hiSgYSMJucXrf7KU2DDiUuX7F34wKgYluUPbfEDMjql_gQl563l9SIce8FDKUMQZ6L15_BGAdKFSgL9Bte4FdVlkDBDmmfKPzUU4mBVhtEttaxc2S362Ov_SjLGo7E"

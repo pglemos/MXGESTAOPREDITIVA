@@ -6,10 +6,10 @@
 
 | Nome | Email | Ação | User ID | Detalhe |
 |------|-------|------|---------|---------|
-| Daniel | `danieljsvendas@gmail.com` | **updated_role** | dd230118-e1bc-4edc-a7dc-1a0d4155507d | admin garantido; senha temporária 123456; must_change_password=true |
-| Gedson | `gedson.freire.localiza@gmail.com` | **updated_role** | e8fabb79-6111-4c0c-ba56-113544148f7a | admin garantido; senha temporária 123456; must_change_password=true |
-| João | `camarajoaoaugusto@gmail.com` | **updated_role** | b08360de-69a5-4f44-8127-bc355a54b152 | admin garantido; senha temporária 123456; must_change_password=true |
-| Mariane | `marianedcs@gmail.com` | **updated_role** | e4d3e8e9-0129-406d-a343-a7f09fd6abd4 | admin garantido; senha temporária 123456; must_change_password=true |
+| Daniel | `[EMAIL_REDACTED]` | **updated_role** | dd230118-e1bc-4edc-a7dc-1a0d4155507d | admin garantido; senha temporária [SENHA_TEMPORARIA_REDACTED]; must_change_password=true |
+| Gedson | `[EMAIL_REDACTED]` | **updated_role** | e8fabb79-6111-4c0c-ba56-113544148f7a | admin garantido; senha temporária [SENHA_TEMPORARIA_REDACTED]; must_change_password=true |
+| João | `[EMAIL_REDACTED]` | **updated_role** | b08360de-69a5-4f44-8127-bc355a54b152 | admin garantido; senha temporária [SENHA_TEMPORARIA_REDACTED]; must_change_password=true |
+| Mariane | `[EMAIL_REDACTED]` | **updated_role** | e4d3e8e9-0129-406d-a343-a7f09fd6abd4 | admin garantido; senha temporária [SENHA_TEMPORARIA_REDACTED]; must_change_password=true |
 
 ## Próximos passos
 

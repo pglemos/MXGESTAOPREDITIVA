@@ -6,12 +6,12 @@ Ready for Review
 
 ## Contexto
 
-A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com senha provisória `123456`, troca obrigatória no primeiro login e um fluxo público de "Esqueci minha senha" na tela de login.
+A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com senha provisória `[SENHA_TEMPORARIA_REDACTED]`, troca obrigatória no primeiro login e um fluxo público de "Esqueci minha senha" na tela de login.
 
 ## Acceptance Criteria
 
-- [x] Garantir `marianedcs@gmail.com` como `administrador_geral`, ativa e confirmada.
-- [x] Resetar senha provisória para `123456` e marcar `must_change_password=true`.
+- [x] Garantir `[EMAIL_REDACTED]` como `administrador_geral`, ativa e confirmada.
+- [x] Resetar senha provisória para `[SENHA_TEMPORARIA_REDACTED]` e marcar `must_change_password=true`.
 - [x] Adicionar botão "Esqueci minha senha" na tela `/login` preservando o design atual.
 - [x] Enviar recovery pelo Supabase Auth com redirect para `/login?recovery=1`.
 - [x] Permitir definir nova senha via link de recovery e limpar `must_change_password`.
@@ -26,8 +26,8 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 ### Debug Log
 
 - Story criada a partir de requisito operacional direto do usuário.
-- Conta `marianedcs@gmail.com` validada no live: Auth existe, e-mail confirmado, role `administrador_geral`, active `true`.
-- Senha provisória resetada para `123456` com `must_change_password=true`.
+- Conta `[EMAIL_REDACTED]` validada no live: Auth existe, e-mail confirmado, role `administrador_geral`, active `true`.
+- Senha provisória resetada para `[SENHA_TEMPORARIA_REDACTED]` com `must_change_password=true`.
 - Implementado fluxo público de recuperação em `/login`: login, solicitação de reset e definição de nova senha por sessão de recovery.
 - E2E local `auth-password-recovery.playwright.ts` passou no Chromium.
 - Gates locais passaram: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.

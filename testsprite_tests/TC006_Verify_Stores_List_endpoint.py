@@ -1,8 +1,8 @@
 import requests
 
 BASE_URL = "http://localhost:3000"
-USERNAME = "admin@mxperformance.com.br"
-PASSWORD = "Mx#2026!"
+USERNAME = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 TIMEOUT = 30
 
 def test_TC006_verify_stores_list_endpoint():

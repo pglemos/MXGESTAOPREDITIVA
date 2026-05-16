@@ -5,8 +5,8 @@ AUTH_URL = f"{BASE_URL}/auth/v1/token?grant_type=password"
 TRAINING_PROGRESS_URL = f"{BASE_URL}/rest/v1/training_progress"
 TIMEOUT = 30
 
-ADMIN_USERNAME = "admin@mxperformance.com.br"
-ADMIN_PASSWORD = "Mx#2026!"
+ADMIN_USERNAME = "TESTSPRITE_ADMIN_EMAIL_REQUIRED"
+ADMIN_PASSWORD = "TESTSPRITE_PASSWORD_REQUIRED"
 
 def test_verify_training_progress_list_admin():
     # Step 1: Authenticate as admin to get access token
