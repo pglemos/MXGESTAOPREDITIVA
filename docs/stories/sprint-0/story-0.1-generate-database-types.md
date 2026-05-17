@@ -1,6 +1,6 @@
 # Story 0.1 — Generate Database Types (Supabase CLI + CI Diff Gate)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0
@@ -34,12 +34,13 @@ Destrava 58 arquivos para refactors futuros, elimina classe inteira de bugs por 
 - Integração com schema dump multi-schema (Sprint 1 prep).
 
 ## Tasks
-- [ ] Configurar Supabase CLI linked no projeto.
-- [ ] Rodar primeira geração e commitar baseline.
-- [ ] Adicionar script `gen:db-types` e `verify:db-types` em `package.json`.
-- [ ] Criar workflow CI `db-types-diff.yml` com `actions/checkout` + `supabase/setup-cli` + diff check.
-- [ ] Validar gate falhando em PR sintético com schema alterado sem regen.
-- [ ] Escrever `docs/dev/database-types-workflow.md`.
+- [x] Configurar Supabase CLI linked no projeto. (já linkado: fbhcmzzgwjdgkctlfvbo)
+- [x] Rodar primeira geração e commitar baseline. (`src/types/database.generated.ts`, 6180 LOC)
+- [x] Adicionar script `gen:db-types` e `verify:db-types` em `package.json`.
+- [x] Criar workflow CI `db-types-diff.yml` com `actions/checkout` + `supabase/setup-cli` + diff check.
+- [ ] Validar gate falhando em PR sintético com schema alterado sem regen. (aguarda secrets configurados no GitHub)
+- [x] Escrever `docs/dev/database-types-workflow.md`.
+- [x] EXTRA: ADR-0041 documentando plano de migração faseada dos 58 consumers.
 
 ## Dependências
 - **Bloqueada por:** Story 0.2 (secrets Supabase válidos para CLI linked).
@@ -77,3 +78,12 @@ Destrava 58 arquivos para refactors futuros, elimina classe inteira de bugs por 
 
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10)
+- 2026-05-17 | @dev (Dex) | Status: Ready → InReview | Baseline gerado, CI gate criado, ADR-0041 publicada. Pendente: configurar secrets SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_ID no GitHub para validação PR sintético.
+
+## File List
+- ADDED: `src/types/database.generated.ts` (6175 LOC, autogerado)
+- ADDED: `scripts/gen_db_types.mjs` (helper para limpar banner/rodape da CLI)
+- MODIFIED: `package.json` (+ scripts `gen:db-types`, `verify:db-types`)
+- ADDED: `.github/workflows/db-types-diff.yml`
+- ADDED: `docs/dev/database-types-workflow.md`
+- ADDED: `docs/adr/0041-database-types-migration.md`

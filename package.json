@@ -29,6 +29,8 @@
     "validate:e2e:live": "tsx scripts/validate_live_end_to_end.ts",
     "validate:admin-master:e2e:live": "node scripts/validate_admin_master_full_e2e.mjs",
     "supabase:update-recovery-email": "node scripts/update_supabase_recovery_email_template.mjs",
+    "gen:db-types": "node scripts/gen_db_types.mjs",
+    "verify:db-types": "npm run gen:db-types && git diff --exit-code src/types/database.generated.ts",
     "consultoria:carregar-parametros": "tsx scripts/consultoria_carregar_parametros.ts",
     "consultoria:importar-fechamento-mensal": "tsx scripts/consultoria_importar_fechamento_mensal.ts",
     "consultoria:sincronizar-metricas-pmr": "tsx scripts/consultoria_sincronizar_metricas_pmr.ts",
