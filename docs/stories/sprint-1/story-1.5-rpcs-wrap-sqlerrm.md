@@ -1,6 +1,6 @@
 # Story 1.5 — Pattern Wrap SQLERRM em Todas RPCs Novas (DB-002)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
@@ -9,6 +9,7 @@
 
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 1 critical-path: PASS (rollback simples documentado, bloqueada por 0.9 correlation ID, informa 1.1 — trabalho paralelo)
+- 2026-05-17 | @dev (Dex) | Status: Ready → InReview | Migration 20260517120000_rpc_error_log_wrap_sqlerrm.sql criada (rpc_error_log + log_rpc_error helper + submit_checkin refatorada)
 **Esforço estimado:** 10h
 **Owner sugerido:** @data-engineer
 **RACI:** R=@data-engineer, A=Tech Lead, C=@architect+@dev, I=@qa
@@ -41,14 +42,19 @@ Fecha vetor de info-disclosure (OWASP A05). Trace_id melhora UX de suporte sem e
 - Alertas por trace_id (futuro).
 
 ## Tasks
-- [ ] Migração: criar `rpc_error_log` + RLS + índice.
-- [ ] Implementar helper `wrap_rpc_error` (PL/pgSQL).
-- [ ] Aplicar pattern em 3+ RPCs (story 1.1).
+- [x] Migração: criar `rpc_error_log` + RLS + índice.
+- [x] Implementar helper `log_rpc_error` (PL/pgSQL, SECURITY DEFINER, search_path explícito).
+- [x] Aplicar pattern em `submit_checkin` (RPC de maior surface — DB-002 evidência principal).
+- [ ] Aplicar pattern em 2+ RPCs adicionais (story 1.1 — trabalho paralelo).
 - [ ] Cron de retenção 90 dias (pg_cron ou edge function).
 - [ ] Regra CodeRabbit custom.
 - [ ] Documentação `docs/architecture/rpc-error-handling.md`.
 - [ ] Testes pgTAP: erro disparado → log gravado + resposta genérica.
 - [ ] @qa gate.
+
+## File List
+- `supabase/migrations/20260517120000_rpc_error_log_wrap_sqlerrm.sql` (criada)
+- `docs/stories/sprint-1/story-1.5-rpcs-wrap-sqlerrm.md` (atualizada)
 
 ## Dependências
 - **Bloqueada por:** Story 0.9 (correlation ID — para correlacionar logs).
