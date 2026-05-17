@@ -1,6 +1,6 @@
 # Story 1.6 — Validar `vendedores_loja.is_active` em `submit_checkin` (DB-001)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
@@ -9,6 +9,7 @@
 
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 1 critical-path: PASS (rollback cirúrgico revert RPC, bloqueada por 1.5, hotfix path para falso-positivo, smoke 0.6 atualizado)
+- 2026-05-17 | @dev (Dex) | Status: Ready → InReview | Patch SQL aplicado em nova migration `20260517130000_submit_checkin_validate_vendedor.sql` (CREATE OR REPLACE FUNCTION sobre versão Story 1.5/DB-002). Mantém wrap SQLERRM + log_rpc_error; adiciona check `vendedores_loja.is_active` quando `seller_id` informado e caller não-interno; retorna `{ok:false, error, error_code:'vendor_inactive'}`. Tasks DB done; pgTAP/UX FE/smoke pendentes para complementação.
 **Esforço estimado:** 6h
 **Owner sugerido:** @data-engineer
 **RACI:** R=@data-engineer, A=Tech Lead, C=@dev+@qa, I=stakeholders
@@ -40,12 +41,15 @@ Fecha furo de integridade em fluxo financeiro crítico. Reduz disputas de RH e c
 - UI para gestor ativar/desativar vendedor (já existente — fora do escopo).
 
 ## Tasks
-- [ ] Aplicar patch SQL conforme db-specialist-review §DB-001.
-- [ ] Integrar pattern wrap-sqlerrm (story 1.5).
+- [x] Aplicar patch SQL conforme db-specialist-review §DB-001.
+- [x] Integrar pattern wrap-sqlerrm (story 1.5).
 - [ ] Tratamento UX no FE para `vendor_inactive`.
 - [ ] Testes pgTAP: 4 cenários.
 - [ ] Smoke test (story 0.6) atualizado.
 - [ ] CodeRabbit + @qa gate.
+
+## File List
+- `supabase/migrations/20260517130000_submit_checkin_validate_vendedor.sql` (new) — CREATE OR REPLACE submit_checkin com check vendedores_loja.is_active + wrap SQLERRM preservado.
 
 ## Dependências
 - **Bloqueada por:** Story 1.5 (pattern wrap-sqlerrm), Sprint 0 done.
