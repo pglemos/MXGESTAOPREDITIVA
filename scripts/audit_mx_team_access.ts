@@ -96,7 +96,7 @@ async function auditOne(email: string, name: string): Promise<AuditRow> {
   }
 
   const recommendation = (() => {
-    if (!authUser && !publicProfile) return 'PROVISIONAR (novo usuário com role administrador_geral + senha 123456)'
+    if (!authUser && !publicProfile) return 'PROVISIONAR (novo usuário com role administrador_geral + senha temporária válida)'
     if (authUser && publicProfile?.role === 'administrador_geral') return 'JÁ EXISTE COMO ADMIN MASTER — somente revisar vínculos se necessário'
     if (authUser && publicProfile && publicProfile.role !== 'administrador_geral') {
       return `ATUALIZAR ROLE de "${publicProfile.role}" → "administrador_geral" (decisão manual do PO antes de aplicar)`
@@ -158,7 +158,7 @@ ${rows
 
 ${
   allReady
-    ? '1. Compartilhar credenciais usando `docs/templates/welcome-message-mx-admin.md`.\n2. Cada colaborador faz login com `123456` e troca a senha no primeiro acesso.'
+    ? '1. Compartilhar credenciais usando `docs/templates/welcome-message-mx-admin.md`.\n2. Cada colaborador faz login com a senha temporária gerada e troca a senha no primeiro acesso.'
     : '1. PO revisa este relatório.\n2. Para cada linha "PROVISIONAR": rodar `tsx scripts/provision_mx_team.ts --apply`.\n3. Para cada linha "ATUALIZAR ROLE": confirmar com PO antes de aplicar UPDATE.\n4. Auditoria final: rodar este script novamente após provisionamento e arquivar.'
 }
 

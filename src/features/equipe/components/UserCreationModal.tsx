@@ -215,9 +215,9 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                               name="new_user_password"
                               autoComplete="new-password"
                               required
-                              minLength={10}
-                              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}"
-                              type="password" placeholder="MIN. 10, Aa1#"
+                              minLength={6}
+                              pattern=".{6,}"
+                              type="password" placeholder="MÍN. 6 CARACTERES"
                               value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})}
                               className="w-full h-mx-14 pl-12 pr-mx-md bg-surface-alt border border-border-default rounded-mx-xl text-text-primary font-bold focus:outline-none focus:border-brand-primary/50 focus:bg-white transition-all placeholder:text-text-tertiary/50"
                             />

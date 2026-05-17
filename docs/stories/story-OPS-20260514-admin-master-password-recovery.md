@@ -34,15 +34,37 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - Deploy de produção criado e alias atualizado para `https://mxperformance.vercel.app`.
 - E2E live passou contra `https://mxperformance.vercel.app`.
 - Login live da Mariane com senha provisória abriu o modal `Segurança MX`; a sessão foi encerrada sem trocar a senha pessoal.
+- Incidente 2026-05-17: reset manual reportado para `danieljsvendas@gmail.com` falhava porque a política anterior exigia mínimo 10 caracteres e composição rígida.
+- Corrigido `/login?recovery=1` para aceitar tanto recovery por hash (`access_token`/`refresh_token`) quanto por query `code`, limpando tokens da URL após criar sessão.
+- Corrigido envio administrativo de redefinição para redirecionar explicitamente para `/login?recovery=1`.
+- Criado script operacional seguro `scripts/reset_user_password.ts` com dry-run, validação de mínimo 6 caracteres, geração opcional, atualização Auth + `usuarios.must_change_password=true` e validação de login via anon key.
+- Scripts legados de reset/provisionamento passaram a rejeitar senha curta antes de chamar Supabase; `provision_mx_team.ts` não usa mais `123456` para novos Admin Master MX.
+- Dry-run do novo script confirmou que `danieljsvendas@gmail.com` pode ser resetado pelo processo operacional seguro.
+- Gates locais 2026-05-17 passaram: `bun test src/lib/auth/passwordPolicy.test.ts`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npx playwright test src/test/auth-password-recovery.playwright.ts --project=chromium`.
 
 ### Completion Notes
 
 - Conta da Mariane pronta para primeiro acesso com senha provisória e troca obrigatória.
 - Recovery de senha validado com usuário E2E controlado; não foi afirmada entrega no inbox pessoal da Mariane.
+- Processo de reset agora bloqueia apenas senhas com menos de 6 caracteres antes da gravação, evitando falso sucesso operacional.
+- Para o caso Daniel, a senha solicitada passa na validação do app por ter 8 caracteres.
+- Reset aplicado e validado para `danieljsvendas@gmail.com` com `must_change_password=true`.
 
 ### File List
 
 - `docs/stories/story-OPS-20260514-admin-master-password-recovery.md`
+- `scripts/README.md`
+- `scripts/provision_mx_team.ts`
+- `scripts/reset_admin_single.ts`
+- `scripts/reset_passwords.ts`
+- `scripts/reset_passwords_v2.ts`
+- `scripts/reset_user_password.ts`
+- `src/features/configuracoes/components/EditUserModal.tsx`
+- `src/features/auth/components/ForcePasswordChange.tsx`
+- `src/features/configuracoes/components/tabs/SegurancaTab.tsx`
+- `src/features/equipe/components/UserCreationModal.tsx`
+- `src/lib/auth/passwordPolicy.ts`
+- `src/lib/auth/passwordPolicy.test.ts`
 - `src/pages/Login.tsx`
 - `src/test/auth-password-recovery.playwright.ts`
 - `src/test/e2e-helpers/supabase-admin.ts`

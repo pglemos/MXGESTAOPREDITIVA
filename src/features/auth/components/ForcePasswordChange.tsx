@@ -21,7 +21,7 @@ export function ForcePasswordChange() {
   const passwordStrength = useMemo(() => {
     if (!formData.password) return 0
     let strength = 0
-    if (formData.password.length >= 10) strength += 1
+    if (formData.password.length >= 6) strength += 1
     if (/[A-Z]/.test(formData.password)) strength += 1
     if (/[0-9]/.test(formData.password)) strength += 1
     if (/[^A-Za-z0-9]/.test(formData.password)) strength += 1
@@ -175,7 +175,7 @@ export function ForcePasswordChange() {
                 </div>
                 <Typography variant="tiny" tone="muted" className="uppercase font-black leading-relaxed tracking-tight">
                   Sua nova senha será validada pela malha de segurança <span className="text-mx-black">MX PERFORMANCE</span>. 
-                  Use símbolos e números para maior proteção.
+                  Use uma senha com pelo menos 6 caracteres.
                 </Typography>
               </div>
 

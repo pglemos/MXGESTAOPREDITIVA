@@ -86,7 +86,7 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
     const executeSendMagicLink = async () => {
         if (!user) return
         const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-            redirectTo: `${window.location.origin}/login`,
+            redirectTo: `${window.location.origin}/login?recovery=1`,
         })
         if (error) toast.error(error.message)
         else toast.success(`E-mail de redefinição enviado para ${user.email}`)

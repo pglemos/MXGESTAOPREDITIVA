@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
 import { resolve } from 'path'
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '../src/lib/auth/passwordPolicy'
 
 dotenv.config({ path: resolve(process.cwd(), '.env') })
 
@@ -18,8 +19,8 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
     throw new Error('VITE_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY sao obrigatorios.')
 }
 
-if (!newPassword || newPassword.length < 10) {
-    throw new Error('MX_RESET_PASSWORD deve ser definido com pelo menos 10 caracteres.')
+if (!newPassword || !isStrongPassword(newPassword)) {
+    throw new Error(PASSWORD_POLICY_MESSAGE)
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)

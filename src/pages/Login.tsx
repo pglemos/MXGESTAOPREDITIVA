@@ -15,6 +15,7 @@ function getInitialMode(): LoginMode {
     if (typeof window === 'undefined') return 'login'
     const params = new URLSearchParams(window.location.search)
     if (params.get('recovery') === '1') return 'recovery'
+    if (params.has('code')) return 'recovery'
     if (window.location.hash.includes('type=recovery') || window.location.hash.includes('access_token=')) return 'recovery'
     return 'login'
 }
@@ -30,6 +31,16 @@ function getRecoverySessionFromHash(): { accessToken: string; refreshToken: stri
     const refreshToken = params.get('refresh_token')
     if (!accessToken || !refreshToken) return null
     return { accessToken, refreshToken }
+}
+
+function getRecoveryCodeFromUrl(): string | null {
+    if (typeof window === 'undefined') return null
+    return new URLSearchParams(window.location.search).get('code')
+}
+
+function clearRecoveryTokensFromUrl() {
+    if (typeof window === 'undefined') return
+    window.history.replaceState(null, '', '/login?recovery=1')
 }
 
 export default function Login() {
@@ -76,7 +87,20 @@ export default function Login() {
                 })
                 if (sessionError && mounted) {
                     setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+                    return
                 }
+                clearRecoveryTokensFromUrl()
+                return
+            }
+
+            const recoveryCode = getRecoveryCodeFromUrl()
+            if (recoveryCode) {
+                const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(recoveryCode)
+                if (exchangeError && mounted) {
+                    setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+                    return
+                }
+                clearRecoveryTokensFromUrl()
                 return
             }
 

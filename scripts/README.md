@@ -55,7 +55,8 @@ Todos os scripts operacionais do projeto. Execute com `tsx` (`.ts`) ou `node` (`
 | `repair_sql.ts` | Reparo direto via SQL (Postgres) | `tsx scripts/repair_sql.ts` | cleanup |
 | `repair_system.ts` | Reparo de sistema auth + tabela users | `tsx scripts/repair_system.ts` | cleanup |
 | `reset_admin_password.mjs` | Reset de senha do admin via service role | `node scripts/reset_admin_password.mjs` | util |
-| `reset_admin_single.ts` | Reset de senha do admin único com dry-run padrão | `MX_RESET_PASSWORD='<senha>' tsx scripts/reset_admin_single.ts --apply` | util |
+| `reset_user_password.ts` | Reset seguro de senha por e-mail, com mínimo de 6 caracteres, confirmação Auth, `must_change_password=true` e validação de login | `MX_RESET_EMAIL='usuario@dominio.com' MX_RESET_PASSWORD='<senha com 6+ caracteres>' tsx scripts/reset_user_password.ts --apply` ou `tsx scripts/reset_user_password.ts --email usuario@dominio.com --generate --apply` | util |
+| `reset_admin_single.ts` | Reset legado de senha do admin único com dry-run padrão; prefira `reset_user_password.ts` | `MX_RESET_EMAIL='usuario@dominio.com' MX_RESET_PASSWORD='<senha com 6+ caracteres>' tsx scripts/reset_admin_single.ts --apply` | util |
 | `reset_passwords.ts` | Reset de senhas dos 4 usuários padrão com dry-run padrão | `MX_RESET_PASSWORD='<senha>' tsx scripts/reset_passwords.ts --apply` | util |
 | `reset_passwords_v2.ts` | Reset de senhas v2 com busca individual e dry-run padrão | `MX_RESET_PASSWORD='<senha>' tsx scripts/reset_passwords_v2.ts --apply` | util |
 | `restore_all_sellers.mjs` | Restauração de todos os vendedores do CSV | `node scripts/restore_all_sellers.mjs` | seed |

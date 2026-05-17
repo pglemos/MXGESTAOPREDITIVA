@@ -10,7 +10,7 @@
  *
  * Variáveis: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *
- * - Cada colaborador novo é criado com role=administrador_geral e senha 123456.
+ * - Cada colaborador novo é criado com role=administrador_geral e senha temporária válida.
  * - Contas existentes mantêm senha atual.
  * - must_change_password = true apenas para conta nova.
  * - Admins Master MX não recebem vínculo inicial, porque `vinculos_loja.role`
@@ -20,6 +20,7 @@ import { createClient } from '@supabase/supabase-js'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { config as loadEnv } from 'dotenv'
+import { generateStrongTemporaryPassword } from '../src/lib/auth/passwordPolicy'
 
 loadEnv()
 
@@ -49,14 +50,13 @@ const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-const DEFAULT_PASSWORD = '123456'
-
 interface ProvisionResult {
   name: string
   email: string
   action: 'created' | 'updated_role' | 'skipped' | 'error'
   detail: string
   user_id: string | null
+  temporaryPassword?: string
 }
 
 async function provision(email: string, name: string): Promise<ProvisionResult> {
@@ -113,14 +113,15 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
       name,
       email: lower,
       action: 'created',
-      detail: `[DRY-RUN] criaria usuário com password=${DEFAULT_PASSWORD}, role=administrador_geral, must_change_password=true`,
+      detail: '[DRY-RUN] criaria usuário com senha temporária válida, role=administrador_geral, must_change_password=true',
       user_id: null,
     }
   }
 
+  const temporaryPassword = generateStrongTemporaryPassword()
   const { data: created, error: createErr } = await supabase.auth.admin.createUser({
     email: lower,
-    password: DEFAULT_PASSWORD,
+    password: temporaryPassword,
     email_confirm: true,
     user_metadata: { name, role: 'administrador_geral', must_change_password: true },
   })
@@ -142,8 +143,9 @@ async function provision(email: string, name: string): Promise<ProvisionResult> 
     name,
     email: lower,
     action: 'created',
-    detail: `criado com senha temporária ${DEFAULT_PASSWORD}, must_change_password=true, sem membership inicial`,
+    detail: 'criado com senha temporária válida, must_change_password=true, sem membership inicial',
     user_id: userId,
+    temporaryPassword,
   }
 }
 
@@ -172,6 +174,9 @@ async function main() {
     const r = await provision(c.email, c.name)
     results.push(r)
     console.log(`[${r.action.padEnd(13)}] ${r.name.padEnd(10)} ${r.email.padEnd(36)} → ${r.detail}`)
+    if (r.temporaryPassword) {
+      console.log(`  senha temporária de ${r.email}: ${r.temporaryPassword}`)
+    }
   }
   await deactivateUnexpectedInternalUsers()
 

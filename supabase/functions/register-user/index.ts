@@ -16,10 +16,10 @@ interface RegisterUserPayload {
   is_venda_loja?: boolean
 }
 
-const PASSWORD_POLICY_MESSAGE = 'Password must be at least 10 characters and include uppercase, lowercase, number, and symbol'
+const PASSWORD_POLICY_MESSAGE = 'Password must be at least 6 characters'
 
 function isStrongPassword(password: string) {
-  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$/.test(password)
+  return password.length >= 6
 }
 
 function todayISO() {

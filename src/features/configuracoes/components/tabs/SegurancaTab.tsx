@@ -180,7 +180,7 @@ export function SegurancaTab() {
                 </header>
                 <div className="flex items-center justify-between">
                     <Typography variant="caption" tone="muted" className="font-bold leading-relaxed">
-                        2FA ainda não está disponível neste ambiente. A segurança ativa hoje é feita por senha forte, troca obrigatória e encerramento global de sessões.
+                        2FA ainda não está disponível neste ambiente. A segurança ativa hoje é feita por senha com mínimo de 6 caracteres, troca obrigatória e encerramento global de sessões.
                     </Typography>
                     <Badge variant="outline" className="font-black uppercase shrink-0">Indisponível</Badge>
                 </div>
