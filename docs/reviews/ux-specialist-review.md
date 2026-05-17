@@ -1,610 +1,308 @@
-# UX Specialist Review — Technical Debt Assessment
+# UX Specialist Review
+**Reviewer:** @ux-design-expert (Uma) | **Date:** 2026-05-16 | **Phase:** 6/10
+**DRAFT revisado:** `docs/prd/technical-debt-DRAFT.md` (Generated 2026-05-16)
+**Inputs cruzados:** `docs/frontend/frontend-spec.md`, `docs/reviews/db-specialist-review.md`
 
-**Responsável:** @ux-design-expert
-**Data:** 15 de Abril de 2026
-**Versão do DRAFT revisado:** 2.0
-**Gate Status:** ⚠️ NEEDS WORK
-
----
-
-## 1. Validação dos Débitos Existentes
-
-### UX-01 — Missing focus traps em modais (mobile menu, WizardPDI)
-
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | HIGH | ✅ **Confirmado — elevado para CRITICAL** |
-| Horas | 4h | ⬆️ Revisado para **6h** |
-| Prioridade | P1 | ✅ Mantido |
-
-**Análise técnica:**
-
-O mobile menu (`Layout.tsx:307-365`) declara `role="dialog"` e `aria-modal="true"` (L321) mas **não possui focus trap**. O foco escapa para o conteúdo subjacente ao pressionar Tab, violando [WCAG 2.4.3 Focus Order (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/focus-order.html) e [2.1.2 No Keyboard Trap (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/no-keyboard-trap.html) de forma dual: o foco não fica contido quando deveria, mas também não há mecanismo de escape via Escape key.
-
-O `WizardPDI.tsx:154-432` é ainda mais crítico: é um modal fullscreen multi-step com `role="dialog"` e `aria-modal="true"` (L157) contendo 4 etapas com `select`, `textarea`, `input[type=range]`, e `input[type=date]`. Sem focus trap, um usuário de teclado perde completamente a navegação. O Wizard contém `select` sem label associado (L196-210), `range` sem `aria-label` (L278-281), e `date` inputs sem label (L354-356).
-
-**Justificativa da elevação para CRITICAL:** Dois modais centrais da aplicação (navegação mobile + PDI) são inacessíveis por teclado. Isso bloqueia usuários de screen reader e impacta diretamente o fluxo de gestão de performance.
+> Esta revisão SUBSTITUI versão prévia v2.0 (15-abr-2026). Recalibrada para a estrutura UX-001..UX-020 do novo DRAFT e respondendo as 7 perguntas do @architect (DRAFT §7).
 
 ---
 
-### UX-02 — No skip navigation link
+## 1. Executive Summary
 
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | HIGH | ✅ **Confirmado** |
-| Horas | 1h | ✅ Mantido |
-| Prioridade | P1 | ✅ Mantido |
-
-**Análise técnica:**
-
-Nenhum `SkipNavLink`/`SkipNavContent` encontrado no código. O `Layout.tsx` renderiza o `<header>` (L142) com navegação complexa, sidebar com `aside` (L217), e `<main id="main-content">` (L260). Sem skip link, usuários de teclado devem tabular por ~30+ elementos interativos (logo button, store switcher, search, notificacoes, profile, sidebar buttons, drawer items) antes de alcançar o conteúdo principal. Viola [WCAG 2.4.1 Bypass Blocks (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/bypass-blocks.html).
-
-A implementação deve ser um link `<a href="#main-content" class="sr-only focus:not-sr-only ...">` como primeiro filho do `<div className="min-h-screen">` em `Layout.tsx:139`.
+- **Validados:** 20/20 confirmados (severidades ajustadas em 3, esforço refinado em todos)
+- **Adicionados:** 8 novos débitos (UX-021..UX-028) cobrindo dark mode, motion preferences, i18n roadmap, focus traps, skeleton screens detalhados, error boundaries, web vitals, bundle analyzer
+- **Total final UX:** **28 débitos** (4 Crítica · 9 Alta · 11 Média · 4 Baixa)
+- **Esforço total UX:** **520-720h** (range alto reflete decomposição + a11y + i18n)
+- **Maturidade design system:** 2/5 (atual) → 4/5 (após plano)
+- **Recomendação Gate QA (FASE 7):** **APPROVED viável** condicionado a Sprint 0 (P0 hardening tooling: gerar `database.types.ts`, lint a11y, focus traps), SEM a qual gate deve ser **NEEDS WORK**.
 
 ---
 
-### UX-03 — Reduced motion não respeitado
+## 2. Validação dos 20 Débitos
 
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | MEDIUM | ✅ **Confirmado — elevado para HIGH** |
-| Horas | 2h | ⬆️ Revisado para **4h** |
-| Prioridade | P2 | ⬆️ Elevado para **P1** |
+| ID | Status | Sev orig→final | Esforço(h) | Impacto UX | Design Review? | Justificativa |
+|----|--------|----------------|-----------|------------|----------------|---------------|
+| UX-001 | ✅ Confirmado | Crítica→Crítica | 100 (mid) | Funcional + manutenibilidade | SIM | 6 pages ≥809 LOC confirmadas (`MXPerformanceLanding` 1698, `DashboardLoja` 1409, `AgendaAdmin` 1318, `ConsultoriaClienteDetalhe` 953, `Ranking` 854, `GerenteFeedback` 809). Estratégia incremental viável — ver §4.1 |
+| UX-002 | ✅ Confirmado | Crítica→Crítica | 75 | Funcional (re-renders) | NÃO | `useAgendaAdmin.ts` 895 LOC, `useAuth.tsx` 585, `useCheckins.ts` 318 confirmados. Split por responsabilidade — ver §4.2 |
+| UX-003 | ✅ Confirmado | Crítica→Crítica | 32 | Visual + DS | SIM (baseline) | Landing isolada, primeiro candidato de migração (sem dependências internas de hooks da app) |
+| UX-004 | ✅ Confirmado | Crítica→Crítica | 12 (gen) + 24 (migrate) | Funcional (drift) | NÃO | 58 arquivos importam `src/types/database` — blast radius alto. Ver §4.4 |
+| UX-005 | ✅ Confirmado | Alta→Alta | 6 | Visual (futuro dark) | SIM (baseline) | `ConsultoriaClienteDetalhe.tsx:170-179` confirma 5+ hex literais. Ver §4.3 |
+| UX-006 | ✅ Confirmado | Alta→Alta | 8 | Drift silencioso | NÃO | Whitelist gera AST: 1-shot tool |
+| UX-007 | ✅ Confirmado | Alta→Alta | 32 | a11y (compliance) | SIM | WCAG AA é mandatório — ver §9 |
+| UX-008 | ✅ Confirmado | Alta→Alta | 40 | Perf percebida (CLS) | SIM | 7/42 pages com skeleton; padrão por route |
+| UX-009 | ✅ Confirmado | Alta→Alta | 50 | Funcional + UX | NÃO | 30+ forms; ver §8 (plano faseado) |
+| UX-010 | ⬆️ Elevado | Alta→**Crítica** | 24 | Funcional (memory leak) | NÃO | Realtime em pages monolíticas + cross-link com X-5 (gate 09:45) eleva severidade |
+| UX-011 | ✅ Confirmado | Média→Média | 80 (mid) | Bloqueio expansão | NÃO | Adiar P3 — sem urgência de mercado declarada |
+| UX-012 | ✅ Confirmado | Média→Média | 4 | DS coerência | SIM (visual diff) | Quick-win |
+| UX-013 | ✅ Confirmado | Média→Média | 8 | Drift arquitetural | NÃO | ADR + boundary lint |
+| UX-014 | ✅ Confirmado | Média→Média | 16 | Offline + cold start | SIM (UX decision) | Decisão produto: PWA real ou SPA-manifest |
+| UX-015 | ✅ Confirmado | Média→Média | 4 | Quality gate | NÃO | Quick-win |
+| UX-016 | ⬆️ Elevado | Média→**Alta** | 12 | Segurança (RBAC bypass) | NÃO | Conexão direta com DB-016/X-2. Confirma db-review §4.1 — eleva |
+| UX-017 | ✅ Confirmado | Média→Média | 8 | Perf percebida (CLS) | SIM | Compor com UX-008 |
+| UX-018 | ✅ Confirmado | Baixa→Baixa | 2 | DS coerência | NÃO | Quick-win |
+| UX-019 | ✅ Confirmado | Baixa→Baixa | 4 | FOIT | NÃO | self-host + `font-display: swap` |
+| UX-020 | ✅ Confirmado | Baixa→Baixa | 1 | Visibilidade perf | NÃO | Reduzir para 500kb |
 
-**Análise técnica:**
-
-Nenhuma ocorrência de `prefers-reduced-motion` ou `useReducedMotion` no codebase inteiro. A aplicação usa `motion/react` (v12.23.24) extensivamente:
-
-- `Login.tsx`: `motion.img` com spring animation (L99-106), `motion.div` com fade+translate (L108-111, L121-124, L158-161)
-- `Layout.tsx`: `AnimatePresence` + `motion.div` no drawer (L265-304), mobile menu (L308-365) com spring `damping: 25, stiffness: 200`
-- `WizardPDI.tsx`: `motion.div` no overlay (L154-156), animações implícitas em progress bars
-
-Além disso, classes CSS utilitárias de animação são usadas sem override:
-- `animate-spin` — `Login.tsx:79,210`, `WizardPDI.tsx:427`
-- `animate-pulse` — `App.tsx:60`, `WizardPDI.tsx:188`
-- `.animate-float` — definido em `index.css:182-189` com `animation: float 6s ease-in-out infinite`
-
-Viola [WCAG 2.3.3 Animation from Interactions (Level AAA)](https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions.html) e pode causar desconforto em usuários com vestibular disorders. A severidade foi elevada pela quantidade de pontos de intervenção (3 arquivos Motion + CSS custom keyframes).
-
----
-
-### UX-04 — Missing label associations em forms inline
-
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | MEDIUM | ✅ **Confirmado** |
-| Horas | 3h | ⬆️ Revisado para **5h** |
-| Prioridade | P2 | ✅ Mantido |
-
-**Análise técnica:**
-
-O problema é mais amplo do que o DRAFT sugere. Mapeamento completo:
-
-1. **`Login.tsx:170-180`** — `<label>E-mail</label>` não possui `htmlFor`. O `<input>` não possui `id`. A associação label-input está quebrada.
-2. **`Login.tsx:183-193`** — Idem para senha. `<label>Senha</label>` sem `htmlFor`, `<input>` sem `id`.
-3. **`WizardPDI.tsx:196-210`** — `<select>` de colaborador e cargo sem `aria-label` ou `<label>` associado.
-4. **`WizardPDI.tsx:224-228`** — `<select>` de tipo de meta sem label.
-5. **`WizardPDI.tsx:233-237`** — `<textarea>` de meta sem label.
-6. **`WizardPDI.tsx:278-281`** — `<input type="range">` sem `aria-label` nem `aria-valuemin`/`aria-valuemax` descritivos.
-7. **`WizardPDI.tsx:354-356`** — `<input type="date">` de revisão sem label.
-8. **`WizardPDI.tsx:365-371`** — `<select>` de competência sem label.
-9. **`WizardPDI.tsx:397`** — `<input type="date">` de conclusão sem label.
-10. **`WizardPDI.tsx:401-403,406-408`** — `<select>` de impacto e custo sem label.
-
-Viola [WCAG 1.3.1 Info and Relationships (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/info-and-relationships.html) e [3.3.2 Labels or Instructions (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/labels-or-instructions.html). O ajuste de horas reflete os 10+ campos sem label no WizardPDI que não estavam no escopo original do DRAFT.
+**Total revisado:** 4 Crítica · 7 Alta · 7 Média · 2 Baixa = 20 débitos (3 ajustes de severidade: UX-010 ↑, UX-016 ↑). **Esforço:** ~440h (mid).
 
 ---
 
-### UX-05 — Low contrast em muted text com opacity
+## 3. Débitos Adicionados (UX-021..UX-028)
 
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | MEDIUM | ✅ **Confirmado — elevado para HIGH** |
-| Horas | 2h | ⬆️ Revisado para **4h** |
-| Prioridade | P2 | ⬆️ Elevado para **P1** |
+| ID | Débito | Severidade | Categoria | Esforço(h) | Impacto | Evidência |
+|----|--------|-----------|-----------|-----------|---------|-----------|
+| UX-021 | **Dark mode strategy ausente** — sem `dark:` variants, sem token semântico `bg/fg/border`, charts com hex hardcoded inviabilizam | Média | design-system | 24 | Bloqueia feature comum | Nenhuma classe `dark:` em `src/components`; charts UX-005 |
+| UX-022 | **Motion preferences além de MotionConfig** — animações Tailwind (`animate-pulse`, `transition-*`) não respeitam `prefers-reduced-motion` automaticamente em todos pontos | Média | a11y | 6 | a11y (vestibular) | Adicionar `motion-reduce:` utilitários + audit |
+| UX-023 | **i18n roadmap (decisão arquitetural)** — sem ADR de provider (i18next vs LinguiJS vs Format.js), sem string externalization pipeline | Média | i18n | 8 (ADR) | Bloqueia UX-011 | Pré-requisito de UX-011 |
+| UX-024 | **Focus trap em modais/drawers** — Radix Dialog não está em uso (apenas 1 primitive instalado); modais custom sem focus trap garantido | Alta | a11y | 8 | a11y crítica (WCAG 2.1.2) | Sobreposto com UX-007 mas merece ID próprio para tracking |
+| UX-025 | **Error boundaries ausentes por rota** — 1 erro derruba sub-árvore inteira; sem fallback graceful | Alta | resilience | 12 | UX em produção | Adicionar `<RouteErrorBoundary>` por lazy route |
+| UX-026 | **Web Vitals não monitorados** — sem `reportWebVitals` ou integração Sentry/Posthog; sem baseline LCP/INP/CLS | Média | perf/observability | 6 | Sem visibilidade perf real | Integra com SYS-017 (Sentry init) |
+| UX-027 | **Bundle analyzer não rodado** — `rollup-plugin-visualizer` ausente; chunks 1MB tolerados (UX-020) sem visibilidade | Média | perf | 2 | Otimização cega | Quick-win combo com UX-020 |
+| UX-028 | **Skeleton screens detalhados (specs por feature)** — UX-008 cobre coverage; falta padrão de skeleton fidelidade (match real layout) | Baixa | design-system | 16 | Polish | Padrão `<Skeleton variant="card-checkin">` etc. |
 
-**Análise técnica:**
+**Subtotal adicionados:** 0 Crítica · 2 Alta · 5 Média · 1 Baixa = **8 débitos**. **Esforço:** ~82h.
 
-O problema é sistêmico. Audit completo de `opacity-40` + `text-text-tertiary` no codebase:
-
-**Cálculo de contraste:** `--color-text-tertiary: #94a3b8` sobre `#ffffff` (fundo padrão):
-- Sem opacity: razão de contraste ≈ **2.95:1** (FALHA AA para texto normal, requer 4.5:1)
-- Com `opacity-40`: cor resultante ≈ `#D3DAE4`, razão ≈ **1.43:1** (FALHA CRÍTICA)
-
-**Ocorrências críticas por arquivo:**
-- `MXScoreCard.tsx:33` — `text-text-tertiary opacity-40` em subtítulo de card
-- `DataGrid.tsx:53-54,140` — empty state + headers com `opacity-40`
-- `MorningReport.tsx:184,196` — labels de seção com `opacity-40`
-- `Notificacoes.tsx:101,110-111,171,199,202` — múltiplos labels
-- `GerenteFeedback.tsx:166,225,250,269,345,382,390,394` — ~8 instâncias
-- `GerenteTreinamentos.tsx:141,222,298,302,335` — ~5 instâncias
-- `Equipe.tsx:103,177,211,229,258,269` — ~6 instâncias
-- `Configuracoes.tsx:89,106,116,124,147` — ~5 instâncias
-- `Perfil.tsx:168` — label de seção
-- `SalesPerformance.tsx:183` — label de métrica
-
-Total: **40+ ocorrências** em 10 arquivos. Viola [WCAG 1.4.3 Contrast (Minimum) - Level AA](https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html). Horas ajustadas pela escala da correção.
+**Total final UX:** **28 débitos** · **~520h** (mid range, exclui UX-011 i18n que pode ser P3 a 100h).
 
 ---
 
-### UX-06 — No inline form validation no Login
+## 4. Análise das Propostas Críticas
 
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | LOW | ✅ **Confirmado** |
-| Horas | 2h | ✅ Mantido |
-| Prioridade | P3 | ✅ Mantido |
+### 4.1 UX-001 — Decomposição de Pages Monolíticas
 
-**Análise técnica:**
+**Estratégia incremental viável: SIM.**
 
-`Login.tsx` possui validação apenas no `handleSubmit` (L38-73). O erro aparece em um block genérico (L196-201) após submissão. Não há validação inline de formato de e-mail, comprimento mínimo de senha, ou feedback em tempo real. O `FormField` molecule (`FormField.tsx:37-41`) já suporta `error` prop com `role="alert"`. A migração para FormField permitiria validação inline com esforço mínimo.
+**Ordem de ataque proposta:**
+1. **`MXPerformanceLanding.tsx` (1698 LOC)** — PRIMEIRO. Razões: (a) landing pública, sem hooks compartilhados com app autenticado → blast radius isolado; (b) origem Lovable clara; (c) baseline visual fácil (Playwright screenshot single route).
+2. **`ConsultoriaClienteDetalhe.tsx` (953 LOC)** — feature recente, ainda morna na cabeça do time; charts hardcoded (UX-005) podem ser corrigidos junto.
+3. **`Ranking.tsx` (854 LOC)** — usa `useRanking.ts` (já hook dedicado) → decomposição mecânica em sections.
+4. **`GerenteFeedback.tsx` (809 LOC)** — fluxo bem delimitado.
+5. **`DashboardLoja.tsx` (1409 LOC)** — DEIXAR POR ÚLTIMO entre dashboards: tem realtime subs (X-4), múltiplos hooks, alta visibilidade. Migrar APÓS UX-002 (god-hooks split).
+6. **`AgendaAdmin.tsx` (1318 LOC)** — depende do split de `useAgendaAdmin.ts` (895 LOC) primeiro.
 
----
-
-### UX-07 — Login inputs não usam atom components
-
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | LOW | ✅ **Confirmado** |
-| Horas | 2h | ✅ Mantido |
-| Prioridade | P3 | ✅ Mantido |
-
-**Análise técnica:**
-
-`Login.tsx:174-179,188-192` usa `<input>` nativo com classes inline, enquanto o `Input` atom (`Input.tsx`) e `FormField` molecule (`FormField.tsx`) existem e oferecem:
-- Auto-binding de `id` via `React.useId()` (FormField L16)
-- `aria-hidden` correto para ícones (FormField L23)
-- Error state com `role="alert"` (FormField L38)
-- Estilização consistente com o design system
-
-Os inputs do Login ainda usam `style={{ height: '3.25rem' }}` (L178,191) em vez de tokens de altura. Este débito deve ser executado em conjunto com UX-06.
-
----
-
-### UX-08 — Decorative blur elements não otimizados
-
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | LOW | ✅ **Confirmado** |
-| Horas | 1h | ✅ Mantido |
-| Prioridade | P3 | ✅ Mantido |
-
-**Análise técnica:**
-
-`Login.tsx:91-93` define 3 divs com `filter: 'blur(140px)'`, `blur(120px)`, `blur(80px)` sobre áreas de até 70% do viewport. `MorningReport.tsx:175,256` usa `blur-3xl` (Tailwind = 64px). Esses elementos já possuem `aria-hidden="true"` (MorningReport L175), mas o Login não aplica `aria-hidden` nas divs decorativas (L91-93). O impacto em GPU rendering em dispositivos low-end é real, e a falta de `aria-hidden` no Login é uma micro-falha de acessibilidade.
-
----
-
-### UX-09 — No breadcrumb navigation
-
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | LOW | ✅ **Confirmado** |
-| Horas | 2h | ✅ Mantido |
-| Prioridade | P3 | ✅ Mantido |
-
-**Análise técnica:**
-
-A navegação hierárquica é feita exclusivamente pela sidebar (`Layout.tsx:217-257`) e drawer (L265-304). Páginas profundas como `GerentePDI > PDIPrint` (`/pdi/:id/print`), `GerenteFeedback` com seções internas, e `Configuracoes` com tabs não oferecem orientação posicional. O breadcrumb beneficiaria especialmente o role `admin` com 15+ rotas. Não é bloqueante para WCAG mas melhora [2.4.8 Location (Level AAA)](https://www.w3.org/WAI/WCAG21/Understanding/location.html).
-
----
-
-### UX-10 — Hardcoded legacy colors em print components
-
-| Campo | Valor Original | Validação |
-|-------|---------------|-----------|
-| Severidade | LOW | ✅ **Confirmado — elevado para MEDIUM** |
-| Horas | 2h | ⬆️ Revisado para **4h** |
-| Prioridade | P3 | ⬆️ Elevado para **P2** |
-
-**Análise técnica:**
-
-`PrintableFeedback.tsx:27-34` define cores hardcoded: `#335c67` (header-blue), `#f3f4f6`, `#374151`, `#facc15`, `#1f2937`, `#dbeafe`, `#1e3a8a`, `#059669`, `#dc2626`, `#4b5563`, `#d1d5db`. `WeeklyStoreReport.tsx:27-33` repete o mesmo padrão com adições: `#f9fafb`, `#fef3c7`.
-
-Essas cores são uma **duplicação implícita** de tokens que já existem no design system:
-- `#f3f4f6` ≈ `--color-surface-alt` (#f8fafc)
-- `#374151` ≈ `--color-text-secondary` (#475569)
-- `#dc2626` = `--color-status-error` (#ef4444) — divergência!
-- `#059669` ≈ `--color-status-success` (#10b981) — divergência!
-- `#d1d5db` ≈ `--color-border-strong` (#e2e8f0)
-
-A divergência de cores entre print e app gera inconsistência de marca em relatórios impressos que circulam fisicamente. Elevado para MEDIUM porque PrintableFeedback e WeeklyStoreReport são entregáveis ao cliente final.
-
----
-
-## 2. Respostas às Perguntas do @architect
-
-### Pergunta 1: UX-01 — `focus-trap-react` ou hook custom? Qual abordagem minimiza bundle?
-
-**Recomendação: Hook custom `useFocusTrap` — sem dependência adicional.**
-
-Justificativa:
-
-1. **O projeto já possui `@radix-ui/react-dialog` v1.1.15** (`package.json:28`), que inclui um focus trap interno robusto via `Dialog.Content`. Para o `WizardPDI`, a abordagem ideal é **migrar o wrapper do modal para usar `Dialog.Root` + `Dialog.Portal` + `Dialog.Overlay` + `Dialog.Content`** do Radix. Isso elimina a necessidade de qualquer dependência nova e herda automaticamente: focus trap, Escape to close, aria-labelledby/auto, e scroll lock. O custo é envelopar o `motion.div` externo do WizardPDI com os primitives do Radix.
-
-2. **Para o mobile menu** (`Layout.tsx:307-365`), que é um bottom sheet semântico e não um dialog tradicional, recomendo um **hook custom `useFocusTrap(containerRef, isActive)`** com ~40 linhas. Implementação:
-   - `useEffect` que captura `containerRef.current.querySelectorAll(focusableSelectors)` ao abrir
-   - `keydown` listener para Tab/Shift+Tab com wrap-around
-   - Auto-focus no primeiro elemento focável ao abrir
-   - Restaura foco ao elemento trigger ao fechar
-   - Custo: **0 bytes adicionais** no bundle
-
-3. **`focus-trap-react`** (4.2KB gzipped) é over-engineering para 2 pontos de uso. Se futuramente houver 5+ modais, reavaliar.
-
-**Resumo:** Radix Dialog para WizardPDI + hook custom para mobile menu = **0 bytes adicionais**.
-
----
-
-### Pergunta 2: UX-03 — CSS `@media (prefers-reduced-motion)` global ou `useReducedMotion()` do Motion?
-
-**Recomendação: Abordagem híbrida em 2 camadas.**
-
-**Camada 1 — CSS Global** em `index.css` (novo bloco após L190):
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .animate-float { animation: none !important; }
-}
+**Padrão de extração:**
+```
+pages/Foo.tsx (container <200 LOC, orquestra)
+└── features/foo/
+    ├── hooks/useFooOrchestrator.ts   (compõe sub-hooks)
+    ├── sections/FooHeader.tsx
+    ├── sections/FooStats.tsx
+    ├── sections/FooTable.tsx
+    └── components/...
 ```
 
-Isso cobre: `animate-spin`, `animate-pulse`, `.animate-float`, e qualquer `transition-all` inline. Abrange **todas** as 308+ ocorrências de opacity/transition sem intervenção por arquivo.
+**Regression risk + mitigação:**
+- Risco visual: ALTO (sem baseline atual). Mitigação: snapshot Playwright PRÉ-refactor (`pnpm playwright test --update-snapshots`) → diff PÓS.
+- Risco funcional: MÉDIO. Mitigação: extrair sem mudar lógica (pure move + import update), validar com E2E existentes.
+- Tooling: `react-error-boundary` (UX-025) por section para conter falhas durante migração.
 
-**Camada 2 — Motion Config** no componente raiz (`App.tsx`):
+### 4.2 UX-002 — Split de God-Hooks
 
-```tsx
-import { MotionConfig } from 'motion/react'
-<MotionConfig reducedMotion="user">
-  <Layout />
-</MotionConfig>
+**Ordem de split (por hook, priorização por risco):**
+
+| Hook | LOC | Sub-hooks propostos | Estratégia |
+|------|-----|---------------------|------------|
+| `useAgendaAdmin.ts` | 895 | `useAgendaQuery`, `useAgendaMutations`, `useAgendaFilters`, `useAgendaRealtime` | Extract → criar shim que re-exporta → migrar consumers → DELETE original |
+| `useAuth.tsx` (Provider) | 585 | `useAuthSession`, `useAuthProfile`, `useAuthRoles`, `<AuthProvider>` slim | Mais delicado: provider central. Refactor com TESTS FIRST (já existe `useCheckins.test.ts` como padrão) |
+| `useCheckins.ts` | 318 | `useCheckinsList`, `useCheckinsSubmit`, `useCheckinsFilters` | JÁ tem teste — refactor seguro. Piloto recomendado |
+| `useTeam.ts` (~625 declarado DRAFT) | - | A confirmar | Aguardar análise antes de split |
+
+**Estratégia geral:**
+```
+1. Criar sub-hooks em arquivo separado
+2. Hook original importa e re-exporta API pública (shim)
+3. Testes passam (mesmo API)
+4. Migrar consumers para sub-hooks específicos (commits granulares)
+5. Quando 0 consumers do original → DELETE
 ```
 
-O Motion v12 respeita `reducedMotion="user"` nativamente, desabilitando spring animations, layout animations, e transforms em todos os componentes `<motion.*>` descendentes. Isso cobre:
-- `Login.tsx` — 4 motion components
-- `Layout.tsx` — drawer e mobile menu
-- `WizardPDI.tsx` — overlay e transições internas
+**Piloto:** `useCheckins.ts` (menor + JÁ testado em `useCheckins.test.ts`).
 
-**Por que não apenas hook `useReducedMotion()`?** Exigiria modificar cada componente com animação individualmente (~15 arquivos). O `MotionConfig` com `reducedMotion="user"` resolve em 1 ponto. O CSS global como fallback garante que animações puramente CSS (como `.animate-float`) também sejam suprimidas.
+### 4.3 UX-005 — Charts com hex hardcoded
 
----
+**Mapeamento hex → token semântico:**
 
-### Pergunta 3: UX-05 — Qual token alternativo para `text-text-tertiary opacity-40` que atenda WCAG AA 4.5:1?
+| Hex atual | Uso | Token proposto |
+|-----------|-----|----------------|
+| `#E5E7EB` | CartesianGrid stroke | `--color-chart-grid` (= `border` / `gray-200`) |
+| `#6B7280` | Axis ticks | `--color-chart-axis` (= `text-tertiary`) |
+| `#0D3B2E` | Line "Vendas" | `--color-chart-primary` (= brand-mx-dark) |
+| `#22C55E` | Line "Conversão" / "right axis" | `--color-chart-success` |
+| `#FACC15` | Line "Margem" | `--color-chart-warning` |
+| `#EF4444` | Line "Estoque" | `--color-chart-danger` |
 
-**Cálculos de contraste sobre fundo branco `#ffffff`:**
+**Risco regressão visual:** BAIXO se token mapeia para o mesmo hex. MÉDIO se aproveitamos para alinhar com paleta semântica existente.
 
-| Token | Cor | Opacity | Contraste | WCAG AA |
-|-------|-----|---------|-----------|---------|
-| `text-text-tertiary` | #94a3b8 | 100% | 2.95:1 | ❌ FALHA |
-| `text-text-tertiary` | #94a3b8 | 40% | 1.43:1 | ❌ CRÍTICO |
-| `text-text-secondary` | #475569 | 100% | 7.12:1 | ✅ PASS AA |
-| `text-text-secondary` | #475569 | 60% | 4.53:1 | ✅ PASS AA (marginal) |
-| `text-text-secondary` | #475569 | 50% | 3.62:1 | ❌ FALHA |
+**Ferramenta de baseline:** Playwright screenshots por chart (`tests/visual/charts/*.spec.ts`) ANTES + diff PÓS via `pixelmatch`.
 
-**Recomendação: Criar novo token semântico.**
+**Esforço por chart:** ~20min substituição mecânica + 1h baseline/diff total. Restante para padronizar paleta `chart-*` no `@theme`.
 
-```css
---color-text-label: #64748b;
+### 4.4 UX-004 — Gerar `database.types.ts`
+
+**Comando:**
+```bash
+supabase gen types typescript --linked --schema public > src/types/database.generated.ts
 ```
 
-`#64748b` (Slate 500) sobre `#ffffff` = **razão de contraste 5.62:1** → PASS WCAG AA (4.5:1) para texto normal e PASS AAA (7:1) para texto large.
+**Blast radius:** **58 arquivos** importam `@/types/database` (confirmado via grep). Riscos:
+- Nomes de tabelas PT-BR vs EN (DB-006/X-1) → types gerados refletirão estado ATUAL do DB (PT-BR). Código que ainda chama nome EN antigo: type error EXPLÍCITO (era silencioso antes).
+- `src/types/database.ts` (610 LOC manual) compete com gerado.
 
-**Estratégia de migração por contexto:**
+**Plano faseado:**
+1. **Sprint 0 (P0):** gerar como `database.generated.ts` (arquivo separado), NÃO substituir `database.ts` ainda.
+2. Adicionar CI step `pnpm typecheck` rodando com generated → lista TODOS os erros (mapeamento PT-BR↔EN).
+3. **Sprint 1:** corrigir batch por feature (checkins, agenda, ranking…).
+4. **Sprint 2:** quando typecheck limpo → renomear `database.generated.ts` → `database.ts` (deletar manual).
+5. CI bloqueia drift: `supabase gen types` no GitHub Action, falha se diff vs commit.
 
-1. **Labels de seção** (ex: `"SINCRONIA DISCIPLINAR D-0"`, `"MEMBRO ATIVO MX"`) — atualmente `tone="muted"` + `opacity-40`. Substituir por `tone="label"` (novo tone no Typography) ou classe `text-text-label`. **Remove `opacity-40` inteiramente.**
-
-2. **Empty states** (ex: DataGrid "Nenhum resultado") — atualmente `text-text-tertiary opacity-40`. Manter `text-text-tertiary` **sem opacity**. O contraste de 2.95:1 é aceitável para **texto decorativo/large** conforme [WCAG 1.4.3 Exception 1](https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html#contrast-requirements) para texto >= 18pt ou >= 14pt bold. Os empty states usam `font-black` + ícone 48px, enquadrando-se na exceção.
-
-3. **Timestamps e metadados** — usar `text-text-secondary` sem opacity. Contraste 7.12:1.
-
-**Novo token no `@theme` block:**
-```css
---color-text-label: #64748b;
-```
-
-**Novo tone no Typography:**
-```ts
-label: "text-[#64748b]",
-```
-
-Isso elimina ~40 instâncias de `opacity-40` ofensivas em 10 arquivos com 1 token novo + 1 variant nova.
+**Segurança:** SIM, seguro fazer EM PARALELO com refactors UX, desde que `database.ts` manual permaneça enquanto migra-se gradual. Pré-requisito de X-1 resolvido.
 
 ---
 
-### Pergunta 4: UX-04 — Login page deve migrar para `FormField` molecule ou receber `aria-label` inline?
+## 5. Respostas às 7 Perguntas do @architect (DRAFT §7)
 
-**Recomendação: Migrar para `FormField` molecule — sem exceção.**
+**Q1. Os 20 débitos UX estão completos?**
+Quase. Adicionei 8 (UX-021..028) — total 28. Dark mode, motion, i18n ADR, focus trap, error boundaries, web vitals, bundle analyzer, skeleton specs.
 
-Razões:
+**Q2. Débitos faltantes?**
+Cobertos em §3: UX-021 (dark mode), UX-022 (motion além MotionConfig), UX-023 (i18n ADR pré-UX-011), UX-026 (web vitals), UX-027 (bundle analyzer).
 
-1. **`FormField` já existe** (`FormField.tsx`) e resolve automaticamente:
-   - Label binding via `useId()` (L16): `<label htmlFor={fieldId}>`
-   - Input com `id={fieldId}` (L29)
-   - Ícone com `aria-hidden="true"` (L23)
-   - Error state com `role="alert"` (L38)
-   - Estilização com `Input` atom (L28-35)
+**Q3. Estimar horas considerando refatoração + design review + visual regression baseline?**
+~520h mid (range 440-720h). Inclui: refatoração (210h), a11y (50h), forms RHF (50h), DS hardening (30h), perf/PWA (40h), i18n (80h opcional P3), design review reviews (~30h distribuídos), baselines visuais (~30h).
 
-2. **`aria-label` inline é uma solução inferior** porque:
-   - Não fornece label visível associado programaticamente (WCAG 1.3.1)
-   - Screen readers leem `aria-label` mas usuários com baixa visão que usam magnificação não veem a associação
-   - O Login JÁ tem labels visuais (`<label>E-mail</label>`, L171), mas sem `htmlFor` — são labels órfãos
+**Q4. Decomposição viável e ordem?**
+SIM. Ordem detalhada em §4.1: Landing → ConsultoriaClienteDetalhe → Ranking → GerenteFeedback → DashboardLoja (depende UX-002) → AgendaAdmin (depende useAgendaAdmin split).
 
-3. **Implementação proposta para `Login.tsx`:**
+**Q5. Charts sem regressão visual?**
+SIM viável. Ferramenta: Playwright + pixelmatch. Mapeamento detalhado em §4.3.
 
-   ```tsx
-   <FormField
-     label="E-mail"
-     type="email"
-     value={email}
-     onChange={e => setEmail(e.target.value)}
-     placeholder="seu@email.com.br"
-     required
-     autoFocus={!email}
-     icon={<Mail size={18} />}
-     className="!rounded-xl !bg-surface-alt"
-     error={emailError}
-   />
-   <FormField
-     label="Senha"
-     type="password"
-     ref={passwordRef}
-     value={password}
-     onChange={e => setPassword(e.target.value)}
-     placeholder="Digite sua senha"
-     required
-     icon={<Lock size={18} />}
-     className="!rounded-xl !bg-surface-alt"
-     error={passwordError}
-   />
-   ```
+**Q6. Quick-wins vs grandes refatorações?**
+Quick-wins (<8h cada, top 5):
+1. UX-020 — chunkSizeWarningLimit (1h)
+2. UX-018 — text-mx-tiny tokens (2h)
+3. UX-015 — eslint plugins jsx-a11y (4h)
+4. UX-012 — TabNav unificar (4h)
+5. UX-019 — self-host fonts (4h)
 
-4. Isso resolve **simultaneamente** UX-04 (labels), UX-06 (validação inline via `error` prop), e UX-07 (atom components). Três débitos em 1 refatoração.
+Grandes (>40h): UX-001, UX-002, UX-008, UX-009.
+
+**Q7. `react-hook-form` adoption strategy?**
+Estratégia greenfield-first em §8. Piloto recomendado: **`Checkin.tsx`** (form crítico, tem teste, pequeno).
+
+**Q8. RBAC client gap (UX-016)?**
+Confirmado em §6 (X-2). Hooks suspeitos: `useAgendaAdmin`, `useNetworkPerformance`, `useNetworkHierarchy`, `useRanking` — todos fazem `.from('lancamentos_diarios')` ou similares ANTES de qualquer gate de role (apenas filtros `eq('store_id', …)`). Combinado com DB-016 (USING true): RBAC client é única defesa = NÃO É defesa.
 
 ---
 
-### Pergunta 5: UX-10 — Print components devem usar tokens MX ou manter esquema próprio?
+## 6. Avaliação dos Riscos Cruzados
 
-**Recomendação: Migrar para tokens MX com camada de abstração `@media print`.**
+**X-1 — Drift de tipos PT-BR↔EN.** CONFIRMADO crítico. 58 arquivos consumidores. Plano em §4.4. Bloqueador de Sprint 1.
 
-Razões:
+**X-2 — Bypass RBAC efetivo.** CONFIRMADO crítico. Cross-evidência: DB-016 (USING true) + UX-016 (hooks pré-gate) + 27 ocorrências `.from('lancamentos_diarios')` no client. **Recomendação:** REVOKE em `lancamentos_diarios` DEVE ser precedido por migrar SELECTs em `useRanking`, `useNetworkHierarchy`, `useNetworkPerformance`, `useCheckins` para RPCs com `SECURITY DEFINER` controlado. Sem isso: produção quebra.
 
-1. **Divergências atuais são bugs de marca:**
-   - `#dc2626` (print) vs `#ef4444` (app `--color-status-error`) — vermelhos diferentes
-   - `#059669` (print) vs `#10b981` (app `--color-status-success`) — verdes diferentes
-   - Relatórios impressos são material de marketing; inconsistência de cor destrói a percepção de marca
+**X-4 — Pages monolíticas + god-hooks + realtime leak.** CONFIRMADO alto. Mitigação: error boundaries (UX-025) por section durante decomposição.
 
-2. **Os prints rodam dentro do app** como componentes React (`PrintableFeedback.tsx`, `WeeklyStoreReport.tsx`). Eles têm acesso aos tokens CSS. A separação artificial via `<style>` hardcoded é desnecessária.
+**X-5 — Gate 09:45 sem defesa em profundidade.** CONFIRMADO alto. db-review (§4.1) demonstra repro. UX-side: `useCheckins.ts:11,66` gate client + nenhum INSERT direto detectado (só SELECTs) → INSERT bypass exige PostgREST raw. Mitigar via DB-016 fix.
 
-3. **Estratégia de migração:**
-
-   Substituir as classes CSS hardcoded por tokens MX:
-
-   | Classe Legacy | Token MX | Uso |
-   |--------------|----------|-----|
-   | `.header-blue { background: #335c67 }` | `bg-brand-secondary` | Headers principais |
-   | `.header-gray { background: #f3f4f6 }` | `bg-surface-alt` | Sub-headers |
-   | `.status-bom { color: #059669 }` | `text-status-success` | Indicadores positivos |
-   | `.status-abaixo { color: #dc2626 }` | `text-status-error` | Indicadores negativos |
-   | `.legacy-table td { border: 1px solid #d1d5db }` | `border-border-strong` | Bordas de tabela |
-   | `.header-yellow { background: #facc15 }` | Manter — cor funcional para atenção, adicionar token `--color-print-highlight: #facc15` | Destaque de análise |
-   | `.ranking-gold { background: #fef3c7 }` | Manter — cor decorativa de ranking | Podium |
-
-4. **Novos tokens print-safe** a adicionar no `@theme`:
-   ```css
-   --color-print-highlight: #facc15;
-   --color-print-gold: #fef3c7;
-   ```
-
-5. Isso **não afeta a renderização impressa** porque os tokens resolvem para os mesmos valores hex, apenas centralizados. O `@media print` existente (PrintableFeedback L21-24, WeeklyStoreReport L21-24) continua funcionando para overrides de padding e background.
+**X-7 — DS não enforce-ável.** CONFIRMADO médio. UX-006 (lint-tokens AST gen) é alavanca chave.
 
 ---
 
-## 3. Débitos Adicionais Identificados
+## 7. Priorização UX
 
-### UX-11 (NOVO) — Mobile bottom nav: contraste insuficiente em ícones inativos
+### Quick-Wins (Sprint 1, P0/P1) — ~25h, alto impacto
+1. **UX-020** (1h) — chunkSizeWarningLimit 500kb
+2. **UX-015** (4h) — eslint jsx-a11y + react-hooks (gate de regressão)
+3. **UX-027** (2h) — bundle analyzer plugin
+4. **UX-018** (2h) — tokens mx-tiny/mx-textarea
+5. **UX-006** (8h) — lint-tokens AST-driven (destrava DS)
+6. **UX-012** (4h) — unificar TabNav
+7. **UX-004** (12h gen) — gerar database.types.ts (gate de toda Sprint 1)
+8. **UX-022** (6h) — motion-reduce audit
 
-**Severidade:** HIGH | **Horas:** 1h | **Prioridade:** P1
+### Grandes Refatorações (Sprint 2-3, P1-P2)
+- **UX-001** (100h) — decomposição pages: sprint dedicada (3 sub-sprints)
+- **UX-002** (75h) — god-hooks split: paralelo com UX-001
+- **UX-007 + UX-024** (40h combo) — a11y WCAG AA + focus traps
+- **UX-008 + UX-017 + UX-028** (60h combo) — skeleton system completo
+- **UX-009** (50h) — react-hook-form migration (§8)
+- **UX-005 + UX-021** (30h combo) — charts tokenizados + dark mode foundation
+- **UX-025** (12h) — error boundaries por rota
+- **UX-026** (6h) — web vitals + Sentry init (cross com SYS-017)
 
-**Descrição:** A mobile bottom nav (`Layout.tsx:368-428`) usa `text-white/40` (branco a 40% de opacidade) sobre fundo `bg-mx-black` (#0A0A0B) para ícones inativos. Contraste resultante ≈ **2.1:1** — falha WCAG AA (requer 4.5:1 para texto/ícones). Isso afeta **100% dos usuários mobile** em todas as 4 roles, no elemento de navegação mais acessado.
-
-**Correção:** Migrar de `text-white/40` para `text-white/70` (contraste ≈ 5.8:1, PASS AA) para estado inativo.
-
-**Arquivo:** `Layout.tsx:374,384,395,414,424`.
-
----
-
-### UX-12 (NOVO) — WizardPDI: `<select>` elements sem label associado (10+ campos)
-
-**Severidade:** HIGH | **Horas:** 2h | **Prioridade:** P1
-
-**Descrição:** O `WizardPDI.tsx` contém 10+ campos de formulário (`select`, `textarea`, `input[type=range]`, `input[type=date]`) sem `aria-label`, `aria-labelledby`, ou `<label htmlFor>`. Os labels visuais usam `<Typography>` decorativo (ex: L194 `"1. Selecione o Especialista"`) sem associação programática. Viola WCAG 1.3.1 e 3.3.2.
-
-**Nota:** Parcialmente coberto por UX-04, mas a escala do WizardPDI justifica um item separado com escopo dedicado.
-
----
-
-### UX-13 (NOVO) — Login.tsx: decorative blur divs sem `aria-hidden`
-
-**Severidade:** LOW | **Horas:** 0.5h | **Prioridade:** P3
-
-**Descrição:** `Login.tsx:91-93` — três divs decorativas com `filter: 'blur(140px)'` etc. não possuem `aria-hidden="true"`. Screen readers podem anunciar conteúdo irrelevante. Comparar com `MorningReport.tsx:175` que já aplica `aria-hidden="true"` corretamente.
+### Backlog UX (P3) — adiar com clareza
+- **UX-011 + UX-023** (88h) — i18n: aguardar decisão de produto (mercado-alvo)
+- **UX-013** (8h) — ADR Atomic vs Features
+- **UX-014** (16h) — decisão PWA real vs SPA-manifest
+- **UX-019** (4h) — self-host fonts
 
 ---
 
-### UX-14 (NOVO) — `<html lang>` ausente ou inconsistente
+## 8. Plano de Introdução de react-hook-form + zod (UX-009)
 
-**Severidade:** MEDIUM | **Horas:** 0.5h | **Prioridade:** P2
+**Estratégia greenfield-first (sem big-bang):**
 
-**Descrição:** Não foi encontrado `lang="pt-BR"` no document root. Viola [WCAG 3.1.1 Language of Page (Level A)](https://www.w3.org/WAI/WCAG21/Understanding/language-of-page.html). Screen readers em inglês tentarão pronunciar conteúdo português com fonética incorreta. A correção é um atributo no `index.html`: `<html lang="pt-BR">`.
+1. **Adoção mandatória para forms NOVOS:** ADR + lint rule (`no-restricted-imports` para inputs sem RHF context).
+2. **Adapter pattern:** `<Form>` wrapper que aceita zod schema → `useForm` interno → propaga `register/errors` via context.
+3. **Migração faseada de 30+ forms existentes (ordem por criticidade):**
 
----
+| Fase | Forms | Critério |
+|------|-------|----------|
+| Piloto | `Checkin.tsx` (form crítico, testado) | Estabelece pattern |
+| Sprint 2 | Forms de Auth (Login, Cadastro, RecoverPassword) | RPCs já existem; validação E.164/email (cross DB-003/007) |
+| Sprint 3 | Forms admin (CriarLoja, AdminVendedores, CriarMeta) | Validação complexa |
+| Sprint 4 | Wizards (WizardPDI, OnboardingWizard) | Multi-step — usar `useFieldArray` |
+| Sprint 5+ | Restante | Migração mecânica |
 
-## 4. Estimativa de Custo Revisada
+**Esforço total:** 50h (piloto 8h + 42h restante distribuído).
 
-| ID | Débito | Horas Original | Horas Revisado | Delta | Justificativa |
-|----|--------|---------------|---------------|-------|---------------|
-| UX-01 | Focus traps | 4h | **6h** | +2h | 2 modais + testes manuais de keyboard nav |
-| UX-02 | Skip navigation | 1h | 1h | — | — |
-| UX-03 | Reduced motion | 2h | **4h** | +2h | CSS global + MotionConfig + testes cross-browser |
-| UX-04 | Label associations | 3h | **5h** | +2h | 10+ campos no WizardPDI além do Login |
-| UX-05 | Low contrast | 2h | **4h** | +2h | 40+ ocorrências em 10 arquivos |
-| UX-06 | Inline validation | 2h | 2h | — | — |
-| UX-07 | Atom components | 2h | 2h | — | — |
-| UX-08 | Blur optimization | 1h | 1h | — | — |
-| UX-09 | Breadcrumbs | 2h | 2h | — | — |
-| UX-10 | Print colors | 2h | **4h** | +2h | 2 componentes + novo token + testes visuais de impressão |
-| UX-11 | Mobile nav contrast | — | **1h** | NOVO | — |
-| UX-12 | WizardPDI labels | — | **2h** | NOVO | — |
-| UX-13 | aria-hidden blur | — | **0.5h** | NOVO | — |
-| UX-14 | html lang | — | **0.5h** | NOVO | — |
-| | **TOTAL** | **21h** | **33h** | **+12h** | |
-
-**Budget original do DRAFT:** 21h
-**Budget revisado:** 33h (+57%)
-
-O aumento é justificado por: (1) severidades subestimadas em UX-01/03/05, (2) amplitude real do UX-04 maior que o descrito, (3) 4 débitos novos identificados.
+**Schemas zod:** já existem alguns em `src/lib/schemas/` (validar). Reaproveitar onde possível.
 
 ---
 
-## 5. Conformidade NFR-17 (Acessibilidade)
+## 9. Plano de Acessibilidade (WCAG 2.1 AA)
 
-### Breakdown por Critério WCAG 2.1 AA
+**Baseline audit:** `axe-core` via Playwright (`@axe-core/playwright`) por rota crítica. Esforço: 4h setup + 4h baseline.
 
-| Critério WCAG | Nível | Status | Débitos Relacionados | Detalhes |
-|--------------|-------|--------|---------------------|----------|
-| **1.1.1 Non-text Content** | A | ✅ PASS | — | Ícones Lucide usam `aria-hidden="true"`. Imagens com `alt` descritivo (Login logo). |
-| **1.3.1 Info and Relationships** | A | ❌ FAIL | UX-04, UX-12 | Labels órfãos no Login, 10+ campos sem label no WizardPDI. Form fields sem associação programática. |
-| **1.3.2 Meaningful Sequence** | A | ⚠️ PARTIAL | UX-01 | DOM order é lógico, mas focus trap ausente quebra a sequência percebida em modais. |
-| **1.4.1 Use of Color** | A | ✅ PASS | — | Status usa ícones + cor (success: ícone + verde, error: ícone + vermelho). |
-| **1.4.3 Contrast (Minimum)** | AA | ❌ FAIL | UX-05, UX-11 | 40+ instâncias de contraste < 4.5:1. Mobile nav icons ≈ 2.1:1. |
-| **1.4.11 Non-text Contrast** | AA | ⚠️ PARTIAL | UX-05 | Focus rings usam `ring-brand-primary/15` (opacidade 15%) — contraste questionável para boundary indicators. |
-| **2.1.1 Keyboard** | A | ⚠️ PARTIAL | UX-01 | Todo conteúdo é operável por teclado, mas modais sem focus trap permitem escape indesejado. |
-| **2.1.2 No Keyboard Trap** | A | ⚠️ PARTIAL | UX-01 | Inversamente, o usuário PODE sair do modal via Tab (sem trap), mas NÃO pode fechar via Escape sem implementar handler. |
-| **2.4.1 Bypass Blocks** | A | ❌ FAIL | UX-02 | Skip link ausente. Header + sidebar = ~30 elementos antes do main content. |
-| **2.4.3 Focus Order** | A | ⚠️ PARTIAL | UX-01 | Focus order lógico na maioria das páginas, mas quebra em modais abertos. |
-| **2.4.6 Headings and Labels** | AA | ⚠️ PARTIAL | UX-04 | Headings visuais existem mas labels não são programáticos. |
-| **2.4.7 Focus Visible** | AA | ✅ PASS | — | `focus-visible:ring-4 focus-visible:ring-brand-primary/15` aplicado consistentemente em buttons e links (Layout.tsx:148,179,182,195,238,253,282, etc.). |
-| **2.4.8 Location** | AAA | ❌ FAIL | UX-09 | Breadcrumb ausente. |
-| **2.5.3 Label in Name** | A | ✅ PASS | — | `aria-label` em botões coincide com texto visível quando aplicável. |
-| **3.1.1 Language of Page** | A | ❌ FAIL | UX-14 | `lang="pt-BR"` ausente no `<html>`. |
-| **3.2.2 On Input** | A | ✅ PASS | — | Selects e inputs não disparam mudanças de contexto automáticas. |
-| **3.3.1 Error Identification** | A | ⚠️ PARTIAL | UX-06 | Erros são exibidos mas sem inline validation no Login. |
-| **3.3.2 Labels or Instructions** | A | ❌ FAIL | UX-04, UX-12 | Múltiplos campos sem label programático. |
-| **4.1.2 Name, Role, Value** | A | ⚠️ PARTIAL | UX-01 | Modais declaram `role="dialog"` e `aria-modal="true"` mas sem `aria-labelledby`. |
-| **2.3.1 Three Flashes** | A | ✅ PASS | — | Sem animações flashing. |
-| **2.3.3 Animation from Interactions** | AAA | ❌ FAIL | UX-03 | Animações não podem ser desabilitadas. |
+**Issues prioritários (UX-007 + UX-024):**
+1. **Focus traps** (UX-024): Implementar Radix Dialog OR `focus-trap-react` em todos modais/drawers.
+2. **Imagens sem alt:** 4 confirmados; varredura `<img>` sem `alt=` via eslint-plugin-jsx-a11y.
+3. **Contraste:** `text-tertiary` em backgrounds claros falha 4.5:1 — recalcular token.
+4. **Charts sem aria-label:** Recharts requer `<title>` + `<desc>` ou wrapper com `aria-label` descritivo + tabela alternativa para screen readers.
+5. **Tabelas raw sem `<th scope>`:** auditar `<table>` direto (não-shadcn).
+6. **Keyboard navigation:** Skip nav link (`#main-content`), focus visible ring em todos interactive (review tokens).
+7. **ARIA live regions:** notificações/toasts sem `aria-live="polite"`.
 
-### Resumo NFR-17
+**Critérios de aceite por componente:**
+- Score axe-core: 0 violations Critical/Serious por rota.
+- Manual keyboard-only test: navegar fluxo crítico (login → check-in → submit) sem mouse.
+- VoiceOver/NVDA smoke: nomes acessíveis em todos botões.
 
-| Status | Count | Critérios |
-|--------|-------|-----------|
-| ✅ PASS | 6 | 1.1.1, 1.4.1, 2.4.7, 2.5.3, 3.2.2, 2.3.1 |
-| ⚠️ PARTIAL | 7 | 1.3.2, 1.4.11, 2.1.1, 2.1.2, 2.4.3, 2.4.6, 3.3.1, 4.1.2 |
-| ❌ FAIL | 6 | 1.3.1, 1.4.3, 2.4.1, 2.4.8, 3.1.1, 3.3.2, 2.3.3 |
-
-**Conformidade WCAG 2.1 AA estimada:** ~55% — requer correção dos 6 FAIL para atingir conformidade AA.
+**Esforço total a11y:** 40h (UX-007 + UX-024 + audit + setup).
 
 ---
 
-## 6. Dependências e Riscos
+## 10. Questões para Outros Agentes
 
-### Cross-debt Dependencies
+### @data-engineer
+1. Confirmar: existe RPC `get_lancamentos_diarios_for_seller` ou similar que possa substituir os 27 SELECTs diretos no client antes do REVOKE? Se não, precisamos criar (DB-side).
+2. Após DB-014 (gen types), pode validar que migrations PT-BR não geram colisões de nome com tipos manuais (ex: `Usuario` vs `Profile`)?
+3. Schema `chart_*` color tokens (UX-005/021) afeta tabelas? (Resposta esperada: NÃO — pure FE).
 
-```
-UX-07 (Atom components) ──→ UX-06 (Inline validation) ──→ UX-04 (Labels)
-       │                         │
-       └─────────────────────────┴──→ Login.tsx refactor (bloco único)
+### @qa (FASE 7)
+1. **Test gate UX antes de Sprint 1:**
+   - axe-core baseline para 10 rotas críticas.
+   - Playwright visual snapshots para `MXPerformanceLanding`, `ConsultoriaClienteDetalhe`, charts.
+   - Memory leak detection: realtime subs (suite atual cobre?).
+2. **Risco de regressão UX-001:** ordem proposta em §4.1 tem riscos? Especialmente DashboardLoja por último (depende UX-002).
+3. **Contract tests entre forms e RPCs:** alinhados com plano RHF (§8)?
 
-UX-01 (Focus trap) ──→ UX-12 (WizardPDI labels)
-       │                    │
-       └── WizardPDI.tsx ──┘──→ Refatoração conjunta do Wizard
-
-UX-05 (Contrast) ──→ UX-11 (Mobile nav)
-       │
-       └──→ Novo token --color-text-label (dependência do @theme)
-
-UX-03 (Reduced motion) ──→ UX-08 (Blur optimization)
-       │
-       └──→ CSS global @media block (mesmo arquivo index.css)
-```
-
-### Riscos
-
-| Risco | Probabilidade | Impacto | Mitigação |
-|-------|--------------|---------|-----------|
-| Regressão visual ao trocar `opacity-40` por token novo | Média | Médio | Screenshot comparison testing antes/depois em 10 arquivos |
-| Radix Dialog wrapper no WizardPDI conflitar com motion animations | Baixa | Alto | Testar `Dialog.Content` + `motion.div` em sandbox; Radix Dialog usa `Dialog.Content` como boundary, motion pode ser aplicado no filho |
-| `MotionConfig reducedMotion="user"` suprimir animações necessárias para feedback de UI (ex: loading spinners) | Média | Baixo | CSS global deve manter spinners funcionais com `animation-duration` mínimo em vez de `none` |
-| Tokens de cor print divergire de expectativa de clientes acostumados com cores legacy | Baixa | Médio | Validar com stakeholder antes da migração; manter prints de referência |
-| WizardPDI refatoração quebrar fluxo de save de PDI (dados em `form` state) | Baixa | Crítico | Refatorar apenas markup/ARIA, preservar lógica de estado intacta. Teste E2E obrigatório |
+### @architect (FASE 8)
+1. Upgrades UX-010 (Alta→Crítica) e UX-016 (Média→Alta) batem com framework de priorização?
+2. UX-026 (web vitals) duplica SYS-017 (Sentry init)? Sugiro consolidar ou cross-referenciar.
+3. Esforço total UX ~520h cabe em 1 epic ou precisa fatiar (Hardening UX + Decomposição + a11y + Forms)?
 
 ---
 
-## 7. Recomendações de Execução
-
-### Fase 1 — Acessibilidade Bloqueante (P1) — 13h
-
-**Objetivo:** Eliminar todos os FAIL WCAG Level A.
-
-| Ordem | Débito | Ação | Horas |
-|-------|--------|------|-------|
-| 1 | UX-14 | Adicionar `lang="pt-BR"` ao `<html>` | 0.5h |
-| 2 | UX-02 | Implementar `SkipNavLink` no `Layout.tsx` | 1h |
-| 3 | UX-01 | Hook custom `useFocusTrap` para mobile menu + wrapper Radix Dialog para WizardPDI | 6h |
-| 4 | UX-05 | Adicionar token `--color-text-label: #64748b`, criar tone `"label"` no Typography, migrar 40+ instâncias | 4h |
-| 5 | UX-11 | Trocar `text-white/40` → `text-white/70` na mobile bottom nav | 1h |
-| 6 | UX-03 | CSS global `@media (prefers-reduced-motion)` + `MotionConfig reducedMotion="user"` | (horas na Fase 2) |
-
-### Fase 2 — Conformidade WCAG AA (P2) — 11h
-
-| Ordem | Débito | Ação | Horas |
-|-------|--------|------|-------|
-| 7 | UX-03 | Reduced motion (global CSS + MotionConfig) | 4h |
-| 8 | UX-04 + UX-12 | Labels em Login + WizardPDI (usar FormField onde aplicável) | 5h |
-| 9 | UX-10 | Migrar print components para tokens MX | 4h |
-| 10 | UX-13 | Adicionar `aria-hidden` em blur divs do Login | 0.5h |
-
-### Fase 3 — UX Polish (P3) — 7.5h
-
-| Ordem | Débito | Ação | Horas |
-|-------|--------|------|-------|
-| 11 | UX-06 + UX-07 | Login migration para FormField + inline validation | 4h (combinado) |
-| 12 | UX-08 | Otimizar blur elements (reduzir blur radius, lazy mount) | 1h |
-| 13 | UX-09 | Implementar Breadcrumb component | 2h |
-
-**Ordem total sugerida:** 1 → 2 → 3 → 4 → 5 → 7 → 8 → 9 → 10 → 11 → 12 → 13
-
----
-
-## 8. Parecer Final
-
-### ⚠️ NEEDS WORK
-
-O DRAFT v2.0 subestima significativamente o escopo dos débitos de UX/Acessibilidade. Os 10 itens originais são válidos, mas 4 tiveram severidade subestimada e 4 novos débitos foram identificados. O orçamento de 21h é insuficiente — o revisado de **33h** reflete a real complexidade.
-
-**Pontos críticos que bloqueiam conformidade WCAG 2.1 AA:**
-
-1. O sistema possui **6 violações FAIL** em critérios Level A/AA — inaceitável para um produto comercial.
-2. O WizardPDI é o fluxo mais complexo da plataforma e tem **acessibilidade praticamente nula** (sem focus trap, sem labels, sem screen reader support).
-3. O `opacity-40` sobre `text-text-tertiary` é um anti-pattern sistêmico que afeta **todos os roles** em **10 páginas**.
-4. A ausência de `lang="pt-BR"` e skip link são falhas básicas de conformidade.
-
-**Recomendações ao @architect:**
-
-- Aprovar o budget revisado de 33h (+57%)
-- Priorizar a Fase 1 (P1) como pré-requisito para qualquer release externa
-- Combinar UX-06 + UX-07 em execução única com UX-04 (Login refactor)
-- Executar UX-01 e UX-12 juntos (WizardPDI refactor em batch)
-- Criar story `UI-05` para o token `--color-text-label` como dependência de UX-05
-
-**O gate será movido para ✅ APPROVED quando o DRAFT v2.1 incorporar as revisões deste documento.**
-
----
-
-**Assinatura:** @ux-design-expert
-**Revisão solicitada por:** @architect (FASE 6)
-**Próximo passo:** Aguardar incorporação no DRAFT v2.1 pelo @pm
+**Fim da revisão @ux-design-expert (FASE 6).**
+**Recomendação para o gate QA (FASE 7):** **APPROVED viável** condicionado a Sprint 0 de pré-requisitos (UX-004 gen types + UX-015 lint a11y + UX-024 focus traps). Sem Sprint 0, gate deve ser **NEEDS WORK** — drift de tipos + a11y bloqueante combinados com X-2 (RBAC) elevam risco a inaceitável.

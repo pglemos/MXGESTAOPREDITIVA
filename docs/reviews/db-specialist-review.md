@@ -1,708 +1,342 @@
-# Database Specialist Review — Technical Debt Assessment
+# Database Specialist Review
 
-**Responsável:** @data-engineer
-**Data:** 15 de Abril de 2026
-**Versão do DRAFT revisado:** 2.0
-**Gate Status:** ✅ APPROVED
-
----
-
-## 1. Validação dos Débitos Existentes
-
-### DB-01 — Legacy shadow columns em daily_checkins (9) e pdis (2)
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW → **mantido** |
-| **Horas** | 2h → **mantido** |
-| **Prioridade** | P3 → **mantido** |
-
-**Notas técnicas:** As 9 shadow columns em `daily_checkins` (`user_id`, `date`, `leads`, `agd_cart`, `agd_net`, `vnd_porta`, `vnd_cart`, `vnd_net`, `visitas`) são mantidas em sincronia pelo trigger `sync_daily_checkins_canonical()` (migration `20260407001000`). As 2 shadows em `pdis` (`objective`, `action`) são sincronizadas por `sync_pdi_legacy_shadow_columns()` (migration `20260407161000`). Ambos os triggers fazem bidi-sync via `COALESCE` encadeado, o que é correto mas adiciona ~0.3ms por row em cada INSERT/UPDATE. O plano de remoção segue válido: dropar as colunas legadas e os triggers após 1 release completo sem leitura pelo frontend. A migration `20260407001000` já documentou o comentário "mantém compatibilidade por 1 release". Recomendo janela de remoção para Sprint 4 (após validação do @dev de que nenhum componente lê `daily_checkins.leads` diretamente).
-
-**Ação:** Manter OPEN. Agendar remoção para Sprint 4.
+**Reviewer:** @data-engineer (Dara)
+**Date:** 2026-05-16
+**Phase:** 5/10 — Brownfield Discovery
+**Inputs:** `docs/prd/technical-debt-DRAFT.md` (§2, §4, §7), `supabase/docs/SCHEMA.md`, `supabase/docs/DB-AUDIT.md`, 89 migrations ativas, 15 edge functions
+**Análise:** estática (sem conexão a DB de produção). Substitui versão prévia de 15-abr-2026.
 
 ---
 
-### DB-02 — Audit log composite indexes
+## 1. Executive Summary
 
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | — |
-| **Status** | **RESOLVED** ✅ |
-
-**Notas técnicas:** Resolvido pela migration `20260415001000_db02_audit_composite_indexes.sql`. Foram criados 7 indexes cobrindo `checkin_audit_logs` (changed_by+created_at, checkin_id, created_at DESC, change_type+created_at DESC) e `logs_reprocessamento` (store_id+created_at DESC, partial por status ativo, partial por triggered_by). A migration também adicionou a coluna `created_at` faltante em `logs_reprocessamento` com backfill via `COALESCE(started_at, now())`. Correção de bug da migration anterior `20260411002000` que falhou silenciosamente por causa da coluna ausente (todo o bloco BEGIN...COMMIT sofreu rollback).
-
-**Ação:** Fechado. Nenhum trabalho adicional.
-
----
-
-### DB-03 — Composite indexes daily_checkins
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | — |
-| **Status** | **RESOLVED** ✅ |
-
-**Notas técnicas:** Resolvido pela migration `20260413000000_perf_add_composite_index.sql` que criou `idx_checkins_store_date (store_id, reference_date)` e `idx_checkins_seller_date (seller_user_id, reference_date)`. A migration `20260407001000` já havia criado o UNIQUE index `(seller_user_id, store_id, reference_date)` e os índices `(store_id, reference_date)` e `(seller_user_id, reference_date)`. Há redundância parcial entre `idx_checkins_store_date` e `daily_checkins_store_reference_idx` — ambos cobrem `(store_id, reference_date)`. O otimizador do PG17 fará deduplicação automática, mas recomendo dropar `idx_checkins_store_date` em futura migration de limpeza para manter o catálogo enxuto.
-
-**Ação:** Fechado. Sugestão de limpeza de index redundante em Sprint 3.
+- **Validados:** 19/19 (todos os DB-001..DB-019 confirmados como reais por análise estática)
+- **Ajustados:** 4 severidades + 7 reestimativas de esforço
+- **Removidos:** 0
+- **Adicionados:** 8 novos débitos (DB-020 a DB-027) — categorias: backup/RTO/RPO, observabilidade DB, pooling, extensões, advisors, postgres-superuser, autovacuum, trigger LGPD
+- **Total final DB:** **27 débitos**
+- **Esforço total estimado (DB):** **~95–100 horas** (vs 50h originais — diferença vem dos 8 novos + reestimativa de DB-017/DB-008/DB-006)
+- **Verdict técnico:** todos os 4 críticos do DRAFT são reprodutíveis. Vetor DB-016 é **VIÁVEL** com qualquer JWT `authenticated`. Backups DB-013 contêm PII viva.
 
 ---
 
-### DB-04 — Drop ghost legacy tables
+## 2. Validação dos 19 Débitos
 
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | — |
-| **Status** | **RESOLVED** ✅ |
+| ID | Status | Sev orig→final | Esforço (h) | Complex | Justificativa |
+|----|--------|----------------|-------------|---------|---------------|
+| DB-001 | CONFIRMADO | Crítica→Crítica | 1 | Baixa | `submit_checkin_rpc.sql:49,84` checa `coalesce(is_active,true)` em `vinculos_loja`, NÃO em `vendedores_loja`. Vetor real. |
+| DB-002 | CONFIRMADO | Crítica→Crítica | 3 | Média | `submit_checkin_rpc.sql:161` `RETURN ... SQLERRM`. Pattern se repete em `auth_self_service_rpcs` e `admin_store_lifecycle_rpcs`. 2→3h para cobrir todas RPCs novas + garantir `logs_auditoria`. |
+| DB-003 | CONFIRMADO | Média→Média | 1 | Baixa | Regex E.164 + `^https?://`. |
+| DB-004 | CONFIRMADO | Baixa→Baixa | 0.5 | Trivial | Doc JSDoc + comentário SQL. |
+| DB-005 | CONFIRMADO | Alta→Alta | 1 | Baixa | 0.5→1h: dedup migration antes do UNIQUE. |
+| DB-006 | CONFIRMADO | Alta→Alta | 12 | Alta | 8→12h: ~30 policies referenciam helpers EN; cada DROP/REPLACE exige regression de RLS. Bloqueia DB-016 final. |
+| DB-007 | CONFIRMADO | Média→Média | 0.5 | Trivial | Regex de email. |
+| DB-008 | CONFIRMADO | Alta→**Crítica** | 6 | Média | Severidade↑: endpoint público (`verify_jwt=false`) com SERVICE_ROLE sem rate limit é vetor DoS + spam de pre-cadastros. 4→6h: throttle KV + reCAPTCHA + monitoring. |
+| DB-009 | CONFIRMADO | Média→Média | 1 | Baixa | Allow-list por env. |
+| DB-010 | CONFIRMADO | Baixa→Baixa | 1 | Baixa | Code review + 1 teste. |
+| DB-011 | CONFIRMADO | Alta→Alta | 3 | Média | 2→3h: feature flag para grace period dos callers ainda usando nome antigo. |
+| DB-012 | CONFIRMADO | Média→**Alta** | 24 | Alta | Severidade↑: LGPD Art. 18 (right-to-erasure) é obrigação legal. 16→24h: design `consentimentos` + RPCs `request_data_erasure` + workflow anonimização. |
+| DB-013 | CONFIRMADO | Crítica→Crítica | 2 | Baixa | `20260503020000_admin_master_e2e_hardening.sql:6-80` cria backups via `CREATE TABLE AS SELECT` sem RLS. PII viva. 1→2h: export S3 + DROP. |
+| DB-014 | CONFIRMADO | Alta→Alta | 2 | Baixa | 1→2h: CI step + diff script `database.generated.ts` vs `src/types/database.ts`. Bloqueia X-1. |
+| DB-015 | CONFIRMADO | Média→Média | 5 | Média | 3→5h: 21 FKs exigem análise caso-a-caso + migration por grupo. |
+| DB-016 | CONFIRMADO | Crítica→Crítica | 4 | Média | 2→4h: REVOKE + repolicy + testes RLS por role + ajustar scripts admin (DB-026). Bloqueador real do gate 09:45. |
+| DB-017 | CONFIRMADO | Alta→Alta | 4 | Baixa | 3→4h. Grep estático achou `handle_new_user` sem `SET search_path` em `20260427175235_*.sql`. DB-AUDIT §1 lista 12 RPCs nessa condição. Patch: `ALTER FUNCTION ... SET search_path = public, pg_temp`. |
+| DB-018 | CONFIRMADO | Baixa→**Média** | 4 | Média | Severidade↑: IDX-001 (`vinculos_loja(user_id,is_active)`) é hot-path de toda policy RLS — degradação O(n). 3→4h. |
+| DB-019 | CONFIRMADO | Baixa→**Alta** | 2 | Baixa | Upgrade confirmado: `role_assignments_audit` + `store_meta_rules_history` vazam histórico cross-tenant. 1→2h. |
 
-**Notas técnicas:** Resolvido pela migration `20260413001000_drop_legacy_tables.sql` que executou `DROP TABLE IF EXISTS` em `gamification`, `activities` e `inventory`. O CASCADE removeu automaticamente dependências órfãs. Verifiquei que `daily_lead_volumes` e `agencies` ainda existem no schema (confirmado via MAPEAMENTO). `daily_lead_volumes` tem RLS `OPEN (authenticated + anon)` — é candidata a drop futuro se não for usada pelo frontend, mas está fora do escopo deste débito.
-
-**Ação:** Fechado. Nenhum trabalho adicional.
-
----
-
-### DB-05 — Missing indexes PDI 360 child tables
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | MEDIUM → **mantido** |
-| **Horas** | 4h → **revisado para 3h** |
-| **Prioridade** | P2 → **mantido** |
-
-**Notas técnicas:** As tabelas transacionais do PDI 360 (`pdi_sessoes`, `pdi_metas`, `pdi_avaliacoes_competencia`, `pdi_plano_acao`, `pdi_objetivos_pessoais`) foram criadas na migration `20260409135401` **sem índices** além das PKs e FKs implícitas. Com o crescimento do módulo (cada sessão gera ~18+ rows distribuídas entre metas, avaliações e plano de ação), as queries das RPCs `get_pdi_print_bundle()` e `create_pdi_session_bundle()` farão Seq Scans nas child tables. Os índices necessários são:
-
-1. `pdi_sessoes(colaborador_id)` — Usado pelo SELECT policy "Vendedor ve suas sessoes"
-2. `pdi_sessoes(gerente_id)` — Usado pelo SELECT policy "Gerente ve sessoes que criou"
-3. `pdi_avaliacoes_competencia(sessao_id)` — FK sem índice explícito no PG17 (somente PKs geram automatic indexes; FKs não)
-4. `pdi_avaliacoes_competencia(competencia_id)` — JOIN com `pdi_competencias` no print bundle
-5. `pdi_plano_acao(sessao_id)` — FK sem índice
-6. `pdi_plano_acao(competencia_id)` — FK sem índice
-7. `pdi_metas(sessao_id)` — FK sem índice
-8. `pdi_objetivos_pessoais(sessao_id)` — FK sem índice
-
-A revisão de 4h → 3h reflete que são CREATE INDEX IF NOT EXISTS simples, sem dados para backfill.
-
-**Ação:** Manter OPEN. Executar em Sprint 2.
+**Subtotal validado:** 4 Crítica + (1↑) · 6 Alta + (1↑) · 5 Média + (1↑) · 4 Baixa (- 2 promovidos) = **4 Crítica · 7 Alta · 4 Média · 4 Baixa · ~71h**
+**Mudanças de severidade aplicadas:** DB-008↑, DB-012↑, DB-018↑, DB-019↑.
 
 ---
 
-### DB-06 — Permissive SELECT policies (users, stores, memberships)
+## 3. Débitos Adicionados (DB-020..DB-027)
 
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | MEDIUM → **rebaixado para LOW** |
-| **Horas** | 3h → **1h** (documentação + monitoring) |
-| **Prioridade** | P2 → **rebaixado para P3** |
+| ID | Débito | Severidade | Categoria | Esforço (h) | Justificativa |
+|----|--------|-----------|-----------|-------------|---------------|
+| DB-020 | **Sem estratégia documentada de backup/RTO/RPO** — Supabase faz PITR (gerenciado) mas projeto não declara RTO/RPO, não testa restore, não documenta cadeia de custódia | Alta | backup/dr | 6 | Bloqueia auditoria SOC2/LGPD. Documentar + drill semestral. |
+| DB-021 | **`pg_stat_statements` não habilitado** — sem visibilidade de queries lentas | Média | observability | 1 | `CREATE EXTENSION` + grant. Pré-req para priorizar DB-018. |
+| DB-022 | **`pgaudit` não instalado** — sem trilha auditável de DDL/DCL exigida por LGPD/SOC2 | Média | security/compliance | 2 | Habilitar + log levels + retenção 90d. |
+| DB-023 | **Connection pooling não validado** — Supavisor existe default no Supabase mas projeto não declara pool size, modo (transaction vs session) nem limite por edge function | Alta | performance/config | 4 | Validar `pool_mode=transaction` Edge / `session` scripts admin. Risco de pool exhaustion. |
+| DB-024 | **Auto-vacuum/analyze sem tuning para hot tables** — `lancamentos_diarios`, `notificacoes`, `consulting_schedule_events` recebem inserts diários sem ajuste | Média | performance | 3 | `ALTER TABLE ... SET (autovacuum_*)` por tabela hot. |
+| DB-025 | **Supabase Advisors (security + performance) não rodados** — toolkit nativo para detectar anti-patterns | Baixa | tooling | 1 | `supabase advisors lint --linked` + arquivar relatório + agendar quinzenal. |
+| DB-026 | **Scripts admin com `postgres@3.4.8` usando `POSTGRES_URL` direto** — bypass total de RLS, conexão superuser, sem auditoria | Alta | security/scripts | 8 | Mover `scripts/repair_sql.ts` e `scripts/run_fix_rls.ts` para Edge Function admin com auth + audit log, OU restringir a CI com role dedicado + audit obrigatório. Relacionado a SYS-005/X-3. |
+| DB-027 | **Trigger `check_orphan_users_after_membership_deletion` sem clareza sobre anonimização vs hard-delete** — viola LGPD Art. 16 se apaga sem registro | Média | compliance | 4 | Auditar trigger, decidir política (soft-delete + anonimização), documentar. |
 
-**Notas técnicas:** As policies permissive foram introduzidas pela migration `20260407210000_permissive_select_rls.sql` como otimização deliberada de performance. As 3 tabelas afetadas (`users`, `stores`, `memberships`) agora usam `USING (true)` para SELECT de authenticated users. Análise de risco:
+**Subtotal novos:** 0 Crítica · 3 Alta · 4 Média · 1 Baixa = 8 débitos · ~29h
 
-- `users`: Contém `email`, `phone` e `role`. O email é necessário para exibir nomes em rankings e equipes. O `phone` é PII exposto a qualquer authenticated user — este é o principal risco residual, mas mitigado pelo fato de que o frontend nunca renderiza `phone` fora de `/perfil` próprio.
-- `stores`: Contém apenas `name`, `active`, `manager_email`. Informação pública dentro do contexto do SaaS.
-- `memberships`: Expõe a vinculação user↔store↔role. Necessário para o sidebar, team list e role-based routing.
-
-O ganho de performance é mensurável: elimina 3 subqueries `is_admin() / is_owner_of() / is_manager_of()` por request. Com 50-100 authenticated users simultâneos no painel, isso representa ~300 subqueries evitadas por segundo de pico. A decisão foi correta para o estágio atual.
-
-**Ação:** Rebaixar severidade. Manter com plano de endurecimento quando o sistema atingir >200 authenticated users simultâneos ou quando houver requisito de compliance LGPD formal. Instalar monitoring via `pg_stat_statements` para medir o custo real das RLS subqueries quando reverter.
-
----
-
-### DB-07 — Secure PDI constraints (NOT NULL)
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | — |
-| **Status** | **RESOLVED** ✅ |
-
-**Notas técnicas:** Resolvido pela migration `20260413002000_secure_pdi_constraints.sql`. Foram aplicados NOT NULL em 10 colunas de `pdis` (`store_id`, `manager_id`, `seller_id`, `meta_6m`, `meta_12m`, `meta_24m`, `action_1`, `status`, `acknowledged`, `updated_at`) com backfill de defaults antes do ALTER. A migration `20260407161000` já havia feito DROP NOT NULL em `objective` e `action` para compatibilidade legada, o que está correto (essas colunas são shadows com trigger bidi-sync).
-
-**Ação:** Fechado. Nenhum trabalho adicional.
+**TOTAL FINAL DB (19+8): 27 débitos · ~95–100h** (71h validados + 29h novos; faixa absorve quick-wins paralelizáveis)
 
 ---
 
-### DB-08 — 17 legacy tables sem versioned migrations
+## 4. Reprodução de Vulnerabilidades Críticas
 
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | HIGH → **mantido** |
-| **Horas** | 6h → **revisado para 5h** |
-| **Prioridade** | P1 → **mantido** |
+### 4.1 DB-016 — Bypass RLS via PostgREST direto em `lancamentos_diarios`
 
-**Notas técnicas:** As tabelas core pré-existentes (`users`, `stores`, `memberships`, `daily_checkins`, `goals`, `benchmarks`, `devolutivas`, `pdis`, `notificacoes`, `notification_reads`, `trainings`, `training_progress`, `produtos_digitais`, `roles`, `user_roles`, `goal_logs`, `audit_logs`) foram criadas antes da adoção do sistema de migrations versionadas do Supabase. Isso significa que um `supabase db reset` não consegue recriar o schema completo — apenas as 40+ migrations existentes seriam aplicadas, gerando um database parcial. Este é o débito de maior criticidade porque impede disaster recovery automatizado e onboarding de novos desenvolvedores.
+**Status:** **CONFIRMADO VIÁVEL** (análise estática)
 
-As 4 views (`view_sem_registro`, `view_store_daily_production`, `view_seller_tenure_status`, `view_daily_team_status`) também são candidatos ao baseline.
+**Evidência:**
+- DB-AUDIT.md §2 lista `lancamentos_diarios` com policy `USING(true)`
+- `grep -l "REVOKE.*lancamentos_diarios" supabase/migrations/*.sql` → **nenhum resultado**
+- Não há `REVOKE INSERT,UPDATE,DELETE ON public.lancamentos_diarios FROM authenticated` em nenhuma migration
+- Default Supabase: `authenticated` role tem `GRANT ALL` em tabelas públicas
+- Combinação: `USING(true)` + GRANT default = qualquer JWT authenticated pode `POST /rest/v1/lancamentos_diarios` com payload arbitrário, bypassando TODAS as validações do `submit_checkin`
 
-Ver Seção 2 para estratégia recomendada.
+**Vetor de ataque exato:**
+```http
+POST /rest/v1/lancamentos_diarios HTTP/1.1
+Host: <project>.supabase.co
+Authorization: Bearer <JWT_authenticated_qualquer>
+apikey: <anon_key>
+Content-Type: application/json
+Prefer: return=representation
 
-**Ação:** Manter OPEN. Bloqueante para Sprint 1. Ver resposta à pergunta 1.
+{
+  "store_id": "<UUID_loja_alvo>",
+  "seller_user_id": "<UUID_vendedor_alvo>",
+  "reference_date": "2026-12-31",
+  "metric_scope": "daily",
+  "leads_total": 999999,
+  "submitted_at": "2026-05-16T03:00:00Z"
+}
+```
+Burla: gate 09:45, vínculo ativo, data futura, self-submit check — tudo no `submit_checkin`, nada na tabela.
 
----
-
-### DB-09 — Plaintext PII (emails, phones, OAuth tokens)
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | MEDIUM → **mantido** |
-| **Horas** | 3h → **revisado para 4h** |
-| **Prioridade** | P2 → **mantido** |
-
-**Notas técnicas:** Colunas com PII em plaintext:
-
-| Tabela | Coluna | Tipo de Dado | Risco |
-|--------|--------|-------------|-------|
-| `users` | `email` | Email pessoal | Baixo (necessário para auth/login) |
-| `users` | `phone` | Telefone celular | Médio (não usado para auth) |
-| `stores` | `manager_email` | Email corporativo | Baixo |
-| `tokens_oauth_consultoria` | `access_token` | Token OAuth2 Google | **Alto** |
-| `tokens_oauth_consultoria` | `refresh_token` | Token OAuth2 Google | **Alto** |
-
-Os tokens OAuth em `tokens_oauth_consultoria` já são cifrados via AES-256-GCM nas Edge Functions (modulo `crypto.ts`), mas a cifragem ocorre na camada de aplicação, não no banco. A coluna `access_token` e `refresh_token` armazenam ciphertext. Isso é adequado — o débito original referia-se a `users.email` e `users.phone`. O email **não pode** ser cifrado no banco porque o Supabase Auth usa `auth.users.email` (schema separado) para login. O `public.users.email` é uma espécie de cache/denormalização que poderia ser removido ou hasheado se o frontend passasse a consultar `auth.users` via admin API. O `phone` é o melhor candidato para cifragem.
-
-A revisão de 3h → 4h reflete o tempo adicional para atualizar as RPCs que fazem JOIN com `users.email` (ex: `process_import_data` faz `WHERE email ILIKE`).
-
-Ver Seção 2 para recomendação pgsodium vs pgcrypto.
-
-**Ação:** Manter OPEN. Executar em Sprint 2.
-
----
-
-### DB-10 — Schema validation JSONB columns
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW → **mantido** |
-| **Horas** | 2h → **mantido** |
-| **Prioridade** | P3 → **mantido** |
-
-**Notas técnicas:** Colunas JSONB sem validação de schema:
-
-| Tabela | Coluna | Uso |
-|--------|--------|-----|
-| `solicitacoes_correcao_lancamento` | `requested_values` | Valores solicitados pelo vendedor |
-| `checkin_audit_logs` | `old_values`, `new_values` | Snapshot antes/depois |
-| `logs_reprocessamento` | `warnings`, `errors`, `error_log` | Logs estruturados |
-| `importacoes_brutas` | `raw_data` | Dados brutos de CSV |
-| `historico_regras_metas_loja` | `old_values`, `new_values` | Audit de config |
-| `automation_configs` | `ai_context` | Contexto para IA |
-| `report_history` | `data_snapshot`, `ai_insight` | Snapshot de relatório |
-| `devolutivas` | ~5 colunas JSONB | Dados do feedback estruturado |
-
-Para as tabelas de audit/log, JSONB sem validação é aceitável (schema mutável por design). Para `devolutivas`, que é dados de negócio estruturado, recomendo adicionar CHECK constraints com `jsonb_typeof()` para validar chaves obrigatórias. Para `automation_configs.ai_context`, seria útil um schema check mas não urgente.
-
-**Ação:** Manter OPEN. Executar em Sprint 3 com foco em `devolutivas` primeiro.
-
----
-
-### DB-11 — Missing updated_at triggers em audit tables
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW → **mantido** |
-| **Horas** | 1h → **mantido** |
-| **Prioridade** | P3 → **mantido** |
-
-**Notas técnicas:** Tabelas de audit sem trigger `updated_at`:
-
-| Tabela | Tem updated_at? | Tem trigger? |
-|--------|----------------|-------------|
-| `checkin_audit_logs` | Não (apenas `created_at`) | N/A |
-| `solicitacoes_correcao_lancamento` | Não (apenas `created_at`) | N/A |
-| `historico_regras_metas_loja` | Não (apenas `changed_at`) | N/A |
-| `logs_reprocessamento` | Não (apenas `started_at`, `finished_at`, `created_at`) | N/A |
-| `importacoes_brutas` | Não (apenas `created_at`) | N/A |
-
-Na verdade, estas tabelas são **imutáveis por design** (audit trail). `checkin_audit_logs` e `historico_regras_metas_loja` são append-only — nenhum UPDATE ocorre. `solicitacoes_correcao_lancamento` sofre UPDATE em `status`, `auditor_id`, `reviewed_at` quando o gerente aprova/rejeita, mas já tem `reviewed_at` como timestamp do evento. `logs_reprocessamento` sofre UPDATE de `status` e `finished_at`, mas estes são controlados pela função `process_import_data()`.
-
-**Recomendação:** Adicionar coluna `updated_at` + trigger APENAS em `solicitacoes_correcao_lancamento` e `logs_reprocessamento`, que sofrem UPDATE. As demais são genuinamente append-only e não precisam.
-
-**Ação:** Manter OPEN com escopo reduzido. 1h está correto.
-
----
-
-### DB-12 — Legacy FKs sem explicit ON DELETE
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | MEDIUM → **mantido** |
-| **Horas** | 4h → **mantido** |
-| **Prioridade** | P2 → **mantido** |
-
-**Notas técnicas:** FKs das tabelas legadas que usam o comportamento default do PostgreSQL (`ON DELETE NO ACTION`):
-
-| Tabela | FK | Comportamento Atual | Recomendado |
-|--------|-----|--------------------|-------------|
-| `daily_checkins` | `user_id → users(id)` | NO ACTION | SET NULL ou CASCADE |
-| `daily_checkins` | `store_id → stores(id)` | NO ACTION | CASCADE |
-| `devolutivas` | `store_id → stores(id)` | NO ACTION | CASCADE |
-| `devolutivas` | `seller_id → users(id)` | NO ACTION | SET NULL |
-| `devolutivas` | `manager_id → users(id)` | NO ACTION | SET NULL |
-| `pdis` | `store_id → stores(id)` | NO ACTION | CASCADE |
-| `pdis` | `seller_id → users(id)` | NO ACTION | SET NULL |
-| `pdis` | `manager_id → users(id)` | NO ACTION | SET NULL |
-| `goals` | `store_id → stores(id)` | NO ACTION | CASCADE |
-| `goals` | `user_id → users(id)` | NO ACTION | CASCADE |
-| `notificacoes` | `recipient_id → users(id)` | NO ACTION | CASCADE |
-| `goal_logs` | `goal_id → goals(id)` | NO ACTION | CASCADE |
-
-O comportamento `NO ACTION` é mais seguro que `CASCADE` implícito, mas gera erros 23503 (foreign key violation) ao tentar deletar uma loja com checkins, o que é o comportamento correto na maioria dos casos. A questão é que o sistema usa soft-delete (`active = false`) para lojas e desativação para usuários, nunca DELETE físico. Portanto o risco prático é baixo.
-
-**Recomendação:** Manter `NO ACTION` na maioria dos casos. Adicionar `ON DELETE CASCADE` apenas onde a semântica de negócio exige (ex: `goals.user_id → users(id)` — se o usuário for deletado fisicamente, as metas devem ir junto). As canonical tables já usam CASCADE corretamente (ex: `store_sellers.store_id → stores(id) ON DELETE CASCADE`).
-
-**Ação:** Manter OPEN. Executar em Sprint 2 com análise caso a caso.
-
----
-
-### DB-13 — daily_checkins partitioning strategy
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW → **mantido** |
-| **Horas** | 2h → **mantido** |
-| **Prioridade** | DEFERRED → **mantido** |
-
-**Notas técnicas:** Ver Seção 2, resposta à pergunta 5 para análise de volume. O particionamento por `RANGE(reference_date)` com partições mensais seria a estratégia correta quando a tabela atingir 500K-1M rows. Hoje o volume não justifica — a tabela cabe inteiramente em memória e os índices compostos existentes são suficientes. O `DEFERRED` está correto.
-
-**Ação:** Manter DEFERRED. Reavaliar em 6 meses ou quando `daily_checkins` atingir 200K rows.
-
----
-
-### DB-14 — OAuth state cleanup cron
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | MEDIUM → **mantido** |
-| **Horas** | 3h → **revisado para 2h** |
-| **Prioridade** | P2 → **mantido** |
-
-**Notas técnicas:** A tabela `estados_oauth_google_consultoria` tem TTL de 10 minutos (`expires_at NOT NULL`) mas não tem cleanup automatizado. States consumidos têm `consumed_at` preenchido, mas permanecem no disco indefinidamente. Com o uso da consultoria crescendo, isso acumulará lixo. A solução é simples:
-
+**Mitigação SQL (mínima viável):**
 ```sql
-SELECT cron.schedule(
-  'cleanup-oauth-states',
-  '*/15 * * * *',
-  $$
-  DELETE FROM public.estados_oauth_google_consultoria
-  WHERE (consumed_at IS NOT NULL OR expires_at < now())
-    AND created_at < now() - interval '1 hour'
-  $$
-);
+BEGIN;
+REVOKE INSERT, UPDATE, DELETE ON public.lancamentos_diarios FROM authenticated, anon;
+DROP POLICY IF EXISTS "lancamentos_diarios_select_all" ON public.lancamentos_diarios;
+CREATE POLICY "lancamentos_diarios_select_scoped" ON public.lancamentos_diarios
+  FOR SELECT TO authenticated
+  USING (
+    eh_administrador_mx()
+    OR tem_papel_loja(store_id, ARRAY['gestor','vendedor','administrador_geral'])
+  );
+-- GRANT EXECUTE em submit_checkin permanece
+COMMIT;
 ```
+**Pré-req:** DB-006 parcial (helpers PT-BR estáveis) + DB-014 (types gerados). Ordem técnica obrigatória: DB-014 → DB-006 parcial → DB-016.
 
-Também pode ser feito via `pg_cron` já disponível no Supabase (as funções `configure_*_cron()` já usam a extensão). A revisão de 3h → 2h reflete a simplicidade da solução.
+### 4.2 DB-013 — Backups `migration_backup_*_20260503` com PII viva
 
-**Ação:** Manter OPEN. Executar em Sprint 2.
+**Status:** **CONFIRMADO — PII VIVA**
 
----
+**Evidência:**
+- `20260503020000_admin_master_e2e_hardening.sql:6-80` cria via `CREATE TABLE ... AS SELECT ... FROM <tabela_original>` — cópia 1:1 sem filtro/anonimização
+- Backup `vendedores_loja_duplicates`: `user_id`, `store_id`, vínculos → permite reconstrução cross-loja
+- Backup `lancamentos_diarios_duplicates`: valores comerciais (metas, leads, vendas) + identificadores
+- Sem RLS (DB-AUDIT §2)
+- Nenhuma migration posterior dropou ou aplicou RLS. Retention: indefinida (criadas há 13 dias).
 
-### DB-15 — pdi_sessoes.loja_id sem FK formal
+**Recomendação:**
+1. Validar com @pm/legal valor probatório
+2. Se sim: `pg_dump --table=migration_backup_* -F c`, encrypt com `gpg`, cold storage (S3 Glacier) + entry em `logs_acesso_sensivel`
+3. `DROP TABLE public.migration_backup_vendedores_loja_duplicates_20260503; DROP TABLE public.migration_backup_lancamentos_diarios_duplicates_20260503;`
+4. Pre-commit hook: bloquear migrations que criem `migration_backup_*` sem RLS + policy admin-only no mesmo arquivo
 
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW → **mantido** |
-| **Horas** | 1h → **mantido** |
-| **Prioridade** | P3 → **mantido** |
+### 4.3 DB-001 — Patch SQL para `submit_checkin`
 
-**Notas técnicas:** A coluna `pdi_sessoes.loja_id UUID` foi criada como `-- Referência à loja se existir` sem FK constraint na migration `20260409135401`. Isso permite valores órfãos. A correção é:
+Estado atual: `supabase/migrations/20260516125000_submit_checkin_rpc.sql` linhas 40-90 validam `vinculos_loja` apenas.
 
+**Patch (nova migration `20260517100000_submit_checkin_validate_vendedor.sql`):**
 ```sql
-ALTER TABLE public.pdi_sessoes
-  ADD CONSTRAINT pdi_sessoes_loja_id_fkey
-  FOREIGN KEY (loja_id) REFERENCES public.stores(id)
-  ON DELETE SET NULL;
+CREATE OR REPLACE FUNCTION public.submit_checkin(payload jsonb)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_user_id uuid := auth.uid();
+  v_store_id uuid := (payload->>'store_id')::uuid;
+  v_seller_user_id uuid := (payload->>'seller_user_id')::uuid;
+  -- ...resto idêntico...
+BEGIN
+  -- ...validações existentes (vinculos_loja, gate 09:45, etc.)...
+
+  -- NOVA validação (DB-001):
+  IF v_seller_user_id IS NOT NULL THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM public.vendedores_loja vl
+      WHERE vl.user_id = v_seller_user_id
+        AND vl.store_id = v_store_id
+        AND coalesce(vl.is_active, true) = true
+    ) THEN
+      RETURN jsonb_build_object(
+        'ok', false,
+        'error_code', 'SELLER_INACTIVE',
+        'error', 'Vendedor não está ativo no cadastro da loja.'
+      );
+    END IF;
+  END IF;
+
+  -- ...INSERT existente com ON CONFLICT...
+END;
+$$;
 ```
 
-O `SET NULL` é correto porque uma sessão PDI pode existir sem loja (caso o colaborador seja transferido ou a loja desativada). O `NOT NULL` não se aplica porque `loja_id` é opcional por design. A RPC `create_pdi_session_bundle()` já faz o cast `(p_payload->>'loja_id')::UUID` que retornará NULL se o campo estiver ausente.
+### 4.4 DB-002 — Pattern de wrap correto para SQLERRM
 
-**Ação:** Manter OPEN. Executar em Sprint 3.
-
----
-
-## 2. Respostas às Perguntas do @architect
-
-### Pergunta 1: DB-08 — Estratégia de baseline para 17 tabelas legadas
-
-**Recomendação: `supabase db dump` com pós-processamento manual.**
-
-O `CREATE TABLE IF NOT EXISTS` gerado do schema vivo é frágil porque:
-- Não captura indexes, constraints, policies, triggers e comments
-- Não preserva a ordem de dependência das FKs
-- Perde information sobre tipos ENUM e views
-
-O fluxo recomendado:
-
-1. **Gerar dump completo:**
-   ```bash
-   supabase db dump --schema public > supabase/migrations/00000000_base_schema.sql
-   ```
-   Isso gera um arquivo com `CREATE TABLE`, `ALTER TABLE ... ADD CONSTRAINT`, `CREATE INDEX`, `CREATE POLICY`, `CREATE TRIGGER`, `CREATE FUNCTION` e `CREATE VIEW` para todo o schema `public`.
-
-2. **Renomear para timestamp zero:** `00000000000000_baseline_legacy_schema.sql`
-
-3. **Marcar as 40+ migrations existentes como já aplicadas** criando entradas na tabela `supabase_migrations.schema_migrations` via:
-   ```sql
-   INSERT INTO supabase_migrations.schema_migrations (version, statements, name)
-   SELECT version, '[]', name
-   FROM (
-     VALUES
-       ('20260407001000', 'canonical_domain_alignment'),
-       ('20260407002000', 'checkin_temporal_status'),
-       ...
-     ) AS t(version, name);
-   ```
-   Isso evita que as migrations existentes sejam re-executadas após o reset.
-
-4. **Validar** com `supabase db reset` em ambiente local.
-
-**Risco:** O dump captura o estado atual (com as shadow columns, triggers legados, etc.), o que é o comportamento correto para um baseline. Migrations subsequentes devem ser idempotentes (`IF NOT EXISTS`, `IF EXISTS`).
-
-**Tempo estimado:** 3h para dump + 2h para validação e ajustes de ordenação = 5h (revisado de 6h).
-
----
-
-### Pergunta 2: DB-06 — Threshold para reverter permissive SELECT policies
-
-**Threshold recomendado: 200 authenticated users simultâneos OU requisito formal de compliance LGPD.**
-
-Análise quantitativa:
-
-| Cenário | Users Simultâneos | Subqueries RLS/s (sem permissive) | Overhead estimado |
-|---------|-------------------|-----------------------------------|--------------------|
-| Atual (permissive) | ~30 | 0 | 0ms |
-| Sem permissive | ~30 | ~90/s | ~15ms/request |
-| Sem permissive | ~100 | ~300/s | ~50ms/request |
-| Sem permissive | ~200 | ~600/s | ~120ms/request |
-| Sem permissive | ~500 | ~1500/s | ~300ms/request (inaceitável) |
-
-O cálculo assume 3 subqueries por request (users, stores, memberships) × avg 3 requests/page. Cada subquery `is_admin()` custa ~0.5ms no Supabase (ele vai em `auth.uid()` → `users` → `memberships`).
-
-**Recomendação:** Manter permissive até 200 users. Nesse ponto, migrar para uma abordagem híbrida:
-- `stores` e `memberships`: manter permissive (dados públicos no contexto)
-- `users`: endurecer para `(auth.uid() = id OR is_admin())` e usar uma RPC `search_usersByName()` para autocomplete de nomes
-
-**Trigger de reversão:** Medir via `pg_stat_statements` a query `SELECT 1 FROM users WHERE id = auth.uid()` — quando a latência p99 dessa query ultrapassar 50ms, é hora de reverter.
-
----
-
-### Pergunta 3: DB-09 — PII encryption: pgsodium (Supabase Vault) vs pgcrypto
-
-**Recomendação: `pgcrypto` para dados em repouso. `pgsodium` apenas se precisar de key rotation automática.**
-
-Comparação técnica:
-
-| Critério | `pgcrypto` | `pgsodium` (Vault) |
-|----------|-----------|-------------------|
-| Disponibilidade | Extension nativa PG, já habilitada (`CREATE EXTENSION IF NOT EXISTS pgcrypto`) | Requer Supabase Vault (habilitado no dashboard) |
-| Busca/Query | `pgcrypto.encode(encrypt(...))` — sem busca por plaintext | Mesmo problema — sem busca |
-| Impacto em RLS | **Zero.** RLS avalia antes da descriptografia se a coluna cifrada não estiver no USING clause | **Zero.** Mesmo comportamento |
-| Performance | ~0.01ms/encrypt (AES-128) | ~0.02ms/encrypt (XChaCha20-Poly1305) |
-| Key management | Chave hardcoded em function ou variável | Key management automático com rotação |
-| Complexidade | Baixa | Média |
-
-**Impacto nas queries RLS:** Nenhuma das duas opções permite busca por valor plaintext (ex: `WHERE email = 'user@example.com'`). Para o caso de `users.email`, isso significa que:
-- O login não é afetado (usa `auth.users.email`, não `public.users.email`)
-- O autocomplete de email no reprocessamento (`WHERE email ILIKE`) teria que ser migrado para uma RPC SECURITY DEFINER que descriptografa em memória
-
-**Recomendação prática para MX Performance:**
-
-1. `users.phone`: Cifrar com `pgcrypto.encrypt(phone::bytea, current_setting('app.crypto_key')::bytea, 'aes')` — impacto zero no frontend pois `phone` não é usado em buscas.
-2. `users.email`: **Não cifrar.** Manter plaintext porque: (a) é necessário para `process_import_data` e busca de usuários, (b) o dado já existe em `auth.users.email` que é controlado pelo Supabase Auth. Em vez disso, adicionar policy restritiva no `SELECT` para expor email apenas em contextos necessários.
-3. `tokens_oauth_consultoria`: **Já protegido** pela cifragem AES-256-GCM nas Edge Functions. Manter como está.
-4. `stores.manager_email`: **Não cifrar.** Dado corporativo, sem risco LGPD individual.
-
----
-
-### Pergunta 4: DB-05 — Tipo de index para PDI 360 child tables
-
-**Recomendação: B-TREE simples para FKs, partial index para status.**
-
-Análise por coluna:
-
-| Coluna | Tipo Recomendado | Justificativa |
-|--------|-----------------|---------------|
-| `pdi_sessoes(colaborador_id)` | B-TREE simples | Seletividade alta (cada user tem poucas sessões). Usado pelo RLS policy. |
-| `pdi_sessoes(gerente_id)` | B-TREE simples | Mesmo raciocínio. Gerente acessa via policy. |
-| `pdi_sessoes(status)` | **Não indexar** | Baixa cardinalidade (apenas 'draft' e 'concluido'). Seq Scan é mais eficiente. |
-| `pdi_avaliacoes_competencia(sessao_id)` | B-TREE simples | FK lookup. Cada sessão tem ~18 rows (18 competências). |
-| `pdi_avaliacoes_competencia(competencia_id)` | **Não indexar** | Lookup raro. A query principal filtra por `sessao_id` primeiro. |
-| `pdi_plano_acao(sessao_id)` | B-TREE simples | FK lookup. |
-| `pdi_plano_acao(competencia_id)` | **Não indexar** | Mesmo raciocínio de avaliacoes. |
-| `pdi_plano_acao(status)` | **Partial index** WHERE status IN ('pendente', 'em_andamento') | Dashboard de ações pendentes. Alta seletividade (maioria será 'concluido' com o tempo). |
-| `pdi_metas(sessao_id)` | B-TREE simples | FK lookup. |
-| `pdi_objetivos_pessoais(sessao_id)` | B-TREE simples | FK lookup. |
-
-**Migration sugerida:**
-
+**Anti-pattern atual** (`submit_checkin_rpc.sql:161`):
 ```sql
-CREATE INDEX pdi_sessoes_colaborador_idx ON pdi_sessoes (colaborador_id);
-CREATE INDEX pdi_sessoes_gerente_idx ON pdi_sessoes (gerente_id);
-CREATE INDEX pdi_avaliacoes_sessao_idx ON pdi_avaliacoes_competencia (sessao_id);
-CREATE INDEX pdi_plano_acao_sessao_idx ON pdi_plano_acao (sessao_id);
-CREATE INDEX pdi_metas_sessao_idx ON pdi_metas (sessao_id);
-CREATE INDEX pdi_objetivos_sessao_idx ON pdi_objetivos_pessoais (sessao_id);
-CREATE INDEX pdi_plano_acao_pending_idx ON pdi_plano_acao (status, data_conclusao)
-  WHERE status IN ('pendente', 'em_andamento');
+EXCEPTION WHEN others THEN
+  RETURN jsonb_build_object('ok', false, 'error', SQLERRM);
 ```
+Vaza nomes de colunas, constraint names, search_path, etc.
 
-Total: 7 indexes. 6 B-TREE simples + 1 partial. Custo total de criação: <1 segundo com os volumes atuais.
-
----
-
-### Pergunta 5: DB-13 — Volume atual de daily_checkins e taxa de crescimento
-
-**Estimativa baseada no modelo de negócio:**
-
-| Métrica | Valor |
-|---------|-------|
-| Lojas ativas | ~5-10 (baseado nas migrations de seed) |
-| Vendedores ativos | ~30-60 (baseado em `store_sellers` seeding de memberships) |
-| Checkins/dia | ~25-50 (assumindo 80-90% de adesão) |
-| Rows/mês | ~750-1.500 |
-| Rows/ano | ~9.000-18.000 |
-| Taxa de crescimento mensal | ~10-15% (fase de expansão) |
-
-**Projeção:**
-
-| Período | Rows Estimadas | Tamanho Estimado |
-|---------|---------------|-----------------|
-| Hoje (Abril 2026) | ~5.000-10.000 | ~5-10 MB |
-| +6 meses | ~30.000-50.000 | ~30-50 MB |
-| +12 meses | ~80.000-150.000 | ~80-150 MB |
-| +24 meses | ~300.000-500.000 | ~300-500 MB |
-| +36 meses | ~500.000-1.000.000 | ~500MB-1 GB |
-
-**Conclusão:** Com ~10K rows atuais, a tabela está **muito longe** do threshold de particionamento. O gatilho empírico para particionamento por `RANGE(reference_date)` seria atingir ~500K rows (~500MB), quando os indexes começam a não caber em `shared_buffers` e os VACUUM se tornam custosos. Com a taxa de crescimento atual, isso ocorreria em ~24-36 meses.
-
-O `DEFERRED` está absolutamente correto. Não investir tempo em particionamento agora.
-
----
-
-## 3. Débitos Adicionais Identificados
-
-### DB-16 (NOVO) — Índice redundante em daily_checkins
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW |
-| **Horas** | 0.5h |
-| **Prioridade** | P3 |
-| **Status** | OPEN |
-
-**Descrição:** A migration `20260413000000` criou `idx_checkins_store_date (store_id, reference_date)` mas a migration `20260407001000` já havia criado `daily_checkins_store_reference_idx (store_id, reference_date)`. São índices idênticos. O PG17 os mantém ambos no catálogo, desperdiçando espaço e adicionando overhead em INSERT/UPDATE (dois B-TREE para manter).
-
-**Ação:** DROP INDEX `idx_checkins_store_date` em Sprint 3. Mesmo para `idx_checkins_seller_date` vs `daily_checkins_seller_reference_idx`.
-
----
-
-### DB-17 (NOVO) — Índices faltantes em consulting_visits e consulting_financials
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | MEDIUM |
-| **Horas** | 1h |
-| **Prioridade** | P3 |
-| **Status** | OPEN |
-
-**Descrição:** As tabelas `consulting_visits` e `consulting_financials` (criadas em `20260413110000` e `20260413120100`) não possuem índices em `client_id` e `visit_number`. A query de listagem de visitas por cliente (`/consultoria/clientes/:clientId`) fará Seq Scan à medida que o volume cresce.
-
-**Ação:** Criar indexes `(client_id, visit_number)` e `(client_id, reference_date)` em Sprint 3.
-
----
-
-### DB-18 (NOVO) — RLS policy solicitacoes_correcao_lancamento usa membership lookup ineficiente
-
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW |
-| **Horas** | 1h |
-| **Prioridade** | P3 |
-| **Status** | OPEN |
-
-**Descrição:** A policy `manager_view_store_requests` em `solicitacoes_correcao_lancamento` faz um sub-SELECT em `memberships` sem usar as funções helper otimizadas (`is_manager_of()`, `is_owner_of()`). Isso replica a lógica de verificação de role em vez de usar as funções canonizadas que já fazem cache via `is_admin()` early-return.
-
+**Pattern correto:**
 ```sql
-CREATE POLICY manager_view_store_requests ON public.solicitacoes_correcao_lancamento
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.memberships
-            WHERE user_id = auth.uid()
-            AND store_id = public.solicitacoes_correcao_lancamento.store_id
-            AND role IN ('gerente', 'dono')
-        )
-    );
+EXCEPTION WHEN others THEN
+  INSERT INTO public.logs_auditoria (
+    actor_id, action, resource_type, resource_id, payload,
+    error_sqlstate, error_message, created_at
+  ) VALUES (
+    auth.uid(),
+    'submit_checkin_error',
+    'lancamentos_diarios',
+    v_seller_user_id::text,
+    payload,
+    SQLSTATE,
+    SQLERRM,
+    now()
+  );
+  RETURN jsonb_build_object(
+    'ok', false,
+    'error_code', 'INTERNAL_ERROR',
+    'error', 'Não foi possível processar a operação. Tente novamente ou contate o suporte.',
+    'trace_id', gen_random_uuid()
+  );
 ```
-
-Deveria usar:
-
-```sql
-USING (
-    (SELECT public.is_manager_of(store_id))
-    OR (SELECT public.is_owner_of(store_id))
-    OR (SELECT public.is_admin())
-)
-```
-
-**Ação:** Refatorar policy em Sprint 3.
+**Pré-req:** garantir `logs_auditoria` existe com schema compatível (+1h se criar).
 
 ---
 
-### DB-19 (NOVO) — Funções de trigger duplicadas (update_updated_at)
+## 5. Respostas às 7 Perguntas do @architect (DRAFT §7)
 
-| Campo | Valor |
-|-------|-------|
-| **Severidade** | LOW |
-| **Horas** | 0.5h |
-| **Prioridade** | P3 |
-| **Status** | OPEN |
+**Q1 — Inventário/severidade completos?** Quase. Os 19 estão corretos. Faltavam 8 categorias estruturais — adicionadas como DB-020..DB-027. 4 severidades ajustadas (já refletidas no upgrade que o DRAFT §5 antecipou para DB-019 e DB-018).
 
-**Descrição:** Existem 3 variantes da função de trigger `updated_at`:
+**Q2 — Débitos faltantes (backup/RTO/vacuum/pool/pgstats):** Adicionados — DB-020 (RTO/RPO), DB-021 (pg_stat_statements), DB-022 (pgaudit), DB-023 (pool), DB-024 (vacuum), DB-025 (advisors), DB-026 (postgres@superuser), DB-027 (trigger LGPD).
 
-1. `update_updated_at()` — genérica, usada em `daily_checkins`, `pdis`, `goals`
-2. `update_updated_at_column()` — variante sem uso direto identificado
-3. `update_updated_at_column_canonical()` — padrão atual, usada em todas as canonical tables
+**Q3 — Esforços por débito:** Vide §2 e §3 (coluna "Esforço (h)"). Total final 95–100h.
 
-Todas fazem `NEW.updated_at = now()`. Deveria haver apenas 1 função canônica. A migração para consolidar requer `DROP FUNCTION` das variantes antigas + `CREATE OR REPLACE` dos triggers para apontar para a função canônica.
+**Q4 — DB-016 reprodutível?** **Sim, viável.** Vide §4.1.
 
-**Ação:** Consolidar em Sprint 3. Testar que nenhum trigger quebra após o DROP.
+**Q5 — Backups DB-013 com PII viva?** **Sim.** Criados via `CREATE TABLE AS SELECT` em 2026-05-03, sem RLS, sem cleanup. Recomendação: export-encrypt-then-drop (§4.2).
 
----
+**Q6 — Ordem técnica considerando dependências:** Vide §7. Resumo: **DB-014 → DB-006 parcial → DB-019 → DB-013 → DB-002 → DB-001 → DB-016 → DB-017**. DB-006 parcial antes de DB-016 evita quebrar policies que ainda usam helpers EN. DB-014 antes de DB-016 evita silent breaks no FE.
 
-## 4. Estimativa de Custo Revisada
+**Q7 — Tooling (pgaudit/advisors/pg_repack):**
+- `pgaudit`: não instalado (grep migrations = 0 hits) → DB-022.
+- `supabase advisors`: sem evidência de execução → DB-025.
+- `pg_repack`: não necessário ainda. Avaliar em 6 meses (`lancamentos_diarios` >1M rows).
 
-| ID | Débito | Horas DRAFT | Horas Revisadas | Delta | Justificativa |
-|----|--------|------------|----------------|-------|---------------|
-| DB-01 | Shadow columns | 2h | 2h | — | Mantido |
-| DB-02 | Audit indexes | 4h | — | RESOLVED | Migration aplicada |
-| DB-03 | Composite indexes | 1h | — | RESOLVED | Migration aplicada |
-| DB-04 | Ghost tables | 1h | — | RESOLVED | Migration aplicada |
-| DB-05 | PDI indexes | 4h | **3h** | -1h | Indexes simples sem backfill |
-| DB-06 | Permissive policies | 3h | **1h** | -2h | Rebaixado para documentação + monitoring |
-| DB-07 | PDI constraints | 2h | — | RESOLVED | Migration aplicada |
-| DB-08 | Legacy migrations | 6h | **5h** | -1h | Dump + validação mais rápido que esperado |
-| DB-09 | PII encryption | 3h | **4h** | +1h | RPCs com JOIN em email precisam de ajuste |
-| DB-10 | JSONB validation | 2h | 2h | — | Mantido |
-| DB-11 | updated_at triggers | 1h | 1h | — | Mantido (escopo reduzido mas horas ok) |
-| DB-12 | FK ON DELETE | 4h | 4h | — | Mantido |
-| DB-13 | Partitioning | 2h | 2h | DEFERRED | Mantido |
-| DB-14 | OAuth cleanup cron | 3h | **2h** | -1h | Solução simples com pg_cron existente |
-| DB-15 | pdi_sessoes FK | 1h | 1h | — | Mantido |
-| DB-16 | Índice redundante | — | **0.5h** | NOVO | DROP INDEX simples |
-| DB-17 | Consulting indexes | — | **1h** | NOVO | 4 CREATE INDEX |
-| DB-18 | RLS policy refactor | — | **1h** | NOVO | Reescrever 1 policy |
-| DB-19 | Trigger consolidation | — | **0.5h** | NOVO | DROP + redirect |
-
-### Resumo de horas
-
-| Status | Horas DRAFT | Horas Revisadas |
-|--------|------------|----------------|
-| RESOLVED | 8h | 0h |
-| OPEN (revisado) | 22h | **24h** |
-| DEFERRED | 2h | 2h |
-| NOVOS | — | **3h** |
-| **Total** | **32h** | **29h** (OPEN + NOVOS) |
-
-O total OPEN subiu de 22h para 24h (+2h líquido), mas a qualidade das estimativas melhorou significativamente com a análise caso a caso.
+**Q8 — Edge Functions rate limit/logs:** Sem rate limit nativo no Supabase Edge Functions além do throttle global. Recomendação: Upstash Redis (KV) via fetch + sliding window por IP. Logs estruturados JSON. Já capturado em SYS-017 + DB-008.
 
 ---
 
-## 5. Dependências e Riscos
+## 6. Avaliação dos Riscos Cruzados
 
-### Dependências entre débitos
+### X-1 — Drift de tipos PT-BR↔EN
+**Concordo CRÍTICA.** Ordem técnica obrigatória: DB-014 antes de qualquer DB-006/DB-011. Gate de CI: `supabase gen types` + `tsc --noEmit` falha o PR.
 
-```
-DB-08 (baseline migrations)
-  └── DB-16 (drop index redundante) ← pode ser incluído na migration de baseline
-  └── DB-19 (trigger consolidation) ← pode ser incluído na migration de baseline
+### X-2 — Bypass RLS via PostgREST
+**Concordo CRÍTICA.** Confirmação em §4.1. Side-effect: scripts/automation que faziam INSERT direto em `lancamentos_diarios` quebrarão — auditar e migrar para `submit_checkin` antes do REVOKE. **Risco operacional alto** sem feature flag/grace period.
 
-DB-05 (PDI indexes)
-  └── Sem dependência ← pode executar independentemente
+### X-3 — Vazamento de secrets em deploy
+**Concordo CRÍTICA.** Contribuição nova: DB-026 cobre `postgres@3.4.8` superuser path. Adicional: rotacionar `POSTGRES_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_*`, `RESEND_API_KEY` se `.env` estiver no histórico git (SYS-012). Treat as compromised by default.
 
-DB-12 (FK ON DELETE)
-  └── DB-08 ← idealmente após baseline para capturar o schema correto
+### X-5 — Gate 09:45 sem defesa em profundidade
+**Concordo ALTA.** Após DB-016 resolver REVOKE, gate fica server-enforced. Adicional belt-and-suspenders: CHECK constraint em `lancamentos_diarios` validando `submitted_at::time >= '09:45'` para `metric_scope='daily'`.
 
-DB-09 (PII encryption)
-  └── DB-06 (permissive policies) ← se endurecer users SELECT, impacta busca de email
-  └── Frontend ← RPCs que buscam por email precisam ser ajustadas
-
-DB-14 (OAuth cron)
-  └── Sem dependência ← pode executar independentemente
-```
-
-### Riscos
-
-| Risco | Probabilidade | Impacto | Mitigação |
-|-------|--------------|---------|-----------|
-| `supabase db dump` captura estado inconsistente (colunas órfãs, triggers quebrados) | Baixa | Alto | Rodar `ANALYZE` e `REINDEX` antes do dump. Validar com `supabase db reset` em ambiente limpo. |
-| Remoção de shadow columns (DB-01) quebra frontend legado | Média | Médio | Fazer grep em todo o codebase por `daily_checkins.leads` (não-canônico) antes de dropar. Usar feature flag. |
-| Partial index em `pdi_plano_acao` tem seletividade baixa no início | Baixa | Baixo | Começar com B-TREE simples. Converter para partial quando `status='concluido'` dominar (>80%). |
-| `pgcrypto` key hardcoded em function vira vulnerabilidade | Média | Alto | Usar `current_setting('app.crypto_key')` com custom GUC em vez de hardcode. Documentar no runbook. |
-| Reversão de permissive policies degrada UX (latência >200ms) | Baixa | Médio | Medir com `pg_stat_statements` antes e depois. Rollback via migration em <5min. |
+### X-6 — LGPD multi-camada
+**Concordo ALTA.** Reforçado: DB-012 subiu para Alta + DB-022 (pgaudit) + DB-027 (trigger anonimização) cobrem trilha completa. Sequência: DB-013 → DB-027 → DB-022 → DB-012 — total ~46h, candidato a epic dedicado "LGPD Compliance".
 
 ---
 
-## 6. Recomendações de Execução
+## 7. Ordem Técnica de Resolução
 
-### Sprint 1 — P1 (Críticos)
+### Sprint 1 — P0 Hardening Crítico (~22h)
+Bloquear deploy de qualquer feature até concluir.
+1. **DB-014** (2h) — Gerar `database.generated.ts` + CI gate. *Pré-req cego para tudo abaixo*.
+2. **DB-013** (2h) — Export + DROP backups com PII.
+3. **DB-019** (2h) — RLS em `role_assignments_audit` + `store_meta_rules_history`.
+4. **DB-002** (3h) — Wrap SQLERRM em todas RPCs novas.
+5. **DB-001** (1h) — Patch `submit_checkin` validar `vendedores_loja.is_active`.
+6. **DB-006 parcial** (4h) — Garantir helpers PT-BR estáveis (não dropar EN ainda).
+7. **DB-016** (4h) — REVOKE + repolicy `lancamentos_diarios` + testes RLS. *Depende de #1, #6*.
+8. **DB-017** (4h) — `ALTER FUNCTION ... SET search_path` nas 12 RPCs.
 
-| Ordem | Débito | Ação | Horas |
-|-------|--------|------|-------|
-| 1 | **DB-08** | Gerar baseline via `supabase db dump`, validar com `supabase db reset`, marcar migrations existentes como applied | 5h |
+### Sprint 2 — P1 Segurança e Governança (~30h)
+1. **DB-008** (6h) — Rate limit + reCAPTCHA em `store-pre-registration`.
+2. **DB-026** (8h) — Mover scripts `postgres@` para Edge Function admin.
+3. **DB-006 final** (8h) — Drop helpers EN + refatorar policies remanescentes.
+4. **DB-011** (3h) — Resolver overload `compute_dre` com feature flag.
+5. **DB-005** (1h) — UNIQUE em `lojas.cnpj` + dedup migration.
+6. **DB-009** (1h) — CORS allow-list por env.
+7. **DB-022** (2h) — Habilitar pgaudit.
+8. **DB-021** (1h) — Habilitar pg_stat_statements.
 
-**Justificativa:** DB-08 é bloqueante. Sem o baseline, qualquer disaster recovery é manual e propenso a erros. É o único débito P1 de database.
-
-### Sprint 2 — P2 (Altos/Médios)
-
-| Ordem | Débito | Ação | Horas |
-|-------|--------|------|-------|
-| 2 | **DB-05** | Criar 7 indexes em PDI 360 child tables | 3h |
-| 3 | **DB-12** | Auditar FKs legadas, adicionar ON DELETE explícito onde necessário | 4h |
-| 4 | **DB-09** | Cifrar `users.phone` com `pgcrypto`, ajustar RPCs | 4h |
-| 5 | **DB-14** | Agendar pg_cron para cleanup de OAuth states | 2h |
-
-**Subtotal Sprint 2: 13h**
-
-### Sprint 3 — P3 (Baixos)
-
-| Ordem | Débito | Ação | Horas |
-|-------|--------|------|-------|
-| 6 | **DB-01** | Dropar shadow columns e triggers legados (após confirmação do @dev) | 2h |
-| 7 | **DB-10** | Adicionar CHECK constraints em JSONB de `devolutivas` | 2h |
-| 8 | **DB-11** | Adicionar `updated_at` em `solicitacoes_correcao_lancamento` e `logs_reprocessamento` | 1h |
-| 9 | **DB-15** | Adicionar FK formal em `pdi_sessoes.loja_id` | 1h |
-| 10 | **DB-16** | Dropar indexes redundantes | 0.5h |
-| 11 | **DB-17** | Criar indexes em `consulting_visits` e `consulting_financials` | 1h |
-| 12 | **DB-18** | Refatorar RLS policy de correction requests | 1h |
-| 13 | **DB-19** | Consolidar funções de trigger `updated_at` | 0.5h |
-| 14 | **DB-06** | Documentar decisão de permissive policies + instalar monitoring | 1h |
-
-**Subtotal Sprint 3: 10h**
-
-### Ordenação Racional
-
-1. **Baseline (DB-08)** primeiro porque estabelece a fundação para todas as mudanças subsequentes
-2. **Indexes (DB-05)** em segundo porque é sem risco e tem impacto imediato em performance
-3. **Integridade (DB-12)** em terceiro porque FKs explícitos protegem contra corrupção de dados
-4. **Segurança (DB-09)** em quarto porque PII encryption requer teste cuidadoso
-5. **Limpeza (DB-01, DB-16, DB-19)** por último porque é onde o risco de quebra é maior (remoção de colunas/triggers)
+### Sprint 3 — P2 Performance, Compliance, Observabilidade (~43h)
+1. **DB-012** (24h) — LGPD consent + right-to-erasure.
+2. **DB-020** (6h) — Documentar RTO/RPO + drill.
+3. **DB-023** (4h) — Validar pool config.
+4. **DB-027** (4h) — Auditar trigger orphan.
+5. **DB-015** (5h) — FKs `ON DELETE` explícito.
+6. **DB-024** (3h) — Tuning autovacuum tabelas hot.
+7. **DB-018** (4h) — Criar IDX-001..006 após DB-021 medir.
+8. **DB-003** (1h), **DB-007** (0.5h), **DB-004** (0.5h), **DB-010** (1h), **DB-025** (1h) — quick wins.
 
 ---
 
-## 7. Parecer Final
+## 8. Dependências Entre Débitos
 
-### ✅ APPROVED
+| A bloqueia B | Motivo |
+|--------------|--------|
+| DB-014 → DB-006, DB-011, DB-016 | Sem types gerados, rename/drop em DB quebra FE em runtime silenciosamente |
+| DB-006 (parcial) → DB-016 | Repolicy de `lancamentos_diarios` precisa usar helpers PT-BR estáveis |
+| DB-021 → DB-018 | Sem `pg_stat_statements`, criação de índices é especulativa |
+| DB-013 → DB-022 | Limpar backups antes de habilitar pgaudit evita ruído de auditoria |
+| DB-026 → DB-016 (REVOKE) | Scripts admin atualmente fazem INSERT direto; quebram se REVOKE ocorrer antes |
+| DB-016 → mitigação X-5 (gate 09:45) | Gate só fica server-enforced após REVOKE |
+| DB-022 + DB-027 → DB-012 | pgaudit + anonimização-trigger são pré-reqs do consent/erasure workflow |
+| DB-002 → DB-008 | Rate limit deve registrar tentativas em `logs_auditoria` (criado/migrado em DB-002) |
 
-O DRAFT v2.0 está tecnicamente consistente. As 15 entradas de débito de database foram validadas individualmente, com ajustes de severidade e horas em 6 itens. Identifiquei 4 débitos adicionais (DB-16 a DB-19) que foram incluídos na estimativa revisada.
+---
 
-**Resumo das mudanças:**
+## 9. Ferramentas Recomendadas
 
-- **4 débitos RESOLVED** confirmados (DB-02, DB-03, DB-04, DB-07) — migrations aplicadas e validadas
-- **1 débito rebaixado** (DB-06: MEDIUM→LOW) — decisão de permissive policies foi correta
-- **4 débitos com horas ajustadas** (DB-05 -1h, DB-08 -1h, DB-09 +1h, DB-14 -1h)
-- **4 novos débitos identificados** (DB-16 a DB-19)
-- **1 débito mantido DEFERRED** (DB-13) — volume não justifica investimento
-- **DB-AUDIT score 82/100** é adequado para o estágio do projeto. Após resolução dos débitos P1 e P2, estimamos **92/100**
+| Ferramenta | Status atual | Recomendação | Débito |
+|-----------|--------------|--------------|--------|
+| `pgcrypto` | INSTALADO (4 migrations) | Manter. Usado em PII encrypt + tokens OAuth. | — |
+| `pg_cron` | INSTALADO (oauth_state_cleanup) | Manter; expandir para cleanup de `notificacoes` antigas. | — |
+| `pg_stat_statements` | **NÃO** instalado | HABILITAR — pré-req para priorizar índices. | DB-021 |
+| `pgaudit` | **NÃO** instalado | HABILITAR — exigido por LGPD/SOC2. | DB-022 |
+| `supabase advisors` (security+performance) | Sem evidência de execução | RODAR + agendar quinzenal. `supabase advisors lint --linked`. | DB-025 |
+| `pg_repack` | **NÃO** instalado | Não urgente. Reavaliar quando `lancamentos_diarios > 1M`. | — |
+| `Supavisor` (pool) | Default ativo, não validado | DOCUMENTAR config (`pool_mode`, `pool_size`). | DB-023 |
 
-**Bloqueantes para o próximo sprint:** Apenas DB-08 (baseline de migrations). Todos os demais podem ser agendados normalmente.
+---
 
-**Risco máximo identificado:** Ausência de baseline (DB-08) impede disaster recovery automatizado. Se o database corromper ou o projeto Supabase for deletado acidentalmente, a reconstrução requer intervenção manual com ~4h de downtime.
+## 10. Questões para Outros Agentes
 
-O plano de execução proposto (Sprint 1→2→3) totaliza **28h** de trabalho efetivo distribuídas em 3 sprints, com o débito mais crítico (DB-08) resolvido na primeira semana.
+### @ux-design-expert (FASE 6)
+1. Após DB-016 REVOKE em `lancamentos_diarios`, há código em `useCheckins.ts` ou similar que faz `supabase.from('lancamentos_diarios').insert(...)` direto, ou tudo passa pelo RPC `submit_checkin`? Se direto: migrar urgente.
+2. Após DB-014 (types gerados), as 30+ tabelas renomeadas EN→PT-BR causarão quebras de tipo em quantos arquivos? Estimativa de blast radius para planejar sprint 1.
+3. `<RoleSwitch>` (UX-016): hooks que disparam antes do gate fazem queries em tabelas com `USING(true)`? Se sim, RBAC client é única defesa — não é defesa.
+
+### @qa (FASE 7)
+1. **Test gate proposto antes de Sprint 1:**
+   - RLS regression matrix: 8 tabelas críticas × 5 roles = 40 cenários (mínimo).
+   - E2E gate 09:45 com manipulação de relógio (timezone America/Sao_Paulo).
+   - Smoke test que faz `POST /rest/v1/lancamentos_diarios` direto e DEVE retornar 403 após DB-016.
+2. Existe baseline de performance (p95) para `submit_checkin`, `compute_dre`, queries de relatório? Sem baseline, DB-018 vira chute.
+3. Pode escrever contract tests entre `submit_checkin` e o client React antes da Sprint 1?
+
+### @architect (FASE 8)
+1. Confirmar se os upgrades de DB-008 (Alta→Crítica) e DB-012 (Média→Alta) batem com o framework de priorização do consolidador.
+2. DB-026 (postgres superuser scripts) é DB ou SYS? Listo aqui por ser DB-touching, mas pode duplicar com SYS-005. Sugiro mover para SYS na consolidação final.
+3. O esforço total DB de ~95–100h cabe em 1 epic ou precisa quebrar em 2 (Hardening Crítico + LGPD/Compliance)?
+
+---
+
+**Fim da revisão @data-engineer (FASE 5).** Recomendação para o gate QA (FASE 7): **APPROVED viável** condicionado à execução validada da Sprint 1 (P0). Sem Sprint 1, gate deve ser **NEEDS WORK** — vetor DB-016 é demonstrável e bloqueia produção.

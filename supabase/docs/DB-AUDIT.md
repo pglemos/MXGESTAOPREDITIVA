@@ -1,234 +1,257 @@
-# MX Performance - Database Security & Quality Audit
+# Database Security & Quality Audit — MX Gestão Preditiva
 
 | Field | Value |
 |-------|-------|
 | **Status** | ACTIVE |
-| **Version** | 2.0 |
-| **Date** | April 15, 2026 |
-| **Auditor** | @data-engineer |
-| **Overall Score** | **82/100** |
+| **Version** | 3.0 (Brownfield Discovery Phase 2/10) |
+| **Date** | 2026-05-16 |
+| **Agent** | @data-engineer (Dara) |
+| **Overall Score** | **74/100** (regressão de 8 pts vs v2.0 por dívida acumulada do crescimento PT-BR + consultoria) |
+
+> Esta versão substitui a v2.0 (15-abr-2026, 82/100). A regressão reflete dívida acumulada após adoção do branch consultoria, renomeação PT-BR de ~30 tabelas e introdução de RPCs gateway sensíveis sem revogar `GRANT` direto nas tabelas subjacentes.
 
 ---
 
-## Executive Summary
+## 1. Executive Summary
 
-The MX Performance database has matured significantly since the v1.0 audit. The schema now spans **46 tables** across 9 domains with **107 RLS policies**, **113 indexes**, **86 foreign keys**, and **32 triggers**. The recent additions of PDI 360 (10 tables), Consulting CRM (10 tables), and checkin audit system demonstrate a commitment to domain completeness.
+- **Total de tabelas:** ~100 (vs 46 na v2.0)
+- **Tabelas COM RLS habilitado:** ~95 (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY` em 109 ocorrências, deduplicado: 95)
+- **Tabelas SEM RLS:** 5 — `migration_backup_lancamentos_diarios_duplicates_20260503`, `migration_backup_vendedores_loja_duplicates_20260503`, `role_assignments_audit`, `roles`, `store_meta_rules_history`
+- **RLS `USING (true)` (anti-pattern):** 33 ocorrências em 23 tabelas — algumas são catálogos legítimos, outras (ex.: `usuarios`, `lancamentos_diarios`, `vendedores_loja`) representam risco e dependem de gates de RPC para mitigação
+- **RPCs auditadas:** 68 únicas (87 ocorrências `SECURITY DEFINER`, 75 com `SET search_path` — 12 sem)
+- **Edge Functions auditadas:** 15 — 13 com auth helper, 2 com `verify_jwt = false` (1 público intencional + 1 OAuth callback)
+- **Foreign Keys:** ~195 total — 21 sem `ON DELETE` explícito
+- **Indexes:** 101 `CREATE INDEX`
 
-**Key achievements since v1.0:**
-- RLS recursion eliminated via `check_user_role_in_store()` SECURITY DEFINER pattern
-- Comprehensive audit trail for check-in corrections (immutable logs)
-- PDI 360 with full session/competency/action plan lifecycle
-- Consulting CRM with client isolation via `can_access_consulting_client()`
-- Orphan user cleanup triggers prevent ghost accounts
-- 113 indexes covering all major query patterns including partial indexes for active jobs
+### Débitos por severidade
 
-**Key risks:**
-- 17 legacy tables without versioned migrations (schema drift potential)
-- Permissive SELECT policies on core tables (users, stores, memberships) for performance
-- Some legacy FKs lack CASCADE/RESTRICT specificity
-- PII (emails, phone numbers) stored in plaintext
-
----
-
-## 1. Schema Quality Assessment
-
-### Score: 78/100
-
-#### Strengths
-- **Domain separation is clean:** Core, Performance, Quality, PDI 360, Operational, Audit, Consulting, Digital, and Legacy are well-bounded
-- **Canonical migration lineage** established from `20260407001000` onward with proper idempotent patterns (`IF NOT EXISTS`, `ON CONFLICT`)
-- **Enum types** for `checkin_scope` and `correction_status` enforce domain integrity
-- **Unique constraints** on critical business keys: `(seller_user_id, store_id, reference_date)`, `(seller_id, week_reference)`, `(client_id, user_id)` for consulting assignments
-- **Immutable audit tables** (`checkin_audit_logs`, `store_meta_rules_history`) prevent silent data mutation
-- **Legacy shadow columns** in `daily_checkins` and `pdis` maintained for backward compatibility with triggers
-
-#### Weaknesses
-- **W-01:** `daily_checkins` has 32 columns including 9 legacy shadow columns (`leads`, `agd_cart`, `visitas`, etc.) that duplicate canonical columns (`leads_prev_day`, `agd_cart_today`, `visit_prev_day`). These add confusion and storage overhead.
-- **W-02:** `pdis` has `objective` and `action` columns shadowing `meta_6m`/`meta_12m`/`meta_24m` and `action_1`-`action_5`. Trigger `pdis_sync_legacy_shadow_columns` adds runtime overhead.
-- **W-03:** Several tables lack `updated_at` triggers that should have them: `audit_logs`, `checkin_correction_requests`, `checkin_audit_logs`, `raw_imports`.
-- **W-04:** `store_meta_rules_history.changed_by` references `auth.users` but `store_meta_rules.updated_by` references `public.users` — inconsistent FK target.
-- **W-05:** `feedbacks.week_reference` was originally TEXT, later migrated to DATE. Some older records may have inconsistent formats if not fully backfilled.
+| Severidade | Quantidade |
+|-----------|-----------|
+| 🚨 Crítica | 4 |
+| ⚠️ Alta | 6 |
+| ⚙️ Média | 5 |
+| ℹ️ Baixa | 4 |
+| **Total** | **19** |
 
 ---
 
-## 2. Security Assessment (RLS Coverage)
+## 2. RLS Coverage Analysis
 
-### Score: 85/100
+### ✅ Tabelas com RLS adequado
 
-#### RLS Coverage Matrix
+Todas as tabelas de **PDI 360**, **feedback semanal**, **regras_metas_loja**, **regras_entrega_loja**, **pre_cadastros_loja**, **vinculos_loja**, **lojas**, **checkin_audit_logs**, **checkin_correction_requests** usam policies baseadas em helpers `eh_administrador_mx()`, `tem_papel_loja()`, `check_user_role_in_store()`. Padrão consistente, evita recursão (helper pattern).
 
-| Domain | Tables | RLS Enabled | Policies | Coverage |
-|--------|--------|-------------|----------|----------|
-| Core | 4 | 4/4 (100%) | ~11 | Full |
-| Performance | 5 | 5/5 (100%) | ~8 | Full |
-| Quality | 4 | 4/4 (100%) | ~11 | Full |
-| PDI 360 | 10 | 10/10 (100%) | ~12 | Full |
-| Operational | 6 | 6/6 (100%) | ~19 | Full |
-| Audit | 5 | 5/5 (100%) | ~8 | Full |
-| Consulting | 10 | 10/10 (100%) | ~18 | Full |
-| Digital | 1 | 1/1 (100%) | ~2 | Full |
-| Legacy | 12 | ~8/12 (67%) | ~18 | Partial |
+### ⚠️ Tabelas com RLS fraco (`USING (true)`)
 
-**Total: 107 policies across 46 tables.**
+23 tabelas distintas com pelo menos uma policy permissiva total:
 
-#### Strengths
-- **SEC-01:** All operational tables have RLS enabled with no bypass routes for authenticated users
-- **SEC-02:** `check_user_role_in_store()` as SECURITY DEFINER breaks the RLS recursion chain cleanly
-- **SEC-03:** Consulting domain uses `can_access_consulting_client()` for row-level client isolation
-- **SEC-04:** OAuth tokens and calendar settings are strictly owner-only (`auth.uid() = user_id`)
-- **SEC-05:** Check-in audit logs restricted to admin/owner/manager only
-- **SEC-06:** `enforce_feedback_seller_ack_only()` trigger prevents sellers from modifying feedback content
+| Tabela | Risco | Mitigação atual | Recomendação |
+|--------|-------|----------------|---------------|
+| `usuarios` | Alto — leak de PII | Trigger `bloquear_self_update_usuarios_sensivel` em UPDATE | Restringir SELECT a self + admins; remover USING(true) |
+| `lancamentos_diarios` | Alto — multi-tenant | Gate via RPC `submit_checkin` (mas tabela ainda permite INSERT direto se GRANT não revogado) | Endurecer policy ou `REVOKE INSERT, UPDATE, DELETE` |
+| `vendedores_loja` | Alto — vínculo seller/loja | Helper `tem_papel_loja` em outras policies | Substituir USING(true) por isolamento por store_id |
+| `metas`, `historico_metas` | Médio | — | Filtrar por store_id |
+| `daily_lead_volumes` | Médio | — | Filtrar por store_id |
+| `report_history` | Médio — pode vazar emails de destinatários | — | Restringir a admins+gestor da loja |
+| `digital_products`, `inventory` | Baixo | — | Confirmar se são catálogos públicos MX |
+| `agencies` | Baixo | — | Confirmar escopo |
+| `perfis`, `permissoes_modulo`, `modulos_sistema` | Baixo (catálogo) | — | Documentar como intencional |
+| `automation_configs` | Médio | — | Restringir a admins |
+| `communication_instances` | Médio — pode vazar instâncias WhatsApp | — | Restringir |
+| `consulting_methodology_steps`, `consulting_metric_catalog`, `consulting_parameter_sets`, `consulting_parameter_values`, `consulting_pmr_form_templates`, `consulting_visit_programs`, `consulting_visit_template_steps`, `consulting_schedule_events` | Baixo a médio | — | Catálogos consultoria — confirmar; `schedule_events` parece operacional → endurecer |
+| `goal_logs` | Médio | — | Filtrar por store_id |
 
-#### Risks
-- **SEC-R01:** Permissive SELECT policies on `users`, `stores`, and `memberships` (`USING (true)`) expose all records to any authenticated user. This was a deliberate performance tradeoff (see `20260407210000_permissive_select_rls.sql`) but violates least-privilege.
-- **SEC-R02:** Service role key bypasses all RLS. Cron jobs (`pg_cron`) and Edge Functions use this. Vault-stored secrets are used but the blast radius of a leaked service key is full database access.
-- **SEC-R03:** `communication_instances.api_key` stores third-party API keys in plaintext (legacy).
-- **SEC-R04:** Legacy tables (`goal_logs`, `daily_lead_volumes`, `role_assignments_audit`) lack RLS entirely.
-- **SEC-R05:** `consulting_oauth_tokens.access_token` and `refresh_token` are stored in plaintext. Documentation states "cifrados pelas Edge Functions" but the column type is `TEXT`, not encrypted.
+### 🚨 Tabelas SEM RLS
 
----
-
-## 3. Performance Assessment (Indexing)
-
-### Score: 80/100
-
-#### Index Statistics
-
-| Category | Count | Notes |
-|----------|-------|-------|
-| Primary Keys | ~46 | All tables |
-| Unique Indexes | ~12 | Business key constraints |
-| B-TREE Composite | ~40 | Major query paths covered |
-| Partial Indexes | ~3 | Active reprocessing jobs, file hash, triggered_by |
-| FK Auto-indexes | ~12 | Legacy FK columns |
-
-**Total: ~113 indexes**
-
-#### Well-Indexed Query Paths
-- `daily_checkins` by `(store_id, reference_date)` and `(seller_user_id, reference_date)` — 4 dedicated indexes
-- `feedbacks` by `(seller_id, week_reference)` and `(store_id, week_reference)`
-- `notifications` by `(recipient_id, created_at)`, `(store_id, created_at)`, `(broadcast_id)`
-- `reprocess_logs` with partial index for `(status, created_at)` filtering active jobs
-- `checkin_audit_logs` with 4 indexes covering user, checkin, temporal, and type-based queries
-- `consulting_visits` by `(client_id)` and `(scheduled_at)`
-- `manager_routine_logs` by `(store_id, routine_date)` and `(manager_id, routine_date)`
-
-#### Missing / Weak Indexes
-- **PERF-01:** `feedbacks` lacks an index on `(manager_id)` for manager-scoped queries
-- **PERF-02:** `pdi_sessoes` has no index on `(colaborador_id)` or `(gerente_id)` — PDI 360 session lookups will degrade with scale
-- **PERF-03:** `pdi_avaliacoes_competencia` needs `(competencia_id)` for template generation queries
-- **PERF-04:** `consulting_google_oauth_states` needs index on `(expires_at)` for cleanup cron
-- **PERF-05:** `audit_logs` lacks composite indexes — `(entity, entity_id)` and `(action, created_at)` would help admin dashboards
-- **PERF-06:** `daily_checkins` partitioning strategy not yet defined. At current growth rate (~50K rows/year), this is acceptable until ~500K rows
-
-#### RLS Performance Notes
-- `is_admin()` uses `LIMIT 1` on `users` table — efficient
-- `check_user_role_in_store()` is SECURITY DEFINER + STABLE — prevents recursion
-- `memberships(user_id, store_id, role)` composite index supports all role-check patterns
-- Permissive `USING (true)` policies on `users`, `stores`, `memberships` eliminate RLS overhead for these hot tables
+| Tabela | Multi-tenant? | Risco | Recomendação |
+|--------|--------------|-------|---------------|
+| `role_assignments_audit` | Sim (auditoria) | 🚨 Alto — leak global de quem promoveu quem | Habilitar RLS, SELECT só admin |
+| `roles` | Não (catálogo) | Baixo | Confirmar intencional; documentar |
+| `store_meta_rules_history` | Sim | 🚨 Alto — vaza histórico de metas entre lojas | Habilitar RLS por store_id |
+| `migration_backup_lancamentos_diarios_duplicates_20260503` | Sim | 🚨 Crítico — dados de check-in expostos | **DROPAR** após validação |
+| `migration_backup_vendedores_loja_duplicates_20260503` | Sim | 🚨 Crítico — vínculos de seller expostos | **DROPAR** após validação |
 
 ---
 
-## 4. Data Integrity Assessment
+## 3. RPC Security Analysis
 
-### Score: 83/100
+### `submit_checkin(jsonb)` — RPC gateway de check-in (2026-05-16)
 
-#### Constraint Coverage
+**Defesas observadas:**
+- `SECURITY DEFINER` + `SET search_path = public` ✅
+- Valida `auth.uid()` e `usuarios.active = true` ✅
+- Bloqueia escopo `daily` fora da janela 09:45 ✅
+- Bloqueia data futura (`reference_date > v_official_reference`) ✅
+- Bloqueia self-submit por outro usuário em `daily` ✅
+- Exige vínculo ativo (`vinculos_loja.is_active`) para sellers ✅
+- `ON CONFLICT` na unique key (idempotência) ✅
+- `GRANT EXECUTE ... TO authenticated` (não anon) ✅
 
-| Constraint Type | Count | Notes |
-|----------------|-------|-------|
-| PRIMARY KEY | 46 | All tables |
-| FOREIGN KEY | 86 | Comprehensive |
-| UNIQUE | 12 | Business key constraints |
-| CHECK | 15+ | Role enums, status values, non-negative metrics |
+**Pendências:**
+- ⚠️ DB-001 — `vendedores_loja.is_active` NÃO é validado (só `vinculos_loja`). Vendedor encerrado em `vendedores_loja` mas com vínculo ativo poderia lançar.
+- ⚠️ DB-002 — `EXCEPTION WHEN others` engolindo qualquer erro e retornando `SQLERRM` ao client — risco de info disclosure (estrutura interna, nomes de coluna).
+- ⚠️ Tabela `lancamentos_diarios` permite `USING (true)` em RLS — o gate só funciona se `GRANT INSERT/UPDATE` for revogado do role `authenticated`. **NÃO CONFIRMADO** nas migrations.
 
-#### Strengths
-- **INT-01:** `daily_checkins` has a unique constraint on `(seller_user_id, store_id, reference_date)` preventing duplicate entries
-- **INT-02:** `feedbacks` enforces `(seller_id, week_reference)` uniqueness
-- **INT-03:** `manager_routine_logs` enforces `(store_id, manager_id, routine_date)` uniqueness
-- **INT-04:** All metric columns have non-negative CHECK constraints where applicable
-- **INT-05:** `consulting_financials` has `UNIQUE(client_id, reference_date)` preventing duplicate DRE entries
-- **INT-06:** Orphan cleanup triggers (`check_orphan_users_after_membership_deletion`) inactivate users who lose all store connections
-- **INT-07:** `process_import_data()` uses `SELECT ... FOR UPDATE` for idempotency locking on reprocessing batches
+### `update_my_profile(jsonb)` / `complete_password_change()` — Self-service auth (2026-05-16)
 
-#### Weaknesses
-- **INT-W01:** Legacy FKs (`goals`, `benchmarks`, `user_roles`, etc.) use default `NO ACTION` instead of explicit `CASCADE`/`RESTRICT`
-- **INT-W02:** `pdi_sessoes.loja_id` is a loose UUID reference without FK constraint (commented as "Referência à loja se existir")
-- **INT-W03:** `notifications.target_store_id` and `notifications.target_role` are legacy columns without FK/constraint
-- **INT-W04:** `checkin_correction_requests.requested_values` is JSONB without schema validation — malformed data possible
-- **INT-W05:** `daily_checkins.note` and `daily_checkins.zero_reason` are free-text without length limits
+**Defesas:** `auth.uid()`, `usuarios.active = true`, scoped UPDATE em `WHERE id = v_user_id`. ✅
 
----
+**Pendências:**
+- ℹ️ DB-003 — Não há validação de formato de `phone` ou `avatar_url`. Aceita qualquer string.
+- ℹ️ DB-004 — `complete_password_change()` apenas limpa flag — assume que o cliente já fez `auth.updateUser({password})` antes. Se ordem invertida, o flag é limpo sem troca real de senha. Documentar contrato.
+- ⚠️ DB-002 (mesma) — `EXCEPTION WHEN others` retorna SQLERRM.
 
-## 5. Technical Debt Inventory
+### `admin_create_store(jsonb)` / `admin_update_store(uuid, jsonb)` / `admin_archive_store(uuid)` / `admin_restore_store(uuid)` (2026-05-16)
 
-| ID | Severity | Hours | Priority | Description | Status |
-|----|----------|-------|----------|-------------|--------|
-| **DB-01** | LOW | 2h | P3 | Legacy shadow columns in `daily_checkins` (9 columns) and `pdis` (2 columns) | OPEN |
-| **DB-02** | DONE | 4h | — | Audit log composite indexes | **RESOLVED** (20260415001000) |
-| **DB-03** | DONE | 1h | — | Composite indexes for daily_checkins | **RESOLVED** (20260413000000) |
-| **DB-04** | DONE | 1h | — | Drop ghost legacy tables (gamification, activities, inventory) | **RESOLVED** (20260413001000) |
-| **DB-05** | MEDIUM | 4h | P2 | Missing indexes on PDI 360 child tables (pdi_sessoes, pdi_avaliacoes_competencia) | OPEN |
-| **DB-06** | MEDIUM | 3h | P2 | Permissive SELECT policies (SEC-R01) — evaluate per-domain least-privilege | OPEN |
-| **DB-07** | DONE | 2h | — | Secure PDI constraints (NOT NULL enforcement) | **RESOLVED** (20260413002000) |
-| **DB-08** | HIGH | 6h | P1 | Legacy tables without versioned migrations (17 tables) — schema drift risk | OPEN |
-| **DB-09** | MEDIUM | 3h | P2 | Plaintext PII in users (email, phone), consulting_oauth_tokens, communication_instances | OPEN |
-| **DB-10** | LOW | 2h | P3 | Schema validation for JSONB columns (requested_values, diagnostic_json, etc.) | OPEN |
-| **DB-11** | LOW | 1h | P3 | Add updated_at triggers to audit_logs, checkin_correction_requests, raw_imports | OPEN |
-| **DB-12** | MEDIUM | 4h | P2 | Legacy FKs missing explicit ON DELETE actions (goals, benchmarks, user_roles) | OPEN |
-| **DB-13** | LOW | 2h | P3 | daily_checkins partitioning strategy (deferred until ~500K rows) | DEFERRED |
-| **DB-14** | MEDIUM | 3h | P2 consulting_google_oauth_states cleanup cron for expired states | OPEN |
-| **DB-15** | LOW | 1h | P3 | pdi_sessoes.loja_id should reference stores(id) formally | OPEN |
+**Defesas:**
+- Valida role `IN ('administrador_geral', 'administrador_mx')` ✅
+- Valida `usuarios.active = true` ✅
+- Soft-close cascata em `vendedores_loja` + `vinculos_loja` quando `active=false` ✅
+- `ON CONFLICT (store_id) DO UPDATE` em `regras_entrega_loja` / `regras_metas_loja` / `benchmarks_loja` ✅
+
+**Pendências:**
+- ⚠️ DB-005 — Não há validação de unicidade de `cnpj` antes do INSERT. Lojas duplicadas com mesmo CNPJ são aceitas se constraint não existir (não confirmado).
+- ⚠️ DB-002 — `EXCEPTION WHEN others` retorna SQLERRM.
+- ℹ️ DB-007 — Cria `regras_entrega_loja` com `matinal_recipients = [manager_email]` sem validar formato de email.
 
 ---
 
-## 6. Action Items (Prioritized)
+## 4. Edge Functions Audit
 
-### P1 — Critical (This Sprint)
+| Função | Auth | Validação Input | Rate Limit | Secrets | Observações |
+|--------|------|----------------|------------|---------|-------------|
+| `store-pre-registration` | 🚨 PÚBLICO (`verify_jwt=false`) | `clean()/normalizeEmail()/clientIp()` | ❌ Nenhum | SERVICE_ROLE | DB-008 — Endpoint público sem rate limit nem captcha. Vetor de spam de pré-cadastros. |
+| `google-oauth-handler` | 🚨 sem JWT (callback) | parseClientId + state validation | ❌ | GOOGLE_* | DB-010 — Confirmar validação de `state` PKCE em todos os paths |
+| `approve-store-registration` | ✅ JWT + role check | Validado | — | SERVICE_ROLE | OK |
+| `feedback-semanal` / `relatorio-matinal` / `relatorio-mensal` | ✅ `authorizeReportRequest` | `parseReportBody` | — | SERVICE_ROLE + RESEND | OK; uploadDocumentToStore depende de Google tokens válidos |
+| `google-calendar-*` | ✅ sessionClient | parseStrictBody + schemas | — | SERVICE_ROLE + GOOGLE_* | OK; refresh_token criptografado AES-GCM via `crypto.ts` |
+| `google-drive-files` | ✅ sessionClient + INTERNAL_ROLES gate | requireEnv | — | SERVICE_ROLE + GOOGLE_* | OK; MAX_FILE_SIZE_BYTES = 25MB enforced |
+| `manage-store-team` / `register-user` / `send-individual-feedback` / `send-visit-report` | ✅ `requireAuthenticatedRole` | — | — | SERVICE_ROLE (+RESEND) | OK |
 
-| # | Action | Debt ID | Effort | Impact |
-|---|--------|---------|--------|--------|
-| 1 | Create versioned migration baseline for all 17 legacy tables | DB-08 | 6h | Eliminates schema drift risk. Generate `CREATE TABLE IF NOT EXISTS` from live schema and commit to `supabase/migrations/`. |
-| 2 | Verify RLS policy completeness on all tables with `pg_policies` | SEC-R04 | 1h | Run audit query to identify tables with RLS enabled but no policies. |
-
-### P2 — High Priority (Next Sprint)
-
-| # | Action | Debt ID | Effort | Impact |
-|---|--------|---------|--------|--------|
-| 3 | Add missing indexes for PDI 360 domain | DB-05 | 4h | `(colaborador_id)`, `(gerente_id)`, `(competencia_id)` on PDI tables |
-| 4 | Evaluate permissive SELECT policies | DB-06 | 3h | Consider restricting `users`, `stores`, `memberships` to store-scoped access if PII concerns arise |
-| 5 | Fix legacy FK ON DELETE actions | DB-12 | 4h | Add explicit CASCADE/RESTRICT/SET NULL to goals, benchmarks, user_roles FKs |
-| 6 | Add OAuth state cleanup mechanism | DB-14 | 3h | pg_cron job to DELETE expired+consumed `consulting_google_oauth_states` |
-| 7 | Evaluate PII encryption at rest | DB-09 | 3h | Consider Supabase Vault for `consulting_oauth_tokens`, `communication_instances.api_key` |
-
-### P3 — Low Priority (Backlog)
-
-| # | Action | Debt ID | Effort | Impact |
-|---|--------|---------|--------|--------|
-| 8 | Plan legacy shadow column removal | DB-01 | 2h | Deprecation path for `daily_checkins.leads`, `pdis.objective`, etc. |
-| 9 | Add JSONB schema validation | DB-10 | 2h | CHECK constraints with `jsonb_typeof()` on critical JSONB columns |
-| 10 | Add missing updated_at triggers | DB-11 | 1h | Audit tables should track modification time |
-| 11 | Formalize pdi_sessoes.loja_id FK | DB-15 | 1h | Add FK constraint to stores(id) |
-| 12 | Plan daily_checkins partitioning | DB-13 | 2h | Document strategy for when table exceeds 500K rows |
+**CORS:** todas via `_shared/cors.ts` com `Access-Control-Allow-Origin: *` ⚠️ DB-009 — Aceitável em dev, restringir em prod ao domínio do app (`mxperformance.vercel.app`).
 
 ---
 
-## 7. Recommendations
+## 5. Performance Risks
 
-### Architecture
-1. **Freeze legacy domain:** No new features on `agencies`, `goals`, `benchmarks`, `roles`, `user_roles`, `goal_logs`, `daily_lead_volumes`, `automation_configs`, `communication_instances`, `report_history`, `role_assignments_audit`. Migrate active data to canonical tables and drop legacy tables in v3.0.
-2. **Adopt migration linting:** Use `supabase db lint` or `squawk` to enforce naming conventions and catch missing constraints before merge.
-3. **Document all SECURITY DEFINER functions:** Maintain a registry of functions that bypass RLS with explicit justification for each.
+### Índices faltantes
 
-### Performance
-4. **Monitor query plans monthly:** The RLS helper functions (`is_admin()`, `is_member_of()`) are called on every row. Use `EXPLAIN ANALYZE` on hot queries quarterly.
-5. **Add connection pooling metrics:** With 46 tables and 107 policies, connection saturation under load is a risk. Monitor `pg_stat_activity`.
+Vide SCHEMA.md §4 (IDX-001..IDX-006). Hot paths:
+- RLS lookup em `vinculos_loja(user_id, is_active)` chamado por quase toda policy → composite + partial index recomendado.
+- Sort de relatórios diários em `lancamentos_diarios(submitted_at)`.
+- Lookups de notificações não lidas.
 
-### Security
-6. **Rotate service role key:** The vault secret `mx-service-role-key` is referenced in cron jobs. Rotate quarterly.
-7. **Add column-level encryption:** For `consulting_oauth_tokens.access_token` and `communication_instances.api_key`, use Supabase Vault's `pgsodium` column encryption.
-8. **Audit RLS policies quarterly:** Run `SELECT * FROM pg_policies WHERE schemaname = 'public'` and verify no new overly-permissive policies were introduced.
+### Queries potencialmente lentas
 
-### Data Integrity
-9. **Add constraint naming convention:** Adopt `{table}_{column}_{constraint_type}` naming for all new constraints.
-10. **Implement JSONB schema validation:** Use CHECK constraints or `jsonschema` extension for `requested_values`, `diagnostic_json`, `ranking_json`, `checklist_data`.
+- ⚠️ DB-011 — `compute_dre` overloaded em `consulting_financials` E `financeiro_consultoria` (rename incompleto). Pode gerar joins duplicados se ambas versões forem chamadas.
+- View `view_store_daily_production` agrega `lancamentos_diarios` — verificar plan se cresce >100k rows.
+
+### N+1 risks
+
+- Edge functions `feedback-semanal` / `relatorio-mensal` fazem múltiplas queries por seller. Não auditado se há batching ou single-query com unnest.
+
+---
+
+## 6. Compliance & PII
+
+### PII identificada
+
+- `usuarios.name`, `usuarios.email`, `usuarios.phone` (✅ phone criptografado via `pii_encrypt_phone` migration 2026-04-16; coluna `phone` é `bytea`, `decrypt_phone()` helper)
+- `usuarios.avatar_url`
+- `lojas.cnpj`, `lojas.administrative_phone`, `lojas.legal_name`, `lojas.partners` (jsonb)
+- `pre_cadastros_loja.full_name/email/phone/company_*`
+- `consulting_client_contacts.*` (emails, telefones de contatos consultoria)
+- Tokens OAuth (`tokens_oauth_consultoria`) — ✅ criptografados via `crypto.ts` AES-GCM
+
+### LGPD/GDPR
+
+- ✅ `logs_acesso_sensivel` existe e parece capturar acessos sensíveis
+- ⚠️ DB-012 — Não há tabela explícita de **consentimento** nem rotina de **right-to-erasure**. Para LGPD precisa: registro de consentimento (timestamp, finalidade, IP), workflow de deleção/anonimização sob demanda.
+- ⚠️ Trigger `check_orphan_users_after_membership_deletion()` limpa órfãos — verificar se anonimiza ou apaga.
+- ⚠️ Backups `migration_backup_*_20260503` mantém PII de meses atrás sem RLS — risco LGPD.
+
+---
+
+## 7. Débitos Técnicos (Database)
+
+| ID | Débito | Severidade | Categoria | Esforço (h) | Notas |
+|----|--------|-----------|-----------|------------|-------|
+| DB-001 | `submit_checkin` não valida `vendedores_loja.is_active` | 🚨 Crítica | rpc | 1 | Vendedor encerrado mas com vinculo ativo lança check-in |
+| DB-002 | `EXCEPTION WHEN others ... SQLERRM` em todas RPCs novas vaza estrutura interna | 🚨 Crítica | rpc/security | 2 | Substituir por mensagem genérica + log em `logs_auditoria` |
+| DB-013 | Tabelas `migration_backup_*_20260503` SEM RLS contendo PII histórica | 🚨 Crítica | rls/cleanup | 1 | Validar e DROP |
+| DB-016 | `lancamentos_diarios` com `USING(true)` sem REVOKE explícito | 🚨 Crítica | rls | 2 | Confirmar GRANT e endurecer policy/REVOKE |
+| DB-005 | Falta UNIQUE constraint em `lojas.cnpj` | ⚠️ Alta | constraint | 0.5 | Adicionar `UNIQUE NULLS NOT DISTINCT` |
+| DB-006 | Coexistência de helpers EN (`is_admin`, `is_member_of`) e PT-BR (`eh_administrador_mx`, `tem_papel_loja`) | ⚠️ Alta | refactor | 8 | Plano de deprecação, atualizar policies, drop legados |
+| DB-008 | `store-pre-registration` público sem rate limit/captcha | ⚠️ Alta | edge/security | 4 | Adicionar throttle por IP + reCAPTCHA |
+| DB-011 | `compute_dre` overloaded em 2 nomes de tabela (rename incompleto) | ⚠️ Alta | refactor/migration | 2 | Dropar versão antiga após confirmação |
+| DB-014 | Ausência confirmada de `database.types.ts` gerado por Supabase CLI | ⚠️ Alta | tooling | 1 | Adicionar `supabase gen types typescript --linked > src/types/database.generated.ts` ao pipeline |
+| DB-017 | 12 RPCs `SECURITY DEFINER` SEM `SET search_path` (CVE-2018-1058 family) | ⚠️ Alta | security | 3 | Listar via `grep -B1 "SECURITY DEFINER" \| grep -v "SET search_path"` e corrigir |
+| DB-003 | `update_my_profile` aceita `phone/avatar_url` sem validar formato | ⚙️ Média | rpc/validation | 1 | Regex E.164 e URL |
+| DB-007 | `admin_create_store` aceita `manager_email` sem validar formato | ⚙️ Média | rpc/validation | 0.5 | Regex de email |
+| DB-009 | CORS `Allow-Origin: *` em todas edge functions | ⚙️ Média | edge/cors | 1 | Restringir em prod ao domínio do app |
+| DB-012 | Sem tabela de consentimento LGPD nem rotina de right-to-erasure | ⚙️ Média | compliance | 16 | Levantar requisitos jurídicos e desenhar |
+| DB-015 | 21 FKs sem `ON DELETE` explícito (default RESTRICT) | ⚙️ Média | data-integrity | 3 | Auditar e definir CASCADE/SET NULL caso a caso |
+| DB-004 | `complete_password_change` confia que client trocou senha antes | ℹ️ Baixa | rpc/doc | 0.5 | Documentar contrato no JSDoc do client |
+| DB-010 | Confirmar validação de `state` PKCE no `google-oauth-handler` em todos paths | ℹ️ Baixa | edge/oauth | 1 | Code review |
+| DB-018 | Indexes faltantes IDX-001..IDX-006 (vide SCHEMA.md §4) | ℹ️ Baixa | performance | 3 | Validar com EXPLAIN antes de criar |
+| DB-019 | `role_assignments_audit` e `store_meta_rules_history` sem RLS | ℹ️ Baixa→Alta | rls | 1 | Habilitar RLS com policy admin-only / por store_id |
+
+---
+
+## 8. Respostas às Perguntas do @architect
+
+### Q1: `postgres@3.4.8` em paralelo ao client Supabase — por quê?
+
+**Resposta:** Usado APENAS em scripts de manutenção offline:
+- `scripts/repair_sql.ts` — conecta via `POSTGRES_URL` para reparar dados
+- `scripts/run_fix_rls.ts` — aplica migrations de fix RLS pontuais
+
+Nenhum código de aplicação (`src/`) importa `postgres`. Conexão é direta ao Postgres (`ssl: 'require'`), bypassando PostgREST/RLS — apropriado para scripts admin executados por engenheiros, **não** rota de produção.
+
+**Risco:** scripts assumem `POSTGRES_URL` válido no `.env` local. Se vazar, dá acesso superuser. Recomendação: mover scripts para Edge Function admin com auth ou documentar como "admin-only, never CI".
+
+### Q2: `database.types.ts` gerado?
+
+**Resposta:** Existe `src/types/database.ts` (manual?), mas **NÃO** existe `database.types.ts` nem `database.generated.ts` produzido pelo `supabase gen types`. Vide DB-014. Recomendação: adicionar geração ao pipeline para evitar deriva de tipos vs schema (especialmente crítico com renames PT-BR).
+
+### Q3: RLS auditado em todas tabelas multi-tenant?
+
+**Resposta:** 95 das 100 tabelas têm `ENABLE ROW LEVEL SECURITY`. **5 estão sem RLS** (vide §2 acima — 3 críticas: backups + `store_meta_rules_history`). Adicionalmente, 23 tabelas têm pelo menos uma policy `USING (true)` — destas, algumas são catálogos legítimos, mas pelo menos `usuarios`, `lancamentos_diarios`, `vendedores_loja`, `report_history`, `metas`, `historico_metas`, `communication_instances`, `automation_configs` precisam revisão (DB-016).
+
+### Q4: Surface de ataque dos RPCs sensíveis
+
+| RPC | Surface | Status |
+|-----|---------|--------|
+| `submit_checkin` | `authenticated` role; payload jsonb com store_id, seller_user_id, reference_date, metric_scope | ✅ Defesa multi-camada, ⚠️ DB-001 (vendedores_loja não validado), ⚠️ DB-002 (SQLERRM leak) |
+| `update_my_profile` / `complete_password_change` | `authenticated`; payload limitado a self | ✅ Scoped a `auth.uid()`, ⚠️ DB-003 sem validação de formato |
+| `admin_create_store` / `admin_update_store` / `admin_archive_store` / `admin_restore_store` | `authenticated` + role check para admins | ✅ Defesa por role, ⚠️ DB-005 (cnpj), DB-007 (email format) |
+
+---
+
+## 9. Perguntas para Outros Agentes
+
+### Para @ux-design-expert (Fase 3)
+
+1. O frontend ainda usa nomes EN antigos (`stores`, `users`, `memberships`) ou já está migrado para PT-BR (`lojas`, `usuarios`, `vinculos_loja`)?
+2. Há subscriptions real-time (`supabase.channel`) em alguma tabela? Quais? (impacto em RLS broadcast)
+3. Tipagem: o frontend tem `src/types/database.ts` manual — está sincronizado? Algum lugar usa `any` para Supabase queries?
+4. Forms de check-in respeitam a janela 09:45 client-side antes de chamar `submit_checkin`?
+5. Telas administrativas (criar loja, aprovar pre-cadastro) têm controle de acesso por role no client OU dependem 100% do RPC?
+
+### Para @qa (Fase 7)
+
+1. Testes E2E cobrem o gate de 09:45 do `submit_checkin`? (timezone America/Sao_Paulo é tricky)
+2. Há testes que validam RLS de tabelas com `USING (true)` (especialmente `lancamentos_diarios`)?
+3. Existe teste de regressão para o cenário DB-001 (vendedor encerrado em `vendedores_loja` mas com vínculo ativo)?
+4. Testes de segurança para os endpoints públicos (`store-pre-registration`, `google-oauth-handler`)?
+5. Cobertura de LGPD: há plano de teste para anonimização/deleção de PII?
+
+---
+
+## 10. Recomendações Priorizadas
+
+1. **🚨 Sprint imediata (≤ 8h):** DB-001, DB-002, DB-013, DB-016, DB-019 — fechar gaps críticos de RLS/RPC antes de qualquer release.
+2. **⚠️ Sprint seguinte (≤ 20h):** DB-005, DB-008, DB-014, DB-017 — endurecer surface pública e tooling de tipos.
+3. **⚙️ Backlog técnico (≤ 30h):** DB-006 (deprecar helpers EN), DB-011 (limpar compute_dre overload), DB-015 (FKs), DB-009 (CORS prod).
+4. **📋 Compliance:** DB-012 — discutir com PM/legal a abordagem LGPD antes de codificar.
+5. **🔬 Performance:** DB-018 — criar índices só depois de medir com `pg_stat_statements` em ambiente com volume real.
