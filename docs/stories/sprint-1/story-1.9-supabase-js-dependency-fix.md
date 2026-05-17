@@ -1,6 +1,6 @@
 # Story 1.9 — Mover `@supabase/supabase-js` para `dependencies` (SYS-005)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
@@ -9,6 +9,7 @@
 
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 1 critical-path: PASS (rollback trivial git revert, bloqueada por Sprint 0 0.6 + 0.10, CI gate permanente novo)
+- 2026-05-17 | @aiox-master (Orion) | Status: Ready → InReview | Implementação executada: `@supabase/supabase-js@^2.102.1` movido de `devDependencies` → `dependencies` + `npm install` reinstalado
 **Esforço estimado:** 2h
 **Owner sugerido:** @dev
 **RACI:** R=@dev, A=Tech Lead, C=@devops, I=@qa
