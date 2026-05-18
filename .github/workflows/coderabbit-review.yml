@@ -1,0 +1,118 @@
+name: CodeRabbit Review (prompt-only)
+
+# Story 0.10 — CI gate exige CodeRabbit prompt-only sem CRITICAL/HIGH antes de merge
+# Reference: .claude/rules/coderabbit-integration.md
+# Runbook: docs/dev/coderabbit-ci.md
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install CodeRabbit CLI
+        run: |
+          curl -fsSL https://cli.coderabbit.ai/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run CodeRabbit prompt-only
+        id: review
+        env:
+          CODERABBIT_API_KEY: ${{ secrets.CODERABBIT_API_KEY }}
+        run: |
+          coderabbit \
+            --prompt-only \
+            --base ${{ github.event.pull_request.base.ref }} \
+            --severity CRITICAL,HIGH \
+            --output /tmp/coderabbit-output.json \
+            || echo "REVIEW_EXIT=$?" >> $GITHUB_OUTPUT
+
+      - name: Parse output
+        id: parse
+        run: |
+          if [ ! -f /tmp/coderabbit-output.json ]; then
+            echo "No output file — assuming clean review"
+            echo "critical=0" >> $GITHUB_OUTPUT
+            echo "high=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          CRITICAL=$(jq '[.issues[]? | select(.severity == "CRITICAL")] | length' /tmp/coderabbit-output.json 2>/dev/null || echo 0)
+          HIGH=$(jq '[.issues[]? | select(.severity == "HIGH")] | length' /tmp/coderabbit-output.json 2>/dev/null || echo 0)
+
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+
+          echo "## CodeRabbit Review Summary"
+          echo "- CRITICAL: $CRITICAL"
+          echo "- HIGH: $HIGH"
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🤖 CodeRabbit Review (prompt-only)\n\n';
+
+            try {
+              const data = JSON.parse(fs.readFileSync('/tmp/coderabbit-output.json', 'utf8'));
+              const critical = (data.issues || []).filter(i => i.severity === 'CRITICAL');
+              const high = (data.issues || []).filter(i => i.severity === 'HIGH');
+
+              body += `**CRITICAL:** ${critical.length} | **HIGH:** ${high.length}\n\n`;
+
+              if (critical.length > 0) {
+                body += '### 🚨 CRITICAL\n';
+                critical.forEach((i, idx) => {
+                  body += `${idx+1}. **${i.file || '?'}**: ${i.message || i.description || ''}\n`;
+                });
+              }
+              if (high.length > 0) {
+                body += '\n### ⚠️ HIGH\n';
+                high.forEach((i, idx) => {
+                  body += `${idx+1}. **${i.file || '?'}**: ${i.message || i.description || ''}\n`;
+                });
+              }
+              if (critical.length === 0 && high.length === 0) {
+                body += '✅ Sem issues CRITICAL/HIGH. Veja `docs/dev/coderabbit-ci.md` para detalhes locais.\n';
+              }
+            } catch (e) {
+              body += `⚠️ Falha ao parsear output do CodeRabbit: ${e.message}\n`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - name: Fail if CRITICAL or HIGH
+        run: |
+          CRIT=${{ steps.parse.outputs.critical }}
+          HIGH=${{ steps.parse.outputs.high }}
+          if [ "$CRIT" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+            echo "❌ Bloqueado: $CRIT CRITICAL, $HIGH HIGH issues"
+            echo "   Rode localmente: coderabbit --prompt-only -t uncommitted"
+            exit 1
+          fi
+          echo "✅ Sem issues bloqueantes"

@@ -1,6 +1,6 @@
 # Story 0.10 — CI CodeRabbit `--prompt-only` Obrigatório
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0
@@ -10,6 +10,14 @@
 **Owner sugerido:** @devops
 **RACI:** R=@devops, A=Tech Lead, C=@qa, I=todos contribuidores
 **Created:** 2026-05-17
+
+## File List
+- `.coderabbit.yaml` (config global + path_instructions específicos)
+- `.github/workflows/coderabbit-review.yml` (CI gate)
+- `docs/dev/coderabbit-ci.md` (runbook)
+
+## Change Log (Implementação)
+- 2026-05-18 | @aiox-master (Orion) | Status: Ready → InReview | Config + workflow + runbook criados. Pendente: configurar secret CODERABBIT_API_KEY no GitHub Actions.
 
 ## Problem Statement
 A rule `.claude/rules/coderabbit-integration.md` e a workflow-execution exigem self-healing CodeRabbit em dev phase, mas não há gate de CI que rejeite PR com CRITICAL/HIGH pendentes. Sem isso, devs (humanos ou agentes) podem ignorar o feedback. Sprint 0 fecha esse loop antes de Sprint 1 escalar volume de mudanças.

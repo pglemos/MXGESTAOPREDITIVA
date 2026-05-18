@@ -1,0 +1,85 @@
+# CodeRabbit configuration — MX Gestão Preditiva
+# Reference: https://docs.coderabbit.ai/getting-started/configure-coderabbit
+# Rule: .claude/rules/coderabbit-integration.md
+
+language: pt-BR
+tone_instructions: |
+  Foco em segurança de dados (LGPD), performance Postgres, RLS coverage,
+  qualidade de tipos TypeScript strict. Comentários objetivos.
+
+reviews:
+  profile: chill
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+
+  path_filters:
+    - "!**/*.generated.ts"
+    - "!**/*.lock"
+    - "!package-lock.json"
+    - "!bun.lock"
+    - "!deno.lock"
+    - "!supabase/migrations/_archived/**"
+    - "!docs/architecture/_legacy/**"
+    - "!coverage/**"
+    - "!dist/**"
+    - "!node-compile-cache/**"
+
+  path_instructions:
+    - path: "supabase/migrations/**/*.sql"
+      instructions: |
+        Verifique: search_path explícito em funções SECURITY DEFINER (CVE-2018-1058),
+        REVOKE explícito ao endurecer RLS, idempotência (IF EXISTS / OR REPLACE),
+        ON DELETE em foreign keys, índices em colunas de filtro frequente.
+        NUNCA aceitar EXCEPTION WHEN others THEN ... SQLERRM diretamente —
+        usar pattern log_rpc_error (Story 1.5).
+    - path: "src/types/database.ts"
+      instructions: |
+        Este arquivo é manual e está em deprecation gradual (ver ADR-0041).
+        Mudanças aqui devem ser justificadas; prefira atualizar
+        src/types/database.generated.ts via `npm run gen:db-types`.
+    - path: "src/hooks/**/*.ts"
+      instructions: |
+        Hooks acima de 300 LOC devem ser flagged (UX-002 god-hooks).
+        Verifique cleanup de subscriptions (realtime), useEffect deps,
+        e separação SRP. Sinalize lógica de negócio embutida em UI hooks.
+    - path: "src/pages/**/*.tsx"
+      instructions: |
+        Pages acima de 500 LOC devem ser flagged (UX-001 monolithic pages).
+        Sinalize CSS inline, FAQ inline, prefers-reduced-motion hardcoded
+        (origem Lovable/v0.dev — pattern a ser decomposto).
+    - path: "supabase/functions/**/*.ts"
+      instructions: |
+        Edge Functions devem: usar Deno.env.get para todos secrets (zero hardcoded),
+        validar inputs (zod ou similar), retornar erros genéricos sem stack trace,
+        respeitar rate limit (DB-024).
+
+  tools:
+    languagetool:
+      enabled: false
+    gitleaks:
+      enabled: true
+    eslint:
+      enabled: true
+    biome:
+      enabled: false
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
+  learnings:
+    scope: auto
+  issues:
+    scope: auto
+  pull_requests:
+    scope: auto
