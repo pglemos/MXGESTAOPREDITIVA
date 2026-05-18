@@ -50,6 +50,11 @@ type SellerTenureRow = {
     closing_month_grace?: boolean | null
 }
 
+type SellerTenureWithUserRow = SellerTenureRow & {
+    users: User | null
+    store?: { name?: string | null } | null
+}
+
 type SellerTenureUpdateFields = Partial<Pick<SellerTenureRow, 'started_at' | 'ended_at' | 'is_active' | 'closing_month_grace'>>
 
 export interface RegisterUserInput {
@@ -77,6 +82,33 @@ const todayISO = () => new Date().toISOString().slice(0, 10)
 const DEFAULT_INITIAL_MONTHLY_GOAL = 0
 const TEAM_USER_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, must_change_password, notification_preferences'
 const TEAM_MEMBERSHIP_SELECT = `id, user_id, store_id, role, is_active, ended_at, users:usuarios(${TEAM_USER_SELECT}), store:lojas(name)`
+const TEAM_SELLER_TENURE_SELECT = `seller_user_id, store_id, started_at, ended_at, is_active, closing_month_grace, users:usuarios(${TEAM_USER_SELECT}), store:lojas(name)`
+
+function mergeOperationalSellers(teamData: TeamMembershipRow[], tenures: SellerTenureWithUserRow[]) {
+    const merged = [...teamData]
+    const membershipKeys = new Set(teamData.map(member => `${member.store_id}:${member.user_id}`))
+
+    for (const tenure of tenures) {
+        const user = tenure.users
+        if (!user || user.role !== 'vendedor' || user.active === false) continue
+
+        const key = `${tenure.store_id}:${tenure.seller_user_id}`
+        if (membershipKeys.has(key)) continue
+
+        membershipKeys.add(key)
+        merged.push({
+            user_id: tenure.seller_user_id,
+            store_id: tenure.store_id,
+            role: 'vendedor',
+            is_active: tenure.is_active,
+            ended_at: tenure.ended_at,
+            users: user,
+            store: tenure.store,
+        })
+    }
+
+    return merged
+}
 
 const storeUpdateSchema = z.object({
     name: z.string().trim().min(2, 'Nome da loja deve ter pelo menos 2 caracteres.').max(120, 'Nome da loja muito longo.').optional(),
@@ -130,6 +162,7 @@ export function useTeam(storeIdOverride?: string) {
 
         try {
             let teamData: TeamMembershipRow[] = []
+            let tenureRows: SellerTenureWithUserRow[] = []
             let tenureMap = new Map<string, SellerTenureRow>()
             let checkedIn = new Set<string>()
             const isGlobalView = !storeId || storeId === 'all'
@@ -161,13 +194,14 @@ export function useTeam(storeIdOverride?: string) {
             }
 
             // 2. Fetch Tenures (Vigência)
-            let tenuresQuery = supabase.from('vendedores_loja').select('seller_user_id, store_id, started_at, ended_at, is_active, closing_month_grace')
+            let tenuresQuery = supabase.from('vendedores_loja').select(TEAM_SELLER_TENURE_SELECT)
             if (storeId && storeId !== 'all') {
                 tenuresQuery = tenuresQuery.eq('store_id', storeId)
             }
             const { data: tenures, error: tenuresError } = await tenuresQuery
             if (tenuresError) throw tenuresError
-            tenureMap = new Map(((tenures || []) as SellerTenureRow[]).map(t => [`${t.store_id}:${t.seller_user_id}`, t]))
+            tenureRows = (tenures || []) as unknown as SellerTenureWithUserRow[]
+            tenureMap = new Map(tenureRows.map(t => [`${t.store_id}:${t.seller_user_id}`, t]))
 
             // 3. Fetch Checkins
             let todayCheckins: { seller_user_id: string }[] | null = null
@@ -199,7 +233,8 @@ export function useTeam(storeIdOverride?: string) {
             checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
 
             // 4. Assemble Final Team
-            setSellers(teamData.filter(hasStoreTeamUser).map((m) => {
+            const mergedTeamData = mergeOperationalSellers(teamData, tenureRows)
+            setSellers(mergedTeamData.filter(hasStoreTeamUser).map((m) => {
                 const u = m.users
                 const memberStoreId = m.store_id
                 const tenure = tenureMap.get(`${memberStoreId}:${u.id}`)
@@ -492,7 +527,7 @@ export function useMemberships() {
 
 export function useStoresStats() {
     const { role, vinculos_loja, storeId: authStoreId } = useAuth()
-    const [stats, setStats] = useState<Record<string, { sellers: number; checkedIn: number; disciplinePct: number }>>({})
+    const [stats, setStats] = useState<Record<string, { sellers: number; teamMembers: number; checkedIn: number; disciplinePct: number }>>({})
     const [loading, setLoading] = useState(true)
     const referenceDate = calculateReferenceDate()
 
@@ -506,9 +541,11 @@ export function useStoresStats() {
                 authorizedStoreIds = [authStoreId]
             }
 
-            let sellersQuery = supabase.from('vendedores_loja').select('store_id').eq('is_active', true)
+            let sellersQuery = supabase.from('vendedores_loja').select('store_id, seller_user_id, users:usuarios(id, active, role)').eq('is_active', true)
+            let membersQuery = supabase.from('vinculos_loja').select('store_id, user_id, role, users:usuarios(id, active, role)').eq('is_active', true)
             if (authorizedStoreIds) {
                 sellersQuery = sellersQuery.in('store_id', authorizedStoreIds)
+                membersQuery = membersQuery.in('store_id', authorizedStoreIds)
             }
 
             // RPC path: rede admin OU loja única; lista de N lojas autorizadas (dono multi-loja) volta ao SELECT direto.
@@ -532,20 +569,43 @@ export function useStoresStats() {
                         return q
                     })()
 
-            const [sellersRes, checkinsRes] = await Promise.all([
+            const [sellersRes, membersRes, checkinsRes] = await Promise.all([
                 sellersQuery,
+                membersQuery,
                 checkinsPromise
             ])
 
             if (sellersRes.error) throw sellersRes.error
+            if (membersRes.error) throw membersRes.error
             if (checkinsRes.error) throw checkinsRes.error
 
-            const newStats: Record<string, { sellers: number; checkedIn: number; disciplinePct: number }> = {}
+            const newStats: Record<string, { sellers: number; teamMembers: number; checkedIn: number; disciplinePct: number }> = {}
+            const teamMemberKeys = new Set<string>()
 
-            if (sellersRes.data) {
-                sellersRes.data.forEach((s: { store_id: string }) => {
-                    if (!newStats[s.store_id]) newStats[s.store_id] = { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+            const sellerStatsRows = (sellersRes.data || []) as unknown as Array<{ store_id: string; seller_user_id: string; users?: { active?: boolean | null; role?: string | null } | null }>
+            if (sellerStatsRows.length) {
+                sellerStatsRows.forEach((s) => {
+                    if (s.users?.active === false || s.users?.role !== 'vendedor') return
+                    if (!newStats[s.store_id]) newStats[s.store_id] = { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
                     newStats[s.store_id].sellers++
+                    const key = `${s.store_id}:${s.seller_user_id}`
+                    if (!teamMemberKeys.has(key)) {
+                        teamMemberKeys.add(key)
+                        newStats[s.store_id].teamMembers++
+                    }
+                })
+            }
+
+            const memberStatsRows = (membersRes.data || []) as unknown as Array<{ store_id: string; user_id: string; role?: string | null; users?: { active?: boolean | null; role?: string | null } | null }>
+            if (memberStatsRows.length) {
+                memberStatsRows.forEach((m) => {
+                    const memberRole = m.role || m.users?.role
+                    if (!isStoreTeamRole(memberRole)) return
+                    if (!newStats[m.store_id]) newStats[m.store_id] = { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
+                    const key = `${m.store_id}:${m.user_id}`
+                    if (teamMemberKeys.has(key)) return
+                    teamMemberKeys.add(key)
+                    newStats[m.store_id].teamMembers++
                 })
             }
 
@@ -555,7 +615,7 @@ export function useStoresStats() {
                     const key = `${c.store_id}:${c.seller_user_id || 'unknown'}`
                     if (checkinStoreSellerKeys.has(key)) return
                     checkinStoreSellerKeys.add(key)
-                    if (!newStats[c.store_id]) newStats[c.store_id] = { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                    if (!newStats[c.store_id]) newStats[c.store_id] = { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
                     newStats[c.store_id].checkedIn++
                 })
             }

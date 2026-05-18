@@ -52,9 +52,9 @@ export default function Lojas() {
         return ownerActiveStores
             .map(store => ({
                 store,
-                stat: stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 },
+                stat: stats[store.id] || { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 },
             }))
-            .filter(({ stat }) => stat.sellers === 0 || stat.disciplinePct < 80)
+            .filter(({ stat }) => stat.teamMembers === 0 || stat.sellers === 0 || stat.disciplinePct < 80)
             .sort((a, b) => a.stat.disciplinePct - b.stat.disciplinePct)
     }, [ownerActiveStores, stats])
 
@@ -173,10 +173,10 @@ export default function Lojas() {
             align: 'center',
             desktopOnly: true,
             render: (store) => {
-                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                const sStat = stats[store.id] || { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
                 return (
                     <Badge variant={store.active ? "success" : "outline"} className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none">
-                        {store.active ? (sStat.sellers > 0 ? "OPERANDO" : "SEM EQUIPE") : "INATIVA"}
+                        {store.active ? (sStat.teamMembers > 0 ? "OPERANDO" : "SEM EQUIPE") : "INATIVA"}
                     </Badge>
                 )
             }
@@ -186,12 +186,12 @@ export default function Lojas() {
             header: 'OPERACIONAL',
             align: 'center',
             render: (store) => {
-                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
+                const sStat = stats[store.id] || { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
                 return (
                     <div className="flex items-center justify-center gap-mx-xs sm:gap-mx-md">
                         <div className="text-center">
                             <Typography variant="tiny" className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny">Equipe</Typography>
-                            <Typography variant="h3" className="text-xs sm:text-base tabular-nums">{sStat.sellers}</Typography>
+                            <Typography variant="h3" className="text-xs sm:text-base tabular-nums">{sStat.teamMembers}</Typography>
                         </div>
                         <div className="w-px h-mx-sm sm:h-mx-md bg-border-default mx-1 sm:mx-2" aria-hidden="true" />
                         <div className="text-center">
@@ -389,8 +389,8 @@ export default function Lojas() {
                         </div>
                         <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-2">
                             {ownerActiveStores.map(store => {
-                                const sStat = stats[store.id] || { sellers: 0, checkedIn: 0, disciplinePct: 0 }
-                                const needsAttention = sStat.sellers === 0 || sStat.disciplinePct < 80
+                                const sStat = stats[store.id] || { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
+                                const needsAttention = sStat.teamMembers === 0 || sStat.sellers === 0 || sStat.disciplinePct < 80
                                 return (
                                     <Link
                                         key={store.id}
@@ -401,7 +401,7 @@ export default function Lojas() {
                                             <div className="min-w-0">
                                                 <Typography variant="p" className="font-black uppercase leading-tight group-hover:text-brand-primary">{store.name}</Typography>
                                                 <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold uppercase">
-                                                    {sStat.sellers} na equipe · {sStat.checkedIn}/{sStat.sellers} registros
+                                                    {sStat.teamMembers} na equipe · {sStat.checkedIn}/{sStat.sellers} vendedores com registro
                                                 </Typography>
                                             </div>
                                             <Badge variant={needsAttention ? 'warning' : 'success'} className="shrink-0 rounded-mx-full">
