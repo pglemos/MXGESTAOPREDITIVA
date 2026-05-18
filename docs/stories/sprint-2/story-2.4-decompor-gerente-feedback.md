@@ -1,6 +1,6 @@
 # Story 2.4 — Decompor `GerenteFeedback` (~900 LOC)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -104,3 +104,4 @@ Feedback é entregável central do fluxo gerencial semanal. Decompor reduz risco
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass

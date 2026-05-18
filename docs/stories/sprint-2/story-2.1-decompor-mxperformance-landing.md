@@ -1,6 +1,6 @@
 # Story 2.1 — Decompor `MXPerformanceLanding` (1698 LOC) — PILOTO Pages
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -151,3 +151,4 @@ export function MXPerformanceLanding() {
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — piloto UX-001 Sprint 2
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 2 critical-path: pass (piloto pages)

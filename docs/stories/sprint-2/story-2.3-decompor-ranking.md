@@ -1,6 +1,6 @@
 # Story 2.3 — Decompor `Ranking` (~1000 LOC)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -104,3 +104,4 @@ Ranking é page de alto tráfego (visualizada diariamente por gerentes). Decompo
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass

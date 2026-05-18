@@ -1,6 +1,6 @@
 # Story 2.6 — Decompor `AgendaAdmin` (1318 LOC) — depende de Story 2.7
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -107,3 +107,4 @@ Agenda Admin é ferramenta diária de admin/MX. Decompor após split do hook hab
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2 (depende de 2.7)
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass (hard-block 2.7 reconhecido)

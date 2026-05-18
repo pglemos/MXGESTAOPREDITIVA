@@ -1,6 +1,6 @@
 # Story 2.10 — Split `useCheckins` (escopo residual pós Story 1.2)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P2
@@ -107,3 +107,4 @@ Encerra débito UX-002 ao alinhar `useCheckins` ao pattern de Stories 2.7-2.9. R
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-002 residual Sprint 2 (auditoria primeiro)
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass (Story 1.2 fdf73f3 já em main; audit-gate primeiro)

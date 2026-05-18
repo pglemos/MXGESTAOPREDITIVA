@@ -1,6 +1,6 @@
 # Story 2.8 — Split `useTeam` (625 LOC)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -105,3 +105,4 @@ Pattern já validado em Story 2.7. Split habilita Story 2.5 (DashboardLoja). Red
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-002 Sprint 2
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass (hard-block 2.7; bloqueia 2.5)

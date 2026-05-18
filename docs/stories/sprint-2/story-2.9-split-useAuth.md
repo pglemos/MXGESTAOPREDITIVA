@@ -1,6 +1,6 @@
 # Story 2.9 — Split `useAuth` (585 LOC) — Tests First obrigatório
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -165,3 +165,4 @@ npm run test src/hooks/__tests__/useAuth.spec.ts -- --coverage
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-002 CRÍTICA Sprint 2 (Tests First)
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 2 critical-path: pass (Tests First + canary 48h obrigatórios)

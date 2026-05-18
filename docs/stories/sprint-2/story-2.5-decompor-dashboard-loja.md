@@ -1,6 +1,6 @@
 # Story 2.5 — Decompor `DashboardLoja` (1409 LOC) — depende de Story 2.8
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -110,3 +110,4 @@ DashboardLoja é landing pós-login do gerente — page mais visitada. Decompor 
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2 (depende de 2.8)
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 2 critical-path: pass (hard-block 2.8 reconhecido)

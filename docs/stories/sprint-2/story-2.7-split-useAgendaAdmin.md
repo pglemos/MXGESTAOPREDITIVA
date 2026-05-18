@@ -1,6 +1,6 @@
 # Story 2.7 — Split `useAgendaAdmin` (895 LOC) — PILOTO god-hook
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -140,3 +140,4 @@ export function useAgendaAdmin() {
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — piloto UX-002 Sprint 2
+- 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 2 critical-path: pass (piloto god-hooks)
