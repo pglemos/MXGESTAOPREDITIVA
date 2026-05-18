@@ -451,7 +451,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   <Input
                     id="search-specialist"
                     name="search-specialist"
-                    placeholder="LOCALIZAR ESPECIALISTA..."
+                    placeholder="Buscar por nome ou perfil"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                     className="!pl-12 !h-mx-14 uppercase font-black tracking-widest text-mx-tiny"
@@ -507,24 +507,27 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
             ))}
           </div>
 
+          <div className="grid mx-team-layout-grid gap-mx-lg items-start mt-mx-md">
+
           {canSharePreRegistrationLink ? (
-          <Card className="border border-border-default bg-white shadow-mx-lg overflow-hidden">
-            <CardHeader className="border-b border-border-default bg-surface-alt/60 p-mx-lg">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-md">
+          <aside className="order-2 min-w-0 xl:sticky xl:top-[var(--spacing-mx-layout-offset-top)]">
+          <Card className="border border-border-default bg-white shadow-mx-sm overflow-hidden rounded-mx-3xl">
+            <CardHeader className="border-b border-border-default bg-surface-alt/60 p-mx-md">
+              <div className="flex flex-col gap-mx-md">
                 <div className="flex items-start gap-mx-sm min-w-0">
                   <div className="w-mx-12 h-mx-12 rounded-mx-2xl bg-brand-primary/10 border border-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
                     <ClipboardList size={22} />
                   </div>
                   <div className="min-w-0">
-                    <CardTitle className="text-lg">Pré-cadastro da loja</CardTitle>
-                    <CardDescription>Link específico para equipe enviar foto, contato e hierarquia. Admin MX valida antes de liberar login.</CardDescription>
+                    <CardTitle className="text-lg">Pré-cadastros</CardTitle>
+                    <CardDescription>Fila de entrada e histórico de solicitações da loja.</CardDescription>
                   </div>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => void handleCopyRegistrationLink()}
-                  className="h-mx-12 rounded-mx-xl bg-white"
+                  className="h-mx-12 rounded-mx-xl bg-white w-full"
                   disabled={!registrationLink}
                 >
                   <Copy size={16} className="mr-2" />
@@ -537,7 +540,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
               </div>
             </CardHeader>
 
-            <CardContent className="p-mx-lg">
+            <CardContent className="p-mx-md mx-pre-registration-scroll">
               {!canApprovePreRegistrations ? (
                 <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-lg text-center">
                   <ShieldCheck size={24} className="mx-auto text-brand-primary" />
@@ -550,11 +553,11 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   <Skeleton className="h-mx-32 rounded-mx-2xl" />
                 </div>
               ) : preRegistrations.length > 0 ? (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-md">
+                <div className="grid grid-cols-1 gap-mx-sm">
                   {preRegistrations.map(item => {
                     const detailsExpanded = expandedPreRegistrations.has(item.id)
                     return (
-                    <div key={item.id} className="rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md">
+                    <div key={item.id} className="rounded-mx-2xl border border-border-default bg-surface-alt p-mx-sm">
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-mx-sm">
                         <div className="flex items-start gap-mx-sm min-w-0">
                           <div className="h-mx-14 w-mx-14 overflow-hidden rounded-mx-2xl border border-border-default bg-white shrink-0">
@@ -564,8 +567,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                               <div className="h-full w-full flex items-center justify-center text-brand-primary"><User size={20} /></div>
                             )}
                           </div>
-                          <div className="min-w-0">
-                            <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{item.full_name}</Typography>
+                          <div className="min-w-0 flex-1">
+                            <Typography variant="caption" className="block max-w-full font-black uppercase tracking-tight truncate">{item.full_name}</Typography>
                             <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">
                               <span className="inline-flex items-center gap-mx-tiny"><Mail size={11} aria-hidden="true" />{detailsExpanded ? item.email : redactEmail(item.email)}</span>
                               <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} aria-hidden="true" />{detailsExpanded ? item.phone : redactPhone(item.phone)}</span>
@@ -655,9 +658,10 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
               )}
             </CardContent>
           </Card>
+          </aside>
           ) : null}
 
-          <div className="flex-1 min-h-0 pb-32 mt-mx-md">
+          <section className="order-1 min-w-0 pb-24">
             {teamError ? (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center min-h-[40vh] space-y-mx-lg text-center border-2 border-dashed border-status-error/20 rounded-mx-4xl bg-status-error-surface/40 p-mx-xl">
                 <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-white flex items-center justify-center text-status-error shadow-mx-lg border border-status-error/10">
@@ -674,6 +678,15 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
               </motion.div>
             ) : filteredTeam.length > 0 ? (
               <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
+                <CardHeader className="border-b border-border-default bg-white p-mx-lg">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-sm">
+                    <div>
+                      <CardTitle className="text-lg">Integrantes vinculados</CardTitle>
+                      <CardDescription>Equipe operacional ativa no sistema de performance da loja.</CardDescription>
+                    </div>
+                    <Badge variant="outline" className="w-fit font-black uppercase">{filteredTeam.length} registros</Badge>
+                  </div>
+                </CardHeader>
                 <div className="hidden lg:grid store-team-grid gap-mx-md px-mx-lg py-mx-sm bg-surface-alt border-b border-border-default text-mx-nano font-black uppercase tracking-mx-widest text-text-tertiary">
                   <span>Integrante</span>
                   <span>Papel</span>
@@ -701,8 +714,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                               size="lg"
                               className="rounded-mx-xl bg-brand-primary/10 text-brand-primary border-brand-primary/10"
                             />
-                            <div className="min-w-0">
-                              <Typography variant="caption" className="font-black uppercase tracking-tight truncate">{member.name}</Typography>
+                            <div className="min-w-0 flex-1">
+                              <Typography variant="caption" className="block max-w-full font-black uppercase tracking-tight truncate">{member.name}</Typography>
                               <div className="mt-1 flex flex-wrap gap-x-mx-md gap-y-mx-tiny text-mx-micro font-bold text-text-tertiary">
                                 <span className="inline-flex items-center gap-mx-tiny min-w-0"><Mail size={11} />{member.email || 'sem e-mail'}</span>
                                 <span className="inline-flex items-center gap-mx-tiny"><Phone size={11} />{member.phone || 'sem telefone'}</span>
@@ -789,13 +802,14 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                       className="h-mx-16 px-10 rounded-mx-full font-black uppercase tracking-widest text-mx-tiny shadow-mx-xl relative z-10"
                   >
                       <UserPlus size={18} className="mr-2" /> ADICIONAR INTEGRANTE
-                  </Button>
-                )}
-              </motion.div>
-            )}
+	                  </Button>
+	                )}
+	              </motion.div>
+	            )}
+	          </section>
           </div>
 
-          <AnimatePresence>
+	          <AnimatePresence>
             {editingMember && (
               <div className="fixed inset-0 z-[100] flex items-start justify-center p-mx-md overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="edit-team-member-title">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingMember(null)} className="absolute inset-0 bg-mx-black/60 backdrop-blur-md" />

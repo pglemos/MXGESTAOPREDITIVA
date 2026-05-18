@@ -280,6 +280,38 @@ html, body {
   left: calc(var(--width-mx-sidebar-collapsed) + 16px);
 }
 
+.mx-team-layout-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mx-pre-registration-scroll {
+  overflow-y: auto;
+}
+
+.mx-store-title-select-width {
+  min-width: 14rem;
+}
+
+@media (min-width: 640px) {
+  .mx-store-title-select-width {
+    min-width: 24rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .mx-team-layout-grid {
+    grid-template-columns: minmax(0, 1fr) 420px;
+  }
+
+  .mx-pre-registration-scroll {
+    max-height: calc(100vh - 360px);
+  }
+
+  .mx-store-title-select-width {
+    min-width: 32rem;
+  }
+}
+
 @utility bg-mx-matrix {
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;

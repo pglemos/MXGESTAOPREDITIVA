@@ -795,7 +795,7 @@ export default function DashboardLoja() {
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-mx-tiny">Status de Unidade</Typography>                    <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
                         <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
                         {isPerfilInternoMx(role) ? (
-                            <div className="relative group max-w-full">
+                            <div className="relative group w-full mx-store-title-select-width max-w-mx-sidebar-expanded sm:max-w-mx-2xl">
                                 <select 
                                     id="store-dashboard-select"
                                     name="store-dashboard-select"
@@ -809,7 +809,7 @@ export default function DashboardLoja() {
 	                                            navigate(`/lojas/${slugify(newStore.name)}?id=${newStoreId}${activeTab === 'performance' ? '' : `&tab=${activeTab}`}`)
 	                                        }
 	                                    }}
-                                    className="appearance-none bg-transparent text-2xl sm:text-4xl xl:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors truncate max-w-mx-2xl"
+                                    className="w-full appearance-none bg-transparent text-2xl sm:text-4xl xl:text-5xl font-black text-text-primary tracking-tighter uppercase outline-none pr-10 cursor-pointer hover:text-brand-primary transition-colors truncate"
                                 >
                                     {selectableStores.map(store => (
                                         <option key={store.id} value={store.id} className="text-lg bg-white">{store.name.toUpperCase()}</option>
