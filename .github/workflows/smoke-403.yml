@@ -1,0 +1,47 @@
+name: Smoke 403 (PostgREST RLS)
+
+# Story 0.6 / T-03 / DB-016 / DB-019 — valida via HTTP que tabelas críticas
+# bloqueiam POST direto de usuário authenticated não-admin.
+#
+# Roda em:
+#   - PR para main (sanity check pré-merge)
+#   - schedule diário 09:00 UTC (regression detection)
+#
+# Requer secrets configurados no GitHub:
+#   - SUPABASE_STAGING_URL
+#   - SUPABASE_STAGING_ANON_KEY
+#   - SUPABASE_STAGING_TEST_JWT  (JWT de role 'vendedor' não-admin gerado uma vez)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**.sql'
+      - 'scripts/smoke_403_postgrest.mjs'
+      - '.github/workflows/smoke-403.yml'
+  schedule:
+    - cron: '0 9 * * *'  # diário 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Run smoke 403
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_STAGING_ANON_KEY }}
+          SUPABASE_TEST_JWT: ${{ secrets.SUPABASE_STAGING_TEST_JWT }}
+        run: node scripts/smoke_403_postgrest.mjs

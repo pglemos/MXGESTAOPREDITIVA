@@ -1,6 +1,6 @@
 # Story 0.6 — Smoke Tests "POST Direto → 403"
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0
@@ -8,6 +8,13 @@
 **Débito relacionado:** T-03 (qa-review §6) / DB-016 / DB-019
 **Esforço estimado:** 4h
 **Owner sugerido:** @qa
+
+## File List
+- `scripts/smoke_403_postgrest.mjs` (Node fetch nativo, 6 alvos)
+- `.github/workflows/smoke-403.yml` (PR + schedule diário + workflow_dispatch)
+
+## Change Log (Implementação)
+- 2026-05-18 | @aiox-master (Orion) | Status: Ready → InReview | Script Node + CI workflow. Pendente: configurar secrets SUPABASE_STAGING_URL/ANON_KEY/TEST_JWT no GitHub Actions.
 **RACI:** R=@qa, A=Tech Lead, C=@dev, I=@data-engineer
 **Created:** 2026-05-17
 
