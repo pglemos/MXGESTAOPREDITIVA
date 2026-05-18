@@ -54,9 +54,39 @@ Stories obrigatórias (todas criadas neste epic, status `Draft`):
 
 STORIES PENDENTES — a serem criadas em **FASE 10b** (9 stories cobrindo DB-016 fatiado em 4 + DB-014 finalização + DB-006 helpers + DB-019 audit RLS + DB-013 + feature flag infra + ADR rollback formal).
 
-### Sprint 2 — P1 Governança + A11y (4–5 semanas, ~200h, R$30.000)
+### Sprint 2 — P1 Decomposição Estrutural + DR (4–5 semanas, ~200h, R$30.000)
 
-ROADMAP. Stories sob demanda cobrindo UX-001/002/004 (god-hooks/pages), UX-021..028 (a11y WCAG AA), SYS-009 (consolidação testsprite/e2e), DB-018 (índices), DB-021 (pg_stat_statements ativo).
+**Status:** 10 stories Draft criadas em 2026-05-18 por @sm (River), aguardando validação @po em batch.
+
+Foco mandatório (per `docs/reviews/ux-specialist-review.md` §6): decomposição UX-001 (pages monolíticas, ~100h) + UX-002 (god-hooks, ~75h). Pattern PILOTO em 2 frentes: pages (Story 2.1) e hooks (Story 2.7).
+
+**UX-001 — Pages monolíticas (~100h, 6 stories)**
+
+| Story | Page | LOC atual | Esforço | Depende |
+|-------|------|-----------|---------|---------|
+| [2.1](./sprint-2/story-2.1-decompor-mxperformance-landing.md) | `MXPerformanceLanding` — **PILOTO** | 1698 | 16h | Sprint 0 |
+| [2.2](./sprint-2/story-2.2-decompor-consultoria-cliente-detalhe.md) | `ConsultoriaClienteDetalhe` | ~1200 | 14h | 2.1 |
+| [2.3](./sprint-2/story-2.3-decompor-ranking.md) | `Ranking` | ~1000 | 12h | 2.1 |
+| [2.4](./sprint-2/story-2.4-decompor-gerente-feedback.md) | `GerenteFeedback` | ~900 | 11h | 2.1 |
+| [2.5](./sprint-2/story-2.5-decompor-dashboard-loja.md) | `DashboardLoja` | 1409 | 16h | 2.1 + **2.8** |
+| [2.6](./sprint-2/story-2.6-decompor-agenda-admin.md) | `AgendaAdmin` | 1318 | 15h | 2.1 + **2.7** |
+
+**UX-002 — God-hooks (~75h, 4 stories)**
+
+| Story | Hook | LOC atual | Esforço | Depende |
+|-------|------|-----------|---------|---------|
+| [2.7](./sprint-2/story-2.7-split-useAgendaAdmin.md) | `useAgendaAdmin` — **PILOTO** | 895 | 20h | Sprint 0 |
+| [2.8](./sprint-2/story-2.8-split-useTeam.md) | `useTeam` | 625 | 14h | 2.7 |
+| [2.9](./sprint-2/story-2.9-split-useAuth.md) | `useAuth` — **Tests First** (CRÍTICA) | 585 | 18h | 2.7 |
+| [2.10](./sprint-2/story-2.10-split-useCheckins.md) | `useCheckins` — residual pós Sprint 1 | TBD | 8h | 1.2 + 2.7 |
+
+**Total Sprint 2:** ~144h core mapeado. Buffer para a11y/SYS/índices remanescentes (UX-021..028, SYS-009, DB-018, DB-021) será planejado em FASE 10c após validação @po destas 10 stories.
+
+**Dependências cruzadas:**
+- 2.5 ← 2.8 (DashboardLoja consome `useTeam`)
+- 2.6 ← 2.7 (AgendaAdmin consome `useAgendaAdmin`)
+- 2.10 ← Story 1.2 done (DB-016 B merged em main)
+- Todas ← Sprint 0 done (regressão visual + RLS matrix verdes)
 
 ### Sprint 3 — P2 Perf + LGPD + Decomposição (6–8 semanas, ~280h, R$42.000)
 
