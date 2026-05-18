@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
 
 /**
  * Hook para buscar hierarquia completa da rede: Lojas, Membros, Papéis e Status de Check-in (hoje)
@@ -29,10 +30,20 @@ export function useNetworkHierarchy() {
             .select('user_id, store_id, role, users:usuarios(*)')
 
         // 3. Buscar check-ins de hoje em toda a rede
-        const { data: todayCheckins } = await supabase
-            .from('lancamentos_diarios')
-            .select('seller_user_id, store_id')
-            .eq('reference_date', referenceDate)
+        let todayCheckins: { seller_user_id: string; store_id: string }[] | null = null
+        if (isLancamentosViaRpcEnabled()) {
+            const { data: rpcData } = await supabase.rpc('get_lancamentos_referencia_dia', {
+                p_reference_date: referenceDate,
+                p_scope: 'daily',
+            })
+            todayCheckins = (rpcData as { seller_user_id: string; store_id: string }[] | null) || []
+        } else {
+            const { data } = await supabase
+                .from('lancamentos_diarios')
+                .select('seller_user_id, store_id')
+                .eq('reference_date', referenceDate)
+            todayCheckins = data
+        }
 
         if (lojas && vinculos_loja) {
             const checkedInSet = new Set((todayCheckins || []).map(c => `${c.store_id}-${c.seller_user_id}`))

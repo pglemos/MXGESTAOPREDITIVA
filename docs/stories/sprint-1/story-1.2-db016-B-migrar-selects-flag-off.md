@@ -1,6 +1,6 @@
 # Story 1.2 — DB-016 Fase B: Migrar 27 SELECTs do FE para RPCs (Feature Flag DESLIGADA)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
@@ -9,6 +9,7 @@
 
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 1 critical-path: PASS (rollback multi-tier com RTO, bloqueada por 1.1, feature flag default OFF explícita, shadow-read + Sentry)
+- 2026-05-18 | @dev (Dex) | Status: Ready → InReview | 13 consumers migrados atrás de feature flag `db016_rpc_enabled` (default OFF); `traced()` wrapping em 3 consumers críticos (useRanking, useCheckins, MorningReport); typecheck passa (apenas erro pré-existente em vite.config.ts).
 **Esforço estimado:** 20h
 **Owner sugerido:** @dev
 **RACI:** R=@dev, A=Tech Lead, C=@data-engineer+@architect, I=stakeholders
@@ -97,3 +98,42 @@ Pré-condição para o REVOKE (Fase C). Migrar com flag-off elimina risco de bre
 - `docs/reviews/qa-review.md` §4.1 Fase B
 - `docs/security/lancamentos-diarios-consumers.md` (story 0.8)
 - Story 1.1 (RPCs)
+
+## File List (Story 1.2)
+
+Implementação (Sprint 1):
+
+- **Novo:** `src/lib/feature-flags.ts` — helper `isLancamentosViaRpcEnabled()` (default OFF; aceita override `localStorage` ou `VITE_FLAG_LANCAMENTOS_VIA_RPC`)
+
+**13 consumers migrados** (cada um com switch flag ON → RPC / flag OFF → SELECT direto legacy):
+
+- `src/hooks/useRanking.ts` — 3 hooks (useRanking, useGlobalRanking, useStorePerformance); `traced()` wrap; RPCs `get_lancamentos_por_loja_periodo` + `get_lancamentos_rede_periodo` + `get_lancamentos_referencia_dia`
+- `src/hooks/useCheckins.ts` — 4 fluxos (fetchCheckins, fetchTodayCheckin, fetchCheckinByDate, useMyCheckins, useCheckinsByDateRange); `traced()` wrap; RPCs `get_lancamentos_por_loja_periodo` + `get_lancamentos_por_vendedor_periodo` + `get_lancamento_por_dia`
+- `src/hooks/useTeam.ts` — 3 hooks (useTeam, useStoresStats, useSellersByStore); RPC `get_lancamentos_por_loja_periodo` + `get_lancamentos_referencia_dia`
+- `src/hooks/usePerformance.ts` — RPC `get_lancamentos_por_loja_periodo`
+- `src/hooks/useNetworkHierarchy.ts` — RPC `get_lancamentos_referencia_dia`
+- `src/pages/MorningReport.tsx` — AdminMorningReport com `traced()` wrap; RPCs admin (rede + referência)
+- `src/pages/PainelConsultor.tsx` — RPCs admin (rede + referência dia)
+- `src/pages/GerenteFeedback.tsx` — RPC `get_lancamentos_por_vendedor_periodo` (dynamic import preservado)
+- `src/pages/AiDiagnostics.tsx` — RPC `get_lancamentos_rede_periodo`
+- `src/lib/services/checkin-service.ts` — Marcado `@deprecated`; INSERT direto preservado por enquanto (será removido após Story 1.3 REVOKE); dedup SELECT migrado para `get_lancamento_por_dia` quando flag ON
+- `src/lib/automation/cron-scheduler.ts` — RPC `get_lancamentos_por_loja_periodo` (per-store loop)
+- `src/lib/automation/weekly/feedback-engine.ts` — RPC `get_lancamentos_por_loja_periodo`
+- `src/lib/automation/monthly/close-engine.ts` — RPC `get_lancamentos_por_loja_periodo`
+
+## Notas de Implementação
+
+1. **Comportamento prod inalterado:** flag default = `false` → todos os caminhos legacy continuam ativos. Nenhum impacto observável até flag ser ligada manualmente em staging/canary (Story 1.3).
+2. **Aleatórias decisões técnicas:**
+   - `useStoresStats` para `dono` multi-loja (N≥2 stores) volta ao SELECT direto mesmo com flag ON — RPCs disponíveis cobrem rede (admin) ou loja única. Multi-store por authorized list é caso edge não suportado pelas 5 RPCs atuais. Pode justificar nova RPC `get_lancamentos_para_lojas(uuid[], date)` se Story 1.3 detectar telemetria.
+   - `useCheckins.fetchCheckins` sem filtros (storeId apenas) mantém SELECT direto mesmo com flag ON — RPCs exigem range explícito.
+3. **Tipos:** RPCs retornam `SETOF lancamentos_diarios` (todas colunas); cast simples para `DailyCheckin[]` mantém compat com `withCheckinTotals` e calcs downstream.
+4. **Idempotência:** rodar build 2x não altera; flag ler localStorage primeiro depois env é determinístico.
+5. **`@deprecated checkin-service.ts`:** marcado com JSDoc; após Story 1.3 (REVOKE write em `lancamentos_diarios`), o INSERT vai falhar com 403 → Sprint 2 remove export e força chamadas pra `submit_checkin` RPC.
+
+## Pendências (não bloqueantes desta story)
+
+- [ ] Smoke tests com flag ON em staging (precondição Story 1.3 canary)
+- [ ] Runbook `docs/runbooks/db016-feature-flag.md` (Story 1.3 owner)
+- [ ] Shadow-read opcional (Promise.all RPC+SELECT com diff em Sentry) — pode ser adicionado em Story 1.3 antes do REVOKE canary
+- [ ] Lint rule bloqueando `from('lancamentos_diarios').select` fora dos 13 call-sites + checkin-service.ts (Sprint 2 cleanup)

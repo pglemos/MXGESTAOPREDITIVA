@@ -7,6 +7,7 @@ import { calculateReferenceDate } from '@/hooks/useCheckins';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { DailyCheckin } from '@/types/database';
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags';
 
 type NamedUserRelation = { name?: string | null } | { name?: string | null }[] | null | undefined;
 
@@ -37,11 +38,24 @@ export async function runMatinalWorkflow() {
         console.log(`\n- Processando Loja: ${store.name}`);
 
         // 2. Buscar dados do mês para esta loja
-        const { data: monthCheckins } = await supabase
-            .from('lancamentos_diarios')
-            .select('*')
-            .eq('store_id', store.id)
-            .gte('reference_date', format(parseISO(referenceDate), 'yyyy-MM-01'));
+        const monthStart = format(parseISO(referenceDate), 'yyyy-MM-01')
+        let monthCheckins: DailyCheckin[] | null = null
+        if (isLancamentosViaRpcEnabled()) {
+            const { data } = await supabase.rpc('get_lancamentos_por_loja_periodo', {
+                p_store_id: store.id,
+                p_start_date: monthStart,
+                p_end_date: referenceDate,
+                p_scope: 'daily',
+            })
+            monthCheckins = (data as DailyCheckin[] | null) || []
+        } else {
+            const { data } = await supabase
+                .from('lancamentos_diarios')
+                .select('*')
+                .eq('store_id', store.id)
+                .gte('reference_date', monthStart);
+            monthCheckins = data as DailyCheckin[] | null
+        }
 
         if (!monthCheckins) continue;
 

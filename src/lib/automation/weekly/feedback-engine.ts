@@ -5,6 +5,7 @@ import { sendEmailReport } from '../email/sender';
 import { startOfWeek, subWeeks, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { DailyCheckin } from '@/types/database';
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags';
 
 type NamedUserRelation = { name?: string | null } | { name?: string | null }[] | null | undefined;
 
@@ -43,12 +44,26 @@ export async function runWeeklyFeedbackWorkflow() {
         console.log(`\n- Processando Loja: ${store.name}`);
         
         // 3. Buscar checkins da semana para esta loja
-        const { data: checkins } = await supabase
-            .from('lancamentos_diarios')
-            .select('*')
-            .eq('store_id', store.id)
-            .gte('reference_date', startKey)
-            .lt('reference_date', format(now, 'yyyy-MM-dd'));
+        let checkins: DailyCheckin[] | null = null
+        if (isLancamentosViaRpcEnabled()) {
+            // RPC usa BETWEEN inclusivo; replicamos limite exclusivo subtraindo 1 dia
+            const endExclusive = new Date(now); endExclusive.setDate(endExclusive.getDate() - 1)
+            const { data } = await supabase.rpc('get_lancamentos_por_loja_periodo', {
+                p_store_id: store.id,
+                p_start_date: startKey,
+                p_end_date: format(endExclusive, 'yyyy-MM-dd'),
+                p_scope: 'daily',
+            })
+            checkins = (data as DailyCheckin[] | null) || []
+        } else {
+            const { data } = await supabase
+                .from('lancamentos_diarios')
+                .select('*')
+                .eq('store_id', store.id)
+                .gte('reference_date', startKey)
+                .lt('reference_date', format(now, 'yyyy-MM-dd'));
+            checkins = data as DailyCheckin[] | null
+        }
 
         if (!checkins || checkins.length === 0) {
             console.warn(`  ⚠️ Nenhum checkin localizado para ${store.name}.`);

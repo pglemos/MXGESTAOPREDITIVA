@@ -22,6 +22,8 @@ import { Card, CardHeader, CardTitle } from '@/components/molecules/Card'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import type { DailyCheckin, Store } from '@/types/database'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
+import { traced } from '@/lib/observability'
 
 type StoreMorningData = {
     store_id: string
@@ -110,13 +112,28 @@ function AdminMorningReport() {
     const fetchData = useCallback(async () => {
         setLoading(true)
         try {
+            const useRpc = isLancamentosViaRpcEnabled()
+            const checkinsPromise = useRpc
+                ? traced(async () => supabase.rpc('get_lancamentos_rede_periodo', {
+                    p_start_date: range.start,
+                    p_end_date: range.end,
+                    p_scope: 'daily',
+                })).then(({ result }) => result)
+                : supabase.from('lancamentos_diarios')
+                    .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                    .gte('reference_date', range.start).lte('reference_date', range.end)
+            const todayCheckinsPromise = useRpc
+                ? traced(async () => supabase.rpc('get_lancamentos_referencia_dia', {
+                    p_reference_date: referenceDate,
+                    p_scope: 'daily',
+                })).then(({ result }) => result)
+                : supabase.from('lancamentos_diarios').select('seller_user_id, store_id').eq('reference_date', referenceDate)
+
             const [storesRes, goalsRes, checkinsRes, todayCheckinsRes, membershipsRes] = await Promise.all([
                 supabase.from('lojas').select('id, name').eq('active', true).order('name'),
                 supabase.from('regras_metas_loja').select('store_id, monthly_goal'),
-                supabase.from('lancamentos_diarios')
-                    .select('seller_user_id, store_id, reference_date, leads_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-                    .gte('reference_date', range.start).lte('reference_date', range.end),
-                supabase.from('lancamentos_diarios').select('seller_user_id, store_id').eq('reference_date', referenceDate),
+                checkinsPromise,
+                todayCheckinsPromise,
                 supabase.from('vinculos_loja').select('user_id, store_id, users:usuarios(id, name, avatar_url, active)'),
             ])
 

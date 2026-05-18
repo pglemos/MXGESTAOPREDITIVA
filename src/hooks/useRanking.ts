@@ -4,6 +4,21 @@ import { useAuth } from '@/hooks/useAuth'
 import type { RankingEntry, User } from '@/types/database'
 import { calcularAtingimento, getDiasInfo, getOperationalStatus } from '@/lib/calculations'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
+import { traced } from '@/lib/observability'
+
+type LancamentoRow = {
+    seller_user_id: string
+    store_id?: string
+    reference_date: string
+    leads_prev_day?: number | null
+    agd_cart_today?: number | null
+    agd_net_today?: number | null
+    vnd_porta_prev_day?: number | null
+    vnd_cart_prev_day?: number | null
+    vnd_net_prev_day?: number | null
+    visit_prev_day?: number | null
+}
 
 type StorePerformanceEntry = {
     id: string
@@ -43,13 +58,30 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         setError(null)
 
         // Get checkins for the month using canonical EPIC-01 columns
-        const { data: checkins, error: checkinsError } = await supabase
-            .from('lancamentos_diarios')
-            .select('seller_user_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-            .eq('store_id', storeId)
-            .eq('metric_scope', 'daily') 
-            .gte('reference_date', startDate)
-            .lte('reference_date', endDate)
+        let checkins: LancamentoRow[] | null = null
+        let checkinsError: { message: string } | null = null
+        if (isLancamentosViaRpcEnabled()) {
+            const { result } = await traced(async () =>
+                supabase.rpc('get_lancamentos_por_loja_periodo', {
+                    p_store_id: storeId,
+                    p_start_date: startDate,
+                    p_end_date: endDate,
+                    p_scope: 'daily',
+                }),
+            )
+            checkins = (result.data as LancamentoRow[] | null) || []
+            checkinsError = result.error
+        } else {
+            const res = await supabase
+                .from('lancamentos_diarios')
+                .select('seller_user_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                .eq('store_id', storeId)
+                .eq('metric_scope', 'daily')
+                .gte('reference_date', startDate)
+                .lte('reference_date', endDate)
+            checkins = (res.data as LancamentoRow[] | null) || []
+            checkinsError = res.error
+        }
 
         if (checkinsError) {
             console.error('Audit Error [useRanking]: checkins fail ->', checkinsError.message)
@@ -217,20 +249,38 @@ export function useGlobalRanking() {
         setLoading(true)
         setError(null)
 
-        const [checkinsRes, tenuresRes, rulesRes, todayCheckinsRes] = await Promise.all([
-            supabase.from('lancamentos_diarios')
+        // Story 1.2: flag ON usa RPCs admin-only (rede + referência dia); flag OFF mantém SELECT direto
+        const today = dias.referencia
+        const endOfRange = today // até a data de referência
+        const useRpc = isLancamentosViaRpcEnabled()
+        const checkinsPromise = useRpc
+            ? traced(async () => supabase.rpc('get_lancamentos_rede_periodo', {
+                p_start_date: startOfMonth,
+                p_end_date: endOfRange,
+                p_scope: 'daily',
+            })).then(({ result }) => result)
+            : supabase.from('lancamentos_diarios')
                 .select('seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
                 .eq('metric_scope', 'daily')
-                .gte('reference_date', startOfMonth),
+                .gte('reference_date', startOfMonth)
+        const todayCheckinsPromise = useRpc
+            ? traced(async () => supabase.rpc('get_lancamentos_referencia_dia', {
+                p_reference_date: dias.referencia,
+                p_scope: 'daily',
+            })).then(({ result }) => result)
+            : supabase.from('lancamentos_diarios')
+                .select('seller_user_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
+                .eq('metric_scope', 'daily')
+                .eq('reference_date', dias.referencia)
+
+        const [checkinsRes, tenuresRes, rulesRes, todayCheckinsRes] = await Promise.all([
+            checkinsPromise,
             supabase.from('vendedores_loja')
                 .select('seller_user_id, store_id, users:usuarios(name, is_venda_loja, avatar_url), lojas:lojas(name)')
                 .eq('is_active', true),
             supabase.from('regras_metas_loja')
                 .select('store_id, monthly_goal, include_venda_loja_in_individual_goal'),
-            supabase.from('lancamentos_diarios')
-                .select('seller_user_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
-                .eq('metric_scope', 'daily')
-                .eq('reference_date', dias.referencia),
+            todayCheckinsPromise,
         ])
         if (checkinsRes.error || tenuresRes.error || rulesRes.error || todayCheckinsRes.error) {
             const message = checkinsRes.error?.message || tenuresRes.error?.message || rulesRes.error?.message || todayCheckinsRes.error?.message || 'Erro desconhecido'
@@ -350,18 +400,33 @@ export function useStorePerformance() {
         const startOfMonth = `${reference.slice(0, 7)}-01`
         const dias = getDiasInfo()
 
+        const useRpc2 = isLancamentosViaRpcEnabled()
+        const perfCheckinsPromise = useRpc2
+            ? traced(async () => supabase.rpc('get_lancamentos_rede_periodo', {
+                p_start_date: startOfMonth,
+                p_end_date: dias.referencia,
+                p_scope: 'daily',
+            })).then(({ result }) => result)
+            : supabase.from('lancamentos_diarios')
+                .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
+                .eq('metric_scope', 'daily')
+                .gte('reference_date', startOfMonth)
+        const perfTodayPromise = useRpc2
+            ? traced(async () => supabase.rpc('get_lancamentos_referencia_dia', {
+                p_reference_date: dias.referencia,
+                p_scope: 'daily',
+            })).then(({ result }) => result)
+            : supabase.from('lancamentos_diarios')
+                .select('store_id, seller_user_id')
+                .eq('metric_scope', 'daily')
+                .eq('reference_date', dias.referencia)
+
         const [lojasRes, rulesRes, checkinsRes, sellersRes, yesterdayCheckinsRes] = await Promise.all([
             supabase.from('lojas').select('id, name').eq('active', true),
             supabase.from('regras_metas_loja').select('store_id, monthly_goal'),
-            supabase.from('lancamentos_diarios')
-                .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
-                .eq('metric_scope', 'daily')
-                .gte('reference_date', startOfMonth),
+            perfCheckinsPromise,
             supabase.from('vendedores_loja').select('store_id, is_active').eq('is_active', true),
-            supabase.from('lancamentos_diarios')
-                .select('store_id, seller_user_id')
-                .eq('metric_scope', 'daily')
-                .eq('reference_date', dias.referencia) // Today
+            perfTodayPromise,
         ])
         if (lojasRes.error || rulesRes.error || checkinsRes.error || sellersRes.error || yesterdayCheckinsRes.error) {
             const message = lojasRes.error?.message || rulesRes.error?.message || checkinsRes.error?.message || sellersRes.error?.message || yesterdayCheckinsRes.error?.message || 'Erro desconhecido'
@@ -373,24 +438,28 @@ export function useStorePerformance() {
         }
         const lojas = lojasRes.data
         const rules = rulesRes.data
-        const checkins = checkinsRes.data
+        const checkins = (checkinsRes.data || []) as LancamentoRow[]
         const sellers = sellersRes.data
-        const yesterdayCheckins = yesterdayCheckinsRes.data
+        const yesterdayCheckins = (yesterdayCheckinsRes.data || []) as LancamentoRow[]
 
         if (!lojas) { setLoading(false); return }
 
         const rulesMap = new Map(rules?.map(r => [r.store_id, r.monthly_goal]) || [])
         const salesMap = new Map<string, number>()
-        checkins?.forEach(c => {
+        checkins.forEach((c) => {
             const v = (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
-            salesMap.set(c.store_id, (salesMap.get(c.store_id) || 0) + v)
+            const sid = c.store_id as string
+            salesMap.set(sid, (salesMap.get(sid) || 0) + v)
         })
 
         const sellersCountMap = new Map<string, number>()
         sellers?.forEach(s => sellersCountMap.set(s.store_id, (sellersCountMap.get(s.store_id) || 0) + 1))
 
         const checkinsTodayMap = new Map<string, number>()
-        yesterdayCheckins?.forEach(c => checkinsTodayMap.set(c.store_id, (checkinsTodayMap.get(c.store_id) || 0) + 1))
+        yesterdayCheckins.forEach((c) => {
+            const sid = c.store_id as string
+            checkinsTodayMap.set(sid, (checkinsTodayMap.get(sid) || 0) + 1)
+        })
 
         const perf: StorePerformanceEntry[] = lojas.map(s => {
             const meta = rulesMap.get(s.id) || 0

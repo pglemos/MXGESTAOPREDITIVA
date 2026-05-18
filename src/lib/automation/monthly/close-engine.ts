@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { somarVendas } from '@/lib/calculations';
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags';
+import type { DailyCheckin } from '@/types/database';
 
 interface MonthlyCloseResult {
     store_id: string;
@@ -32,12 +34,24 @@ export async function runMonthlyCloseWorkflow(): Promise<MonthlyCloseResult[]> {
 
     for (const store of lojas) {
         try {
-            const { data: checkins } = await supabase
-                .from('lancamentos_diarios')
-                .select('*')
-                .eq('store_id', store.id)
-                .gte('reference_date', monthStart)
-                .lte('reference_date', monthEnd)
+            let checkins: DailyCheckin[] | null = null
+            if (isLancamentosViaRpcEnabled()) {
+                const { data } = await supabase.rpc('get_lancamentos_por_loja_periodo', {
+                    p_store_id: store.id,
+                    p_start_date: monthStart,
+                    p_end_date: monthEnd,
+                    p_scope: 'daily',
+                })
+                checkins = (data as DailyCheckin[] | null) || []
+            } else {
+                const { data } = await supabase
+                    .from('lancamentos_diarios')
+                    .select('*')
+                    .eq('store_id', store.id)
+                    .gte('reference_date', monthStart)
+                    .lte('reference_date', monthEnd)
+                checkins = data as DailyCheckin[] | null
+            }
 
             if (!checkins || checkins.length === 0) {
                 results.push({ store_id: store.id, store_name: store.name, total_sales: 0, total_leads: 0, total_agd: 0, total_visits: 0, status: 'skipped' })

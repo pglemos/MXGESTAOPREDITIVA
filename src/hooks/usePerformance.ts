@@ -5,6 +5,9 @@ import type { DailyCheckin } from '@/types/database'
 import { startOfWeek } from 'date-fns'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { parseTeamProgressEntryArray, type TeamProgressEntry } from '@/lib/schemas/performance.schema'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
+
+const TODAY_ISO = () => new Date().toISOString().slice(0, 10)
 
 export function usePerformance() {
   const { storeId } = useAuth()
@@ -15,10 +18,18 @@ export function usePerformance() {
       if (!storeId) return []
 
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString().split('T')[0]
+      const checkinsPromise = isLancamentosViaRpcEnabled()
+        ? supabase.rpc('get_lancamentos_por_loja_periodo', {
+            p_store_id: storeId,
+            p_start_date: weekStart,
+            p_end_date: TODAY_ISO(),
+            p_scope: 'daily',
+        })
+        : supabase.from('lancamentos_diarios').select('*').eq('store_id', storeId).gte('reference_date', weekStart)
       const [{ data: members }, { data: treinamentos }, { data: checkins }] = await Promise.all([
         supabase.from('vinculos_loja').select('user_id, users:usuarios(name, avatar_url)').eq('store_id', storeId).eq('role', 'vendedor'),
         supabase.from('treinamentos').select('*').eq('active', true).in('target_audience', ['todos', 'vendedor']),
-        supabase.from('lancamentos_diarios').select('*').eq('store_id', storeId).gte('reference_date', weekStart),
+        checkinsPromise,
       ])
 
       const totalTrainings = treinamentos?.length || 0
@@ -29,7 +40,7 @@ export function usePerformance() {
           const p = (progress || []).filter(pr => pr.user_id === m.user_id)
           const watchedIds = p.map(pr => pr.training_id)
           const percentage = totalTrainings > 0 ? (p.length / totalTrainings) * 100 : 0
-          const sellerCheckins = (checkins || []).filter(c => c.seller_user_id === m.user_id) as DailyCheckin[]
+          const sellerCheckins = ((checkins || []) as DailyCheckin[]).filter((c) => c.seller_user_id === m.user_id)
           const funil = calcularFunil(sellerCheckins)
           const diag = gerarDiagnosticoMX(funil)
           const categoryMap: Record<string, string> = { 'LEAD_AGD': 'prospeccao', 'AGD_VISITA': 'atendimento', 'VISITA_VND': 'fechamento' }

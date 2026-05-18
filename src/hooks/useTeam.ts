@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
 import type { User, Store, StoreSeller, UserRole, StorePartner } from '@/types/database'
 
 const STORES_SELECT = 'id, name, manager_email, legal_name, cnpj, address, administrative_phone, partners, active, source_mode, created_at, updated_at'
@@ -167,12 +168,32 @@ export function useTeam(storeIdOverride?: string) {
             tenureMap = new Map(((tenures || []) as SellerTenureRow[]).map(t => [`${t.store_id}:${t.seller_user_id}`, t]))
 
             // 3. Fetch Checkins
-            let checkinsQuery = supabase.from('lancamentos_diarios').select('seller_user_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
-            if (storeId && storeId !== 'all') {
-                checkinsQuery = checkinsQuery.eq('store_id', storeId)
+            let todayCheckins: { seller_user_id: string }[] | null = null
+            if (isLancamentosViaRpcEnabled() && storeId && storeId !== 'all') {
+                const { data: rpcData, error: rpcErr } = await supabase.rpc('get_lancamentos_por_loja_periodo', {
+                    p_store_id: storeId,
+                    p_start_date: referenceDate,
+                    p_end_date: referenceDate,
+                    p_scope: 'daily',
+                })
+                if (rpcErr) throw rpcErr
+                todayCheckins = (rpcData as { seller_user_id: string }[] | null) || []
+            } else if (isLancamentosViaRpcEnabled() && isGlobalView) {
+                const { data: rpcData, error: rpcErr } = await supabase.rpc('get_lancamentos_referencia_dia', {
+                    p_reference_date: referenceDate,
+                    p_scope: 'daily',
+                })
+                if (rpcErr) throw rpcErr
+                todayCheckins = (rpcData as { seller_user_id: string }[] | null) || []
+            } else {
+                let checkinsQuery = supabase.from('lancamentos_diarios').select('seller_user_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
+                if (storeId && storeId !== 'all') {
+                    checkinsQuery = checkinsQuery.eq('store_id', storeId)
+                }
+                const { data, error: checkinsError } = await checkinsQuery
+                if (checkinsError) throw checkinsError
+                todayCheckins = data || []
             }
-            const { data: todayCheckins, error: checkinsError } = await checkinsQuery
-            if (checkinsError) throw checkinsError
             checkedIn = new Set((todayCheckins || []).map(c => c.seller_user_id))
 
             // 4. Assemble Final Team
@@ -480,16 +501,34 @@ export function useStoresStats() {
             }
 
             let sellersQuery = supabase.from('vendedores_loja').select('store_id').eq('is_active', true)
-            let checkinsQuery = supabase.from('lancamentos_diarios').select('store_id,seller_user_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
-
             if (authorizedStoreIds) {
                 sellersQuery = sellersQuery.in('store_id', authorizedStoreIds)
-                checkinsQuery = checkinsQuery.in('store_id', authorizedStoreIds)
             }
+
+            // RPC path: rede admin OU loja única; lista de N lojas autorizadas (dono multi-loja) volta ao SELECT direto.
+            const canUseRpcRede = isLancamentosViaRpcEnabled() && !authorizedStoreIds
+            const canUseRpcSingleStore = isLancamentosViaRpcEnabled() && authorizedStoreIds && authorizedStoreIds.length === 1
+            const checkinsPromise = canUseRpcRede
+                ? supabase.rpc('get_lancamentos_referencia_dia', {
+                    p_reference_date: referenceDate,
+                    p_scope: 'daily',
+                })
+                : canUseRpcSingleStore
+                    ? supabase.rpc('get_lancamentos_por_loja_periodo', {
+                        p_store_id: authorizedStoreIds![0],
+                        p_start_date: referenceDate,
+                        p_end_date: referenceDate,
+                        p_scope: 'daily',
+                    })
+                    : (() => {
+                        let q = supabase.from('lancamentos_diarios').select('store_id,seller_user_id').eq('reference_date', referenceDate).eq('metric_scope', 'daily')
+                        if (authorizedStoreIds) q = q.in('store_id', authorizedStoreIds)
+                        return q
+                    })()
 
             const [sellersRes, checkinsRes] = await Promise.all([
                 sellersQuery,
-                checkinsQuery
+                checkinsPromise
             ])
 
             if (sellersRes.error) throw sellersRes.error
@@ -560,12 +599,27 @@ export function useSellersByStore(storeId: string | null) {
             return
         }
 
-        const { data: checkins, error: checkinsError } = await supabase
-            .from('lancamentos_diarios')
-            .select('seller_user_id')
-            .eq('store_id', storeId)
-            .eq('reference_date', referenceDate)
-            .eq('metric_scope', 'daily')
+        let checkins: { seller_user_id: string }[] | null = null
+        let checkinsError: { message: string } | null = null
+        if (isLancamentosViaRpcEnabled()) {
+            const { data: rpcData, error: rpcErr } = await supabase.rpc('get_lancamentos_por_loja_periodo', {
+                p_store_id: storeId,
+                p_start_date: referenceDate,
+                p_end_date: referenceDate,
+                p_scope: 'daily',
+            })
+            checkins = (rpcData as { seller_user_id: string }[] | null) || []
+            checkinsError = rpcErr
+        } else {
+            const res = await supabase
+                .from('lancamentos_diarios')
+                .select('seller_user_id')
+                .eq('store_id', storeId)
+                .eq('reference_date', referenceDate)
+                .eq('metric_scope', 'daily')
+            checkins = res.data
+            checkinsError = res.error
+        }
         if (checkinsError) console.error('Audit Error [useSellersByStore]: checkins fail ->', checkinsError.message)
 
         const checkedIn = new Set(checkins?.map(c => c.seller_user_id) || [])

@@ -4,6 +4,8 @@ import { useAuth } from '@/hooks/useAuth'
 import type { DailyCheckin, CheckinFormData, CheckinWithTotals, CheckinScope } from '@/types/database'
 import { calcularTotais } from '@/lib/calculations'
 import { canCreateAdjustment } from '@/lib/auth/capabilities'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
+import { traced } from '@/lib/observability'
 
 export const CHECKIN_DEADLINE_MINUTES = 9 * 60 + 30
 export const CHECKIN_EDIT_LIMIT_MINUTES = 9 * 60 + 45
@@ -108,17 +110,53 @@ export function useCheckins(storeIdOverride?: string) {
         setLoading(true)
         setError(null)
 
-        // Otimização: Selecionar apenas colunas de métricas e identificação
-        let query = supabase.from('lancamentos_diarios')
-            .select(CHECKIN_SELECT)
-            .eq('store_id', storeId)
-            .order('reference_date', { ascending: false })
+        let data: DailyCheckin[] | null = null
+        let error: { message: string } | null = null
 
-        if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
-        if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
-        if (filters?.userId) query = query.eq('seller_user_id', filters.userId)
+        if (isLancamentosViaRpcEnabled() && filters?.userId) {
+            // RPC path (flag ON) — busca por vendedor específico
+            const start = filters?.startDate || '1970-01-01'
+            const end = filters?.endDate || '2999-12-31'
+            const { result } = await traced(async () =>
+                supabase.rpc('get_lancamentos_por_vendedor_periodo', {
+                    p_seller_id: filters.userId!,
+                    p_store_id: storeId,
+                    p_start_date: start,
+                    p_end_date: end,
+                    p_scope: 'daily',
+                }),
+            )
+            data = (result.data as DailyCheckin[] | null) || null
+            error = result.error
+        } else if (isLancamentosViaRpcEnabled() && filters?.startDate && filters?.endDate) {
+            // RPC path (flag ON) — busca por loja em intervalo
+            const { result } = await traced(async () =>
+                supabase.rpc('get_lancamentos_por_loja_periodo', {
+                    p_store_id: storeId,
+                    p_start_date: filters.startDate!,
+                    p_end_date: filters.endDate!,
+                    p_scope: 'daily',
+                }),
+            )
+            data = (result.data as DailyCheckin[] | null) || null
+            error = result.error
+        } else {
+            // Legacy path (flag OFF — default em produção).
+            // Otimização: Selecionar apenas colunas de métricas e identificação
+            let query = supabase.from('lancamentos_diarios')
+                .select(CHECKIN_SELECT)
+                .eq('store_id', storeId)
+                .order('reference_date', { ascending: false })
 
-        const { data, error } = await query
+            if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
+            if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
+            if (filters?.userId) query = query.eq('seller_user_id', filters.userId)
+
+            const res = await query
+            data = (res.data as DailyCheckin[] | null) || null
+            error = res.error
+        }
+
         if (error) {
             console.error('Audit Error [useCheckins]: fetchCheckins fail ->', error.message)
             setError('Não foi possível carregar os lançamentos.')
@@ -134,15 +172,35 @@ export function useCheckins(storeIdOverride?: string) {
             setTodayCheckin(null)
             return
         }
-        const { data, error } = await supabase
-            .from('lancamentos_diarios')
-            .select(CHECKIN_SELECT)
-            .eq('seller_user_id', profile.id)
-            .eq('store_id', storeId)
-            .eq('reference_date', referenceDate)
-            .eq('metric_scope', 'daily')
-            .maybeSingle()
-        
+
+        let data: DailyCheckin | null = null
+        let error: { message: string } | null = null
+
+        if (isLancamentosViaRpcEnabled()) {
+            const { result } = await traced(async () =>
+                supabase.rpc('get_lancamento_por_dia', {
+                    p_seller_id: profile.id,
+                    p_store_id: storeId,
+                    p_reference_date: referenceDate,
+                    p_scope: 'daily',
+                }),
+            )
+            const row = result.data as DailyCheckin | null
+            data = row && row.id ? row : null
+            error = result.error
+        } else {
+            const res = await supabase
+                .from('lancamentos_diarios')
+                .select(CHECKIN_SELECT)
+                .eq('seller_user_id', profile.id)
+                .eq('store_id', storeId)
+                .eq('reference_date', referenceDate)
+                .eq('metric_scope', 'daily')
+                .maybeSingle()
+            data = res.data as DailyCheckin | null
+            error = res.error
+        }
+
         if (error) {
             console.error('Audit Error [useCheckins]: fetchTodayCheckin fail ->', error.message)
             setError('Não foi possível carregar o lançamento oficial do dia.')
@@ -153,15 +211,33 @@ export function useCheckins(storeIdOverride?: string) {
 
     const fetchCheckinByDate = useCallback(async (date: string, scope: string = 'daily') => {
         if (!profile || !storeId) return null
-        const { data, error } = await supabase
-            .from('lancamentos_diarios')
-            .select(CHECKIN_SELECT)
-            .eq('seller_user_id', profile.id)
-            .eq('store_id', storeId)
-            .eq('reference_date', date)
-            .eq('metric_scope', scope)
-            .maybeSingle()
-        
+
+        let data: DailyCheckin | null = null
+        let error: { message: string } | null = null
+
+        if (isLancamentosViaRpcEnabled()) {
+            const { data: rpcData, error: rpcErr } = await supabase.rpc('get_lancamento_por_dia', {
+                p_seller_id: profile.id,
+                p_store_id: storeId,
+                p_reference_date: date,
+                p_scope: scope,
+            })
+            const row = rpcData as DailyCheckin | null
+            data = row && row.id ? row : null
+            error = rpcErr
+        } else {
+            const res = await supabase
+                .from('lancamentos_diarios')
+                .select(CHECKIN_SELECT)
+                .eq('seller_user_id', profile.id)
+                .eq('store_id', storeId)
+                .eq('reference_date', date)
+                .eq('metric_scope', scope)
+                .maybeSingle()
+            data = res.data as DailyCheckin | null
+            error = res.error
+        }
+
         if (error) {
             console.error('Audit Error [useCheckins]: fetchCheckinByDate fail ->', error.message)
             setError('Não foi possível carregar o lançamento desta data.')
@@ -257,13 +333,27 @@ export function useMyCheckins() {
         setLoading(true)
         setError(null)
         try {
-            let query = supabase.from('lancamentos_diarios').select(CHECKIN_SELECT)
-                .eq('seller_user_id', profile.id).eq('store_id', storeId).order('reference_date', { ascending: false })
-            if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
-            if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
-            const { data, error: queryError } = await query
-            if (queryError) throw queryError
-            setCheckins(((data || []) as DailyCheckin[]).map(withCheckinTotals))
+            let data: DailyCheckin[] | null = null
+            if (isLancamentosViaRpcEnabled() && filters?.startDate && filters?.endDate) {
+                const { data: rpcData, error: rpcErr } = await supabase.rpc('get_lancamentos_por_vendedor_periodo', {
+                    p_seller_id: profile.id,
+                    p_store_id: storeId,
+                    p_start_date: filters.startDate,
+                    p_end_date: filters.endDate,
+                    p_scope: 'daily',
+                })
+                if (rpcErr) throw rpcErr
+                data = (rpcData as DailyCheckin[] | null) || []
+            } else {
+                let query = supabase.from('lancamentos_diarios').select(CHECKIN_SELECT)
+                    .eq('seller_user_id', profile.id).eq('store_id', storeId).order('reference_date', { ascending: false })
+                if (filters?.startDate) query = query.gte('reference_date', filters.startDate)
+                if (filters?.endDate) query = query.lte('reference_date', filters.endDate)
+                const { data: rows, error: queryError } = await query
+                if (queryError) throw queryError
+                data = (rows as DailyCheckin[] | null) || []
+            }
+            setCheckins((data || []).map(withCheckinTotals))
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Erro desconhecido'
             console.error('Audit Error [useMyCheckins]: fetch fail ->', message)
@@ -292,17 +382,30 @@ export function useCheckinsByDateRange(storeId: string | null, startDate: string
         setLoading(true)
         setError(null)
         try {
-            const { data, error: queryError } = await supabase
-                .from('lancamentos_diarios')
-                .select(CHECKIN_SELECT)
-                .eq('store_id', storeId)
-                .eq('metric_scope', 'daily')
-                .gte('reference_date', startDate)
-                .lte('reference_date', endDate)
-                .order('reference_date', { ascending: false })
+            let data: DailyCheckin[] | null = null
+            if (isLancamentosViaRpcEnabled()) {
+                const { data: rpcData, error: rpcErr } = await supabase.rpc('get_lancamentos_por_loja_periodo', {
+                    p_store_id: storeId,
+                    p_start_date: startDate,
+                    p_end_date: endDate,
+                    p_scope: 'daily',
+                })
+                if (rpcErr) throw rpcErr
+                data = (rpcData as DailyCheckin[] | null) || []
+            } else {
+                const { data: rows, error: queryError } = await supabase
+                    .from('lancamentos_diarios')
+                    .select(CHECKIN_SELECT)
+                    .eq('store_id', storeId)
+                    .eq('metric_scope', 'daily')
+                    .gte('reference_date', startDate)
+                    .lte('reference_date', endDate)
+                    .order('reference_date', { ascending: false })
 
-            if (queryError) throw queryError
-            setCheckins(((data || []) as DailyCheckin[]).map(withCheckinTotals))
+                if (queryError) throw queryError
+                data = (rows as DailyCheckin[] | null) || []
+            }
+            setCheckins((data || []).map(withCheckinTotals))
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Erro desconhecido'
             console.error('Audit Error [useCheckinsByDateRange]: fetch fail ->', message)

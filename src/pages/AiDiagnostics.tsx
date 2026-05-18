@@ -11,6 +11,7 @@ import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import type { DailyCheckin } from '@/types/database'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
 
 interface AuditLog { type: 'info' | 'success' | 'warning' | 'error'; msg: string }
 
@@ -37,13 +38,23 @@ export default function AiDiagnostics() {
     useEffect(() => {
         if (!isPerfilInternoMx(role)) return
         const fetchAll = async () => {
-            const { data } = await supabase.from('lancamentos_diarios')
-                .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-                .eq('metric_scope', 'daily')
-                .gte('reference_date', daysAgoISO(ADMIN_AUDIT_DAYS))
-                .order('reference_date', { ascending: false })
-                .limit(ADMIN_AUDIT_LIMIT)
-            setAdminCheckins((data || []) as DailyCheckin[])
+            if (isLancamentosViaRpcEnabled()) {
+                const { data } = await supabase.rpc('get_lancamentos_rede_periodo', {
+                    p_start_date: daysAgoISO(ADMIN_AUDIT_DAYS),
+                    p_end_date: new Date().toISOString().slice(0, 10),
+                    p_scope: 'daily',
+                })
+                const rows = (data as DailyCheckin[] | null) || []
+                setAdminCheckins(rows.slice(0, ADMIN_AUDIT_LIMIT))
+            } else {
+                const { data } = await supabase.from('lancamentos_diarios')
+                    .select('id, seller_user_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                    .eq('metric_scope', 'daily')
+                    .gte('reference_date', daysAgoISO(ADMIN_AUDIT_DAYS))
+                    .order('reference_date', { ascending: false })
+                    .limit(ADMIN_AUDIT_LIMIT)
+                setAdminCheckins((data || []) as DailyCheckin[])
+            }
         }
         fetchAll()
     }, [role])

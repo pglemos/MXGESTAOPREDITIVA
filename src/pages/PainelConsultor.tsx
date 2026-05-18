@@ -21,6 +21,7 @@ import { ptBR } from 'date-fns/locale'
 import { getOperationalStatus, getDiasInfo, calcularProjecao } from '@/lib/calculations'
 import { PageHeader } from '@/components/molecules/PageHeader'
 import type { DailyCheckin, Store as StoreRecord } from '@/types/database'
+import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
 
 type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; ritmo: number; efficiency: number; sellers: number; checkedInToday: number; disciplinePct: number }
 type NetworkCheckinRow = Pick<DailyCheckin, 'store_id' | 'reference_date' | 'leads_prev_day' | 'agd_cart_today' | 'agd_net_today' | 'visit_prev_day' | 'vnd_porta_prev_day' | 'vnd_cart_prev_day' | 'vnd_net_prev_day'>
@@ -122,20 +123,38 @@ export default function PainelConsultor() {
             const yesterday = yesterdayDate.toISOString().split('T')[0]
 
             let allCheckins: NetworkCheckinRow[] = [];
-            let from = 0;
-            while (true) {
-                const { data, error } = await originalSupabase.from('lancamentos_diarios')
-                    .select('store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, visit_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
-                    .gte('reference_date', range.start)
-                    .lte('reference_date', range.end)
-                    .range(from, from + 999);
-                
-                if (error) throw error;
-                if (!data || data.length === 0) break;
-                allCheckins = allCheckins.concat(data as NetworkCheckinRow[]);
-                if (data.length < 1000) break;
-                from += 1000;
+            if (isLancamentosViaRpcEnabled()) {
+                // RPC retorna SETOF; sem paginação manual aqui (RPC já filtra escopo admin)
+                const { data, error } = await originalSupabase.rpc('get_lancamentos_rede_periodo', {
+                    p_start_date: range.start,
+                    p_end_date: range.end,
+                    p_scope: 'daily',
+                })
+                if (error) throw error
+                allCheckins = (data as NetworkCheckinRow[] | null) || []
+            } else {
+                let from = 0;
+                while (true) {
+                    const { data, error } = await originalSupabase.from('lancamentos_diarios')
+                        .select('store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, visit_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
+                        .gte('reference_date', range.start)
+                        .lte('reference_date', range.end)
+                        .range(from, from + 999);
+
+                    if (error) throw error;
+                    if (!data || data.length === 0) break;
+                    allCheckins = allCheckins.concat(data as NetworkCheckinRow[]);
+                    if (data.length < 1000) break;
+                    from += 1000;
+                }
             }
+
+            const todayCheckinsPromise = isLancamentosViaRpcEnabled()
+                ? originalSupabase.rpc('get_lancamentos_referencia_dia', {
+                    p_reference_date: yesterday,
+                    p_scope: 'daily',
+                })
+                : originalSupabase.from('lancamentos_diarios').select('store_id, seller_user_id').eq('reference_date', yesterday)
 
             const [
                 { data: allStoresRaw },
@@ -144,7 +163,7 @@ export default function PainelConsultor() {
             ] = await Promise.all([
                 originalSupabase.from('lojas').select('id, name'),
                 originalSupabase.from('vendedores_loja').select('store_id').eq('is_active', true),
-                originalSupabase.from('lancamentos_diarios').select('store_id, seller_user_id').eq('reference_date', yesterday),
+                todayCheckinsPromise,
             ])
             const allStores = (allStoresRaw || []) as StoreListRow[]
             const sellers = (sellersRaw || []) as ActiveSellerRow[]

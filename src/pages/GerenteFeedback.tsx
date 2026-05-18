@@ -154,13 +154,31 @@ function AdminFeedback() {
         }
 
         const { supabase } = await import('@/lib/supabase')
-        const { data: weekCheckins, error } = await supabase
-            .from('lancamentos_diarios')
-            .select('id, seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-            .eq('seller_user_id', sellerId)
-            .eq('store_id', seller.store_id)
-            .gte('reference_date', format(selectedWeekStart, 'yyyy-MM-dd'))
-            .lte('reference_date', format(selectedWeekEnd, 'yyyy-MM-dd'))
+        const { isLancamentosViaRpcEnabled } = await import('@/lib/feature-flags')
+
+        let weekCheckins: DailyCheckin[] | null = null
+        let error: { message: string } | null = null
+        if (isLancamentosViaRpcEnabled()) {
+            const { data, error: rpcErr } = await supabase.rpc('get_lancamentos_por_vendedor_periodo', {
+                p_seller_id: sellerId,
+                p_store_id: seller.store_id!,
+                p_start_date: format(selectedWeekStart, 'yyyy-MM-dd'),
+                p_end_date: format(selectedWeekEnd, 'yyyy-MM-dd'),
+                p_scope: 'daily',
+            })
+            weekCheckins = (data as DailyCheckin[] | null) || []
+            error = rpcErr
+        } else {
+            const res = await supabase
+                .from('lancamentos_diarios')
+                .select('id, seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_prev_day, agd_net_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                .eq('seller_user_id', sellerId)
+                .eq('store_id', seller.store_id)
+                .gte('reference_date', format(selectedWeekStart, 'yyyy-MM-dd'))
+                .lte('reference_date', format(selectedWeekEnd, 'yyyy-MM-dd'))
+            weekCheckins = res.data as DailyCheckin[] | null
+            error = res.error
+        }
         if (error) {
             toast.error('Não foi possível carregar os check-ins do especialista.')
             return
