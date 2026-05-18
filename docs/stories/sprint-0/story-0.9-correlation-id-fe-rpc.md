@@ -1,6 +1,6 @@
 # Story 0.9 — Correlation ID FE → RPC → logs_auditoria
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0
@@ -10,6 +10,15 @@
 **Owner sugerido:** @dev
 **RACI:** R=@dev, A=Tech Lead, C=@data-engineer, @devops, I=squad
 **Created:** 2026-05-17
+
+## File List
+- `supabase/migrations/20260518130000_correlation_id_observability.sql` (correlation_id col + get_correlation_id() + log_rpc_error update + append_audit_log helper)
+- `src/lib/observability/correlation.ts` (FE helpers: newCorrelationId/withCorrelation/traced)
+- `src/lib/observability/index.ts` (barrel export)
+- `docs/dev/observability.md` (runbook completo)
+
+## Change Log (Implementação)
+- 2026-05-18 | @aiox-master (Orion) | Status: Ready → InReview | Migration + FE helpers + runbook. Aplicação aos callsites fica para Story 1.2 (migrar consumers).
 
 ## Problem Statement
 GAP-09 do qa-review §2 aponta observabilidade FE fragmentada: Sentry (SYS-017) cobre erros, mas falta correlation ID amarrando uma ação do usuário no FE → chamada RPC → registro em `logs_auditoria` server-side. Sem isso, postmortem do rollout DB-016 (Sprint 1) é impossível ("erro X aconteceu — qual fluxo de usuário?").
