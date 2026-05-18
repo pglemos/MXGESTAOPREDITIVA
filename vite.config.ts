@@ -11,10 +11,6 @@ const sentryOrg = process.env.SENTRY_ORG;
 const sentryProject = process.env.SENTRY_PROJECT;
 
 export default defineConfig({
-  build: {
-    // Source maps necessários para Sentry decoder; arquivo .map é uploadado e removido do output público
-    sourcemap: true,
-  },
   plugins: [
     react(),
     tailwindcss(),
@@ -100,6 +96,8 @@ export default defineConfig({
     },
   },
   build: {
+    // Source maps necessários para Sentry decoder; arquivo .map é uploadado e removido do output público
+    sourcemap: true,
     target: 'esnext',
     minify: 'esbuild',
     cssCodeSplit: true,
