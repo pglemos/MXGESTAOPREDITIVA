@@ -18,11 +18,12 @@ const baseStore: Store = {
 }
 
 describe('pickSimulationStore', () => {
-  it('uses the active preferred store when available', () => {
+  it('uses the MX sandbox store before any active preferred store', () => {
     expect(pickSimulationStore([
       baseStore,
       { ...baseStore, id: 'store-2', name: 'Loja B' },
-    ], 'store-2')?.id).toBe('store-2')
+      { ...baseStore, id: 'sandbox', name: 'MX CONSULTORIA' },
+    ], 'store-2')?.id).toBe('sandbox')
   })
 
   it('falls back to the MX sandbox store for direct simulation links', () => {
@@ -37,5 +38,12 @@ describe('pickSimulationStore', () => {
       { ...baseStore, id: 'inactive', active: false },
       { ...baseStore, id: 'active' },
     ])?.id).toBe('active')
+  })
+
+  it('uses the preferred store only when no sandbox store exists', () => {
+    expect(pickSimulationStore([
+      baseStore,
+      { ...baseStore, id: 'store-2', name: 'Loja B' },
+    ], 'store-2')?.id).toBe('store-2')
   })
 })

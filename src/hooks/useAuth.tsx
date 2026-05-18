@@ -125,10 +125,11 @@ function readSimulationRole(): SimulationRole | null {
 
 export function pickSimulationStore(stores: Store[], preferredStoreId?: string | null) {
     const activeStores = stores.filter(store => store.active)
-    const preferredStore = preferredStoreId ? activeStores.find(store => store.id === preferredStoreId) : null
-    if (preferredStore) return preferredStore
+    const sandboxStore = activeStores.find(store => store.name?.trim().toLowerCase() === 'mx consultoria')
+    if (sandboxStore) return sandboxStore
 
-    return activeStores.find(store => store.name?.trim().toLowerCase() === 'mx consultoria') || activeStores[0] || null
+    const preferredStore = preferredStoreId ? activeStores.find(store => store.id === preferredStoreId) : null
+    return preferredStore || activeStores[0] || null
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

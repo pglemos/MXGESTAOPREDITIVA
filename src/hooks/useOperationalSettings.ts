@@ -18,7 +18,7 @@ const DELIVERY_RULES_SELECT = 'store_id, matinal_recipients, weekly_recipients, 
 const BENCHMARK_SELECT = 'store_id, lead_to_agend, agend_to_visit, visit_to_sale, updated_by, updated_at'
 const META_RULES_SELECT = 'store_id, monthly_goal, individual_goal_mode, include_venda_loja_in_store_total, include_venda_loja_in_individual_goal, bench_lead_agd, bench_agd_visita, bench_visita_vnd, projection_mode, updated_by, updated_at'
 const SELLER_TENURES_SELECT = 'id, store_id, seller_user_id, started_at, ended_at, closing_month_grace, is_active, created_at, updated_at, user:usuarios(id, name, email, role, active, is_venda_loja)'
-const SELLER_USERS_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, store_id, must_change_password, notification_preferences'
+const SELLER_USERS_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, must_change_password, notification_preferences'
 
 export type StoreSettingsPayload = {
     store: Pick<Store, 'id' | 'manager_email' | 'source_mode' | 'active'>

@@ -342,7 +342,10 @@ export default function Layout() {
           </div>
           <button
             type="button"
-            onClick={stopSimulation}
+            onClick={() => {
+              stopSimulation()
+              navigate('/painel', { replace: true })
+            }}
             className="h-mx-10 px-5 rounded-mx-xl bg-white text-mx-black text-mx-tiny font-black uppercase tracking-mx-widest hover:bg-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20"
           >
             Voltar Admin MX
