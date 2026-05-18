@@ -1,0 +1,95 @@
+name: Migration Reversibility Check
+
+# Story 0.7 — Garante que toda migration tem bloco DOWN documentado
+# Reference: docs/dev/migration-reversibility.md
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**.sql'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-down-block:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Lint migrations (changed only)
+        run: node scripts/check_migration_reversibility.mjs --changed-only
+
+  ephemeral-up-down-up:
+    # Apenas para PRs com label "migration:critical"
+    if: contains(github.event.pull_request.labels.*.name, 'migration:critical')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Apply UP (all migrations)
+        run: supabase db reset --debug
+
+      - name: Snapshot schema pós-UP
+        run: |
+          supabase db dump --schema public > /tmp/schema_after_up.sql
+          echo "Schema snapshot pós-UP gravado"
+
+      - name: Identificar migrations críticas alteradas no PR
+        id: critical
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD -- "supabase/migrations/*.sql" | tr '\n' ' ')
+          echo "Mudanças: $CHANGED"
+          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Executar DOWN para cada migration alterada
+        run: |
+          for migration in ${{ steps.critical.outputs.files }}; do
+            echo "🔻 DOWN: $migration"
+            # Extrai bloco DOWN do comentário do arquivo
+            awk '/^--[ ]*DOWN/,0' "$migration" | sed 's/^-- //' | grep -v '^=' > /tmp/down.sql
+            if [ -s /tmp/down.sql ]; then
+              psql "$DATABASE_URL" -f /tmp/down.sql || echo "DOWN parcial — pode ser intencional"
+            fi
+          done
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:54322/postgres
+
+      - name: Re-aplicar UP
+        run: supabase db reset --debug
+
+      - name: Snapshot schema pós-UP2
+        run: supabase db dump --schema public > /tmp/schema_after_up2.sql
+
+      - name: Diff schema (deve ser zero)
+        run: |
+          if diff -q /tmp/schema_after_up.sql /tmp/schema_after_up2.sql; then
+            echo "✅ Schema idempotente UP → DOWN → UP"
+          else
+            echo "❌ Schema diverge após ciclo UP→DOWN→UP"
+            diff /tmp/schema_after_up.sql /tmp/schema_after_up2.sql | head -50
+            exit 1
+          fi

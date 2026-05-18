@@ -1,6 +1,6 @@
 # Story 0.7 — Migration Reversibility Test (UP→DOWN→UP em Branch Ephemeral)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0
@@ -10,6 +10,15 @@
 **Owner sugerido:** @qa + @dev
 **RACI:** R=@qa+@dev, A=Tech Lead, C=@architect, I=@data-engineer, @devops
 **Created:** 2026-05-17
+
+## File List
+- `supabase/migrations/_templates/template_reversible_migration.sql` (template canônico)
+- `scripts/check_migration_reversibility.mjs` (lint --changed-only)
+- `.github/workflows/migration-reversibility.yml` (CI: lint + ephemeral UP→DOWN→UP em label `migration:critical`)
+- `docs/dev/migration-reversibility.md` (runbook)
+
+## Change Log (Implementação)
+- 2026-05-18 | @aiox-master (Orion) | Status: Ready → InReview | Template + lint --changed-only + CI workflow + runbook criados. Migrations Sprint 1 (1.5/1.6/1.8/1.1/1.10) já têm bloco DOWN. CI usa --changed-only para não flaggar migrations legacy.
 
 ## Problem Statement
 X-11 do qa-review (§5) classifica como **CRÍTICO**: DB-016 REVOKE sem `-- DOWN` testado significa que, em caso de produção quebrada, o restore via PITR tem RTO >15min. Sem este gate, todo deploy de migration P0 vira aposta. T-10 exige: cada migration crítica passa por `UP → DOWN → UP` em branch ephemeral do Supabase com resultado limpo.
