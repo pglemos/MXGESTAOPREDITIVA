@@ -109,8 +109,10 @@ const withLegacyShell = (node: React.ReactNode) => (
 )
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading, initialized, role } = useAuth()
+  const { profile, loading, initialized, role, baseRole } = useAuth()
   const location = useLocation()
+  const isSimulationRoute = location.pathname === '/simulacao' || location.pathname.startsWith('/simulacao/')
+  const routeAccessRole = isSimulationRoute ? baseRole || role : role
 
   if (loading || !initialized) return <div className="h-screen flex items-center justify-center bg-mx-black"><Spinner /></div>
   if (!profile) {
@@ -121,7 +123,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (import.meta.env.DEV) console.warn('Audit Warn [ProtectedRoute]: Invalid role, redirecting to login.')
     return <Navigate to="/login" state={{ from: location }} replace />
   }
-  if (!canAccessPath(location.pathname, role)) {
+  if (!canAccessPath(location.pathname, routeAccessRole)) {
     return <ForbiddenRoute />
   }
   return <>{children}</>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { motion } from 'motion/react'
 import { Lock, Mail, RefreshCw, ArrowRight, ShieldCheck, TrendingUp, Zap, Eye, EyeOff, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react'
@@ -8,6 +8,7 @@ import { FormField } from '@/components/molecules/FormField'
 import MxLogo from '@/assets/mx-logo.png'
 import { supabase } from '@/lib/supabase'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
+import { resolvePostLoginRedirect } from '@/lib/auth/postLoginRedirect'
 
 type LoginMode = 'login' | 'forgot' | 'recovery'
 
@@ -46,13 +47,14 @@ function clearRecoveryTokensFromUrl() {
 export default function Login() {
     const { signIn, profile, loading: authLoading } = useAuth()
     const navigate = useNavigate()
+    const location = useLocation()
     const [mode, setMode] = useState<LoginMode>(() => getInitialMode())
 
     useEffect(() => {
         if (profile && mode !== 'recovery') {
-            navigate('/', { replace: true })
+            navigate(resolvePostLoginRedirect(location.state), { replace: true })
         }
-    }, [profile, mode, navigate])
+    }, [profile, mode, navigate, location.state])
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
