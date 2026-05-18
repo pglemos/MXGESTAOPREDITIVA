@@ -654,9 +654,9 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   )})}
                 </div>
               ) : (
-                <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-lg text-center">
-                  <Typography variant="caption" className="font-black uppercase tracking-widest">Nenhum pré-cadastro recebido</Typography>
-                  <Typography variant="tiny" tone="muted" className="mt-2 block font-bold">Assim que alguém preencher o link da loja, os dados aparecem aqui.</Typography>
+                <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-md text-center">
+                  <Typography variant="h4" className="font-black uppercase tracking-tight">Nenhum pré-cadastro recebido</Typography>
+                  <Typography variant="p" tone="muted" className="mt-2 block text-sm font-bold">Assim que alguém preencher o link da loja, os dados aparecem aqui.</Typography>
                 </div>
               )}
             </CardContent>
@@ -785,29 +785,42 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                 </div>
               </Card>
             ) : (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center min-h-[50vh] space-y-mx-xl text-center border-2 border-dashed border-border-default rounded-mx-4xl bg-white/30 backdrop-blur-sm relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                <div className="relative">
-                    <div className="w-mx-32 h-mx-32 rounded-mx-4xl bg-white flex items-center justify-center text-text-tertiary shadow-mx-xl border border-border-default group-hover:rotate-12 transition-transform duration-700">
-                      <Users size={64} strokeWidth={1} className="opacity-20" />
+              <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
+                <CardHeader className="border-b border-border-default bg-white p-mx-lg">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-sm">
+                    <div>
+                      <CardTitle className="text-lg">Integrantes vinculados</CardTitle>
+                      <CardDescription>Equipe operacional ativa no sistema de performance da loja.</CardDescription>
                     </div>
-                    <div className="absolute -top-mx-xs -right-mx-xs w-mx-12 h-mx-12 rounded-mx-full bg-brand-primary flex items-center justify-center text-white shadow-mx-glow-brand animate-pulse">
-                        <UserPlus size={18} />
-                    </div>
-                </div>
-                <div className="space-y-mx-sm max-w-md relative z-10">
-                  <Typography variant="h1" className="text-4xl font-black uppercase tracking-tighter leading-none">Equipe <span className="text-brand-primary">vazia</span></Typography>
-                  <Typography variant="p" tone="muted" className="uppercase tracking-mx-widest font-black text-mx-tiny leading-relaxed opacity-60">A loja selecionada ainda não possui integrantes vinculados ao sistema de performance.</Typography>
-                </div>
-                {canCreateMembers && (
-                  <Button
-                      onClick={() => setIsUserModalOpen(true)}
-                      className="h-mx-16 px-10 rounded-mx-full font-black uppercase tracking-widest text-mx-tiny shadow-mx-xl relative z-10"
+                    <Badge variant="outline" className="w-fit font-black uppercase">0 registros</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-mx-lg">
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center justify-center space-y-mx-md text-center rounded-mx-3xl border border-dashed border-border-default bg-surface-alt p-mx-lg"
                   >
-                      <UserPlus size={18} className="mr-2" /> ADICIONAR INTEGRANTE
-	                  </Button>
-	                )}
-	              </motion.div>
+                    <div className="w-mx-16 h-mx-16 rounded-mx-2xl bg-white flex items-center justify-center text-brand-primary shadow-mx-sm border border-border-default">
+                      <Users size={28} strokeWidth={1.8} />
+                    </div>
+                    <div className="space-y-mx-xs max-w-sm">
+                      <Typography variant="h3" className="font-black uppercase tracking-tight">Nenhum integrante vinculado</Typography>
+                      <Typography variant="p" tone="muted" className="block text-sm font-bold leading-relaxed">
+                        Esta loja ainda não possui equipe operacional cadastrada no sistema. Use o cadastro direto ou compartilhe o link de pré-cadastro.
+                      </Typography>
+                    </div>
+                    {canCreateMembers && (
+                      <Button
+                        onClick={() => setIsUserModalOpen(true)}
+                        className="h-mx-12 rounded-mx-xl px-mx-lg font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
+                      >
+                        <UserPlus size={18} className="mr-2" /> Novo integrante
+                      </Button>
+                    )}
+                  </motion.div>
+                </CardContent>
+              </Card>
 	            )}
 	          </section>
           </div>
