@@ -342,7 +342,7 @@ serve(async (req) => {
     user_id: userId,
     store_id: store.id,
     role,
-    is_active: true,
+    is_active: false,
     ended_at: null,
   }, { onConflict: 'user_id,store_id' })
 
