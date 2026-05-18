@@ -553,15 +553,15 @@ export default function Layout() {
       </AnimatePresence>
 
       {/* Mobile Bar - Semantic Nav */}
-      <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-20 bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-sm py-mx-xs border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
+      <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-16 bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-sm py-mx-tiny border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
         <div className="grid w-full grid-cols-5 items-center gap-mx-tiny relative z-10">
           <NavLink
             to={role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? storeDashboardPath : '/lojas'}
             aria-label="Início"
             aria-current={location.pathname === (role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' ? storeDashboardPath : '/lojas') ? 'page' : undefined}
-            className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
-            {role === 'vendedor' ? <Home size={22} /> : <LayoutDashboard size={22} />}
+            {role === 'vendedor' ? <Home size={20} /> : <LayoutDashboard size={20} />}
             <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Início</span>
           </NavLink>
           
@@ -570,9 +570,9 @@ export default function Layout() {
               to="/lancamento-diario"
               aria-label="Fazer Lançamento Diário"
               aria-current={location.pathname === '/lancamento-diario' ? 'page' : undefined}
-              className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+              className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
-              <CheckSquare size={22} />
+              <CheckSquare size={20} />
               <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Lançar</span>
             </NavLink>
           )}
@@ -582,9 +582,9 @@ export default function Layout() {
               to={isPerfilInternoMx(role) ? '/lojas' : storeTeamPath}
               aria-label="Gerir Equipe" 
               aria-current={location.pathname === storeDashboardPath && new URLSearchParams(location.search).get('tab') === 'equipe' ? 'page' : undefined}
-              className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+              className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
-              <Users size={22} />
+              <Users size={20} />
               <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">{isPerfilInternoMx(role) ? 'Lojas' : 'Equipe'}</span>
             </NavLink>
           )}
@@ -593,9 +593,9 @@ export default function Layout() {
             type="button" 
             aria-label="Abrir menu mobile" 
             onClick={() => setMobileMenuOpen(true)} 
-            className="min-w-0 h-mx-14 rounded-mx-2xl bg-brand-primary text-white flex flex-col items-center justify-center gap-mx-tiny shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
+            className="min-w-0 h-mx-12 rounded-mx-xl bg-brand-primary text-white flex flex-col items-center justify-center gap-mx-tiny shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
           >
-            <Menu size={24} aria-hidden="true" />
+            <Menu size={20} aria-hidden="true" />
             <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Menu</span>
           </button>
 
@@ -603,9 +603,9 @@ export default function Layout() {
               to="/classificacao"
             aria-label="Ver ranking"
             aria-current={location.pathname === '/classificacao' ? 'page' : undefined}
-            className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
-            <Trophy size={22} />
+            <Trophy size={20} />
             <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Rank</span>
           </NavLink>
 
@@ -613,9 +613,9 @@ export default function Layout() {
             to="/perfil" 
             aria-label="Meu Perfil" 
             aria-current={location.pathname === '/perfil' ? 'page' : undefined}
-            className="min-w-0 h-mx-14 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
-            <User size={22} />
+            <User size={20} />
             <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Perfil</span>
           </NavLink>
         </div>

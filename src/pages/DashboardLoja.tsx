@@ -219,9 +219,9 @@ export default function DashboardLoja() {
     }, [location.pathname, location.search, navigate, selectedStoreId])
 
     const LOJA_TABS = useMemo(() => [
-        { key: 'performance' as const, label: 'Performance', icon: Globe },
-        { key: 'metas'       as const, label: 'Metas',       icon: Target },
-        { key: 'equipe'      as const, label: 'Equipe',      icon: Users },
+        { key: 'performance' as const, label: 'Performance', mobileLabel: 'Perf.', icon: Globe },
+        { key: 'metas'       as const, label: 'Metas',       mobileLabel: 'Metas', icon: Target },
+        { key: 'equipe'      as const, label: 'Equipe',      mobileLabel: 'Equipe', icon: Users },
     ], [])
 
     const PERIODO_TABS = useMemo(() => [
