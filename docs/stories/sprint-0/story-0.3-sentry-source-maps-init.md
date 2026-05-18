@@ -1,6 +1,6 @@
 # Story 0.3 — Sentry Init + Source Maps (FE + Edge Functions)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0
@@ -10,6 +10,19 @@
 **Owner sugerido:** @dev
 **RACI:** R=@dev, A=Tech Lead, C=@devops, I=squad
 **Created:** 2026-05-17
+
+## File List
+- `src/main.tsx` (initSentry call)
+- `src/lib/observability/sentry.ts` (FE helper)
+- `src/lib/observability/index.ts` (barrel export atualizado)
+- `supabase/functions/_shared/sentry.ts` (Deno helper)
+- `vite.config.ts` (sentryVitePlugin + sourcemap upload + delete)
+- `.env.example` (VITE_SENTRY_DSN, SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT, etc.)
+- `package.json` (deps @sentry/react@latest, @sentry/vite-plugin@latest)
+- `docs/dev/sentry-setup.md` (runbook completo de setup operacional)
+
+## Change Log (Implementação)
+- 2026-05-18 | @aiox-master (Orion) | Status: Ready → InReview | Código FE + Edge + build pipeline prontos. Pendente operacional: criar projeto Sentry e configurar DSN no Vercel + Supabase Dashboard. Runbook em docs/dev/sentry-setup.md.
 
 ## Problem Statement
 O assessment FINAL §SYS-017 confirma `SENTRY_DSN` configurado em env mas **inicialização não confirmada no código** (FE em `src/main.tsx` e edge functions). Risco cruzado X-8 (qa-review §10) eleva isso à Crítica: sem Sentry ativo + source maps, o próprio rollout do hardening fica cego — postmortems impossíveis, regressões só descobertas via reclamação de cliente.

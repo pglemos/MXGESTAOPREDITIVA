@@ -1,13 +1,36 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import path from 'path';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Story 0.3 — Sentry source maps upload (no-op se SENTRY_AUTH_TOKEN ausente)
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = process.env.SENTRY_PROJECT;
+
 export default defineConfig({
+  build: {
+    // Source maps necessários para Sentry decoder; arquivo .map é uploadado e removido do output público
+    sourcemap: true,
+  },
   plugins: [
     react(),
     tailwindcss(),
+    sentryAuthToken && sentryOrg && sentryProject
+      ? sentryVitePlugin({
+          authToken: sentryAuthToken,
+          org: sentryOrg,
+          project: sentryProject,
+          release: { name: process.env.VITE_RELEASE ?? 'dev' },
+          sourcemaps: {
+            // upload + delete local após upload — não servir .map publicamente
+            filesToDeleteAfterUpload: '**/*.map',
+          },
+          telemetry: false,
+        })
+      : undefined,
     VitePWA({
       // Remove the legacy app-wide service worker so public customer links never open stale builds.
       selfDestroying: true,

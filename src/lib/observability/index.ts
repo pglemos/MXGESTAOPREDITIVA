@@ -5,3 +5,10 @@ export {
     traced,
     CORRELATION_HEADER,
 } from './correlation'
+
+export {
+    initSentry,
+    captureError,
+    setCorrelationTag,
+    Sentry,
+} from './sentry'
