@@ -1,6 +1,6 @@
 # Story 2.7 — Split `useAgendaAdmin` (895 LOC) — PILOTO god-hook
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -141,3 +141,31 @@ export function useAgendaAdmin() {
 
 - 2026-05-18 | @sm (River) | Story criada — piloto UX-002 Sprint 2
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 2 critical-path: pass (piloto god-hooks)
+- 2026-05-18 | @dev (Dex) | Status: Ready → InProgress → InReview | Implementação do split via shim-first pattern + ADR-0051
+
+## File List
+
+**Criados:**
+- `src/hooks/agenda/types.ts` — tipos compartilhados (115 LOC)
+- `src/hooks/agenda/googleSync.ts` — helpers Google Calendar sync (130 LOC; sem hooks)
+- `src/hooks/agenda/useAgendaEvents.ts` — fetch + cache (~145 LOC)
+- `src/hooks/agenda/useAgendaFilters.ts` — filtros + URL sync + memos filtrados (~200 LOC)
+- `src/hooks/agenda/useAgendaView.ts` — calendarDays + visitsByDate + metrics + navegação (~140 LOC)
+- `src/hooks/agenda/useAgendaCRUD.ts` — CRUD visitas/eventos + Google sync (~265 LOC; ver ADR-0051 §"Limites flexíveis")
+- `src/hooks/agenda/index.ts` — barrel export (24 LOC)
+- `docs/adr/0051-god-hook-split-pattern.md` — pattern formal para UX-002
+- `docs/migrations/usage-useAgendaAdmin.md` — mapa de consumers + plano de migração
+
+**Modificados:**
+- `src/hooks/useAgendaAdmin.ts` — 895 LOC → 93 LOC (shim `@deprecated` agregador dos 4 sub-hooks; mesma API pública)
+
+**Não modificados (intencional — shim preserva interface):**
+- `src/pages/AgendaAdmin.tsx`
+- `src/hooks/useConsultingClientBySlug.ts`
+- `src/pages/ConsultoriaClienteDetalhe.tsx`
+
+## Notas de implementação
+
+- **AC3 (1 consumer migrado):** parcialmente postergado. Decisão de @dev: como `AgendaAdmin.tsx` é o único consumer "completo" do hook e está sendo refatorado na Story 2.6 (page decomposition), migrar agora geraria conflito de merge. Os 2 consumers que só usam helpers (`useConsultingClientBySlug`, `ConsultoriaClienteDetalhe`) estão listados em `docs/migrations/usage-useAgendaAdmin.md` Fase A e podem ser migrados em PRs separados rapidamente. Registrado para review do @po.
+- **Estado compartilhado:** `calendarMonth` foi lifted para o shim (não fica em `useAgendaView`) para permitir que `useAgendaFilters` mova o mês visível quando `setDateFilter` é chamado. Decisão documentada em ADR-0051.
+- **Build:** `typecheck` e `npm run build` verdes.
