@@ -1,6 +1,6 @@
 # Story 1.1 — DB-016 Fase A: Publicar RPCs `get_lancamentos_for_*` (SECURITY DEFINER)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
@@ -9,6 +9,10 @@
 
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 1 critical-path: PASS (rollback detalhado, sequencing bloqueada por 0.5/0.8/Sprint 0, métricas observáveis presentes)
+- 2026-05-18 | @aiox-master (Orion) | Status: Ready → InReview | Migration `20260518110000_rpcs_get_lancamentos.sql` criada com 5 RPCs SECURITY DEFINER (`get_lancamentos_por_loja_periodo`, `_por_vendedor_periodo`, `_por_dia`, `_rede_periodo`, `_referencia_dia`) + helper `pode_ler_lancamentos_loja()` + wrap SQLERRM via `log_rpc_error()` (Story 1.5)
+
+## File List (Story 1.1)
+- `supabase/migrations/20260518110000_rpcs_get_lancamentos.sql` (new)
 **Esforço estimado:** 16h
 **Owner sugerido:** @data-engineer
 **RACI:** R=@data-engineer, A=Tech Lead, C=@architect+@dev, I=stakeholders
