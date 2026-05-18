@@ -75,7 +75,7 @@ const isInternalRole = (role?: string | null) => role === 'administrador_geral' 
 const isStoreTeamRole = (role?: string | null) => role === 'dono' || role === 'gerente' || role === 'vendedor'
 const todayISO = () => new Date().toISOString().slice(0, 10)
 const DEFAULT_INITIAL_MONTHLY_GOAL = 0
-const TEAM_USER_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, store_id, must_change_password, notification_preferences'
+const TEAM_USER_SELECT = 'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, must_change_password, notification_preferences'
 const TEAM_MEMBERSHIP_SELECT = `id, user_id, store_id, role, is_active, ended_at, users:usuarios(${TEAM_USER_SELECT}), store:lojas(name)`
 
 const storeUpdateSchema = z.object({
@@ -121,6 +121,7 @@ export function useTeam(storeIdOverride?: string) {
     const storeId = storeIdOverride || authStoreId
     const [sellers, setSellers] = useState<TeamMember[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const referenceDate = calculateReferenceDate()
 
@@ -135,6 +136,7 @@ export function useTeam(storeIdOverride?: string) {
 
             if (isGlobalView && !isAdministradorMx(role)) {
                 setSellers([])
+                setError(null)
                 return
             }
 
@@ -199,7 +201,7 @@ export function useTeam(storeIdOverride?: string) {
             // 4. Assemble Final Team
             setSellers(teamData.filter(hasStoreTeamUser).map((m) => {
                 const u = m.users
-                const memberStoreId = m.store_id || u?.store_id
+                const memberStoreId = m.store_id
                 const tenure = tenureMap.get(`${memberStoreId}:${u.id}`)
                 return {
                     ...u,
@@ -213,9 +215,12 @@ export function useTeam(storeIdOverride?: string) {
                     closing_month_grace: tenure?.closing_month_grace ?? false,
                 }
             }))
+            setError(null)
 
         } catch (err) {
             console.error('Audit Error [useTeam]: fetchTeam fail ->', err)
+            setSellers([])
+            setError('Não foi possível carregar os vínculos da equipe desta loja.')
         } finally {
             setLoading(false)
         }
@@ -316,6 +321,7 @@ export function useTeam(storeIdOverride?: string) {
         sellers,
         team: sellers, // Alias para consistência MX
         loading,
+        error,
         refetch: fetchTeam,
         updateVigencia,
         updateTeamMember,

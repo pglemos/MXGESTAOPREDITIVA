@@ -58,7 +58,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     return ['dono', 'gerente', 'vendedor']
   }, [role])
 
-  const { team, loading, refetch, updateTeamMember, deleteTeamMember, registerUser } = useTeam(storeId || undefined)
+  const { team, loading, error: teamError, refetch, updateTeamMember, deleteTeamMember, registerUser } = useTeam(storeId || undefined)
   const [searchTerm, setSearchTerm] = useState('')
   const [editingMember, setEditingMember] = useState<EditableTeamMember | null>(null)
   const [saving, setSaving] = useState(false)
@@ -658,7 +658,21 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
           ) : null}
 
           <div className="flex-1 min-h-0 pb-32 mt-mx-md">
-            {filteredTeam.length > 0 ? (
+            {teamError ? (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center min-h-[40vh] space-y-mx-lg text-center border-2 border-dashed border-status-error/20 rounded-mx-4xl bg-status-error-surface/40 p-mx-xl">
+                <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-white flex items-center justify-center text-status-error shadow-mx-lg border border-status-error/10">
+                  <ShieldAlert size={34} />
+                </div>
+                <div className="space-y-mx-sm max-w-lg">
+                  <Typography variant="h1" className="text-3xl font-black uppercase tracking-tight">Falha ao carregar equipe</Typography>
+                  <Typography variant="p" tone="muted" className="uppercase tracking-mx-widest font-black text-mx-tiny leading-relaxed">{teamError}</Typography>
+                </div>
+                <Button type="button" variant="outline" onClick={handleRefresh} className="h-mx-12 rounded-mx-xl font-black uppercase tracking-widest">
+                  <RefreshCw size={16} className="mr-2" />
+                  Tentar novamente
+                </Button>
+              </motion.div>
+            ) : filteredTeam.length > 0 ? (
               <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
                 <div className="hidden lg:grid store-team-grid gap-mx-md px-mx-lg py-mx-sm bg-surface-alt border-b border-border-default text-mx-nano font-black uppercase tracking-mx-widest text-text-tertiary">
                   <span>Integrante</span>
