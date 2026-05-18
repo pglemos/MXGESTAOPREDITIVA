@@ -424,7 +424,7 @@ export default function ProdutosDigitais() {
             ['Total', metrics.total],
             ['Ativos', metrics.ativos],
             ['Públicos', metrics.audiencesCovered],
-            ['Vendedores', metrics.vendedores],
+            [isOwner ? 'Donos' : 'Vendedores', isOwner ? metrics.donos : metrics.vendedores],
             ['Engajamento', metrics.usageTelemetry],
           ].map(([label, value]) => (
             <Card key={label} className="min-w-0 border-none bg-white p-mx-sm text-center shadow-mx-md">
@@ -559,8 +559,8 @@ export default function ProdutosDigitais() {
               size="lg"
               icon={<Package />}
               title="Nenhum produto encontrado"
-              description={canManage ? 'Crie ou ajuste os filtros do catálogo.' : 'Nenhum produto ativo foi liberado para o seu público.'}
-              nextStep={canManage ? 'Use “Criar produtos padrão” para publicar a base inicial ou limpe os filtros aplicados.' : 'Solicite ao gerente ou Admin MX a liberação de conteúdo para vendedor e revise os filtros aplicados.'}
+              description={canManage ? 'Crie ou ajuste os filtros do catálogo.' : isOwner ? 'Nenhum produto ativo foi liberado para o público Dono.' : 'Nenhum produto ativo foi liberado para o seu público.'}
+              nextStep={canManage ? 'Use “Criar produtos padrão” para publicar a base inicial ou limpe os filtros aplicados.' : isOwner ? 'Solicite ao Admin MX a liberação de conteúdo executivo e revise os filtros aplicados.' : 'Solicite ao gerente ou Admin MX a liberação de conteúdo para vendedor e revise os filtros aplicados.'}
             />
             {canManage && products.length === 0 && (
               <div className="flex justify-center px-mx-md pb-mx-lg">

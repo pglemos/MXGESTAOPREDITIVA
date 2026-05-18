@@ -235,7 +235,7 @@ export function useTeam(storeIdOverride?: string) {
     }, [storeId, referenceDate, role])
 
     const updateVigencia = async (userId: string, data: SellerTenureUpdateFields) => {
-        if (!isAdministradorMx(role) && role !== 'dono' && role !== 'gerente') {
+        if (!isAdministradorMx(role) && role !== 'gerente') {
             return { error: 'Apenas gestores da loja podem alterar vigência.' }
         }
         const scopedStoreId = storeId && storeId !== 'all' ? storeId : null
@@ -266,7 +266,7 @@ export function useTeam(storeIdOverride?: string) {
     }
 
     const updateTeamMember = async (userId: string, updates: TeamMemberUpdateFields) => {
-        if (!isAdministradorMx(role) && role !== 'dono' && role !== 'gerente') {
+        if (!isAdministradorMx(role) && role !== 'gerente') {
             return { error: 'Apenas gestores da loja podem editar integrantes.' }
         }
         const targetStoreId = updates.store_id || (storeId && storeId !== 'all' ? storeId : null)
@@ -295,7 +295,7 @@ export function useTeam(storeIdOverride?: string) {
     }
 
     const deleteTeamMember = async (userId: string, targetStoreId?: string | null) => {
-        if (!isAdministradorMx(role) && role !== 'dono' && role !== 'gerente') return { error: 'Apenas gestores da loja podem excluir integrantes.' }
+        if (!isAdministradorMx(role) && role !== 'gerente') return { error: 'Apenas gestores da loja podem excluir integrantes.' }
         const scopedStoreId = targetStoreId || (storeId && storeId !== 'all' ? storeId : null)
         if (!scopedStoreId) return { error: 'Selecione a loja do integrante.' }
 
@@ -314,6 +314,7 @@ export function useTeam(storeIdOverride?: string) {
     }
 
     const registerUser = async (userData: RegisterUserInput) => {
+        if (!isAdministradorMx(role) && role !== 'gerente') return { error: 'Apenas Admin MX ou gerente podem criar integrantes.' }
         const { data, error } = await supabase.functions.invoke('register-user', {
             body: userData
         })
@@ -510,6 +511,10 @@ export function useStoresStats() {
             let authorizedStoreIds: string[] | null = null
             if (role === 'dono') {
                 authorizedStoreIds = vinculos_loja.map(m => m.store_id)
+                if (authorizedStoreIds.length === 0) {
+                    setStats({})
+                    return
+                }
             } else if ((role === 'gerente' || role === 'vendedor') && authStoreId) {
                 authorizedStoreIds = [authStoreId]
             }

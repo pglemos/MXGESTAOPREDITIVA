@@ -20,7 +20,19 @@ export default function GerenteTreinamentos() {
     const { role } = useAuth()
     const isOwner = role === 'dono'
     const canManageTeamTrainings = !isOwner
-    const [tab, setTab] = useState<'meus' | 'equipe' | 'matriz'>('equipe')
+    const [tab, setTab] = useState<'meus' | 'equipe' | 'matriz'>(() => isOwner ? 'matriz' : 'equipe')
+    const trainingTabs = useMemo(() => (
+        isOwner
+            ? [
+                { key: 'matriz' as const, label: 'Matriz da Equipe', icon: LayoutDashboard },
+                { key: 'meus' as const, label: 'Minha Trilha', icon: Target },
+            ]
+            : [
+                { key: 'equipe' as const, label: 'Equipe', icon: Users },
+                { key: 'matriz' as const, label: 'Matriz da Equipe', icon: LayoutDashboard },
+                { key: 'meus' as const, label: 'Minha Trilha', icon: Target },
+            ]
+    ), [isOwner])
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [assigningTo, setAssigningTo] = useState<string | null>(null)
@@ -192,11 +204,7 @@ export default function GerenteTreinamentos() {
 
                 <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
                     <TabNavPill
-                        tabs={[
-                            { key: 'equipe' as const, label: 'Equipe',          icon: Users },
-                            { key: 'matriz' as const, label: 'Matriz da Equipe', icon: LayoutDashboard },
-                            { key: 'meus'   as const, label: 'Minha Trilha',     icon: Target },
-                        ]}
+                        tabs={trainingTabs}
                         activeTab={tab}
                         onTabChange={setTab}
                     />

@@ -43,9 +43,9 @@ export default function Lojas() {
 
     const filteredStores = useMemo(() => {
         return (lojas || [])
-            .filter(s => s.active === filterActive)
+            .filter(s => isOwner ? s.active : s.active === filterActive)
             .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    }, [lojas, searchTerm, filterActive])
+    }, [lojas, searchTerm, filterActive, isOwner])
 
     const ownerActiveStores = useMemo(() => (lojas || []).filter(store => store.active), [lojas])
     const ownerAttentionStores = useMemo(() => {

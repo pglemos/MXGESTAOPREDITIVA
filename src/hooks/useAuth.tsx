@@ -316,7 +316,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 // Ejeção Ativa (Sessões Existentes): Se o usuário perder a loja ativada enquanto logado
-                if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
+                if (currentRole !== 'dono' && !isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
                     await supabase.auth.signOut()
                     setSupabaseUser(null)
                     setProfile(null)
@@ -474,7 +474,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return { error: 'LOGIN PENDENTE: Seu acesso foi criado e aguarda aprovação do Admin MX.' }
             }
 
-            if (!isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
+            if (currentRole !== 'dono' && !isPerfilInternoMx(currentRole) && loadedMemberships.length === 0) {
                 await supabase.auth.signOut()
                 setSupabaseUser(null)
                 setProfile(null)

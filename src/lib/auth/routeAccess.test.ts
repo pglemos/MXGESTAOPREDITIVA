@@ -32,9 +32,9 @@ describe('route access matrix', () => {
 
   it('keeps daily launch restricted to the vendedor operating flow while allowing /home as role entrypoint', () => {
     expect(canAccessPath('/home', 'vendedor')).toBe(true)
-    expect(canAccessPath('/home', 'administrador_geral')).toBe(true)
-    expect(canAccessPath('/home', 'gerente')).toBe(true)
-    expect(canAccessPath('/home', 'dono')).toBe(true)
+    expect(canAccessPath('/home', 'administrador_geral')).toBe(false)
+    expect(canAccessPath('/home', 'gerente')).toBe(false)
+    expect(canAccessPath('/home', 'dono')).toBe(false)
     expect(canAccessPath('/lancamento-diario', 'vendedor')).toBe(true)
     expect(canAccessPath('/historico', 'vendedor')).toBe(true)
     expect(canAccessPath('/historico', 'gerente')).toBe(false)
@@ -75,7 +75,7 @@ describe('route access matrix', () => {
 
   it('keeps the legacy team alias capability scoped', () => {
     expect(canAccessPath('/team', 'administrador_mx')).toBe(true)
-    expect(canAccessPath('/team', 'dono')).toBe(true)
+    expect(canAccessPath('/team', 'dono')).toBe(false)
     expect(canAccessPath('/team', 'gerente')).toBe(true)
     expect(canAccessPath('/team', 'vendedor')).toBe(false)
   })

@@ -590,7 +590,7 @@ function StoreFeedback() {
     }, [activeTab, refetchFeedbacks, refetchReports])
 
     const isOwner = role === 'dono'
-    const canCreateFeedback = canManageFeedback(role) && !isOwner
+    const canCreateFeedback = canManageFeedback(role)
     const isManager = role === 'gerente'
 
     if (devolutivasLoading || reportsLoading) return (

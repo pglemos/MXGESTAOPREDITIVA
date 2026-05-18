@@ -444,13 +444,15 @@ export default function Notificacoes() {
                             >
                               {n.read ? 'Marcar não lida' : 'Marcar lida'}
                             </Button>
-                            <Button 
-                              variant="ghost" size="sm" 
-                              onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); toast.success('Alerta removido!') }} 
-                              className="text-xs font-black text-text-tertiary hover:text-status-error uppercase tracking-widest p-mx-0 h-auto hover:bg-transparent"
-                            >
-                              Remover
-                            </Button>
+                            {!isOwner && (
+                              <Button
+                                variant="ghost" size="sm"
+                                onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); toast.success('Alerta removido!') }}
+                                className="text-xs font-black text-text-tertiary hover:text-status-error uppercase tracking-widest p-mx-0 h-auto hover:bg-transparent"
+                              >
+                                Remover
+                              </Button>
+                            )}
                           </footer>
                         </div>
                         {!n.read && <div className="absolute right-mx-lg top-mx-sm sm:top-1/2 sm:-translate-y-1/2 w-2.5 h-2.5 rounded-mx-full bg-brand-primary shadow-mx-md animate-pulse" />}

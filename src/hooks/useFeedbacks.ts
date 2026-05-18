@@ -8,21 +8,28 @@ import { parseFeedback, type Feedback } from '@/lib/schemas/feedback.schema'
 const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, notes, acknowledged, acknowledged_at, created_at, updated_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
 
 export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
-  const { profile, storeId: authStoreId, role } = useAuth()
+  const { profile, storeId: authStoreId, role, vinculos_loja } = useAuth()
   const queryClient = useQueryClient()
-  const storeId = filters?.storeId || authStoreId
+  const requestedStoreId = filters?.storeId
+  const storeId = role === 'dono' ? requestedStoreId : requestedStoreId || authStoreId
+  const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
   const { data: devolutivas, isLoading: loading, refetch } = useQuery({
-    queryKey: ['devolutivas', storeId, role, profile?.id, filters?.storeId, filters?.sellerId],
+    queryKey: ['devolutivas', requestedStoreId || (role === 'dono' ? ownerStoreIds.join(',') : storeId), role, profile?.id, filters?.sellerId],
     queryFn: async () => {
-      if (!profile || (!storeId && !isPerfilInternoMx(role))) return []
+      if (!profile || (!storeId && !isPerfilInternoMx(role) && role !== 'dono')) return []
 
       let query = supabase.from('devolutivas').select(FEEDBACK_SELECT)
 
       if (role === 'vendedor') {
         query = query.eq('seller_id', profile.id)
-      } else if (role === 'gerente' || role === 'dono') {
+      } else if (role === 'gerente') {
         if (storeId) query = query.eq('store_id', storeId)
+        if (filters?.sellerId) query = query.eq('seller_id', filters.sellerId)
+      } else if (role === 'dono') {
+        if (requestedStoreId) query = query.eq('store_id', requestedStoreId)
+        else if (ownerStoreIds.length) query = query.in('store_id', ownerStoreIds)
+        else return []
         if (filters?.sellerId) query = query.eq('seller_id', filters.sellerId)
       } else if (isPerfilInternoMx(role)) {
         if (filters?.storeId) query = query.eq('store_id', filters.storeId)

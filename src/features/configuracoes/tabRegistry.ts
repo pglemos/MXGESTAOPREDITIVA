@@ -62,7 +62,7 @@ export const TAB_REGISTRY: ConfigTabDefinition[] = [
         icon: Users,
         component: EquipeUsuariosTab,
         roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente'],
-        readOnlyRoles: ['consultor_mx'],
+        readOnlyRoles: ['consultor_mx', 'dono'],
         section: 'gestao',
     },
     {

@@ -45,7 +45,7 @@ export default function GerentePDI() {
     const [isRefetching, setIsRefetching] = useState(false)
     const isOwner = role === 'dono'
     const isManager = role === 'gerente'
-    const canManagePDI = canManagePDICapability(role) && !isOwner
+    const canManagePDI = canManagePDICapability(role)
 
     const handleRefresh = useCallback(async () => {
         setIsRefetching(true)

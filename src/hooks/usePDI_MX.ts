@@ -191,12 +191,13 @@ async function fetchPDISessions360(params: {
     role?: string | null
     storeId?: string | null
     storeIdOverride?: string
+    ownerStoreIds?: string[]
 }) {
-    const { profileId, role, storeId, storeIdOverride } = params
+    const { profileId, role, storeId, storeIdOverride, ownerStoreIds = [] } = params
     if (!profileId) return [] as PDISessionSummary[]
-    if (!isPerfilInternoMx(role) && role !== 'vendedor' && !storeId) return [] as PDISessionSummary[]
+    if (!isPerfilInternoMx(role) && role !== 'vendedor' && role !== 'dono' && !storeId) return [] as PDISessionSummary[]
 
-    const effectiveStoreId = storeIdOverride || storeId
+    const effectiveStoreId = storeIdOverride || (role === 'dono' ? null : storeId)
     let query = supabase
         .from('pdi_sessoes')
         .select('id, colaborador_id, gerente_id, loja_id, cargo_id, status, created_at, updated_at, data_realizacao, proxima_revisao_data')
@@ -208,6 +209,8 @@ async function fetchPDISessions360(params: {
         query = query.eq('loja_id', effectiveStoreId).eq('gerente_id', profileId)
     } else if (role === 'dono' && effectiveStoreId) {
         query = query.eq('loja_id', effectiveStoreId)
+    } else if (role === 'dono' && ownerStoreIds.length) {
+        query = query.in('loja_id', ownerStoreIds)
     } else if (isPerfilInternoMx(role) && effectiveStoreId && effectiveStoreId !== 'all') {
         query = query.eq('loja_id', effectiveStoreId)
     }
@@ -402,15 +405,17 @@ export function usePDI_MX() {
 }
 
 export function usePDISessions(storeIdOverride?: string) {
-    const { profile, storeId, role } = useAuth()
+    const { profile, storeId, role, vinculos_loja } = useAuth()
+    const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
     const { data, isLoading: loading, refetch } = useQuery({
-        queryKey: ['pdi-sessions', storeIdOverride || storeId || 'all', role, profile?.id],
+        queryKey: ['pdi-sessions', storeIdOverride || (role === 'dono' ? ownerStoreIds.join(',') : storeId) || 'all', role, profile?.id],
         queryFn: () => fetchPDISessions360({
             profileId: profile?.id,
             role,
             storeId,
             storeIdOverride,
+            ownerStoreIds,
         }),
         enabled: !!profile,
     })

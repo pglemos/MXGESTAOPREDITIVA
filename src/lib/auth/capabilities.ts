@@ -37,15 +37,15 @@ export function canManageStore(role: UserRole | string | null | undefined): bool
 }
 
 export function canManageTeam(role: UserRole | string | null | undefined): boolean {
-  return isAdministradorMx(role) || role === 'dono' || role === 'gerente'
+  return isAdministradorMx(role) || role === 'gerente'
 }
 
 export function canManageFeedback(role: UserRole | string | null | undefined): boolean {
-  return isPerfilInternoMx(role) || role === 'dono' || role === 'gerente'
+  return isPerfilInternoMx(role) || role === 'gerente'
 }
 
 export function canManagePDI(role: UserRole | string | null | undefined): boolean {
-  return isPerfilInternoMx(role) || role === 'dono' || role === 'gerente'
+  return isPerfilInternoMx(role) || role === 'gerente'
 }
 
 export function canCreateAdjustment(role: UserRole | string | null | undefined): boolean {

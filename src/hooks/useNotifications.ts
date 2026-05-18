@@ -10,6 +10,8 @@ const notificationPriorityRank: Record<string, number> = {
   low: 1,
 }
 
+const NOTIFICATION_SELECT = 'id, title, message, type, priority, read, recipient_id, sender_id, store_id, target_role, link, broadcast_id, created_at, updated_at'
+
 export function sortNotificationsByPriority<T extends Pick<AppNotification, 'priority' | 'created_at'>>(notifications: T[]): T[] {
   return [...notifications].sort((a, b) => {
     const priorityDelta = (notificationPriorityRank[b.priority] || 0) - (notificationPriorityRank[a.priority] || 0)
@@ -19,7 +21,7 @@ export function sortNotificationsByPriority<T extends Pick<AppNotification, 'pri
 }
 
 export function useNotifications() {
-  const { profile } = useAuth()
+  const { profile, role } = useAuth()
   const queryClient = useQueryClient()
 
   const { data, isLoading: loading, refetch } = useQuery({
@@ -28,11 +30,10 @@ export function useNotifications() {
       if (!profile) return { notificacoes: [] as AppNotification[], unreadCount: 0 }
 
       const { data, error } = await supabase.from('notificacoes')
-        .select('*')
+        .select(NOTIFICATION_SELECT)
         .eq('recipient_id', profile.id)
-        .order('priority', { ascending: false })
         .order('created_at', { ascending: false })
-        .limit(50)
+        .limit(100)
 
       if (error) {
         throw error
@@ -97,6 +98,7 @@ export function useNotifications() {
   const deleteNotificationMut = useMutation({
     mutationFn: async (id: string) => {
       if (!profile) return
+      if (role === 'dono') return
       await supabase.from('notificacoes').delete().eq('id', id).eq('recipient_id', profile.id)
     },
     onSuccess: () => {
@@ -107,6 +109,7 @@ export function useNotifications() {
   const sendNotificationMut = useMutation({
     mutationFn: async (input: { title: string; message: string; type?: string; priority?: string; recipient_id?: string; store_id?: string; target_role?: string; link?: string }) => {
       if (!profile) return { error: 'Não autenticado' }
+      if (role === 'dono') return { error: 'Dono acompanha alertas, mas não dispara notificações operacionais.' }
 
       if (!input.recipient_id && (input.target_role || input.store_id)) {
         const { error } = await supabase.rpc('send_broadcast_notification', {

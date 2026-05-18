@@ -15,16 +15,16 @@ describe('role capabilities', () => {
     expect(canSimulateRole('dono')).toBe(false)
     expect(canManageStore('administrador_mx')).toBe(true)
     expect(canManageStore('dono')).toBe(false)
-    expect(canManageTeam('dono')).toBe(true)
+    expect(canManageTeam('dono')).toBe(false)
     expect(canManageTeam('gerente')).toBe(true)
     expect(canManageTeam('vendedor')).toBe(false)
   })
 
-  it('allows owner and manager people workflows but blocks seller management actions', () => {
-    expect(canManageFeedback('dono')).toBe(true)
+  it('keeps owner in executive read-only mode while manager runs people workflows', () => {
+    expect(canManageFeedback('dono')).toBe(false)
     expect(canManageFeedback('gerente')).toBe(true)
     expect(canManageFeedback('vendedor')).toBe(false)
-    expect(canManagePDI('dono')).toBe(true)
+    expect(canManagePDI('dono')).toBe(false)
     expect(canManagePDI('gerente')).toBe(true)
     expect(canManagePDI('vendedor')).toBe(false)
   })

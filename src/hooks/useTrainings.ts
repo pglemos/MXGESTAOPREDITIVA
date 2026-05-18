@@ -50,18 +50,22 @@ type TrainingRatingRow = {
   comment: string | null
 }
 
+const TRAINING_SELECT = 'id, title, description, type, video_url, target_audience, active, store_id, source_kind, editorial_status, review_after, duration_minutes, xp_reward, curator_id, curation_notes, published_at, created_at, updated_at'
+const CONTENT_SUGGESTION_SELECT = 'id, requester_id, store_id, theme, title, description, priority, status, linked_training_id, curator_notes, created_at'
+
 export function useTrainings() {
-  const { profile, role, storeId } = useAuth()
+  const { profile, role, storeId, vinculos_loja } = useAuth()
   const queryClient = useQueryClient()
+  const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
   const { data: treinamentos, isLoading: loading, error: queryError, refetch } = useQuery({
-    queryKey: ['treinamentos', profile?.id, role, storeId],
+    queryKey: ['treinamentos', profile?.id, role, role === 'dono' ? ownerStoreIds.join(',') : storeId],
     queryFn: async () => {
       if (!profile) return []
 
       const { data: all, error: allErr } = await supabase
         .from('treinamentos')
-        .select('*')
+        .select(TRAINING_SELECT)
         .eq('active', true)
         .order('created_at', { ascending: false })
       if (allErr) throw allErr
@@ -91,7 +95,12 @@ export function useTrainings() {
       if (all) {
         const filtered = isPerfilInternoMx(role)
           ? all
-          : all.filter(t => (t.target_audience === 'todos' || t.target_audience === role) && (!t.store_id || t.store_id === storeId) && (t.editorial_status ?? 'active') === 'active')
+          : all.filter(t => {
+              const storeMatches = role === 'dono'
+                ? (!t.store_id || ownerStoreIds.includes(t.store_id))
+                : (!t.store_id || t.store_id === storeId)
+              return (t.target_audience === 'todos' || t.target_audience === role) && storeMatches && (t.editorial_status ?? 'active') === 'active'
+            })
         return filtered.map(t => {
           const trainingRatings = ratingsByTraining.get(t.id) || []
           const ownRating = trainingRatings.find(rating => rating.user_id === profile.id) || null
@@ -186,6 +195,7 @@ export function useTrainings() {
       curation_notes?: string | null
     }) => {
       if (!profile) return { error: 'Não autenticado' }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Apenas Admin MX ou gerente podem publicar conteúdo institucional.' }
       const effectiveStoreId = data.store_id ?? (!isPerfilInternoMx(role) && data.source_kind === 'loja_institucional' ? storeId : null)
       const { error } = await supabase.from('treinamentos').insert({
         ...data,
@@ -214,14 +224,18 @@ export function useTrainings() {
 }
 
 export function useContentSuggestions() {
-  const { profile, role, storeId } = useAuth()
+  const { profile, role, storeId, vinculos_loja } = useAuth()
+  const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
   const { data, isLoading: loading, refetch } = useQuery({
-    queryKey: ['content-suggestions', role, profile?.id, storeId],
+    queryKey: ['content-suggestions', role, profile?.id, role === 'dono' ? ownerStoreIds.join(',') : storeId],
     queryFn: async () => {
       if (!profile) return [] as ContentSuggestionRow[]
-      let query = supabase.from('sugestoes_conteudo').select('*').order('created_at', { ascending: false })
-      if (!isPerfilInternoMx(role)) {
+      let query = supabase.from('sugestoes_conteudo').select(CONTENT_SUGGESTION_SELECT).order('created_at', { ascending: false })
+      if (role === 'dono') {
+        if (!ownerStoreIds.length) query = query.eq('requester_id', profile.id)
+        else query = query.or(`requester_id.eq.${profile.id},store_id.in.(${ownerStoreIds.join(',')})`)
+      } else if (!isPerfilInternoMx(role)) {
         query = query.or(`requester_id.eq.${profile.id},store_id.eq.${storeId}`)
       }
       const { data, error } = await query
@@ -235,11 +249,12 @@ export function useContentSuggestions() {
 }
 
 export function useDevelopmentRecommendations() {
-  const { profile, role, storeId } = useAuth()
+  const { profile, role, storeId, vinculos_loja } = useAuth()
   const queryClient = useQueryClient()
+  const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
   const { data, isLoading: loading, refetch } = useQuery({
-    queryKey: ['development-recommendations', role, profile?.id, storeId],
+    queryKey: ['development-recommendations', role, profile?.id, role === 'dono' ? ownerStoreIds.join(',') : storeId],
     queryFn: async () => {
       if (!profile) return [] as DevelopmentRecommendationRow[]
       let query = supabase
@@ -247,7 +262,11 @@ export function useDevelopmentRecommendations() {
         .select('*, training:treinamentos(*)')
         .order('created_at', { ascending: false })
       if (role === 'vendedor') query = query.eq('seller_id', profile.id)
-      else if ((role === 'gerente' || role === 'dono') && storeId) query = query.eq('store_id', storeId)
+      else if (role === 'gerente' && storeId) query = query.eq('store_id', storeId)
+      else if (role === 'dono') {
+        if (!ownerStoreIds.length) return [] as DevelopmentRecommendationRow[]
+        query = query.in('store_id', ownerStoreIds)
+      }
       const { data, error } = await query
       if (error) throw error
       return (data || []) as DevelopmentRecommendationRow[]
@@ -277,11 +296,12 @@ export function useDevelopmentRecommendations() {
 }
 
 export function useDevelopmentTracks() {
-  const { profile, role, storeId } = useAuth()
+  const { profile, role, storeId, vinculos_loja } = useAuth()
   const queryClient = useQueryClient()
+  const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
   const { data, isLoading: loading, refetch } = useQuery({
-    queryKey: ['development-tracks', role, profile?.id, storeId],
+    queryKey: ['development-tracks', role, profile?.id, role === 'dono' ? ownerStoreIds.join(',') : storeId],
     queryFn: async () => {
       if (!profile) return { assignments: [], progress: [] }
       let assignmentQuery = supabase
@@ -290,7 +310,11 @@ export function useDevelopmentTracks() {
         .order('created_at', { ascending: false })
 
       if (role === 'vendedor') assignmentQuery = assignmentQuery.eq('seller_id', profile.id)
-      else if ((role === 'gerente' || role === 'dono') && storeId) assignmentQuery = assignmentQuery.eq('store_id', storeId)
+      else if (role === 'gerente' && storeId) assignmentQuery = assignmentQuery.eq('store_id', storeId)
+      else if (role === 'dono') {
+        if (!ownerStoreIds.length) return { assignments: [], progress: [] }
+        assignmentQuery = assignmentQuery.in('store_id', ownerStoreIds)
+      }
 
       const { data: assignments, error } = await assignmentQuery
       if (error) throw error
@@ -312,6 +336,7 @@ export function useDevelopmentTracks() {
   const assignDefaultTrackMut = useMutation({
     mutationFn: async (input: { sellerId: string; targetStoreId?: string | null }) => {
       if (!profile) return { error: 'Não autenticado' }
+      if (!isPerfilInternoMx(role) && role !== 'gerente') return { error: 'Apenas Admin MX ou gerente podem atribuir trilha.' }
       const effectiveStoreId = input.targetStoreId || storeId
       if (!effectiveStoreId) return { error: 'Loja não encontrada para atribuir trilha.' }
       const { data: track, error: trackError } = await supabase

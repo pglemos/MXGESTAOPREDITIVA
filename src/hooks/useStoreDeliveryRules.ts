@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import type { StoreDeliveryRules } from '@/types/database'
 
+const DELIVERY_RULES_SELECT = 'store_id, matinal_recipients, weekly_recipients, monthly_recipients, whatsapp_group_ref, timezone, active, updated_by, updated_at'
+
 export function useStoreDeliveryRules(storeIdOverride?: string) {
-  const { storeId: authStoreId } = useAuth()
+  const { storeId: authStoreId, role } = useAuth()
   const queryClient = useQueryClient()
   const storeId = storeIdOverride || authStoreId
 
@@ -12,7 +14,7 @@ export function useStoreDeliveryRules(storeIdOverride?: string) {
     queryKey: ['delivery-rules', storeId],
     queryFn: async () => {
       if (!storeId) return null
-      const { data } = await supabase.from('regras_entrega_loja').select('*').eq('store_id', storeId).maybeSingle()
+      const { data } = await supabase.from('regras_entrega_loja').select(DELIVERY_RULES_SELECT).eq('store_id', storeId).maybeSingle()
       return data as StoreDeliveryRules | null
     },
     enabled: !!storeId,
@@ -21,6 +23,7 @@ export function useStoreDeliveryRules(storeIdOverride?: string) {
   const updateDeliveryRulesMut = useMutation({
     mutationFn: async (data: Partial<StoreDeliveryRules>) => {
       if (!storeId) return { error: 'Loja não identificada' }
+      if (!isAdministradorMx(role)) return { error: 'Apenas Admin MX pode alterar regras de entrega.' }
       const { error } = await supabase.from('regras_entrega_loja').upsert({
         store_id: storeId,
         ...data,
