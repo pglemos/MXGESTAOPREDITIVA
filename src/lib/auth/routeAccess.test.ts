@@ -30,11 +30,13 @@ describe('route access matrix', () => {
     expect(canAccessPath('/lojas', 'gerente')).toBe(false)
   })
 
-  it('keeps daily launch restricted to the vendedor operating flow', () => {
+  it('keeps daily launch restricted to the vendedor operating flow while allowing /home as role entrypoint', () => {
     expect(canAccessPath('/home', 'vendedor')).toBe(true)
+    expect(canAccessPath('/home', 'administrador_geral')).toBe(true)
+    expect(canAccessPath('/home', 'gerente')).toBe(true)
+    expect(canAccessPath('/home', 'dono')).toBe(true)
     expect(canAccessPath('/lancamento-diario', 'vendedor')).toBe(true)
     expect(canAccessPath('/historico', 'vendedor')).toBe(true)
-    expect(canAccessPath('/home', 'gerente')).toBe(false)
     expect(canAccessPath('/historico', 'gerente')).toBe(false)
     expect(canAccessPath('/lancamento-diario', 'gerente')).toBe(false)
     expect(canAccessPath('/historico', 'dono')).toBe(false)

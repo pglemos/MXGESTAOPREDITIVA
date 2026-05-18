@@ -216,7 +216,7 @@ export default function App() {
 
             {/* Vendedor */}
             <Route path="home" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorHome />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+              <RoleSwitch vendedor={<VendedorHome />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
