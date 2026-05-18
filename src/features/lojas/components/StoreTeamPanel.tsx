@@ -183,10 +183,10 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     const activeMembers = (team || []).filter(m => m.active !== false && m.is_active !== false);
 
     return [
-        { label: 'Integrantes', value: total, icon: Users, tone: 'brand', color: 'from-brand-primary/20 to-brand-primary/5' },
-        { label: 'Ativos', value: activeMembers.length, icon: Zap, tone: 'success', color: 'from-status-success-surface to-transparent' },
-        { label: 'Inativos', value: total - activeMembers.length, icon: Clock, tone: 'error', color: 'from-status-error-surface to-transparent' },
-        { label: 'Líderes', value: leaders.length, icon: Shield, tone: 'warning', color: 'from-status-warning-surface to-transparent' },
+        { label: 'Integrantes', shortLabel: 'Int.', value: total, icon: Users, tone: 'brand', color: 'from-brand-primary/20 to-brand-primary/5' },
+        { label: 'Ativos', shortLabel: 'Atv.', value: activeMembers.length, icon: Zap, tone: 'success', color: 'from-status-success-surface to-transparent' },
+        { label: 'Inativos', shortLabel: 'Inat.', value: total - activeMembers.length, icon: Clock, tone: 'error', color: 'from-status-error-surface to-transparent' },
+        { label: 'Líderes', shortLabel: 'Líd.', value: leaders.length, icon: Shield, tone: 'warning', color: 'from-status-warning-surface to-transparent' },
     ];
   }, [team])
 
@@ -481,23 +481,26 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
             }
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-md md:gap-mx-lg shrink-0 mt-mx-md">
+          <div className="grid grid-cols-4 gap-mx-xs md:gap-mx-lg shrink-0 mt-mx-md">
             {stats.map((item, idx) => (
               <motion.div
                 key={item.label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="p-mx-lg rounded-mx-4xl bg-white border border-border-default relative overflow-hidden group shadow-mx-lg hover:shadow-mx-xl transition-all h-mx-24 flex items-center"
+                className="p-mx-xs sm:p-mx-lg rounded-mx-2xl sm:rounded-mx-4xl bg-white border border-border-default relative overflow-hidden group shadow-mx-lg hover:shadow-mx-xl transition-all h-mx-16 sm:h-mx-24 flex items-center"
               >
                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 group-hover:opacity-70 transition-opacity", item.color)} />
                 <div className="flex items-center justify-between relative z-10 w-full">
-                  <div className="space-y-0.5">
-                    <Typography variant="tiny" tone="muted" className="block uppercase tracking-mx-widest font-black text-mx-nano opacity-60">{item.label}</Typography>
-                    <Typography variant="h1" className="text-3xl font-black tabular-nums leading-none font-mono-numbers">{item.value}</Typography>
+                  <div className="space-y-0.5 min-w-0">
+                    <Typography variant="tiny" tone="muted" className="block uppercase tracking-mx-widest font-black text-mx-nano opacity-60 truncate">
+                      <span className="sm:hidden">{item.shortLabel}</span>
+                      <span className="hidden sm:inline">{item.label}</span>
+                    </Typography>
+                    <Typography variant="h1" className="text-2xl sm:text-3xl font-black tabular-nums leading-none font-mono-numbers">{item.value}</Typography>
                   </div>
                   <div className={cn(
-                    "w-mx-12 h-mx-12 rounded-mx-2xl flex items-center justify-center bg-white shadow-mx-md border border-border-default text-text-tertiary transition-all group-hover:rotate-6 group-hover:border-brand-primary/20 group-hover:text-brand-primary",
+                    "hidden sm:flex w-mx-12 h-mx-12 rounded-mx-2xl items-center justify-center bg-white shadow-mx-md border border-border-default text-text-tertiary transition-all group-hover:rotate-6 group-hover:border-brand-primary/20 group-hover:text-brand-primary",
                     item.tone === 'brand' && "text-brand-primary"
                   )}>
                     <item.icon size={20} strokeWidth={2} />
@@ -507,7 +510,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
             ))}
           </div>
 
-          <div className="grid mx-team-layout-grid gap-mx-lg items-start mt-mx-md">
+          <div className="grid mx-team-layout-grid gap-mx-lg items-start mt-mx-32 sm:mt-mx-md">
 
           {canSharePreRegistrationLink ? (
           <aside className="order-2 min-w-0 xl:sticky xl:top-[var(--spacing-mx-layout-offset-top)]">

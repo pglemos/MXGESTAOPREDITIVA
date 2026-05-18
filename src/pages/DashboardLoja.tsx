@@ -846,7 +846,7 @@ export default function DashboardLoja() {
                                 </select>
                             </label>
                         )}
-	                    <TabNavPill tabs={LOJA_TABS} activeTab={activeTab} onTabChange={handleTabChange} className="max-w-full overflow-x-auto" buttonClassName="h-mx-8 sm:h-mx-10 px-4 sm:px-6 shrink-0" aria-label="Abas da loja" />
+	                    <TabNavPill tabs={LOJA_TABS} activeTab={activeTab} onTabChange={handleTabChange} className="mx-store-dashboard-tabs max-w-full overflow-x-auto" buttonClassName="h-mx-8 sm:h-mx-10 px-2 sm:px-6 shrink-0" aria-label="Abas da loja" />
 
 	                    {activeTab === 'performance' && (
 		                    <Button variant="outline" onClick={handleRefresh} aria-label={`Atualizar performance. ${lastSyncLabel}`} title={lastSyncLabel} className="h-mx-10 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white px-mx-md">
