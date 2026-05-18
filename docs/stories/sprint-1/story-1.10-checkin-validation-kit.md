@@ -1,6 +1,6 @@
 # Story 1.10 — Centralizar Validação `checkin_validation_kit()`
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P1
