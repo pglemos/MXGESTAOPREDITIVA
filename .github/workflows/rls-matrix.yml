@@ -1,0 +1,51 @@
+name: RLS Regression Matrix
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/rls-matrix/**'
+      - 'scripts/run_rls_matrix.sh'
+      - '.github/workflows/rls-matrix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rls-matrix:
+    name: pgTAP RLS Matrix (8x5=40 cenarios)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local stack
+        run: supabase start
+
+      - name: Apply migrations
+        run: supabase db reset --no-seed
+
+      - name: Install pgTAP extension
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h 127.0.0.1 -p 54322 -U postgres -d postgres \
+            -c "CREATE EXTENSION IF NOT EXISTS pgtap;"
+
+      - name: Run RLS Matrix
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: bash scripts/run_rls_matrix.sh
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup || true

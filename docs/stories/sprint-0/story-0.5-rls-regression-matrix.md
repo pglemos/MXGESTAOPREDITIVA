@@ -1,6 +1,6 @@
 # Story 0.5 — RLS Regression Matrix Baseline (8×5 = 40 cenários)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0
@@ -86,5 +86,23 @@ Detecta automaticamente regressões de RLS antes do merge — protege a receita 
 - `docs/prd/technical-debt-assessment.md` §1 Sprint 0 item 0.4
 - `docs/reviews/qa-review.md` §6 T-01, §2 GAP-05
 
+## File List
+- `supabase/tests/rls-matrix/setup.sql` (novo)
+- `supabase/tests/rls-matrix/_helpers.sql` (novo)
+- `supabase/tests/rls-matrix/lancamentos_diarios.test.sql` (novo)
+- `supabase/tests/rls-matrix/usuarios.test.sql` (novo)
+- `supabase/tests/rls-matrix/vendedores_loja.test.sql` (novo)
+- `supabase/tests/rls-matrix/vinculos_loja.test.sql` (novo)
+- `supabase/tests/rls-matrix/lojas.test.sql` (novo)
+- `supabase/tests/rls-matrix/metas.test.sql` (novo)
+- `supabase/tests/rls-matrix/logs_auditoria.test.sql` (novo)
+- `supabase/tests/rls-matrix/role_assignments_audit.test.sql` (novo)
+- `supabase/tests/rls-matrix/feature_flags.test.sql` (novo)
+- `supabase/tests/rls-matrix/runner.sql` (novo)
+- `scripts/run_rls_matrix.sh` (novo, executável)
+- `.github/workflows/rls-matrix.yml` (novo)
+- `docs/dev/rls-matrix.md` (novo, runbook)
+
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10)
+- 2026-05-18 | @aiox-master (Orion) | Status: Ready → InReview | Suite pgTAP criada com 8 tabelas × 5 roles. Setup baseado em fixtures isolados em BEGIN; ROLLBACK;. CI workflow ativo. Runbook publicado.
