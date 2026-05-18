@@ -1,6 +1,6 @@
 # Story 1.8 — Habilitar RLS em Tabelas Faltantes (audit, roles, history, backups)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
