@@ -1116,22 +1116,19 @@ export default function DashboardLoja() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-mx-md md:gap-mx-lg shrink-0">
-                <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl relative overflow-hidden group">
-                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-white/5 rounded-mx-full blur-3xl -mr-16 -mt-16" />
+                <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl">
                     <Typography variant="tiny" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Meta de Vendas</Typography>
                     <Typography variant="h1" tone="white" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.goalValue}</Typography>
                     <Badge variant="outline" className="bg-white text-brand-secondary border-white font-black h-mx-md uppercase text-mx-tiny shadow-mx-sm">{metrics.attainment}% ATINGIDO</Badge>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
                     <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Vendido Período</Typography>
                     <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.totalSales}</Typography>
                     <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest text-mx-tiny">REFERÊNCIA REAL-TIME</Typography>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-info-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
                     <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Leads Gerados</Typography>
                     <div className="flex items-baseline gap-mx-xs mb-2">
                         <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalLeads}</Typography>
@@ -1140,8 +1137,7 @@ export default function DashboardLoja() {
                     <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest text-mx-tiny">ENTRADA DO FUNIL</Typography>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-warning-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
                     <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Visitas Realizadas</Typography>
                     <div className="flex items-baseline gap-mx-xs mb-2">
                         <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalVis}</Typography>
@@ -1150,8 +1146,7 @@ export default function DashboardLoja() {
                     <Typography variant="tiny" tone="warning" className="font-black uppercase tracking-widest text-mx-tiny">MEIO DO FUNIL</Typography>
                 </Card>
 
-                <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
-                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-status-success-surface rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
+                <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
                     <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">
                         <GlossaryHint term="Saúde Disciplinar" definition="Percentual da equipe que realizou o lançamento diário obrigatório." />
                     </Typography>
@@ -1322,13 +1317,12 @@ export default function DashboardLoja() {
                 </section>
 
                 <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden group">
-                        <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-16 -mt-16 opacity-50" />
-                        <header className="flex items-center gap-mx-sm mb-8 relative z-10">
+                    <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
+                        <header className="flex items-center gap-mx-sm mb-8">
                             <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary shadow-mx-inner border border-border-default shrink-0"><Globe size={24} /></div>
                             <Typography variant="h3" className="text-lg uppercase tracking-tight font-black">Mix de Canais</Typography>
                         </header>
-                        <div className="space-y-mx-lg relative z-10">
+                        <div className="space-y-mx-lg">
                             {mixCanais.map(ch => (
                                 <div key={ch.label} className="space-y-mx-xs">
                                     <div className="flex justify-between items-end">

@@ -21,15 +21,14 @@ const MXScoreCardInner = React.forwardRef<HTMLDivElement, MXScoreCardProps>(
       <Card
         ref={ref}
         className={cn(
-          "p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white overflow-hidden relative",
+          "p-mx-lg border-none shadow-mx-sm group hover:shadow-mx-lg transition-all bg-white",
           isHighlight && "ring-2 ring-brand-primary/20 shadow-mx-glow-brand",
           className
         )}
         aria-label={description}
         {...props}
       >
-        <div className="absolute top-mx-0 right-mx-0 w-mx-3xl h-mx-3xl bg-brand-primary/5 rounded-mx-full blur-3xl -mr-12 -mt-12" aria-hidden="true" />
-        <div className="flex items-center justify-between relative z-10">
+        <div className="flex items-center justify-between">
           <div className="space-y-mx-tiny">
             <Typography variant="caption" tone="muted" className="block uppercase tracking-widest text-mx-micro">{label}</Typography>
             <div className="flex items-baseline gap-mx-xs">

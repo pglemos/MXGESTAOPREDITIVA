@@ -129,20 +129,20 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
   }
 
   return (
-    <section className="space-y-mx-lg pb-32" aria-label="Metas da loja">
-      <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md bg-white border border-border-default rounded-mx-3xl p-mx-lg shadow-mx-sm">
+    <section className="space-y-mx-lg pb-24 md:pb-32" aria-label="Metas da loja">
+      <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-xl shadow-mx-sm">
         <div className="min-w-0">
           <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-mx-tiny">Aba de Metas</Typography>
-          <Typography variant="h2" className="uppercase tracking-tight truncate">{storeName || 'Unidade MX'}</Typography>
-          <Typography variant="caption" tone="muted">Meta mensal, objetivo nominal de sell-out e benchmarks oficiais da unidade.</Typography>
+          <Typography variant="h2" className="uppercase tracking-tight truncate text-xl md:text-2xl">{storeName || 'Unidade MX'}</Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-xs max-w-2xl text-sm">Meta mensal, objetivo nominal de sell-out e benchmarks oficiais da unidade.</Typography>
         </div>
         {canManageGoals ? (
-          <div className="flex flex-wrap items-center gap-mx-sm">
+          <div className="grid w-full grid-cols-2 gap-mx-xs sm:flex sm:w-auto sm:items-center sm:gap-mx-sm">
             <Button
               variant="outline"
               onClick={handleDelete}
               disabled={deleting || saving || !hasPersistedRules}
-              className="h-mx-11 rounded-mx-xl"
+              className="h-mx-10 w-full rounded-mx-xl text-mx-tiny sm:h-mx-11 sm:w-auto"
             >
               {deleting ? <RefreshCw className="animate-spin mr-2" /> : <Trash2 size={16} className="mr-2" />}
               Excluir
@@ -150,7 +150,7 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
             <Button
               onClick={handleSave}
               disabled={saving || deleting || !hasChanges}
-              className="h-mx-11 rounded-mx-xl"
+              className="h-mx-10 w-full rounded-mx-xl text-mx-tiny sm:h-mx-11 sm:w-auto"
             >
               {saving ? <RefreshCw className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
               Salvar
@@ -162,21 +162,20 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg">
-        <section className="xl:col-span-7 bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-10 shadow-mx-lg relative overflow-hidden">
-          <div className="absolute top-mx-0 right-mx-0 w-mx-96 h-mx-96 bg-brand-primary/5 rounded-mx-full blur-3xl -mr-48 -mt-48" />
-          <div className="relative z-10">
-            <header className="flex items-center gap-mx-sm mb-10 border-b border-border-default pb-8">
-              <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl">
-                <Target size={32} className="text-brand-primary/80" />
+        <section className="xl:col-span-7 bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-xl shadow-mx-lg">
+          <div>
+            <header className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-default pb-mx-md md:mb-10 md:pb-8">
+              <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg md:h-mx-2xl md:w-mx-2xl">
+                <Target size={28} className="text-brand-primary/80 md:size-8" />
               </div>
-              <div>
-                <Typography variant="h2">Meta Mensal de Vendas</Typography>
-                <Typography variant="caption" tone="muted">Objetivo nominal de sell-out por unidade</Typography>
+              <div className="min-w-0">
+                <Typography variant="h2" className="text-lg md:text-2xl">Meta Mensal de Vendas</Typography>
+                <Typography variant="p" tone="muted" className="text-sm">Objetivo nominal de sell-out por unidade</Typography>
               </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg items-stretch">
-              <div className="relative min-w-0">
+            <div className="grid grid-cols-1 gap-mx-md items-stretch lg:grid-cols-2 lg:gap-mx-lg">
+              <div className="min-w-0 rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md shadow-inner md:p-mx-lg">
                 <input
                   type="text"
                   inputMode="numeric"
@@ -188,28 +187,26 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
                   }}
                   disabled={!canManageGoals}
                   aria-label="Meta mensal de vendas"
-                  className="w-full text-6xl sm:text-7xl lg:text-8xl font-black tracking-normal text-text-primary bg-surface-alt border-4 border-transparent rounded-mx-2xl py-12 text-center focus:outline-none focus:bg-white focus:border-brand-primary transition-all font-mono-numbers shadow-inner disabled:opacity-60"
+                  className="w-full bg-transparent px-mx-sm pb-mx-sm pt-mx-xs text-center font-mono-numbers text-5xl font-black leading-none tracking-normal text-text-primary transition-all focus:outline-none disabled:opacity-60 sm:text-6xl lg:text-7xl"
                 />
-                <span className="absolute bottom-mx-md left-1/2 -translate-x-1/2">
-                  <Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-wider whitespace-nowrap">Unidades comerciais</Typography>
-                </span>
+                <Typography variant="caption" tone="muted" className="block text-center font-black uppercase tracking-mx-wider">Unidades comerciais</Typography>
               </div>
-              <div className="bg-brand-primary p-mx-lg text-white rounded-mx-2xl shadow-mx-xl flex flex-col justify-center items-center text-center border-none min-h-48">
-                <TrendingUp size={44} className="mb-6 opacity-30" />
-                <Typography variant="p" tone="white" className="text-sm font-black italic uppercase leading-relaxed opacity-80">Metas agressivas, porém pautadas no histórico.</Typography>
+              <div className="bg-brand-primary p-mx-lg text-white rounded-mx-2xl shadow-mx-lg flex flex-col justify-center items-center text-center border border-brand-primary/10 min-h-36 md:min-h-48">
+                <TrendingUp size={36} className="mb-mx-md opacity-40" />
+                <Typography variant="p" tone="white" className="max-w-xs text-sm font-black italic uppercase leading-relaxed opacity-90">Metas agressivas, porém pautadas no histórico.</Typography>
               </div>
             </div>
           </div>
         </section>
 
-        <aside className="xl:col-span-5 bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-10 shadow-mx-lg">
-          <header className="flex items-center gap-mx-sm mb-10 border-b border-border-default pb-8">
-            <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner">
-              <Zap size={32} />
+        <aside className="xl:col-span-5 bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-xl shadow-mx-lg">
+          <header className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-default pb-mx-md md:mb-10 md:pb-8">
+            <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner md:h-mx-2xl md:w-mx-2xl">
+              <Zap size={28} />
             </div>
-            <div>
-              <Typography variant="h2">Matriz de Benchmarks (20/60/33)</Typography>
-              <Typography variant="caption" tone="muted">Taxas de conversão oficiais para auditoria forense</Typography>
+            <div className="min-w-0">
+              <Typography variant="h2" className="text-lg md:text-2xl">Matriz de Benchmarks (20/60/33)</Typography>
+              <Typography variant="p" tone="muted" className="text-sm">Taxas de conversão oficiais para auditoria forense</Typography>
             </div>
           </header>
 
@@ -219,10 +216,10 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
               { label: 'Agd -> Visita', field: 'agend_to_visit' as const, icon: Calendar, tone: 'warning' },
               { label: 'Visita -> Vnd', field: 'visit_to_sale' as const, icon: TrendingUp, tone: 'success' },
             ].map((benchmark) => (
-              <div key={benchmark.field} className="p-mx-lg bg-surface-alt border border-border-default rounded-mx-2xl group/item hover:bg-white hover:shadow-mx-lg transition-all shadow-inner">
+              <div key={benchmark.field} className="p-mx-md bg-surface-alt border border-border-default rounded-mx-2xl group/item hover:bg-white hover:shadow-mx-lg transition-all shadow-inner md:p-mx-lg">
                 <div className="flex items-center justify-between gap-mx-md">
                   <div className={cn(
-                    'w-mx-12 h-mx-12 rounded-mx-xl border flex items-center justify-center shadow-mx-sm shrink-0',
+                    'w-mx-10 h-mx-10 rounded-mx-xl border flex items-center justify-center shadow-mx-sm shrink-0 md:h-mx-12 md:w-mx-12',
                     benchmark.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                       benchmark.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                         'bg-status-warning-surface border-mx-amber-100 text-status-warning'
@@ -239,7 +236,7 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
                         onChange={(event) => updateBenchmark(benchmark.field, event.target.value)}
                         disabled={!canManageGoals}
                         aria-label={`Benchmark ${benchmark.label}`}
-                        className="w-mx-3xl text-4xl font-black tracking-normal text-text-primary bg-transparent border-b-4 border-transparent focus:outline-none focus:border-brand-primary transition-all font-mono-numbers disabled:opacity-60"
+                        className="w-mx-20 bg-transparent font-mono-numbers text-3xl font-black tracking-normal text-text-primary transition-all focus:outline-none disabled:opacity-60 md:w-mx-3xl md:text-4xl"
                       />
                       <Typography variant="h1" tone="muted" className="text-2xl">%</Typography>
                     </div>
