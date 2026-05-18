@@ -139,11 +139,10 @@ function DataGridInner<T extends { id: string | number }>({
               onClick={() => onRowClick?.(item)}
             >
               <Card className={cn(
-                "p-mx-lg border-none shadow-mx-lg relative overflow-hidden",
+                "p-mx-lg border-none shadow-mx-lg",
                 onRowClick && "active:scale-[0.98] transition-all"
               )}>
-                <div className="absolute top-mx-0 right-mx-0 w-mx-32 h-mx-32 bg-brand-primary/5 rounded-mx-full blur-2xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-                <div className="space-y-mx-md relative z-10">
+                <div className="space-y-mx-md">
                   {columns.filter(col => !col.desktopOnly).map((col, cIdx) => (
                     <div 
                       key={`${item.id}-mob-${col.key}`}
