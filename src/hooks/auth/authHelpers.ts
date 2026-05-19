@@ -1,0 +1,112 @@
+/**
+ * Auth Helpers — pure utilities extracted from useAuth.tsx
+ *
+ * Story 2.9 / ADR-0052 — Auth Provider split.
+ * These helpers are framework-agnostic and unit-testable in isolation.
+ */
+import type { User as AppUser, UserRole, Store } from '@/types/database'
+import { normalizeRole } from '@/lib/auth/roles'
+
+export const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
+export const ROLE_SIMULATION_STORAGE_KEY = 'mx_role_simulation'
+export const DEV_BYPASS_ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
+
+export const PROFILE_SELECT =
+  'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, must_change_password, notification_preferences'
+export const MEMBERSHIP_SELECT =
+  'id, user_id, store_id, role, created_at, is_active, ended_at, store:lojas(id, name, manager_email, legal_name, cnpj, address, administrative_phone, partners, active, source_mode, created_at, updated_at)'
+
+export const AUTH_NETWORK_ERROR_MESSAGE =
+  'Não foi possível conectar ao servidor de autenticação. Verifique sua conexão ou tente novamente em alguns minutos.'
+
+export type SimulationRole = Extract<UserRole, 'dono' | 'gerente' | 'vendedor'>
+
+/**
+ * Detects transient network errors that should be reported as connectivity
+ * issues instead of authentication failures.
+ */
+export function isTransientFetchError(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('message' in error)) return false
+  const message = String((error as { message?: unknown }).message || '').toLowerCase()
+  return (
+    message.includes('failed to fetch') ||
+    message.includes('networkerror') ||
+    message.includes('load failed') ||
+    message.includes('name_not_resolved') ||
+    message.includes('err_name_not_resolved')
+  )
+}
+
+/**
+ * Dev-only auth bypass is allowed only in DEV builds, with the env flag enabled,
+ * and on a known local hostname.
+ */
+export function isDevBypassAllowed(): boolean {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false
+  if (import.meta.env.VITE_ENABLE_DEV_AUTH_BYPASS !== 'true') return false
+  return DEV_BYPASS_ALLOWED_HOSTS.has(window.location.hostname)
+}
+
+/**
+ * Reads a persisted dev-bypass profile from localStorage.
+ * Returns null if dev-bypass is not allowed or the payload is invalid.
+ */
+export function readDevBypassProfile(): AppUser | null {
+  if (!isDevBypassAllowed()) {
+    if (typeof window !== 'undefined') window.localStorage.removeItem(DEV_BYPASS_STORAGE_KEY)
+    return null
+  }
+
+  try {
+    const raw = window.localStorage.getItem(DEV_BYPASS_STORAGE_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw) as Partial<AppUser>
+    if (!parsed.id || !parsed.email) return null
+
+    const role = normalizeRole(parsed.role)
+    if (!role) return null
+
+    return {
+      id: parsed.id,
+      name: parsed.name || 'Admin MX',
+      email: parsed.email,
+      role,
+      avatar_url: null,
+      is_venda_loja: false,
+      active: true,
+      created_at: parsed.created_at || new Date().toISOString(),
+      phone: parsed.phone,
+      store_id: parsed.store_id,
+    }
+  } catch {
+    window.localStorage.removeItem(DEV_BYPASS_STORAGE_KEY)
+    return null
+  }
+}
+
+/**
+ * Reads the persisted simulation role from sessionStorage.
+ */
+export function readSimulationRole(): SimulationRole | null {
+  if (typeof window === 'undefined') return null
+  const stored = window.sessionStorage.getItem(ROLE_SIMULATION_STORAGE_KEY)
+  return stored === 'dono' || stored === 'gerente' || stored === 'vendedor' ? stored : null
+}
+
+/**
+ * Selects the appropriate store for a simulation session.
+ * Priority: MX CONSULTORIA sandbox > preferred store > first active store.
+ */
+export function pickSimulationStore(stores: Store[], preferredStoreId?: string | null): Store | null {
+  const activeStores = stores.filter(store => store.active)
+  const sandboxStore = activeStores.find(
+    store => store.name?.trim().toLowerCase() === 'mx consultoria',
+  )
+  if (sandboxStore) return sandboxStore
+
+  const preferredStore = preferredStoreId
+    ? activeStores.find(store => store.id === preferredStoreId)
+    : null
+  return preferredStore || activeStores[0] || null
+}
