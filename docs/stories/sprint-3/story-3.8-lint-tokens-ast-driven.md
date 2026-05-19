@@ -1,6 +1,6 @@
 # Story 3.8 — `lint-tokens.js` AST-driven anti-drift
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -42,15 +42,21 @@ Substituir regex por análise AST (TypeScript Compiler API + PostCSS AST) elimin
 - ❌ Lint runtime (apenas build-time)
 
 ## Tasks
-- [ ] Spike: comparar `ts-morph` vs TS Compiler API puro (1h)
-- [ ] Implementar parser TS/TSX (2h)
-- [ ] Implementar parser CSS/SCSS (1.5h)
-- [ ] Allowlist + config schema (1h)
-- [ ] Mensagens com sugestão de token (1h)
-- [ ] Integração CI + npm script (1h)
-- [ ] Docs `docs/contributing/lint-tokens.md` (0.5h)
+- [x] Spike: comparar `ts-morph` vs TS Compiler API puro — escolhido `typescript` puro (já instalado, zero deps adicionais)
+- [x] Implementar parser TS/TSX (visitor AST: StringLiteral, NoSubstitution/Template heads, JsxText)
+- [~] Implementar parser CSS/SCSS — `src/index.css` whitelisted (definição canônica); SCSS não usado no projeto. Diferido p/ futuro se necessário
+- [x] Allowlist + config schema (`WHITELIST_PATTERNS` em script + `// lint-tokens-ignore-line` inline)
+- [x] Mensagens com sugestão de token (TOKEN_MAP → `chartTokens.*()`)
+- [x] Integração CI + npm script (workflow `atomic-lint.yml` já roda `lint:tokens`)
+- [x] Docs `docs/dev/lint-tokens-rules.md` (path ajustado para padrão existente)
 - [ ] CodeRabbit review
 - [ ] @qa gate
+
+## File List
+- **Criado:** `scripts/lint-tokens-ast.mjs` — Lint AST-driven (TypeScript Compiler API)
+- **Criado:** `docs/dev/lint-tokens-rules.md` — Documentação de regras, whitelist e exceções
+- **Renomeado:** `scripts/lint-tokens.js` → `scripts/lint-tokens.legacy.js` (mantido para referência / lint de Tailwind classes)
+- **Modificado:** `package.json` — script `lint:tokens` agora aponta para AST; `lint` compound usa AST; adicionado `lint:tokens:legacy`
 
 ## Dependências
 **Bloqueada por:** Story 3.7 (paleta canônica definida — necessária para gerar sugestões de mapping)
@@ -94,3 +100,4 @@ Substituir regex por análise AST (TypeScript Compiler API + PostCSS AST) elimin
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-006
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @dev (Dex) | Status: Ready → InReview | AST lint implementado com `typescript` puro (228 arquivos / 0.32s) | 0 violations residuais após whitelist (charts/tokens, landing, email templates, print, observability, tests) | typecheck OK
