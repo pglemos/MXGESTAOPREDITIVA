@@ -60,7 +60,7 @@ const TARGETS = [
     },
     {
         table: 'role_assignments_audit',
-        body: { user_id: '00000000-0000-0000-0000-000000000001', role_id: 1, action: 'test' },
+        body: { user_id: '00000000-0000-0000-0000-000000000001', role_name: 'administrador_geral', action: 'test' },
         debito: 'DB-019',
         xfail: false,
     },
@@ -78,7 +78,7 @@ const TARGETS = [
     },
     {
         table: 'historico_regras_metas_loja',
-        body: { store_id: '00000000-0000-0000-0000-000000000001', changed_by: '00000000-0000-0000-0000-000000000001', changes: {} },
+        body: { store_id: '00000000-0000-0000-0000-000000000001', changed_by: '00000000-0000-0000-0000-000000000001', old_values: {}, new_values: {} },
         debito: 'DB-019 (Story 1.8)',
         xfail: false,
     },
