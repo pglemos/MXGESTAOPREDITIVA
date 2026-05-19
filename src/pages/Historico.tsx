@@ -17,6 +17,8 @@ import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Card } from '@/components/molecules/Card'
 import { Modal } from '@/components/organisms/Modal'
+import { Skeleton } from '@/components/atoms/Skeleton'
+import { SkeletonStats, SkeletonTable } from '@/components/atoms/skeletons'
 import { toast } from 'sonner'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import type { CheckinWithTotals } from '@/types/database'
@@ -142,10 +144,22 @@ export default function Historico() {
     }
 
     if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Recuperando Memória...</Typography>
-        </div>
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Recuperando histórico"
+        >
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
+                </div>
+                <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
+            </header>
+            <SkeletonStats count={4} />
+            <SkeletonTable rows={6} cols={5} />
+        </main>
     )
 
     return (

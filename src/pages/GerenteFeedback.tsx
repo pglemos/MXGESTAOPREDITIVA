@@ -246,7 +246,12 @@ function AdminFeedback() {
     }
 
     if (devolutivasLoading || reportsLoading || sellersLoading) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt">
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Carregando feedback"
+        >
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-mx-64" />
@@ -611,7 +616,12 @@ function StoreFeedback() {
     const isManager = role === 'gerente'
 
     if (devolutivasLoading || reportsLoading) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt">
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Carregando devolutivas"
+        >
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-mx-64" />

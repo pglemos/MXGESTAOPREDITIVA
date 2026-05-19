@@ -1,8 +1,31 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
+/**
+ * Skeleton — Loading placeholder primitive.
+ *
+ * A11y:
+ * - Skeleton is decorative (`aria-hidden="true"`). Parent container MUST set
+ *   `aria-busy="true"` + `aria-live="polite"` to announce loading state to AT.
+ *
+ * Motion:
+ * - Respects `prefers-reduced-motion`: shimmer animation is disabled (still keeps
+ *   a static placeholder) when user prefers reduced motion.
+ */
+export type SkeletonVariant = 'rect' | 'circle' | 'text' | 'avatar' | 'chart' | 'card' | 'table-row'
+
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'rect' | 'circle'
+  variant?: SkeletonVariant
+}
+
+const variantClasses: Record<SkeletonVariant, string> = {
+  rect: 'rounded-mx-xl',
+  circle: 'rounded-mx-full',
+  text: 'h-4 rounded-sm',
+  avatar: 'rounded-mx-full w-mx-14 h-mx-14',
+  chart: 'h-mx-64 w-full rounded-mx-2xl',
+  card: 'h-mx-48 w-full rounded-mx-2xl',
+  'table-row': 'h-mx-14 w-full rounded-mx-xl',
 }
 
 const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
@@ -10,18 +33,18 @@ const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
     return (
       <div
         ref={ref}
+        aria-hidden="true"
         className={cn(
-          "animate-pulse bg-surface-alt/80 border border-border-default/50",
-          variant === 'circle' ? "rounded-mx-full" : "rounded-mx-xl",
+          // Animation respects reduced-motion preference via Tailwind's motion-safe variant.
+          'motion-safe:animate-pulse bg-surface-alt/80 border border-border-default/50',
+          variantClasses[variant],
           className
         )}
         {...props}
-      >
-        <div className="sr-only">Carregando...</div>
-      </div>
+      />
     )
   }
 )
-Skeleton.displayName = "Skeleton"
+Skeleton.displayName = 'Skeleton'
 
 export { Skeleton }

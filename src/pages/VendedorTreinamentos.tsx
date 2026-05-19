@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
+import { Skeleton } from '@/components/atoms/Skeleton'
+import { SkeletonCard } from '@/components/atoms/skeletons'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
 import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
@@ -89,10 +91,28 @@ export default function VendedorTreinamentos() {
     }, [suggestContent, suggestionTheme, suggestionTitle])
 
     if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando desenvolvimento...</Typography>
-        </div>
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Sincronizando desenvolvimento"
+        >
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
+                <div className="space-y-mx-xs">
+                    <Skeleton className="h-mx-10 w-mx-64" />
+                    <Skeleton className="h-mx-xs w-mx-48" />
+                </div>
+                <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
+            </header>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-md">
+                <SkeletonCard showAvatar lines={3} />
+                <SkeletonCard showAvatar lines={3} />
+                <SkeletonCard showAvatar lines={3} />
+                <SkeletonCard showAvatar lines={3} />
+                <SkeletonCard showAvatar lines={3} />
+                <SkeletonCard showAvatar lines={3} />
+            </div>
+        </main>
     )
 
     return (

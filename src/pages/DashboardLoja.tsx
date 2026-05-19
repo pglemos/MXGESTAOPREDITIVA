@@ -763,14 +763,24 @@ export default function DashboardLoja() {
     }
 
     if (resolving || (storesLoading && isPerfilInternoMx(role) && !selectedStoreId)) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt" role="status">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
+        <div
+            className="h-full w-full flex flex-col items-center justify-center bg-surface-alt"
+            role="status"
+            aria-busy="true"
+            aria-live="polite"
+        >
+            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" aria-hidden="true" />
             <Typography variant="caption" tone="muted" className="animate-pulse font-black uppercase tracking-widest">Identificando Unidade...</Typography>
         </div>
     )
 
     if (activeTab === 'performance' && loading && !isRefetching) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Carregando performance"
+        >
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-full max-w-mx-64" />

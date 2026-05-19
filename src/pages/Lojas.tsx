@@ -269,7 +269,12 @@ export default function Lojas() {
     ], [copyRegistrationLink, getRegistrationLink, handleArchiveStore, isOwner, stats, role, toggleStoreStatus])
 
     if (loading && !isRefetching) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Carregando lojas"
+        >
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs text-center lg:text-left">
                     <Skeleton className="h-mx-10 w-mx-64 mx-auto lg:mx-0" />

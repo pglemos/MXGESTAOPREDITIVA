@@ -71,7 +71,12 @@ export default function GerentePDI() {
     }, [pdis, searchTerm])
 
     if (loading) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Carregando PDI"
+        >
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-mx-64" />

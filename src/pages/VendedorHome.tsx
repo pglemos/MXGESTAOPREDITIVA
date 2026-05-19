@@ -114,7 +114,12 @@ export default function VendedorHome() {
     }, [metrics, profile, referenceCheckin, referenceDateLabel])
 
     if (checkisLoading || goalsLoading || rankingLoading || trainingsLoading || !metrics) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500 overflow-hidden">
+        <main
+            className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500 overflow-hidden"
+            aria-busy="true"
+            aria-live="polite"
+            aria-label="Carregando painel do vendedor"
+        >
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
                 <div className="space-y-mx-xs">
                     <Skeleton className="h-mx-10 w-mx-64" />

@@ -1,6 +1,6 @@
 # Story 3.14 — Skeleton screens em 10 pages principais
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P3
@@ -96,3 +96,28 @@ shadcn/ui já tem `<Skeleton />` base — estender. Delay anti-flash: `useDelaye
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 perceived-perf
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @ux-design-expert + @dev (Uma/Dex) | Status: Ready → InReview | Skeleton DS expandido (variants + reduced-motion); 5 skeletons compostos (Table/Card/List/Chart/Stats); 10 pages cobertas com aria-busy/aria-live; typecheck + build OK
+
+## File List
+
+### Adicionados
+- `src/components/atoms/skeletons/SkeletonTable.tsx`
+- `src/components/atoms/skeletons/SkeletonCard.tsx`
+- `src/components/atoms/skeletons/SkeletonList.tsx`
+- `src/components/atoms/skeletons/SkeletonChart.tsx`
+- `src/components/atoms/skeletons/SkeletonStats.tsx`
+- `src/components/atoms/skeletons/index.ts` (barrel)
+- `docs/dev/skeleton-screens.md` (guia de uso)
+
+### Modificados
+- `src/components/atoms/Skeleton.tsx` (variants: rect/circle/text/avatar/chart/card/table-row; reduced-motion via `motion-safe:`; aria-hidden default)
+- `src/pages/DashboardLoja.tsx` (aria-busy nos 2 loadings)
+- `src/pages/Lojas.tsx` (aria-busy)
+- `src/pages/VendedorHome.tsx` (aria-busy)
+- `src/pages/GerenteFeedback.tsx` (aria-busy nos 2 loadings)
+- `src/pages/GerentePDI.tsx` (aria-busy)
+- `src/pages/PainelConsultor.tsx` (aria-busy)
+- `src/pages/Ranking.tsx` (skeletons substituindo spinner em 2 spots + aria-busy)
+- `src/pages/VendedorTreinamentos.tsx` (skeletons substituindo spinner + aria-busy)
+- `src/pages/MorningReport.tsx` (skeletons substituindo spinner em 2 spots + aria-busy)
+- `src/pages/Historico.tsx` (skeletons substituindo spinner + aria-busy)
