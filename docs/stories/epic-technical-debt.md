@@ -88,9 +88,30 @@ Foco mandatório (per `docs/reviews/ux-specialist-review.md` §6): decomposiçã
 - 2.10 ← Story 1.2 done (DB-016 B merged em main)
 - Todas ← Sprint 0 done (regressão visual + RLS matrix verdes)
 
-### Sprint 3 — P2 Perf + LGPD + Decomposição (6–8 semanas, ~280h, R$42.000)
+### Sprint 3 — P2 Perf + LGPD + Decomposição (6–8 semanas, ~175h decomposto, R$26.250)
 
-ROADMAP. Stories sob demanda cobrindo decomposição de god-modules, LGPD (retention/erasure flows), perf budgets, RUM/session replay (UX-030), Supabase Advisors remediation, contract tests (Pact) edge↔RPC.
+Decomposto em 15 stories `Draft` em `docs/stories/sprint-3/` (3.1 a 3.15).
+
+| ID | Título | Esforço | Prio | Débito |
+|---|---|---|---|---|
+| 3.1 | Decompor `Notificacoes` (~700 LOC) | 14h | P2 | UX-001 |
+| 3.2 | Decompor `LancamentosLoja` (~600 LOC) | 12h | P2 | UX-001 |
+| 3.3 | Decompor `RankingLoja` (~600 LOC) | 12h | P2 | UX-001 |
+| 3.4 | Decompor `Vendedores` (~600 LOC) | 12h | P2 | UX-001 |
+| 3.5 | Decompor `Metas` (~500 LOC) | 10h | P2 | UX-001 |
+| 3.6 | Decompor `RotinaGerente`+`RotinaVendedor` | 14h | P2 | UX-001 |
+| 3.7 | Substituir 22+ hex hardcoded em charts por tokens | 12h | P2 | UX-005 |
+| 3.8 | `lint-tokens.js` AST-driven anti-drift | 8h | P2 | UX-006 |
+| 3.9 | DS maturity 3/5→4/5 (tokens canônicos + Storybook) | 24h | P2 | UX-018 |
+| 3.10 | Auditoria componentes duplicados Radix vs shadcn | 16h | P3 | SYS-013 |
+| 3.11 | ESLint plugin a11y (`jsx-a11y`) | 4h | P2 | UX-015 |
+| 3.12 | Focus traps em modals (WCAG 2.1 AA) | 8h | P2 | UX-024 |
+| 3.13 | Security headers + CSP + SRI | 16h | P1 | GAP-04 / SEC-001 |
+| 3.14 | Skeleton screens em 10 pages principais | 12h | P3 | perceived-perf |
+| 3.15 | Web Vitals monitoring + bundle analyzer dashboard | 10h | P2 | PERF-monitoring |
+| **Total** | **15 stories** | **~184h** | | |
+
+LGPD (retention/erasure), Supabase Advisors remediation, contract tests Pact e RUM/session replay (UX-030) ficam para Sprint 4+ (escopo replanejado pós-decomposição).
 
 ### Backlog P3 (~120h, R$18.000)
 
