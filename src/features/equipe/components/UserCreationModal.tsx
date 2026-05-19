@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { motion, AnimatePresence } from 'motion/react'
 import { UserPlus, Mail, Lock, User, Shield, Phone, X, RefreshCw, CheckCircle2, Building2, Zap, Sparkles, ShieldCheck } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
@@ -48,6 +49,16 @@ type UserCreationForm = {
 export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, storeId: initialStoreId, lojas }: UserCreationModalProps) {
   const { role: currentUserRole } = useAuth()
   const [loading, setLoading] = useState(false)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef, isOpen)
+
+  // Escape fecha modal (Story 3.12 — WCAG 2.1 AA §2.1.2)
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isOpen, onClose])
   const [formData, setFormData] = useState<UserCreationForm>({
     name: '',
     email: '',
@@ -100,7 +111,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-mx-lg overflow-hidden" role="dialog" aria-modal="true">
+        <div ref={dialogRef} className="fixed inset-0 z-[110] flex items-center justify-center p-mx-lg overflow-hidden" role="dialog" aria-modal="true" aria-label="Criar novo integrante">
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 

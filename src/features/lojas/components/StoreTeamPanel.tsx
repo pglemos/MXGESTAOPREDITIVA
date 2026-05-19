@@ -1,5 +1,6 @@
 import { useTeam, useStores, type TeamMember } from '@/hooks/useTeam'
 import { UserCreationModal } from '@/features/equipe/components/UserCreationModal'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import {
     Users, UserPlus, Search, Phone, Shield, Mail, User, Trash2, Save,
@@ -70,6 +71,21 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   const [pendingConfirmations, setPendingConfirmations] = useState<Set<string>>(() => new Set())
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null)
   const [expandedPreRegistrations, setExpandedPreRegistrations] = useState<Set<string>>(() => new Set())
+  // Story 3.12 — Focus traps WCAG 2.1 AA
+  const confirmDialogRef = useRef<HTMLDivElement>(null)
+  const editMemberDialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(confirmDialogRef, !!pendingConfirmation)
+  useFocusTrap(editMemberDialogRef, !!editingMember)
+  useEffect(() => {
+    if (!pendingConfirmation && !editingMember) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (pendingConfirmation) setPendingConfirmation(null)
+      else if (editingMember) setEditingMember(null)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [pendingConfirmation, editingMember])
   const approvalFunctionUrl = useMemo(() => getSupabaseFunctionUrl('approve-store-registration'), [])
 
   const registrationLink = useMemo(() => {
@@ -398,6 +414,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   onClick={() => clearPendingConfirmation(pendingConfirmation.key)}
                 />
                 <motion.div
+                  ref={confirmDialogRef}
                   initial={{ opacity: 0, scale: 0.96, y: 12 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: 12 }}
@@ -827,7 +844,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
 	          <AnimatePresence>
             {editingMember && (
-              <div className="fixed inset-0 z-[100] flex items-start justify-center p-mx-md overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="edit-team-member-title">
+              <div ref={editMemberDialogRef} className="fixed inset-0 z-[100] flex items-start justify-center p-mx-md overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="edit-team-member-title">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingMember(null)} className="absolute inset-0 bg-mx-black/60 backdrop-blur-md" />
 
                 <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="w-full max-w-2xl relative z-10 my-mx-lg">

@@ -3,7 +3,8 @@ import { useTeam, useAllSellers, useStores } from '@/hooks/useTeam'
 import { useCheckins, useCheckinsByDateRange } from '@/hooks/useCheckins'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { canManageFeedback } from '@/lib/auth/capabilities'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { toast } from 'sonner'
 import { 
     MessageSquare, Plus, X, Send, Award, AlertCircle, Zap, 
@@ -102,6 +103,14 @@ function AdminFeedback() {
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
+    const adminDialogRef = useRef<HTMLDivElement>(null)
+    useFocusTrap(adminDialogRef, showForm)
+    useEffect(() => {
+        if (!showForm) return
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowForm(false) }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [showForm])
     const [selectedStoreId, setSelectedStoreId] = useState<string>('')
     const [formData, setFormData] = useState<FeedbackFormData>({
         seller_id: '', week_reference: previousWeek.startKey,
@@ -288,7 +297,7 @@ function AdminFeedback() {
 
             <AnimatePresence>
                 {showForm && (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                    <motion.div ref={adminDialogRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                         className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="feedback-admin-title">
                         <Card className="w-full max-w-mx-4xl max-h-full overflow-y-auto no-scrollbar shadow-mx-2xl border-none flex flex-col bg-white rounded-mx-2xl">
                             <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
@@ -487,6 +496,14 @@ function StoreFeedback() {
     const [searchTerm, setSearchTerm] = useState('')
     const [isRefetching, setIsRefetching] = useState(false)
     const [saving, setSaving] = useState(false)
+    const storeDialogRef = useRef<HTMLDivElement>(null)
+    useFocusTrap(storeDialogRef, showForm)
+    useEffect(() => {
+        if (!showForm) return
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowForm(false) }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [showForm])
 
     const [formData, setFormData] = useState<FeedbackFormData>({
         seller_id: '', week_reference: previousWeek.startKey,
@@ -665,7 +682,7 @@ function StoreFeedback() {
 
             <AnimatePresence>
                 {showForm && (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                    <motion.div ref={storeDialogRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                         className="fixed inset-0 z-50 flex items-end justify-center p-mx-sm bg-mx-black/60 backdrop-blur-sm sm:items-center md:p-10" role="dialog" aria-modal="true" aria-labelledby="feedback-store-title">
                         <Card className="flex max-h-full w-full max-w-mx-4xl flex-col overflow-hidden border-none bg-white shadow-mx-2xl rounded-mx-2xl">
                             <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">

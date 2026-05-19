@@ -1,6 +1,6 @@
 # Story 3.12 — Focus traps em modals (WCAG 2.1 AA)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -93,3 +93,22 @@ Radix Dialog já tem focus trap embutido — auditar uso correto antes de adicio
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-024
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @dev (Dex) | Status: Ready → InReview | Hook `useFocusTrap` aplicado em 7 modais custom + docs + 4 testes unitários (bun) | typecheck OK | build OK
+
+## File List
+**Criados:**
+- `src/hooks/useFocusTrap.test.tsx` — 4 cenários (foco inicial, ciclo Tab, Shift+Tab, inativo)
+- `docs/dev/accessibility-modals.md` — guia WCAG 2.1 AA + checklist + inventário
+
+**Modificados (focus trap aplicado / refs ligadas):**
+- `src/hooks/useFocusTrap.ts` (já existente — reutilizado)
+- `src/features/auth/components/ForcePasswordChange.tsx`
+- `src/features/equipe/components/UserCreationModal.tsx`
+- `src/pages/GerenteFeedback.tsx` (2 dialogs: admin + loja)
+- `src/pages/Lojas.tsx` (criar loja)
+- `src/features/lojas/components/StoreTeamPanel.tsx` (alertdialog confirmação + edição de membro)
+
+**Modais via Radix Dialog (sem mudança — já trapam foco nativamente):**
+- `src/components/organisms/Modal.tsx` e dependentes (`CreateStoreModal`, `EditUserModal`, `StoreEditModal`)
+- `src/features/ranking/components/SellerProfileModal.tsx` (já tinha trap aplicado)
+- `src/components/Layout.tsx` (menu mobile — já tinha trap aplicado)

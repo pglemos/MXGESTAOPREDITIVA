@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Lock, ShieldCheck, RefreshCw, CheckCircle2, Eye, EyeOff, LogOut, ShieldAlert, Zap, KeyRound, Sparkles } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
@@ -8,8 +8,11 @@ import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export function ForcePasswordChange() {
+  const trapRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(trapRef, true)
   const { changePassword, signOut, profile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -67,7 +70,7 @@ export function ForcePasswordChange() {
   }
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center p-mx-md overflow-hidden" role="dialog" aria-modal="true">
+    <div ref={trapRef} className="fixed inset-0 z-[999] flex items-center justify-center p-mx-md overflow-hidden" role="dialog" aria-modal="true" aria-label="Alteração obrigatória de senha">
       {/* Premium Glassmorphism Background */}
       <motion.div 
         initial={{ opacity: 0 }} 

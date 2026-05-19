@@ -1,6 +1,7 @@
 import { useStores, useStoresStats } from '@/hooks/useTeam'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { toast } from 'sonner'
 import { ArrowRight, Building2, Compass, Search, Plus, RefreshCw, X, Mail, Copy, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -33,6 +34,14 @@ export default function Lojas() {
     const [copyError, setCopyError] = useState<string | null>(null)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [newStore, setNewStore] = useState({ name: '', manager_email: '' })
+    const createModalRef = useRef<HTMLDivElement>(null)
+    useFocusTrap(createModalRef, isCreateModalOpen)
+    useEffect(() => {
+        if (!isCreateModalOpen) return
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsCreateModalOpen(false) }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [isCreateModalOpen])
     const [creating, setCreating] = useState(false)
 
     const loading = storesLoading || statsLoading
@@ -463,7 +472,7 @@ export default function Lojas() {
 
             <AnimatePresence>
                 {isCreateModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="create-store-title">
+                    <div ref={createModalRef} className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="create-store-title">
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-lg">
                             <Card className="p-mx-lg md:p-14 border-none shadow-mx-2xl bg-white overflow-hidden relative rounded-mx-3xl">
                                 <form onSubmit={handleCreateStore} className="space-y-mx-xl relative z-10">
