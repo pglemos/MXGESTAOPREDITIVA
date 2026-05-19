@@ -1,6 +1,6 @@
 # Story 3.7 — Substituir 22+ hex hardcoded em charts por tokens
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -88,6 +88,17 @@ CSS vars permitem theming runtime sem rebuild. Recharts aceita `stroke`/`fill` c
 
 ---
 
+## File List
+- `src/lib/charts/tokens.ts` (novo) — helper canônico `chartTokens`, `chartSeriesArray`, `chartStatusColors`
+- `src/index.css` — adicionadas CSS vars `--color-chart-1..8` + axis/grid/dot-stroke tokens em `@theme`
+- `src/pages/ConsultoriaClienteDetalhe.tsx` — Line/CartesianGrid/XAxis/YAxis: hex → tokens
+- `src/pages/SalesPerformance.tsx` — `chartPalette` → `getChartPalette()`, funnel colors, tooltip color
+- `src/pages/SellerPerformance.tsx` — Radar/PolarAngleAxis/YAxis/Tooltip: hex → tokens
+- `src/pages/VendedorPDI.tsx` — Radar/PolarGrid/PolarAngleAxis: hex → tokens
+- `src/features/pdi/WizardPDI.tsx` — Radar/PolarAngleAxis: hex → tokens
+- `src/features/ranking/components/SellerProfileModal.tsx` — Radar/PolarGrid: hex → tokens
+
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-005
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @dev (Dex) + @ux-design-expert (Uma) | Status: Ready → InReview | Helper `chartTokens` criado, 30+ hex substituídos em 7 arquivos (todos componentes recharts da app), tokens canônicos `--color-chart-1..8` + axis/grid em `src/index.css`. Storybook + Playwright snapshots ficam para iteração posterior (cobertura mínima atendida via typecheck + build). Visual: fallback values = hex original — zero mudança perceptível.

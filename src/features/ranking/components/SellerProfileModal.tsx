@@ -6,6 +6,7 @@ import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/atoms/Avatar'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { chartTokens } from '@/lib/charts/tokens'
 
 interface SellerProfileModalProps {
     seller: RankingEntry
@@ -105,9 +106,9 @@ export function SellerProfileModal({ seller, onClose }: SellerProfileModalProps)
                                 <div className="w-full h-mx-64 relative">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={attributes}>
-                                            <PolarGrid stroke="#334155" />
-                                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} />
-                                            <Radar name={seller.user_name} dataKey="A" stroke="#00E5FF" strokeWidth={3} fill="#00E5FF" fillOpacity={0.2} />
+                                            <PolarGrid stroke={chartTokens.gridDark()} />
+                                            <PolarAngleAxis dataKey="subject" tick={{ fill: chartTokens.axisTickMuted(), fontSize: 10, fontWeight: 'bold' }} />
+                                            <Radar name={seller.user_name} dataKey="A" stroke={chartTokens.series.s8()} strokeWidth={3} fill={chartTokens.series.s8()} fillOpacity={0.2} />
                                         </RadarChart>
                                     </ResponsiveContainer>
                                 </div>

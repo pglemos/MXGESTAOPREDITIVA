@@ -11,6 +11,7 @@ import { Card } from '@/components/molecules/Card'
 import { toast } from 'sonner'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
 import { cn } from '@/lib/utils'
+import { chartTokens } from '@/lib/charts/tokens'
 import * as Dialog from '@radix-ui/react-dialog'
 
 export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSuccess: (sessionId?: string) => void }) {
@@ -453,8 +454,8 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={template.competencias.map(c => ({ name: c.nome, nota: form.avaliacoes[c.id] || 0, alvo: c.alvo, fullMark: c.alvo }))}>
                                                     <PolarGrid stroke="var(--color-border-subtle)" />
-                                                    <PolarAngleAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 9, fontWeight: 900 }} />
-                                                    <Radar name="Alvo" dataKey="alvo" stroke="#94a3b8" strokeDasharray="3 3" fill="transparent" />
+                                                    <PolarAngleAxis dataKey="name" tick={{ fill: chartTokens.axisTickStrong(), fontSize: 9, fontWeight: 900 }} />
+                                                    <Radar name="Alvo" dataKey="alvo" stroke={chartTokens.axisTickMuted()} strokeDasharray="3 3" fill="transparent" />
                                                     <Radar name="Nota" dataKey="nota" stroke="var(--color-brand-primary)" strokeWidth={2} fill="var(--color-brand-primary)" fillOpacity={0.3} />
                                                 </RadarChart>
                                             </ResponsiveContainer>

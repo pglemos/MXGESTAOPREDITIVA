@@ -53,6 +53,7 @@ import {
   isPmrMainCycleVisitNumber,
   isPmrSchedulableVisitNumber,
 } from '@/lib/consultoria/pmr-visit-rules'
+import { chartTokens } from '@/lib/charts/tokens'
 
 type Tab = 'overview' | 'visits' | 'strategic' | 'action' | 'financial' | 'daily' | 'monthly' | 'roi' | 'pdis' | 'files'
 
@@ -167,16 +168,16 @@ function ConsultingROIView({ client }: { client: ConsultingClientDetail }) {
               <div className="h-mx-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                    <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} dy={10} />
-                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#6B7280'}} />
-                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#22C55E'}} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTokens.grid()} />
+                    <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: chartTokens.axisTick()}} dy={10} />
+                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: chartTokens.axisTick()}} />
+                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: chartTokens.accent()}} />
                     <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
                     <Legend iconType="circle" />
-                    <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke="#0D3B2E" strokeWidth={4} dot={{r: 6, fill: '#0D3B2E', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
-                    <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke="#22C55E" strokeWidth={4} dot={{r: 6, fill: '#22C55E', strokeWidth: 2, stroke: '#fff'}} />
-                    <Line yAxisId="right" type="monotone" dataKey="margem" name="Margem %" stroke="#FACC15" strokeWidth={3} strokeDasharray="5 5" dot={{r: 4, fill: '#FACC15'}} />
-                    <Line yAxisId="right" type="monotone" dataKey="estoque" name="Estoque +90d %" stroke="#EF4444" strokeWidth={2} dot={{r: 4, fill: '#EF4444'}} />
+                    <Line yAxisId="left" type="monotone" dataKey="vendas" name="Vendas" stroke={chartTokens.primary()} strokeWidth={4} dot={{r: 6, fill: chartTokens.primary(), strokeWidth: 2, stroke: chartTokens.dotStroke()}} activeDot={{r: 8}} />
+                    <Line yAxisId="right" type="monotone" dataKey="conversao" name="Conversão %" stroke={chartTokens.accent()} strokeWidth={4} dot={{r: 6, fill: chartTokens.accent(), strokeWidth: 2, stroke: chartTokens.dotStroke()}} />
+                    <Line yAxisId="right" type="monotone" dataKey="margem" name="Margem %" stroke={chartTokens.series.s3()} strokeWidth={3} strokeDasharray="5 5" dot={{r: 4, fill: chartTokens.series.s3()}} />
+                    <Line yAxisId="right" type="monotone" dataKey="estoque" name="Estoque +90d %" stroke={chartTokens.danger()} strokeWidth={2} dot={{r: 4, fill: chartTokens.danger()}} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

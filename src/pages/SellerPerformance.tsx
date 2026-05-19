@@ -21,6 +21,7 @@ import {
 } from 'recharts'
 import { cn } from '@/lib/utils'
 import { motion } from 'motion/react'
+import { chartTokens } from '@/lib/charts/tokens'
 
 type SellerRankingRow = RankingEntry & { id: string }
 
@@ -194,7 +195,7 @@ export default function SellerPerformance() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={attributes}>
                                     <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: chartTokens.axisTickMuted(), fontSize: 10, fontWeight: 'bold' }} />
                                     <Radar name={seller.user_name} dataKey="A" stroke="var(--color-brand-primary)" strokeWidth={3} fill="var(--color-brand-primary)" fillOpacity={0.2} />
                                 </RadarChart>
                             </ResponsiveContainer>
@@ -255,7 +256,7 @@ export default function SellerPerformance() {
                                     <BarChart data={[{ name: 'Mês Atual', sales: seller.vnd_total, goal: seller.meta }]}>
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
-                                        <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-lg)', border: 'none', color: '#fff' }} />
+                                        <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-lg)', border: 'none', color: 'var(--color-chart-dot-stroke)' }} />
                                         <Bar dataKey="sales" fill="var(--color-brand-primary)" radius={[4, 4, 0, 0]} barSize={40} />
                                         <Bar dataKey="goal" fill="var(--color-surface-alt)" radius={[4, 4, 0, 0]} barSize={40} />
                                     </BarChart>
@@ -342,8 +343,8 @@ export default function SellerPerformance() {
                             <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                                 <BarChart data={filteredRanking.slice(0, 5)} layout="vertical" margin={{ left: 0, right: 30, top: 0, bottom: 0 }}>
                                     <XAxis type="number" hide />
-                                    <YAxis dataKey="user_name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#fff', fontWeight: 900, fontSize: 8 }} width={100} />
-                                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-lg)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900 }} />
+                                    <YAxis dataKey="user_name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-chart-dot-stroke)', fontWeight: 900, fontSize: 8 }} width={100} />
+                                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-lg)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900 }} />
                                     <Bar dataKey="vnd_total" radius={[0, 4, 4, 0]} barSize={20}>
                                         {filteredRanking.slice(0, 5).map((_, i) => (
                                             <Cell key={i} fill={i === 0 ? 'var(--color-brand-primary)' : 'rgba(255,255,255,0.2)'} />

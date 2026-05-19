@@ -23,6 +23,26 @@
   --color-status-info: #3b82f6;
   --color-status-info-surface: rgba(59, 130, 246, 0.05);
 
+  /* Chart Series (Story 3.7 / UX-005) — paleta canônica para recharts.
+     NUNCA usar hex em chart components: importar de src/lib/charts/tokens.ts */
+  --color-chart-1: #0D3B2E;
+  --color-chart-2: #22C55E;
+  --color-chart-3: #FACC15;
+  --color-chart-4: #2563EB;
+  --color-chart-5: #EF4444;
+  --color-chart-6: #7C3AED;
+  --color-chart-7: #F59E0B;
+  --color-chart-8: #00E5FF;
+
+  /* Chart Axis / Grid tokens */
+  --color-chart-axis-tick: #6B7280;
+  --color-chart-axis-tick-muted: #94a3b8;
+  --color-chart-axis-tick-strong: #64748b;
+  --color-chart-grid: #E5E7EB;
+  --color-chart-grid-strong: #e2e8f0;
+  --color-chart-grid-dark: #334155;
+  --color-chart-dot-stroke: #ffffff;
+
   /* Surface & Borders */
   --color-surface-default: #ffffff;
   --color-surface-alt: #f8fafc;

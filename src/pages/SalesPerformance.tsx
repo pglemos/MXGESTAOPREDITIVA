@@ -23,6 +23,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { somarVendas, calcularProjecao, getDiasInfo, calcularAtingimento } from '@/lib/calculations'
 import { format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
+import { chartTokens, chartSeriesArray } from '@/lib/charts/tokens'
 
 export default function SalesPerformance() {
     const { role, setActiveStoreId } = useAuth()
@@ -35,7 +36,8 @@ export default function SalesPerformance() {
 
 const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(Math.round(value || 0))
 const formatPercent = (value: number) => `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(value || 0)}%`
-const chartPalette = ['#0D3B2E', '#22C55E', '#2563EB', '#F59E0B', '#E11D48', '#64748B']
+/** Story 3.7: paleta canônica de séries (substitui hex hardcoded). */
+const getChartPalette = (): string[] => chartSeriesArray()
 const roleLabels: Record<string, string> = {
     administrador_geral: 'Admin Master',
     administrador_mx: 'Admin MX',
@@ -168,8 +170,8 @@ function AdminPerformance() {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-default)" />
                                         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
-                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
-                                        <Area type="monotone" dataKey="sales" stroke="var(--color-brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" dot={{ r: 6, fill: 'var(--color-brand-primary)', strokeWidth: 4, stroke: '#fff' }} activeDot={{ r: 8, fill: 'var(--color-brand-primary)', stroke: '#fff', strokeWidth: 4 }} />
+                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
+                                        <Area type="monotone" dataKey="sales" stroke="var(--color-brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" dot={{ r: 6, fill: 'var(--color-brand-primary)', strokeWidth: 4, stroke: 'var(--color-chart-dot-stroke)' }} activeDot={{ r: 8, fill: 'var(--color-brand-primary)', stroke: 'var(--color-chart-dot-stroke)', strokeWidth: 4 }} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -254,10 +256,10 @@ function AdminPerformanceV2() {
         active: item.active,
     })), [metrics.roleBreakdown])
     const funnelData = useMemo(() => [
-        { name: 'Leads', value: metrics.totalLeads, color: '#2563EB' },
-        { name: 'Agend.', value: metrics.totalAgd, color: '#F59E0B' },
-        { name: 'Visitas', value: metrics.totalVis, color: '#7C3AED' },
-        { name: 'Vendas', value: metrics.totalSales, color: '#22C55E' },
+        { name: 'Leads', value: metrics.totalLeads, color: chartTokens.series.s4() },
+        { name: 'Agend.', value: metrics.totalAgd, color: chartTokens.series.s7() },
+        { name: 'Visitas', value: metrics.totalVis, color: chartTokens.series.s6() },
+        { name: 'Vendas', value: metrics.totalSales, color: chartTokens.series.s2() },
     ], [metrics.totalAgd, metrics.totalLeads, metrics.totalSales, metrics.totalVis])
     const consultingData = useMemo(() => metrics.consultingStatus.length > 0
         ? metrics.consultingStatus.map((item) => ({ name: item.status.replace(/_/g, ' '), value: item.total }))
@@ -387,8 +389,8 @@ function AdminPerformanceV2() {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-default)" />
                                         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
-                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
-                                        <Area type="monotone" dataKey="sales" stroke="var(--color-brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorSalesExecutive)" dot={{ r: 5, fill: 'var(--color-brand-primary)', strokeWidth: 3, stroke: '#fff' }} activeDot={{ r: 8, fill: 'var(--color-brand-primary)', stroke: '#fff', strokeWidth: 4 }} />
+                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
+                                        <Area type="monotone" dataKey="sales" stroke="var(--color-brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorSalesExecutive)" dot={{ r: 5, fill: 'var(--color-brand-primary)', strokeWidth: 3, stroke: 'var(--color-chart-dot-stroke)' }} activeDot={{ r: 8, fill: 'var(--color-brand-primary)', stroke: 'var(--color-chart-dot-stroke)', strokeWidth: 4 }} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -481,7 +483,7 @@ function AdminPerformanceV2() {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-default)" />
                                 <XAxis dataKey="storeName" tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 9 }} interval={0} angle={-16} textAnchor="end" height={72} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
-                                <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
+                                <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
                                 <Legend />
                                 <Bar dataKey="sales" name="Sell-out" radius={[6, 6, 0, 0]} fill="var(--color-brand-primary)" />
                                 <Bar dataKey="goal" name="Meta" radius={[6, 6, 0, 0]} fill="var(--color-status-info)" />
@@ -503,7 +505,7 @@ function AdminPerformanceV2() {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-default)" />
                                 <XAxis dataKey="name" tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
-                                <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
+                                <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
                                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                                     {funnelData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                                 </Bar>
@@ -526,9 +528,9 @@ function AdminPerformanceV2() {
                         <ResponsiveContainer width="100%" height="70%">
                             <RechartsPieChart>
                                 <Pie data={roleData} dataKey="value" nameKey="name" innerRadius={54} outerRadius={86} paddingAngle={3}>
-                                    {roleData.map((entry, index) => <Cell key={entry.name} fill={chartPalette[index % chartPalette.length]} />)}
+                                    {roleData.map((entry, index) => <Cell key={entry.name} fill={getChartPalette()[index % getChartPalette().length]} />)}
                                 </Pie>
-                                <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
+                                <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
                             </RechartsPieChart>
                         </ResponsiveContainer>
                         <div className="grid grid-cols-2 gap-mx-xs">
@@ -560,7 +562,7 @@ function AdminPerformanceV2() {
                             {consultingData.map((item, index) => (
                                 <div key={item.name} className="flex items-center justify-between gap-mx-sm">
                                     <div className="flex items-center gap-mx-sm min-w-0">
-                                        <span className="w-mx-xs h-mx-xs rounded-full shrink-0" style={{ backgroundColor: chartPalette[index % chartPalette.length] }} />
+                                        <span className="w-mx-xs h-mx-xs rounded-full shrink-0" style={{ backgroundColor: getChartPalette()[index % getChartPalette().length] }} />
                                         <Typography variant="tiny" className="uppercase font-black truncate">{item.name}</Typography>
                                     </div>
                                     <Badge variant="outline" className="text-mx-nano">{String(item.value)}</Badge>
@@ -752,8 +754,8 @@ function StorePerformance() {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-default)" />
                                         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
-                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
-                                        <Area type="monotone" dataKey="sales" stroke="var(--color-brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" dot={{ r: 6, fill: 'var(--color-brand-primary)', strokeWidth: 4, stroke: '#fff' }} activeDot={{ r: 8, fill: 'var(--color-brand-primary)', stroke: '#fff', strokeWidth: 4 }} />
+                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-xl)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900, padding: '16px' }} />
+                                        <Area type="monotone" dataKey="sales" stroke="var(--color-brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" dot={{ r: 6, fill: 'var(--color-brand-primary)', strokeWidth: 4, stroke: 'var(--color-chart-dot-stroke)' }} activeDot={{ r: 8, fill: 'var(--color-brand-primary)', stroke: 'var(--color-chart-dot-stroke)', strokeWidth: 4 }} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (

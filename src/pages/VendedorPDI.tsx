@@ -15,6 +15,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
+import { chartTokens } from '@/lib/charts/tokens'
 
 export default function VendedorPDI() {
     const { pdis, loading, refetch } = useMyPDISessions()
@@ -190,9 +191,9 @@ export default function VendedorPDI() {
                                         <div className="w-full aspect-square relative" aria-label="Radar técnico do PDI">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                                    <PolarGrid stroke="#e2e8f0" />
-                                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} />
-                                                    <Radar name="Competências" dataKey="A" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.2} strokeWidth={3} />
+                                                    <PolarGrid stroke={chartTokens.gridStrong()} />
+                                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 900, fill: chartTokens.axisTickStrong() }} />
+                                                    <Radar name="Competências" dataKey="A" stroke={chartTokens.series.s6()} fill={chartTokens.series.s6()} fillOpacity={0.2} strokeWidth={3} />
                                                 </RadarChart>
                                             </ResponsiveContainer>
                                         </div>
