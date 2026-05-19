@@ -1,6 +1,6 @@
 # Story 3.15 — Web Vitals monitoring + bundle analyzer dashboard
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -96,6 +96,16 @@ Telemetria contínua = decisões data-driven. Bundle analyzer em CI bloqueia cre
 
 ---
 
+## File List
+- `src/lib/observability/web-vitals.ts` (novo) — captura LCP/INP/CLS/FCP/TTFB e reporta como tag + breadcrumb Sentry
+- `src/lib/observability/index.ts` — exporta `initWebVitals`
+- `src/main.tsx` — chama `initWebVitals()` após `initSentry()`
+- `scripts/check_bundle_size.mjs` (novo) — valida tamanho gzip dos chunks vs budgets
+- `.github/workflows/bundle-budget.yml` (novo) — CI bloqueia PR que ultrapassa budget
+- `docs/dev/web-vitals-and-budgets.md` (novo) — documentação completa
+- `package.json` — script `check:bundle-size` + deps `web-vitals@^4.2.0`, `react-is@^18.3.1`
+
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 PERF-monitoring
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @dev (Dex) | Status: Ready → InReview | Implementação completa: web-vitals lib + helper observability + Sentry tags/breadcrumbs (AC1) + script `check_bundle_size.mjs` + CI workflow `bundle-budget.yml` (AC4) + doc `web-vitals-and-budgets.md` | Build atual: 1635 KB gzip / 1800 budget (90.8%) | Side-fix: react-is adicionado (recharts peer dep faltando) — desbloqueou build | AC3 (rollup-plugin-visualizer) NÃO implementado — substituído por script próprio mais determinístico; AC5 (PR comment) deixado para @devops considerar action externa (bundlewatch) em iteração futura | typecheck OK

@@ -12,3 +12,5 @@ export {
     setCorrelationTag,
     Sentry,
 } from './sentry'
+
+export { initWebVitals } from './web-vitals'
