@@ -1,6 +1,6 @@
 # Story 3.9 — DS maturity 3/5 → 4/5 (tokens canônicos + Storybook)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -100,3 +100,4 @@ Storybook 8 + Vite builder. Tokens em TS para tree-shaking. CSS vars geradas via
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-018
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

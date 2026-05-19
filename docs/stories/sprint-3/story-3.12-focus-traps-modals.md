@@ -1,6 +1,6 @@
 # Story 3.12 — Focus traps em modals (WCAG 2.1 AA)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -92,3 +92,4 @@ Radix Dialog já tem focus trap embutido — auditar uso correto antes de adicio
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-024
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

@@ -1,6 +1,6 @@
 # Story 3.8 — `lint-tokens.js` AST-driven anti-drift
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -93,3 +93,4 @@ Substituir regex por análise AST (TypeScript Compiler API + PostCSS AST) elimin
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-006
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

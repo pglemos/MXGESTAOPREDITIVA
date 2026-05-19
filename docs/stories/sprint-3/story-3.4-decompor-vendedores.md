@@ -1,6 +1,6 @@
 # Story 3.4 — Decompor `Vendedores` (~550 LOC)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -82,3 +82,4 @@ Seguir ADR-0050. Guards de role permanecem no container; sections recebem dados 
 ---
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

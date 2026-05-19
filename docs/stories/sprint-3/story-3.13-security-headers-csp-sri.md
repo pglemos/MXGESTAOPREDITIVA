@@ -1,6 +1,6 @@
 # Story 3.13 — Security headers + CSP + SRI
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P1
@@ -98,3 +98,4 @@ Eleva postura de segurança ao baseline indústria. Score Mozilla Observatory �
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 SEC-001
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

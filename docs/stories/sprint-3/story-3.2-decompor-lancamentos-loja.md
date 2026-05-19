@@ -1,6 +1,6 @@
 # Story 3.2 — Decompor `LancamentosLoja` (~650 LOC)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -88,3 +88,4 @@ Seguir ADR-0050. Atenção a `react-hook-form` + Zod — extrair `useLancamentos
 ---
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada — Sprint 3 UX-001
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

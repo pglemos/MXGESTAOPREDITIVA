@@ -1,6 +1,6 @@
 # Story 3.14 — Skeleton screens em 10 pages principais
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P3
@@ -95,3 +95,4 @@ shadcn/ui já tem `<Skeleton />` base — estender. Delay anti-flash: `useDelaye
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 perceived-perf
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

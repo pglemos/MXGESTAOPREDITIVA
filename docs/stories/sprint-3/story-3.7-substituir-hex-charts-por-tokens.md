@@ -1,6 +1,6 @@
 # Story 3.7 — Substituir 22+ hex hardcoded em charts por tokens
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -90,3 +90,4 @@ CSS vars permitem theming runtime sem rebuild. Recharts aceita `stroke`/`fill` c
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-005
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

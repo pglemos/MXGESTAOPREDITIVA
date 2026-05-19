@@ -1,6 +1,6 @@
 # Story 3.15 — Web Vitals monitoring + bundle analyzer dashboard
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -98,3 +98,4 @@ Telemetria contínua = decisões data-driven. Bundle analyzer em CI bloqueia cre
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 PERF-monitoring
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

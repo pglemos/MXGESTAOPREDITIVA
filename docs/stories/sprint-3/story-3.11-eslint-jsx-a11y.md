@@ -1,6 +1,6 @@
 # Story 3.11 — ESLint plugin a11y (`jsx-a11y`)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -85,3 +85,4 @@ Plugin barato (4h) que captura ~30% dos defeitos a11y antes de chegar em produç
 
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-015
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

@@ -1,6 +1,6 @@
 # Story 3.1 — Decompor `Notificacoes` (~700 LOC)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -105,3 +105,4 @@ Seguir ADR-0050 strictly. Atenção especial a subscriptions realtime — extrai
 
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada — Sprint 3 UX-001 decomposição
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass

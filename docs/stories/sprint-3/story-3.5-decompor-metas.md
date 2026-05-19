@@ -1,6 +1,6 @@
 # Story 3.5 — Decompor `Metas` (~500 LOC)
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -95,3 +95,4 @@ Seguir ADR-0050 strictly. Atenção a charts (Recharts) — dataset deve ser mem
 
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada — Sprint 3 UX-001 decomposição Metas
+- 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
