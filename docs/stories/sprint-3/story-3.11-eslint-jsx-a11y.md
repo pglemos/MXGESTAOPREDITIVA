@@ -1,6 +1,6 @@
 # Story 3.11 — ESLint plugin a11y (`jsx-a11y`)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -41,13 +41,33 @@ Plugin barato (4h) que captura ~30% dos defeitos a11y antes de chegar em produç
 - ❌ Focus traps (story 3.12)
 
 ## Tasks
-- [ ] Instalar plugin + setup config (0.5h)
-- [ ] Rodar lint, gerar baseline de violations (0.5h)
-- [ ] Fix errors (2h)
-- [ ] CI enforcement (0.5h)
-- [ ] Doc `docs/contributing/a11y.md` (0.5h)
+- [x] Instalar plugin + setup config (0.5h)
+- [x] Rodar lint, gerar baseline de violations (0.5h)
+- [x] Fix errors (2h)
+- [x] CI enforcement (0.5h)
+- [x] Doc `docs/contributing/a11y.md` (0.5h)
 - [ ] CodeRabbit review
 - [ ] @qa gate
+
+## File List
+- **Modified:** `eslint.config.js` (config flat com jsx-a11y + react + react-hooks)
+- **Modified:** `package.json` (deps eslint*, scripts `lint` + `lint:a11y`)
+- **Created:** `.github/workflows/eslint-a11y.yml` (CI enforcement)
+- **Created:** `docs/contributing/a11y.md` (guia contribuidor)
+- **Modified (a11y fix):** `src/components/molecules/Card.tsx` (heading-has-content)
+- **Modified (a11y fix):** `src/pages/Checkin.tsx` (no-redundant-roles)
+- **Modified (a11y fix):** `src/pages/ProdutosDigitais.tsx` (no-redundant-roles)
+- **Modified (a11y fix):** `src/features/configuracoes/components/AgendaOptionsCatalog.tsx` (no-redundant-roles)
+- **Modified (a11y fix):** `src/features/landing/sections/FooterSection.tsx` (anchor-is-valid)
+- **Modified (a11y fix):** `src/features/landing/sections/TopBarSection.tsx` (anchor-is-valid)
+
+## Dev Notes
+- Baseline detectado: **55 errors / 29 warnings (84 problems totais)**.
+- Após fixes + relaxamentos: **0 errors / 55 warnings**.
+- AC3 atendido (0 errors). AC4 atendido (CI bloqueia novos errors via `--max-warnings=999` mas erros zerados).
+- **Rollback Plan #1 ativado:** `jsx-a11y/label-has-associated-control` (26 ocorrências, falsos positivos com Radix) demoted para `warn`. **Pendência:** criar story UX-015B Sprint 4 para cleanup e promover a `error`.
+- Plugins extras instalados (`eslint-plugin-react`, `eslint-plugin-react-hooks`) ficam disponíveis sem regras ativas — pronto para futura story de React rules.
+- ESLint v9 + flat config; `eslint-plugin-jsx-a11y` instalado com `--legacy-peer-deps` (peer dep lista até v9 inclusive).
 
 ## Dependências
 **Bloqueada por:** —
@@ -86,3 +106,4 @@ Plugin barato (4h) que captura ~30% dos defeitos a11y antes de chegar em produç
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-015
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @dev (Dex) | Status: Ready → InReview | Implementação concluída: eslint v9 + jsx-a11y + react/react-hooks plugins; baseline 55 errors → 0 errors; CI workflow `eslint-a11y.yml`; doc `docs/contributing/a11y.md`. Rollback Plan #1 acionado para `label-has-associated-control` (warn, tracking via UX-015B Sprint 4).

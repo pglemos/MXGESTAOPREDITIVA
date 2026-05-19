@@ -6,7 +6,7 @@ export function TopBarSection({ topbarRef }: Props) {
   return (
     <header ref={topbarRef} className="topbar" role="banner">
       <div className="topbar-inner">
-        <a href="#" className="brand" aria-label="MX PERFORMANCE - Inicio">
+        <a href="#top" className="brand" aria-label="MX PERFORMANCE - Inicio">
           <div className="brand-mark">
             <img src="/landing/logo-mx.png" alt="Logotipo MX" />
           </div>

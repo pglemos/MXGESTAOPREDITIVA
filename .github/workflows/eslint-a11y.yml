@@ -1,0 +1,24 @@
+name: ESLint a11y (jsx-a11y)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  eslint-a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Run ESLint (jsx-a11y)
+        # Story 3.11 / UX-015: bloqueia PR se houver errors a11y.
+        # Warnings sao toleradas (tracking, nao bloqueio).
+        run: npm run lint:a11y -- --max-warnings=999

@@ -291,7 +291,7 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
             />
           </Card>
         ) : (
-          <ul role="list" className="grid grid-cols-1 gap-mx-sm">
+          <ul className="grid grid-cols-1 gap-mx-sm">
             {filteredOptions.map((option) => (
               <li key={option.id}>
                 <Card className="border-none bg-white p-mx-md shadow-mx-md">

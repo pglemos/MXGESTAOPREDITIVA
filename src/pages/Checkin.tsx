@@ -641,7 +641,7 @@ export default function Checkin() {
                             <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center shadow-inner"><ShieldCheck size={24} /></div>
                             <Typography variant="h3">Contrato MX</Typography>
                         </header>
-                        <ul className="space-y-mx-lg" role="list">
+                        <ul className="space-y-mx-lg">
                             {[
                                 `Envie o registro diário até ${CHECKIN_DEADLINE_LABEL}.`,
                                 `Correções ficam disponíveis até ${CHECKIN_EDIT_LIMIT_LABEL}.`,

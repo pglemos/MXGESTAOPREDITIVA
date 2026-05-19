@@ -5,7 +5,7 @@ export function FooterSection() {
             <h2 className="foot-mega" aria-hidden="true">MX <span className="it">Performance</span></h2>
             <div className="foot-grid">
               <div>
-                <a href="#" className="brand" style={{ marginBottom: 18 }}>
+                <a href="#top" className="brand" style={{ marginBottom: 18 }}>
                   <div className="brand-mark"><img src="/landing/logo-mx.png" alt="MX" /></div>
                   <div className="brand-name">MX <span>PERFORMANCE</span></div>
                 </a>
@@ -33,7 +33,7 @@ export function FooterSection() {
               </div>
               <div>
                 <h6>MX</h6>
-                <a href="#">Sobre a MX Consultoria</a>
+                <a href="#mx-sobre">Sobre a MX Consultoria</a>
                 <a href="/privacy">Privacidade</a>
                 <a href="/terms">Termos de uso</a>
                 <a href="https://www.instagram.com/mxconsultoriabr">Contato</a>

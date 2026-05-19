@@ -572,7 +572,7 @@ export default function ProdutosDigitais() {
             )}
           </Card>
         ) : (
-          <ul role="list" className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <ul className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
                 <motion.li
