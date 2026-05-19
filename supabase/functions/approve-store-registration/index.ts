@@ -183,6 +183,7 @@ serve(async (req) => {
       seller_user_id: preRegistration.auth_user_id,
       store_id: preRegistration.store_id,
       started_at: new Date().toISOString().slice(0, 10),
+      ended_at: null,
       is_active: true,
       closing_month_grace: false,
     }, { onConflict: 'store_id,seller_user_id' })
