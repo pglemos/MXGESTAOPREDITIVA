@@ -1,6 +1,6 @@
 # Story 3.10 — Auditoria componentes duplicados Radix vs shadcn
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P3
@@ -94,3 +94,8 @@ shadcn/ui é "copy-paste" então `components/ui/` é nosso ground truth. Radix �
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 SYS-013
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @ux-design-expert (Uma) | Status: Ready → InReview | **Escopo reduzido: AUDIT-ONLY**. Findings empíricos invalidaram premissa (apenas 1 Radix dep, sem shadcn). AC1+AC2 atendidos via `docs/reviews/ux-component-duplication-audit.md` + ADR-0054. AC3-AC5 movidos para backlog Sprint 4.
+
+## File List
+- `docs/reviews/ux-component-duplication-audit.md` (novo) — relatório de auditoria
+- `docs/adr/0054-component-library-policy.md` (novo) — política Atomic Design + Radix selective
