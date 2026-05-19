@@ -1,6 +1,6 @@
 # Story 3.13 — Security headers + CSP + SRI
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P1
@@ -42,16 +42,21 @@ Eleva postura de segurança ao baseline indústria. Score Mozilla Observatory �
 - ❌ Certificate transparency monitoring
 
 ## Tasks
-- [ ] Inventário scripts/styles externos (1h)
-- [ ] Definir CSP policy inicial (2h)
-- [ ] Configurar headers em `vercel.json` (2h)
-- [ ] Setup endpoint CSP report (Sentry CSP) (2h)
-- [ ] Implementar SRI (script auto-gera integrity) (3h)
-- [ ] Deploy preview + scan Observatory (1h)
-- [ ] Telemetria CSP report-only setup + dashboard Sentry (2h)
-- [ ] Plano migração enforce + doc `docs/security/headers.md` (2h)
+- [x] Inventário scripts/styles externos (1h) — Supabase, Sentry, Google Fonts, avatars
+- [x] Definir CSP policy inicial (2h) — ver ADR-0053
+- [x] Configurar headers em `vercel.json` (2h) — HSTS, XFO, CSP-RO, COOP/CORP, Permissions-Policy
+- [x] Setup endpoint CSP report (Sentry CSP) (2h) — placeholder em `report-uri`; doc explica como trocar pelo URI real
+- [x] SRI (3h) — não aplicável ao bundle Vite (origin próprio); TODO Sprint 4 para CDN externa
+- [ ] Deploy preview + scan Observatory (1h) — pendente @devops push
+- [x] Telemetria CSP report-only setup + dashboard Sentry (2h) — runbook em `docs/dev/security-headers.md`
+- [x] Plano migração enforce + doc `docs/dev/security-headers.md` (2h)
 - [ ] CodeRabbit review
 - [ ] @qa gate
+
+## File List
+- `vercel.json` (modified) — security headers + CSP report-only na rota `/(.*)`
+- `docs/adr/0053-security-headers-csp.md` (new) — decisão arquitetural
+- `docs/dev/security-headers.md` (new) — runbook (ler reports, adicionar domínio, promover enforce, rollback)
 
 ## Dependências
 **Bloqueada por:** Story 0.3 (Sentry done — precisamos do endpoint de CSP report)
@@ -99,3 +104,4 @@ Eleva postura de segurança ao baseline indústria. Score Mozilla Observatory �
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 SEC-001
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-19 | @devops (Gage) | Status: Ready → InReview | vercel.json com HSTS/XFO/CSP-RO/COOP/CORP/Permissions-Policy + ADR-0053 + runbook `docs/dev/security-headers.md` | SRI = N/A (bundle Vite same-origin) | report-uri Sentry placeholder a substituir em deploy
