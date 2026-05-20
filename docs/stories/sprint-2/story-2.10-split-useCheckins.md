@@ -1,6 +1,6 @@
 # Story 2.10 — Split `useCheckins` (escopo residual pós Story 1.2)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P2
@@ -108,3 +108,4 @@ Encerra débito UX-002 ao alinhar `useCheckins` ao pattern de Stories 2.7-2.9. R
 
 - 2026-05-18 | @sm (River) | Story criada — UX-002 residual Sprint 2 (auditoria primeiro)
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass (Story 1.2 fdf73f3 já em main; audit-gate primeiro)
+- 2026-05-19 | @dev (Dex) | Status: Ready → InReview | Audit-gate: GO (421 LOC ≥ 300, threshold ADR-0051) | Split executado em 5 sub-hooks (`useCheckinsList` 86, `useCheckinsToday` 65, `useCheckinsByDate` 54, `useCheckinsSubmit` 86, `useMyCheckins`+`useCheckinsByDateRange` 114) + `types.ts` (87) + barrel `index.ts` (22) | `useCheckins.ts` reduzido para 91 LOC (shim `@deprecated` composer). Contrato público preservado 100% | `npm run typecheck` ✅, `npm run build` ✅. **File List:** `src/hooks/checkins/types.ts`, `src/hooks/checkins/useCheckinsList.ts`, `src/hooks/checkins/useCheckinsToday.ts`, `src/hooks/checkins/useCheckinsByDate.ts`, `src/hooks/checkins/useCheckinsSubmit.ts`, `src/hooks/checkins/useMyCheckins.ts`, `src/hooks/checkins/index.ts`, `src/hooks/useCheckins.ts` (rewrite shim)
