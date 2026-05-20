@@ -13,12 +13,15 @@ describe('visit report draft formatter', () => {
       pendingTasks: ['Tarefa generica pendente'],
     })
 
-    expect(message).toContain('*Resumo da visita - G&A Veiculos*')
-    expect(message).toContain('Visita 3: Plano de remuneracao')
+    expect(message).toContain('RELATÓRIO DE VISITA TÉCNICA - MÉTODO MX')
+    expect(message).toContain('Empresa: G&A Veiculos')
+    expect(message).toContain('🎯 OBJETIVO DA REUNIÃO')
+    expect(message).toContain('Plano de remuneracao')
     expect(message).toContain('Validamos o novo plano de remuneracao com o gerente')
     expect(message).toContain('Pendente implementar a rotina do vendedor')
     expect(message).toContain('leads sem acompanhamento diario')
     expect(message).not.toContain('Tarefa generica pendente')
+    expect(message).toContain('📱 TEXTO PARA ENVIAR NO GRUPO DE WHATSAPP DA LOJA')
   })
 
   it('falls back to checklist items when the draft is empty', () => {
@@ -56,5 +59,6 @@ describe('visit report draft formatter', () => {
     expect(secondMessage).not.toContain('- O que foi alinhado')
     expect(secondMessage).not.toContain('*O que foi alinhado*\n- Foco separado do proximo ciclo.')
     expect(secondMessage).not.toContain('*Proximos passos*\n- Feedback separado ao cliente.')
+    expect(secondMessage).toContain('RELATÓRIO DE VISITA TÉCNICA - MÉTODO MX')
   })
 })

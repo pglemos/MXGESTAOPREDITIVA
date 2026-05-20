@@ -10,6 +10,8 @@ type VisitGroupSummaryPayload = {
   visitNumber?: number;
   objective?: string;
   visitDate?: string;
+  consultantName?: string;
+  modality?: string;
   completedTasks?: string[];
   pendingTasks?: string[];
   feedbackClient?: string;
@@ -55,20 +57,48 @@ function listItems(items: string[] | undefined) {
 }
 
 function buildVisitGroupSummaryPrompt(payload: VisitGroupSummaryPayload) {
+  const modality = truncate(payload.modality, 80) || "ONLINE ou PRESENCIAL";
+
   return [
-    "Gere um resumo executivo curto para enviar no grupo do cliente apos uma visita de consultoria MX.",
-    "Use portugues do Brasil, tom profissional, direto e humano.",
-    "Nao invente numeros, promessas, responsaveis ou datas que nao estejam nos dados.",
-    "Formato obrigatorio:",
-    "1. Saudacao curta com nome do cliente, se houver.",
-    "2. Resumo da visita em 1 paragrafo.",
-    "3. Pontos alinhados/concluidos em bullets.",
-    "4. Pendencias/proximos passos em bullets.",
-    "5. Fechamento curto com foco do proximo ciclo.",
+    "Gere o texto final da visita tecnica no padrao MX.",
+    "Use portugues do Brasil, tom consultivo, firme, executivo, direto e humano.",
+    "Siga sempre a estrutura abaixo, nessa ordem, com titulos em caixa alta.",
+    "Nao invente numeros, nomes, responsaveis, datas, eventos, margem, lucro, bancos ou promessas que nao estejam nos dados.",
+    "Quando um dado nao existir, escreva 'Nao informado' ou transforme em orientacao qualitativa sem criar numero.",
+    "O relatorio deve ser especifico para a reuniao, nao generico.",
+    "",
+    "ESTRUTURA OBRIGATORIA:",
+    `RELATÓRIO DE VISITA TÉCNICA - MÉTODO MX (${modality.toUpperCase()})`,
+    "Empresa: {cliente}",
+    "Data da Reunião: {data}",
+    "Consultor: {consultor}",
+    "________________________________________",
+    "🎯 OBJETIVO DA REUNIÃO",
+    "{objetivo em um paragrafo}",
+    "________________________________________",
+    "💰 1. RAIO-X FINANCEIRO E DE ESTOQUE (ONDE ESTÁ O DINHEIRO)",
+    "{diagnostico financeiro/estoque/funil com bullets apenas se houver dados. Se nao houver, registrar que os dados precisam ser preenchidos ou validados.}",
+    "________________________________________",
+    "⚠️ 2. DIAGNÓSTICO DO FUNIL (ONDE ESTÁ O VAZAMENTO)",
+    "{gargalos, perdas, causas e leitura operacional. Usar numeros somente se estiverem nos dados.}",
+    "________________________________________",
+    "👥 3. GESTÃO DE EQUIPE E COMPORTAMENTO",
+    "{pontos sobre gestao, foco, comportamento, responsaveis e riscos. Nao expor assunto pessoal sensivel se nao estiver descrito pelo consultor.}",
+    "________________________________________",
+    "🚀 4. PLANO DE AÇÃO URGENTE E INEGOCIÁVEL",
+    "{lista numerada com acoes praticas, donos e prazos somente quando informados.}",
+    "________________________________________",
+    "Consultor MX {consultor}",
+    "________________________________________",
+    "📱 TEXTO PARA ENVIAR NO GRUPO DE WHATSAPP DA LOJA",
+    "Assunto: Relatorio de Reuniao Gerencial e Plano de Acao - {cliente} ({data})",
+    "{mensagem curta, energica e profissional, resumindo diagnostico e plano de acao.}",
     "",
     `Cliente: ${truncate(payload.clientName, 160) || "Nao informado"}`,
     `Visita: ${payload.visitNumber || "Nao informado"}`,
     `Data: ${truncate(payload.visitDate, 80) || "Nao informado"}`,
+    `Consultor: ${truncate(payload.consultantName, 160) || "Nao informado"}`,
+    `Modalidade: ${modality}`,
     `Objetivo: ${truncate(payload.objective, 1000) || "Nao informado"}`,
     `Foco do proximo ciclo: ${truncate(payload.nextCycleGoal, 1000) || "Nao informado"}`,
     "",
@@ -119,13 +149,13 @@ async function callOpenRouter(model: string, prompt: string) {
       messages: [
         {
           role: "system",
-          content: "Voce e um assistente operacional da MX Performance. Responda somente com o texto final solicitado, sem markdown decorativo excessivo.",
+          content: "Voce e um consultor senior da MX Performance. Responda somente com o relatorio e o texto de WhatsApp solicitados, sem comentarios extras.",
         },
         { role: "user", content: prompt },
       ],
       temperature: 0.25,
       top_p: 0.9,
-      max_tokens: 1200,
+      max_tokens: 2200,
     }),
   });
 

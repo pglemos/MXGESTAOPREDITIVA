@@ -9,6 +9,8 @@ type FormatVisitDraftInput = {
   visitNumber: number
   objective?: string | null
   visitDate?: string | null
+  consultantName?: string | null
+  modality?: string | null
   completedTasks?: string[]
   pendingTasks?: string[]
   checklist?: VisitDraftTask[]
@@ -138,11 +140,11 @@ const taskFallback = (input: FormatVisitDraftInput) => {
   }
 }
 
-const appendSection = (lines: string[], title: string, items: string[]) => {
-  if (!items.length) return
-
-  lines.push(`*${title}*`)
-  for (const item of items) lines.push(`- ${item}`)
+const appendMxSection = (lines: string[], title: string, body: string, items: string[] = []) => {
+  lines.push('________________________________________')
+  lines.push(title)
+  if (body) lines.push(body)
+  for (const item of items) lines.push(/^\d+\./.test(item) ? item : `• ${item}`)
   lines.push('')
 }
 
@@ -175,34 +177,77 @@ export const formatVisitDraftForGroup = (input: FormatVisitDraftInput) => {
   const nextCycleGoal = cleanText(input.nextCycleGoal || '')
   const feedbackClient = cleanText(input.feedbackClient || '')
   const date = formatDate(input.visitDate)
+  const modality = cleanText(input.modality || 'ONLINE ou PRESENCIAL').toUpperCase()
+  const consultantName = cleanText(input.consultantName || 'Nao informado')
+  const companyName = cleanText(input.clientName || 'Cliente')
 
   const lines = [
-    `*Resumo da visita - ${input.clientName || 'Cliente'}*`,
-    `Visita ${input.visitNumber}${input.objective ? `: ${input.objective}` : ''}`,
+    `RELATÓRIO DE VISITA TÉCNICA - MÉTODO MX (${modality})`,
+    `Empresa: ${companyName}`,
+    `Data da Reunião: ${date || 'Nao informado'}`,
+    `Consultor: ${consultantName}`,
   ]
 
-  if (date) lines.push(`Data: ${date}`)
+  appendMxSection(
+    lines,
+    '🎯 OBJETIVO DA REUNIÃO',
+    cleanText(input.objective || '') || `Registrar os alinhamentos da visita ${input.visitNumber} e definir proximos passos operacionais.`
+  )
+
+  appendMxSection(
+    lines,
+    '💰 1. RAIO-X FINANCEIRO E DE ESTOQUE (ONDE ESTÁ O DINHEIRO)',
+    done.length ? 'Pontos validados ou alinhados durante a reuniao:' : 'Dados financeiros e de estoque ainda precisam ser preenchidos ou validados para um raio-x completo.',
+    done
+  )
+
+  appendMxSection(
+    lines,
+    '⚠️ 2. DIAGNÓSTICO DO FUNIL (ONDE ESTÁ O VAZAMENTO)',
+    attention.length ? 'Pontos de atencao identificados no fluxo operacional:' : 'Nenhum gargalo numerico foi informado no registro da visita. Validar leads, agendamentos, visitas e vendas antes do envio final.',
+    attention
+  )
+
+  appendMxSection(
+    lines,
+    '👥 3. GESTÃO DE EQUIPE E COMPORTAMENTO',
+    feedbackClient || 'Registrar percepcoes de gestao, foco da equipe, comportamento comercial e combinados com a lideranca da loja.'
+  )
+
+  appendMxSection(
+    lines,
+    '🚀 4. PLANO DE AÇÃO URGENTE E INEGOCIÁVEL',
+    actions.length ? 'Acoes priorizadas para execucao imediata:' : 'Nenhuma acao pendente foi informada. Definir responsaveis e prazos antes de compartilhar.',
+    actions.map((item, index) => `${index + 1}. ${item}`)
+  )
+
+  lines.push('________________________________________')
+  lines.push(`Consultor MX ${consultantName}`)
+  lines.push('________________________________________')
+  lines.push('📱 TEXTO PARA ENVIAR NO GRUPO DE WHATSAPP DA LOJA')
+  lines.push(`Assunto: Relatorio de Reuniao Gerencial e Plano de Acao - ${companyName}${date ? ` (${date})` : ''}`)
   lines.push('')
+  lines.push(`Fala, equipe! Finalizamos o acompanhamento da ${companyName} e o relatorio oficial ja esta estruturado para revisao.`)
 
-  appendSection(lines, 'O que foi alinhado', done)
-  appendSection(lines, 'Pontos de atencao', attention)
-  appendSection(lines, 'Proximos passos', actions)
-
-  if (feedbackClient) {
-    appendSection(lines, 'Devolutiva ao cliente', uniqueLimited([feedbackClient], 1))
+  if (attention.length) {
+    lines.push(`O ponto critico identificado foi: ${attention[0]}.`)
+  } else if (done.length) {
+    lines.push(`O principal alinhamento da reuniao foi: ${done[0]}.`)
   }
 
-  if (nextCycleGoal) {
-    appendSection(lines, 'Foco do proximo ciclo', uniqueLimited([nextCycleGoal], 1))
+  if (actions.length) {
+    lines.push(`Plano de acao imediato: ${actions.slice(0, 3).map((item, index) => `${index + 1}. ${item}`).join(' ')}`)
   }
+
+  if (nextCycleGoal) lines.push(`Foco do proximo ciclo: ${nextCycleGoal}`)
+  lines.push('Leiam o relatorio com atencao, validem os pontos e vamos executar com disciplina.')
 
   const result = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 
-  if (result.split('\n').length > 3) return result
+  if (result.split('\n').length > 10) return result
 
   return [
     ...lines,
-    '*Resumo*',
-    '- Rascunho ainda sem detalhes suficientes. Registre o que foi feito, pendencias e proximos passos antes de enviar ao grupo.',
+    'Resumo ainda sem detalhes suficientes. Registre o que foi feito, pendencias e proximos passos antes de enviar ao grupo.',
   ].join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }

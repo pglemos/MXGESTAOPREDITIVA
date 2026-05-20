@@ -75,6 +75,7 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 - [x] Backend migrado de Gemini para `openrouter-generate`, mantendo o contrato de resposta usado pelo frontend.
 - [x] Modelo primario configuravel via `OPENROUTER_PRIMARY_MODEL`, com default `openrouter/free`.
 - [x] Fallback configuravel via `OPENROUTER_FALLBACK_MODEL`, com default `deepseek/deepseek-v4-flash:free`.
+- [x] Resumo gerado segue o padrao MX de visita tecnica: cabecalho, objetivo, raio-x financeiro/estoque, diagnostico do funil, gestao de equipe, plano de acao e texto para WhatsApp.
 - [x] Limite diario conservador configurado para 40 chamadas no primario e 5 no fallback, abaixo do limite gratuito de 50 req/dia do OpenRouter sem creditos.
 - [x] Contador diario persistido em banco por projeto/modelo, com reset baseado no dia do Pacific Time.
 - [x] Frontend mantem fallback deterministico local quando a Edge Function ou o OpenRouter estiverem indisponiveis.
