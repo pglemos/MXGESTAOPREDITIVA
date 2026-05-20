@@ -80,7 +80,7 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 - [x] Contador diario persistido em banco por projeto/modelo, com reset baseado no dia do Pacific Time.
 - [x] Frontend mantem fallback deterministico local quando a Edge Function ou o OpenRouter estiverem indisponiveis.
 - [x] Gates finais executados: `deno check supabase/functions/openrouter-generate/index.ts`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
-- [x] Validacao admin master em producao: login autenticado, `openrouter-generate` retornou HTTP 200 com `provider=openrouter`, `model=openrouter/free` e uso diario `1/40`.
+- [x] Validacao admin master em producao: login autenticado, `openrouter-generate` retornou HTTP 200 com `provider=openrouter`, `model=openrouter/free` e contador diario ativo.
 
 ## File List
 
