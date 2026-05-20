@@ -118,6 +118,7 @@ export default function ConsultoriaVisitaExecucao() {
   const [executiveSummary, setExecutiveSummary] = useState('')
   const [feedbackClient, setFeedbackClient] = useState('')
   const [nextCycleGoal, setNextCycleGoal] = useState('')
+  const [isGeneratingAiSummary, setIsGeneratingAiSummary] = useState(false)
   const [attachments, setAttachments] = useState<ConsultingVisitAttachment[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -344,11 +345,11 @@ export default function ConsultoriaVisitaExecucao() {
     } catch (err) { toast.error(getErrorMessage(err)) }
   }
 
-  const handleGenerateAISummary = () => {
+  const buildLocalGroupSummary = () => {
     const completedTasks = checklist.filter(t => t.completed).map(t => t.task)
     const pendingTasks = checklist.filter(t => !t.completed).map(t => t.task)
 
-    const summary = formatVisitDraftForGroup({
+    return formatVisitDraftForGroup({
       draft: executiveSummary,
       clientName: client?.name,
       visitNumber: visitNum,
@@ -359,9 +360,52 @@ export default function ConsultoriaVisitaExecucao() {
       feedbackClient,
       nextCycleGoal
     })
+  }
 
-    setExecutiveSummary(summary)
-    toast.success(executiveSummary.trim() ? 'Resumo pronto para enviar no grupo!' : 'Modelo de resumo gerado para preencher.')
+  const handleGenerateAISummary = async () => {
+    if (isGeneratingAiSummary) return
+
+    const completedTasks = checklist.filter(t => t.completed).map(t => t.task)
+    const pendingTasks = checklist.filter(t => !t.completed).map(t => t.task)
+    setIsGeneratingAiSummary(true)
+
+    try {
+      const { data, error } = await supabase.functions.invoke<{
+        success?: boolean
+        text?: string
+        model?: string
+        fallbackUsed?: boolean
+        dailyUsage?: { used: number; limit: number; date: string }
+        error?: string
+      }>('gemini-generate', {
+        body: {
+          mode: 'visit_group_summary',
+          draft: executiveSummary,
+          clientName: client?.name,
+          visitNumber: visitNum,
+          objective: step?.objective,
+          visitDate: headerBase.visit_date,
+          completedTasks,
+          pendingTasks,
+          feedbackClient,
+          nextCycleGoal,
+        },
+      })
+
+      if (error || !data?.success || !data.text) {
+        throw new Error(error?.message || data?.error || 'IA indisponível')
+      }
+
+      setExecutiveSummary(data.text)
+      const usage = data.dailyUsage ? ` (${data.dailyUsage.used}/${data.dailyUsage.limit})` : ''
+      toast.success(data.fallbackUsed ? `Resumo gerado com Gemini Flash-Lite${usage}` : `Resumo gerado com Gemini 2.5 Flash${usage}`)
+    } catch (err) {
+      if (import.meta.env.DEV) console.warn('AI summary fallback:', err)
+      setExecutiveSummary(buildLocalGroupSummary())
+      toast.warning('Gemini indisponível. Resumo local gerado para revisão.')
+    } finally {
+      setIsGeneratingAiSummary(false)
+    }
   }
 
   const generateReportText = () => {
@@ -591,7 +635,7 @@ export default function ConsultoriaVisitaExecucao() {
                   <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><FileText size={20} /></div>
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Relato Executivo (CRM)</Typography>
                 </div>
-                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-mx-tiny tracking-mx-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} icon={<Sparkles size={14} />}>RESUMIR PARA GRUPO</Button>
+                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-mx-tiny tracking-mx-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} disabled={isGeneratingAiSummary} icon={isGeneratingAiSummary ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}>RESUMIR PARA GRUPO</Button>
               </div>
               <Textarea
                 id="visit-executive-summary"

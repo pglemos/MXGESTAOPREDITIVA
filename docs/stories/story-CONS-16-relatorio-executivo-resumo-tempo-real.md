@@ -70,9 +70,22 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 - [x] `npm test`
 - [x] Smoke visual do relatorio quando houver alteracao de template.
 
+### Extensao Gemini - 2026-05-20
+
+- [x] Backend `gemini-generate` usa `gemini-2.5-flash` como modelo primario.
+- [x] Limite global diario primario configurado para 230 chamadas antes do fallback.
+- [x] Fallback configurado para `gemini-2.5-flash-lite` com limite diario de 1000 chamadas.
+- [x] Contador diario persistido em banco por projeto/modelo, com reset baseado no dia do Pacific Time.
+- [x] Frontend mantem fallback deterministico local quando a Edge Function ou o Gemini estiverem indisponiveis.
+- [x] Gates executados: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `deno check supabase/functions/gemini-generate/index.ts`.
+
 ## File List
 
 - `docs/stories/story-CONS-16-relatorio-executivo-resumo-tempo-real.md`
 - `src/lib/consultoria/executive-visit-report.ts`
 - `src/lib/consultoria/executive-visit-report.test.ts`
 - `src/pages/ConsultoriaVisitaExecucao.tsx`
+- `.env.example`
+- `supabase/config.toml`
+- `supabase/functions/gemini-generate/index.ts`
+- `supabase/migrations/20260520120000_gemini_daily_usage_limits.sql`
