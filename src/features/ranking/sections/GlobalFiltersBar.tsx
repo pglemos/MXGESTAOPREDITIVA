@@ -1,0 +1,62 @@
+import { Search } from 'lucide-react'
+import { Input } from '@/components/atoms/Input'
+import { cn } from '@/lib/utils'
+
+type Props = {
+  searchTerm: string
+  onSearchChange: (value: string) => void
+  lojas: string[]
+  filterStore: string
+  onFilterStoreChange: (value: string) => void
+  hideStoreNames: boolean
+  getHiddenStoreName: (storeName?: string) => string
+}
+
+/**
+ * Barra de busca + filtro de loja (chips) do GlobalRanking. Visual preservado.
+ */
+export function GlobalFiltersBar({
+  searchTerm, onSearchChange,
+  lojas, filterStore, onFilterStoreChange,
+  hideStoreNames, getHiddenStoreName,
+}: Props) {
+  return (
+    <div className="flex flex-col sm:flex-row gap-mx-sm shrink-0 mb-6">
+      <div className="relative group flex-1">
+        <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+        <Input
+          id="ranking-global-search"
+          name="ranking-global-search"
+          aria-label="Localizar vendedor ou loja"
+          placeholder="LOCALIZAR VENDEDOR OU LOJA..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="!pl-11 !h-mx-14 !text-mx-tiny uppercase tracking-widest font-black"
+        />
+      </div>
+      <div className="flex items-center gap-mx-xs bg-white border border-border-default px-4 h-mx-14 sm:h-mx-14 rounded-mx-md shadow-inner overflow-x-auto no-scrollbar">
+        <button
+          type="button"
+          onClick={() => onFilterStoreChange('all')}
+          className={cn(
+            "px-3 py-1 rounded-mx-sm text-mx-tiny font-black uppercase tracking-widest whitespace-nowrap transition-colors",
+            filterStore === 'all' ? 'bg-brand-primary text-white' : 'text-text-tertiary hover:bg-surface-alt'
+          )}
+        >Todas</button>
+        {lojas.map(store => (
+          <button
+            key={store}
+            type="button"
+            onClick={() => onFilterStoreChange(store === filterStore ? 'all' : (store || 'all'))}
+            className={cn(
+              "px-3 py-1 rounded-mx-sm text-mx-tiny font-black uppercase tracking-widest whitespace-nowrap transition-colors",
+              filterStore === store ? 'bg-brand-primary text-mx-black' : 'text-text-tertiary hover:bg-surface-alt'
+            )}
+          >{hideStoreNames ? getHiddenStoreName(store) : store}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default GlobalFiltersBar

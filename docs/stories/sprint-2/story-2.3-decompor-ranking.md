@@ -1,6 +1,6 @@
 # Story 2.3 — Decompor `Ranking` (~1000 LOC)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -105,3 +105,36 @@ Ranking é page de alto tráfego (visualizada diariamente por gerentes). Decompo
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass
+- 2026-05-20 | @dev (Dex) | Implementação ADR-0050 concluída — Status: Ready → InReview
+
+## File List
+
+### Criados
+- `src/features/ranking/Ranking.container.tsx` (18 LOC) — router por perfil
+- `src/features/ranking/views/GlobalRankingView.tsx` (115 LOC) — container slim Global
+- `src/features/ranking/views/StoreRankingView.tsx` (107 LOC) — container slim Store
+- `src/features/ranking/sections/GlobalRankingHeader.tsx` (84 LOC)
+- `src/features/ranking/sections/GlobalStatsCards.tsx` (57 LOC)
+- `src/features/ranking/sections/GlobalFiltersBar.tsx` (62 LOC)
+- `src/features/ranking/sections/BattleSelector.tsx` (76 LOC)
+- `src/features/ranking/sections/StoreArenaSelector.tsx` (103 LOC)
+- `src/features/ranking/sections/LeaderboardList.tsx` (63 LOC)
+- `src/features/ranking/sections/StoreRankingHeader.tsx` (62 LOC)
+- `src/features/ranking/sections/StoreStatsCards.tsx` (50 LOC)
+- `src/features/ranking/sections/StoreContextCards.tsx` (40 LOC)
+- `src/features/ranking/hooks/useGlobalRankingPageData.ts` (178 LOC) — aggregator Global
+- `src/features/ranking/hooks/useStoreRankingPageData.ts` (92 LOC) — aggregator Store
+- `src/features/ranking/components/RankingErrorBoundary.tsx` (44 LOC)
+- `src/features/ranking/components/RankingPodium.tsx` (69 LOC)
+- `src/features/ranking/components/SellerListItem.tsx` (119 LOC)
+- `src/features/ranking/components/RankingSkeleton.tsx` (41 LOC)
+
+### Modificados
+- `src/pages/Ranking.tsx` (883 → 5 LOC) — re-export do container
+
+### Notas técnicas (implementação)
+- Visual e funcional preservados (zero mudança comportamental)
+- Container raiz com 18 LOC; views slim (115/107 LOC); todas as sections <105 LOC
+- ErrorBoundary local envolvendo cada view (Global/Store) — falha não derruba página
+- Tipos compartilhados via `@/types/database` (RankingEntry) e `@/hooks/useNetworkPerformance` (NetworkMetric)
+- typecheck e build verdes
