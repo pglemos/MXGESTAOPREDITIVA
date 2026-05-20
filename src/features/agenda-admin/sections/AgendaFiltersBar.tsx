@@ -29,7 +29,7 @@ export function AgendaFiltersBar({
   consultants, canViewAllAgendas,
 }: AgendaFiltersBarProps) {
   return (
-    <Card className="p-mx-sm sm:p-mx-md border border-border-default shadow-none bg-white rounded-mx-2xl">
+    <Card className="rounded-mx-lg border border-border-strong bg-white p-mx-sm shadow-none sm:p-mx-md">
       <div className="flex flex-col gap-mx-sm">
         <FilterBar label="Período" icon={<CalendarDays size={16} className="text-brand-primary" />}>
           {dateFilters.map((f) => (
@@ -38,10 +38,10 @@ export function AgendaFiltersBar({
               type="button"
               onClick={() => setDateFilter(f.key)}
               className={cn(
-                'px-3 py-1.5 rounded-mx-full text-xs font-black uppercase tracking-widest transition-all',
+                'rounded-mx-lg px-3 py-1.5 text-xs font-semibold normal-case tracking-normal transition-colors',
                 dateFilter === f.key
-                  ? 'bg-brand-primary text-white shadow-mx-sm'
-                  : 'bg-white border border-border-default text-text-secondary hover:bg-surface-alt'
+                  ? 'bg-brand-primary text-white'
+                  : 'border border-border-strong bg-white text-text-secondary hover:bg-surface-alt hover:text-text-primary'
               )}
             >
               {f.label}
@@ -55,7 +55,7 @@ export function AgendaFiltersBar({
                 id="agenda-consultant-filter"
                 value={consultantFilter}
                 onChange={(event) => setConsultantFilter(event.target.value)}
-                className="!h-mx-10 !py-1.5 text-xs uppercase tracking-widest"
+                className="!h-mx-10 !rounded-mx-lg !py-1.5 text-xs font-semibold normal-case tracking-normal"
                 aria-label="Filtrar por consultor"
               >
                 <option value="todos">Todos</option>
@@ -73,10 +73,10 @@ export function AgendaFiltersBar({
               type="button"
               onClick={() => setStatusFilter(f.key)}
               className={cn(
-                'px-3 py-1.5 rounded-mx-full text-xs font-black uppercase tracking-widest transition-all',
+                'rounded-mx-lg px-3 py-1.5 text-xs font-semibold normal-case tracking-normal transition-colors',
                 statusFilter === f.key
-                  ? 'bg-brand-primary text-white shadow-mx-sm'
-                  : 'bg-white border border-border-default text-text-secondary hover:bg-surface-alt'
+                  ? 'bg-brand-primary text-white'
+                  : 'border border-border-strong bg-white text-text-secondary hover:bg-surface-alt hover:text-text-primary'
               )}
             >
               {f.label}
@@ -84,11 +84,11 @@ export function AgendaFiltersBar({
           ))}
           {activeFilters > 0 && (
             <>
-              <Badge variant="brand" className="ml-mx-xs text-mx-micro font-black uppercase">
+              <Badge variant="brand" className="ml-mx-xs text-[10px] font-semibold normal-case tracking-normal">
                 {activeFilters} {activeFilters === 1 ? 'filtro' : 'filtros'}
               </Badge>
-              <Button type="button" variant="ghost" size="sm" onClick={clearFilters} className="h-mx-10 px-3 text-xs font-black uppercase">
-                LIMPAR
+              <Button type="button" variant="ghost" size="sm" onClick={clearFilters} className="h-mx-10 rounded-mx-lg px-3 text-xs font-semibold normal-case">
+                Limpar
               </Button>
             </>
           )}

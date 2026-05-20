@@ -26,9 +26,36 @@ const todayKey = format(today, "yyyy-MM-dd");
 
 const mockCalendarDays = makeCalendarDays();
 
-const mockVisitsByDate: Record<string, { status: string }[]> = {
-  [todayKey]: [{ status: "agendada" }, { status: "concluida" }],
-  [format(new Date(today.getFullYear(), today.getMonth(), 5), "yyyy-MM-dd")]: [{ status: "cancelada" }],
+const mockVisitsByDate = {
+  [todayKey]: [
+    {
+      id: "visit-today",
+      status: "agendada",
+      title: "Cliente hoje",
+      startsAt: today.toISOString(),
+      durationHours: 1,
+      kind: "visit" as const,
+      subtitle: "Visita 1",
+    },
+    {
+      id: "visit-done",
+      status: "concluida",
+      title: "Cliente concluido",
+      startsAt: today.toISOString(),
+      durationHours: 1,
+      kind: "visit" as const,
+    },
+  ],
+  [format(new Date(today.getFullYear(), today.getMonth(), 5), "yyyy-MM-dd")]: [
+    {
+      id: "visit-five",
+      status: "cancelada",
+      title: "Cliente dia 5",
+      startsAt: new Date(today.getFullYear(), today.getMonth(), 5, 10).toISOString(),
+      durationHours: 1,
+      kind: "visit" as const,
+    },
+  ],
 };
 
 describe("AgendaCalendar", () => {
@@ -53,13 +80,13 @@ describe("AgendaCalendar", () => {
 
   test("renders weekday headers", () => {
     render(<AgendaCalendar {...defaultProps} />);
-    expect(screen.getByText("Dom")).toBeDefined();
-    expect(screen.getByText("Seg")).toBeDefined();
-    expect(screen.getByText("Ter")).toBeDefined();
-    expect(screen.getByText("Qua")).toBeDefined();
-    expect(screen.getByText("Qui")).toBeDefined();
-    expect(screen.getByText("Sex")).toBeDefined();
-    expect(screen.getByText("Sáb")).toBeDefined();
+    expect(screen.getByText("DOM")).toBeDefined();
+    expect(screen.getByText("SEG")).toBeDefined();
+    expect(screen.getByText("TER")).toBeDefined();
+    expect(screen.getByText("QUA")).toBeDefined();
+    expect(screen.getByText("QUI")).toBeDefined();
+    expect(screen.getByText("SEX")).toBeDefined();
+    expect(screen.getByText("SÁB")).toBeDefined();
   });
 
   test("renders calendar days", () => {

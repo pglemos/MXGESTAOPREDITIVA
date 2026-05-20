@@ -32,13 +32,13 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
   const upcoming = events.slice(0, compact ? 3 : 6)
 
   return (
-    <Card className="p-mx-lg border-none shadow-mx-md bg-white space-y-mx-md">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-mx-sm">
-          <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-mx-indigo-50 border border-mx-indigo-100 flex items-center justify-center text-brand-primary">
+    <Card className="space-y-mx-md rounded-mx-lg border border-border-strong bg-white p-mx-lg shadow-none">
+      <header className="flex min-w-0 items-center justify-between gap-mx-sm">
+        <div className="flex min-w-0 items-center gap-mx-sm">
+          <div className="flex h-mx-12 w-mx-12 shrink-0 items-center justify-center rounded-mx-lg border border-mx-indigo-100 bg-mx-indigo-50 text-brand-primary">
             <Calendar size={20} />
           </div>
-          <div>
+          <div className="min-w-0">
             <Typography variant="h3" className="text-base">Google Calendar</Typography>
             <Typography variant="caption" tone="muted" className="uppercase tracking-widest text-mx-tiny">
               Sincronização híbrida
@@ -54,17 +54,17 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-mx-sm rounded-mx-lg border ${personalConnected ? 'bg-status-success-surface border-status-success/20' : 'bg-surface-alt border-border-default'}`}
+          className={`min-w-0 rounded-mx-lg border p-mx-sm ${personalConnected ? 'bg-status-success-surface border-status-success/20' : 'bg-surface-alt border-border-default'}`}
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Sua agenda</span>
+          <div className="mb-1 flex min-w-0 items-center justify-between gap-mx-xs">
+            <span className="min-w-0 truncate text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Sua agenda</span>
             {personalConnected
-              ? <CheckCircle2 size={16} className="text-status-success" />
-              : <AlertCircle size={16} className="text-text-tertiary" />}
+              ? <CheckCircle2 size={16} className="shrink-0 text-status-success" />
+              : <AlertCircle size={16} className="shrink-0 text-text-tertiary" />}
           </div>
           {personalConnected ? (
-            <div className="flex flex-col gap-mx-tiny">
-              <Badge variant="success" className="text-mx-nano">Conectada</Badge>
+            <div className="flex min-w-0 flex-col gap-mx-tiny">
+              <Badge variant="success" className="w-fit text-mx-nano">Conectada</Badge>
               {personalGoogleEmail && (
                 <Typography variant="tiny" tone="muted" className="truncate text-mx-tiny">
                   {personalGoogleEmail}
@@ -85,18 +85,23 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`p-mx-sm rounded-mx-lg border ${centralConnected ? 'bg-mx-green-50 border-mx-green-200' : 'bg-surface-alt border-border-default'}`}
+            className={`min-w-0 rounded-mx-lg border p-mx-sm ${centralConnected ? 'bg-mx-green-50 border-mx-green-200' : 'bg-surface-alt border-border-default'}`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary flex items-center gap-mx-xs">
-                <Building2 size={12} /> Agenda Central MX
+            <div className="mb-1 flex min-w-0 items-center justify-between gap-mx-xs">
+              <span className="flex min-w-0 items-center gap-mx-xs text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">
+                <Building2 size={12} className="shrink-0" />
+                <span className="truncate">Agenda Central MX</span>
               </span>
               {centralConnected
-                ? <CheckCircle2 size={16} className="text-status-success" />
-                : <AlertCircle size={16} className="text-status-warning" />}
+                ? <CheckCircle2 size={16} className="shrink-0 text-status-success" />
+                : <AlertCircle size={16} className="shrink-0 text-status-warning" />}
             </div>
             {centralConnected ? (
-              <Badge variant="brand" className="text-mx-nano">{centralGoogleEmail || 'gestao@mxconsultoria.com.br'}</Badge>
+              <div className="min-w-0">
+                <Typography variant="tiny" className="block truncate rounded-mx-md bg-brand-primary px-2 py-1 font-black uppercase tracking-widest text-white">
+                  {centralGoogleEmail || 'gestao@mxconsultoria.com.br'}
+                </Typography>
+              </div>
             ) : (
               <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
                 <LinkIcon size={14} />
@@ -130,14 +135,14 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
               const start = ev.start?.dateTime || ev.start?.date || ''
               const dt = start ? new Date(start) : null
               return (
-                <li key={`${ev._source}-${ev.id}`} className="flex items-center gap-mx-sm p-mx-xs rounded-mx-md hover:bg-surface-alt transition-colors">
-                  <span className={`w-mx-tiny h-mx-md rounded-full ${ev._source === 'central' ? 'bg-brand-primary' : 'bg-status-info'}`} />
+                <li key={`${ev._source}-${ev.id}`} className="flex min-w-0 items-center gap-mx-sm rounded-mx-md p-mx-xs transition-colors hover:bg-surface-alt">
+                  <span className={`h-mx-md w-mx-tiny shrink-0 rounded-full ${ev._source === 'central' ? 'bg-brand-primary' : 'bg-status-info'}`} />
                   <div className="min-w-0 flex-1">
                     <Typography variant="caption" className="font-bold truncate block">
                       {ev.summary || '(sem título)'}
                     </Typography>
                     {dt && (
-                      <Typography variant="tiny" tone="muted" className="text-mx-tiny">
+                      <Typography variant="tiny" tone="muted" className="block truncate text-mx-tiny">
                         {dt.toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         {ev._source === 'central' ? ' • Central' : ' • Pessoal'}
                       </Typography>

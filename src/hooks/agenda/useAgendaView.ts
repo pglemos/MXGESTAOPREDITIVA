@@ -6,6 +6,7 @@ import type {
   CalendarMonth,
   DateFilter,
 } from './types'
+import type { CalendarAgendaItem } from '@/components/organisms/AgendaCalendar'
 
 export type UseAgendaViewInput = {
   filteredVisits: AgendaVisit[]
@@ -17,7 +18,7 @@ export type UseAgendaViewInput = {
 
 export type UseAgendaViewReturn = {
   calendarDays: { date: Date; day: number; isCurrentMonth: boolean }[]
-  visitsByDate: Record<string, Array<{ status: string }>>
+  visitsByDate: Record<string, CalendarAgendaItem[]>
   metrics: {
     total: number
     agendadas: number
@@ -81,16 +82,32 @@ export function useAgendaView({
   }, [calendarMonth, dateFilter])
 
   const visitsByDate = useMemo(() => {
-    const map: Record<string, Array<{ status: string }>> = {}
+    const map: Record<string, CalendarAgendaItem[]> = {}
     for (const v of filteredVisits) {
       const key = format(new Date(v.scheduled_at), 'yyyy-MM-dd')
       if (!map[key]) map[key] = []
-      map[key].push(v)
+      map[key].push({
+        id: v.id,
+        status: v.status,
+        title: v.client_name,
+        startsAt: v.scheduled_at,
+        durationHours: v.duration_hours,
+        kind: 'visit',
+        subtitle: `Visita ${v.visit_number}`,
+      })
     }
     for (const event of filteredScheduleEvents) {
       const key = format(new Date(event.starts_at), 'yyyy-MM-dd')
       if (!map[key]) map[key] = []
-      map[key].push({ status: event.status === 'cancelado' ? 'cancelada' : event.status === 'concluido' ? 'concluida' : 'agendada' })
+      map[key].push({
+        id: event.id,
+        status: event.status === 'cancelado' ? 'cancelada' : event.status === 'concluido' ? 'concluida' : 'agendada',
+        title: event.title,
+        startsAt: event.starts_at,
+        durationHours: event.duration_hours,
+        kind: 'event',
+        subtitle: event.responsible_name || event.topic,
+      })
     }
     return map
   }, [filteredVisits, filteredScheduleEvents])
