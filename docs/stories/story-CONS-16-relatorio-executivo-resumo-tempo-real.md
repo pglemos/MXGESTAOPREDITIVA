@@ -1,6 +1,6 @@
 # Story CONS-16 - Relatorio Executivo e Resumo em Tempo Real
 
-**Status:** Implemented - aguardando validacao final  
+**Status:** Implemented - validado em producao
 **Epic:** EPIC-MX-CONS-DEV-20260515  
 **Onda:** 1 - Consultoria PMR pronta para uso  
 **Owner:** @pm  
@@ -36,7 +36,7 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 
 - O resumo em tempo real e a fonte operacional do que sera compartilhado no grupo/cliente.
 - O relatorio deve usar o padrao MX, nao apenas concatenar campos na ordem de preenchimento.
-- IA pode ser usada futuramente, mas o MVP deve funcionar com regra deterministica e campos existentes.
+- IA e usada para gerar uma versao executiva revisavel do resumo da visita. O fluxo continua funcionando com regra deterministica local quando a Edge Function ou o provedor externo estiverem indisponiveis.
 
 ## Arquivos Provaveis
 
@@ -60,7 +60,7 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 
 - O MVP usa geracao deterministica em `buildExecutiveVisitReport`.
 - O relatorio segue ordem MX fixa: resultado do periodo, positivos/alinhamentos, pontos a melhorar, tarefas concluidas, proximos passos, foco do proximo ciclo e anexos.
-- IA continua opcional/futura; o botao existente de resumo usa regra local.
+- O botao de resumo tenta primeiro a Edge Function `openrouter-generate` e, em caso de indisponibilidade, gera resumo local deterministico para revisao.
 - Transcricao nao vira campo obrigatorio nesta story.
 
 ## Gates
