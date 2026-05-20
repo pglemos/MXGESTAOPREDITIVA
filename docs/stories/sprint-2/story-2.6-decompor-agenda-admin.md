@@ -1,6 +1,6 @@
 # Story 2.6 — Decompor `AgendaAdmin` (1318 LOC) — depende de Story 2.7
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -108,3 +108,23 @@ Agenda Admin é ferramenta diária de admin/MX. Decompor após split do hook hab
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2 (depende de 2.7)
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass (hard-block 2.7 reconhecido)
+- 2026-05-20 | @dev (Dex) | Status: Ready → InReview | Container shim conversion completa após criação dos sub-arquivos. `src/pages/AgendaAdmin.tsx` reduzido de **1318 → 5 LOC** (re-export). Container em `src/features/agenda-admin/AgendaAdmin.container.tsx` com **208 LOC** (orquestra sub-hooks + sections + modais via `AgendaErrorBoundary` por seção). Form-state (modais visita/evento) extraído para `useAgendaAdminForms.ts` (238 LOC). EventoModal adicionado (248 LOC). `npm run typecheck` PASS. `npm run build` PASS (✓ built in 20.47s). Zero mudança visual/funcional.
+
+## File List
+
+- `src/pages/AgendaAdmin.tsx` (modificado — shim 5 LOC)
+- `src/features/agenda-admin/index.ts` (criado — barrel)
+- `src/features/agenda-admin/AgendaAdmin.container.tsx` (criado — 208 LOC)
+- `src/features/agenda-admin/hooks/useAgendaAdminPage.ts` (existente)
+- `src/features/agenda-admin/hooks/useAgendaAdminForms.ts` (criado — 238 LOC, form-state + handlers)
+- `src/features/agenda-admin/sections/AgendaHeader.tsx` (existente)
+- `src/features/agenda-admin/sections/AgendaFiltersBar.tsx` (existente)
+- `src/features/agenda-admin/sections/AgendaCalendarView.tsx` (existente)
+- `src/features/agenda-admin/sections/AgendaListView.tsx` (existente)
+- `src/features/agenda-admin/sections/ScheduleEventCard.tsx` (existente)
+- `src/features/agenda-admin/sections/VisitaDetailPanel.tsx` (existente)
+- `src/features/agenda-admin/modals/VisitaModal.tsx` (existente)
+- `src/features/agenda-admin/modals/EventoModal.tsx` (criado — 248 LOC)
+- `src/features/agenda-admin/components/AgendaErrorBoundary.tsx` (existente)
+- `src/features/agenda-admin/data/agendaHelpers.ts` (existente)
+- `src/features/agenda-admin/data/agendaFilters.ts` (existente)
