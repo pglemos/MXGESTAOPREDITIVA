@@ -1,6 +1,6 @@
 # Story 2.4 — Decompor `GerenteFeedback` (~900 LOC)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -101,7 +101,30 @@ Feedback é entregável central do fluxo gerencial semanal. Decompor reduz risco
 
 ---
 
+## File List
+
+### Created
+- `src/features/gerente-feedback/GerenteFeedback.container.tsx` (26 LOC) — container raiz, route Admin vs Store
+- `src/features/gerente-feedback/containers/AdminFeedback.container.tsx` (72 LOC)
+- `src/features/gerente-feedback/containers/StoreFeedback.container.tsx` (67 LOC)
+- `src/features/gerente-feedback/sections/AdminFeedbackHeader.tsx` (103 LOC)
+- `src/features/gerente-feedback/sections/StoreFeedbackHeader.tsx` (118 LOC)
+- `src/features/gerente-feedback/sections/FeedbackList.tsx` (135 LOC)
+- `src/features/gerente-feedback/sections/WeeklyReportsList.tsx` (137 LOC)
+- `src/features/gerente-feedback/sections/FeedbackLoadingSkeleton.tsx` (42 LOC)
+- `src/features/gerente-feedback/sections/ScopeBanners.tsx` (31 LOC)
+- `src/features/gerente-feedback/modals/AdminFeedbackModal.tsx` (342 LOC — form JSX denso, focus trap inline)
+- `src/features/gerente-feedback/modals/StoreFeedbackModal.tsx` (279 LOC — form JSX denso, focus trap inline)
+- `src/features/gerente-feedback/hooks/useAdminFeedback.ts` (249 LOC)
+- `src/features/gerente-feedback/hooks/useStoreFeedback.ts` (223 LOC)
+- `src/features/gerente-feedback/components/FeedbackErrorBoundary.tsx` (48 LOC)
+- `src/features/gerente-feedback/lib/helpers.ts` (61 LOC)
+
+### Modified
+- `src/pages/GerenteFeedback.tsx` (854 → 6 LOC) — thin re-export
+
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass
+- 2026-05-20 | @dev (Dex) | Status: Ready → InReview | Decomposição ADR-0050 aplicada: page 854 LOC → re-export 6 LOC + 15 módulos em `src/features/gerente-feedback/` | Container raiz 26 LOC, sub-containers Admin/Store ambos <80 LOC | Focus traps Story 3.12 preservados nos modais (useFocusTrap + Escape handler migrados para `AdminFeedbackModal`/`StoreFeedbackModal`) | typecheck OK + build OK (12.48s, GerenteFeedback chunk 81.51 KB)

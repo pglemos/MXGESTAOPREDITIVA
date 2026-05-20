@@ -1,0 +1,279 @@
+import { useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import {
+  AlertCircle,
+  Award,
+  Calendar,
+  ChevronDown,
+  MessageSquare,
+  RefreshCw,
+  Send,
+  Target,
+  X,
+} from 'lucide-react'
+import { Button } from '@/components/atoms/Button'
+import { Typography } from '@/components/atoms/Typography'
+import { Card } from '@/components/molecules/Card'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import type { FeedbackFormData } from '@/types/database'
+
+type SellerOption = { id: string; name: string }
+
+type Props = {
+  open: boolean
+  onClose: () => void
+  saving: boolean
+  formData: FeedbackFormData
+  setFormData: React.Dispatch<React.SetStateAction<FeedbackFormData>>
+  sellers: SellerOption[]
+  onSellerSelect: (sellerId: string) => void
+  onWeekReferenceChange: (weekReference: string) => void
+  onSubmit: () => void
+}
+
+export function StoreFeedbackModal({
+  open,
+  onClose,
+  saving,
+  formData,
+  setFormData,
+  sellers,
+  onSellerSelect,
+  onWeekReferenceChange,
+  onSubmit,
+}: Props) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef, open)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          ref={dialogRef}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="fixed inset-0 z-50 flex items-end justify-center p-mx-sm bg-mx-black/60 backdrop-blur-sm sm:items-center md:p-10"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="feedback-store-title"
+        >
+          <Card className="flex max-h-full w-full max-w-mx-4xl flex-col overflow-hidden border-none bg-white shadow-mx-2xl rounded-mx-2xl">
+            <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
+              <div className="flex items-center gap-mx-sm">
+                <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg">
+                  <MessageSquare size={24} />
+                </div>
+                <div>
+                  <Typography
+                    id="feedback-store-title"
+                    variant="h2"
+                    className="uppercase tracking-tighter"
+                  >
+                    Nova Mentoria
+                  </Typography>
+                  <Typography
+                    variant="tiny"
+                    tone="muted"
+                    className="font-black uppercase"
+                  >
+                    Ciclo de Devolutiva Semanal
+                  </Typography>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="rounded-mx-full w-mx-xl h-mx-xl"
+              >
+                <X size={24} />
+              </Button>
+            </header>
+            <div className="overflow-y-auto p-mx-lg md:p-10 space-y-mx-xl">
+              <div className="grid md:grid-cols-2 gap-mx-lg">
+                <div className="space-y-mx-xs">
+                  <label
+                    htmlFor="feedback-seller"
+                    className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary"
+                  >
+                    Especialista
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="feedback-seller"
+                      name="seller_id"
+                      value={formData.seller_id}
+                      onChange={(e) => onSellerSelect(e.target.value)}
+                      className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold uppercase shadow-inner appearance-none cursor-pointer"
+                    >
+                      <option value="">Selecione...</option>
+                      {sellers.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={18}
+                      className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-mx-xs">
+                  <label
+                    htmlFor="feedback-week-reference"
+                    className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary"
+                  >
+                    Semana
+                  </label>
+                  <div className="relative">
+                    <Calendar
+                      size={18}
+                      className="absolute left-mx-sm top-1/2 -translate-y-1/2 opacity-40 pointer-events-none"
+                    />
+                    <input
+                      id="feedback-week-reference"
+                      name="week_reference"
+                      type="date"
+                      value={formData.week_reference}
+                      onChange={(e) => onWeekReferenceChange(e.target.value)}
+                      className="w-full h-mx-14 pl-12 pr-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-black text-brand-primary shadow-inner"
+                    />
+                  </div>
+                </div>
+              </div>
+              {formData.seller_id && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-mx-xl"
+                >
+                  <div className="p-mx-lg bg-surface-alt rounded-mx-xl border border-border-default space-y-mx-lg shadow-inner">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-mx-md">
+                      {[
+                        { label: 'Leads', val: formData.leads_week },
+                        { label: 'Agend.', val: formData.agd_week },
+                        { label: 'Visitas', val: formData.visit_week },
+                        { label: 'Vendas', val: formData.vnd_week },
+                      ].map((item) => (
+                        <div
+                          key={item.label}
+                          className="bg-white p-mx-5 rounded-mx-2xl border border-border-default shadow-sm text-center"
+                        >
+                          <Typography
+                            variant="tiny"
+                            tone="muted"
+                            className="mb-1 block uppercase text-mx-micro font-black"
+                          >
+                            {item.label}
+                          </Typography>
+                          <Typography
+                            variant="h2"
+                            className="text-xl font-mono-numbers font-black"
+                          >
+                            {item.val}
+                          </Typography>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
+                    <div className="space-y-mx-sm">
+                      <label
+                        htmlFor="feedback-positives"
+                        className="text-mx-tiny font-black uppercase tracking-widest text-status-success ml-2 flex items-center gap-mx-xs"
+                      >
+                        <Award size={14} /> Pontos Fortes
+                      </label>
+                      <textarea
+                        id="feedback-positives"
+                        name="positives"
+                        value={formData.positives}
+                        onChange={(e) =>
+                          setFormData((f) => ({ ...f, positives: e.target.value }))
+                        }
+                        className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-success transition-all shadow-sm outline-none resize-none"
+                      />
+                    </div>
+                    <div className="space-y-mx-sm">
+                      <label
+                        htmlFor="feedback-attention"
+                        className="text-mx-tiny font-black uppercase tracking-widest text-status-error ml-2 flex items-center gap-mx-xs"
+                      >
+                        <AlertCircle size={14} /> Pontos de Atenção
+                      </label>
+                      <textarea
+                        id="feedback-attention"
+                        name="attention_points"
+                        value={formData.attention_points}
+                        onChange={(e) =>
+                          setFormData((f) => ({ ...f, attention_points: e.target.value }))
+                        }
+                        className="w-full h-mx-4xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-status-error transition-all shadow-sm outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-mx-sm">
+                    <label
+                      htmlFor="feedback-action"
+                      className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary ml-2 flex items-center gap-mx-xs"
+                    >
+                      <Target size={16} /> Ação
+                    </label>
+                    <textarea
+                      id="feedback-action"
+                      name="action"
+                      value={formData.action}
+                      onChange={(e) =>
+                        setFormData((f) => ({ ...f, action: e.target.value }))
+                      }
+                      className="w-full h-mx-3xl p-mx-md bg-white border-2 border-brand-primary/20 rounded-mx-2xl text-base font-black focus:border-brand-primary transition-all shadow-mx-lg outline-none resize-none"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </div>
+            <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex justify-end gap-mx-sm">
+              <Button
+                variant="ghost"
+                onClick={onClose}
+                className="h-mx-14 px-8 rounded-mx-full font-black uppercase tracking-widest"
+              >
+                CANCELAR
+              </Button>
+              <Button
+                onClick={onSubmit}
+                disabled={
+                  saving ||
+                  !formData.seller_id ||
+                  !formData.positives.trim() ||
+                  !formData.attention_points.trim() ||
+                  !formData.action.trim()
+                }
+                className="h-mx-14 px-12 rounded-mx-full shadow-mx-xl font-black uppercase tracking-widest"
+              >
+                {saving ? (
+                  <RefreshCw className="animate-spin mr-2" />
+                ) : (
+                  <Send size={18} className="mr-2" />
+                )}{' '}
+                REGISTRAR
+              </Button>
+            </footer>
+          </Card>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+export default StoreFeedbackModal

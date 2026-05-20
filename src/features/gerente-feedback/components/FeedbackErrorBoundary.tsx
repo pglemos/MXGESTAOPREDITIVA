@@ -1,0 +1,48 @@
+import { Component, type ErrorInfo, type ReactNode } from 'react'
+
+type Props = { children: ReactNode; sectionName?: string }
+type State = { hasError: boolean; error: Error | null }
+
+/**
+ * ErrorBoundary local do GerenteFeedback — usado por seção, para que falha
+ * em uma section não derrube a página inteira (Story 2.4, ADR-0050).
+ * Espelha o pattern do AgendaErrorBoundary (Story 2.6) e DashboardErrorBoundary (Story 2.5).
+ */
+export class FeedbackErrorBoundary extends Component<Props, State> {
+  state: State = { hasError: false, error: null }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    if (import.meta.env.DEV) {
+      console.error(
+        `[FeedbackErrorBoundary:${this.props.sectionName ?? 'unknown'}]`,
+        error,
+        info,
+      )
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          role="alert"
+          className="my-mx-xs rounded-mx-lg border border-border-default bg-surface-alt p-mx-md text-mx-tiny font-black uppercase tracking-widest text-status-warning"
+        >
+          <strong>
+            // Bloco indisponível{this.props.sectionName ? `: ${this.props.sectionName}` : ''}
+          </strong>
+          <span className="mt-mx-xs block normal-case tracking-normal text-text-secondary">
+            O restante da página continua disponível. Recarregue para tentar novamente.
+          </span>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+export default FeedbackErrorBoundary
