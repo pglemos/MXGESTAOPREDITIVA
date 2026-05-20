@@ -1,6 +1,6 @@
 # Story 2.8 — Split `useTeam` (625 LOC)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -102,7 +102,19 @@ Pattern já validado em Story 2.7. Split habilita Story 2.5 (DashboardLoja). Red
 
 ---
 
+## File List
+
+- `src/hooks/team/useTeamMembers.ts` (NEW, 158 LOC)
+- `src/hooks/team/useTeamMembership.ts` (NEW, 127 LOC)
+- `src/hooks/team/useTeamMetrics.ts` (NEW, 67 LOC)
+- `src/hooks/team/useTeamInvites.ts` (NEW, 35 LOC)
+- `src/hooks/team/types.ts` (NEW, 83 LOC)
+- `src/hooks/team/index.ts` (NEW, 22 LOC barrel)
+- `src/hooks/useStores.ts` (NEW, 560 LOC — extraído: useStores, useStoresStats, useSellersByStore, useAllSellers + StoreUpdateFields)
+- `src/hooks/useTeam.ts` (MODIFIED, 645 → 54 LOC — shim deprecated + re-exports)
+
 ## Change Log
 
 - 2026-05-18 | @sm (River) | Story criada — UX-002 Sprint 2
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass (hard-block 2.7; bloqueia 2.5)
+- 2026-05-19 | @dev (Dex) | Shim conversion completa após criação dos sub-hooks. `useTeam.ts` reduzido de 645 → 54 LOC. Store hooks (`useStores`, `useStoresStats`, `useSellersByStore`, `useAllSellers`) extraídos para `src/hooks/useStores.ts`. `useMemberships` (não consumido) removido. Contrato público preservado via re-exports. typecheck + build verdes. Status: Ready → InReview.
