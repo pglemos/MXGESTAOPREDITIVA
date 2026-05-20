@@ -1,6 +1,6 @@
 # Story 2.2 — Decompor `ConsultoriaClienteDetalhe` (~1200 LOC)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -107,3 +107,38 @@ Reduz risco em uma das pages MAIS sensíveis ao negócio (cliente consultoria �
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (9/10) | Sprint 2 critical-path: pass
+- 2026-05-20 | @dev (Dex) | Status: Ready → InReview | Decomposição aplicada conforme ADR-0050
+
+## File List
+
+**Criados (src/features/consultoria-cliente/):**
+- `ConsultoriaClienteDetalhe.container.tsx` (127 LOC)
+- `index.ts`
+- `data/tabs.ts` (15 LOC)
+- `data/types.ts` (29 LOC)
+- `components/ConsultoriaErrorBoundary.tsx` (45 LOC)
+- `hooks/useActiveTab.ts` (23 LOC)
+- `hooks/useVisitForm.ts` (157 LOC)
+- `hooks/useLegacyCompletion.ts` (87 LOC)
+- `sections/ClientHeaderSection.tsx` (38 LOC)
+- `sections/OverviewSection.tsx` (57 LOC)
+- `sections/VisitsSection.tsx` (86 LOC)
+- `sections/ROISection.tsx` (201 LOC)
+- `sections/PDIsSection.tsx` (90 LOC)
+- `sections/TabContentRouter.tsx` (110 LOC)
+- `modals/LegacyCompletionModal.tsx` (147 LOC)
+- `modals/VisitFormModal.tsx` (214 LOC)
+
+**Modificados:**
+- `src/pages/ConsultoriaClienteDetalhe.tsx` (954 → 7 LOC, re-export shim)
+
+## Dev Notes
+
+- LOC antes: 954 / Container final: 127 LOC (target <200 ✓), maior section: 214 LOC (target <300 ✓)
+- ZERO mudança visual/funcional preservada (mesma estrutura JSX, mesmos handlers, mesmos imports de Views compartilhadas)
+- ErrorBoundary por tab (AC4 atendido via `TabContentRouter`)
+- Tabs preservadas: 10 (overview, visits, strategic, action, financial, daily, monthly, roi, pdis, files)
+- Modais lifted para container (estado em hooks dedicados — `useVisitForm`, `useLegacyCompletion`)
+- Tipo `ConsultingMethodologyStep` importado de `@/lib/schemas/consulting-client.schema` (versão schema-inferred, com nullable, é a que o hook retorna)
+- `typecheck` PASS / `build` PASS (bundle ConsultoriaClienteDetalhe 234.16 kB → 37.49 kB gzip; sem regressão notável)
+- RBAC inline (`canManage`) preservado em VisitsSection — sem mudança de comportamento
