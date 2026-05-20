@@ -377,7 +377,7 @@ verify_jwt = false
 [functions.approve-store-registration]
 verify_jwt = true
 
-[functions.gemini-generate]
+[functions.openrouter-generate]
 verify_jwt = true
 
 # [edge_runtime.secrets]

@@ -24,11 +24,11 @@ type ClaimedQuota = {
   fallback_used: boolean;
 };
 
-const provider = "gemini";
-const primaryModel = Deno.env.get("GEMINI_PRIMARY_MODEL") || "gemini-2.5-flash";
-const fallbackModel = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-2.5-flash-lite";
-const primaryDailyLimit = readPositiveIntEnv("GEMINI_PRIMARY_DAILY_LIMIT", 18);
-const fallbackDailyLimit = readPositiveIntEnv("GEMINI_FALLBACK_DAILY_LIMIT", 18);
+const provider = "openrouter";
+const primaryModel = Deno.env.get("OPENROUTER_PRIMARY_MODEL") || "openrouter/free";
+const fallbackModel = Deno.env.get("OPENROUTER_FALLBACK_MODEL") || "deepseek/deepseek-v4-flash:free";
+const primaryDailyLimit = readPositiveIntEnv("OPENROUTER_PRIMARY_DAILY_LIMIT", 40);
+const fallbackDailyLimit = readPositiveIntEnv("OPENROUTER_FALLBACK_DAILY_LIMIT", 5);
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -102,43 +102,43 @@ async function claimQuota(forceFallback = false) {
   return claimed as ClaimedQuota | null;
 }
 
-async function callGemini(model: string, prompt: string) {
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
-  if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
+async function callOpenRouter(model: string, prompt: string) {
+  const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+  if (!apiKey) throw new Error("Missing OPENROUTER_API_KEY");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const response = await fetch(url, {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": Deno.env.get("OPENROUTER_SITE_URL") || "https://mxperformance.vercel.app",
+      "X-Title": Deno.env.get("OPENROUTER_APP_NAME") || "MX Performance",
+    },
     body: JSON.stringify({
-      systemInstruction: {
-        parts: [{
-          text: "Voce e um assistente operacional da MX Performance. Responda somente com o texto final solicitado, sem markdown decorativo excessivo.",
-        }],
-      },
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.25,
-        topP: 0.9,
-        maxOutputTokens: 1200,
-      },
+      model,
+      messages: [
+        {
+          role: "system",
+          content: "Voce e um assistente operacional da MX Performance. Responda somente com o texto final solicitado, sem markdown decorativo excessivo.",
+        },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.25,
+      top_p: 0.9,
+      max_tokens: 1200,
     }),
   });
 
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = body?.error?.message || `Gemini request failed (${response.status})`;
+    const message = body?.error?.message || `OpenRouter request failed (${response.status})`;
     const error = new Error(message);
     (error as Error & { status?: number }).status = response.status;
     throw error;
   }
 
-  const text = body?.candidates?.[0]?.content?.parts
-    ?.map((part: { text?: string }) => part.text || "")
-    .join("")
-    .trim();
-
-  if (!text) throw new Error("Gemini returned an empty response");
+  const text = body?.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error("OpenRouter returned an empty response");
   return text;
 }
 
@@ -157,14 +157,15 @@ Deno.serve(async (req) => {
 
     let quota = await claimQuota();
     if (!quota) {
-      return jsonResponse({ success: false, error: "Daily Gemini quota exhausted" }, 429);
+      return jsonResponse({ success: false, error: "Daily OpenRouter free quota exhausted" }, 429);
     }
 
     const prompt = buildVisitGroupSummaryPrompt(payload);
     try {
-      const text = await callGemini(quota.selected_model, prompt);
+      const text = await callOpenRouter(quota.selected_model, prompt);
       return jsonResponse({
         success: true,
+        provider,
         text,
         model: quota.selected_model,
         fallbackUsed: quota.fallback_used,
@@ -176,14 +177,15 @@ Deno.serve(async (req) => {
       });
     } catch (error) {
       const status = (error as Error & { status?: number }).status;
-      if (status !== 429 || quota.selected_model === fallbackModel) throw error;
+      if (![429, 503].includes(status || 0) || quota.selected_model === fallbackModel) throw error;
 
       quota = await claimQuota(true);
       if (!quota || quota.selected_model !== fallbackModel) throw error;
 
-      const text = await callGemini(quota.selected_model, prompt);
+      const text = await callOpenRouter(quota.selected_model, prompt);
       return jsonResponse({
         success: true,
+        provider,
         text,
         model: quota.selected_model,
         fallbackUsed: true,
@@ -196,7 +198,7 @@ Deno.serve(async (req) => {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Generation failed";
-    const status = message.includes("Missing GEMINI_API_KEY") ? 500 : 400;
+    const status = message.includes("Missing OPENROUTER_API_KEY") ? 500 : 400;
     return jsonResponse({ success: false, error: message }, status);
   }
 });

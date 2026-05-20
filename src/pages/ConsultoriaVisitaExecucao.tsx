@@ -377,7 +377,7 @@ export default function ConsultoriaVisitaExecucao() {
         fallbackUsed?: boolean
         dailyUsage?: { used: number; limit: number; date: string }
         error?: string
-      }>('gemini-generate', {
+      }>('openrouter-generate', {
         body: {
           mode: 'visit_group_summary',
           draft: executiveSummary,
@@ -398,11 +398,11 @@ export default function ConsultoriaVisitaExecucao() {
 
       setExecutiveSummary(data.text)
       const usage = data.dailyUsage ? ` (${data.dailyUsage.used}/${data.dailyUsage.limit})` : ''
-      toast.success(data.fallbackUsed ? `Resumo gerado com Gemini Flash-Lite${usage}` : `Resumo gerado com Gemini 2.5 Flash${usage}`)
+      toast.success(data.fallbackUsed ? `Resumo gerado com OpenRouter fallback${usage}` : `Resumo gerado com OpenRouter Free${usage}`)
     } catch (err) {
       if (import.meta.env.DEV) console.warn('AI summary fallback:', err)
       setExecutiveSummary(buildLocalGroupSummary())
-      toast.warning('Gemini indisponível. Resumo local gerado para revisão.')
+      toast.warning('OpenRouter indisponível. Resumo local gerado para revisão.')
     } finally {
       setIsGeneratingAiSummary(false)
     }

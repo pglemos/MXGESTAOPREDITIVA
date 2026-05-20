@@ -70,17 +70,16 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 - [x] `npm test`
 - [x] Smoke visual do relatorio quando houver alteracao de template.
 
-### Extensao Gemini - 2026-05-20
+### Extensao OpenRouter Free - 2026-05-20
 
-- [x] Backend `gemini-generate` usa `gemini-2.5-flash` como modelo primario.
-- [x] Limite global diario primario configurado para 18 chamadas/dia apos o Google AI Studio mostrar 20 RPD no projeto Free Tier da conta MX.
-- [x] Fallback configurado para `gemini-2.5-flash-lite` com limite diario de 18 chamadas/dia pela mesma cota Free Tier observada.
+- [x] Backend migrado de Gemini para `openrouter-generate`, mantendo o contrato de resposta usado pelo frontend.
+- [x] Modelo primario configuravel via `OPENROUTER_PRIMARY_MODEL`, com default `openrouter/free`.
+- [x] Fallback configuravel via `OPENROUTER_FALLBACK_MODEL`, com default `deepseek/deepseek-v4-flash:free`.
+- [x] Limite diario conservador configurado para 40 chamadas no primario e 5 no fallback, abaixo do limite gratuito de 50 req/dia do OpenRouter sem creditos.
 - [x] Contador diario persistido em banco por projeto/modelo, com reset baseado no dia do Pacific Time.
-- [x] Frontend mantem fallback deterministico local quando a Edge Function ou o Gemini estiverem indisponiveis.
-- [x] Gates executados: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `deno check supabase/functions/gemini-generate/index.ts`.
-- [x] Projeto `MX Gemini API Free` criado na conta `gestao@mxconsultoria.com.br`; chave configurada em Supabase secrets. Validacao direta ainda bloqueada pelo Google com `Your project has been denied access. Please contact support.`
-- [x] Cloud Console validado: Gemini API ativa, chave disponivel e restrita para Gemini API, cotas Free Tier em 20 RPD para `gemini-2.5-flash` e `gemini-2.5-flash-lite`, sem contratos pendentes; chamadas `GenerateContent` seguem com 100% erro 403 por bloqueio do projeto no Google.
-- [x] Validacao admin master em producao: login autenticado com sucesso e `gemini-generate` acessivel; resposta real do Google permanece 403 por bloqueio externo do projeto.
+- [x] Frontend mantem fallback deterministico local quando a Edge Function ou o OpenRouter estiverem indisponiveis.
+- [x] Gates finais executados: `deno check supabase/functions/openrouter-generate/index.ts`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
+- [x] Validacao admin master em producao: login autenticado, `openrouter-generate` retornou HTTP 200 com `provider=openrouter`, `model=openrouter/free` e uso diario `1/40`.
 
 ## File List
 
@@ -90,5 +89,5 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 - `src/pages/ConsultoriaVisitaExecucao.tsx`
 - `.env.example`
 - `supabase/config.toml`
-- `supabase/functions/gemini-generate/index.ts`
-- `supabase/migrations/20260520120000_gemini_daily_usage_limits.sql`
+- `supabase/functions/openrouter-generate/index.ts`
+- `supabase/migrations/20260520120000_ai_model_daily_usage_limits.sql`
