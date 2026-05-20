@@ -79,6 +79,8 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 - [x] Frontend mantem fallback deterministico local quando a Edge Function ou o Gemini estiverem indisponiveis.
 - [x] Gates executados: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `deno check supabase/functions/gemini-generate/index.ts`.
 - [x] Projeto `MX Gemini API Free` criado na conta `gestao@mxconsultoria.com.br`; chave configurada em Supabase secrets. Validacao direta ainda bloqueada pelo Google com `Your project has been denied access. Please contact support.`
+- [x] Cloud Console validado: Gemini API ativa, chave disponivel e restrita para Gemini API, cotas Free Tier em 20 RPD para `gemini-2.5-flash` e `gemini-2.5-flash-lite`, sem contratos pendentes; chamadas `GenerateContent` seguem com 100% erro 403 por bloqueio do projeto no Google.
+- [x] Validacao admin master em producao: login autenticado com sucesso e `gemini-generate` acessivel; resposta real do Google permanece 403 por bloqueio externo do projeto.
 
 ## File List
 

@@ -27,8 +27,8 @@ type ClaimedQuota = {
 const provider = "gemini";
 const primaryModel = Deno.env.get("GEMINI_PRIMARY_MODEL") || "gemini-2.5-flash";
 const fallbackModel = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-2.5-flash-lite";
-const primaryDailyLimit = readPositiveIntEnv("GEMINI_PRIMARY_DAILY_LIMIT", 230);
-const fallbackDailyLimit = readPositiveIntEnv("GEMINI_FALLBACK_DAILY_LIMIT", 1000);
+const primaryDailyLimit = readPositiveIntEnv("GEMINI_PRIMARY_DAILY_LIMIT", 18);
+const fallbackDailyLimit = readPositiveIntEnv("GEMINI_FALLBACK_DAILY_LIMIT", 18);
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
