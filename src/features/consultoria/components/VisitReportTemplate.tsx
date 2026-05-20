@@ -20,6 +20,8 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
   const visitDateRaw = headerBase.visit_date || visit.scheduled_at || new Date().toISOString()
   const visitDate = new Date(visitDateRaw)
   const attachments = visit.attachments || []
+  const imageAttachments = attachments.filter((att) => att.content_type?.includes('image') && att.storage_path)
+  const documentAttachments = attachments.filter((att) => !att.content_type?.includes('image') || !att.storage_path)
   const visitLabel = getPmrVisitDisplayLabel(visit.visit_number)
   const analysisPeriodLabel = formatVisitAnalysisPeriodLabel({
     preset: visit.analysis_period_preset,
@@ -130,21 +132,32 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
             <div style={{ width: '6px', height: '24px', backgroundColor: colors.textMuted, borderRadius: '999px' }} />
             <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Evidências da Visita</h3>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {attachments.map((att) => (
-              <div key={att.id} style={{ border: `1px solid ${colors.border}`, borderRadius: '12px', overflow: 'hidden', backgroundColor: '#F3F4F6' }}>
-                <img 
-                  src={`${STORAGE_URL}${att.storage_path}`} 
-                  alt={att.filename}
-                  style={{ width: '100%', height: '180px', objectFit: 'cover' }}
-                  crossOrigin="anonymous"
-                />
-                <div style={{ padding: '8px', fontSize: '10px', color: colors.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', backgroundColor: '#FFFFFF' }}>
+          {imageAttachments.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              {imageAttachments.map((att) => (
+                <div key={att.id} style={{ border: `1px solid ${colors.border}`, borderRadius: '12px', overflow: 'hidden', backgroundColor: '#F3F4F6' }}>
+                  <img
+                    src={`${STORAGE_URL}${att.storage_path}`}
+                    alt={att.filename}
+                    style={{ width: '100%', height: '180px', objectFit: 'cover' }}
+                    crossOrigin="anonymous"
+                  />
+                  <div style={{ padding: '8px', fontSize: '10px', color: colors.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', backgroundColor: '#FFFFFF' }}>
+                    {att.filename}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {documentAttachments.length > 0 && (
+            <div style={{ marginTop: imageAttachments.length > 0 ? '16px' : 0, display: 'grid', gap: '8px' }}>
+              {documentAttachments.map((att) => (
+                <div key={att.id} style={{ border: `1px solid ${colors.border}`, borderRadius: '12px', padding: '10px 12px', backgroundColor: '#FFFFFF', fontSize: '11px', color: colors.textMuted, fontWeight: 700 }}>
                   {att.filename}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

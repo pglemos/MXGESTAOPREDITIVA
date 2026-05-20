@@ -62,10 +62,10 @@ export default function Privacy() {
                             <div className="space-y-mx-md pt-10 border-t border-border-default">
                                 <header className="flex items-center gap-mx-sm">
                                     <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-mx-black text-brand-primary flex items-center justify-center shadow-mx-lg"><CalendarDays size={20} /></div>
-                                    <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Uso de Dados do Google Calendar</Typography>
+                                    <Typography variant="h2" className="text-2xl uppercase tracking-tighter">Uso de Dados do Google Calendar e Meet</Typography>
                                 </header>
                                 <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70">
-                                    Quando um usuario autoriza a integracao, o MX PERFORMANCE acessa eventos do Google Calendar somente para exibir, criar, atualizar e sincronizar visitas relacionadas ao trabalho da MX Consultoria. O sistema nao vende dados do Google, nao usa dados do Google Calendar para publicidade e nao compartilha essas informacoes com terceiros fora da operacao autorizada.
+                                    Quando um usuario autoriza a integracao, o MX PERFORMANCE acessa eventos do Google Calendar e artefatos autorizados do Google Meet somente para exibir, criar, atualizar e sincronizar visitas, aulas, eventos online, links de reuniao, transcricoes e atas relacionadas ao trabalho da MX Consultoria. O sistema nao vende dados do Google, nao usa dados do Google Calendar ou Google Meet para publicidade e nao compartilha essas informacoes com terceiros fora da operacao autorizada.
                                 </Typography>
                                 <Typography variant="caption" tone="muted" className="text-base font-black leading-relaxed uppercase tracking-tight opacity-70 block">
                                     O usuario pode revogar o acesso a qualquer momento pela conta Google em Seguranca &gt; Apps e servicos de terceiros, ou solicitar remocao de dados pelo canal administrativo da MX Consultoria.

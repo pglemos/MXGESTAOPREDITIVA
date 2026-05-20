@@ -129,6 +129,7 @@ export const CENTRAL_CALENDAR_ID = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_ID") ||
 export const CENTRAL_CALENDAR_EMAIL = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_EMAIL") || "gestao@mxconsultoria.com.br";
 export const CENTRAL_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
 export const CENTRAL_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+export const CENTRAL_MEET_READ_SCOPE = "https://www.googleapis.com/auth/meetings.space.readonly";
 export const CENTRAL_DRIVE_ROOT_FOLDER_ID = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_ID") || "";
 export const CENTRAL_DRIVE_ROOT_FOLDER_NAME = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_NAME") || "MX Performance - Clientes";
 

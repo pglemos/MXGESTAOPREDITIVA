@@ -30,7 +30,7 @@ const initialSchedule: ScheduleForm = {
 const initialEvent: EventForm = {
   event_type: 'aula', title: '', topic: '',
   starts_at: '', starts_time: '20:00', duration_hours: '2',
-  modality: 'Online', location: 'ZOOM',
+  modality: 'Online', location: 'Google Meet',
   target_audience: '', audience_goal: '',
   responsible_user_id: '', responsible_name: '',
   ticket_price_text: '', visit_reason: '', product_name: '',

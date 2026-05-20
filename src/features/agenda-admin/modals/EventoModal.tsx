@@ -73,7 +73,7 @@ export function EventoModal({
               ...prev,
               event_type: e.target.value as AgendaScheduleEvent['event_type'],
               modality: e.target.value === 'evento_presencial' ? 'Presencial' : 'Online',
-              location: e.target.value === 'evento_presencial' ? '' : 'ZOOM',
+              location: e.target.value === 'evento_presencial' ? '' : 'Google Meet',
             }))}
           >
             <option value="aula">Aula</option>
@@ -183,7 +183,7 @@ export function EventoModal({
               id="agenda-event-location"
               value={eventForm.location}
               onChange={(e) => setEventForm((prev) => ({ ...prev, location: e.target.value }))}
-              placeholder="ZOOM, Online, Lagoa Santa / MG..."
+              placeholder="Google Meet, Online, Lagoa Santa / MG..."
             />
           </div>
         </div>
