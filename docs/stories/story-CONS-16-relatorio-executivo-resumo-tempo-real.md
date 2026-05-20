@@ -73,11 +73,12 @@ para entregar ao lojista/dono um retorno padronizado imediatamente apos a reunia
 ### Extensao Gemini - 2026-05-20
 
 - [x] Backend `gemini-generate` usa `gemini-2.5-flash` como modelo primario.
-- [x] Limite global diario primario configurado para 230 chamadas antes do fallback.
-- [x] Fallback configurado para `gemini-2.5-flash-lite` com limite diario de 1000 chamadas.
+- [x] Limite global diario primario configurado para 18 chamadas/dia apos o Google AI Studio mostrar 20 RPD no projeto Free Tier da conta MX.
+- [x] Fallback configurado para `gemini-2.5-flash-lite` com limite diario de 18 chamadas/dia pela mesma cota Free Tier observada.
 - [x] Contador diario persistido em banco por projeto/modelo, com reset baseado no dia do Pacific Time.
 - [x] Frontend mantem fallback deterministico local quando a Edge Function ou o Gemini estiverem indisponiveis.
 - [x] Gates executados: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `deno check supabase/functions/gemini-generate/index.ts`.
+- [x] Projeto `MX Gemini API Free` criado na conta `gestao@mxconsultoria.com.br`; chave configurada em Supabase secrets. Validacao direta ainda bloqueada pelo Google com `Your project has been denied access. Please contact support.`
 
 ## File List
 
