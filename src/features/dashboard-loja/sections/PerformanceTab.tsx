@@ -1,0 +1,127 @@
+import { isPerfilInternoMx } from '@/hooks/useAuth'
+import type { UserRole, Store } from '@/types/database'
+import { DashboardErrorBoundary } from '../components/DashboardErrorBoundary'
+import { KpisSection } from './KpisSection'
+import { OwnerDecisionCards } from './OwnerDecisionCards'
+import { PerformanceAlerts, usePerformanceAlerts } from './PerformanceAlerts'
+import { FunnelSection } from './FunnelSection'
+import { RankingSection } from './RankingSection'
+import { AdminSettingsCard } from './AdminSettingsCard'
+import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
+
+type DashboardData = ReturnType<typeof useDashboardLojaData>
+
+type PerformanceTabProps = {
+  role: UserRole | null
+  isOwner: boolean
+  isAdminMx: boolean
+  selectedStoreId: string
+  selectedStore: Store | null
+  data: DashboardData
+  showAdminSettings: boolean
+  onToggleAdminSettings: () => void
+  onOpenStoreEdit: () => void
+  onNavigateLojas: () => void
+  onDeleteStore: () => void
+  deletingStore: boolean
+  onRefetchAll: () => Promise<void>
+}
+
+/**
+ * Aba "Performance" do DashboardLoja — orquestra todas as sections quando ativeTab='performance'.
+ * Extraído de DashboardLoja.tsx (Story 2.5).
+ */
+export function PerformanceTab({
+  role,
+  isOwner,
+  isAdminMx,
+  selectedStoreId,
+  selectedStore,
+  data,
+  showAdminSettings,
+  onToggleAdminSettings,
+  onOpenStoreEdit,
+  onNavigateLojas,
+  onDeleteStore,
+  deletingStore,
+  onRefetchAll,
+}: PerformanceTabProps) {
+  const { alerts, mixCanais } = usePerformanceAlerts({
+    role,
+    isOwner,
+    metrics: data.metrics,
+    sellers: data.sellers,
+    checkins: data.checkins,
+    funilData: data.funilData,
+    funnelBenchmarks: data.funnelBenchmarks,
+    selectedStoreId,
+  })
+
+  return (
+    <>
+      {isAdminMx && selectedStore && (
+        <DashboardErrorBoundary sectionName="AdminSettings">
+          <AdminSettingsCard
+            selectedStoreId={selectedStoreId}
+            selectedStore={selectedStore}
+            operational={{
+              store: data.operationalStore,
+              deliveryRules: data.deliveryRules,
+              benchmark: data.benchmark,
+              metaRules: data.operationalMetaRules,
+              loading: data.operationalLoading,
+              fetchSettings: data.fetchSettings,
+              saveSettings: data.saveSettings,
+            }}
+            storeGoalProjectionMode={data.storeGoal?.projection_mode}
+            showAdminSettings={showAdminSettings}
+            onToggleAdminSettings={onToggleAdminSettings}
+            onOpenEdit={onOpenStoreEdit}
+            onNavigateLojas={onNavigateLojas}
+            onDelete={onDeleteStore}
+            deletingStore={deletingStore}
+            onRefetchAll={onRefetchAll}
+          />
+        </DashboardErrorBoundary>
+      )}
+
+      {isOwner && (
+        <DashboardErrorBoundary sectionName="OwnerDecision">
+          <OwnerDecisionCards alerts={alerts} hasDRE={!!data.latestDRE} />
+        </DashboardErrorBoundary>
+      )}
+
+      <DashboardErrorBoundary sectionName="KPIs">
+        <KpisSection
+          role={role}
+          isOwner={isOwner}
+          metrics={data.metrics}
+          sellers={data.sellers}
+          pendingDisciplineSellers={data.pendingDisciplineSellers}
+          latestDRE={data.latestDRE}
+        />
+      </DashboardErrorBoundary>
+
+      {(isPerfilInternoMx(role) || role === 'dono' || role === 'gerente') && (
+        <DashboardErrorBoundary sectionName="PerformanceAlerts">
+          <PerformanceAlerts role={role} isOwner={isOwner} alerts={alerts} />
+        </DashboardErrorBoundary>
+      )}
+
+      <DashboardErrorBoundary sectionName="Funnel">
+        <FunnelSection funilData={data.funilData} funnelBenchmarks={data.funnelBenchmarks} />
+      </DashboardErrorBoundary>
+
+      <DashboardErrorBoundary sectionName="Ranking">
+        <RankingSection
+          viewMode={data.viewMode}
+          ranking={data.metrics.ranking}
+          mixCanais={mixCanais}
+          diagnostics={data.diagnostics}
+        />
+      </DashboardErrorBoundary>
+    </>
+  )
+}
+
+export default PerformanceTab

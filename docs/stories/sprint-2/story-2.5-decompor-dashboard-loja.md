@@ -1,6 +1,6 @@
 # Story 2.5 — Decompor `DashboardLoja` (1409 LOC) — depende de Story 2.8
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 2
 **Prioridade:** P1
@@ -111,3 +111,29 @@ DashboardLoja é landing pós-login do gerente — page mais visitada. Decompor 
 
 - 2026-05-18 | @sm (River) | Story criada — UX-001 Sprint 2 (depende de 2.8)
 - 2026-05-18 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 2 critical-path: pass (hard-block 2.8 reconhecido)
+- 2026-05-19 | @dev (Dex) | Status: Ready → InReview | DashboardLoja decomposto: 1418 LOC → container 157 LOC + 14 arquivos em `src/features/dashboard-loja/`. AC1 verde (container <200). AC2 verde (estrutura ADR-0050). AC3 verde (imports diretos `@/hooks/useStores` + sub-hooks, sem `useTeam` shim). AC5 preservado (realtime channel `dashboard-sync-{storeId}` no `useDashboardLojaData`). typecheck + build verdes; bundle delta +2 kB (lazy import boundary). AC4 visual regression pendente.
+
+## File List
+
+### Adicionados (feature `dashboard-loja/`)
+- `src/features/dashboard-loja/DashboardLoja.container.tsx` (157 LOC) — container slim
+- `src/features/dashboard-loja/hooks/useDashboardLojaData.ts` (242 LOC) — agregador checkins/sales/DRE/realtime
+- `src/features/dashboard-loja/hooks/useStoreResolution.ts` (99 LOC) — slug/query→storeId
+- `src/features/dashboard-loja/hooks/useStoreActions.ts` (114 LOC) — CRUD + modal state
+- `src/features/dashboard-loja/sections/DashboardHeader.tsx` (209 LOC) — store selector + tabs + período
+- `src/features/dashboard-loja/sections/PerformanceTab.tsx` (127 LOC) — orquestrador da aba
+- `src/features/dashboard-loja/sections/KpisSection.tsx` (124 LOC) — 5 cards de KPI + DRE
+- `src/features/dashboard-loja/sections/OwnerDecisionCards.tsx` (46 LOC) — 3 cards exclusivos do Dono
+- `src/features/dashboard-loja/sections/PerformanceAlerts.tsx` (250 LOC) — alerts + `usePerformanceAlerts`
+- `src/features/dashboard-loja/sections/FunnelSection.tsx` (108 LOC) — fluxo de escoamento
+- `src/features/dashboard-loja/sections/RankingSection.tsx` (185 LOC) — DataGrid + Mix Canais + Diagnóstico
+- `src/features/dashboard-loja/sections/AdminSettingsCard.tsx` (226 LOC) — header Admin + form wrapper
+- `src/features/dashboard-loja/sections/AdminSettingsForm.tsx` (205 LOC) — 3 colunas (Meta/Benchmarks/Relatórios)
+- `src/features/dashboard-loja/sections/CreateStoreModal.tsx` (71 LOC)
+- `src/features/dashboard-loja/sections/DashboardEmptyStates.tsx` (77 LOC) — spinner/skeleton/empty
+- `src/features/dashboard-loja/components/DashboardErrorBoundary.tsx` (44 LOC)
+- `src/features/dashboard-loja/components/RecipientPreview.tsx` (44 LOC)
+- `src/features/dashboard-loja/data/store-settings.ts` (28 LOC) — constants + helpers
+
+### Modificados
+- `src/pages/DashboardLoja.tsx` (1418 → 6 LOC) — re-export do container
