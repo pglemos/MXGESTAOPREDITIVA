@@ -1,6 +1,6 @@
 # Story 1.7 — Export-Encrypt-Then-Drop dos `migration_backup_*_20260503` (DB-013)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
@@ -9,6 +9,12 @@
 
 ## Change Log
 - 2026-05-17 | @po (Pax) | Status: Draft → Ready | Validation: GO CONDICIONAL (9/10) | Sprint 1 critical-path: CONDICIONAL — DPO approval citado no AC4 mas processo formal (template/SLA/responsável nomeado) não detalhado. Recomenda anexar template de approval ao PR + iniciar processo D1 do sprint conforme Risk Mitigation. Encrypt-then-drop sequence clara (export → checksum → spot-check → approval → DROP)
+- 2026-05-21 | @data-engineer (Dara) | Status: Ready → InReview | Migration técnica + runbook + template DPO PRONTOS. **Não aplicado em produção** — aguarda DPO approval externo (template anexo) + export offline encrypted validado + snapshot PITR. Migration usa padrão encrypt-then-drop com gate `eh_administrador_mx()`, auditoria pré/pós-DROP em `logs_auditoria` e idempotência via `IF EXISTS`.
+
+## File List
+- `supabase/migrations/20260521120000_drop_migration_backups_pii.sql` (criado) — Migration drop com gate admin + auditoria + idempotente
+- `docs/runbooks/sprint-1-story-1.7-drop-pii-backups.md` (criado) — Runbook execução staging→prod + rollback PITR
+- `docs/runbooks/lgpd-dpo-approval-template.md` (criado) — Template formal aprovação DPO (LGPD Art. 16)
 **Esforço estimado:** 8h
 **Owner sugerido:** @data-engineer + @devops
 **RACI:** R=@data-engineer+@devops, A=Tech Lead+DPO, C=@architect+@qa, I=stakeholders
