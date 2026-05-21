@@ -1,6 +1,6 @@
 # Story 3.1 — Decompor `Notificacoes` (~700 LOC)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -106,3 +106,16 @@ Seguir ADR-0050 strictly. Atenção especial a subscriptions realtime — extrai
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada — Sprint 3 UX-001 decomposição
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-20 | @dev (Dex) | Status: Ready → InReview | Decomposição ADR-0050 aplicada: Notificacoes.tsx 520 LOC → page 5 LOC + container 65 LOC + 4 sections + 2 components + hook agregador (realtime único) + data. typecheck PASS, build PASS.
+
+## File List
+- `src/pages/Notificacoes.tsx` — page agora apenas re-export (5 LOC)
+- `src/features/notificacoes/Notificacoes.container.tsx` — container orquestrador (65 LOC)
+- `src/features/notificacoes/hooks/useNotificacoesPage.ts` — hook agregador (queries + realtime único + handlers) (284 LOC)
+- `src/features/notificacoes/sections/NotificacoesHeader.tsx` — header com refresh/marcar-tudo (53 LOC)
+- `src/features/notificacoes/sections/NotificacoesRoleBanners.tsx` — banners contextuais Dono/Vendedor (48 LOC)
+- `src/features/notificacoes/sections/NotificacoesListSection.tsx` — inbox com grupos Hoje/Ontem/Anteriores (244 LOC)
+- `src/features/notificacoes/sections/NotificacoesFiltersBar.tsx` — busca + filtros por tipo (93 LOC)
+- `src/features/notificacoes/components/NotificacaoApprovalCard.tsx` — card de aprovação pré-cadastro embutido (113 LOC)
+- `src/features/notificacoes/components/NotificacoesErrorBoundary.tsx` — ErrorBoundary local da feature (48 LOC)
+- `src/features/notificacoes/data/preRegistration.ts` — select e helpers pré-cadastro (43 LOC)
