@@ -1,6 +1,16 @@
 # Story 0.4 — CI Branch Protection + Gitleaks (Secret Scanning)
 
-**Status:** Ready
+**Status:** InReview (prep done — aguarda execução do script com admin GitHub)
+
+## File List (Implementação prep)
+- `.github/workflows/gitleaks.yml` (workflow secret scanning ativo em PR+push main)
+- `.gitleaks.toml` (config com allowlists para docs/test/example + regras Supabase/Sentry)
+- `scripts/setup-branch-protection.sh` (gh CLI script — exige admin)
+- `docs/runbooks/sprint-0-story-0.4-branch-protection.md` (runbook completo)
+
+## Change Log (Implementação)
+- 2026-05-21 | @aiox-master (Orion) | Status: Ready → InReview | Workflow gitleaks + config + script gh + runbook prontos. Aplicação branch protection aguarda `./scripts/setup-branch-protection.sh` executado por admin com gh autenticado.
+
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 0
 **Prioridade:** P0

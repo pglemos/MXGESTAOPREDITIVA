@@ -1,0 +1,63 @@
+# Gitleaks config — Story 0.4 / CI-001
+# Detecta secrets vazados em PRs/commits
+
+title = "MX Gestão Preditiva gitleaks config"
+
+# Usa regras default + customizações abaixo
+[extend]
+useDefault = true
+
+# Allowlist global — paths/arquivos legitimos com strings que parecem secrets
+[allowlist]
+description = "Allowlist global"
+paths = [
+    '''(?i)docs/.*\.md''',
+    '''(?i)\.env\.example''',
+    '''(?i)\.storybook/.*''',
+    '''package-lock\.json''',
+    '''bun\.lock''',
+    '''deno\.lock''',
+    '''.*\.test\.(ts|tsx|js|mjs)''',
+    '''.*\.spec\.(ts|tsx|js|mjs)''',
+    '''docs/stories/.*\.md''',
+    '''docs/runbooks/.*\.md''',
+    '''docs/reviews/.*\.md''',
+    '''docs/adr/.*\.md''',
+]
+
+# Strings comuns em template/example/test que não são secrets reais
+regexTarget = "match"
+regexes = [
+    '''AKIAIOSFODNN7EXAMPLE''',
+    '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',
+    '''00000000-0000-0000-0000-000000000000''',
+    '''00000000-0000-0000-0000-000000000001''',
+    '''YOUR_SUPABASE_ANON_KEY''',
+    '''YOUR_SUPABASE_SERVICE_ROLE_KEY''',
+    '''<dsn_publico_do_sentry>''',
+    '''<token>''',
+    '''<slug-da-org>''',
+    '''eyJxxx\.\.\.''',
+    '''sk-test-.*''',
+    '''sbp_test_.*''',
+]
+
+# Regras customizadas Supabase/Sentry (além das default)
+[[rules]]
+id = "supabase-service-role-key-suspicious"
+description = "Supabase service_role JWT (eyJ...)"
+regex = '''eyJ[A-Za-z0-9_-]{30,}\.eyJ[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{30,}'''
+tags = ["supabase", "jwt"]
+[rules.allowlist]
+paths = [
+    '''docs/.*''',
+    '''\.env\.example''',
+]
+
+[[rules]]
+id = "sentry-dsn"
+description = "Sentry DSN"
+regex = '''https://[a-f0-9]{32}@[a-z0-9-]+\.ingest\.(us\.)?sentry\.io/[0-9]+'''
+tags = ["sentry"]
+[rules.allowlist]
+paths = ['''docs/.*''', '''\.env\.example''']

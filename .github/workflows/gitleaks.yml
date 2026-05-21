@@ -1,0 +1,32 @@
+name: Gitleaks (Secret Scanning)
+
+# Story 0.4 / CI-001 — detecta secrets vazados em PRs antes de merge
+# Roda em todo PR + push para main
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  scan:
+    name: Detect Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history para gitleaks scan completo
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # opcional para orgs
+        with:
+          config-path: .gitleaks.toml
