@@ -1,6 +1,6 @@
 # Story 3.3 — Decompor `RankingLoja` (~600 LOC)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -83,3 +83,46 @@ Seguir ADR-0050. Chart provavelmente em recharts — extrair config para `compon
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-21 | @dev (Dex) | Story 3.3 reconciliada: alvo real `src/pages/SalesPerformance.tsx` (800 LOC) — `RankingLoja.tsx` não existe no repo. Container shim conversion completa em `src/features/sales-performance/` seguindo ADR-0050. typecheck + build verdes. Status: Ready → InReview.
+
+## File List (Story 3.3 reconciliada — SalesPerformance)
+**Modificados:**
+- `src/pages/SalesPerformance.tsx` (800 → 6 LOC — shim de retrocompat)
+
+**Criados (container + views):**
+- `src/features/sales-performance/SalesPerformance.container.tsx` (16 LOC — decide admin vs store por role)
+- `src/features/sales-performance/index.ts` (2 LOC — barrel)
+- `src/features/sales-performance/views/AdminPerformanceView.tsx` (94 LOC — BI Executivo da Rede)
+- `src/features/sales-performance/views/StorePerformanceView.tsx` (51 LOC — Performance da Loja)
+
+**Criados (admin sections — fase prévia + completar gap):**
+- `src/features/sales-performance/sections/AdminHeader.tsx`
+- `src/features/sales-performance/sections/AdminKpiCards.tsx`
+- `src/features/sales-performance/sections/AdminSellOutEvolution.tsx`
+- `src/features/sales-performance/sections/AdminHealthCard.tsx`
+- `src/features/sales-performance/sections/AdminTopStoresList.tsx`
+- `src/features/sales-performance/sections/AdminGoalCompareChart.tsx`
+- `src/features/sales-performance/sections/AdminFunnelChart.tsx`
+- `src/features/sales-performance/sections/AdminPeopleChart.tsx` (NOVO — gap)
+- `src/features/sales-performance/sections/AdminConsultingCard.tsx` (NOVO — gap)
+- `src/features/sales-performance/sections/AdminStoreMatrixTable.tsx` (NOVO — gap)
+
+**Criados (store sections — NOVOS, gerente de loja):**
+- `src/features/sales-performance/sections/StoreHeader.tsx`
+- `src/features/sales-performance/sections/StoreKpiCards.tsx`
+- `src/features/sales-performance/sections/StoreSellOutEvolution.tsx`
+- `src/features/sales-performance/sections/StoreHealthCard.tsx`
+
+**Hooks/components/data (fase prévia):**
+- `src/features/sales-performance/hooks/useAdminPerformancePage.ts`
+- `src/features/sales-performance/hooks/useStorePerformancePage.ts`
+- `src/features/sales-performance/components/SalesPerformanceErrorBoundary.tsx`
+- `src/features/sales-performance/data/formatters.ts`
+- `src/features/sales-performance/data/types.ts`
+
+**Validação:**
+- `npm run typecheck` → PASS
+- `npm run build` → PASS (8.09s, SalesPerformance-CRQAP9u5.js = 83.53 kB / gzip 11.55 kB)
+- Container 16 LOC < 200 LOC (AC1 OK)
+- ErrorBoundary por section (AC4 OK)
+- ZERO mudança visual/funcional (lógica de hooks já validada na fase prévia)
