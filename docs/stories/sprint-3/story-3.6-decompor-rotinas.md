@@ -1,6 +1,6 @@
 # Story 3.6 — Decompor `RotinaGerente` + `RotinaVendedor` (~500 + ~500 LOC)
 
-**Status:** Ready
+**Status:** InReview (escopo PARCIAL — apenas RotinaGerente)
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -98,3 +98,26 @@ Seguir ADR-0050. Shared kit em `features/rotinas/shared/` — re-export via `fea
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada — Sprint 3 UX-001 decomposição Rotinas
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-20 | @dev (Dex) | Status: Ready → InReview (parcial) | Decomposição de `RotinaGerente` concluída seguindo ADR-0050. **DIVERGÊNCIA spec/realidade:** o arquivo `src/pages/RotinaVendedor.tsx` não existe no codebase — escopo da story reduzido para apenas `RotinaGerente`. Esforço efetivo: ~7h (metade do estimado). typecheck + build verdes.
+
+## File List
+
+### Modified
+- `src/pages/RotinaGerente.tsx` — 663 LOC → 6 LOC (re-export do container em features/)
+
+### Created (src/features/rotina-gerente/)
+- `RotinaGerente.container.tsx` (101 LOC) — orquestrador com ErrorBoundary por seção
+- `hooks/useRotinaGerentePage.ts` (474 LOC) — hook único com state/eventos/handlers
+- `data/types.ts` (23 LOC) — RoutineTab, RoutineNotice, RoutineProgress, PendingCorrectionRequest
+- `components/RotinaErrorBoundary.tsx` (48 LOC) — fail-isolation por seção
+- `sections/RotinaAdminStoreSelector.tsx` (49 LOC) — splash de seleção de unidade para admin
+- `sections/RotinaHeader.tsx` (137 LOC) — título + TabNav + refresh + contexto de unidade
+- `sections/RotinaNoticeBar.tsx` (38 LOC) — banner status (success/warning/error/info)
+- `sections/RotinaDiarioTab.tsx` (69 LOC) — composição da aba Diário
+- `sections/RotinaProgressCard.tsx` (55 LOC) — card de progresso 3-etapas
+- `sections/RotinaRitualMatinal.tsx` (225 LOC) — checklist mandatário + disparo Matinal
+- `sections/RotinaSnapshotAside.tsx` (141 LOC) — Snapshot Hoje + Auditoria Diária (firma)
+- `sections/RotinaAjustesTab.tsx` (232 LOC) — auditoria de correções retroativas
+
+### Escopo NÃO entregue (justificativa)
+- ~~`src/pages/RotinaVendedor.tsx`~~ — **arquivo inexistente no codebase em 2026-05-20**. Story originalmente assumiu sua existência. Recomenda-se reclassificar a story ou criar nova story para quando RotinaVendedor for implementada.

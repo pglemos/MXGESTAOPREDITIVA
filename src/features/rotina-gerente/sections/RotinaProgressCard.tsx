@@ -1,0 +1,55 @@
+import { Typography } from '@/components/atoms/Typography'
+import { Card } from '@/components/molecules/Card'
+import { cn } from '@/lib/utils'
+import type { RoutineProgress } from '../data/types'
+
+type Props = { routineProgress: RoutineProgress }
+
+/**
+ * Card de "Progresso da rotina" — barra percentual + chips das 3 etapas.
+ */
+export function RotinaProgressCard({ routineProgress }: Props) {
+  return (
+    <Card className="border border-border-default bg-white p-mx-lg shadow-mx-sm">
+      <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <Typography variant="h3" className="uppercase tracking-tight">
+            Progresso da rotina
+          </Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-tiny text-sm">
+            {routineProgress.doneCount}/{routineProgress.total} etapas concluídas antes do
+            Matinal.
+          </Typography>
+        </div>
+        <div className="flex min-w-mx-48 items-center gap-mx-sm">
+          <div className="h-mx-xs flex-1 overflow-hidden rounded-mx-full bg-surface-alt">
+            <div
+              className="h-full rounded-mx-full bg-brand-primary transition-all"
+              style={{ width: `${routineProgress.percent}%` }}
+            />
+          </div>
+          <Typography variant="h3" className="tabular-nums">
+            {routineProgress.percent}%
+          </Typography>
+        </div>
+      </div>
+      <div className="mt-mx-md grid grid-cols-1 gap-mx-xs sm:grid-cols-3">
+        {routineProgress.steps.map((step) => (
+          <div
+            key={step.label}
+            className={cn(
+              'rounded-mx-xl border px-mx-md py-mx-sm text-sm font-black uppercase',
+              step.done
+                ? 'border-status-success/20 bg-status-success-surface text-status-success'
+                : 'border-border-default bg-surface-alt text-text-secondary',
+            )}
+          >
+            {step.label}
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+export default RotinaProgressCard
