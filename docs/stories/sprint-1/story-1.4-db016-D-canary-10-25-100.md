@@ -1,6 +1,14 @@
 # Story 1.4 — DB-016 Fase D: Rollout Canary 10% → 25% → 100% (7 dias)
 
-**Status:** Ready
+**Status:** InReview (prep done — aguarda janela operacional 7 dias contínuos)
+
+## File List (Implementação prep)
+- `scripts/db016-canary-controller.sh` (orquestrador stages 10→25→100 + REVOKE final)
+- `docs/runbooks/sprint-1-story-1.3-1.4-db016-canary.md` (runbook 7 dias, métricas health, triggers rollback)
+
+## Change Log (Implementação)
+- 2026-05-21 | @aiox-master (Orion) | Status: Ready → InReview | Script controller + runbook prontos. Aplicação aguarda janela operacional contínua de 7 dias + Story 1.3 Day 1 (canary 1%) verde.
+
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0

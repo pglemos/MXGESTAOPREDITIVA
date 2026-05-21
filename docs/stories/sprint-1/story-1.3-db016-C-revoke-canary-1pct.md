@@ -1,6 +1,13 @@
 # Story 1.3 — DB-016 Fase C: REVOKE INSERT/UPDATE + Feature Flag 1%
 
-**Status:** Ready
+**Status:** InReview (prep done — aguarda janela operacional 7 dias)
+
+## File List (Implementação prep)
+- `supabase/migrations/20260521130000_db016_revoke_lancamentos_diarios.sql` (REVOKE migration idempotente)
+- `supabase/migrations/20260521131000_db016_revoke_rollback.sql` (rollback migration)
+- `scripts/db016-canary-controller.sh` (orquestrador canary stages 1→10→25→100)
+- `docs/runbooks/sprint-1-story-1.3-1.4-db016-canary.md` (runbook 7 dias)
+
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 1
 **Prioridade:** P0
