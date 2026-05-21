@@ -39,3 +39,7 @@ Thumbs.db
 .gemini/settings.json
 .worktrees/
 scratch/
+
+# Storybook
+storybook-static
+

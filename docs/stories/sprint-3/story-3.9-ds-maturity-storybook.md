@@ -1,6 +1,6 @@
 # Story 3.9 — DS maturity 3/5 → 4/5 (tokens canônicos + Storybook)
 
-**Status:** Ready
+**Status:** InReview
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -98,6 +98,34 @@ Storybook 8 + Vite builder. Tokens em TS para tree-shaking. CSS vars geradas via
 
 ---
 
+## File List
+- `.storybook/main.ts` (novo) — config Storybook 8 + Vite builder + alias `@`
+- `.storybook/preview.ts` (novo) — import `src/index.css`, backgrounds, a11y addon
+- `src/components/atoms/_stories/Tokens.stories.tsx` (novo) — catálogo visual de tokens (colors/spacing/typography/radius)
+- `src/components/atoms/_stories/Button.stories.tsx` (novo) — 9 variants + sizes
+- `src/components/atoms/_stories/Skeleton.stories.tsx` (novo) — 7 variants primitivo
+- `src/components/atoms/skeletons/_stories/SkeletonComposites.stories.tsx` (novo) — Card/Chart/List/Stats/Table
+- `src/components/molecules/_stories/ModalTrigger.stories.tsx` (novo) — Radix Dialog reference (Story 3.12)
+- `.github/workflows/storybook-build.yml` (novo) — build artifact por PR (non-blocking durante piloto)
+- `docs/dev/storybook-guide.md` (novo) — guia uso/contribuição
+- `docs/adr/0055-storybook-design-system.md` (novo) — ADR
+- `package.json` — scripts `storybook` + `build-storybook`, devDeps Storybook 8.6
+- `.gitignore` — adicionar `storybook-static/`
+
+## Notas piloto Sprint 3 (entrega parcial)
+
+**Entregue:** Setup base + 5 stories piloto (Tokens, Button, Skeleton, SkeletonComposites, ModalTrigger). Cobertura atual ~15%.
+
+**Movido para backlog Sprint 4:**
+- AC3 — cobertura ≥80% dos componentes (~25 componentes restantes)
+- AC2 — publish via Vercel preview por PR (workflow criado como artifact-only, non-blocking)
+- AC4 — `CHANGELOG-DS.md` formal (Changesets)
+- AC5 — matrix maturity 4/5 documentada (`docs/design-system/maturity.md`)
+- Tokens canônicos em `src/tokens/*.ts` (atualmente vivem em `src/index.css @theme` — funciona, mas falta TS export)
+
+**Justificativa:** Story orçada em 24h; piloto entregue em ~6h. Restante (~18h) requer workshop com @ux-design-expert + design audit + 25 stories. Adequado para próximo sprint dedicado.
+
 ## Change Log
 - 2026-05-19 | @sm (River) | Story criada — Sprint 3 UX-018
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-21 | @ux-design-expert (Uma) | Piloto entregue: setup Storybook 8 + 5 stories + ADR-0055 + guide. typecheck + vite build + storybook build OK. Status: Ready → InReview. Cobertura ≥80% movida para backlog Sprint 4.
