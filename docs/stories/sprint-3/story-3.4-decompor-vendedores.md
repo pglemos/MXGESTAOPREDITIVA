@@ -1,6 +1,30 @@
 # Story 3.4 — Decompor `Vendedores` (~550 LOC)
 
-**Status:** Ready
+**Status:** InReview
+
+---
+
+## Reconciliação Spec (2026-05-21)
+
+A spec original aponta `src/pages/Vendedores.tsx` (~550 LOC), porém esse
+arquivo **NÃO EXISTE** no repositório. Após análise feita por @dev (Dex),
+o alvo real reconciliado é **`src/pages/VendedorHome.tsx` (523 LOC)** —
+cockpit de performance individual do vendedor (home logada).
+
+**Justificativa:** maior arquivo de página relacionado a vendedor, com
+estrutura monolítica (header + 8 seções), elegível ao mesmo tratamento
+ADR-0050 aplicado nas Stories 2.3, 2.4, 3.1, 3.2 reconciliada e 3.3
+reconciliada. Mantém o escopo (UX-001, Hardening), o esforço (~9-13h)
+e o débito alvo.
+
+**Diferenças de escopo execução vs. spec original:**
+- CRUD modal não se aplica (VendedorHome não tem CRUD)
+- AcoesEmMassa não se aplica
+- ListaVendedores → substituído por seções KPI / Ranking / Canais / Rotina
+- Demais ACs (Container <200, ErrorBoundary por section, paridade visual,
+  estrutura `features/`) preservados
+
+---
 **Epic:** EPIC-HARDENING-FOUNDATION
 **Sprint:** 3
 **Prioridade:** P2
@@ -83,3 +107,30 @@ Seguir ADR-0050. Guards de role permanecem no container; sections recebem dados 
 ## Change Log
 - 2026-05-18 | @sm (River) | Story criada
 - 2026-05-19 | @po (Pax) | Status: Draft → Ready | Validation: GO (10/10) | Sprint 3 critical-path: pass
+- 2026-05-21 | @dev (Dex) | Reconciliação Spec — alvo real `VendedorHome.tsx` (523 LOC). Status: Ready → InReview. Decomposição ADR-0050 concluída.
+
+## File List
+**Criados (`src/features/vendedor-home/`):**
+- `VendedorHome.container.tsx` (106 LOC)
+- `hooks/useVendedorHomePage.ts` (153 LOC)
+- `components/VendedorHomeErrorBoundary.tsx` (48 LOC)
+- `data/dailyRoutine.ts` (22 LOC)
+- `sections/VendedorHomeSkeleton.tsx` (50 LOC)
+- `sections/VendedorHomeHeader.tsx` (81 LOC)
+- `sections/RitualHojeCard.tsx` (57 LOC)
+- `sections/DailyCheckinBanner.tsx` (84 LOC)
+- `sections/TacticalPrescriptionBanner.tsx` (86 LOC)
+- `sections/MetricsCardsGrid.tsx` (62 LOC)
+- `sections/DisciplineCard.tsx` (78 LOC)
+- `sections/RankingSection.tsx` (248 LOC)
+- `sections/ChannelsMatrixCard.tsx` (111 LOC)
+- `sections/DailyRoutineCard.tsx` (67 LOC)
+- `sections/WeeklySprintAside.tsx` (93 LOC)
+
+**Modificado:**
+- `src/pages/VendedorHome.tsx` 523 → 7 LOC (re-export shim)
+
+**Métricas:**
+- Container: 106 LOC (<200 ✓)
+- Maior section: 248 LOC (<300 ✓)
+- typecheck: PASS, build: PASS (8.21s, VendedorHome chunk 73.26 kB)
