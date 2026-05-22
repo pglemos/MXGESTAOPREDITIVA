@@ -66,6 +66,7 @@ type ScheduleEventInput = {
   google_event_id_personal?: string | null;
   google_meet_link?: string | null;
   status?: string | null;
+  source_payload?: Record<string, unknown> | null;
 };
 
 type GoogleAttendee = { email: string; displayName?: string };
@@ -109,6 +110,7 @@ const SCHEDULE_EVENT_SYNC_SELECT = [
   "google_event_id_personal",
   "google_meet_link",
   "status",
+  "source_payload",
 ].join(",");
 
 function relationName(row: any, relation: string): string | null {
@@ -175,6 +177,7 @@ async function loadAuthorizedScheduleEvent(sessionClient: any, eventId: string):
     google_event_id_personal: data.google_event_id_personal ?? null,
     google_meet_link: data.google_meet_link ?? null,
     status: data.status ?? null,
+    source_payload: data.source_payload ?? null,
   };
 }
 
@@ -223,6 +226,28 @@ function buildMeetConferenceData(sourceKind: "visit" | "schedule_event", sourceI
       conferenceSolutionKey: { type: "hangoutsMeet" },
     },
   };
+}
+
+function getScheduleEventAdditionalAttendees(event: ScheduleEventInput): GoogleAttendee[] {
+  const payload = event.source_payload;
+  const rawAttendees = Array.isArray(payload?.google_attendees)
+    ? payload.google_attendees
+    : Array.isArray(payload?.associated_admins)
+    ? payload.associated_admins
+    : [];
+
+  return rawAttendees
+    .map((item): GoogleAttendee | null => {
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const email = typeof record.email === "string" ? record.email.trim() : "";
+      if (!email) return null;
+      return {
+        email,
+        displayName: typeof record.name === "string" ? record.name : undefined,
+      };
+    })
+    .filter((item): item is GoogleAttendee => Boolean(item));
 }
 
 function buildEventPayload(visit: VisitInput, attendees: GoogleAttendee[] = []): GoogleEventInput {
@@ -638,6 +663,7 @@ Deno.serve(async (req) => {
                 email: personalToken.googleEmail ?? scheduleEvent.responsible_email ?? "",
                 displayName: scheduleEvent.responsible_name ?? undefined,
               },
+              ...getScheduleEventAdditionalAttendees(scheduleEvent),
             ])
             : normalizeAttendees([
               { email: personalToken.googleEmail ?? visit?.consultant_email ?? CENTRAL_CALENDAR_EMAIL },
