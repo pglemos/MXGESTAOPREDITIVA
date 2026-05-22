@@ -75,6 +75,24 @@ function truncate(value: string | null | undefined, maxLength: number) {
   return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 }
 
+function transcriptExcerpt(transcriptText: string, maxLength = 50000) {
+  const text = transcriptText.trim();
+  if (text.length <= maxLength) return text;
+
+  const firstLength = Math.floor(maxLength * 0.4);
+  const middleLength = Math.floor(maxLength * 0.3);
+  const endLength = maxLength - firstLength - middleLength;
+  const middleStart = Math.max(0, Math.floor(text.length / 2) - Math.floor(middleLength / 2));
+
+  return [
+    text.slice(0, firstLength),
+    "\n\n[... TRECHO CENTRAL DA TRANSCRICAO ...]\n\n",
+    text.slice(middleStart, middleStart + middleLength),
+    "\n\n[... TRECHO FINAL DA TRANSCRICAO ...]\n\n",
+    text.slice(Math.max(0, text.length - endLength)),
+  ].join("");
+}
+
 function relationName(value: unknown): string | null {
   if (Array.isArray(value)) return typeof value[0]?.name === "string" ? value[0].name : null;
   return typeof (value as { name?: unknown } | null)?.name === "string" ? (value as { name: string }).name : null;
@@ -341,48 +359,70 @@ function buildAtaPrompt(sourceKind: SourceKind, source: VisitSource | ScheduleEv
   const company = sourceKind === "visit" ? relationName((source as VisitSource).client) : "Evento/Aula MX";
   const consultant = sourceKind === "visit" ? relationName((source as VisitSource).consultant) : (source as ScheduleEventSource).responsible_name;
   const objective = sourceKind === "visit" ? (source as VisitSource).objective : (source as ScheduleEventSource).topic;
+  const reportTitle =
+    sourceKind === "visit"
+      ? "RELATORIO DE VISITA TECNICA - METODO MX (ONLINE)"
+      : "RELATORIO DE REUNIAO ESTRATEGICA - METODO MX (ONLINE)";
 
   return [
-    "Gere uma ATA/RELATORIO DE REUNIAO MX a partir da transcricao oficial do Google Meet.",
-    "Use portugues do Brasil, tom executivo, consultivo, firme e claro.",
-    "Nao invente dados, numeros, nomes, responsaveis, decisoes ou prazos que nao estejam na transcricao ou nos metadados.",
-    "Quando algo nao estiver claro, registre como 'Nao informado' ou 'Ponto a validar'.",
-    "Mantenha a estrutura abaixo, com secoes bem formatadas e acionaveis.",
+    "Gere um relatorio executivo MX a partir da transcricao oficial do Google Meet.",
+    "O resultado precisa seguir o padrao de relatorio consultivo da MX: objetivo, diagnostico profundo, decisoes claras, plano de acao e texto pronto para WhatsApp.",
+    "Use portugues do Brasil, tom senior, direto, estrategico, consultivo e firme.",
+    "Priorize o que foi discutido de forma concreta. Extraia contexto, diagnosticos, riscos, decisoes, pendencias e proximas acoes.",
+    "Nao entregue resumo generico. Nao escreva frases vazias como 'foram discutidas melhorias' sem explicar quais melhorias.",
+    "Nao invente dados, numeros, nomes, responsaveis ou prazos. Se a decisao estiver clara mas o responsavel/prazo nao estiver, registre isso no item.",
+    "Nao crie datas futuras, cronogramas, SLAs, SSO, nomes de equipe ou responsaveis tecnicos se esses dados nao estiverem literalmente na transcricao.",
+    "No plano de acao, use 'Responsavel: a definir' e 'Prazo: a definir' quando a conversa nao amarrar uma pessoa/data especifica.",
+    "Em participantes, cite apenas quem falou ou foi claramente chamado para participar. Nao inclua autores, exemplos ou pessoas apenas citadas como referencia.",
+    "Evite usar 'Nao informado' em decisoes quando houver alinhamentos explicitos na conversa. Use 'Ponto a validar' somente para lacunas reais.",
+    "Se a reuniao for interna sobre produto/sistema, trate como Projeto MX Performance / Sistema de Consultoria.",
+    "Inclua no minimo 5 secoes analiticas antes do texto de WhatsApp.",
+    "Cada secao analitica deve ter bullets ricos, com fatos e implicacoes praticas. O plano de acao deve ser numerado.",
     "",
     "ESTRUTURA OBRIGATORIA:",
-    "ATA DE REUNIAO / RELATORIO DE VISITA TECNICA - METODO MX (ONLINE)",
-    "Empresa/Evento: {empresa ou titulo}",
+    reportTitle,
+    "Empresa/Projeto: {empresa, cliente, evento ou projeto}",
     "Data da Reuniao: {data}",
     "Consultor/Responsavel: {consultor}",
+    "Participantes identificados: {nomes citados ou identificaveis na transcricao}",
     "________________________________________",
     "OBJETIVO DA REUNIAO",
-    "{objetivo em um paragrafo}",
+    "{um paragrafo objetivo, com o motivo real da reuniao e o resultado esperado}",
     "________________________________________",
-    "1. CONTEXTO E PONTOS DISCUTIDOS",
-    "{principais assuntos, fatos e diagnosticos}",
+    "1. CONTEXTO E DIRECAO ESTRATEGICA",
+    "{bullets com a leitura de mercado, contexto do negocio, mudanca de direcao e principios definidos}",
     "________________________________________",
-    "2. DECISOES TOMADAS",
-    "{decisoes objetivas; se nao houver, escrever Nao informado}",
+    "2. DIAGNOSTICO DO PROBLEMA ATUAL",
+    "{bullets com gargalos, riscos, dores do cliente, limitacoes do sistema/processo atual e o impacto disso}",
     "________________________________________",
-    "3. PLANO DE ACAO",
-    "{lista numerada com acao, responsavel e prazo quando constarem na transcricao}",
+    "3. DEFINICOES DE PRODUTO, SISTEMA E EXPERIENCIA",
+    "{bullets com abas, modulos, regras, integracoes, visoes de dono/gerente/vendedor e UX definida}",
     "________________________________________",
-    "4. PONTOS DE ATENCAO",
-    "{riscos, gargalos, pendencias e alinhamentos necessarios}",
+    "4. DECISOES TOMADAS",
+    "{bullets com decisoes objetivas, sem marcar 'Nao informado' quando a transcricao demonstrar alinhamento}",
     "________________________________________",
-    "RESUMO PARA WHATSAPP",
-    "{mensagem curta para enviar ao grupo, profissional e direta}",
+    "5. PLANO DE ACAO URGENTE E INEGOCIAVEL",
+    "{lista numerada com acao, responsavel quando existir, prazo quando existir, e finalidade de cada acao}",
+    "________________________________________",
+    "6. PENDENCIAS E PONTOS DE ATENCAO",
+    "{bullets com riscos, dependencias externas, itens a validar e proximos alinhamentos}",
+    "________________________________________",
+    "Consultor MX {consultor}",
+    "________________________________________",
+    "TEXTO PARA ENVIAR NO GRUPO DE WHATSAPP",
+    "Assunto: Relatorio de Reuniao MX - {empresa/projeto} ({data})",
+    "{mensagem pronta, em tom executivo e motivador, com o cenario, decisoes e plano de acao em linguagem simples}",
     "",
     `Tipo: ${sourceKind === "visit" ? "Visita online" : "Aula/evento online"}`,
     `Titulo: ${truncate(title, 180)}`,
-    `Empresa/Evento: ${truncate(company, 180) || truncate(title, 180)}`,
+    `Empresa/Projeto: ${truncate(company, 180) || truncate(title, 180)}`,
     `Data: ${truncate(date, 80)}`,
     `Consultor/Responsavel: ${truncate(consultant, 180) || "Nao informado"}`,
     `Modalidade: ${truncate(modality, 80) || "Online"}`,
     `Objetivo/Tema: ${truncate(objective, 1000) || "Nao informado"}`,
     "",
     "TRANSCRICAO OFICIAL DO GOOGLE MEET:",
-    truncate(transcriptText, 24000),
+    transcriptExcerpt(transcriptText),
   ].join("\n");
 }
 
@@ -409,7 +449,7 @@ async function callOpenRouter(model: string, prompt: string) {
       ],
       temperature: 0.2,
       top_p: 0.9,
-      max_tokens: 2600,
+      max_tokens: 6500,
     }),
   });
 
@@ -425,20 +465,85 @@ async function callOpenRouter(model: string, prompt: string) {
   return text;
 }
 
+function normalizeForQualityCheck(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toUpperCase();
+}
+
+function generatedAtaQualityIssue(text: string, transcriptText: string, meetingDate: string) {
+  const normalized = text
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toUpperCase();
+  const normalizedTranscript = normalizeForQualityCheck(transcriptText);
+  const meetingDatePtBr = Number.isFinite(Date.parse(meetingDate))
+    ? new Date(meetingDate).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })
+    : "";
+
+  if (text.length < 4500) return "resposta curta demais para uma ata MX completa";
+  if (!normalized.includes("RELATORIO")) return "titulo de relatorio ausente";
+  if (!normalized.includes("OBJETIVO DA REUNIAO")) return "secao de objetivo ausente";
+  if (!normalized.includes("DIAGNOSTICO")) return "secao de diagnostico ausente";
+  if (!normalized.includes("DECISOES")) return "secao de decisoes ausente";
+  if (!normalized.includes("PLANO DE ACAO")) return "secao de plano de acao ausente";
+  if (!normalized.includes("WHATSAPP")) return "texto para WhatsApp ausente";
+
+  const dates = [...text.matchAll(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g)].map((match) => match[0]);
+  const inventedDate = dates.find((date) => date !== meetingDatePtBr && !transcriptText.includes(date));
+  if (inventedDate) return `data ou prazo nao encontrado na transcricao: ${inventedDate}`;
+
+  const guardedTerms = [
+    { label: "SSO", pattern: /\bSSO\b/ },
+    { label: "SLA", pattern: /\bSLA\b/ },
+    { label: "EQUIPE DE BACKEND", pattern: /EQUIPE DE BACKEND/ },
+    { label: "EQUIPE DE INTEGRACAO", pattern: /EQUIPE DE INTEGRACAO/ },
+    { label: "EQUIPE DE DADOS", pattern: /EQUIPE DE DADOS/ },
+  ];
+  const inventedTerm = guardedTerms.find((term) => term.pattern.test(normalized) && !term.pattern.test(normalizedTranscript))?.label;
+  if (inventedTerm) return `termo/responsavel nao encontrado na transcricao: ${inventedTerm}`;
+
+  return null;
+}
+
 async function generateAta(sourceKind: SourceKind, source: VisitSource | ScheduleEventSource, transcriptText: string) {
   let quota = await claimQuota();
   if (!quota) throw new Error("Daily OpenRouter free quota exhausted");
 
   const prompt = buildAtaPrompt(sourceKind, source, transcriptText);
   try {
-    const text = await callOpenRouter(quota.selected_model, prompt);
+    let text = await callOpenRouter(quota.selected_model, prompt);
+    let qualityIssue = generatedAtaQualityIssue(text, transcriptText, sourceDate(sourceKind, source));
+    if (!qualityIssue) return { text, quota };
+
+    if (quota.selected_model === fallbackModel) throw new Error(`Ata gerada fora do padrao MX: ${qualityIssue}`);
+
+    const fallbackQuota = await claimQuota(true);
+    if (!fallbackQuota || fallbackQuota.selected_model !== fallbackModel) throw new Error(`Ata gerada fora do padrao MX: ${qualityIssue}`);
+    quota = fallbackQuota;
+    text = await callOpenRouter(
+      quota.selected_model,
+      [
+        prompt,
+        "",
+        "ATENCAO: A tentativa anterior gerou uma ata curta/generica e foi rejeitada.",
+        `Motivo da rejeicao: ${qualityIssue}.`,
+        "Agora gere a ata completa no padrao MX, com profundidade, secoes obrigatorias e plano de acao real.",
+      ].join("\n"),
+    );
+    qualityIssue = generatedAtaQualityIssue(text, transcriptText, sourceDate(sourceKind, source));
+    if (qualityIssue) throw new Error(`Ata gerada fora do padrao MX: ${qualityIssue}`);
     return { text, quota };
   } catch (error) {
     const status = (error as Error & { status?: number }).status;
-    if (![429, 503].includes(status || 0) || quota.selected_model === fallbackModel) throw error;
-    quota = await claimQuota(true);
-    if (!quota || quota.selected_model !== fallbackModel) throw error;
+    if (![429, 503].includes(status || 0) || quota?.selected_model === fallbackModel) throw error;
+    const fallbackQuota = await claimQuota(true);
+    if (!fallbackQuota || fallbackQuota.selected_model !== fallbackModel) throw error;
+    quota = fallbackQuota;
     const text = await callOpenRouter(quota.selected_model, prompt);
+    const qualityIssue = generatedAtaQualityIssue(text, transcriptText, sourceDate(sourceKind, source));
+    if (qualityIssue) throw new Error(`Ata gerada fora do padrao MX: ${qualityIssue}`);
     return { text, quota };
   }
 }

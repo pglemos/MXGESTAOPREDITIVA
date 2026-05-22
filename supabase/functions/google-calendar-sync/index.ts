@@ -59,6 +59,9 @@ type ScheduleEventInput = {
   responsible_name?: string | null;
   responsible_email?: string | null;
   responsible_user_id?: string | null;
+  creator_name?: string | null;
+  creator_email?: string | null;
+  created_by?: string | null;
   ticket_price_text?: string | null;
   visit_reason?: string | null;
   product_name?: string | null;
@@ -103,6 +106,7 @@ const SCHEDULE_EVENT_SYNC_SELECT = [
   "audience_goal",
   "responsible_name",
   "responsible_user_id",
+  "created_by",
   "ticket_price_text",
   "visit_reason",
   "product_name",
@@ -111,12 +115,19 @@ const SCHEDULE_EVENT_SYNC_SELECT = [
   "google_meet_link",
   "status",
   "source_payload",
+  "creator:usuarios!consulting_schedule_events_created_by_fkey(name,email)",
 ].join(",");
 
 function relationName(row: any, relation: string): string | null {
   const value = row?.[relation];
   if (Array.isArray(value)) return value[0]?.name ?? null;
   return value?.name ?? null;
+}
+
+function relationEmail(row: any, relation: string): string | null {
+  const value = row?.[relation];
+  if (Array.isArray(value)) return value[0]?.email ?? null;
+  return value?.email ?? null;
 }
 
 async function loadAuthorizedVisit(sessionClient: any, visitId: string): Promise<VisitInput> {
@@ -170,6 +181,9 @@ async function loadAuthorizedScheduleEvent(sessionClient: any, eventId: string):
     audience_goal: data.audience_goal ?? null,
     responsible_name: data.responsible_name ?? null,
     responsible_user_id: data.responsible_user_id ?? null,
+    creator_name: relationName(data, "creator"),
+    creator_email: relationEmail(data, "creator"),
+    created_by: data.created_by ?? null,
     ticket_price_text: data.ticket_price_text ?? null,
     visit_reason: data.visit_reason ?? null,
     product_name: data.product_name ?? null,
@@ -248,6 +262,12 @@ function getScheduleEventAdditionalAttendees(event: ScheduleEventInput): GoogleA
       };
     })
     .filter((item): item is GoogleAttendee => Boolean(item));
+}
+
+function getScheduleEventCreatorAttendee(event: ScheduleEventInput): GoogleAttendee | null {
+  const email = event.creator_email?.trim();
+  if (!email) return null;
+  return { email, displayName: event.creator_name ?? undefined };
 }
 
 function buildEventPayload(visit: VisitInput, attendees: GoogleAttendee[] = []): GoogleEventInput {
@@ -663,6 +683,7 @@ Deno.serve(async (req) => {
                 email: personalToken.googleEmail ?? scheduleEvent.responsible_email ?? "",
                 displayName: scheduleEvent.responsible_name ?? undefined,
               },
+              getScheduleEventCreatorAttendee(scheduleEvent),
               ...getScheduleEventAdditionalAttendees(scheduleEvent),
             ])
             : normalizeAttendees([
