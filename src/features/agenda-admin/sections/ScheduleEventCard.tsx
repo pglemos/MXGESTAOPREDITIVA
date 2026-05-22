@@ -7,6 +7,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { cn } from '@/lib/utils'
 import type { AgendaScheduleEvent } from '@/hooks/agenda'
 import { getEventTypeLabel } from '../data/agendaHelpers'
+import { GoogleMeetArtifactsPanel } from '../components/GoogleMeetArtifactsPanel'
 
 interface ScheduleEventCardProps {
   event: AgendaScheduleEvent
@@ -92,6 +93,7 @@ export function ScheduleEventCard({ event, onEdit, onDelete }: ScheduleEventCard
           </Button>
         </div>
       </div>
+      <GoogleMeetArtifactsPanel artifact={event.meet_artifact} hasMeetLink={Boolean(event.google_meet_link)} />
     </Card>
   )
 }

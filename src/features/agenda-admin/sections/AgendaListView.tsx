@@ -8,6 +8,7 @@ import { VisitCard } from '@/components/organisms/VisitCard'
 import { cn } from '@/lib/utils'
 import type { AgendaScheduleEvent, AgendaVisit } from '@/hooks/agenda'
 import { ScheduleEventCard } from './ScheduleEventCard'
+import { GoogleMeetArtifactsPanel } from '../components/GoogleMeetArtifactsPanel'
 
 type GroupedItem = {
   date: Date
@@ -82,15 +83,17 @@ export function AgendaListView({
 
           <div className="space-y-mx-xs">
             {group.visits.map((visit) => (
-              <VisitCard
-                key={visit.id}
-                visit={visit}
-                onStart={onStartVisit}
-                onCancel={onCancelVisit}
-                onDelete={onDeleteVisit}
-                onEdit={onEditVisit}
-                linkTo={`/consultoria/clientes/${visit.client_slug}/visitas/${visit.visit_number}`}
-              />
+              <div key={visit.id} className="space-y-mx-xs">
+                <VisitCard
+                  visit={visit}
+                  onStart={onStartVisit}
+                  onCancel={onCancelVisit}
+                  onDelete={onDeleteVisit}
+                  onEdit={onEditVisit}
+                  linkTo={`/consultoria/clientes/${visit.client_slug}/visitas/${visit.visit_number}`}
+                />
+                <GoogleMeetArtifactsPanel artifact={visit.meet_artifact} hasMeetLink={Boolean(visit.google_meet_link)} />
+              </div>
             ))}
             {group.events.map((event) => (
               <ScheduleEventCard

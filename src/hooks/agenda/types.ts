@@ -17,6 +17,23 @@ export type AgendaVisit = ConsultingVisit & {
   client_status: string
   client_modality: string | null
   source_visit_code?: string | null
+  meet_artifact?: GoogleMeetArtifact | null
+}
+
+export type GoogleMeetArtifact = {
+  id: string
+  source_kind: 'visit' | 'schedule_event'
+  source_id: string
+  title: string | null
+  meeting_code: string | null
+  google_meet_link: string | null
+  transcript_state: string | null
+  transcript_text: string | null
+  ata_text: string | null
+  status: 'pending' | 'no_meet' | 'no_conference_record' | 'no_transcript' | 'transcript_not_ready' | 'processed' | 'failed'
+  error_message: string | null
+  processed_at: string | null
+  updated_at: string
 }
 
 export type AgendaScheduleEvent = {
@@ -44,6 +61,7 @@ export type AgendaScheduleEvent = {
   created_at: string
   updated_at: string
   responsible?: { name: string; email: string } | null
+  meet_artifact?: GoogleMeetArtifact | null
 }
 
 export type AgendaClient = {

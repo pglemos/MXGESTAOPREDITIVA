@@ -6,6 +6,7 @@ import { PMR_FOLLOW_UP_VISIT } from '@/lib/consultoria/pmr-visit-rules'
 import type {
   AgendaClient,
   AgendaConsultant,
+  GoogleMeetArtifact,
   AgendaProduct,
   AgendaScheduleEvent,
   AgendaVisit,
@@ -93,28 +94,67 @@ export function useAgendaEvents(): UseAgendaEventsReturn {
         .order('created_at', { ascending: false }),
     ])
 
+    let mappedVisits: AgendaVisit[] = []
+    let mappedEvents: AgendaScheduleEvent[] = []
+
     if (visitsRes.error) {
       setError(visitsRes.error.message)
       setVisits([])
     } else {
       const visitRows = (visitsRes.data || []) as VisitCalendarRow[]
-      const mapped = visitRows.map((v): AgendaVisit => ({
+      mappedVisits = visitRows.map((v): AgendaVisit => ({
         ...v,
         client_name: v.client?.name || 'Desconhecido',
         client_slug: v.client?.slug || v.client_id || 'cliente',
         client_status: v.client?.status || 'ativo',
         client_modality: v.client?.modality || null,
       }))
-      setVisits(mapped)
     }
 
     if (eventsRes.error) {
       setError((current) => current || eventsRes.error.message)
       setScheduleEvents([])
     } else {
-      const eventRows = (eventsRes.data || []) as AgendaScheduleEvent[]
-      setScheduleEvents(eventRows)
+      mappedEvents = (eventsRes.data || []) as AgendaScheduleEvent[]
     }
+
+    const sourceIds = [...mappedVisits.map((visit) => visit.id), ...mappedEvents.map((event) => event.id)]
+    if (sourceIds.length > 0) {
+      const { data: meetArtifacts } = await supabase
+        .from('reunioes_google_meet_atas')
+        .select(`
+          id,
+          source_kind,
+          source_id,
+          title,
+          meeting_code,
+          google_meet_link,
+          transcript_state,
+          transcript_text,
+          ata_text,
+          status,
+          error_message,
+          processed_at,
+          updated_at
+        `)
+        .in('source_id', sourceIds)
+
+      const artifactsBySource = new Map(
+        ((meetArtifacts || []) as GoogleMeetArtifact[]).map((artifact) => [`${artifact.source_kind}:${artifact.source_id}`, artifact]),
+      )
+
+      mappedVisits = mappedVisits.map((visit) => ({
+        ...visit,
+        meet_artifact: artifactsBySource.get(`visit:${visit.id}`) ?? null,
+      }))
+      mappedEvents = mappedEvents.map((event) => ({
+        ...event,
+        meet_artifact: artifactsBySource.get(`schedule_event:${event.id}`) ?? null,
+      }))
+    }
+
+    setVisits(mappedVisits)
+    setScheduleEvents(mappedEvents)
 
     setClients((clientsRes.data || []) as AgendaClient[])
     const loadedConsultants = (usersRes.data || []) as AgendaConsultant[]

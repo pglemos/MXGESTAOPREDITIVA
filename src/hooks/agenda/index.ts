@@ -10,6 +10,7 @@ export {
 export type {
   AgendaVisit,
   AgendaScheduleEvent,
+  GoogleMeetArtifact,
   AgendaClient,
   AgendaConsultant,
   AgendaProduct,
