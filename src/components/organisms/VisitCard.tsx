@@ -144,17 +144,17 @@ export function VisitCard({
 
           <div className="flex items-center gap-mx-xs shrink-0">
             {onEdit && visit.status !== 'concluida' && (
-              <Button variant="ghost" size="sm" className="text-brand-primary" onClick={() => onEdit(visit.id)} aria-label={`Editar visita de ${visit.client_name}`}>
+              <Button type="button" variant="ghost" size="sm" className="cursor-pointer text-brand-primary" onClick={() => onEdit(visit.id)} aria-label={`Editar visita de ${visit.client_name}`}>
                 <Pencil size={14} />
               </Button>
             )}
             {visit.status === 'agendada' && onStart && (
-              <Button variant="ghost" size="sm" className="text-status-info" onClick={() => onStart(visit.id)} aria-label={`Iniciar visita de ${visit.client_name}`}>
+              <Button type="button" variant="ghost" size="sm" className="cursor-pointer text-status-info" onClick={() => onStart(visit.id)} aria-label={`Iniciar visita de ${visit.client_name}`}>
                 <Play size={14} />
               </Button>
             )}
             {visit.status === 'agendada' && onCancel && (
-              <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onCancel(visit.id)} aria-label={`Cancelar visita de ${visit.client_name}`}>
+              <Button type="button" variant="ghost" size="sm" className="cursor-pointer text-status-error" onClick={() => onCancel(visit.id)} aria-label={`Cancelar visita de ${visit.client_name}`}>
                 <X size={14} />
               </Button>
             )}
@@ -172,7 +172,7 @@ export function VisitCard({
               </a>
             )}
             {visit.status === 'cancelada' && onDelete && (
-              <Button variant="ghost" size="sm" className="text-status-error" onClick={() => onDelete(visit.id)} aria-label={`Excluir visita de ${visit.client_name}`}>
+              <Button type="button" variant="ghost" size="sm" className="cursor-pointer text-status-error" onClick={() => onDelete(visit.id)} aria-label={`Excluir visita de ${visit.client_name}`}>
                 <Trash2 size={14} />
               </Button>
             )}

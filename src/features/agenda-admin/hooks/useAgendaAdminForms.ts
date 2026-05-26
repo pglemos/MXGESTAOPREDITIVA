@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { toast } from 'sonner'
 import { buildSaoPauloDateTime, type AgendaScheduleEvent, type AgendaVisit, type AgendaConsultant } from '@/hooks/agenda'
@@ -222,7 +222,7 @@ export function useAgendaAdminForms(deps: Deps) {
   const closeScheduleModal = () => { setShowScheduleModal(false); setEditingVisitId(null) }
   const closeEventModal = () => { setShowEventModal(false); setEditingEventId(null) }
 
-  return useMemo(() => ({
+  return {
     showScheduleModal, showEventModal, submitting,
     editingVisitId, editingEventId,
     scheduleForm, setScheduleForm,
@@ -231,8 +231,5 @@ export function useAgendaAdminForms(deps: Deps) {
     handleSubmitSchedule, handleSubmitEvent,
     handleCancelVisit, handleStartVisit, handleDeleteVisit, handleDeleteEvent,
     closeScheduleModal, closeEventModal,
-  }), [
-    showScheduleModal, showEventModal, submitting,
-    editingVisitId, editingEventId, scheduleForm, eventForm,
-  ])
+  }
 }
