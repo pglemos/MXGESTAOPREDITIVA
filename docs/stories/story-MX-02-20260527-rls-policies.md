@@ -2,7 +2,16 @@
 
 ## Status
 
-Draft (Wave-2) — **bloqueada por MX-2.1** (schema canônico de roles aplicado)
+🟡 **Parcialmente entregue (helpers) — 2026-05-27**
+
+Helpers SQL canônicos aplicados em produção (migration `20260527120000_role_rls_helpers.sql`):
+- `current_user_role_code(uid)` — code canônico do user (fallback automático para `usuarios.role` legado)
+- `current_user_role_codes(uid)` — array (combina `usuarios` + `vinculos_loja` M:N)
+- `user_has_role(text[], uid)` — match booleano
+- `user_has_min_hierarchy(smallint, uid)` — match hierárquico
+- `user_is_master_loja(loja_id, uid)` — Master da loja específica
+
+**Aguarda Wave-3:** policies finais nas tabelas score_*/usuarios/lojas (substituição das policies temporárias permissivas da MX-7.1 §10).
 
 ## Story
 
