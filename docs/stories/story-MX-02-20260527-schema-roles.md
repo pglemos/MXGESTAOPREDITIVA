@@ -2,7 +2,19 @@
 
 ## Status
 
-Draft
+✅ **Done** — aplicada em produção Supabase `fbhcmzzgwjdgkctlfvbo` em 2026-05-27 via Management API.
+
+### Resultado da aplicação real
+
+| Métrica | Valor |
+|---|---|
+| Roles catalogados | 11 (10 canônicos + `admin_mx` meta-role) |
+| Usuários mapeados via backfill | **241/241 (100%)** |
+| Tabela `roles` estendida | ✅ (6 colunas novas) |
+| Coluna `usuarios.role_id` | ✅ FK criada + populada |
+| Trigger Master por loja | ⏸️ Adiado (modelo M:N via `vinculos_loja` — story de follow-up) |
+| RLS + updated_at trigger | ✅ Ativos |
+| Registro em `supabase_migrations.schema_migrations` | ✅ |
 
 ## Story
 
