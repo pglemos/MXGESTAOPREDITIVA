@@ -51,7 +51,7 @@ async def run_test():
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        assert await frame.locator("xpath=//*[contains(., 'Dashboard')]").nth(0).is_visible(), "The application should display the Dashboard after login.",
+        assert await frame.locator("xpath=//*[contains(., 'Dashboard')]").nth(0).is_visible(), "The application should display the Dashboard after login."
         assert await frame.locator("xpath=//*[contains(., 'Admin')]").nth(0).is_visible(), "The admin navigation or controls should be visible after signing in as an admin."
         await asyncio.sleep(5)
 
