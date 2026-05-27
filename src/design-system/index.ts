@@ -6,3 +6,4 @@
  */
 
 export * from './tokens/colors'
+export { AlertCard, type AlertCardProps } from '@/components/molecules/AlertCard'
