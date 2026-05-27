@@ -2,9 +2,9 @@
 
 ## Status
 
-**🛑 Blocked — Aguarda decisão de branding (ver ADR-MX-002)**
+✅ **Unblocked (2026-05-27) — Opção B aprovada via ADR-MX-002**
 
-> Auditoria 2026-05-27 descobriu que `src/index.css` (1570 linhas) já implementa Design System Tailwind 4 maduro com marca **VERDE** (`--color-brand-primary: #22C55E`, identificada como "MX Brand — Green Identity"). PRD §5.2 NFR-V4 / `.docx` §362 prescreve **AZUL** como cor principal. Conflito não pode ser resolvido por @dev — exige decisão de produto/branding. Escalado via `docs/adr/ADR-MX-002-branding-color-decision.md`.
+> Escopo redefinido: estender DS verde existente (`src/index.css`, 1570 linhas, marca `#22C55E`) com tokens **faltantes** (faixas MX Score + alert.consultive). NÃO é rebrand. Story passa de S → S (escopo reduzido — tokens semânticos aditivos apenas).
 
 ## Story
 
@@ -24,19 +24,20 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - **Arquivo:** `docs/stories/epics/epic-mx-01-design-system-2026-05-27.md`
 - **PRD:** `docs/prd/prd-mx-performance-visao-estrutural-2026-05-27.md` §5.2 + §4.6 FR-ALERT-1 + §4.7 FR-SCORE-2
 
-## Acceptance Criteria
+## Acceptance Criteria (revisados pós-ADR-MX-002)
 
-- [ ] Arquivo `src/design-system/tokens/colors.ts` criado (ou caminho equivalente conforme estrutura existente — verificar se já há `src/styles/tokens/` ou similar)
-- [ ] Paleta primária **azul** exportada com escala de 50→900 (NFR-V4)
-- [ ] Neutros: `background` branco (NFR-V1), `surface`, `border`, `text-primary`, `text-secondary`, `text-muted`
-- [ ] Tokens semânticos de **alerta** (FR-ALERT-1): `alert.critical`, `alert.warning`, `alert.positive`, `alert.consultive`
-- [ ] Tokens semânticos de **faixa MX Score** (FR-SCORE-2): `score.elite` (90–100), `score.excellent` (80–89), `score.good` (70–79), `score.attention` (60–69), `score.critical` (<60)
-- [ ] Contrast ratio WCAG AA documentado em comentário JSDoc para cada token de cor sobre fundo branco
-- [ ] Re-export consolidado em `src/design-system/index.ts` (ou ponto de entrada equivalente)
-- [ ] Zero regressão em `npm run lint`
-- [ ] Zero regressão em `npm run typecheck`
-- [ ] Zero regressão em `npm test`
-- [ ] Build passa: `npm run build`
+- [ ] **Preservar** marca verde existente (`--color-brand-primary: #22C55E` em `src/index.css`)
+- [ ] **Adicionar** 5 tokens semânticos de **faixa MX Score** ao `@theme` em `src/index.css`:
+  - `--color-score-elite` (90–100, verde marca)
+  - `--color-score-excellent` (80–89, verde claro)
+  - `--color-score-good` (70–79, azul info reutilizado)
+  - `--color-score-attention` (60–69, âmbar/warning)
+  - `--color-score-critical` (<60, vermelho/error)
+- [ ] **Adicionar** token semântico de alerta consultivo: `--color-alert-consultive` + `--color-alert-consultive-surface`
+- [ ] Criar `src/design-system/tokens/colors.ts` espelhando tokens semânticos (alerta + score) para uso TS programático
+- [ ] Criar `src/design-system/index.ts` (barrel)
+- [ ] Tipos exportados: `AlertSemantic`, `ScoreBandSemantic`
+- [ ] Zero regressão em `npm run lint` / `typecheck` / `test` / `build`
 
 ## Tasks / Subtasks
 

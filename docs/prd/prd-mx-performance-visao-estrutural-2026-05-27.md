@@ -324,7 +324,7 @@ O sistema deve ser:
 | **NFR-V1** | Fundo branco |
 | **NFR-V2** | Cards arredondados |
 | **NFR-V3** | Design clean |
-| **NFR-V4** | Azul como cor principal |
+| **NFR-V4** | **Verde** como cor principal (`#22C55E`, ver ADR-MX-002) — diverge do `.docx` §362 ("azul") por decisão de produto em 2026-05-27 |
 | **NFR-V5** | Visual moderno SaaS |
 | **NFR-V6** | Alta legibilidade |
 | **NFR-V7** | Poucos gráficos — foco em cards e status |
@@ -344,7 +344,7 @@ O sistema deve ser:
 |---|---|
 | **Home dinâmica por perfil** | Cada um dos 10 perfis tem layout próprio (UX-P6) |
 | **Hierarquia visual** | Cards e status > gráficos (NFR-V7) |
-| **Cor primária azul** | Identidade SaaS moderna (NFR-V4) |
+| **Cor primária verde** | Identidade MX consolidada `#22C55E` (NFR-V4 atualizado — ver ADR-MX-002) |
 | **Densidade baixa** | Poucos cliques, evitar profundidade excessiva (UX-P2, NFR-Tech) |
 | **Foco em ação** | Toda tela deve sugerir próxima ação (UX-P4) |
 

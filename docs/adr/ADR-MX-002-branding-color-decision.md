@@ -1,7 +1,7 @@
 # ADR-MX-002 — Branding: Cor Primária (Verde vs Azul)
 
 **Data:** 2026-05-27
-**Status:** 🛑 **Pending Decision** — bloqueia Story MX-1.1
+**Status:** ✅ **Decided — Opção B (manter verde, atualizar PRD)** em 2026-05-27 pelo stakeholder
 **Decisor:** Stakeholder humano (Daniel / José / Mariane / Pedro) + @ux-design-expert
 **Stakeholders:** @pm, @dev, @aiox-master
 **Origem:** Story MX-1.1 (Tokens de cor) — auditoria identificou conflito
@@ -91,19 +91,25 @@ Como **agente arquitetural**, sem autoridade sobre branding, esta ADR **escala a
 - **Opção A é defensável** se houver alinhamento explícito com stakeholders de produto.
 - **Opção C é compromisso** — só faz sentido se houver razão estratégica para introduzir azul.
 
-## 5. Bloqueios
+## 5. Decisão tomada — Opção B (2026-05-27)
 
-- Story **MX-1.1** (Tokens de cor) está **🛑 Blocked** até decisão.
-- Stories que consomem tokens (1.3 a 1.7 do EPIC-MX-01) ficam aguardando.
-- EPIC-MX-03/04/05/12/13 (Homes + Dashboards) **não bloqueiam** — podem evoluir com tokens atuais.
+**Stakeholder aprovou: manter marca verde existente e atualizar PRD para refletir realidade.**
 
-## 6. Próxima ação
+### Consequências aplicadas nesta mesma data:
 
-Stakeholder humano (Daniel, José, Mariane ou Pedro) **decide** entre Opção A, B ou C. Após decisão:
+- ✅ PRD §5.2 NFR-V4 atualizado: "azul" → "verde (`#22C55E`)" com referência a este ADR
+- ✅ Story MX-1.1 **desbloqueada** com escopo redefinido: estender DS verde existente (não rebrand)
+- ✅ Componentes em produção (`MXScoreCard`, `KpisSection`, etc.) preservados — zero rebrand
+- ℹ️ `.docx` MX PERFORMANCE - DESENVOLVIMENTO permanece com "azul como cor principal" (§362) — divergência documentada aqui é canônica; uma futura revisão do `.docx` pode realinhar texto
+- ℹ️ Aplicar marca verde em quaisquer mockups novos / comunicação de produto
 
-- Se A: replanejar EPIC-MX-01 com escopo rebrand
-- Se B: atualizar PRD §5.2 NFR-V4 (mudar "azul" → "verde") + atualizar `.docx` em próxima iteração
-- Se C: redesenhar tokens com paleta dual
+## 6. Bloqueios resolvidos
+
+| Item | Antes | Depois |
+|---|---|---|
+| Story MX-1.1 | 🛑 Blocked | ✅ Unblocked — escopo aditivo (tokens score.* + alert.consultive faltantes) |
+| EPIC-MX-01 (Design System) | Pausado | Pode prosseguir |
+| Stories 1.3–1.7 (componentes) | Aguardando | Pode prosseguir após MX-1.1 |
 
 ---
 
