@@ -23,7 +23,7 @@ import { useConsultingMethodology } from '@/hooks/useConsultingClients'
 import { usePmrDiagnostics } from '@/hooks/usePmrDiagnostics'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
-import { cn } from '@/lib/utils'
+import { cn, slugify } from '@/lib/utils'
 import { downloadHtmlAsPdf } from '@/lib/pdf/downloadHtmlAsPdf'
 import { getPmrVisitDisplayLabel, isPmrSchedulableVisitNumber } from '@/lib/consultoria/pmr-visit-rules'
 import {
@@ -72,7 +72,12 @@ const VISIT_FLOW_STEPS = [
 ]
 
 function getErrorMessage(err: unknown) {
-  return err instanceof Error ? err.message : 'Operação não concluída.'
+  if (err instanceof Error) return err.message
+  if (typeof err === 'object' && err !== null && 'message' in err) {
+    const message = (err as { message?: unknown }).message
+    if (typeof message === 'string' && message.trim()) return message
+  }
+  return 'Operação não concluída.'
 }
 
 function isChecklistItem(item: unknown): item is ChecklistItem {
@@ -92,7 +97,8 @@ export default function ConsultoriaVisitaExecucao() {
   const { client, loading: clientLoading, refetch } = useConsultingClientDetailBySlug(clientSlug)
 
   const clientId = client?.id
-  const resolvedStoreId = client?.primary_store_id || client?.store_id || ''
+  const [fallbackStoreId, setFallbackStoreId] = useState('')
+  const resolvedStoreId = client?.primary_store_id || client?.store_id || fallbackStoreId || ''
 
   const { steps, loading: methodologyLoading } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
   const { templates, responsesByTemplate, saveResponse } = usePmrDiagnostics(clientId)
@@ -106,6 +112,43 @@ export default function ConsultoriaVisitaExecucao() {
       window.history.replaceState({}, '', `/consultoria/clientes/${client.slug}/visitas/${visitNumber}${window.location.search}`)
     }
   }, [client, clientSlug, visitNumber])
+
+  useEffect(() => {
+    if (!client || client.primary_store_id || client.store_id) {
+      setFallbackStoreId('')
+      return
+    }
+
+    let active = true
+    const resolveStoreByName = async () => {
+      const { data, error } = await supabase
+        .from('lojas')
+        .select('id,name')
+        .eq('active', true)
+
+      if (!active) return
+      if (error) {
+        if (import.meta.env.DEV) console.warn('Store fallback resolution failed:', error)
+        setFallbackStoreId('')
+        return
+      }
+
+      const clientNameSlug = slugify(client.name)
+      const clientSlugValue = client.slug ? slugify(client.slug) : clientNameSlug
+      const matchedStore = (data || []).find((store) => {
+        const storeSlug = slugify(store.name || '')
+        return storeSlug === clientNameSlug || storeSlug === clientSlugValue
+      })
+
+      setFallbackStoreId(matchedStore?.id || '')
+    }
+
+    void resolveStoreByName()
+
+    return () => {
+      active = false
+    }
+  }, [client])
 
   useEffect(() => {
     if (!client?.slug || isPmrSchedulableVisitNumber(visitNum)) return
@@ -183,31 +226,6 @@ export default function ConsultoriaVisitaExecucao() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files; if (!files || files.length === 0 || !visit) return
-    setIsUploading(true)
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        const fileExt = file.name.split('.').pop()
-        const filePath = `${clientId}/visita-${visitNum}/${Math.random().toString(36).substring(2)}.${fileExt}`
-        const { error: uploadError } = await supabase.storage.from('evidencias-consultoria').upload(filePath, file)
-        if (uploadError) throw uploadError
-        const { error: evidenceError } = await supabase.from('evidencias_visita').insert({
-          visita_id: visit.id,
-          tipo: file.type.startsWith('image/') ? 'foto' : 'anexo',
-          nome_arquivo: file.name,
-          caminho_storage: filePath,
-          content_type: file.type,
-          tamanho_bytes: file.size,
-          enviado_por: profile?.id || null,
-        })
-        if (evidenceError) throw evidenceError
-      }
-      toast.success('Evidências anexadas!'); refetch()
-    } catch (err) { toast.error(getErrorMessage(err)) } finally { setIsUploading(false) }
-  }
-
   const executeDeleteAttachment = async (file: ConsultingVisitAttachment) => {
     try {
       await supabase.storage.from('evidencias-consultoria').remove([file.storage_path])
@@ -237,10 +255,151 @@ export default function ConsultoriaVisitaExecucao() {
     return (attachments || []).length > 0
   }, [step?.evidence_required, attachments])
 
+  const buildVisitPayload = (): VisitDraftPayload => {
+    const hasValidAnalysisPeriod = isValidVisitAnalysisPeriod(analysisPeriodStart, analysisPeriodEnd)
+    return {
+      client_id: clientId, visit_number: visitNum, checklist_data: checklist,
+      executive_summary: executiveSummary, feedback_client: feedbackClient,
+      status: 'em_andamento',
+      meta_mensal: headerBase.meta_mensal, projecao: headerBase.projecao,
+      leads_mes: headerBase.leads_mes, estoque_disponivel: headerBase.estoque_disponivel,
+      analysis_period_start: hasValidAnalysisPeriod ? analysisPeriodStart : null,
+      analysis_period_end: hasValidAnalysisPeriod ? analysisPeriodEnd : null,
+      analysis_period_preset: hasValidAnalysisPeriod ? analysisPeriodPreset : null,
+      consultant_name_manual: headerBase.consultant_name,
+      effective_visit_date: headerBase.visit_date, quant_data: quantData,
+      next_cycle_goal: nextCycleGoal
+    }
+  }
+
+  const stripUnsupportedVisitColumns = (payload: VisitDraftPayload): VisitDraftPayload => {
+    const legacyPayload = { ...payload }
+    delete legacyPayload.consultant_name_manual
+    delete legacyPayload.effective_visit_date
+    delete legacyPayload.acknowledged_at
+    delete legacyPayload.acknowledged_by
+    delete legacyPayload.next_cycle_goal
+    delete legacyPayload.analysis_period_start
+    delete legacyPayload.analysis_period_end
+    delete legacyPayload.analysis_period_preset
+    delete legacyPayload.quant_data
+    return legacyPayload
+  }
+
+  const persistVisitPayload = async (payload: VisitDraftPayload) => {
+    if (!clientId) throw new Error('Cliente não identificado para salvar a visita.')
+
+    let savedVisitId = visit?.id
+    if (!savedVisitId) {
+      const { data: existingVisit, error: existingError } = await supabase
+        .from('visitas_consultoria')
+        .select('id')
+        .eq('client_id', clientId)
+        .eq('visit_number', visitNum)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (existingError) throw existingError
+      savedVisitId = existingVisit?.id
+    }
+
+    if (savedVisitId) {
+      const { data: updatedVisit, error: updateError } = await supabase
+        .from('visitas_consultoria')
+        .update(payload)
+        .eq('id', savedVisitId)
+        .select('id')
+        .single()
+      if (updateError) throw updateError
+      return updatedVisit?.id || savedVisitId
+    }
+
+    const scheduledAt = headerBase.visit_date || new Date().toISOString().slice(0, 10)
+    const { data: insertedVisit, error: insertError } = await supabase
+      .from('visitas_consultoria')
+      .insert({ ...payload, scheduled_at: scheduledAt })
+      .select('id')
+      .single()
+    if (insertError) throw insertError
+    return insertedVisit?.id
+  }
+
+  const saveVisitDraft = async () => {
+    const payload = buildVisitPayload()
+    let savedVisitId: string | undefined
+    try {
+      savedVisitId = await persistVisitPayload(payload)
+    } catch (error) {
+      const shouldRetryLegacyPayload =
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code?: unknown }).code === 'PGRST204'
+
+      if (!shouldRetryLegacyPayload) throw error
+      if (import.meta.env.DEV) console.warn('Schema mismatch detected, retrying without extended fields...')
+      savedVisitId = await persistVisitPayload(stripUnsupportedVisitColumns(payload))
+    }
+
+    if (!savedVisitId) throw new Error('Visita salva, mas não foi possível confirmar o identificador.')
+    return savedVisitId
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0 || !clientId) return
+    setIsUploading(true)
+    try {
+      const visitId = visit?.id || await saveVisitDraft()
+      const uploadedAttachments: ConsultingVisitAttachment[] = []
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const fileExt = file.name.split('.').pop()
+        const filePath = `${clientId}/visita-${visitNum}/${Math.random().toString(36).substring(2)}.${fileExt}`
+        const { error: uploadError } = await supabase.storage.from('evidencias-consultoria').upload(filePath, file)
+        if (uploadError) throw uploadError
+        const { data: evidence, error: evidenceError } = await supabase.from('evidencias_visita').insert({
+          visita_id: visitId,
+          tipo: file.type.startsWith('image/') ? 'foto' : 'anexo',
+          nome_arquivo: file.name,
+          caminho_storage: filePath,
+          content_type: file.type || 'application/octet-stream',
+          tamanho_bytes: file.size,
+          enviado_por: profile?.id || null,
+        }).select('id, nome_arquivo, tipo, caminho_storage, content_type, tamanho_bytes, created_at').single()
+        if (evidenceError) throw evidenceError
+        if (evidence) {
+          uploadedAttachments.push({
+            id: evidence.id,
+            filename: evidence.nome_arquivo || evidence.tipo || 'evidencia',
+            storage_path: evidence.caminho_storage,
+            content_type: evidence.content_type,
+            size_bytes: evidence.tamanho_bytes || 0,
+            uploaded_at: evidence.created_at,
+          })
+        }
+      }
+      if (uploadedAttachments.length) {
+        setAttachments(prev => [...prev, ...uploadedAttachments])
+      }
+      toast.success('Evidências anexadas!')
+      refetch()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
   const handleSave = async (complete: boolean = false) => {
     if (!clientId || !visitNum) return
     if (!isPmrSchedulableVisitNumber(visitNum)) {
       toast.error('O PMR trabalha com visitas de 1 a 7 e acompanhamento mensal.')
+      return
+    }
+    if (isUploading) {
+      toast.error('Aguarde o upload das evidências terminar.')
       return
     }
     if (!isValidVisitAnalysisPeriod(analysisPeriodStart, analysisPeriodEnd)) {
@@ -258,53 +417,9 @@ export default function ConsultoriaVisitaExecucao() {
 
     setIsSaving(true)
     try {
-      const payload: VisitDraftPayload = {
-        client_id: clientId, visit_number: visitNum, checklist_data: checklist,
-        executive_summary: executiveSummary, feedback_client: feedbackClient,
-        status: 'em_andamento',
-        meta_mensal: headerBase.meta_mensal, projecao: headerBase.projecao,
-        leads_mes: headerBase.leads_mes, estoque_disponivel: headerBase.estoque_disponivel,
-        analysis_period_start: analysisPeriodStart || null,
-        analysis_period_end: analysisPeriodEnd || null,
-        analysis_period_preset: analysisPeriodStart && analysisPeriodEnd ? analysisPeriodPreset : null,
-        consultant_name_manual: headerBase.consultant_name,
-        effective_visit_date: headerBase.visit_date, quant_data: quantData,
-        next_cycle_goal: nextCycleGoal
-      }
-
-      let savedVisitId = visit?.id
-      const { data: savedVisit, error } = await supabase
-        .from('visitas_consultoria')
-        .upsert(payload, { onConflict: 'client_id,visit_number' })
-        .select('id')
-        .single()
-      savedVisitId = savedVisit?.id || savedVisitId
-
-      if (error && (error.code === 'PGRST204' || error.message.includes('consultant_name_manual'))) {
-        if (import.meta.env.DEV) console.warn('Schema mismatch detected, retrying without extended fields...')
-        const legacyPayload = { ...payload }
-        delete legacyPayload.consultant_name_manual
-        delete legacyPayload.effective_visit_date
-        delete legacyPayload.acknowledged_at
-        delete legacyPayload.acknowledged_by
-        delete legacyPayload.next_cycle_goal
-        delete legacyPayload.analysis_period_start
-        delete legacyPayload.analysis_period_end
-        delete legacyPayload.analysis_period_preset
-
-        const { data: retryVisit, error: retryError } = await supabase
-          .from('visitas_consultoria')
-          .upsert(legacyPayload, { onConflict: 'client_id,visit_number' })
-          .select('id')
-          .single()
-        if (retryError) throw retryError
-        savedVisitId = retryVisit?.id || savedVisitId
-      } else if (error) {
-        throw error
-      }
+      const savedVisitId = await saveVisitDraft()
 
       if (complete) {
-        if (!savedVisitId) throw new Error('Visita salva, mas não foi possível confirmar o identificador para conclusão.')
         const { error: completeError } = await supabase.rpc('concluir_visita_consultoria', { p_visita_id: savedVisitId })
         if (completeError) throw completeError
       }

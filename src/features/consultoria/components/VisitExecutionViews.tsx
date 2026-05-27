@@ -13,7 +13,7 @@ import { Input } from '@/components/atoms/Input'
 import { Textarea } from '@/components/atoms/Textarea'
 import { useConsultingStrategicPlan } from '@/hooks/useConsultingStrategicPlan'
 import { useFeedbacks, usePDIs } from '@/hooks/useData'
-import { useTeam } from '@/hooks/useTeam'
+import { useSellersByStore } from '@/hooks/useTeam'
 import { cn } from '@/lib/utils'
 
 export function VisitTwoExecution({ clientId, clientSlug }: { clientId: string, clientSlug: string }) {
@@ -95,12 +95,13 @@ export function VisitThreeExecution() {
 }
 
 export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: string, onGenerateSummary: (t: string) => void }) {
-  const { sellers } = useTeam(storeId)
+  const { sellers, loading } = useSellersByStore(storeId)
   const { createFeedback } = useFeedbacks({ storeId })
   const [s, setS] = useState(false); const [v, setV] = useState(''); const [p, setP] = useState(''); const [a, setA] = useState(''); const [m, setM] = useState(0)
   const [funnel, setFunnel] = useState({ leads: 0, agd: 0, visit: 0, sale: 0 })
 
   const save = async () => {
+    if (!storeId) return toast.error('Vincule este cliente a uma loja antes de registrar devolutiva.')
     if (!v) return toast.error('Vendedor obrigatório')
     setS(true)
     try {
@@ -137,10 +138,15 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
           <div className="space-y-mx-md">
             <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Dados do Vendedor</Typography>
-            <select value={v} onChange={e => setV(e.target.value)} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold">
-              <option value="">Selecione o vendedor...</option>
+            <select value={v} onChange={e => setV(e.target.value)} disabled={!storeId || loading} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold disabled:opacity-60">
+              <option value="">{loading ? 'Carregando vendedores...' : 'Selecione o vendedor...'}</option>
               {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
+            {!storeId && (
+              <Typography variant="tiny" className="block text-status-error font-bold uppercase">
+                Cliente sem loja vinculada. Vincule a loja para listar apenas os vendedores dela.
+              </Typography>
+            )}
 
             <div className="grid grid-cols-2 gap-mx-sm">
               <div className="space-y-mx-xs">
@@ -182,7 +188,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
 }
 
 export function VisitFiveExecution({ storeId, onGenerateSummary }: { storeId: string, onGenerateSummary: (t: string) => void }) {
-  const { sellers } = useTeam(storeId)
+  const { sellers, loading } = useSellersByStore(storeId)
   const { createPDI } = usePDIs(storeId)
   const [isSaving, setIsSaving] = useState(false)
   const [sellerId, setSellerId] = useState('')
@@ -192,6 +198,7 @@ export function VisitFiveExecution({ storeId, onGenerateSummary }: { storeId: st
   const [notes, setNotes] = useState('')
 
   const handleSave = async () => {
+    if (!storeId) return toast.error('Vincule este cliente a uma loja antes de criar o PDI.')
     if (!sellerId || !goal6m || !action) return toast.error('Selecione o vendedor e preencha objetivo e ação')
     setIsSaving(true)
     try {
@@ -232,10 +239,15 @@ export function VisitFiveExecution({ storeId, onGenerateSummary }: { storeId: st
         <div className="space-y-mx-md">
           <div className="space-y-mx-xs">
             <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Vendedor / Gerente</Typography>
-            <select value={sellerId} onChange={e => setSellerId(e.target.value)} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold">
-              <option value="">Selecione...</option>
+            <select value={sellerId} onChange={e => setSellerId(e.target.value)} disabled={!storeId || loading} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold disabled:opacity-60">
+              <option value="">{loading ? 'Carregando vendedores...' : 'Selecione o vendedor...'}</option>
               {sellers.map(seller => <option key={seller.id} value={seller.id}>{seller.name}</option>)}
             </select>
+            {!storeId && (
+              <Typography variant="tiny" className="block text-status-error font-bold uppercase">
+                Cliente sem loja vinculada. Vincule a loja para listar apenas os vendedores dela.
+              </Typography>
+            )}
           </div>
           <div className="space-y-mx-xs">
             <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Objetivo em 6 meses</Typography>
