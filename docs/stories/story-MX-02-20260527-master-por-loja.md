@@ -2,7 +2,9 @@
 
 ## Status
 
-🟡 **Draft — bloqueada por decisão de produto** (ver §Decisão Pendente)
+✅ **Done — Opção B aprovada (2026-05-27)**
+
+Stakeholder aprovou **manter múltiplos Masters por loja** como modelo canônico. Nenhuma migration técnica necessária. PRD §3 atualizado para refletir realidade. Decisão formalizada em `docs/adr/ADR-MX-003-multiple-masters-per-loja.md`.
 
 ## Story
 

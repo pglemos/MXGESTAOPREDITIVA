@@ -81,7 +81,7 @@ O MX Performance explicitamente **NÃO É**:
 
 | # | Perfil | Responsabilidades |
 |---|---|---|
-| 1 | **Master / Dono** | Acesso total, visão estratégica, libera acessos |
+| 1 | **Master / Dono** | Acesso total, visão estratégica, libera acessos. **Uma loja pode ter 1 ou mais Masters** (sócios) — ver ADR-MX-003. |
 | 2 | **Diretor / Sócio** | Visão executiva |
 | 3 | **Gerente Comercial** | Gestão da equipe comercial, execução operacional |
 | 4 | **Vendedor** | Rotina operacional, metas, agenda, desenvolvimento |
