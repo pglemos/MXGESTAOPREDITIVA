@@ -7,3 +7,5 @@
 
 export * from './tokens/colors'
 export { AlertCard, type AlertCardProps } from '@/components/molecules/AlertCard'
+export { ScoreBandBadge, type ScoreBandBadgeProps } from '@/components/molecules/ScoreBandBadge'
+// NOTE: StatusBadge (genérico) é re-exportado do path original, não daqui — APIs distintas.
