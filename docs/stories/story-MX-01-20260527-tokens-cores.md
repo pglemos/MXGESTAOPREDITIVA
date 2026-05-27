@@ -36,7 +36,7 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - [ ] **Adicionar** token semântico de alerta consultivo: `--color-alert-consultive` + `--color-alert-consultive-surface`
 - [ ] Criar `src/design-system/tokens/colors.ts` espelhando tokens semânticos (alerta + score) para uso TS programático
 - [ ] Criar `src/design-system/index.ts` (barrel)
-- [ ] Tipos exportados: `AlertSemantic`, `ScoreBandSemantic`
+- [x] Tipos exportados: `AlertSemantic`, `ScoreBandSemantic` + objetos `alertTokens`, `scoreBandTokens` (lazy, lê CSS var em runtime) + helper `classifyScore(value)`
 - [ ] Zero regressão em `npm run lint` / `typecheck` / `test` / `build`
 
 ## Tasks / Subtasks

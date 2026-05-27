@@ -39,7 +39,7 @@ O sistema deve cumprir 6 funções nucleares:
 ### 1.3 Princípio Final
 
 > "O MX deve funcionar como **consultor operacional inteligente para lojas automotivas**. O sistema deve detectar, orientar, cobrar, acompanhar e evoluir. E NÃO apenas armazenar dados."
-
+>
 > Fonte: `.docx` §377–§387
 
 ### 1.4 Posicionamento (NÃO-Goals)

@@ -1,4 +1,4 @@
-# Story MX-7.1 - Schema de Score (3 tabelas + observação consultiva)
+# Story MX-7.1 - Schema de Score (4 tabelas: inputs, calculations, history, observations)
 
 ## Status
 
