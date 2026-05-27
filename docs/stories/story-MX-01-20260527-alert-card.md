@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft (Wave-2) — aguarda ADR-MX-002 (cor) e MX-1.2 (tipografia)
+✅ **Done (2026-05-27)** — ADR-MX-002 aprovada (Opção B verde), componente implementado em `src/components/molecules/AlertCard.tsx`, 11 testes pass, exposto via `src/design-system/index.ts`.
 
 ## Story
 
