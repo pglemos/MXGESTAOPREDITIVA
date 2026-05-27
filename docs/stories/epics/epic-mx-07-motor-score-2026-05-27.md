@@ -35,7 +35,7 @@ O `.docx` (§241–§264) e o PRD §4.7 definem o MX Score como pilar do produto
 
 | AC | Critério |
 |---|---|
-| **AC-01** | Schema persistente em Supabase com tabelas `score_inputs`, `score_calculations`, `score_history` |
+| **AC-01** | Schema persistente em Supabase com 4 tabelas: `score_inputs`, `score_calculations`, `score_history`, `score_observations` |
 | **AC-02** | Engine de cálculo determinístico (regras fixas, rule-based, sem LLM) implementado em camada de serviço |
 | **AC-03** | Agregação correta nas 4 camadas (loja ← depto ← individual ← processos) com testes de propriedade |
 | **AC-04** | Dimensões Resultado/Processo/Disciplina computadas e ponderadas conforme regras documentadas |

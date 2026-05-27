@@ -39,7 +39,7 @@ Esses requisitos foram codificados como **NFR-V1 a NFR-V7** no PRD-mestre §5.2.
 
 | AC | Critério |
 |---|---|
-| **AC-01** | Tokens de cor publicados (paleta azul primária + neutros + status crítico/atenção/positivo/consultivo conforme FR-ALERT-1) |
+| **AC-01** | Tokens de cor publicados (paleta verde `#22C55E` (ADR-MX-002) primária + neutros + status crítico/atenção/positivo/consultivo conforme FR-ALERT-1) |
 | **AC-02** | Tokens de tipografia, espaçamento e raios definidos (cards arredondados — NFR-V2) |
 | **AC-03** | Componentes base implementados: `Card`, `KpiCard`, `AlertCard`, `StatusBadge`, `MetricNumber`, `EmptyState`, `SkeletonCard` |
 | **AC-04** | Guia de uso (Storybook ou MDX) documentando cada componente com exemplos |
@@ -55,7 +55,7 @@ Esses requisitos foram codificados como **NFR-V1 a NFR-V7** no PRD-mestre §5.2.
 
 | Story | Título | Resumo |
 |---|---|---|
-| **1.1** | Tokens — paleta de cores | Publicar `tokens/colors.ts` com primária azul, neutros, status |
+| **1.1** | Tokens — paleta de cores | Publicar `tokens/colors.ts` com primária verde `#22C55E` (ADR-MX-002), neutros, status |
 | **1.2** | Tokens — tipografia e espaçamento | Definir escala tipográfica e spacing system |
 | **1.3** | Componente Card base | `Card` com variantes (default, elevated, interactive) |
 | **1.4** | Componente KpiCard | KPI numérico + label + delta opcional |

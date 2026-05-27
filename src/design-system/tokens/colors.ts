@@ -79,7 +79,9 @@ export const scoreBandTokens = {
  *   classifyScore(45) // 'critical'
  */
 export function classifyScore(value: number): ScoreBandSemantic {
-  if (value >= 90) return 'elite'
+  // Defensive: trata NaN, valores negativos e > 100 como 'critical' (faixa mais baixa)
+  if (!Number.isFinite(value) || value < 0) return 'critical'
+  if (value >= 90) return value <= 100 ? 'elite' : 'elite' // > 100 ainda elite
   if (value >= 80) return 'excellent'
   if (value >= 70) return 'good'
   if (value >= 60) return 'attention'

@@ -368,7 +368,7 @@ O sistema deve ser:
 
 | Epic ID | Título | Escopo Resumido |
 |---|---|---|
-| **EPIC-MX-01** | Fundação Visual & Design System | Tokens (azul, branco, cards arredondados), tipografia, componentes base (NFR-V1 a NFR-V7) |
+| **EPIC-MX-01** | Fundação Visual & Design System | Tokens (verde `#22C55E` — NFR-V4, branco, cards arredondados), tipografia, componentes base (NFR-V1 a NFR-V7) |
 | **EPIC-MX-02** | Sistema de Perfis & Permissões | 10 perfis, autorização, libera acessos pelo Master |
 | **EPIC-MX-03** | Home Dono / Diretor | FR-HOME-1 (KPIs + blocos + alertas-driven) |
 | **EPIC-MX-04** | Home Gerente Comercial | FR-HOME-2 (cobrança/acompanhamento/execução) |
