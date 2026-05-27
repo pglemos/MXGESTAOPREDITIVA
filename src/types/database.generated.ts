@@ -67,6 +67,132 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_channels: {
+        Row: {
+          alert_id: string
+          channel: Database["public"]["Enums"]["alert_channel"]
+          created_at: string
+          delivered_at: string | null
+          error: string | null
+          id: string
+          metadata: Json | null
+          sent_at: string | null
+        }
+        Insert: {
+          alert_id: string
+          channel: Database["public"]["Enums"]["alert_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+        }
+        Update: {
+          alert_id?: string
+          channel?: Database["public"]["Enums"]["alert_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_channels_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          id: string
+          impact: string
+          metadata: Json | null
+          problem: string
+          quick_action_label: string | null
+          recommendation: string
+          resolved_at: string | null
+          resolved_by: string | null
+          rule_version: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          impact: string
+          metadata?: Json | null
+          problem: string
+          quick_action_label?: string | null
+          recommendation: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rule_version: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status?: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          impact?: string
+          metadata?: Json | null
+          problem?: string
+          quick_action_label?: string | null
+          recommendation?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          rule_version?: string
+          scope_id?: string
+          scope_type?: Database["public"]["Enums"]["score_scope_type"]
+          status?: Database["public"]["Enums"]["alert_status"]
+          type?: Database["public"]["Enums"]["alert_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       arquivos_drive_consultoria: {
         Row: {
           client_id: string
@@ -388,6 +514,69 @@ export type Database = {
           target_roles?: string[] | null
           time_to_trigger?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      benchmark_snapshots: {
+        Row: {
+          computation_version: string
+          computed_at: string
+          id: string
+          loja_id: string
+          loja_percentile: number | null
+          loja_rank: number | null
+          loja_value: number
+          metric_code: string
+          peer_avg: number | null
+          peer_bottom: number | null
+          peer_count: number
+          peer_filter: Json | null
+          peer_group: Database["public"]["Enums"]["benchmark_peer_group"]
+          peer_median: number | null
+          peer_p25: number | null
+          peer_p75: number | null
+          peer_top: number | null
+          period: string
+        }
+        Insert: {
+          computation_version: string
+          computed_at?: string
+          id?: string
+          loja_id: string
+          loja_percentile?: number | null
+          loja_rank?: number | null
+          loja_value: number
+          metric_code: string
+          peer_avg?: number | null
+          peer_bottom?: number | null
+          peer_count: number
+          peer_filter?: Json | null
+          peer_group: Database["public"]["Enums"]["benchmark_peer_group"]
+          peer_median?: number | null
+          peer_p25?: number | null
+          peer_p75?: number | null
+          peer_top?: number | null
+          period: string
+        }
+        Update: {
+          computation_version?: string
+          computed_at?: string
+          id?: string
+          loja_id?: string
+          loja_percentile?: number | null
+          loja_rank?: number | null
+          loja_value?: number
+          metric_code?: string
+          peer_avg?: number | null
+          peer_bottom?: number | null
+          peer_count?: number
+          peer_filter?: Json | null
+          peer_group?: Database["public"]["Enums"]["benchmark_peer_group"]
+          peer_median?: number | null
+          peer_p25?: number | null
+          peer_p75?: number | null
+          peer_top?: number | null
+          period?: string
         }
         Relationships: []
       }
@@ -3976,6 +4165,93 @@ export type Database = {
           },
         ]
       }
+      planos_acao: {
+        Row: {
+          acao: string
+          como: string | null
+          concluido_at: string | null
+          created_at: string
+          created_by: string | null
+          departamento: string
+          eficacia_nota: string | null
+          eficacia_score: number | null
+          id: string
+          indicador: string
+          origem: Database["public"]["Enums"]["action_origin"]
+          origem_ref_id: string | null
+          origem_ref_table: string | null
+          prazo: string | null
+          prioridade: Database["public"]["Enums"]["action_priority"]
+          problema: string
+          responsavel_id: string | null
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status: Database["public"]["Enums"]["action_status"]
+          updated_at: string
+        }
+        Insert: {
+          acao: string
+          como?: string | null
+          concluido_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          departamento: string
+          eficacia_nota?: string | null
+          eficacia_score?: number | null
+          id?: string
+          indicador: string
+          origem: Database["public"]["Enums"]["action_origin"]
+          origem_ref_id?: string | null
+          origem_ref_table?: string | null
+          prazo?: string | null
+          prioridade?: Database["public"]["Enums"]["action_priority"]
+          problema: string
+          responsavel_id?: string | null
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status?: Database["public"]["Enums"]["action_status"]
+          updated_at?: string
+        }
+        Update: {
+          acao?: string
+          como?: string | null
+          concluido_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          departamento?: string
+          eficacia_nota?: string | null
+          eficacia_score?: number | null
+          id?: string
+          indicador?: string
+          origem?: Database["public"]["Enums"]["action_origin"]
+          origem_ref_id?: string | null
+          origem_ref_table?: string | null
+          prazo?: string | null
+          prioridade?: Database["public"]["Enums"]["action_priority"]
+          problema?: string
+          responsavel_id?: string | null
+          scope_id?: string
+          scope_type?: Database["public"]["Enums"]["score_scope_type"]
+          status?: Database["public"]["Enums"]["action_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planos_acao_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planos_acao_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pre_cadastros_loja: {
         Row: {
           approval_note: string | null
@@ -6132,6 +6408,35 @@ export type Database = {
       }
     }
     Functions: {
+      ack_alert: {
+        Args: { p_alert_id: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          id: string
+          impact: string
+          metadata: Json | null
+          problem: string
+          quick_action_label: string | null
+          recommendation: string
+          resolved_at: string | null
+          resolved_by: string | null
+          rule_version: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "alerts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_archive_store: { Args: { p_store_id: string }; Returns: Json }
       admin_create_store: { Args: { p_payload: Json }; Returns: Json }
       admin_restore_store: { Args: { p_store_id: string }; Returns: Json }
@@ -6292,6 +6597,37 @@ export type Database = {
         Returns: boolean
       }
       create_pdi_session_bundle: { Args: { p_payload: Json }; Returns: string }
+      current_user_role_code: { Args: { uid?: string }; Returns: string }
+      current_user_role_codes: { Args: { uid?: string }; Returns: string[] }
+      dismiss_alert: {
+        Args: { p_alert_id: string; p_reason?: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          id: string
+          impact: string
+          metadata: Json | null
+          problem: string
+          quick_action_label: string | null
+          recommendation: string
+          resolved_at: string | null
+          resolved_by: string | null
+          rule_version: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "alerts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       eh_admin_master_mx: { Args: { uid?: string }; Returns: boolean }
       eh_administrador_mx: { Args: { uid?: string }; Returns: boolean }
       eh_area_interna_mx: { Args: { uid?: string }; Returns: boolean }
@@ -6302,6 +6638,24 @@ export type Database = {
       gerar_recomendacoes_desenvolvimento_pdi: {
         Args: { p_sessao_id: string }
         Returns: number
+      }
+      get_benchmark: {
+        Args: {
+          p_loja_id: string
+          p_metric_code: string
+          p_peer_group?: Database["public"]["Enums"]["benchmark_peer_group"]
+          p_period?: string
+        }
+        Returns: {
+          computed_at: string
+          loja_percentile: number
+          loja_rank: number
+          loja_value: number
+          peer_avg: number
+          peer_count: number
+          peer_median: number
+          peer_top: number
+        }[]
       }
       get_correlation_id: { Args: never; Returns: string }
       get_lancamento_por_dia: {
@@ -6646,6 +7000,35 @@ export type Database = {
         Args: { request_id: string }
         Returns: undefined
       }
+      resolve_alert: {
+        Args: { p_alert_id: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          id: string
+          impact: string
+          metadata: Json | null
+          problem: string
+          quick_action_label: string | null
+          recommendation: string
+          resolved_at: string | null
+          resolved_by: string | null
+          rule_version: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "alerts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       send_broadcast_notification: {
         Args: {
           p_link?: string
@@ -6665,8 +7048,37 @@ export type Database = {
         Returns: boolean
       }
       update_my_profile: { Args: { p_updates: Json }; Returns: Json }
+      user_has_min_hierarchy: {
+        Args: { p_min: number; uid?: string }
+        Returns: boolean
+      }
+      user_has_role: {
+        Args: { p_codes: string[]; uid?: string }
+        Returns: boolean
+      }
+      user_is_master_loja: {
+        Args: { p_loja_id: string; uid?: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      action_origin: "alertas" | "score" | "consultor" | "manual"
+      action_priority: "baixa" | "media" | "alta" | "critica"
+      action_status:
+        | "pendente"
+        | "em_andamento"
+        | "atrasado"
+        | "concluido"
+        | "validando_eficacia"
+      alert_channel: "system" | "push" | "whatsapp"
+      alert_status: "open" | "acknowledged" | "resolved" | "dismissed"
+      alert_type: "critical" | "warning" | "positive" | "consultive"
+      benchmark_peer_group:
+        | "regiao"
+        | "porte"
+        | "segmento"
+        | "melhores"
+        | "mercado"
       checkin_scope: "daily" | "adjustment" | "historical"
       correction_status: "pending" | "approved" | "rejected"
       score_band: "elite" | "excellent" | "good" | "attention" | "critical"
@@ -6799,6 +7211,25 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      action_origin: ["alertas", "score", "consultor", "manual"],
+      action_priority: ["baixa", "media", "alta", "critica"],
+      action_status: [
+        "pendente",
+        "em_andamento",
+        "atrasado",
+        "concluido",
+        "validando_eficacia",
+      ],
+      alert_channel: ["system", "push", "whatsapp"],
+      alert_status: ["open", "acknowledged", "resolved", "dismissed"],
+      alert_type: ["critical", "warning", "positive", "consultive"],
+      benchmark_peer_group: [
+        "regiao",
+        "porte",
+        "segmento",
+        "melhores",
+        "mercado",
+      ],
       checkin_scope: ["daily", "adjustment", "historical"],
       correction_status: ["pending", "approved", "rejected"],
       score_band: ["elite", "excellent", "good", "attention", "critical"],
